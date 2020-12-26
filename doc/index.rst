@@ -117,5 +117,6 @@ This library is licensed under **Apache License 2.0**.
 
    ChangeLog/index
    License
+   Glossary
    genindex
    py-modindex

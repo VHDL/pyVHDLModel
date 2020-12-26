@@ -1,0 +1,19 @@
+# Python cache and object files
+__pycache__/
+*.py[cod]
+
+# Python installation packages
+dist/
+
+# Coverage.py
+.coverage
+.cov
+coverage.xml
+
+# Sphinx
+doc/_build/
+doc/pyVHDLModel/**/*.*
+!doc/pyVHDLModel/index.rst
+
+# IntelliJ project files
+/.idea/workspace.xml

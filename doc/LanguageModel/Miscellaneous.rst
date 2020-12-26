@@ -16,22 +16,22 @@ sourcecode files (documents). Sourcecode files are compiled into libraries. Thus
 a design has the two child nodes: ``Libraries`` and ``Documents``. Each is a
 :class:`list`.
 
-**Condensed definition of class** :class:`~pyVHDLParser.VHDLModel.Design`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Design`:
 
 .. code-block:: Python
 
-   @Export
+   @export
    class Design(ModelEntity):
-     _libraries :  List =  []    #: List of all libraries defined for a design
-     _documents :  List =  []    #: List of all documents loaded for a design
+     _libraries:  List['Library']  #: List of all libraries defined for a design
+     _documents:  List['Document'] #: List of all documents loaded for a design
 
      def __init__(self):
 
      @property
-     def Libraries(self):
+     def Libraries(self) -> List['Library']:
 
      @property
-     def Documents(self):
+     def Documents(self) -> List['Document']:
 
 
 
@@ -44,30 +44,30 @@ A library contains multiple *design units*. Each design unit listed in a library
 is a *primary* design unit like: ``configuration``, ``entity``, ``package`` or
 ``context``.
 
-**Condensed definition of class** :class:`~pyVHDLParser.VHDLModel.Library`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Library`:
 
 .. code-block:: Python
 
-   @Export
+   @export
    class Library(ModelEntity):
-     _contexts :       List =  None    #: List of all contexts defined in a library.
-     _configurations : List =  None    #: List of all configurations defined in a library.
-     _entities :       List =  None    #: List of all entities defined in a library.
-     _packages :       List =  None    #: List of all packages defined in a library.
+     _contexts:       List['Context']        #: List of all contexts defined in a library.
+     _configurations: List['Configuration']  #: List of all configurations defined in a library.
+     _entities:       List['Entity']         #: List of all entities defined in a library.
+     _packages:       List['Package']        #: List of all packages defined in a library.
 
      def __init__(self):
 
      @property
-     def Context(self):
+     def Contexts(self) -> List['Context']:
 
      @property
-     def Configurations(self):
+     def Configurations(self) -> List['Configuration']:
 
      @property
-     def Entities(self):
+     def Entities(self) -> List['Entity']:
 
      @property
-     def Packages(self):
+     def Packages(self) -> List['Package']:
 
 
 
@@ -86,35 +86,39 @@ object, because design unit contexts are consumed by the design units. See the
 ``Libraries`` and ``Uses`` fields of each design unit to investigate the consumed
 contexts.
 
-**Condensed definition of class** :class:`~pyVHDLParser.VHDLModel.Document`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Document`:
 
 .. code-block:: Python
 
-   @Export
+   @export
    class Document(ModelEntity):
-     _contexts :       List =  None    #: List of all contexts defined in a document.
-     _configurations : List =  None    #: List of all configurations defined in a document.
-     _entities :       List =  None    #: List of all entities defined in a document.
-     _architectures :  List =  None    #: List of all architectures defined in a document.
-     _packages :       List =  None    #: List of all packages defined in a document.
-     _packageBodies :  List =  None    #: List of all package bodies defined in a document.
+     _path:           Path                   #: path to the document. ``None`` if virtual document.
+     _contexts:       List['Context']        #: List of all contexts defined in a document.
+     _configurations: List['Configuration']  #: List of all configurations defined in a document.
+     _entities:       List['Entity']         #: List of all entities defined in a document.
+     _architectures:  List['Architecture']   #: List of all architectures defined in a document.
+     _packages:       List['Package']        #: List of all packages defined in a document.
+     _packageBodies:  List['PackageBody']    #: List of all package bodies defined in a document.
 
-     def __init__(self):
-
-     @property
-     def Contexts(self):
+     def __init__(self, path: Path):
 
      @property
-     def Configurations(self):
+     def Path(self) -> Path:
 
      @property
-     def Entities(self):
+     def Contexts(self) -> List['Context']:
 
      @property
-     def Architectures(self):
+     def Configurations(self) -> List['Configuration']:
 
      @property
-     def Packages(self):
+     def Entities(self) -> List['Entity']:
 
      @property
-     def PackageBodies(self):
+     def Architectures(self) -> List['Architecture']:
+
+     @property
+     def Packages(self) -> List['Package']:
+
+     @property
+     def PackageBodies(self) -> List['PackageBody']:

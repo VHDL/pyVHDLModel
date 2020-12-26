@@ -146,8 +146,8 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
 	( master_doc,
-	  'pyVHDLParser.tex',
-	  'The pyVHDLParser Documentation',
+		'pyVHDLModel.tex',
+		'The pyVHDLModel Documentation',
 		'Patrick Lehmann',
 		'manual'
 	),

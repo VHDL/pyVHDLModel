@@ -5,23 +5,23 @@ Interface Items
 
 Interface items are used in generic, port and parameter declarations.
 
-* :class:`~pyVHDLParser.VHDLModel.GenericInterfaceItem`
+* :class:`~pyVHDLModel.VHDLModel.GenericInterfaceItem`
 
-  * :class:`~pyVHDLParser.VHDLModel.GenericConstantInterfaceItem`
-  * :class:`~pyVHDLParser.VHDLModel.GenericTypeInterfaceItem`
-  * :class:`~pyVHDLParser.VHDLModel.GenericSubprogramInterfaceItem`
-  * :class:`~pyVHDLParser.VHDLModel.GenericPackageInterfaceItem`
+  * :class:`~pyVHDLModel.VHDLModel.GenericConstantInterfaceItem`
+  * :class:`~pyVHDLModel.VHDLModel.GenericTypeInterfaceItem`
+  * :class:`~pyVHDLModel.VHDLModel.GenericSubprogramInterfaceItem`
+  * :class:`~pyVHDLModel.VHDLModel.GenericPackageInterfaceItem`
 
-* :class:`~pyVHDLParser.VHDLModel.PortInterfaceItem`
+* :class:`~pyVHDLModel.VHDLModel.PortInterfaceItem`
 
-  * :class:`~pyVHDLParser.VHDLModel.PortSignalInterfaceItem`
+  * :class:`~pyVHDLModel.VHDLModel.PortSignalInterfaceItem`
 
-* :class:`~pyVHDLParser.VHDLModel.ParameterInterfaceItem`
+* :class:`~pyVHDLModel.VHDLModel.ParameterInterfaceItem`
 
-  * :class:`~pyVHDLParser.VHDLModel.ParameterConstantInterfaceItem`
-  * :class:`~pyVHDLParser.VHDLModel.ParameterVariableInterfaceItem`
-  * :class:`~pyVHDLParser.VHDLModel.ParameterSignalInterfaceItem`
-  * :class:`~pyVHDLParser.VHDLModel.ParameterFileInterfaceItem`
+  * :class:`~pyVHDLModel.VHDLModel.ParameterConstantInterfaceItem`
+  * :class:`~pyVHDLModel.VHDLModel.ParameterVariableInterfaceItem`
+  * :class:`~pyVHDLModel.VHDLModel.ParameterSignalInterfaceItem`
+  * :class:`~pyVHDLModel.VHDLModel.ParameterFileInterfaceItem`
 
 
 Generic Interface Item
@@ -34,7 +34,7 @@ GenericConstantInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLParser.VHDLModel.GenericConstantInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.GenericConstantInterfaceItem`:
 
 .. code-block:: Python
 
@@ -50,7 +50,7 @@ GenericTypeInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLParser.VHDLModel.GenericTypeInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.GenericTypeInterfaceItem`:
 
 .. code-block:: Python
 
@@ -66,7 +66,7 @@ GenericSubprogramInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLParser.VHDLModel.GenericSubprogramInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.GenericSubprogramInterfaceItem`:
 
 .. code-block:: Python
 
@@ -82,7 +82,7 @@ GenericPackageInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLParser.VHDLModel.GenericPackageInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.GenericPackageInterfaceItem`:
 
 .. code-block:: Python
 
@@ -102,7 +102,7 @@ PortSignalInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLParser.VHDLModel.PortSignalInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.PortSignalInterfaceItem`:
 
 .. code-block:: Python
 
@@ -121,7 +121,7 @@ ParameterConstantInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLParser.VHDLModel.ParameterConstantInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ParameterConstantInterfaceItem`:
 
 .. code-block:: Python
 
@@ -137,7 +137,7 @@ ParameterVariableInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLParser.VHDLModel.ParameterVariableInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ParameterVariableInterfaceItem`:
 
 .. code-block:: Python
 
@@ -153,7 +153,7 @@ ParameterSignalInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLParser.VHDLModel.ParameterSignalInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ParameterSignalInterfaceItem`:
 
 .. code-block:: Python
 
@@ -169,7 +169,7 @@ ParameterFileInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLParser.VHDLModel.ParameterFileInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ParameterFileInterfaceItem`:
 
 .. code-block:: Python
 

@@ -3,7 +3,7 @@
 sphinx>=3.4.1
 
 # Sphinx Extenstions
-sphinx.ext.coverage
+#sphinx.ext.coverage
 #sphinxcontrib-actdiag>=0.8.5
 #sphinxcontrib-seqdiag>=0.8.5
 #sphinxcontrib-textstyle>=0.2.1

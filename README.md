@@ -5,8 +5,8 @@
 [![GitHub release date](https://img.shields.io/github/release-date/vhdl/pyVHDLModel?logo=GitHub&)](https://github.com/vhdl/pyVHDLModel/releases)
 [![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/pypi/pyVHDLModel?logo=GitHub)](https://github.com/vhdl/pyVHDLModel/network/dependents)  
 [![GitHub Workflow Build Status](https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Test%20and%20Coverage?label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF)](https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22)
-[![Codacy - Quality](https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?logo=Codacy)](https://www.codacy.com/manual/vhdl/pyVHDLModel)
-[![Codacy - Coverage](https://img.shields.io/codacy/coverage/2286426d2b11417e90010427b7fed8e7?logo=Codacy)](https://www.codacy.com/manual/vhdl/pyVHDLModel)
+[![Codacy - Quality](https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?logo=Codacy)](https://www.codacy.com/manual/VHDL/pyVHDLModel)
+[![Codacy - Coverage](https://img.shields.io/codacy/coverage/2286426d2b11417e90010427b7fed8e7?logo=Codacy)](https://www.codacy.com/manual/VHDL/pyVHDLModel)
 [![Codecov - Branch Coverage](https://img.shields.io/codecov/c/github/vhdl/pyVHDLModel?logo=Codecov)](https://codecov.io/gh/vhdl/pyVHDLModel)
 [![Libraries.io SourceRank](https://img.shields.io/librariesio/sourcerank/pypi/pyVHDLModel)](https://libraries.io/github/vhdl/pyVHDLModel/sourcerank)  
 [![GitHub Workflow Release Status](https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Release?label=Release&logo=GitHub%20Actions&logoColor=FFFFFF)](https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Release%22)
@@ -32,13 +32,14 @@ frontends.
 
 
 ## Use Cases
-### pyVHDLModel Generators
+**pyVHDLModel Generators**
 * High-level API for [GHDL's](https://github.com/ghdl/ghdl) `libghdl` offered via `pyghdl`.
 * Code Document-Object-Model (Code-DOM) in [pyVHDLParser](https://github.com/Paebbels/pyVHDLParser).
 
-### pyVHDLModel Consumers
-* [Symbolator](https://github.com/kevinpt/symbolator)
-
+**pyVHDLModel Consumers**
+* Create graphical views of VHDL files or designs.  
+	Possible candidates: [Symbolator](https://github.com/kevinpt/symbolator)
+* Created a (re)formatted output of VHDL.
 
 
 ## License

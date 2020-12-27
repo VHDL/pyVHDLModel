@@ -109,20 +109,20 @@
    :height: 22
    :target: https://github.com/vhdl/pyVHDLModel/network/dependents
 
-.. |SHIELD:svg:pyVHDLModel-codacy-quality| image:: https://img.shields.io/codacy/grade/7e4e452a037d4e6b83d2cb6d5db8e9a1?logo=codacy
+.. |SHIELD:svg:pyVHDLModel-codacy-quality| image:: https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?logo=codacy
    :alt: Codacy - Quality
    :height: 22
    :target: https://www.codacy.com/manual/vhdl/pyVHDLModel
-.. |SHIELD:png:pyVHDLModel-codacy-quality| image:: https://raster.shields.io/codacy/grade/7e4e452a037d4e6b83d2cb6d5db8e9a1?logo=codacy
+.. |SHIELD:png:pyVHDLModel-codacy-quality| image:: https://raster.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?logo=codacy
    :alt: Codacy - Quality
    :height: 22
    :target: https://www.codacy.com/manual/vhdl/pyVHDLModel
 
-.. |SHIELD:svg:pyVHDLModel-codacy-coverage| image:: https://img.shields.io/codacy/coverage/7e4e452a037d4e6b83d2cb6d5db8e9a1?logo=codacy
+.. |SHIELD:svg:pyVHDLModel-codacy-coverage| image:: https://img.shields.io/codacy/coverage/2286426d2b11417e90010427b7fed8e7?logo=codacy
    :alt: Codacy - Line Coverage
    :height: 22
    :target: https://www.codacy.com/manual/vhdl/pyVHDLModel
-.. |SHIELD:png:pyVHDLModel-codacy-coverage| image:: https://raster.shields.io/codacy/coverage/7e4e452a037d4e6b83d2cb6d5db8e9a1?logo=codacy
+.. |SHIELD:png:pyVHDLModel-codacy-coverage| image:: https://raster.shields.io/codacy/coverage/2286426d2b11417e90010427b7fed8e7?logo=codacy
    :alt: Codacy - Line Coverage
    :height: 22
    :target: https://www.codacy.com/manual/vhdl/pyVHDLModel

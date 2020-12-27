@@ -38,7 +38,7 @@ def _LatestTagName():
 
 # The full version, including alpha/beta/rc tags
 version = "0.7"     # The short X.Y version.
-release = "0.7.0"   # The full version, including alpha/beta/rc tags.
+release = "0.7.1"   # The full version, including alpha/beta/rc tags.
 try:
 	if _IsUnderGitControl:
 		latestTagName = _LatestTagName()[1:]		# remove prefix "v"
@@ -97,7 +97,7 @@ html_theme_options = {
 html_context = {}
 ctx = Path(__file__).resolve().parent / 'context.json'
 if ctx.is_file():
-    html_context.update(loads(ctx.open('r').read()))
+	html_context.update(loads(ctx.open('r').read()))
 
 html_theme_path = ["."]
 html_theme = "_theme"

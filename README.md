@@ -10,8 +10,8 @@
 [![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/pypi/pyVHDLModel)](https://github.com/vhdl/pyVHDLModel/network/dependents)  
 [![Libraries.io status for latest release](https://img.shields.io/librariesio/release/pypi/pyVHDLModel)](https://libraries.io/github/vhdl/pyVHDLModel)
 [![Requires.io](https://img.shields.io/requires/github/vhdl/pyVHDLModel)](https://requires.io/github/vhdl/pyVHDLModel/requirements/?branch=master)  
-[![Codacy - Quality](https://img.shields.io/codacy/grade/1155f244b6f54a3a95abdaa80d6771f8?logo=Codacy)](https://www.codacy.com/manual/vhdl/pyVHDLModel)
-[![Codacy - Coverage](https://img.shields.io/codacy/coverage/1155f244b6f54a3a95abdaa80d6771f8?logo=Codacy)](https://www.codacy.com/manual/vhdl/pyVHDLModel)
+[![Codacy - Quality](https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?logo=Codacy)](https://www.codacy.com/manual/vhdl/pyVHDLModel)
+[![Codacy - Coverage](https://img.shields.io/codacy/coverage/2286426d2b11417e90010427b7fed8e7?logo=Codacy)](https://www.codacy.com/manual/vhdl/pyVHDLModel)
 [![Codecov - Branch Coverage](https://img.shields.io/codecov/c/github/vhdl/pyVHDLModel?logo=Codecov)](https://codecov.io/gh/vhdl/pyVHDLModel)
 [![Libraries.io SourceRank](https://img.shields.io/librariesio/sourcerank/pypi/pyVHDLModel)](https://libraries.io/github/vhdl/pyVHDLModel/sourcerank)  
 [![Read the Docs](https://img.shields.io/readthedocs/pyvhdlmodel)](https://pyVHDLModel.readthedocs.io/en/latest/)
@@ -20,14 +20,19 @@
 
 An abstract VHDL language model written in Python.
 
-## Introduction
-*tbd*
+## Main Goals
+This package provides a unified abstract language model for VHDL. Projects reading
+from source files can derive own classes and implement additional logic to create
+a concrete language model for their tools.
 
-### Main Goals
-*tbd*
+Projects consuming pre-processed VHDL data (parsed, analyzed or elaborated) can
+build higher level features and services on such a model, while supporting multiple
+frontends.
 
-### Use Cases
-*tbd*
+
+## Use Cases
+* High-level API for GHDL's `libghdl` offered via `pyghdl`.
+* Code Document-Object-Model (Code-DOM) in `pyVHDLParser`.
 
 
 

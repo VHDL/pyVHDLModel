@@ -1,0 +1,19 @@
+name: Documentation
+
+on: [push]
+
+jobs:
+  BuildTheDocs:
+    name: Run BuildTheDocs and publish to GH-Pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: buildthedocs/btd@v0
+        with:
+          token: ${{ github.token }}
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: doc
+          path: doc/_build/html

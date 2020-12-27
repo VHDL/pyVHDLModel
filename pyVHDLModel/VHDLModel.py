@@ -224,14 +224,29 @@ class Type(BaseType):
 
 @export
 class SubType(BaseType):
-	_type: Type
+	_type:               'SubType'
+	_baseType:           Type
+	_range:              'Range'
+	_resolutionFunction: 'Function'
 
 	def __init__(self, name: str):
 		super().__init__(name)
 
 	@property
-	def Type(self) -> Type:
+	def Type(self) -> 'SubType':
 		return self._type
+
+	@property
+	def BaseType(self) -> Type:
+		return self._baseType
+
+	@property
+	def Range(self) -> 'Range':
+		return self._range
+
+	@property
+	def ResolutionFunction(self) -> 'Function':
+		return self._resolutionFunction
 
 
 @export

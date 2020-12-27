@@ -1,13 +1,12 @@
-import sys, re
-from os.path import abspath
-from pathlib import Path
-from json import dump, loads
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-import os
+
 import sys
+from os.path import abspath
+from pathlib import Path
+from json    import dump, loads
+
 sys.path.insert(0, abspath('.'))
 sys.path.insert(0, abspath('..'))
 sys.path.insert(0, abspath('../pyVHDLModel'))

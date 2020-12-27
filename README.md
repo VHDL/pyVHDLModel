@@ -9,7 +9,7 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyVHDLModel?logo=PyPI)
 [![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/pypi/pyVHDLModel)](https://github.com/vhdl/pyVHDLModel/network/dependents)  
 [![Libraries.io status for latest release](https://img.shields.io/librariesio/release/pypi/pyVHDLModel)](https://libraries.io/github/vhdl/pyVHDLModel)
-[![Requires.io](https://img.shields.io/requires/github/vhdl/pyVHDLModel)](https://requires.io/github/vhdl/pyVHDLModel/requirements/?branch=main)  
+[![Requires.io](https://img.shields.io/requires/github/VHDL/pyVHDLModel)](https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main)  
 [![Codacy - Quality](https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?logo=Codacy)](https://www.codacy.com/manual/vhdl/pyVHDLModel)
 [![Codacy - Coverage](https://img.shields.io/codacy/coverage/2286426d2b11417e90010427b7fed8e7?logo=Codacy)](https://www.codacy.com/manual/vhdl/pyVHDLModel)
 [![Codecov - Branch Coverage](https://img.shields.io/codecov/c/github/vhdl/pyVHDLModel?logo=Codecov)](https://codecov.io/gh/vhdl/pyVHDLModel)

@@ -62,20 +62,11 @@
 .. |SHIELD:svg:pyVHDLModel-req-status| image:: https://img.shields.io/requires/github/vhdl/pyVHDLModel
    :alt: Requires.io
    :height: 22
-   :target: https://requires.io/github/vhdl/pyVHDLModel/requirements/?branch=master
+   :target: https://requires.io/github/vhdl/pyVHDLModel/requirements/?branch=main
 .. |SHIELD:png:pyVHDLModel-req-status| image:: https://raster.shields.io/requires/github/vhdl/pyVHDLModel
    :alt: Requires.io
    :height: 22
-   :target: https://requires.io/github/vhdl/pyVHDLModel/requirements/?branch=master
-
-.. |SHIELD:svg:pyVHDLModel-travis| image:: https://img.shields.io/travis/com/vhdl/pyVHDLModel?logo=Travis
-   :alt: Travis - Build on 'master'
-   :height: 22
-   :target: https://travis-ci.com/vhdl/pyVHDLModel
-.. |SHIELD:png:pyVHDLModel-travis| image:: https://raster.shields.io/travis/com/vhdl/pyVHDLModel?logo=Travis
-   :alt: Travis - Build on 'master'
-   :height: 22
-   :target: https://travis-ci.com/vhdl/pyVHDLModel
+   :target: https://requires.io/github/vhdl/pyVHDLModel/requirements/?branch=main
 
 .. |SHIELD:svg:pyVHDLModel-pypi-tag| image:: https://img.shields.io/pypi/v/pyVHDLModel?logo=PyPI
    :alt: PyPI - Tag

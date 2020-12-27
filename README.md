@@ -9,7 +9,7 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyVHDLModel?logo=PyPI)
 [![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/pypi/pyVHDLModel)](https://github.com/vhdl/pyVHDLModel/network/dependents)  
 [![Libraries.io status for latest release](https://img.shields.io/librariesio/release/pypi/pyVHDLModel)](https://libraries.io/github/vhdl/pyVHDLModel)
-[![Requires.io](https://img.shields.io/requires/github/vhdl/pyVHDLModel)](https://requires.io/github/vhdl/pyVHDLModel/requirements/?branch=master)  
+[![Requires.io](https://img.shields.io/requires/github/vhdl/pyVHDLModel)](https://requires.io/github/vhdl/pyVHDLModel/requirements/?branch=main)  
 [![Codacy - Quality](https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?logo=Codacy)](https://www.codacy.com/manual/vhdl/pyVHDLModel)
 [![Codacy - Coverage](https://img.shields.io/codacy/coverage/2286426d2b11417e90010427b7fed8e7?logo=Codacy)](https://www.codacy.com/manual/vhdl/pyVHDLModel)
 [![Codecov - Branch Coverage](https://img.shields.io/codecov/c/github/vhdl/pyVHDLModel?logo=Codecov)](https://codecov.io/gh/vhdl/pyVHDLModel)
@@ -31,9 +31,12 @@ frontends.
 
 
 ## Use Cases
-* High-level API for GHDL's `libghdl` offered via `pyghdl`.
-* Code Document-Object-Model (Code-DOM) in `pyVHDLParser`.
+### pyVHDLModel Generators
+* High-level API for [GHDL's](https://github.com/ghdl/ghdl) `libghdl` offered via `pyghdl`.
+* Code Document-Object-Model (Code-DOM) in [pyVHDLParser](https://github.com/Paebbels/pyVHDLParser).
 
+### pyVHDLModel Consumers
+* [Symbolator](https://github.com/kevinpt/symbolator)
 
 
 

@@ -20,14 +20,19 @@
 
 An abstract VHDL language model written in Python.
 
-## Introduction
-*tbd*
+## Main Goals
+This package provides a unified abstract language model for VHDL. Projects reading
+from source files can derive own classes and implement additional logic to create
+a concrete language model for their tools.
 
-### Main Goals
-*tbd*
+Projects consuming pre-processed VHDL data (parsed, analyzed or elaborated) can
+build higher level features and services on such a model, while supporting multiple
+frontends.
 
-### Use Cases
-*tbd*
+
+## Use Cases
+* High-level API for GHDL's `libghdl` offered via `pyghdl`.
+* Code Document-Object-Model (Code-DOM) in `pyVHDLParser`.
 
 
 

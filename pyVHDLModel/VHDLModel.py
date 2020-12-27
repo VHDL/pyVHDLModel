@@ -71,7 +71,7 @@ class NamedEntity:
 
 
 @export
-class LabledEntity:
+class LabeledEntity:
 	_label: str
 
 	def __init__(self, label: str):
@@ -998,10 +998,10 @@ class FunctionMethod(Function, Method):
 
 
 @export
-class Statement(ModelEntity, LabledEntity):
+class Statement(ModelEntity, LabeledEntity):
 	def __init__(self, label: str = None):
 		super().__init__()
-		LabledEntity.__init__(self, label)
+		LabeledEntity.__init__(self, label)
 
 
 @export

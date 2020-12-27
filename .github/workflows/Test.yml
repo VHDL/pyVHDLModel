@@ -1,6 +1,6 @@
 name: Test and Coverage
 
-on: [push]
+on: [ push ]
 
 jobs:
   Test:
@@ -78,7 +78,7 @@ jobs:
           coverage-reports: ./coverage.xml
 
   TriggerNext:
-    name: Collect coverage data
+    name: Trigger next Workflows
     needs: [Test, Coverage]
     runs-on: ubuntu-latest
     env:
@@ -88,7 +88,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags')
         uses: peter-evans/repository-dispatch@v1
         with:
-          token: ${{ secrets.TRIGGER_TOKEN }}
-          repository: vhdl/pyVHDLModel
+          token: ${{ secrets.TRIGGER_TOKEN_2 }}
+#          repository: vhdl/pyVHDLModel
           event-type: doRelease
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "PYTHON": "${{ env.PYTHON }}"}'

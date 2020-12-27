@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   Test:
-    name: Test
+    name: Unit Tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -33,17 +33,17 @@ jobs:
           python -m unittest tests.unit.Instantiate
 
   Coverage:
-    name: Collect coverage data
+    name: Collect Coverage Data
     runs-on: ubuntu-latest
     env:
       PYTHON: 3.8
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Python ${{ matrix.python-version }}
+      - name: Setup Python ${{ env.PYTHON }}
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ env.PYTHON }}
 
       - name: Install dependencies
         run: |

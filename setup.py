@@ -46,11 +46,11 @@ with open("requirements.txt") as file:
 projectName = "pyVHDLModel"
 
 github_url =  "https://github.com/vhdl/" + projectName
-rtd_url =     "https://" + projectName + ".readthedocs.io/en/latest/"
+rtd_url =     "https://vhdl.github.io/" + projectName
 
 setuptools.setup(
 	name=projectName,
-	version="0.7.2",
+	version="0.7.3",
 
 	author="Patrick Lehmann",
 	author_email="Paebbels@gmail.com",
@@ -70,16 +70,12 @@ setuptools.setup(
 	# download_url="https://github.com/vhdl/pyVHDLModel/tarball/0.1.0",
 
 	packages=setuptools.find_packages(),
-	# entry_points={
-	# 	'console_scripts': [
-	# 		"VHDLParser = pyVHDLParser.CLI.VHDLParser:main"
-	# 	]
-	# },
 	classifiers=[
 		"License :: OSI Approved :: Apache Software License",
 		"Operating System :: OS Independent",
 		"Programming Language :: Python :: 3 :: Only",
 		"Programming Language :: Python :: 3.8",
+		"Programming Language :: Python :: 3.9",
    "Development Status :: 3 - Alpha",
 #		"Development Status :: 5 - Production/Stable",
 		"Intended Audience :: Developers",
@@ -89,6 +85,4 @@ setuptools.setup(
 
 	python_requires='>=3.8',
 	install_requires=requirements,
-	# provides=
-	# obsoletes=
 )

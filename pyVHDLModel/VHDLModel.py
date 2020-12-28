@@ -104,18 +104,24 @@ class Design(ModelEntity):
 
 @export
 class Library(ModelEntity):
+	_name:           str                    #: Library name
 	_contexts:       List['Context']        #: List of all contexts defined in a library.
 	_configurations: List['Configuration']  #: List of all configurations defined in a library.
 	_entities:       List['Entity']         #: List of all entities defined in a library.
 	_packages:       List['Package']        #: List of all packages defined in a library.
 
-	def __init__(self):
+	def __init__(self, name: str):
 		super().__init__()
 
+		self._name =            name
 		self._contexts =        []
 		self._configurations =  []
 		self._entities =        []
 		self._packages =        []
+
+	@property
+	def Name(self) -> str:
+		return self._name
 
 	@property
 	def Contexts(self) -> List['Context']:

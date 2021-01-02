@@ -37,6 +37,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # ==============================================================================
 #
+"""
+This module contains a document language model for VHDL.
+"""
 # load dependencies
 from enum               import Enum
 from pathlib            import Path
@@ -45,21 +48,38 @@ from typing             import Any, List
 from pydecor.decorators import export
 
 __all__ = []
-__api__ = __all__
+#__api__ = __all__ # FIXME: disabled due to a bug in pydecors export decorator
 
 
 @export
 class ModelEntity:
+	"""
+	``ModelEntity`` is a base class for all classes in the VHDL language model,
+	except for mixin classes (see multiple inheritance) and enumerations.
+
+	Each entity in this model has a reference to its parent entity. Therefore
+	a protected variable :attr:`_parent` is available and a readonly property
+	:attr:`Parent`.
+	"""
+	_parent: 'ModelEntity'
+
 	def __init__(self):
 		self._parent = None
 
 	@property
 	def Parent(self) -> 'ModelEntity':
+		"""Returns a reference to the parent entity."""
 		return self._parent
 
 
 @export
 class NamedEntity:
+	"""
+	A ``NamedEntity`` is a mixin class for all VHDL entities that have names.
+
+	A protected variable :attr:`_name` is available to derived classes as well as
+	a readonly property :attr:`Name` for public access.
+	"""
 	_name: str
 
 	def __init__(self, name: str):
@@ -67,11 +87,19 @@ class NamedEntity:
 
 	@property
 	def Name(self) -> str:
+		"""Returns a model entity's name."""
 		return self._name
 
 
 @export
 class LabeledEntity:
+	"""
+	A ``LabeledEntity`` is a mixin class for all VHDL entities that can have
+	labels.
+
+	A protected variable :attr:`_label` is available to derived classes as well
+	as a readonly property :attr:`Label` for public access.
+	"""
 	_label: str
 
 	def __init__(self, label: str):
@@ -79,11 +107,17 @@ class LabeledEntity:
 
 	@property
 	def Label(self) -> str:
+		"""Returns a model entity's label."""
 		return self._label
 
 
 @export
 class Design(ModelEntity):
+	"""
+	A ``Design`` represents all loaded files (see :class:`~pyVHDLModel.VHDLModel.Document`)
+	and analysed. It's the root of this document-object-model (DOM). It contains
+	at least on VHDL library (see :class:`~pyVHDLModel.VHDLModel.Library`).
+	"""
 	_libraries:  List['Library']  #: List of all libraries defined for a design
 	_documents:  List['Document'] #: List of all documents loaded for a design
 
@@ -95,16 +129,21 @@ class Design(ModelEntity):
 
 	@property
 	def Libraries(self) -> List['Library']:
+		"""Returns a list of all libraries specified for this design."""
 		return self._libraries
 
 	@property
 	def Documents(self) -> List['Document']:
+		"""Returns a list of all documents (files) loaded for this design."""
 		return self._documents
 
 
 @export
-class Library(ModelEntity):
-	_name:           str                    #: Library name
+class Library(ModelEntity, NamedEntity):
+	"""
+	A ``Library`` represents a VHDL library. It contains all *primary* design
+	units.
+	"""
 	_contexts:       List['Context']        #: List of all contexts defined in a library.
 	_configurations: List['Configuration']  #: List of all configurations defined in a library.
 	_entities:       List['Entity']         #: List of all entities defined in a library.
@@ -112,36 +151,40 @@ class Library(ModelEntity):
 
 	def __init__(self, name: str):
 		super().__init__()
+		NamedEntity.__init__(self, name)
 
-		self._name =            name
 		self._contexts =        []
 		self._configurations =  []
 		self._entities =        []
 		self._packages =        []
 
 	@property
-	def Name(self) -> str:
-		return self._name
-
-	@property
 	def Contexts(self) -> List['Context']:
+		"""Returns a list of all context declarations loaded for this design."""
 		return self._contexts
 
 	@property
 	def Configurations(self) -> List['Configuration']:
+		"""Returns a list of all configuration declarations loaded for this design."""
 		return self._configurations
 
 	@property
 	def Entities(self) -> List['Entity']:
+		"""Returns a list of all entity declarations loaded for this design."""
 		return self._entities
 
 	@property
 	def Packages(self) -> List['Package']:
+		"""Returns a list of all package declarations loaded for this design."""
 		return self._packages
 
 
 @export
 class Document(ModelEntity):
+	"""
+	A ``Document`` represents a sourcefile. It contains primary and secondary
+	design units.
+	"""
 	_path:           Path                   #: path to the document. ``None`` if virtual document.
 	_contexts:       List['Context']        #: List of all contexts defined in a document.
 	_configurations: List['Configuration']  #: List of all configurations defined in a document.
@@ -167,36 +210,50 @@ class Document(ModelEntity):
 
 	@property
 	def Contexts(self) -> List['Context']:
+		"""Returns a list of all context declarations found in this document."""
 		return self._contexts
 
 	@property
 	def Configurations(self) -> List['Configuration']:
+		"""Returns a list of all configuration declarations found in this document."""
 		return self._configurations
 
 	@property
 	def Entities(self) -> List['Entity']:
+		"""Returns a list of all entity declarations found in this document."""
 		return self._entities
 
 	@property
 	def Architectures(self) -> List['Architecture']:
+		"""Returns a list of all architecture declarations found in this document."""
 		return self._architectures
 
 	@property
 	def Packages(self) -> List['Package']:
+		"""Returns a list of all package declarations found in this document."""
 		return self._packages
 
 	@property
 	def PackageBodies(self) -> List['PackageBody']:
+		"""Returns a list of all package body declarations found in this document."""
 		return self._packageBodies
 
 
 @export
 class Direction(Enum):
+	"""
+	A ``Direction`` is an enumeration and represents a direction (``to`` or ``downto``)
+	in a range.
+	"""
 	To =      0
 	DownTo =  1
 
 @export
-class Modes(Enum):
+class Mode(Enum):
+	"""
+	A ``Mode`` is an enumeration and represents a direction (``in``, ``out``, ...)
+	for how objects are passed.
+	"""
 	Default = 0
 	In =      1
 	Out =     2
@@ -207,6 +264,10 @@ class Modes(Enum):
 
 @export
 class Class(Enum):
+	"""
+	A ``Class`` is an enumeration and represents an object's class (``constant``,
+	``signal``, ...).
+	"""
 	Default =    0
 	Constant =   1
 	Variable =   2
@@ -218,6 +279,7 @@ class Class(Enum):
 
 @export
 class BaseType(ModelEntity, NamedEntity):
+	"""``BaseType`` is the base class of all type entities in this model."""
 	def __init__(self, name: str):
 		super().__init__()
 		NamedEntity.__init__(self, name)
@@ -461,9 +523,9 @@ class Range:
 @export
 class InterfaceItem(ModelEntity):
 	_name: str
-	_mode: Modes
+	_mode: Mode
 
-	def __init__(self, name: str, mode: Modes):
+	def __init__(self, name: str, mode: Mode):
 		super().__init__()
 
 		self._name = name
@@ -474,7 +536,7 @@ class InterfaceItem(ModelEntity):
 		return self._name
 
 	@property
-	def Mode(self) -> Modes:
+	def Mode(self) -> Mode:
 		return self._mode
 
 
@@ -524,7 +586,7 @@ class PortSignalInterfaceItem(PortInterfaceItem):
 	_subType:           SubType
 	_defaultExpression: Expression
 
-	def __init__(self, name: str, mode: Modes):
+	def __init__(self, name: str, mode: Mode):
 		super().__init__(name, mode)
 
 	@property
@@ -544,7 +606,7 @@ class ParameterConstantInterfaceItem(ParameterInterfaceItem):
 @export
 class ParameterVariableInterfaceItem(ParameterInterfaceItem):
 	_subType:           SubType
-	_mode:              Modes
+	_mode:              Mode
 	_defaultExpression: Expression
 
 	def __init__(self, name: str):
@@ -555,7 +617,7 @@ class ParameterVariableInterfaceItem(ParameterInterfaceItem):
 		return self._subType
 
 	@property
-	def Mode(self) -> Modes:
+	def Mode(self) -> Mode:
 		return self._mode
 
 	@property

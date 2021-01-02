@@ -15,5 +15,8 @@ doc/_build/
 doc/pyVHDLModel/**/*.*
 !doc/pyVHDLModel/index.rst
 
+# BuildTheDocs
+doc/_theme/**/*.*
+
 # IntelliJ project files
 /.idea/workspace.xml

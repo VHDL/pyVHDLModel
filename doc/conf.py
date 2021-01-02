@@ -249,5 +249,5 @@ todo_link_only = True
 # AutoAPI.Sphinx
 # ==============================================================================
 autoapi_modules = {
-  'pyVHDLModel':  {'output': "pyVHDLModel"}
+  'pyVHDLModel':  {'output': "pyVHDLModel", "override": True}
 }

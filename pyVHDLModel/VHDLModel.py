@@ -45,21 +45,38 @@ from typing             import Any, List
 from pydecor.decorators import export
 
 __all__ = []
-#__api__ = __all__
+#__api__ = __all__ # FIXME: disabled due to a bug in pydecors export decorator
 
 
 @export
 class ModelEntity:
+	"""
+	A base class for all classes in the VHDL language model, except for Mixin
+	classes and enumerations.
+
+	Each entity in this model has a reference to its parent entity. Therefore
+	a protected variable :field:`_parent` is available and a readonly property
+	:field:`Parent`.
+	"""
+	_parent: 'ModelEntity'
+
 	def __init__(self):
 		self._parent = None
 
 	@property
 	def Parent(self) -> 'ModelEntity':
+		"""Returns a reference to the parent entity."""
 		return self._parent
 
 
 @export
 class NamedEntity:
+	"""
+	A Mixin class for all VHDL entities that have names.
+
+	A protected variable :field:`_name` is available to derived classes as well as
+	a readonly property :field:`Name` for public access.
+	"""
 	_name: str
 
 	def __init__(self, name: str):
@@ -67,11 +84,18 @@ class NamedEntity:
 
 	@property
 	def Name(self) -> str:
+		"""Returns a model entity's name."""
 		return self._name
 
 
 @export
 class LabeledEntity:
+	"""
+	A Mixin class for all VHDL entities that can have labels.
+
+	A protected variable :field:`_label` is available to derived classes as well as
+	a readonly property :field:`Label` for public access.
+	"""
 	_label: str
 
 	def __init__(self, label: str):
@@ -79,6 +103,7 @@ class LabeledEntity:
 
 	@property
 	def Label(self) -> str:
+		"""Returns a model entity's label."""
 		return self._label
 
 

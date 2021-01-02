@@ -99,6 +99,7 @@ This library is licensed under **Apache License 2.0**.
    :hidden:
 
    Installation
+   Dependency
 
 
 .. raw:: latex

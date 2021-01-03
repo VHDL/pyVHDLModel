@@ -78,6 +78,7 @@ Contributors
 ************
 
 * `Patrick Lehmann <https://github.com/Paebbels>`_ (Maintainer)
+* `Unai Martinez-Corral <https://github.com/umarcor/>`_
 
 
 License
@@ -87,7 +88,7 @@ This library is licensed under **Apache License 2.0**.
 
 ------------------------------------
 
-.. |docdate| date:: %b %d, %Y - %H:%M
+.. |docdate| date:: %d.%b %Y - %H:%M
 
 .. only:: html
 

@@ -49,8 +49,8 @@ frontends.
 Use Cases
 *********
 
-* High-level API for GHDL's `libghdl` offered via `pyghdl`.
-* Code Document-Object-Model (Code-DOM) in `pyVHDLParser`.
+* High-level API for `GHDL's <https://github.com/ghdl/ghdl>`_ `libghdl` offered via `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`_.
+* Code Document-Object-Model (Code-DOM) in `pyVHDLParser <https://github.com/Paebbels/pyVHDLParser>`_.
 
 
 
@@ -61,8 +61,22 @@ News
 
 .. only:: html
 
-   Dez. 2020 - Split from pyVHDLParser
+   Jan. 2021 - Documentation enhancements
    ===================================
+
+.. only:: latex
+
+   .. rubric:: Documentation enhancements
+
+.. only:: html
+
+   Jan. 2021 - Split from pyVHDLParser
+   ===================================
+
+* Enhanced class documentation.
+* Changed test runner to ``pytest``.
+* Dependency check and license clearance.
+
 
 .. only:: latex
 

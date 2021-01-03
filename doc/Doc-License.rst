@@ -2,7 +2,7 @@
 
 This license applies to the documentation of this project.
 
-.. Note:: This is a local copy of the `Creative Commons - Attribution 4.0 International (CC BY 4.0) <https://creativecommons.org/licenses/by/4.0/legalcode>`_.
+.. Note:: This is a local copy of the `Creative Commons - Attribution 4.0 International (CC BY 4.0) <https://creativecommons.org/licenses/by/4.0/legalcode>`__.
 
 Creative Commons Attribution 4.0 International
 ##############################################
@@ -325,7 +325,7 @@ d. Nothing in this Public License constitutes or may be interpreted as a
 > publishes and in those instances will be considered the “Licensor.” Except for
 > the limited purpose of indicating that material is shared under a Creative
 > Commons public license or as otherwise permitted by the Creative Commons
-> policies published at `creativecommons.org/policies <http://creativecommons.org/policies>`_,
+> policies published at `creativecommons.org/policies <http://creativecommons.org/policies>`__,
 > Creative Commons does not authorize the use of the trademark “Creative Commons”
 > or any other trademark or logo of Creative Commons without its prior written
 > consent including, without limitation, in connection with any unauthorized
@@ -333,4 +333,4 @@ d. Nothing in this Public License constitutes or may be interpreted as a
 > understandings, or agreements concerning use of licensed material. For the
 > avoidance of doubt, this paragraph does not form part of the public licenses.
 >
-> Creative Commons may be contacted at `creativecommons.org <https://creativecommons.org/>`_
+> Creative Commons may be contacted at `creativecommons.org <https://creativecommons.org/>`__

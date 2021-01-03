@@ -17,7 +17,7 @@
 .. |SHIELD:svg:pyVHDLModel-src-license| image:: https://img.shields.io/pypi/l/pyVHDLModel?logo=GitHub&label=code%20license
    :alt: Code license
    :height: 22
-   :target: https://github.com/VHDL/pyVHDLModel/blob/main/LICENSE.md
+   :target: Code-License.html
 .. |SHIELD:png:pyVHDLModel-src-license| image:: https://img.shields.io/pypi/l/pyVHDLModel?logo=GitHub&label=code%20license
    :alt: Code license
    :height: 22
@@ -183,11 +183,11 @@
 .. |SHIELD:svg:pyVHDLModel-doc-license| image:: https://img.shields.io/badge/doc%20license-CC--BY%204.0-green
    :alt: Documentation License
    :height: 22
-   :target: https://github.com/VHDL/pyVHDLModel/blob/main/doc/License.rst
+   :target: Doc-License.html
 .. |SHIELD:png:pyVHDLModel-doc-license| image:: https://img.shields.io/badge/doc%20license-CC--BY%204.0-green
    :alt: Documentation License
    :height: 22
-   :target: https://github.com/VHDL/pyVHDLModel/blob/main/doc/License.rst
+   :target: https://github.com/VHDL/pyVHDLModel/blob/main/doc/Doc-License.rst
 
 .. # GHPages - read now
 .. |SHIELD:svg:pyVHDLModel-ghp-doc| image:: https://img.shields.io/badge/doc-read%20now%20%E2%9E%94-blueviolet

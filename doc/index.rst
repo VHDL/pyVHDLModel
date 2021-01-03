@@ -49,8 +49,8 @@ frontends.
 Use Cases
 *********
 
-* High-level API for `GHDL's <https://github.com/ghdl/ghdl>`_ `libghdl` offered via `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`_.
-* Code Document-Object-Model (Code-DOM) in `pyVHDLParser <https://github.com/Paebbels/pyVHDLParser>`_.
+* High-level API for `GHDL's <https://github.com/ghdl/ghdl>`__ `libghdl` offered via `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`__.
+* Code Document-Object-Model (Code-DOM) in `pyVHDLParser <https://github.com/Paebbels/pyVHDLParser>`__.
 
 
 
@@ -62,7 +62,7 @@ News
 .. only:: html
 
    Jan. 2021 - Documentation enhancements
-   ===================================
+   ======================================
 
 .. only:: latex
 
@@ -91,9 +91,9 @@ News
 Contributors
 ************
 
-* `Patrick Lehmann <https://github.com/Paebbels>`_ (Maintainer)
-* `Unai Martinez-Corral <https://github.com/umarcor/>`_
-* `and more... <https://github.com/VHDL/pyVHDLModel/graphs/contributors>`_
+* `Patrick Lehmann <https://github.com/Paebbels>`__ (Maintainer)
+* `Unai Martinez-Corral <https://github.com/umarcor/>`__
+* `and more... <https://github.com/VHDL/pyVHDLModel/graphs/contributors>`__
 
 
 License

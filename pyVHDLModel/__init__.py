@@ -41,4 +41,4 @@ pyVHDLModel
 :copyright: Copyright 2007-2021 Patrick Lehmann - Bötzingen, Germany
 :license: Apache License, Version 2.0
 """
-__version__ = "0.7.7"
+__version__ = "0.8.0"

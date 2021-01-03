@@ -1,4 +1,4 @@
-.. _model-obj:
+.. _vhdlmodel-obj:
 
 Object Declartions
 ###################

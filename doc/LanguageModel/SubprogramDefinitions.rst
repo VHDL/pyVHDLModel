@@ -1,4 +1,4 @@
-.. _model-subprog:
+.. _vhdlmodel-subprog:
 
 Subprogram Declarations
 ########################

@@ -1,4 +1,4 @@
-.. _model-inter:
+.. _vhdlmodel-inter:
 
 Interface Items
 ###################

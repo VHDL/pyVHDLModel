@@ -1,4 +1,4 @@
-.. _model-desuni:
+.. _vhdlmodel-desuni:
 
 Design Units
 ############

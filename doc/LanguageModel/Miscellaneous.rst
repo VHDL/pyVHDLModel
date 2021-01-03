@@ -1,4 +1,4 @@
-.. _model-misc:
+.. _vhdlmodel-misc:
 
 Concepts not defined by VHDL
 ############################
@@ -7,7 +7,7 @@ Some features required for a holistic language model are not defined in
 the VHDL :term:`LRM` (IEEE Std. 1076) or made explicitly implementation
 specific to the implementer.
 
-.. _model-design:
+.. _vhdlmodel-design:
 
 Design
 ======
@@ -36,7 +36,7 @@ a design has the two child nodes: ``Libraries`` and ``Documents``. Each is a
 
 
 
-.. _model-library:
+.. _vhdlmodel-library:
 
 Library
 =======
@@ -72,7 +72,7 @@ is a *primary* design unit like: ``configuration``, ``entity``, ``package`` or
 
 
 
-.. _model-sourcefile:
+.. _vhdlmodel-sourcefile:
 
 Sourcecode File
 ===============

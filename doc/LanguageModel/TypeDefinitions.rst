@@ -1,4 +1,4 @@
-.. _model-types:
+.. _vhdlmodel-types:
 
 Type Declarations
 #################

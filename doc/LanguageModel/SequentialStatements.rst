@@ -1,4 +1,4 @@
-.. _model-seqstm:
+.. _vhdlmodel-seqstm:
 
 Sequential Statements
 #####################

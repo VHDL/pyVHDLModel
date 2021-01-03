@@ -1,4 +1,4 @@
-.. _model-enum:
+.. _vhdlmodel-enum:
 
 Enumerations
 ############

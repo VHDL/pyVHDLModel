@@ -1,4 +1,4 @@
-.. _model-constm:
+.. _vhdlmodel-constm:
 
 Concurrent Statements
 #####################

@@ -6,19 +6,19 @@
 
 .. only:: html
 
-   |SHIELD:svg:pyVHDLModel-github| |SHIELD:svg:pyVHDLModel-tag| |SHIELD:svg:pyVHDLModel-release| |SHIELD:svg:pyVHDLModel-date| |br|
-   |SHIELD:svg:pyVHDLModel-lib-status| |SHIELD:svg:pyVHDLModel-req-status| |SHIELD:svg:pyVHDLModel-lib-dep| |br|
-   |SHIELD:svg:pyVHDLModel-travis| |SHIELD:svg:pyVHDLModel-pypi-tag| |SHIELD:svg:pyVHDLModel-pypi-status| |SHIELD:svg:pyVHDLModel-pypi-python| |br|
-   |SHIELD:svg:pyVHDLModel-codacy-quality| |SHIELD:svg:pyVHDLModel-codacy-coverage| |SHIELD:svg:pyVHDLModel-codecov-coverage| |SHIELD:svg:pyVHDLModel-lib-rank| |br|
-   |SHIELD:svg:pyVHDLModel-rtd| |SHIELD:svg:pyVHDLModel-license|
+   |  |SHIELD:svg:pyVHDLModel-github| |SHIELD:svg:pyVHDLModel-license| |SHIELD:svg:pyVHDLModel-tag| |SHIELD:svg:pyVHDLModel-release| |SHIELD:svg:pyVHDLModel-date|
+   |  |SHIELD:svg:pyVHDLModel-lib-status| |SHIELD:svg:pyVHDLModel-req-status| |SHIELD:svg:pyVHDLModel-lib-dep|
+   |  |SHIELD:svg:pyVHDLModel-gha-test| |SHIELD:svg:pyVHDLModel-pypi-tag| |SHIELD:svg:pyVHDLModel-pypi-status| |SHIELD:svg:pyVHDLModel-pypi-python|
+   |  |SHIELD:svg:pyVHDLModel-codacy-quality| |SHIELD:svg:pyVHDLModel-codacy-coverage| |SHIELD:svg:pyVHDLModel-codecov-coverage| |SHIELD:svg:pyVHDLModel-lib-rank|
+   |  |SHIELD:svg:pyVHDLModel-gha-doc|
 
 .. only:: latex
 
-   |SHIELD:png:pyVHDLModel-github| |SHIELD:png:pyVHDLModel-tag| |SHIELD:png:pyVHDLModel-release| |SHIELD:png:pyVHDLModel-date| |br|
+   |SHIELD:png:pyVHDLModel-github| |SHIELD:png:pyVHDLModel-license| |SHIELD:png:pyVHDLModel-tag| |SHIELD:png:pyVHDLModel-release| |SHIELD:png:pyVHDLModel-date| |br|
    |SHIELD:png:pyVHDLModel-lib-status| |SHIELD:png:pyVHDLModel-req-status| |SHIELD:png:pyVHDLModel-lib-dep| |br|
-   |SHIELD:png:pyVHDLModel-travis| |SHIELD:png:pyVHDLModel-pypi-tag| |SHIELD:png:pyVHDLModel-pypi-status| |SHIELD:png:pyVHDLModel-pypi-python| |br|
+   |SHIELD:png:pyVHDLModel-gha-test| |SHIELD:png:pyVHDLModel-pypi-tag| |SHIELD:png:pyVHDLModel-pypi-status| |SHIELD:png:pyVHDLModel-pypi-python| |br|
    |SHIELD:png:pyVHDLModel-codacy-quality| |SHIELD:png:pyVHDLModel-codacy-coverage| |SHIELD:png:pyVHDLModel-codecov-coverage| |SHIELD:png:pyVHDLModel-lib-rank| |br|
-   |SHIELD:png:pyVHDLModel-rtd| |SHIELD:png:pyVHDLModel-license|
+   |SHIELD:png:pyVHDLModel-gha-doc|
 
 --------------------------------------------------------------------------------
 
@@ -49,8 +49,8 @@ frontends.
 Use Cases
 *********
 
-* High-level API for GHDL's `libghdl` offered via `pyghdl`.
-* Code Document-Object-Model (Code-DOM) in `pyVHDLParser`.
+* High-level API for `GHDL's <https://github.com/ghdl/ghdl>`_ `libghdl` offered via `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`_.
+* Code Document-Object-Model (Code-DOM) in `pyVHDLParser <https://github.com/Paebbels/pyVHDLParser>`_.
 
 
 
@@ -61,7 +61,21 @@ News
 
 .. only:: html
 
-   Dez. 2020 - Split from pyVHDLParser
+   Jan. 2021 - Documentation enhancements
+   ===================================
+
+.. only:: latex
+
+   .. rubric:: Documentation enhancements
+
+* Enhanced class documentation.
+* Changed test runner to ``pytest``.
+* Dependency check and license clearance.
+
+
+.. only:: html
+
+   Dec. 2020 - Split from pyVHDLParser
    ===================================
 
 .. only:: latex
@@ -79,6 +93,7 @@ Contributors
 
 * `Patrick Lehmann <https://github.com/Paebbels>`_ (Maintainer)
 * `Unai Martinez-Corral <https://github.com/umarcor/>`_
+* `and more... <https://github.com/VHDL/pyVHDLModel/graphs/contributors>`_
 
 
 License

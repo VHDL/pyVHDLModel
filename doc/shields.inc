@@ -1,7 +1,3 @@
-.. # This file provides the following shields: travis-ci appveyor tag release
-   # license mailing gitter issues-new issues-open issues-closed issues-pr
-   # issues-pr-closed github gh-logo
-
 .. # Use http://b64.io/ to encode any image to base64. Then replace `/` with
    # `%2F` and `+` with `%2B` (or use http://meyerweb.com/eric/tools/dencoder/).
    # Beware that `?logo=data:image/png;base64,` must also be converted to
@@ -50,6 +46,15 @@
    :height: 22
    :target: https://github.com/vhdl/pyVHDLModel/releases
 
+.. |SHIELD:svg:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Test%20and%20Coverage?label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
+   :alt: GitHub Workflow - Build and Test Status
+   :height: 22
+   :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22
+.. |SHIELD:png:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Test%20and%20Coverage?label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
+   :alt: GitHub Workflow - Build and Test Status
+   :height: 22
+   :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22
+
 .. |SHIELD:svg:pyVHDLModel-lib-status| image:: https://img.shields.io/librariesio/release/pypi/pyVHDLModel
    :alt: Libraries.io status for latest release
    :height: 22
@@ -59,14 +64,14 @@
    :height: 22
    :target: https://libraries.io/github/vhdl/pyVHDLModel
 
-.. |SHIELD:svg:pyVHDLModel-req-status| image:: https://img.shields.io/requires/github/vhdl/pyVHDLModel
+.. |SHIELD:svg:pyVHDLModel-req-status| image:: https://img.shields.io/requires/github/VHDL/pyVHDLModel
    :alt: Requires.io
    :height: 22
-   :target: https://requires.io/github/vhdl/pyVHDLModel/requirements/?branch=main
-.. |SHIELD:png:pyVHDLModel-req-status| image:: https://raster.shields.io/requires/github/vhdl/pyVHDLModel
+   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main
+.. |SHIELD:png:pyVHDLModel-req-status| image:: https://raster.shields.io/requires/github/VHDL/pyVHDLModel
    :alt: Requires.io
    :height: 22
-   :target: https://requires.io/github/vhdl/pyVHDLModel/requirements/?branch=main
+   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main
 
 .. |SHIELD:svg:pyVHDLModel-pypi-tag| image:: https://img.shields.io/pypi/v/pyVHDLModel?logo=PyPI
    :alt: PyPI - Tag
@@ -136,11 +141,11 @@
    :height: 22
    :target: https://libraries.io/github/vhdl/pyVHDLModel/sourcerank
 
-.. |SHIELD:svg:pyVHDLModel-rtd| image:: https://img.shields.io/readthedocs/pyVHDLModel
-   :alt: Read the Docs
+.. |SHIELD:svg:pyVHDLModel-gha-doc| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Documentation?label=Documentation&logo=GitHub%20Actions&logoColor=FFFFFF
+   :alt: GitHub Workflow - Documentation Status
    :height: 22
-   :target: https://pyVHDLModel.readthedocs.io/en/latest/
-.. |SHIELD:png:pyVHDLModel-rtd| image:: https://raster.shields.io/readthedocs/pyVHDLModel
-   :alt: Read the Docs
+   :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Documentation%22
+.. |SHIELD:png:pyVHDLModel-gha-doc| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Documentation?label=Documentation&logo=GitHub%20Actions&logoColor=FFFFFF
+   :alt: GitHub Workflow - Documentation Status
    :height: 22
-   :target: https://pyVHDLModel.readthedocs.io/en/latest/
+   :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Documentation%22

@@ -1,6 +1,3 @@
-# EMACS settings: -*-	tab-width: 2; indent-tabs-mode: t; python-indent-offset: 2 -*-
-# vim: tabstop=2:shiftwidth=2:noexpandtab
-# kate: tab-width 2; replace-tabs off; indent-width 2;
 # =============================================================================
 #             __     ___   _ ____  _     __  __           _      _
 #   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |
@@ -19,7 +16,7 @@
 #
 # License:
 # ==============================================================================
-# Copyright 2017-2020 Patrick Lehmann - Boetzingen, Germany
+# Copyright 2017-2021 Patrick Lehmann - Boetzingen, Germany
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,6 +35,12 @@
 # ==============================================================================
 #
 """
+pyVHDLModel
+###########
+
+:copyright: Copyright 2007-2021 Patrick Lehmann - Bötzingen, Germany
+:license: Apache License, Version 2.0
+
 This module contains a document language model for VHDL.
 """
 # load dependencies

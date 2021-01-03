@@ -1,6 +1,3 @@
-# EMACS settings: -*-  tab-width: 2; indent-tabs-mode: t -*-
-# vim: tabstop=2:shiftwidth=2:noexpandtab
-# kate: tab-width 2; replace-tabs off; indent-width 2;
 # =============================================================================
 #            __     ___   _ ____  _     __  __           _      _
 #  _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |
@@ -15,7 +12,7 @@
 #
 # License:
 # ============================================================================
-# Copyright 2017-2020 Patrick Lehmann - Boetzingen, Germany
+# Copyright 2017-2021 Patrick Lehmann - Boetzingen, Germany
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,12 +53,13 @@ documentationURL =  "https://{namespace}.github.io/{projectName}".format(namespa
 # Assemble all package information
 setuptools_setup(
 	name=projectName,
-	version="0.7.6",
+	version="0.7.7",
 
 	author="Patrick Lehmann",
 	author_email="Paebbels@gmail.com",
 	# maintainer="Patrick Lehmann",
 	# maintainer_email="Paebbels@gmail.com",
+  license='Apache 2.0',
 
 	description="An abstract VHDL language model.",
 	long_description=long_description,

@@ -1,4 +1,4 @@
-.. _lngmod:
+.. _vhdlmodel:
 
 VHDL Language Model
 ###################

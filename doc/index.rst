@@ -6,19 +6,19 @@
 
 .. only:: html
 
-   |SHIELD:svg:pyVHDLModel-github| |SHIELD:svg:pyVHDLModel-tag| |SHIELD:svg:pyVHDLModel-release| |SHIELD:svg:pyVHDLModel-date| |br|
+   |SHIELD:svg:pyVHDLModel-github| |SHIELD:svg:pyVHDLModel-license| |SHIELD:svg:pyVHDLModel-tag| |SHIELD:svg:pyVHDLModel-release| |SHIELD:svg:pyVHDLModel-date| |br|
    |SHIELD:svg:pyVHDLModel-lib-status| |SHIELD:svg:pyVHDLModel-req-status| |SHIELD:svg:pyVHDLModel-lib-dep| |br|
    |SHIELD:svg:pyVHDLModel-gha-test| |SHIELD:svg:pyVHDLModel-pypi-tag| |SHIELD:svg:pyVHDLModel-pypi-status| |SHIELD:svg:pyVHDLModel-pypi-python| |br|
    |SHIELD:svg:pyVHDLModel-codacy-quality| |SHIELD:svg:pyVHDLModel-codacy-coverage| |SHIELD:svg:pyVHDLModel-codecov-coverage| |SHIELD:svg:pyVHDLModel-lib-rank| |br|
-   |SHIELD:svg:pyVHDLModel-gha-doc| |SHIELD:svg:pyVHDLModel-license|
+   |SHIELD:svg:pyVHDLModel-gha-doc|
 
 .. only:: latex
 
-   |SHIELD:png:pyVHDLModel-github| |SHIELD:png:pyVHDLModel-tag| |SHIELD:png:pyVHDLModel-release| |SHIELD:png:pyVHDLModel-date| |br|
+   |SHIELD:png:pyVHDLModel-github| |SHIELD:png:pyVHDLModel-license| |SHIELD:png:pyVHDLModel-tag| |SHIELD:png:pyVHDLModel-release| |SHIELD:png:pyVHDLModel-date| |br|
    |SHIELD:png:pyVHDLModel-lib-status| |SHIELD:png:pyVHDLModel-req-status| |SHIELD:png:pyVHDLModel-lib-dep| |br|
    |SHIELD:png:pyVHDLModel-gha-test| |SHIELD:png:pyVHDLModel-pypi-tag| |SHIELD:png:pyVHDLModel-pypi-status| |SHIELD:png:pyVHDLModel-pypi-python| |br|
    |SHIELD:png:pyVHDLModel-codacy-quality| |SHIELD:png:pyVHDLModel-codacy-coverage| |SHIELD:png:pyVHDLModel-codecov-coverage| |SHIELD:png:pyVHDLModel-lib-rank| |br|
-   |SHIELD:png:pyVHDLModel-gha-doc| |SHIELD:png:pyVHDLModel-license|
+   |SHIELD:png:pyVHDLModel-gha-doc|
 
 --------------------------------------------------------------------------------
 

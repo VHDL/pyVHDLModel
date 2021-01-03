@@ -64,14 +64,14 @@
    :height: 22
    :target: https://libraries.io/github/vhdl/pyVHDLModel
 
-.. |SHIELD:svg:pyVHDLModel-req-status| image:: https://img.shields.io/requires/github/vhdl/pyVHDLModel
+.. |SHIELD:svg:pyVHDLModel-req-status| image:: https://img.shields.io/requires/github/VHDL/pyVHDLModel
    :alt: Requires.io
    :height: 22
-   :target: https://requires.io/github/vhdl/pyVHDLModel/requirements/?branch=main
-.. |SHIELD:png:pyVHDLModel-req-status| image:: https://raster.shields.io/requires/github/vhdl/pyVHDLModel
+   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main
+.. |SHIELD:png:pyVHDLModel-req-status| image:: https://raster.shields.io/requires/github/VHDL/pyVHDLModel
    :alt: Requires.io
    :height: 22
-   :target: https://requires.io/github/vhdl/pyVHDLModel/requirements/?branch=main
+   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main
 
 .. |SHIELD:svg:pyVHDLModel-pypi-tag| image:: https://img.shields.io/pypi/v/pyVHDLModel?logo=PyPI
    :alt: PyPI - Tag

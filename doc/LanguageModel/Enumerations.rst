@@ -1,4 +1,4 @@
-.. _lngmod-enum:
+.. _model-enum:
 
 Enumerations
 ############

@@ -1,4 +1,4 @@
-.. _lngmod-inter:
+.. _model-inter:
 
 Interface Items
 ###################

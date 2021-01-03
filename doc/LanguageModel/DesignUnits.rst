@@ -1,4 +1,4 @@
-.. _lngmod-desuni:
+.. _model-desuni:
 
 Design Units
 ############

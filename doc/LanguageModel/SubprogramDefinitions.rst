@@ -1,4 +1,4 @@
-.. _lngmod-subprog:
+.. _model-subprog:
 
 Subprogram Declarations
 ########################

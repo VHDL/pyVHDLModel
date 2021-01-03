@@ -1,4 +1,4 @@
-.. _lngmod-seqstm:
+.. _model-seqstm:
 
 Sequential Statements
 #####################

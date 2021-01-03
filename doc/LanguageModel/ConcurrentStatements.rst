@@ -1,4 +1,4 @@
-.. _lngmod-constm:
+.. _model-constm:
 
 Concurrent Statements
 #####################

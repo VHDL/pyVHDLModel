@@ -1,4 +1,4 @@
-.. _lngmod-types:
+.. _model-types:
 
 Type Declarations
 #################

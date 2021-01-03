@@ -6,11 +6,11 @@
 
 .. only:: html
 
-   |SHIELD:svg:pyVHDLModel-github| |SHIELD:svg:pyVHDLModel-license| |SHIELD:svg:pyVHDLModel-tag| |SHIELD:svg:pyVHDLModel-release| |SHIELD:svg:pyVHDLModel-date| |br|
-   |SHIELD:svg:pyVHDLModel-lib-status| |SHIELD:svg:pyVHDLModel-req-status| |SHIELD:svg:pyVHDLModel-lib-dep| |br|
-   |SHIELD:svg:pyVHDLModel-gha-test| |SHIELD:svg:pyVHDLModel-pypi-tag| |SHIELD:svg:pyVHDLModel-pypi-status| |SHIELD:svg:pyVHDLModel-pypi-python| |br|
-   |SHIELD:svg:pyVHDLModel-codacy-quality| |SHIELD:svg:pyVHDLModel-codacy-coverage| |SHIELD:svg:pyVHDLModel-codecov-coverage| |SHIELD:svg:pyVHDLModel-lib-rank| |br|
-   |SHIELD:svg:pyVHDLModel-gha-doc|
+   |  |SHIELD:svg:pyVHDLModel-github| |SHIELD:svg:pyVHDLModel-license| |SHIELD:svg:pyVHDLModel-tag| |SHIELD:svg:pyVHDLModel-release| |SHIELD:svg:pyVHDLModel-date|
+   |  |SHIELD:svg:pyVHDLModel-lib-status| |SHIELD:svg:pyVHDLModel-req-status| |SHIELD:svg:pyVHDLModel-lib-dep|
+   |  |SHIELD:svg:pyVHDLModel-gha-test| |SHIELD:svg:pyVHDLModel-pypi-tag| |SHIELD:svg:pyVHDLModel-pypi-status| |SHIELD:svg:pyVHDLModel-pypi-python|
+   |  |SHIELD:svg:pyVHDLModel-codacy-quality| |SHIELD:svg:pyVHDLModel-codacy-coverage| |SHIELD:svg:pyVHDLModel-codecov-coverage| |SHIELD:svg:pyVHDLModel-lib-rank|
+   |  |SHIELD:svg:pyVHDLModel-gha-doc|
 
 .. only:: latex
 

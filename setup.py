@@ -59,6 +59,7 @@ setuptools_setup(
 	author_email="Paebbels@gmail.com",
 	# maintainer="Patrick Lehmann",
 	# maintainer_email="Paebbels@gmail.com",
+  license='Apache 2.0',
 
 	description="An abstract VHDL language model.",
 	long_description=long_description,

@@ -42,6 +42,12 @@ frontends.
 * Created a (re)formatted output of VHDL.
 
 
+## Contributors
+* [Patrick Lehmann](https://github.com/Paebbels) (Maintainer)
+* [Unai Martinez-Corral](https://github.com/umarcor)
+* [and more...](https://github.com/VHDL/pyVHDLModel/graphs/contributors)
+
+
 ## License
 
 This Python package (source code) is licensed under [Apache License 2.0](LICENSE.md).

@@ -68,15 +68,15 @@ News
 
    .. rubric:: Documentation enhancements
 
-.. only:: html
-
-   Jan. 2021 - Split from pyVHDLParser
-   ===================================
-
 * Enhanced class documentation.
 * Changed test runner to ``pytest``.
 * Dependency check and license clearance.
 
+
+.. only:: html
+
+   Dec. 2020 - Split from pyVHDLParser
+   ===================================
 
 .. only:: latex
 

@@ -99,7 +99,8 @@ Contributors
 License
 *******
 
-This library is licensed under **Apache License 2.0**.
+This Python package (source code) is licensed under **Apache License 2.0**. |br|
+The accompanying documentation is licensed under **Creative Commons - Attribution 4.0 (CC-BY 4.0)**
 
 ------------------------------------
 
@@ -149,7 +150,8 @@ This library is licensed under **Apache License 2.0**.
    :hidden:
 
    ChangeLog/index
-   License
+   Code-License
+   Doc-License
    Glossary
    genindex
    py-modindex

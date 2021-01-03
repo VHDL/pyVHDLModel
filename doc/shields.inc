@@ -180,11 +180,11 @@
    :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Documentation%22
 
 .. # Documentation license
-.. |SHIELD:svg:pyVHDLModel-doc-license| image:: https://img.shields.io/badge/doc%20license-CC--BY--4.0-green
+.. |SHIELD:svg:pyVHDLModel-doc-license| image:: https://img.shields.io/badge/doc%20license-CC--BY%204.0-green
    :alt: Documentation License
    :height: 22
    :target: https://github.com/VHDL/pyVHDLModel/blob/main/doc/License.rst
-.. |SHIELD:png:pyVHDLModel-doc-license| image:: https://img.shields.io/badge/doc%20license-CC--BY--4.0-green
+.. |SHIELD:png:pyVHDLModel-doc-license| image:: https://img.shields.io/badge/doc%20license-CC--BY%204.0-green
    :alt: Documentation License
    :height: 22
    :target: https://github.com/VHDL/pyVHDLModel/blob/main/doc/License.rst

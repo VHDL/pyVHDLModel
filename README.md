@@ -16,7 +16,7 @@
 [![Libraries.io status for latest release](https://img.shields.io/librariesio/release/pypi/pyVHDLModel)](https://libraries.io/github/vhdl/pyVHDLModel)
 [![Requires.io](https://img.shields.io/requires/github/VHDL/pyVHDLModel)](https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main)  
 [![GitHub Workflow - Documentation Status](https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Documentation?label=documentation&logo=GitHub%20Actions&logoColor=FFFFFF)](https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Documentation%22)
-[![Documentation License](https://img.shields.io/badge/doc%20license-CC--BY--4.0-green)](LICENSE.md)
+[![Documentation License](https://img.shields.io/badge/doc%20license-CC--BY%204.0-green)](LICENSE.md)
 [![Documentation - Read Now!](https://img.shields.io/badge/doc-read%20now%20%E2%9E%94-blueviolet)](https://vhdl.github.io/pyVHDLModel/)
 
 # pyVHDLModel
@@ -52,9 +52,8 @@ frontends.
 
 ## License
 
-This Python package (source code) is licensed under [Apache License 2.0](LICENSE.md).
-
-<!-- The accompanying documentation is licensed under Creative Commons - Attribution-4.0 (CC-BY 4.0). -->
+This Python package (source code) licensed under [Apache License 2.0](LICENSE.md).  
+The accompanying documentation is licensed under [Creative Commons - Attribution 4.0 (CC-BY 4.0)](doc/Doc-License.rst).
 
 -------------------------
 SPDX-License-Identifier: Apache-2.0

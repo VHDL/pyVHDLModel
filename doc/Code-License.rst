@@ -1,4 +1,6 @@
-.. _LICENSE:
+.. _SRCLICENSE:
+
+This license applies to the source code of this project.
 
 .. Note:: This is a local copy of the `Apache License Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>`_.
 

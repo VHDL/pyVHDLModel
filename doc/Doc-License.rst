@@ -1,21 +1,9 @@
 .. _DOCLICENSE:
 
-This license applies to the documentation of this project.
-
 .. Note:: This is a local copy of the `Creative Commons - Attribution 4.0 International (CC BY 4.0) <https://creativecommons.org/licenses/by/4.0/legalcode>`__.
 
-.. raw:: html
+.. Attention:: This **CC BY 4.0** license applies only to the **documentation** of this project.
 
-   <style type="text/css">
-     span.bolditalic {font-weight: bold; font-style: italic; }
-     span.underline {text-decoration: underline; }
-     </style>
-
-.. role:: bolditalic
-   :class: bolditalic
-
-.. role:: underline
-   :class: underline
 
 Creative Commons Attribution 4.0 International
 ##############################################
@@ -62,8 +50,7 @@ fullest extent possible.
      encouraged to respect those requests where reasonable.
      `More considerations for the public <http://wiki.creativecommons.org/Considerations_for_licensors_and_licensees#Considerations_for_licensees>`__.
 
-Creative Commons Attribution 4.0 International Public License
-*************************************************************
+:xlarge:`Creative Commons Attribution 4.0 International Public License`
 
 By exercising the Licensed Rights (defined below), You accept and agree to be
 bound by the terms and conditions of this Creative Commons Attribution 4.0

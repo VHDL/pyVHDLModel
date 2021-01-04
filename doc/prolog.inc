@@ -9,6 +9,25 @@
 
    <br />
 
+.. # define horizontal line for HTML
 .. |hr| raw:: html
 
    <hr />
+
+.. # define additional CSS based styles and ReST roles for HTML
+.. raw:: html
+
+   <style type="text/css">
+     span.bolditalic {font-weight: bold; font-style: italic; }
+     span.underline {text-decoration: underline; }
+     span.xlarge {font-size: x-large; }
+   </style>
+
+.. role:: bolditalic
+   :class: bolditalic
+
+.. role:: underline
+   :class: underline
+
+.. role:: xlarge
+   :class: xlarge

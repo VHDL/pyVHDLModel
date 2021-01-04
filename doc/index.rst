@@ -155,8 +155,10 @@ License
    :hidden:
 
    ChangeLog/index
-   Code-License
+   License
    Doc-License
    Glossary
    genindex
+
+.. #
    py-modindex

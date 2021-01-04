@@ -9,9 +9,10 @@ specific to the implementer.
 
 .. rubric:: Table of Content
 
-* :ref:`Design <vhdlmodel-design>`
-* :ref:`Library <vhdlmodel-library>`
-* :ref:`Document <vhdlmodel-document>`
+* :ref:`vhdlmodel-design`
+* :ref:`vhdlmodel-library`
+* :ref:`vhdlmodel-document`
+
 
 .. _vhdlmodel-design:
 

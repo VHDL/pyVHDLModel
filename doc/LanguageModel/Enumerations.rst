@@ -3,16 +3,30 @@
 Enumerations
 ############
 
+The language model contains some enumerations to express a *kind* of a models entity.
 
-Modes
-=====
+.. rubric:: Table of Content
+
+* :ref:`vhdlmodel-mode`
+* :ref:`vhdlmodel-objclass`
+
+
+
+.. _vhdlmodel-mode:
+
+Mode
+====
 
 .. todo::
 
    Write documentation.
 
-Object Classes
-==============
+
+
+.. _vhdlmodel-objclass:
+
+Object Class
+============
 
 .. todo::
 

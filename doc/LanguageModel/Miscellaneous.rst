@@ -3,9 +3,15 @@
 Concepts not defined by VHDL
 ############################
 
-Some features required for a holistic language model are not defined in
-the VHDL :term:`LRM` (IEEE Std. 1076) or made explicitly implementation
+Some features required for a holistic language model are not defined in the VHDL
+:term:`LRM` (IEEE Std. 1076). Other features made explicitly implementation
 specific to the implementer.
+
+.. rubric:: Table of Content
+
+* :ref:`Design <vhdlmodel-design>`
+* :ref:`Library <vhdlmodel-library>`
+* :ref:`Document <vhdlmodel-document>`
 
 .. _vhdlmodel-design:
 
@@ -72,20 +78,21 @@ is a *primary* design unit like: ``configuration``, ``entity``, ``package`` or
 
 
 
-.. _vhdlmodel-sourcefile:
+.. _vhdlmodel-document:
 
-Sourcecode File
-===============
+Document
+========
 
-A source file contains multiple *design units*. Each design unit listed in a
-sourcecode file is a *primary* or `secondary`design unit like: ``configuration``,
-``entity``, ``architecture``, ``package``, ``package body`` or ``context``.
+A source file (document) contains multiple *design units*. Each design unit
+listed in a sourcecode file is a *primary* or *secondary* design unit like:
+``configuration``, ``entity``, ``architecture``, ``package``, ``package body``
+or ``context``.
 
 Design unit may be preceded by a context made of ``library``, ``use`` and
-``context`` statements. These statements are not directly visible in the ``Document``
-object, because design unit contexts are consumed by the design units. See the
-``Libraries`` and ``Uses`` fields of each design unit to investigate the consumed
-contexts.
+``context`` statements. These statements are not directly visible in the
+``Document`` object, because design unit contexts are consumed by the design
+units. See the ``Libraries`` and ``Uses`` fields of each design unit to
+investigate the consumed contexts.
 
 **Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Document`:
 

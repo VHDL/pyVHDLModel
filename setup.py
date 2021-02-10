@@ -73,7 +73,7 @@ setuptools_setup(
 	},
 	# download_url="https://github.com/vhdl/pyVHDLModel/tarball/0.1.0",
 
-	packages=setuptools_find_packages(),
+	packages=setuptools_find_packages(exclude=["tests", "tests.*",]),
 	classifiers=[
 		"License :: OSI Approved :: Apache Software License",
 		"Operating System :: OS Independent",

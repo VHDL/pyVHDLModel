@@ -61,7 +61,7 @@ class ModelEntity:
 	a protected variable :attr:`_parent` is available and a readonly property
 	:attr:`Parent`.
 	"""
-	_parent: 'ModelEntity'
+	_parent: 'ModelEntity'      #: Reference to a parent entity in the model.
 
 	def __init__(self):
 		self._parent = None
@@ -80,7 +80,7 @@ class NamedEntity:
 	A protected variable :attr:`_name` is available to derived classes as well as
 	a readonly property :attr:`Name` for public access.
 	"""
-	_name: str
+	_name: str                  #: The name of a model entity.
 
 	def __init__(self, name: str):
 		self._name = name
@@ -100,7 +100,7 @@ class LabeledEntity:
 	A protected variable :attr:`_label` is available to derived classes as well
 	as a readonly property :attr:`Label` for public access.
 	"""
-	_label: str
+	_label: str                 #: The label of a model entity.
 
 	def __init__(self, label: str):
 		self._label = label
@@ -118,8 +118,8 @@ class Design(ModelEntity):
 	and analysed. It's the root of this document-object-model (DOM). It contains
 	at least on VHDL library (see :class:`~pyVHDLModel.VHDLModel.Library`).
 	"""
-	_libraries:  List['Library']  #: List of all libraries defined for a design
-	_documents:  List['Document'] #: List of all documents loaded for a design
+	_libraries:  List['Library']  #: List of all libraries defined for a design.
+	_documents:  List['Document'] #: List of all documents loaded for a design.
 
 	def __init__(self):
 		super().__init__()
@@ -242,11 +242,12 @@ class Document(ModelEntity):
 @export
 class Direction(Enum):
 	"""
-	A ``Direction`` is an enumeration and represents a direction (``to`` or ``downto``)
-	in a range.
+	A ``Direction`` is an enumeration and represents a direction in a range
+	(``to`` or ``downto``).
 	"""
 	To =      0
 	DownTo =  1
+
 
 @export
 class Mode(Enum):
@@ -281,6 +282,11 @@ class Class(Enum):
 class BaseType(ModelEntity, NamedEntity):
 	"""``BaseType`` is the base class of all type entities in this model."""
 	def __init__(self, name: str):
+		"""
+		Initializes underlying ``BaseType``.
+
+		:param name: Name of the type.
+		"""
 		super().__init__()
 		NamedEntity.__init__(self, name)
 
@@ -666,7 +672,7 @@ class LibraryReference(ModelEntity):
 
 
 @export
-class Use(ModelEntity):
+class PackageReference(ModelEntity):
 	_library: Library
 	_package: 'Package'
 	_item:    str
@@ -703,22 +709,28 @@ class SecondaryUnit(ModelEntity, NamedEntity):
 
 @export
 class Context(PrimaryUnit):
-	_uses: List[Use]
+	_libraryReferences: List[LibraryReference]
+	_packageReferences: List[PackageReference]
 
 	def __init__(self, name):
 		super().__init__(name)
 
-		self._uses = []
+		self._libraryReferences = []
+		self._packageReferences = []
 
 	@property
-	def Uses(self) -> List[Use]:
-		return self._uses
+	def LibraryReferences(self) -> List[LibraryReference]:
+		return self._libraryReferences
+
+	@property
+	def PackageReferences(self) -> List[PackageReference]:
+		return self._packageReferences
 
 
 @export
 class Entity(PrimaryUnit):
 	_libraryReferences: List[LibraryReference]
-	_uses:              List[Use]
+	_packageReferences: List[PackageReference]
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
 	_declaredItems:     List   # FIXME: define liste element type e.g. via Union
@@ -728,7 +740,7 @@ class Entity(PrimaryUnit):
 		super().__init__(name)
 
 		self._libraryReferences = []
-		self._uses              = []
+		self._packageReferences = []
 		self._genericItems      = []
 		self._portItems         = []
 		self._declaredItems     = []
@@ -739,8 +751,8 @@ class Entity(PrimaryUnit):
 		return self._libraryReferences
 
 	@property
-	def Uses(self) -> List[Use]:
-		return self._uses
+	def PackageReferences(self) -> List[PackageReference]:
+		return self._packageReferences
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -763,7 +775,7 @@ class Entity(PrimaryUnit):
 class Architecture(SecondaryUnit):
 	_entity:            Entity
 	_libraryReferences: List[Library]
-	_uses:              List[Use]
+	_packageReferences: List[PackageReference]
 	_declaredItems:     List   # FIXME: define liste element type e.g. via Union
 	_bodyItems:         List['ConcurrentStatement']
 
@@ -771,7 +783,7 @@ class Architecture(SecondaryUnit):
 		super().__init__(name)
 
 		self._libraryReferences = []
-		self._uses =              []
+		self._packageReferences = []
 		self._declaredItems =     []
 		self._bodyItems =         []
 
@@ -784,8 +796,8 @@ class Architecture(SecondaryUnit):
 		return self._libraryReferences
 
 	@property
-	def Uses(self) -> List[Use]:
-		return self._uses
+	def PackageReferences(self) -> List[PackageReference]:
+		return self._packageReferences
 
 	@property
 	def DeclaredItems(self) -> List:   # FIXME: define liste element type e.g. via Union
@@ -841,7 +853,7 @@ class Instantiation:
 @export
 class Package(PrimaryUnit):
 	_libraryReferences: List[Library]
-	_uses:              List[Use]
+	_packageReferences: List[PackageReference]
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
@@ -849,7 +861,7 @@ class Package(PrimaryUnit):
 		super().__init__(name)
 
 		self._libraryReferences = []
-		self._uses =              []
+		self._packageReferences =              []
 		self._genericItems =      []
 		self._declaredItems =     []
 
@@ -858,8 +870,8 @@ class Package(PrimaryUnit):
 		return self._libraryReferences
 
 	@property
-	def Uses(self) -> List[Use]:
-		return self._uses
+	def PackageReferences(self) -> List[PackageReference]:
+		return self._packageReferences
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -874,14 +886,14 @@ class Package(PrimaryUnit):
 class PackageBody(SecondaryUnit):
 	_package:           Package
 	_libraryReferences: List[Library]
-	_uses:              List[Use]
+	_packageReferences: List[PackageReference]
 	_declaredItems:     List
 
 	def __init__(self, name: str):
 		super().__init__(name)
 
 		self._libraryReferences = []
-		self._uses =              []
+		self._packageReferences = []
 		self._declaredItems =     []
 
 	@property
@@ -893,8 +905,8 @@ class PackageBody(SecondaryUnit):
 		return self._libraryReferences
 
 	@property
-	def Uses(self) -> List[Use]:
-		return self._uses
+	def PackageReferences(self) -> List[PackageReference]:
+		return self._packageReferences
 
 	@property
 	def DeclaredItems(self) -> List:

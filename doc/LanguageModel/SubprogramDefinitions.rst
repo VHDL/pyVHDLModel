@@ -3,8 +3,14 @@
 Subprogram Declarations
 ########################
 
-* Procedure
-* Function
+.. rubric:: Table of Content
+
+* :ref:`vhdlmodel-procedure`
+* :ref:`vhdlmodel-function`
+
+
+
+.. _vhdlmodel-procedure:
 
 Procedure
 =========
@@ -12,6 +18,10 @@ Procedure
 .. todo::
 
    Write documentation.
+
+
+
+.. _vhdlmodel-function:
 
 Function
 ========

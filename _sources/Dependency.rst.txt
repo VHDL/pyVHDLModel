@@ -1,0 +1,66 @@
+.. _dependency:
+
+Dependency
+##########
+
+.. _dependency-package:
+
+pyVHDLModel Package
+*******************
+
++-----------------------------------------------------+-------------+---------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+| **Package**                                         | **Version** | **License**                                                         | **Dependencies**                                                                                                                |
++=====================================================+=============+=====================================================================+=================================================================================================================================+
+| `pydecor <https://github.com/mplanchard/pydecor>`__ | ≥2.0.1      | `MIT <https://github.com/mplanchard/pydecor/blob/master/LICENSE>`__ | * `dill <https://github.com/uqfoundation/dill>`__ (`BSD 3-clause <https://github.com/uqfoundation/dill/blob/master/LICENSE>`__) |
+|                                                     |             |                                                                     | * `six <https://github.com/benjaminp/six>`__ (`MIT <https://github.com/benjaminp/six/blob/master/LICENSE>`__)                   |
++-----------------------------------------------------+-------------+---------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+
+
+.. _dependency-testing:
+
+Unit Testing / Coverage
+***********************
+
+Additional Python packages needed for testing and code coverage collection.
+These packages are only needed for developers or on a CI server, thus
+sub-dependencies are not evaluated further.
+
++-----------------------------------------------------------+-------------+----------------------------------------------------------------------------------------+----------------------+
+| **Package**                                               | **Version** | **License**                                                                            | **Dependencies**     |
++===========================================================+=============+========================================================================================+======================+
+| `pytest <https://github.com/pytest-dev/pytest>`__         | ≥6.2.1      | `MIT <https://github.com/pytest-dev/pytest/blob/master/LICENSE>`__                     | *Not yet evaluated.* |
++-----------------------------------------------------------+-------------+----------------------------------------------------------------------------------------+----------------------+
+| `pytest-cov <https://github.com/pytest-dev/pytest-cov>`__ | ≥2.10.1     | `MIT <https://github.com/pytest-dev/pytest-cov/blob/master/LICENSE>`__                 | *Not yet evaluated.* |
++-----------------------------------------------------------+-------------+----------------------------------------------------------------------------------------+----------------------+
+| `Coverage <https://github.com/nedbat/coveragepy>`__       | ≥5.3        | `Apache License, 2.0 <https://github.com/nedbat/coveragepy/blob/master/LICENSE.txt>`__ | *Not yet evaluated.* |
++-----------------------------------------------------------+-------------+----------------------------------------------------------------------------------------+----------------------+
+
+
+.. _dependency-documentation:
+
+Sphinx Documentation
+********************
+
+Additional Python packages needed for documentation generation. These packages
+are only needed for developers or on a CI server, thus sub-dependencies are not
+evaluated further.
+
++-------------------------------------------------------------------------------------------------+--------------+----------------------------------------------------------------------------------------------------------+----------------------+
+| **Package**                                                                                     | **Version**  | **License**                                                                                              | **Dependencies**     |
++=================================================================================================+==============+==========================================================================================================+======================+
+| `Sphinx <https://github.com/sphinx-doc/sphinx>`__                                               | ≥3.4.1       | `BSD 3-Clause <https://github.com/sphinx-doc/sphinx/blob/master/LICENSE>`__                              | *Not yet evaluated.* |
++-------------------------------------------------------------------------------------------------+--------------+----------------------------------------------------------------------------------------------------------+----------------------+
+| `sphinx_btd_theme <https://github.com/buildthedocs/sphinx.theme>`__                             |              | `MIT <https://github.com/buildthedocs/sphinx.theme/blob/master/LICENSE>`__                               | *Not yet evaluated.* |
++-------------------------------------------------------------------------------------------------+--------------+----------------------------------------------------------------------------------------------------------+----------------------+
+| `autoapi <https://github.com/carlos-jenkins/autoapi>`__                                         |              | `Apache License, 2.0 <https://github.com/carlos-jenkins/autoapi/blob/master/LICENSE>`__                  | *Not yet evaluated.* |
++-------------------------------------------------------------------------------------------------+--------------+----------------------------------------------------------------------------------------------------------+----------------------+
+| !! `sphinx_fontawesome <https://github.com/fraoustin/sphinx_fontawesome>`__                     | ≥0.0.6       | `GPL 2.0 <https://github.com/fraoustin/sphinx_fontawesome/blob/master/LICENSE>`__                        | *Not yet evaluated.* |
++-------------------------------------------------------------------------------------------------+--------------+----------------------------------------------------------------------------------------------------------+----------------------+
+| `sphinx_autodoc_typehints <https://github.com/agronholm/sphinx-autodoc-typehints>`__            | ≥1.11.1      | `MIT <https://github.com/agronholm/sphinx-autodoc-typehints/blob/master/LICENSE>`__                      | *Not yet evaluated.* |
++-------------------------------------------------------------------------------------------------+--------------+----------------------------------------------------------------------------------------------------------+----------------------+
+| `btd.sphinx.graphviz <https://github.com/buildthedocs/sphinx.graphviz>`__                       | ≥2.3.1.post1 | `BSD 2-Clause <https://github.com/buildthedocs/sphinx.graphviz/blob/btd/master/LICENSE.md>`__            | *Not yet evaluated.* |
++-------------------------------------------------------------------------------------------------+--------------+----------------------------------------------------------------------------------------------------------+----------------------+
+| `btd.sphinx.inheritance_diagram <https://github.com/buildthedocs/sphinx.inheritance_diagram>`__ | ≥2.3.1.post1 | `BSD 2-Clause <https://github.com/buildthedocs/sphinx.inheritance_diagram/blob/btd/master/LICENSE.md>`__ | *Not yet evaluated.* |
++-------------------------------------------------------------------------------------------------+--------------+----------------------------------------------------------------------------------------------------------+----------------------+
+| `Pygments <https://github.com/pygments/pygments>`__                                             | ≥2.7.2       | `BSD 2-Clause <https://github.com/pygments/pygments/blob/master/LICENSE>`__                              | *Not yet evaluated.* |
++-------------------------------------------------------------------------------------------------+--------------+----------------------------------------------------------------------------------------------------------+----------------------+

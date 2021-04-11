@@ -1,0 +1,19 @@
+pyVHDLModel
+===============
+
+.. automodule:: pyVHDLModel
+
+
+
+.. #-----------------------------------
+
+**Submodules**
+
+.. toctree::
+
+   pyVHDLModel.VHDLModel
+
+.. currentmodule:: pyVHDLModel
+
+
+.. #-----------------------------------

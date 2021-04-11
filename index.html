@@ -1,0 +1,306 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>The pyVHDLModel Documentation &mdash; pyVHDLModel 0.8.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation/Updates" href="Installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#" class="icon icon-home"> pyVHDLModel
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="LanguageModel/index.html">VHDL Language Model</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pyVHDLModel/pyVHDLModel.html">pyVHDLModel</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">pyVHDLModel</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>The pyVHDLModel Documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/VHDL/pyVHDLModel/blob/master/doc/index.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.xlarge {font-size: x-large; }
+</style><div class="line-block">
+<div class="line"><a class="reference external" href="https://github.com/vhdl/pyVHDLModel"><img alt="Sourcecode on GitHub" src="https://img.shields.io/badge/vhdl-pyVHDLModel-323131?logo=github&amp;longCache=true" style="height: 22px;" /></a> <a class="reference external" href="Code-License.html"><img alt="Code license" src="https://img.shields.io/pypi/l/pyVHDLModel?logo=GitHub&amp;label=code%20license" style="height: 22px;" /></a> <a class="reference external" href="https://github.com/vhdl/pyVHDLModel/tags"><img alt="GitHub tag (latest SemVer incl. pre-release" src="https://img.shields.io/github/v/tag/vhdl/pyVHDLModel?logo=GitHub&amp;include_prereleases" style="height: 22px;" /></a> <a class="reference external" href="https://github.com/vhdl/pyVHDLModel/releases/latest"><img alt="GitHub release (latest SemVer incl. including pre-releases" src="https://img.shields.io/github/v/release/vhdl/pyVHDLModel?logo=GitHub&amp;include_prereleases" style="height: 22px;" /></a> <a class="reference external" href="https://github.com/vhdl/pyVHDLModel/releases"><img alt="GitHub release date" src="https://img.shields.io/github/release-date/vhdl/pyVHDLModel?logo=GitHub" style="height: 22px;" /></a> <a class="reference external" href="https://github.com/vhdl/pyVHDLModel/network/dependents"><img alt="Dependent repos (via libraries.io)" src="https://img.shields.io/librariesio/dependent-repos/pypi/pyVHDLModel" style="height: 22px;" /></a></div>
+<div class="line"><a class="reference external" href="https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22"><img alt="GitHub Workflow - Build and Test Status" src="https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Test%20and%20Coverage?label=Build%20and%20Test&amp;logo=GitHub%20Actions&amp;logoColor=FFFFFF" style="height: 22px;" /></a> <a class="reference external" href="https://www.codacy.com/manual/vhdl/pyVHDLModel"><img alt="Codacy - Quality" src="https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?logo=codacy" style="height: 22px;" /></a> <a class="reference external" href="https://www.codacy.com/manual/vhdl/pyVHDLModel"><img alt="Codacy - Line Coverage" src="https://img.shields.io/codacy/coverage/2286426d2b11417e90010427b7fed8e7?logo=codacy" style="height: 22px;" /></a> <a class="reference external" href="https://codecov.io/gh/vhdl/pyVHDLModel"><img alt="Codecov - Branch Coverage" src="https://img.shields.io/codecov/c/github/vhdl/pyVHDLModel" style="height: 22px;" /></a> <a class="reference external" href="https://libraries.io/github/vhdl/pyVHDLModel/sourcerank"><img alt="Libraries.io SourceRank" src="https://img.shields.io/librariesio/sourcerank/pypi/pyVHDLModel" style="height: 22px;" /></a></div>
+<div class="line"><a class="reference external" href="https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Release%22"><img alt="GitHub Workflow - Release Status" src="https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Release?label=release&amp;logo=GitHub%20Actions&amp;logoColor=FFFFFF" style="height: 22px;" /></a> <a class="reference external" href="https://pypi.org/project/pyVHDLModel/"><img alt="PyPI - Tag" src="https://img.shields.io/pypi/v/pyVHDLModel?logo=PyPI" style="height: 22px;" /></a> <a class="reference internal" href="https://img.shields.io/pypi/status/pyVHDLModel?logo=PyPI"><img alt="PyPI - Status" src="https://img.shields.io/pypi/status/pyVHDLModel?logo=PyPI" style="height: 22px;" /></a> <a class="reference internal" href="https://img.shields.io/pypi/pyversions/pyVHDLModel?logo=PyPI"><img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/pyVHDLModel?logo=PyPI" style="height: 22px;" /></a> <a class="reference external" href="https://libraries.io/github/vhdl/pyVHDLModel"><img alt="Libraries.io status for latest release" src="https://img.shields.io/librariesio/release/pypi/pyVHDLModel" style="height: 22px;" /></a> <a class="reference external" href="https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main"><img alt="Requires.io" src="https://img.shields.io/requires/github/VHDL/pyVHDLModel" style="height: 22px;" /></a></div>
+<div class="line"><a class="reference external" href="https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Documentation%22"><img alt="GitHub Workflow - Documentation Status" src="https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Documentation?label=Documentation&amp;logo=GitHub%20Actions&amp;logoColor=FFFFFF" style="height: 22px;" /></a> <a class="reference external" href="Doc-License.html"><img alt="Documentation License" src="https://img.shields.io/badge/doc%20license-CC--BY%204.0-green" style="height: 22px;" /></a> <a class="reference external" href="https://vhdl.github.io/pyVHDLModel/"><img alt="Documentation - Read Now!" src="https://img.shields.io/badge/doc-read%20now%20%E2%9E%94-blueviolet" style="height: 22px;" /></a></div>
+</div>
+<hr class="docutils" />
+<div class="section" id="the-pyvhdlmodel-documentation">
+<h1>The pyVHDLModel Documentation<a class="headerlink" href="#the-pyvhdlmodel-documentation" title="Permalink to this headline">¶</a></h1>
+<p>An abstract VHDL language model.</p>
+<div class="section" id="main-goals">
+<span id="goals"></span><h2>Main Goals<a class="headerlink" href="#main-goals" title="Permalink to this headline">¶</a></h2>
+<p>This package provides a unified abstract language model for VHDL. Projects reading
+from source files can derive own classes and implement additional logic to create
+a concrete language model for their tools.</p>
+<p>Projects consuming pre-processed VHDL data (parsed, analyzed or elaborated) can
+build higher level features and services on such a model, while supporting multiple
+frontends.</p>
+</div>
+<div class="section" id="use-cases">
+<span id="usecase"></span><h2>Use Cases<a class="headerlink" href="#use-cases" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>High-level API for <a class="reference external" href="https://github.com/ghdl/ghdl">GHDL’s</a> <cite>libghdl</cite> offered via <a class="reference external" href="https://ghdl.github.io/ghdl/using/pyGHDL/index.html">pyGHDL</a>.</p></li>
+<li><p>Code Document-Object-Model (Code-DOM) in <a class="reference external" href="https://github.com/Paebbels/pyVHDLParser">pyVHDLParser</a>.</p></li>
+</ul>
+</div>
+<div class="section" id="news">
+<span id="id1"></span><h2>News<a class="headerlink" href="#news" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="jan-2021-documentation-enhancements">
+<h3>Jan. 2021 - Documentation enhancements<a class="headerlink" href="#jan-2021-documentation-enhancements" title="Permalink to this headline">¶</a></h3>
+</div>
+<ul class="simple">
+<li><p>Enhanced class documentation.</p></li>
+<li><p>Changed test runner to <code class="docutils literal notranslate"><span class="pre">pytest</span></code>.</p></li>
+<li><p>Dependency check and license clearance.</p></li>
+</ul>
+<div class="section" id="dec-2020-split-from-pyvhdlparser">
+<h3>Dec. 2020 - Split from pyVHDLParser<a class="headerlink" href="#dec-2020-split-from-pyvhdlparser" title="Permalink to this headline">¶</a></h3>
+</div>
+<p><cite>pyVHDLModel</cite> was split from <cite>pyVHDLParser</cite> (v0.6.0) as an independent Python package.</p>
+</div>
+<div class="section" id="contributors">
+<span id="id2"></span><h2>Contributors<a class="headerlink" href="#contributors" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/Paebbels">Patrick Lehmann</a> (Maintainer)</p></li>
+<li><p><a class="reference external" href="https://github.com/umarcor/">Unai Martinez-Corral</a></p></li>
+<li><p><a class="reference external" href="https://github.com/VHDL/pyVHDLModel/graphs/contributors">and more…</a></p></li>
+</ul>
+</div>
+<div class="section" id="license">
+<h2>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h2>
+<p>This Python package (source code) is licensed under <a class="reference external" href="Code-License.html">Apache License 2.0</a>. <br />
+The accompanying documentation is licensed under <a class="reference external" href="Doc-License.html">Creative Commons - Attribution 4.0 (CC-BY 4.0)</a>.</p>
+<hr class="docutils" />
+<p>This document was generated on 11.Apr 2021 - 22:46.</p>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Installation.html" class="btn btn-neutral float-right" title="Installation/Updates" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2016-2021 Patrick Lehmann - Boetzingen, Germany
+      <span class="lastupdated">
+        Last updated on 11.04.2021.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/buildthedocs/sphinx.theme">theme</a>
+    
+    provided by <a href="https://buildthedocs.github.io">Build the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

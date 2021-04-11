@@ -1,0 +1,442 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Design Units &mdash; pyVHDLModel 0.8.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Interface Items" href="InterfaceItems.html" />
+    <link rel="prev" title="Enumerations" href="Enumerations.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pyVHDLModel
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Main Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">VHDL Language Model</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Miscellaneous.html">Concepts not defined by VHDL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Enumerations.html">Enumerations</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Design Units</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#primary-units">Primary Units</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#context">Context</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#entity">Entity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#package">Package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#secondary-units">Secondary Units</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#architeture">Architeture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#package-body">Package Body</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="InterfaceItems.html">Interface Items</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SubprogramDefinitions.html">Subprogram Declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TypeDefinitions.html">Type Declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ObjectDeclarations.html">Object Declartions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ConcurrentStatements.html">Concurrent Statements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SequentialStatements.html">Sequential Statements</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pyVHDLModel/pyVHDLModel.html">pyVHDLModel</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyVHDLModel</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">VHDL Language Model</a> &raquo;</li>
+        
+      <li>Design Units</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/VHDL/pyVHDLModel/blob/master/doc/LanguageModel/DesignUnits.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.xlarge {font-size: x-large; }
+</style><div class="section" id="design-units">
+<span id="vhdlmodel-desuni"></span><h1>Design Units<a class="headerlink" href="#design-units" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Primary Units</p>
+<ul>
+<li><p>Context</p></li>
+<li><p>Configuration</p></li>
+<li><p>Entity</p></li>
+<li><p>Package</p></li>
+</ul>
+</li>
+<li><p>Secondary Units</p>
+<ul>
+<li><p>Architeture</p></li>
+<li><p>Package Body</p></li>
+</ul>
+</li>
+</ul>
+<div class="section" id="primary-units">
+<h2>Primary Units<a class="headerlink" href="#primary-units" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="context">
+<h3>Context<a class="headerlink" href="#context" title="Permalink to this headline">¶</a></h3>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</div>
+<div class="section" id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</div>
+<div class="section" id="entity">
+<h3>Entity<a class="headerlink" href="#entity" title="Permalink to this headline">¶</a></h3>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <a class="reference internal" href="../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Entity" title="pyVHDLModel.VHDLModel.Entity"><code class="xref py py-class docutils literal notranslate"><span class="pre">Entity</span></code></a>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Entity</span><span class="p">(</span><span class="n">PrimaryUnit</span><span class="p">):</span>
+  <span class="n">_libraryReferences</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">LibraryReference</span><span class="p">]</span>
+  <span class="n">_uses</span><span class="p">:</span>              <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]</span>
+  <span class="n">_genericItems</span><span class="p">:</span>      <span class="n">List</span><span class="p">[</span><span class="n">GenericInterfaceItem</span><span class="p">]</span>
+  <span class="n">_portItems</span><span class="p">:</span>         <span class="n">List</span><span class="p">[</span><span class="n">PortInterfaceItem</span><span class="p">]</span>
+  <span class="n">_declaredItems</span><span class="p">:</span>     <span class="n">List</span>   <span class="c1"># FIXME: define liste element type e.g. via Union</span>
+  <span class="n">_bodyItems</span><span class="p">:</span>         <span class="n">List</span><span class="p">[</span><span class="s1">&#39;ConcurrentStatement&#39;</span><span class="p">]</span>
+
+  <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">LibraryReferences</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">LibraryReference</span><span class="p">]:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">Uses</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">GenericItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">GenericInterfaceItem</span><span class="p">]:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">PortItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">PortInterfaceItem</span><span class="p">]:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">DeclaredItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">BodyItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;ConcurrentStatement&#39;</span><span class="p">]:</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="package">
+<h3>Package<a class="headerlink" href="#package" title="Permalink to this headline">¶</a></h3>
+<div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <a class="reference internal" href="../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Package" title="pyVHDLModel.VHDLModel.Package"><code class="xref py py-class docutils literal notranslate"><span class="pre">Package</span></code></a>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Package</span><span class="p">(</span><span class="n">PrimaryUnit</span><span class="p">):</span>
+  <span class="n">_libraryReferences</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Library</span><span class="p">]</span>
+  <span class="n">_uses</span><span class="p">:</span>              <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]</span>
+  <span class="n">_genericItems</span><span class="p">:</span>      <span class="n">List</span><span class="p">[</span><span class="n">GenericInterfaceItem</span><span class="p">]</span>
+  <span class="n">_declaredItems</span><span class="p">:</span>     <span class="n">List</span>
+
+  <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">LibraryReferences</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Library</span><span class="p">]:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">Uses</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">GenericItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">GenericInterfaceItem</span><span class="p">]:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">DeclaredItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="secondary-units">
+<h2>Secondary Units<a class="headerlink" href="#secondary-units" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="architeture">
+<h3>Architeture<a class="headerlink" href="#architeture" title="Permalink to this headline">¶</a></h3>
+<div class="admonition-todo admonition" id="id5">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <a class="reference internal" href="../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Architecture" title="pyVHDLModel.VHDLModel.Architecture"><code class="xref py py-class docutils literal notranslate"><span class="pre">Architecture</span></code></a>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Architecture</span><span class="p">(</span><span class="n">SecondaryUnit</span><span class="p">):</span>
+  <span class="n">_entity</span><span class="p">:</span>            <span class="n">Entity</span>
+  <span class="n">_libraryReferences</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Library</span><span class="p">]</span>
+  <span class="n">_uses</span><span class="p">:</span>              <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]</span>
+  <span class="n">_declaredItems</span><span class="p">:</span>     <span class="n">List</span>   <span class="c1"># FIXME: define liste element type e.g. via Union</span>
+  <span class="n">_bodyItems</span><span class="p">:</span>         <span class="n">List</span><span class="p">[</span><span class="s1">&#39;ConcurrentStatement&#39;</span><span class="p">]</span>
+
+  <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">Entity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Entity</span><span class="p">:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">LibraryReferences</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Library</span><span class="p">]:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">Uses</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">DeclaredItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">BodyItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;ConcurrentStatement&#39;</span><span class="p">]:</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="package-body">
+<h3>Package Body<a class="headerlink" href="#package-body" title="Permalink to this headline">¶</a></h3>
+<div class="admonition-todo admonition" id="id6">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <a class="reference internal" href="../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.PackageBody" title="pyVHDLModel.VHDLModel.PackageBody"><code class="xref py py-class docutils literal notranslate"><span class="pre">PackageBody</span></code></a>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">PackageBody</span><span class="p">(</span><span class="n">SecondaryUnit</span><span class="p">):</span>
+  <span class="n">_package</span><span class="p">:</span>           <span class="n">Package</span>
+  <span class="n">_libraryReferences</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Library</span><span class="p">]</span>
+  <span class="n">_uses</span><span class="p">:</span>              <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]</span>
+  <span class="n">_declaredItems</span><span class="p">:</span>     <span class="n">List</span>
+
+  <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">Package</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Package</span><span class="p">:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">LibraryReferences</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Library</span><span class="p">]:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">Uses</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]:</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">DeclaredItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="InterfaceItems.html" class="btn btn-neutral float-right" title="Interface Items" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Enumerations.html" class="btn btn-neutral float-left" title="Enumerations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2016-2021 Patrick Lehmann - Boetzingen, Germany
+      <span class="lastupdated">
+        Last updated on 11.04.2021.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/buildthedocs/sphinx.theme">theme</a>
+    
+    provided by <a href="https://buildthedocs.github.io">Build the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,1712 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pyVHDLModel.VHDLModel &mdash; pyVHDLModel 0.8.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> pyVHDLModel
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../LanguageModel/index.html">VHDL Language Model</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pyVHDLModel/pyVHDLModel.html">pyVHDLModel</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pyVHDLModel</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pyVHDLModel.VHDLModel</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pyVHDLModel.VHDLModel</h1><div class="highlight"><pre>
+<span></span><span class="c1"># =============================================================================</span>
+<span class="c1">#             __     ___   _ ____  _     __  __           _      _</span>
+<span class="c1">#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |</span>
+<span class="c1">#  | &#39;_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |</span>
+<span class="c1">#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |</span>
+<span class="c1">#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|</span>
+<span class="c1">#  |_|    |___/</span>
+<span class="c1"># ==============================================================================</span>
+<span class="c1"># Authors:            Patrick Lehmann</span>
+<span class="c1">#</span>
+<span class="c1"># Python module:      An abstract VHDL language model.</span>
+<span class="c1">#</span>
+<span class="c1"># Description:</span>
+<span class="c1"># ------------------------------------</span>
+<span class="c1">#		TODO:</span>
+<span class="c1">#</span>
+<span class="c1"># License:</span>
+<span class="c1"># ==============================================================================</span>
+<span class="c1"># Copyright 2017-2021 Patrick Lehmann - Boetzingen, Germany</span>
+<span class="c1"># Copyright 2016-2017 Patrick Lehmann - Dresden, Germany</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="c1"># SPDX-License-Identifier: Apache-2.0</span>
+<span class="c1"># ==============================================================================</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">:copyright: Copyright 2007-2021 Patrick Lehmann - Bötzingen, Germany</span>
+<span class="sd">:license: Apache License, Version 2.0</span>
+
+<span class="sd">This module contains a document language model for VHDL.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># load dependencies</span>
+<span class="kn">from</span> <span class="nn">enum</span>               <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">pathlib</span>            <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span>             <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">pydecor.decorators</span> <span class="kn">import</span> <span class="n">export</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="c1">#__api__ = __all__ # FIXME: disabled due to a bug in pydecors export decorator</span>
+
+
+<div class="viewcode-block" id="ModelEntity"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ModelEntity">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ModelEntity</span><span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	``ModelEntity`` is a base class for all classes in the VHDL language model,</span>
+<span class="sd">	except for mixin classes (see multiple inheritance) and enumerations.</span>
+
+<span class="sd">	Each entity in this model has a reference to its parent entity. Therefore</span>
+<span class="sd">	a protected variable :attr:`_parent` is available and a readonly property</span>
+<span class="sd">	:attr:`Parent`.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">_parent</span><span class="p">:</span> <span class="s1">&#39;ModelEntity&#39;</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="kc">None</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Parent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ModelEntity&#39;</span><span class="p">:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a reference to the parent entity.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span></div>
+
+
+<div class="viewcode-block" id="NamedEntity"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.NamedEntity">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">NamedEntity</span><span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``NamedEntity`` is a mixin class for all VHDL entities that have names.</span>
+
+<span class="sd">	A protected variable :attr:`_name` is available to derived classes as well as</span>
+<span class="sd">	a readonly property :attr:`Name` for public access.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">_name</span><span class="p">:</span> <span class="nb">str</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a model entity&#39;s name.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span></div>
+
+
+<div class="viewcode-block" id="LabeledEntity"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.LabeledEntity">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">LabeledEntity</span><span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``LabeledEntity`` is a mixin class for all VHDL entities that can have</span>
+<span class="sd">	labels.</span>
+
+<span class="sd">	A protected variable :attr:`_label` is available to derived classes as well</span>
+<span class="sd">	as a readonly property :attr:`Label` for public access.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">_label</span><span class="p">:</span> <span class="nb">str</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="o">=</span> <span class="n">label</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a model entity&#39;s label.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span></div>
+
+
+<div class="viewcode-block" id="Design"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Design">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Design</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``Design`` represents all loaded files (see :class:`~pyVHDLModel.VHDLModel.Document`)</span>
+<span class="sd">	and analysed. It&#39;s the root of this document-object-model (DOM). It contains</span>
+<span class="sd">	at least on VHDL library (see :class:`~pyVHDLModel.VHDLModel.Library`).</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">_libraries</span><span class="p">:</span>  <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Library&#39;</span><span class="p">]</span>  <span class="c1">#: List of all libraries defined for a design</span>
+	<span class="n">_documents</span><span class="p">:</span>  <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Document&#39;</span><span class="p">]</span> <span class="c1">#: List of all documents loaded for a design</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_libraries</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_documents</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Libraries</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Library&#39;</span><span class="p">]:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a list of all libraries specified for this design.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_libraries</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Documents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Document&#39;</span><span class="p">]:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a list of all documents (files) loaded for this design.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_documents</span></div>
+
+
+<div class="viewcode-block" id="Library"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Library">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Library</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">,</span> <span class="n">NamedEntity</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``Library`` represents a VHDL library. It contains all *primary* design</span>
+<span class="sd">	units.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">_contexts</span><span class="p">:</span>       <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Context&#39;</span><span class="p">]</span>        <span class="c1">#: List of all contexts defined in a library.</span>
+	<span class="n">_configurations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Configuration&#39;</span><span class="p">]</span>  <span class="c1">#: List of all configurations defined in a library.</span>
+	<span class="n">_entities</span><span class="p">:</span>       <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Entity&#39;</span><span class="p">]</span>         <span class="c1">#: List of all entities defined in a library.</span>
+	<span class="n">_packages</span><span class="p">:</span>       <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Package&#39;</span><span class="p">]</span>        <span class="c1">#: List of all packages defined in a library.</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">NamedEntity</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_contexts</span> <span class="o">=</span>        <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_configurations</span> <span class="o">=</span>  <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_entities</span> <span class="o">=</span>        <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_packages</span> <span class="o">=</span>        <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Contexts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Context&#39;</span><span class="p">]:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a list of all context declarations loaded for this design.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contexts</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Configurations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Configuration&#39;</span><span class="p">]:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a list of all configuration declarations loaded for this design.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configurations</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Entities</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Entity&#39;</span><span class="p">]:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a list of all entity declarations loaded for this design.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entities</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Packages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Package&#39;</span><span class="p">]:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a list of all package declarations loaded for this design.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_packages</span></div>
+
+
+<div class="viewcode-block" id="Document"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Document">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Document</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``Document`` represents a sourcefile. It contains primary and secondary</span>
+<span class="sd">	design units.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">_path</span><span class="p">:</span>           <span class="n">Path</span>                   <span class="c1">#: path to the document. ``None`` if virtual document.</span>
+	<span class="n">_contexts</span><span class="p">:</span>       <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Context&#39;</span><span class="p">]</span>        <span class="c1">#: List of all contexts defined in a document.</span>
+	<span class="n">_configurations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Configuration&#39;</span><span class="p">]</span>  <span class="c1">#: List of all configurations defined in a document.</span>
+	<span class="n">_entities</span><span class="p">:</span>       <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Entity&#39;</span><span class="p">]</span>         <span class="c1">#: List of all entities defined in a document.</span>
+	<span class="n">_architectures</span><span class="p">:</span>  <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Architecture&#39;</span><span class="p">]</span>   <span class="c1">#: List of all architectures defined in a document.</span>
+	<span class="n">_packages</span><span class="p">:</span>       <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Package&#39;</span><span class="p">]</span>        <span class="c1">#: List of all packages defined in a document.</span>
+	<span class="n">_packageBodies</span><span class="p">:</span>  <span class="n">List</span><span class="p">[</span><span class="s1">&#39;PackageBody&#39;</span><span class="p">]</span>    <span class="c1">#: List of all package bodies defined in a document.</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span>            <span class="n">path</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_contexts</span> <span class="o">=</span>        <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_configurations</span> <span class="o">=</span>  <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_entities</span> <span class="o">=</span>        <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_architectures</span> <span class="o">=</span>   <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_packages</span> <span class="o">=</span>        <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_packageBodies</span> <span class="o">=</span>   <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Contexts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Context&#39;</span><span class="p">]:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a list of all context declarations found in this document.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contexts</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Configurations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Configuration&#39;</span><span class="p">]:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a list of all configuration declarations found in this document.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configurations</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Entities</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Entity&#39;</span><span class="p">]:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a list of all entity declarations found in this document.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entities</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Architectures</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Architecture&#39;</span><span class="p">]:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a list of all architecture declarations found in this document.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_architectures</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Packages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Package&#39;</span><span class="p">]:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a list of all package declarations found in this document.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_packages</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">PackageBodies</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;PackageBody&#39;</span><span class="p">]:</span>
+		<span class="sd">&quot;&quot;&quot;Returns a list of all package body declarations found in this document.&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_packageBodies</span></div>
+
+
+<div class="viewcode-block" id="Direction"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Direction">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Direction</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``Direction`` is an enumeration and represents a direction (``to`` or ``downto``)</span>
+<span class="sd">	in a range.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">To</span> <span class="o">=</span>      <span class="mi">0</span>
+	<span class="n">DownTo</span> <span class="o">=</span>  <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Mode"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Mode">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Mode</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``Mode`` is an enumeration and represents a direction (``in``, ``out``, ...)</span>
+<span class="sd">	for how objects are passed.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">Default</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">In</span> <span class="o">=</span>      <span class="mi">1</span>
+	<span class="n">Out</span> <span class="o">=</span>     <span class="mi">2</span>
+	<span class="n">InOut</span> <span class="o">=</span>   <span class="mi">3</span>
+	<span class="n">Buffer</span> <span class="o">=</span>  <span class="mi">4</span>
+	<span class="n">Linkage</span> <span class="o">=</span> <span class="mi">5</span></div>
+
+
+<div class="viewcode-block" id="Class"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Class">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Class</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``Class`` is an enumeration and represents an object&#39;s class (``constant``,</span>
+<span class="sd">	``signal``, ...).</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">Default</span> <span class="o">=</span>    <span class="mi">0</span>
+	<span class="n">Constant</span> <span class="o">=</span>   <span class="mi">1</span>
+	<span class="n">Variable</span> <span class="o">=</span>   <span class="mi">2</span>
+	<span class="n">Signal</span> <span class="o">=</span>     <span class="mi">3</span>
+	<span class="n">File</span> <span class="o">=</span>       <span class="mi">4</span>
+	<span class="n">Type</span> <span class="o">=</span>       <span class="mi">5</span>
+	<span class="n">Subprogram</span> <span class="o">=</span> <span class="mi">6</span></div>
+
+
+<div class="viewcode-block" id="BaseType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.BaseType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">BaseType</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">,</span> <span class="n">NamedEntity</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;``BaseType`` is the base class of all type entities in this model.&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">NamedEntity</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Type"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Type">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Type</span><span class="p">(</span><span class="n">BaseType</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="SubType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.SubType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">SubType</span><span class="p">(</span><span class="n">BaseType</span><span class="p">):</span>
+	<span class="n">_type</span><span class="p">:</span>               <span class="s1">&#39;SubType&#39;</span>
+	<span class="n">_baseType</span><span class="p">:</span>           <span class="n">Type</span>
+	<span class="n">_range</span><span class="p">:</span>              <span class="s1">&#39;Range&#39;</span>
+	<span class="n">_resolutionFunction</span><span class="p">:</span> <span class="s1">&#39;Function&#39;</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SubType&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">BaseType</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baseType</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Range</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Range&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">ResolutionFunction</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Function&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolutionFunction</span></div>
+
+
+<div class="viewcode-block" id="ScalarType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ScalarType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ScalarType</span><span class="p">(</span><span class="n">BaseType</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="NumericType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.NumericType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">NumericType</span><span class="p">:</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DiscreteType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.DiscreteType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">DiscreteType</span><span class="p">:</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="CompositeType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.CompositeType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">CompositeType</span><span class="p">(</span><span class="n">BaseType</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ProtectedType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ProtectedType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ProtectedType</span><span class="p">(</span><span class="n">BaseType</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="AccessType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.AccessType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">AccessType</span><span class="p">(</span><span class="n">BaseType</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="FileType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.FileType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">FileType</span><span class="p">(</span><span class="n">BaseType</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="EnumeratedType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.EnumeratedType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">EnumeratedType</span><span class="p">(</span><span class="n">ScalarType</span><span class="p">,</span> <span class="n">DiscreteType</span><span class="p">):</span>
+	<span class="n">_elements</span><span class="p">:</span> <span class="n">List</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_elements</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Elements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elements</span></div>
+
+
+<div class="viewcode-block" id="IntegerType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.IntegerType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">IntegerType</span><span class="p">(</span><span class="n">ScalarType</span><span class="p">,</span> <span class="n">NumericType</span><span class="p">,</span> <span class="n">DiscreteType</span><span class="p">):</span>
+	<span class="n">_leftBound</span><span class="p">:</span>  <span class="s1">&#39;Expression&#39;</span>
+	<span class="n">_rightBound</span><span class="p">:</span> <span class="s1">&#39;Expression&#39;</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RealType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.RealType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">RealType</span><span class="p">(</span><span class="n">ScalarType</span><span class="p">,</span> <span class="n">NumericType</span><span class="p">):</span>
+	<span class="n">_leftBound</span><span class="p">:</span>  <span class="s1">&#39;Expression&#39;</span>
+	<span class="n">_rightBound</span><span class="p">:</span> <span class="s1">&#39;Expression&#39;</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+<span class="c1"># TODO: PhysicalType</span>
+
+<div class="viewcode-block" id="ArrayType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ArrayType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ArrayType</span><span class="p">(</span><span class="n">CompositeType</span><span class="p">):</span>
+	<span class="n">_dimensions</span><span class="p">:</span>  <span class="n">List</span><span class="p">[</span><span class="s1">&#39;Range&#39;</span><span class="p">]</span>
+	<span class="n">_elementType</span><span class="p">:</span> <span class="n">SubType</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_dimensions</span> <span class="o">=</span>  <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dimensions</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">ElementType</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elementType</span></div>
+
+
+<div class="viewcode-block" id="RecordTypeMember"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.RecordTypeMember">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">RecordTypeMember</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span>        <span class="n">name</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_subType</span> <span class="o">=</span>     <span class="kc">None</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span></div>
+
+
+<div class="viewcode-block" id="RecordType"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.RecordType">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">RecordType</span><span class="p">(</span><span class="n">BaseType</span><span class="p">):</span>
+	<span class="n">_members</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RecordTypeMember</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_members</span> <span class="o">=</span>     <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Members</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_members</span></div>
+
+
+<div class="viewcode-block" id="Expression"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Expression">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Expression</span><span class="p">:</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Literal"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Literal">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Literal</span><span class="p">:</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="IntegerLiteral"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.IntegerLiteral">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">IntegerLiteral</span><span class="p">:</span>
+	<span class="n">_value</span><span class="p">:</span> <span class="nb">int</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span></div>
+
+
+<div class="viewcode-block" id="FloatingPointLiteral"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.FloatingPointLiteral">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">FloatingPointLiteral</span><span class="p">:</span>
+	<span class="n">_value</span><span class="p">:</span> <span class="nb">float</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span></div>
+
+<span class="c1"># CharacterLiteral</span>
+<span class="c1"># StringLiteral</span>
+<span class="c1"># BitStringLiteral</span>
+<span class="c1"># EnumerationLiteral</span>
+<span class="c1"># PhysicalLiteral</span>
+
+<div class="viewcode-block" id="UnaryExpression"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.UnaryExpression">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">UnaryExpression</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
+	<span class="n">_operand</span><span class="p">:</span>  <span class="n">Expression</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">pass</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Operand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operand</span></div>
+
+<div class="viewcode-block" id="FunctionCall"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.FunctionCall">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">FunctionCall</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="QualifiedExpression"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.QualifiedExpression">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">QualifiedExpression</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BinaryExpression"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.BinaryExpression">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">BinaryExpression</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
+	<span class="n">_leftOperand</span><span class="p">:</span>  <span class="n">Expression</span>
+	<span class="n">_rightOperand</span><span class="p">:</span> <span class="n">Expression</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">pass</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">LeftOperand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leftOperand</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">RightOperand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rightOperand</span></div>
+
+<span class="c1"># AddingExpression</span>
+<span class="c1"># MultiplyingExpression</span>
+<span class="c1"># LogicalExpression</span>
+<span class="c1"># ShiftExpression</span>
+
+<div class="viewcode-block" id="Range"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Range">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Range</span><span class="p">:</span>
+	<span class="n">_leftBound</span><span class="p">:</span>  <span class="n">Any</span>
+	<span class="n">_rightBound</span><span class="p">:</span> <span class="n">Any</span>
+	<span class="n">_direction</span><span class="p">:</span>  <span class="n">Direction</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="InterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.InterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">InterfaceItem</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+	<span class="n">_name</span><span class="p">:</span> <span class="nb">str</span>
+	<span class="n">_mode</span><span class="p">:</span> <span class="n">Mode</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="n">Mode</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">mode</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mode</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span></div>
+
+
+<div class="viewcode-block" id="GenericInterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.GenericInterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">GenericInterfaceItem</span><span class="p">(</span><span class="n">InterfaceItem</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="PortInterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.PortInterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">PortInterfaceItem</span><span class="p">(</span><span class="n">InterfaceItem</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ParameterInterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ParameterInterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ParameterInterfaceItem</span><span class="p">(</span><span class="n">InterfaceItem</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="GenericConstantInterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.GenericConstantInterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">GenericConstantInterfaceItem</span><span class="p">(</span><span class="n">GenericInterfaceItem</span><span class="p">):</span>
+	<span class="n">_subtype</span><span class="p">:</span>           <span class="n">SubType</span>   <span class="c1"># FIXME: add documentation</span>
+	<span class="n">_defaultExpression</span><span class="p">:</span> <span class="n">Expression</span>   <span class="c1"># FIXME: add documentation</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">SubType</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubType</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subType</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DefaultExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaultExpression</span></div>
+
+<div class="viewcode-block" id="GenericTypeInterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.GenericTypeInterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">GenericTypeInterfaceItem</span><span class="p">(</span><span class="n">GenericInterfaceItem</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="GenericSubprogramInterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.GenericSubprogramInterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">GenericSubprogramInterfaceItem</span><span class="p">(</span><span class="n">GenericInterfaceItem</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="GenericPackageInterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.GenericPackageInterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">GenericPackageInterfaceItem</span><span class="p">(</span><span class="n">GenericInterfaceItem</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="PortSignalInterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.PortSignalInterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">PortSignalInterfaceItem</span><span class="p">(</span><span class="n">PortInterfaceItem</span><span class="p">):</span>
+	<span class="n">_subType</span><span class="p">:</span>           <span class="n">SubType</span>
+	<span class="n">_defaultExpression</span><span class="p">:</span> <span class="n">Expression</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="n">Mode</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">SubType</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubType</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subType</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DefaultExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaultExpression</span></div>
+
+
+<div class="viewcode-block" id="ParameterConstantInterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ParameterConstantInterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ParameterConstantInterfaceItem</span><span class="p">(</span><span class="n">ParameterInterfaceItem</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ParameterVariableInterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ParameterVariableInterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ParameterVariableInterfaceItem</span><span class="p">(</span><span class="n">ParameterInterfaceItem</span><span class="p">):</span>
+	<span class="n">_subType</span><span class="p">:</span>           <span class="n">SubType</span>
+	<span class="n">_mode</span><span class="p">:</span>              <span class="n">Mode</span>
+	<span class="n">_defaultExpression</span><span class="p">:</span> <span class="n">Expression</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">SubType</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubType</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subType</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mode</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DefaultExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaultExpression</span></div>
+
+
+<div class="viewcode-block" id="ParameterSignalInterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ParameterSignalInterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ParameterSignalInterfaceItem</span><span class="p">(</span><span class="n">ParameterInterfaceItem</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ParameterFileInterfaceItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ParameterFileInterfaceItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ParameterFileInterfaceItem</span><span class="p">(</span><span class="n">ParameterInterfaceItem</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<span class="c1"># class GenericItem(ModelEntity):</span>
+<span class="c1"># 	def __init__(self):</span>
+<span class="c1"># 		super().__init__()</span>
+<span class="c1"># 		self._name = None</span>
+<span class="c1"># 		self._subType = None</span>
+<span class="c1"># 		self._init = None</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1"># class PortItem(ModelEntity):</span>
+<span class="c1"># 	def __init__(self):</span>
+<span class="c1"># 		super().__init__()</span>
+<span class="c1"># 		self._name =        None</span>
+<span class="c1"># 		self._subType =     None</span>
+<span class="c1"># 		self._init =        None</span>
+<span class="c1"># 		self._mode =        None</span>
+<span class="c1"># 		self._class =       None</span>
+
+
+<div class="viewcode-block" id="LibraryReference"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.LibraryReference">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">LibraryReference</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+	<span class="n">_library</span><span class="p">:</span> <span class="n">Library</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_library</span> <span class="o">=</span> <span class="kc">None</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Library</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Library</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_library</span></div>
+
+
+<div class="viewcode-block" id="Use"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Use">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Use</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+	<span class="n">_library</span><span class="p">:</span> <span class="n">Library</span>
+	<span class="n">_package</span><span class="p">:</span> <span class="s1">&#39;Package&#39;</span>
+	<span class="n">_item</span><span class="p">:</span>    <span class="nb">str</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Library</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Library</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_library</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Package</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Package&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_package</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Item</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_item</span></div>
+
+
+<div class="viewcode-block" id="PrimaryUnit"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.PrimaryUnit">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">PrimaryUnit</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">,</span> <span class="n">NamedEntity</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">NamedEntity</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SecondaryUnit"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.SecondaryUnit">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">SecondaryUnit</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">,</span> <span class="n">NamedEntity</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">NamedEntity</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Context"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Context">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Context</span><span class="p">(</span><span class="n">PrimaryUnit</span><span class="p">):</span>
+	<span class="n">_uses</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_uses</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Uses</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uses</span></div>
+
+
+<div class="viewcode-block" id="Entity"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Entity">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Entity</span><span class="p">(</span><span class="n">PrimaryUnit</span><span class="p">):</span>
+	<span class="n">_libraryReferences</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">LibraryReference</span><span class="p">]</span>
+	<span class="n">_uses</span><span class="p">:</span>              <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]</span>
+	<span class="n">_genericItems</span><span class="p">:</span>      <span class="n">List</span><span class="p">[</span><span class="n">GenericInterfaceItem</span><span class="p">]</span>
+	<span class="n">_portItems</span><span class="p">:</span>         <span class="n">List</span><span class="p">[</span><span class="n">PortInterfaceItem</span><span class="p">]</span>
+	<span class="n">_declaredItems</span><span class="p">:</span>     <span class="n">List</span>   <span class="c1"># FIXME: define liste element type e.g. via Union</span>
+	<span class="n">_bodyItems</span><span class="p">:</span>         <span class="n">List</span><span class="p">[</span><span class="s1">&#39;ConcurrentStatement&#39;</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_libraryReferences</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_uses</span>              <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_genericItems</span>      <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_portItems</span>         <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span>     <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span>         <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">LibraryReferences</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">LibraryReference</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_libraryReferences</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Uses</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uses</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">GenericItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">GenericInterfaceItem</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_genericItems</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">PortItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">PortInterfaceItem</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_portItems</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DeclaredItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>   <span class="c1"># FIXME: define liste element type e.g. via Union</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">BodyItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;ConcurrentStatement&#39;</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span></div>
+
+
+<div class="viewcode-block" id="Architecture"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Architecture">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Architecture</span><span class="p">(</span><span class="n">SecondaryUnit</span><span class="p">):</span>
+	<span class="n">_entity</span><span class="p">:</span>            <span class="n">Entity</span>
+	<span class="n">_libraryReferences</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Library</span><span class="p">]</span>
+	<span class="n">_uses</span><span class="p">:</span>              <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]</span>
+	<span class="n">_declaredItems</span><span class="p">:</span>     <span class="n">List</span>   <span class="c1"># FIXME: define liste element type e.g. via Union</span>
+	<span class="n">_bodyItems</span><span class="p">:</span>         <span class="n">List</span><span class="p">[</span><span class="s1">&#39;ConcurrentStatement&#39;</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_libraryReferences</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_uses</span> <span class="o">=</span>              <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span> <span class="o">=</span>     <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span> <span class="o">=</span>         <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Entity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Entity</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">LibraryReferences</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Library</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_libraryReferences</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Uses</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uses</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DeclaredItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>   <span class="c1"># FIXME: define liste element type e.g. via Union</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">BodyItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;ConcurrentStatement&#39;</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span></div>
+
+
+<div class="viewcode-block" id="AssociationItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.AssociationItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">AssociationItem</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+	<span class="n">_formal</span><span class="p">:</span> <span class="nb">str</span>    <span class="c1"># FIXME: defined type</span>
+	<span class="n">_actual</span><span class="p">:</span> <span class="n">Expression</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Formal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>    <span class="c1"># FIXME: defined return type</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formal</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Actual</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_actual</span></div>
+
+
+<div class="viewcode-block" id="GenericAssociationItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.GenericAssociationItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">GenericAssociationItem</span><span class="p">(</span><span class="n">InterfaceItem</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="PortAssociationItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.PortAssociationItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">PortAssociationItem</span><span class="p">(</span><span class="n">InterfaceItem</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ParameterAssociationItem"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ParameterAssociationItem">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ParameterAssociationItem</span><span class="p">(</span><span class="n">InterfaceItem</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Configuration"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Configuration">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Configuration</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">,</span> <span class="n">NamedEntity</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">NamedEntity</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Instantiation"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Instantiation">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Instantiation</span><span class="p">:</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Package"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Package">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Package</span><span class="p">(</span><span class="n">PrimaryUnit</span><span class="p">):</span>
+	<span class="n">_libraryReferences</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Library</span><span class="p">]</span>
+	<span class="n">_uses</span><span class="p">:</span>              <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]</span>
+	<span class="n">_genericItems</span><span class="p">:</span>      <span class="n">List</span><span class="p">[</span><span class="n">GenericInterfaceItem</span><span class="p">]</span>
+	<span class="n">_declaredItems</span><span class="p">:</span>     <span class="n">List</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_libraryReferences</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_uses</span> <span class="o">=</span>              <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_genericItems</span> <span class="o">=</span>      <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span> <span class="o">=</span>     <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">LibraryReferences</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Library</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_libraryReferences</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Uses</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uses</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">GenericItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">GenericInterfaceItem</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_genericItems</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DeclaredItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span></div>
+
+
+<div class="viewcode-block" id="PackageBody"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.PackageBody">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">PackageBody</span><span class="p">(</span><span class="n">SecondaryUnit</span><span class="p">):</span>
+	<span class="n">_package</span><span class="p">:</span>           <span class="n">Package</span>
+	<span class="n">_libraryReferences</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Library</span><span class="p">]</span>
+	<span class="n">_uses</span><span class="p">:</span>              <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]</span>
+	<span class="n">_declaredItems</span><span class="p">:</span>     <span class="n">List</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_libraryReferences</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_uses</span> <span class="o">=</span>              <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span> <span class="o">=</span>     <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Package</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Package</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_package</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">LibraryReferences</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Library</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_libraryReferences</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Uses</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Use</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uses</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DeclaredItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span></div>
+
+
+<div class="viewcode-block" id="PackageInstantiation"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.PackageInstantiation">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">PackageInstantiation</span><span class="p">(</span><span class="n">PrimaryUnit</span><span class="p">,</span> <span class="n">Instantiation</span><span class="p">):</span>
+	<span class="n">_packageReference</span><span class="p">:</span>    <span class="n">Package</span>
+	<span class="n">_genericAssociations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">GenericAssociationItem</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+		<span class="n">Instantiation</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_genericAssociations</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">PackageReference</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Package</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_packageReference</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">GenericAssociations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">GenericAssociationItem</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_genericAssociations</span></div>
+
+
+<div class="viewcode-block" id="Object"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Object">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Object</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">,</span> <span class="n">NamedEntity</span><span class="p">):</span>
+	<span class="n">_subType</span><span class="p">:</span> <span class="n">SubType</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">NamedEntity</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">SubType</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubType</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subType</span></div>
+
+
+<div class="viewcode-block" id="BaseConstant"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.BaseConstant">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">BaseConstant</span><span class="p">(</span><span class="n">Object</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Constant"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Constant">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Constant</span><span class="p">(</span><span class="n">BaseConstant</span><span class="p">):</span>
+	<span class="n">_defaultExpression</span><span class="p">:</span> <span class="n">Expression</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DefaultExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaultExpression</span></div>
+
+
+<div class="viewcode-block" id="DeferredConstant"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.DeferredConstant">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">DeferredConstant</span><span class="p">(</span><span class="n">BaseConstant</span><span class="p">):</span>
+	<span class="n">_constantReference</span><span class="p">:</span> <span class="n">Constant</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">ConstantReference</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Constant</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constantReference</span></div>
+
+
+<div class="viewcode-block" id="Variable"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Variable">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Variable</span><span class="p">(</span><span class="n">Object</span><span class="p">):</span>
+	<span class="n">_defaultExpression</span><span class="p">:</span> <span class="n">Expression</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DefaultExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaultExpression</span></div>
+
+
+<div class="viewcode-block" id="Signal"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Signal">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Signal</span><span class="p">(</span><span class="n">Object</span><span class="p">):</span>
+	<span class="n">_defaultExpression</span><span class="p">:</span> <span class="n">Expression</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DefaultExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaultExpression</span></div>
+
+
+<div class="viewcode-block" id="SubProgramm"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.SubProgramm">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">SubProgramm</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">,</span> <span class="n">NamedEntity</span><span class="p">):</span>
+	<span class="n">_genericItems</span><span class="p">:</span>   <span class="n">List</span><span class="p">[</span><span class="n">GenericInterfaceItem</span><span class="p">]</span>
+	<span class="n">_parameterItems</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ParameterInterfaceItem</span><span class="p">]</span>
+	<span class="n">_declaredItems</span><span class="p">:</span>  <span class="n">List</span>
+	<span class="n">_bodyItems</span><span class="p">:</span>      <span class="n">List</span><span class="p">[</span><span class="s1">&#39;SequentialStatement&#39;</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">NamedEntity</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_genericItems</span> <span class="o">=</span>    <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_parameterItems</span> <span class="o">=</span>  <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span> <span class="o">=</span>   <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span> <span class="o">=</span>       <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">GenericItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">GenericInterfaceItem</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_genericItems</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">ParameterItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ParameterInterfaceItem</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterItems</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DeclaredItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">BodyItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;SequentialStatement&#39;</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span></div>
+
+
+<div class="viewcode-block" id="Procedure"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Procedure">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Procedure</span><span class="p">(</span><span class="n">SubProgramm</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Function"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Function">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Function</span><span class="p">(</span><span class="n">SubProgramm</span><span class="p">):</span>
+	<span class="n">_returnType</span><span class="p">:</span> <span class="n">SubType</span>
+	<span class="n">_isPure</span><span class="p">:</span>     <span class="nb">bool</span>    <span class="o">=</span> <span class="kc">True</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">ReturnType</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubType</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_returnType</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">IsPure</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isPure</span></div>
+
+
+<div class="viewcode-block" id="SubprogramInstantiation"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.SubprogramInstantiation">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">SubprogramInstantiation</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">,</span> <span class="n">Instantiation</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">Instantiation</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_subprogramReference</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="ProcedureInstantiation"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ProcedureInstantiation">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ProcedureInstantiation</span><span class="p">(</span><span class="n">SubprogramInstantiation</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="FunctionInstantiation"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.FunctionInstantiation">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">FunctionInstantiation</span><span class="p">(</span><span class="n">SubprogramInstantiation</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Method"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Method">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Method</span><span class="p">:</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_protectedType</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="ProcedureMethod"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ProcedureMethod">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ProcedureMethod</span><span class="p">(</span><span class="n">Procedure</span><span class="p">,</span> <span class="n">Method</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+		<span class="n">Method</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FunctionMethod"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.FunctionMethod">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">FunctionMethod</span><span class="p">(</span><span class="n">Function</span><span class="p">,</span> <span class="n">Method</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+		<span class="n">Method</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Statement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Statement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Statement</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">,</span> <span class="n">LabeledEntity</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">LabeledEntity</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConcurrentStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ConcurrentStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ConcurrentStatement</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="SequentialStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.SequentialStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">SequentialStatement</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ProcessStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ProcessStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ProcessStatement</span><span class="p">(</span><span class="n">ConcurrentStatement</span><span class="p">):</span>
+	<span class="n">_parameterItems</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Signal</span><span class="p">]</span>
+	<span class="n">_declaredItems</span><span class="p">:</span>  <span class="n">List</span> <span class="c1"># TODO: create a union for (concurrent / sequential) DeclaredItems</span>
+	<span class="n">_bodyItems</span><span class="p">:</span>      <span class="n">List</span><span class="p">[</span><span class="n">SequentialStatement</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_parameterItems</span> <span class="o">=</span>  <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span> <span class="o">=</span>   <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span> <span class="o">=</span>       <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">ParameterItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Signal</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterItems</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DeclaredItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">BodyItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SequentialStatement</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span></div>
+
+
+<span class="c1"># TODO: could be unified with ProcessStatement if &#39;List[ConcurrentStatement]&#39; becomes parametric to T</span>
+<span class="k">class</span> <span class="nc">BlockStatement</span><span class="p">:</span>
+	<span class="n">_declaredItems</span><span class="p">:</span> <span class="n">List</span> <span class="c1"># TODO: create a union for (concurrent / sequential) DeclaredItems</span>
+	<span class="n">_bodyItems</span><span class="p">:</span>     <span class="n">List</span><span class="p">[</span><span class="n">ConcurrentStatement</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span> <span class="o">=</span>     <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DeclaredItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">BodyItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ConcurrentStatement</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span>
+
+
+<div class="viewcode-block" id="ConcurrentBlockStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ConcurrentBlockStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ConcurrentBlockStatement</span><span class="p">(</span><span class="n">ConcurrentStatement</span><span class="p">,</span> <span class="n">BlockStatement</span><span class="p">):</span>
+	<span class="n">_portItems</span><span class="p">:</span>     <span class="n">List</span><span class="p">[</span><span class="n">PortInterfaceItem</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+		<span class="n">BlockStatement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_portItems</span> <span class="o">=</span>     <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">PortItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">PortInterfaceItem</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_portItems</span></div>
+
+
+<div class="viewcode-block" id="BaseConditional"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.BaseConditional">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">BaseConditional</span><span class="p">:</span>
+	<span class="n">_condition</span><span class="p">:</span> <span class="n">Expression</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Condition</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_condition</span></div>
+
+
+<div class="viewcode-block" id="BaseBranch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.BaseBranch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">BaseBranch</span><span class="p">:</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseConditionalBranch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.BaseConditionalBranch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">BaseConditionalBranch</span><span class="p">(</span><span class="n">BaseBranch</span><span class="p">,</span> <span class="n">BaseConditional</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">BaseConditional</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BaseIfBranch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.BaseIfBranch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">BaseIfBranch</span><span class="p">(</span><span class="n">BaseConditionalBranch</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseElsifBranch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.BaseElsifBranch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">BaseElsifBranch</span><span class="p">(</span><span class="n">BaseConditionalBranch</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseElseBranch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.BaseElseBranch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">BaseElseBranch</span><span class="p">(</span><span class="n">BaseBranch</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="GenerateBranch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.GenerateBranch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">GenerateBranch</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="IfGenerateBranch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.IfGenerateBranch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">IfGenerateBranch</span><span class="p">(</span><span class="n">GenerateBranch</span><span class="p">,</span> <span class="n">BaseIfBranch</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">BaseIfBranch</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ElsifGenerateBranch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ElsifGenerateBranch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ElsifGenerateBranch</span><span class="p">(</span><span class="n">GenerateBranch</span><span class="p">,</span> <span class="n">BaseElsifBranch</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">BaseElsifBranch</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ElseGenerateBranch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ElseGenerateBranch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ElseGenerateBranch</span><span class="p">(</span><span class="n">GenerateBranch</span><span class="p">,</span> <span class="n">BaseElseBranch</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">BaseElseBranch</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GenerateStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.GenerateStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">GenerateStatement</span><span class="p">(</span><span class="n">ConcurrentStatement</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">DeclaredItems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_declaredItems</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">BodyItems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span></div>
+
+
+<div class="viewcode-block" id="IfGenerateStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.IfGenerateStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">IfGenerateStatement</span><span class="p">(</span><span class="n">GenerateStatement</span><span class="p">):</span>
+	<span class="n">_ifBranch</span><span class="p">:</span> <span class="n">IfGenerateBranch</span>
+	<span class="n">_elsifBranch</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;ElsifGenerateBranch&#39;</span><span class="p">]</span>
+	<span class="n">_elseBranch</span><span class="p">:</span> <span class="n">ElseGenerateBranch</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_elsifBranches</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="ForGenerateStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ForGenerateStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ForGenerateStatement</span><span class="p">(</span><span class="n">GenerateStatement</span><span class="p">):</span>
+	<span class="n">_loopIndex</span><span class="p">:</span> <span class="n">Constant</span>
+	<span class="n">_range</span><span class="p">:</span>     <span class="n">Range</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">LoopIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Constant</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loopIndex</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Range</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Range</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range</span></div>
+
+<span class="c1"># TODO: CaseGenerateStatement</span>
+<span class="c1"># class CaseGenerateStatement(GenerateStatement):</span>
+<span class="c1"># 	def __init__(self):</span>
+<span class="c1"># 		super().__init__()</span>
+<span class="c1"># 		self._expression =      None</span>
+<span class="c1"># 		self._cases =           []</span>
+
+<div class="viewcode-block" id="Assignment"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Assignment">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Assignment</span><span class="p">:</span>
+	<span class="n">_target</span><span class="p">:</span>     <span class="n">Object</span>
+	<span class="n">_expression</span><span class="p">:</span> <span class="n">Expression</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Object</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Expression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span></div>
+
+
+<div class="viewcode-block" id="SignalAssignment"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.SignalAssignment">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">SignalAssignment</span><span class="p">(</span><span class="n">Assignment</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="VariableAssignment"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.VariableAssignment">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">VariableAssignment</span><span class="p">(</span><span class="n">Assignment</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ConcurrentSignalAssignment"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ConcurrentSignalAssignment">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ConcurrentSignalAssignment</span><span class="p">(</span><span class="n">ConcurrentStatement</span><span class="p">,</span> <span class="n">SignalAssignment</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+		<span class="n">SignalAssignment</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SequentialSignalAssignment"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.SequentialSignalAssignment">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">SequentialSignalAssignment</span><span class="p">(</span><span class="n">SequentialStatement</span><span class="p">,</span> <span class="n">SignalAssignment</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">SignalAssignment</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SequentialVariableAssignment"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.SequentialVariableAssignment">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">SequentialVariableAssignment</span><span class="p">(</span><span class="n">SequentialStatement</span><span class="p">,</span> <span class="n">VariableAssignment</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">VariableAssignment</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ReportStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ReportStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ReportStatement</span><span class="p">:</span>
+	<span class="n">_message</span><span class="p">:</span>  <span class="n">Expression</span>
+	<span class="n">_severity</span><span class="p">:</span> <span class="n">Expression</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Message</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_message</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Severity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_severity</span></div>
+
+
+<div class="viewcode-block" id="AssertStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.AssertStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">AssertStatement</span><span class="p">(</span><span class="n">ReportStatement</span><span class="p">):</span>
+	<span class="n">_condition</span><span class="p">:</span> <span class="n">Expression</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Condition</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_condition</span></div>
+
+
+<div class="viewcode-block" id="ConcurrentAssertStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ConcurrentAssertStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ConcurrentAssertStatement</span><span class="p">(</span><span class="n">ConcurrentStatement</span><span class="p">,</span> <span class="n">AssertStatement</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+		<span class="n">AssertStatement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SequentialReportStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.SequentialReportStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">SequentialReportStatement</span><span class="p">(</span><span class="n">SequentialStatement</span><span class="p">,</span> <span class="n">ReportStatement</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">ReportStatement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SequentialAssertStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.SequentialAssertStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">SequentialAssertStatement</span><span class="p">(</span><span class="n">SequentialStatement</span><span class="p">,</span> <span class="n">AssertStatement</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">AssertStatement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Branch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.Branch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">Branch</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="IfBranch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.IfBranch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">IfBranch</span><span class="p">(</span><span class="n">Branch</span><span class="p">,</span> <span class="n">BaseIfBranch</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">BaseIfBranch</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ElsifBranch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ElsifBranch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ElsifBranch</span><span class="p">(</span><span class="n">Branch</span><span class="p">,</span> <span class="n">BaseElsifBranch</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">BaseElsifBranch</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ElseBranch"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ElseBranch">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ElseBranch</span><span class="p">(</span><span class="n">Branch</span><span class="p">,</span> <span class="n">BaseElseBranch</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">BaseElseBranch</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CompoundStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.CompoundStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">CompoundStatement</span><span class="p">(</span><span class="n">SequentialStatement</span><span class="p">):</span>
+	<span class="n">_bodyItems</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SequentialStatement</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">BodyItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">SequentialStatement</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bodyItems</span></div>
+
+
+<div class="viewcode-block" id="IfStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.IfStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">IfStatement</span><span class="p">(</span><span class="n">CompoundStatement</span><span class="p">):</span>
+	<span class="n">_ifBranch</span><span class="p">:</span> <span class="n">IfBranch</span>
+	<span class="n">_elsifBranches</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;ElsifBranch&#39;</span><span class="p">]</span>
+	<span class="n">_elseBranch</span><span class="p">:</span> <span class="n">ElseBranch</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_elsifBranches</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">IfBranch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IfBranch</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ifBranch</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">ElsIfBranches</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;ElsifBranch&#39;</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elsifBranches</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">ElseBranch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ElseBranch</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elseBranch</span></div>
+
+
+<div class="viewcode-block" id="LoopStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.LoopStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">LoopStatement</span><span class="p">(</span><span class="n">CompoundStatement</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ForLoopStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ForLoopStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ForLoopStatement</span><span class="p">(</span><span class="n">LoopStatement</span><span class="p">):</span>
+	<span class="n">_loopIndex</span><span class="p">:</span> <span class="n">Constant</span>
+	<span class="n">_range</span><span class="p">:</span>     <span class="n">Range</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">LoopIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Constant</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loopIndex</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Range</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Range</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range</span></div>
+
+
+<div class="viewcode-block" id="WhileLoopStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.WhileLoopStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">WhileLoopStatement</span><span class="p">(</span><span class="n">LoopStatement</span><span class="p">,</span> <span class="n">BaseConditional</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">BaseConditional</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LoopControlStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.LoopControlStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">LoopControlStatement</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">,</span> <span class="n">BaseConditional</span><span class="p">):</span>
+	<span class="n">_loopReference</span><span class="p">:</span> <span class="n">LoopStatement</span>
+
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">BaseConditional</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">LoopReference</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LoopStatement</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loopReference</span></div>
+
+
+<div class="viewcode-block" id="NextStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.NextStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">NextStatement</span><span class="p">(</span><span class="n">LoopControlStatement</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ExitStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ExitStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ExitStatement</span><span class="p">(</span><span class="n">LoopControlStatement</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ReturnStatement"><a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.VHDLModel.html#pyVHDLModel.VHDLModel.ReturnStatement">[docs]</a><span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">ReturnStatement</span><span class="p">(</span><span class="n">SequentialStatement</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2016-2021 Patrick Lehmann - Boetzingen, Germany
+      <span class="lastupdated">
+        Last updated on 11.04.2021.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/buildthedocs/sphinx.theme">theme</a>
+    
+    provided by <a href="https://buildthedocs.github.io">Build the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

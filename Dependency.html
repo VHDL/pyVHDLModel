@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Dependency &mdash; pyVHDLModel 0.8.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="VHDL Language Model" href="LanguageModel/index.html" />
+    <link rel="prev" title="Installation/Updates" href="Installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pyVHDLModel
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Dependency</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pyvhdlmodel-package">pyVHDLModel Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unit-testing-coverage">Unit Testing / Coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sphinx-documentation">Sphinx Documentation</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="LanguageModel/index.html">VHDL Language Model</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pyVHDLModel/pyVHDLModel.html">pyVHDLModel</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyVHDLModel</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Dependency</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/VHDL/pyVHDLModel/blob/master/doc/Dependency.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.xlarge {font-size: x-large; }
+</style><div class="section" id="dependency">
+<span id="id1"></span><h1>Dependency<a class="headerlink" href="#dependency" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="pyvhdlmodel-package">
+<span id="dependency-package"></span><h2>pyVHDLModel Package<a class="headerlink" href="#pyvhdlmodel-package" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 5%" />
+<col style="width: 26%" />
+<col style="width: 49%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Package</strong></p></th>
+<th class="head"><p><strong>Version</strong></p></th>
+<th class="head"><p><strong>License</strong></p></th>
+<th class="head"><p><strong>Dependencies</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mplanchard/pydecor">pydecor</a></p></td>
+<td><p>≥2.0.1</p></td>
+<td><p><a class="reference external" href="https://github.com/mplanchard/pydecor/blob/master/LICENSE">MIT</a></p></td>
+<td><ul class="simple">
+<li><p><a class="reference external" href="https://github.com/uqfoundation/dill">dill</a> (<a class="reference external" href="https://github.com/uqfoundation/dill/blob/master/LICENSE">BSD 3-clause</a>)</p></li>
+<li><p><a class="reference external" href="https://github.com/benjaminp/six">six</a> (<a class="reference external" href="https://github.com/benjaminp/six/blob/master/LICENSE">MIT</a>)</p></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="unit-testing-coverage">
+<span id="dependency-testing"></span><h2>Unit Testing / Coverage<a class="headerlink" href="#unit-testing-coverage" title="Permalink to this headline">¶</a></h2>
+<p>Additional Python packages needed for testing and code coverage collection.
+These packages are only needed for developers or on a CI server, thus
+sub-dependencies are not evaluated further.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 7%" />
+<col style="width: 48%" />
+<col style="width: 12%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Package</strong></p></th>
+<th class="head"><p><strong>Version</strong></p></th>
+<th class="head"><p><strong>License</strong></p></th>
+<th class="head"><p><strong>Dependencies</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/pytest-dev/pytest">pytest</a></p></td>
+<td><p>≥6.2.1</p></td>
+<td><p><a class="reference external" href="https://github.com/pytest-dev/pytest/blob/master/LICENSE">MIT</a></p></td>
+<td><p><em>Not yet evaluated.</em></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/pytest-dev/pytest-cov">pytest-cov</a></p></td>
+<td><p>≥2.10.1</p></td>
+<td><p><a class="reference external" href="https://github.com/pytest-dev/pytest-cov/blob/master/LICENSE">MIT</a></p></td>
+<td><p><em>Not yet evaluated.</em></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/nedbat/coveragepy">Coverage</a></p></td>
+<td><p>≥5.3</p></td>
+<td><p><a class="reference external" href="https://github.com/nedbat/coveragepy/blob/master/LICENSE.txt">Apache License, 2.0</a></p></td>
+<td><p><em>Not yet evaluated.</em></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="sphinx-documentation">
+<span id="dependency-documentation"></span><h2>Sphinx Documentation<a class="headerlink" href="#sphinx-documentation" title="Permalink to this headline">¶</a></h2>
+<p>Additional Python packages needed for documentation generation. These packages
+are only needed for developers or on a CI server, thus sub-dependencies are not
+evaluated further.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 41%" />
+<col style="width: 6%" />
+<col style="width: 44%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Package</strong></p></th>
+<th class="head"><p><strong>Version</strong></p></th>
+<th class="head"><p><strong>License</strong></p></th>
+<th class="head"><p><strong>Dependencies</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/sphinx-doc/sphinx">Sphinx</a></p></td>
+<td><p>≥3.4.1</p></td>
+<td><p><a class="reference external" href="https://github.com/sphinx-doc/sphinx/blob/master/LICENSE">BSD 3-Clause</a></p></td>
+<td><p><em>Not yet evaluated.</em></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/buildthedocs/sphinx.theme">sphinx_btd_theme</a></p></td>
+<td></td>
+<td><p><a class="reference external" href="https://github.com/buildthedocs/sphinx.theme/blob/master/LICENSE">MIT</a></p></td>
+<td><p><em>Not yet evaluated.</em></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/carlos-jenkins/autoapi">autoapi</a></p></td>
+<td></td>
+<td><p><a class="reference external" href="https://github.com/carlos-jenkins/autoapi/blob/master/LICENSE">Apache License, 2.0</a></p></td>
+<td><p><em>Not yet evaluated.</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>!! <a class="reference external" href="https://github.com/fraoustin/sphinx_fontawesome">sphinx_fontawesome</a></p></td>
+<td><p>≥0.0.6</p></td>
+<td><p><a class="reference external" href="https://github.com/fraoustin/sphinx_fontawesome/blob/master/LICENSE">GPL 2.0</a></p></td>
+<td><p><em>Not yet evaluated.</em></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/agronholm/sphinx-autodoc-typehints">sphinx_autodoc_typehints</a></p></td>
+<td><p>≥1.11.1</p></td>
+<td><p><a class="reference external" href="https://github.com/agronholm/sphinx-autodoc-typehints/blob/master/LICENSE">MIT</a></p></td>
+<td><p><em>Not yet evaluated.</em></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/buildthedocs/sphinx.graphviz">btd.sphinx.graphviz</a></p></td>
+<td><p>≥2.3.1.post1</p></td>
+<td><p><a class="reference external" href="https://github.com/buildthedocs/sphinx.graphviz/blob/btd/master/LICENSE.md">BSD 2-Clause</a></p></td>
+<td><p><em>Not yet evaluated.</em></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/buildthedocs/sphinx.inheritance_diagram">btd.sphinx.inheritance_diagram</a></p></td>
+<td><p>≥2.3.1.post1</p></td>
+<td><p><a class="reference external" href="https://github.com/buildthedocs/sphinx.inheritance_diagram/blob/btd/master/LICENSE.md">BSD 2-Clause</a></p></td>
+<td><p><em>Not yet evaluated.</em></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/pygments/pygments">Pygments</a></p></td>
+<td><p>≥2.7.2</p></td>
+<td><p><a class="reference external" href="https://github.com/pygments/pygments/blob/master/LICENSE">BSD 2-Clause</a></p></td>
+<td><p><em>Not yet evaluated.</em></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="LanguageModel/index.html" class="btn btn-neutral float-right" title="VHDL Language Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Installation.html" class="btn btn-neutral float-left" title="Installation/Updates" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2016-2021 Patrick Lehmann - Boetzingen, Germany
+      <span class="lastupdated">
+        Last updated on 11.04.2021.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/buildthedocs/sphinx.theme">theme</a>
+    
+    provided by <a href="https://buildthedocs.github.io">Build the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

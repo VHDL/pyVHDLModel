@@ -1,0 +1,1698 @@
+pyVHDLModel.VHDLModel
+=========================
+
+.. automodule:: pyVHDLModel.VHDLModel
+
+
+.. currentmodule:: pyVHDLModel.VHDLModel
+
+
+.. #-----------------------------------
+
+
+**Classes**
+
+- :py:class:`ModelEntity`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`NamedEntity`:
+  A ``NamedEntity`` is a mixin class for all VHDL entities that have names.
+
+- :py:class:`LabeledEntity`:
+  A ``LabeledEntity`` is a mixin class for all VHDL entities that can have
+
+- :py:class:`Design`:
+  A ``Design`` represents all loaded files (see :class:`~pyVHDLModel.VHDLModel.Document`)
+
+- :py:class:`Library`:
+  A ``Library`` represents a VHDL library. It contains all *primary* design
+
+- :py:class:`Document`:
+  A ``Document`` represents a sourcefile. It contains primary and secondary
+
+- :py:class:`Direction`:
+  A ``Direction`` is an enumeration and represents a direction (``to`` or ``downto``)
+
+- :py:class:`Mode`:
+  A ``Mode`` is an enumeration and represents a direction (``in``, ``out``, ...)
+
+- :py:class:`Class`:
+  A ``Class`` is an enumeration and represents an object's class (``constant``,
+
+- :py:class:`BaseType`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`Type`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`SubType`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`ScalarType`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`NumericType`:
+  Undocumented.
+
+- :py:class:`DiscreteType`:
+  Undocumented.
+
+- :py:class:`CompositeType`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`ProtectedType`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`AccessType`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`FileType`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`EnumeratedType`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`IntegerType`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`RealType`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`ArrayType`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`RecordTypeMember`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`RecordType`:
+  ``BaseType`` is the base class of all type entities in this model.
+
+- :py:class:`Expression`:
+  Undocumented.
+
+- :py:class:`Literal`:
+  Undocumented.
+
+- :py:class:`IntegerLiteral`:
+  Undocumented.
+
+- :py:class:`FloatingPointLiteral`:
+  Undocumented.
+
+- :py:class:`UnaryExpression`:
+  Undocumented.
+
+- :py:class:`FunctionCall`:
+  Undocumented.
+
+- :py:class:`QualifiedExpression`:
+  Undocumented.
+
+- :py:class:`BinaryExpression`:
+  Undocumented.
+
+- :py:class:`Range`:
+  Undocumented.
+
+- :py:class:`InterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`GenericInterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`PortInterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ParameterInterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`GenericConstantInterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`GenericTypeInterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`GenericSubprogramInterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`GenericPackageInterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`PortSignalInterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ParameterConstantInterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ParameterVariableInterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ParameterSignalInterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ParameterFileInterfaceItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`LibraryReference`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Use`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`PrimaryUnit`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`SecondaryUnit`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Context`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Entity`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Architecture`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`AssociationItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`GenericAssociationItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`PortAssociationItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ParameterAssociationItem`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Configuration`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Instantiation`:
+  Undocumented.
+
+- :py:class:`Package`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`PackageBody`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`PackageInstantiation`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Object`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`BaseConstant`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Constant`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`DeferredConstant`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Variable`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Signal`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`SubProgramm`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Procedure`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Function`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`SubprogramInstantiation`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ProcedureInstantiation`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`FunctionInstantiation`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Method`:
+  Undocumented.
+
+- :py:class:`ProcedureMethod`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`FunctionMethod`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Statement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ConcurrentStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`SequentialStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ProcessStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ConcurrentBlockStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`BaseConditional`:
+  Undocumented.
+
+- :py:class:`BaseBranch`:
+  Undocumented.
+
+- :py:class:`BaseConditionalBranch`:
+  Undocumented.
+
+- :py:class:`BaseIfBranch`:
+  Undocumented.
+
+- :py:class:`BaseElsifBranch`:
+  Undocumented.
+
+- :py:class:`BaseElseBranch`:
+  Undocumented.
+
+- :py:class:`GenerateBranch`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`IfGenerateBranch`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ElsifGenerateBranch`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ElseGenerateBranch`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`GenerateStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`IfGenerateStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ForGenerateStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Assignment`:
+  Undocumented.
+
+- :py:class:`SignalAssignment`:
+  Undocumented.
+
+- :py:class:`VariableAssignment`:
+  Undocumented.
+
+- :py:class:`ConcurrentSignalAssignment`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`SequentialSignalAssignment`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`SequentialVariableAssignment`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ReportStatement`:
+  Undocumented.
+
+- :py:class:`AssertStatement`:
+  Undocumented.
+
+- :py:class:`ConcurrentAssertStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`SequentialReportStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`SequentialAssertStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`Branch`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`IfBranch`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ElsifBranch`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ElseBranch`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`CompoundStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`IfStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`LoopStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ForLoopStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`WhileLoopStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`LoopControlStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`NextStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ExitStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+- :py:class:`ReturnStatement`:
+  ``ModelEntity`` is a base class for all classes in the VHDL language model,
+
+
+
+.. #-----------------------------------
+
+
+.. autoclass:: ModelEntity
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ModelEntity
+
+   .. rubric:: Members
+
+.. autoclass:: NamedEntity
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: NamedEntity
+
+   .. rubric:: Members
+
+.. autoclass:: LabeledEntity
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: LabeledEntity
+
+   .. rubric:: Members
+
+.. autoclass:: Design
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Design
+
+   .. rubric:: Members
+
+.. autoclass:: Library
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Library
+
+   .. rubric:: Members
+
+.. autoclass:: Document
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Document
+
+   .. rubric:: Members
+
+.. autoclass:: Direction
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Direction
+
+   .. rubric:: Members
+
+.. autoclass:: Mode
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Mode
+
+   .. rubric:: Members
+
+.. autoclass:: Class
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Class
+
+   .. rubric:: Members
+
+.. autoclass:: BaseType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BaseType
+
+   .. rubric:: Members
+
+.. autoclass:: Type
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Type
+
+   .. rubric:: Members
+
+.. autoclass:: SubType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SubType
+
+   .. rubric:: Members
+
+.. autoclass:: ScalarType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ScalarType
+
+   .. rubric:: Members
+
+.. autoclass:: NumericType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: NumericType
+
+   .. rubric:: Members
+
+.. autoclass:: DiscreteType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: DiscreteType
+
+   .. rubric:: Members
+
+.. autoclass:: CompositeType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: CompositeType
+
+   .. rubric:: Members
+
+.. autoclass:: ProtectedType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ProtectedType
+
+   .. rubric:: Members
+
+.. autoclass:: AccessType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: AccessType
+
+   .. rubric:: Members
+
+.. autoclass:: FileType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: FileType
+
+   .. rubric:: Members
+
+.. autoclass:: EnumeratedType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: EnumeratedType
+
+   .. rubric:: Members
+
+.. autoclass:: IntegerType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IntegerType
+
+   .. rubric:: Members
+
+.. autoclass:: RealType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: RealType
+
+   .. rubric:: Members
+
+.. autoclass:: ArrayType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ArrayType
+
+   .. rubric:: Members
+
+.. autoclass:: RecordTypeMember
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: RecordTypeMember
+
+   .. rubric:: Members
+
+.. autoclass:: RecordType
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: RecordType
+
+   .. rubric:: Members
+
+.. autoclass:: Expression
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Expression
+
+   .. rubric:: Members
+
+.. autoclass:: Literal
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Literal
+
+   .. rubric:: Members
+
+.. autoclass:: IntegerLiteral
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IntegerLiteral
+
+   .. rubric:: Members
+
+.. autoclass:: FloatingPointLiteral
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: FloatingPointLiteral
+
+   .. rubric:: Members
+
+.. autoclass:: UnaryExpression
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: UnaryExpression
+
+   .. rubric:: Members
+
+.. autoclass:: FunctionCall
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: FunctionCall
+
+   .. rubric:: Members
+
+.. autoclass:: QualifiedExpression
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: QualifiedExpression
+
+   .. rubric:: Members
+
+.. autoclass:: BinaryExpression
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BinaryExpression
+
+   .. rubric:: Members
+
+.. autoclass:: Range
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Range
+
+   .. rubric:: Members
+
+.. autoclass:: InterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: InterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: GenericInterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericInterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: PortInterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PortInterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: ParameterInterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ParameterInterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: GenericConstantInterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericConstantInterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: GenericTypeInterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericTypeInterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: GenericSubprogramInterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericSubprogramInterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: GenericPackageInterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericPackageInterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: PortSignalInterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PortSignalInterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: ParameterConstantInterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ParameterConstantInterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: ParameterVariableInterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ParameterVariableInterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: ParameterSignalInterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ParameterSignalInterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: ParameterFileInterfaceItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ParameterFileInterfaceItem
+
+   .. rubric:: Members
+
+.. autoclass:: LibraryReference
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: LibraryReference
+
+   .. rubric:: Members
+
+.. autoclass:: Use
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Use
+
+   .. rubric:: Members
+
+.. autoclass:: PrimaryUnit
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PrimaryUnit
+
+   .. rubric:: Members
+
+.. autoclass:: SecondaryUnit
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SecondaryUnit
+
+   .. rubric:: Members
+
+.. autoclass:: Context
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Context
+
+   .. rubric:: Members
+
+.. autoclass:: Entity
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Entity
+
+   .. rubric:: Members
+
+.. autoclass:: Architecture
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Architecture
+
+   .. rubric:: Members
+
+.. autoclass:: AssociationItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: AssociationItem
+
+   .. rubric:: Members
+
+.. autoclass:: GenericAssociationItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericAssociationItem
+
+   .. rubric:: Members
+
+.. autoclass:: PortAssociationItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PortAssociationItem
+
+   .. rubric:: Members
+
+.. autoclass:: ParameterAssociationItem
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ParameterAssociationItem
+
+   .. rubric:: Members
+
+.. autoclass:: Configuration
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Configuration
+
+   .. rubric:: Members
+
+.. autoclass:: Instantiation
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Instantiation
+
+   .. rubric:: Members
+
+.. autoclass:: Package
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Package
+
+   .. rubric:: Members
+
+.. autoclass:: PackageBody
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PackageBody
+
+   .. rubric:: Members
+
+.. autoclass:: PackageInstantiation
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PackageInstantiation
+
+   .. rubric:: Members
+
+.. autoclass:: Object
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Object
+
+   .. rubric:: Members
+
+.. autoclass:: BaseConstant
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BaseConstant
+
+   .. rubric:: Members
+
+.. autoclass:: Constant
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Constant
+
+   .. rubric:: Members
+
+.. autoclass:: DeferredConstant
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: DeferredConstant
+
+   .. rubric:: Members
+
+.. autoclass:: Variable
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Variable
+
+   .. rubric:: Members
+
+.. autoclass:: Signal
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Signal
+
+   .. rubric:: Members
+
+.. autoclass:: SubProgramm
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SubProgramm
+
+   .. rubric:: Members
+
+.. autoclass:: Procedure
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Procedure
+
+   .. rubric:: Members
+
+.. autoclass:: Function
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Function
+
+   .. rubric:: Members
+
+.. autoclass:: SubprogramInstantiation
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SubprogramInstantiation
+
+   .. rubric:: Members
+
+.. autoclass:: ProcedureInstantiation
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ProcedureInstantiation
+
+   .. rubric:: Members
+
+.. autoclass:: FunctionInstantiation
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: FunctionInstantiation
+
+   .. rubric:: Members
+
+.. autoclass:: Method
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Method
+
+   .. rubric:: Members
+
+.. autoclass:: ProcedureMethod
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ProcedureMethod
+
+   .. rubric:: Members
+
+.. autoclass:: FunctionMethod
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: FunctionMethod
+
+   .. rubric:: Members
+
+.. autoclass:: Statement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Statement
+
+   .. rubric:: Members
+
+.. autoclass:: ConcurrentStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ConcurrentStatement
+
+   .. rubric:: Members
+
+.. autoclass:: SequentialStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialStatement
+
+   .. rubric:: Members
+
+.. autoclass:: ProcessStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ProcessStatement
+
+   .. rubric:: Members
+
+.. autoclass:: ConcurrentBlockStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ConcurrentBlockStatement
+
+   .. rubric:: Members
+
+.. autoclass:: BaseConditional
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BaseConditional
+
+   .. rubric:: Members
+
+.. autoclass:: BaseBranch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BaseBranch
+
+   .. rubric:: Members
+
+.. autoclass:: BaseConditionalBranch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BaseConditionalBranch
+
+   .. rubric:: Members
+
+.. autoclass:: BaseIfBranch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BaseIfBranch
+
+   .. rubric:: Members
+
+.. autoclass:: BaseElsifBranch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BaseElsifBranch
+
+   .. rubric:: Members
+
+.. autoclass:: BaseElseBranch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BaseElseBranch
+
+   .. rubric:: Members
+
+.. autoclass:: GenerateBranch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenerateBranch
+
+   .. rubric:: Members
+
+.. autoclass:: IfGenerateBranch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IfGenerateBranch
+
+   .. rubric:: Members
+
+.. autoclass:: ElsifGenerateBranch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ElsifGenerateBranch
+
+   .. rubric:: Members
+
+.. autoclass:: ElseGenerateBranch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ElseGenerateBranch
+
+   .. rubric:: Members
+
+.. autoclass:: GenerateStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenerateStatement
+
+   .. rubric:: Members
+
+.. autoclass:: IfGenerateStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IfGenerateStatement
+
+   .. rubric:: Members
+
+.. autoclass:: ForGenerateStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ForGenerateStatement
+
+   .. rubric:: Members
+
+.. autoclass:: Assignment
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Assignment
+
+   .. rubric:: Members
+
+.. autoclass:: SignalAssignment
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SignalAssignment
+
+   .. rubric:: Members
+
+.. autoclass:: VariableAssignment
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: VariableAssignment
+
+   .. rubric:: Members
+
+.. autoclass:: ConcurrentSignalAssignment
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ConcurrentSignalAssignment
+
+   .. rubric:: Members
+
+.. autoclass:: SequentialSignalAssignment
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialSignalAssignment
+
+   .. rubric:: Members
+
+.. autoclass:: SequentialVariableAssignment
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialVariableAssignment
+
+   .. rubric:: Members
+
+.. autoclass:: ReportStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ReportStatement
+
+   .. rubric:: Members
+
+.. autoclass:: AssertStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: AssertStatement
+
+   .. rubric:: Members
+
+.. autoclass:: ConcurrentAssertStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ConcurrentAssertStatement
+
+   .. rubric:: Members
+
+.. autoclass:: SequentialReportStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialReportStatement
+
+   .. rubric:: Members
+
+.. autoclass:: SequentialAssertStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialAssertStatement
+
+   .. rubric:: Members
+
+.. autoclass:: Branch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Branch
+
+   .. rubric:: Members
+
+.. autoclass:: IfBranch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IfBranch
+
+   .. rubric:: Members
+
+.. autoclass:: ElsifBranch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ElsifBranch
+
+   .. rubric:: Members
+
+.. autoclass:: ElseBranch
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ElseBranch
+
+   .. rubric:: Members
+
+.. autoclass:: CompoundStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: CompoundStatement
+
+   .. rubric:: Members
+
+.. autoclass:: IfStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IfStatement
+
+   .. rubric:: Members
+
+.. autoclass:: LoopStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: LoopStatement
+
+   .. rubric:: Members
+
+.. autoclass:: ForLoopStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ForLoopStatement
+
+   .. rubric:: Members
+
+.. autoclass:: WhileLoopStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: WhileLoopStatement
+
+   .. rubric:: Members
+
+.. autoclass:: LoopControlStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: LoopControlStatement
+
+   .. rubric:: Members
+
+.. autoclass:: NextStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: NextStatement
+
+   .. rubric:: Members
+
+.. autoclass:: ExitStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ExitStatement
+
+   .. rubric:: Members
+
+.. autoclass:: ReturnStatement
+   :members:
+   :private-members:
+   :undoc-members:
+   :inherited-members:
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ReturnStatement
+
+   .. rubric:: Members

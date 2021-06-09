@@ -2,13 +2,15 @@
 __pycache__/
 *.py[cod]
 
-# Python installation packages
-dist/
-
 # Coverage.py
 .coverage
 .cov
 coverage.xml
+
+# setuptools
+/build
+/dist
+/*.egg-info
 
 # Sphinx
 doc/_build/

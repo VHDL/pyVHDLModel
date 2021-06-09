@@ -3,20 +3,30 @@
 Design Units
 ############
 
-* Primary Units
+A VHDL design (see :ref:`vhdlmodel-design`) is assembled from *design units*. VHDL distinguishes
+between *primary* and *secondary* design units.
 
-  * Context
-  * Configuration
-  * Entity
-  * Package
+.. rubric:: Table of Content
 
-* Secondary Units
+* :ref:`vhdlmodel-primary`
 
-  * Architeture
-  * Package Body
+  * :ref:`vhdlmodel-context`
+  * :ref:`vhdlmodel-configuration`
+  * :ref:`vhdlmodel-entity`
+  * :ref:`vhdlmodel-package`
+
+* :ref:`vhdlmodel-secondary`
+
+  * :ref:`vhdlmodel-architeture`
+  * :ref:`vhdlmodel-packagebody`
+
+
+.. _vhdlmodel-primary:
 
 Primary Units
 =============
+
+.. _vhdlmodel-context:
 
 Context
 -------
@@ -25,6 +35,10 @@ Context
 
    Write documentation.
 
+
+
+.. _vhdlmodel-configuration:
+
 Configuration
 -------------
 
@@ -32,12 +46,15 @@ Configuration
 
    Write documentation.
 
+
+
+.. _vhdlmodel-entity:
+
 Entity
 ------
 
-.. todo::
-
-   Write documentation.
+An ``Entity`` represents a VHDL entity declaration. It has a list of generic and
+port items. It can contain a list of declared and body items.
 
 **Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Entity`:
 
@@ -46,7 +63,7 @@ Entity
    @export
    class Entity(PrimaryUnit):
      _libraryReferences: List[LibraryReference]
-     _uses:              List[Use]
+     _packageReferences: List[PackageReference]
      _genericItems:      List[GenericInterfaceItem]
      _portItems:         List[PortInterfaceItem]
      _declaredItems:     List   # FIXME: define liste element type e.g. via Union
@@ -58,7 +75,7 @@ Entity
      def LibraryReferences(self) -> List[LibraryReference]:
 
      @property
-     def Uses(self) -> List[Use]:
+     def PackageReferences(self) -> List[PackageReference]:
 
      @property
      def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -74,6 +91,8 @@ Entity
 
 
 
+.. _vhdlmodel-package:
+
 Package
 -------
 
@@ -88,7 +107,7 @@ Package
    @export
    class Package(PrimaryUnit):
      _libraryReferences: List[Library]
-     _uses:              List[Use]
+     _packageReferences: List[PackageReference]
      _genericItems:      List[GenericInterfaceItem]
      _declaredItems:     List
 
@@ -98,7 +117,7 @@ Package
      def LibraryReferences(self) -> List[Library]:
 
      @property
-     def Uses(self) -> List[Use]:
+     def PackageReferences(self) -> List[PackageReference]:
 
      @property
      def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -108,8 +127,12 @@ Package
 
 
 
+.. _vhdlmodel-secondary:
+
 Secondary Units
 ===============
+
+.. _vhdlmodel-architeture:
 
 Architeture
 -----------
@@ -126,7 +149,7 @@ Architeture
    class Architecture(SecondaryUnit):
      _entity:            Entity
      _libraryReferences: List[Library]
-     _uses:              List[Use]
+     _packageReferences: List[PackageReference]
      _declaredItems:     List   # FIXME: define liste element type e.g. via Union
      _bodyItems:         List['ConcurrentStatement']
 
@@ -139,7 +162,7 @@ Architeture
      def LibraryReferences(self) -> List[Library]:
 
      @property
-     def Uses(self) -> List[Use]:
+     def PackageReferences(self) -> List[PackageReference]:
 
      @property
      def DeclaredItems(self) -> List:
@@ -148,6 +171,8 @@ Architeture
      def BodyItems(self) -> List['ConcurrentStatement']:
 
 
+
+.. _vhdlmodel-packagebody:
 
 Package Body
 ------------
@@ -164,7 +189,7 @@ Package Body
    class PackageBody(SecondaryUnit):
      _package:           Package
      _libraryReferences: List[Library]
-     _uses:              List[Use]
+     _packageReferences: List[PackageReference]
      _declaredItems:     List
 
      def __init__(self, name: str):
@@ -176,7 +201,7 @@ Package Body
      def LibraryReferences(self) -> List[Library]:
 
      @property
-     def Uses(self) -> List[Use]:
+     def PackageReferences(self) -> List[PackageReference]:
 
      @property
      def DeclaredItems(self) -> List:

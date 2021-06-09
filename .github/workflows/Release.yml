@@ -11,7 +11,8 @@ jobs:
     env:
       PYTHON: ${{ github.event.client_payload.PYTHON }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
         with:
           ref: ${{ github.event.client_payload.ref }}
 

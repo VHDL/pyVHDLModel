@@ -4,15 +4,15 @@ on: [ push ]
 
 jobs:
   UnitTesting:
-    name: Unit Tests
+    name: Unit Tests using Python ${{ matrix.python }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.6, 3.7, 3.8, 3.9 ]
+        python: [ 3.6, 3.7, 3.8, 3.9 ]
 
     env:
-      PYTHON: ${{ matrix.python-version }}
+      PYTHON: ${{ matrix.python }}
     outputs:
       python: ${{ env.PYTHON }}
 
@@ -20,10 +20,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Setup Python ${{ matrix.python-version }}
+      - name: Setup Python ${{ matrix.python }}
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
 
       - name: Install dependencies
         run: |
@@ -35,7 +35,7 @@ jobs:
           python -m pytest -rA tests/unit
 
   Coverage:
-    name: Collect Coverage Data
+    name: Collect Coverage Data using Python ${{ env.PYTHON }}
     runs-on: ubuntu-latest
 
     env:

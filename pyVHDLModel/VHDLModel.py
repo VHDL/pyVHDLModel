@@ -424,7 +424,7 @@ class RecordTypeMember(ModelEntity):
 
 
 @export
-class RecordType(BaseType):
+class RecordType(CompositeType):
 	_members: List[RecordTypeMember]
 
 	def __init__(self, name: str):

@@ -6,6 +6,7 @@ jobs:
   UnitTesting:
     name: Unit Tests using Python ${{ matrix.python }}
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
@@ -35,7 +36,7 @@ jobs:
           python -m pytest -rA tests/unit
 
   Coverage:
-    name: Collect Coverage Data using Python ${{ env.PYTHON }}
+    name: Collect Coverage Data using Python 3.9
     runs-on: ubuntu-latest
 
     env:

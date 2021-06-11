@@ -67,7 +67,11 @@ News
    .. rubric:: Model and documentation enhancements
 
 * Made generic, port, and parameter items a subclass of the matching object classes.
+* Finalized literals, expressions and types.
+* Corrected class hierarchy according to LRM.
 * Enhanced class documentation and cross references.
+* New documentation chapter for literals and expressions.
+* Added inheritance diagrams as overviews to documentation sections.
 * ...
 
 .. only:: html

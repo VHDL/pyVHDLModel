@@ -69,7 +69,7 @@ types). An entity's list of statements is called body items.
 .. code-block:: Python
 
    @export
-   class Entity(PrimaryUnit):
+   class Entity(PrimaryUnit, DesignUnitWithReferences):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -78,9 +78,7 @@ types). An entity's list of statements is called body items.
      @property
      def Name(self) -> str:
 
-     # from Entity
-     def __init__(self, name: str):
-
+     # inherited from DesignUnitWithReferences
      @property
      def LibraryReferences(self) -> List[LibraryReference]:
 
@@ -89,6 +87,9 @@ types). An entity's list of statements is called body items.
 
      @property
      def ContextReferences(self) -> List[ContextReference]:
+
+     # from Entity
+     def __init__(self, name: str):
 
      @property
      def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -127,17 +128,18 @@ Package
      @property
      def Name(self) -> str:
 
-     # from Package
-     def __init__(self, name: str):
-
+     # inherited from DesignUnitWithReferences
      @property
-     def LibraryReferences(self) -> List[Library]:
+     def LibraryReferences(self) -> List[LibraryReference]:
 
      @property
      def PackageReferences(self) -> List[PackageReference]:
 
      @property
      def ContextReferences(self) -> List[ContextReference]:
+
+     # from Package
+     def __init__(self, name: str):
 
      @property
      def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -175,20 +177,21 @@ Architeture
      @property
      def Name(self) -> str:
 
-     # from Architecture
-     def __init__(self, name: str):
-
+     # inherited from DesignUnitWithReferences
      @property
-     def Entity(self) -> Entity:
-
-     @property
-     def LibraryReferences(self) -> List[Library]:
+     def LibraryReferences(self) -> List[LibraryReference]:
 
      @property
      def PackageReferences(self) -> List[PackageReference]:
 
      @property
      def ContextReferences(self) -> List[ContextReference]:
+
+     # from Architecture
+     def __init__(self, name: str):
+
+     @property
+     def Entity(self) -> Entity:
 
      @property
      def DeclaredItems(self) -> List:
@@ -221,20 +224,21 @@ Package Body
      @property
      def Name(self) -> str:
 
-     # from Package Body
-     def __init__(self, name: str):
-
+     # inherited from DesignUnitWithReferences
      @property
-     def Package(self) -> Package:
-
-     @property
-     def LibraryReferences(self) -> List[Library]:
+     def LibraryReferences(self) -> List[LibraryReference]:
 
      @property
      def PackageReferences(self) -> List[PackageReference]:
 
      @property
      def ContextReferences(self) -> List[ContextReference]:
+
+     # from Package Body
+     def __init__(self, name: str):
+
+     @property
+     def Package(self) -> Package:
 
      @property
      def DeclaredItems(self) -> List:

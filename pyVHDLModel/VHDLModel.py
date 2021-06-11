@@ -389,7 +389,7 @@ class FileType(BaseType):
 
 @export
 class EnumeratedType(ScalarType, DiscreteType):
-	_elements: List
+	_elements: List[str]
 
 	def __init__(self, name: str):
 		super().__init__(name)
@@ -397,7 +397,7 @@ class EnumeratedType(ScalarType, DiscreteType):
 		self._elements = []
 
 	@property
-	def Elements(self) -> List:
+	def Elements(self) -> List[str]:
 		return self._elements
 
 
@@ -443,16 +443,19 @@ class ArrayType(CompositeType):
 		self._dimensions =  []
 
 	@property
-	def Dimensions(self):
+	def Dimensions(self) -> List['Range']:
 		return self._dimensions
 
 	@property
-	def ElementType(self):
+	def ElementType(self) -> SubType:
 		return self._elementType
 
 
 @export
 class RecordTypeMember(ModelEntity):
+	_name:    str
+	_subType: SubType
+
 	def __init__(self, name: str):
 		super().__init__()
 
@@ -460,7 +463,7 @@ class RecordTypeMember(ModelEntity):
 		self._subType =     None
 
 	@property
-	def Name(self):
+	def Name(self) -> str:
 		return self._name
 
 
@@ -474,7 +477,7 @@ class RecordType(CompositeType):
 		self._members =     []
 
 	@property
-	def Members(self):
+	def Members(self) -> List[RecordTypeMember]:
 		return self._members
 
 

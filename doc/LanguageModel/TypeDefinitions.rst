@@ -63,7 +63,7 @@ Enumeration
 
      # from EnumeratedType
      @property
-     def Elements(self) -> List:
+     def Elements(self) -> List[str]:
 
 
 
@@ -184,6 +184,29 @@ Array
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ArrayType`:
+
+.. code-block:: Python
+
+   @export
+   class ArrayType(CompositeType):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # from ArrayType
+     @property
+     def Dimensions(self) -> List['Range']:
+
+     @property
+     def ElementType(self) -> SubType:
+
+
+
 .. _vhdlmodel-recordtypes:
 
 Record
@@ -192,6 +215,25 @@ Record
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.RecordType`:
+
+.. code-block:: Python
+
+   @export
+   class RecordType(CompositeType):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # from RecordType
+     @property
+     def Members(self) -> List[RecordTypeMember]:
+
 
 .. _vhdlmodel-protectedtypes:
 

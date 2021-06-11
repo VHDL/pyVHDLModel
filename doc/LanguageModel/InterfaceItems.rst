@@ -62,21 +62,40 @@ GenericTypeInterfaceItem
    class GenericTypeInterfaceItem(GenericInterfaceItem):
 
 
-.. _vhdlmodel-genericsubprogram:
+.. _vhdlmodel-genericprocedure:
 
-GenericSubprogramInterfaceItem
-------------------------------
+GenericProcedureInterfaceItem
+-----------------------------
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.GenericSubprogramInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.GenericProcedureInterfaceItem`:
 
 .. code-block:: Python
 
    @Export
-   class GenericSubprogramInterfaceItem(GenericInterfaceItem):
+   class GenericProcedureInterfaceItem(GenericSubprogramInterfaceItem):
+
+
+
+.. _vhdlmodel-genericfunction:
+
+GenericFunctionInterfaceItem
+----------------------------
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.GenericFunctionInterfaceItem`:
+
+.. code-block:: Python
+
+   @Export
+   class GenericFunctionInterfaceItem(GenericSubprogramInterfaceItem):
+
 
 
 .. _vhdlmodel-genericpackage:

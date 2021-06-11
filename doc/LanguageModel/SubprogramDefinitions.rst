@@ -36,14 +36,52 @@ Procedures
 Procedure
 ---------
 
-.. todo::
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Procedure`:
 
-   Write documentation.
+.. code-block:: Python
+
+   @export
+   class Procedure(SubProgramm):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Subprogram
+     def __init__(self, name: str):
+
+     @property
+     def GenericItems(self) -> List['GenericInterfaceItem']:
+
+     @property
+     def ParameterItems(self) -> List['ParameterInterfaceItem']:
+
+     @property
+     def DeclaredItems(self) -> List:
+
+     @property
+     def BodyItems(self) -> List['SequentialStatement']:
+
+     @property
+     def IsPure(self) -> bool:
+
+     # from Procedure
+     _isPure: bool = False
+
+
 
 .. _vhdlmodel-procedureinstantiation:
 
 ProcedureInstantiation
 ----------------------
+
+.. todo::
+
+   Write documentation.
+
 
 
 .. _vhdlmodel-proceduremethod:
@@ -51,6 +89,47 @@ ProcedureInstantiation
 ProcedureMethod
 ---------------
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ProcedureMethod`:
+
+.. code-block:: Python
+
+   @export
+   class ProcedureMethod(SubProgramm):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Subprogram
+     def __init__(self, name: str):
+
+     @property
+     def GenericItems(self) -> List['GenericInterfaceItem']:
+
+     @property
+     def ParameterItems(self) -> List['ParameterInterfaceItem']:
+
+     @property
+     def DeclaredItems(self) -> List:
+
+     @property
+     def BodyItems(self) -> List['SequentialStatement']:
+
+     @property
+     def IsPure(self) -> bool:
+
+     # inherited from Procedure
+     _isPure: bool = False
+
+     # inherited from Method
+     @property
+     def ProtectedType(self) -> ProtectedType:
+
+     # from ProcedureMethod
+     def __init__(self, name: str, protectedType: ProtectedType):
 
 
 .. _vhdlmodel-sub-genericprocedure:
@@ -81,10 +160,43 @@ Functions
 Function
 --------
 
-.. todo::
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Function`:
 
-   Write documentation.
+.. code-block:: Python
 
+   @export
+   class Function(SubProgramm):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Subprogram
+     @property
+     def GenericItems(self) -> List['GenericInterfaceItem']:
+
+     @property
+     def ParameterItems(self) -> List['ParameterInterfaceItem']:
+
+     @property
+     def DeclaredItems(self) -> List:
+
+     @property
+     def BodyItems(self) -> List['SequentialStatement']:
+
+     @property
+     def IsPure(self) -> bool:
+
+     # from Function
+     _returnType: SubType
+
+     def __init__(self, name: str, isPure: bool = True):
+
+     @property
+     def ReturnType(self) -> SubType:
 
 
 
@@ -93,6 +205,9 @@ Function
 FunctionInstantiation
 ---------------------
 
+.. todo::
+
+   Write documentation.
 
 
 
@@ -100,6 +215,51 @@ FunctionInstantiation
 
 FunctionMethod
 --------------
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.FunctionMethod`:
+
+.. code-block:: Python
+
+   @export
+   class Function(SubProgramm):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Subprogram
+     @property
+     def GenericItems(self) -> List['GenericInterfaceItem']:
+
+     @property
+     def ParameterItems(self) -> List['ParameterInterfaceItem']:
+
+     @property
+     def DeclaredItems(self) -> List:
+
+     @property
+     def BodyItems(self) -> List['SequentialStatement']:
+
+     @property
+     def IsPure(self) -> bool:
+
+     # inherited from Function
+     _returnType: SubType
+
+     def __init__(self, name: str, isPure: bool = True):
+
+     @property
+     def ReturnType(self) -> SubType:
+
+     # inherited from Method
+     @property
+     def ProtectedType(self) -> ProtectedType:
+
+     # from FunctionMethod
+     def __init__(self, name: str, protectedType: ProtectedType):
 
 
 

@@ -63,9 +63,6 @@ class ModelEntity:
 	"""
 	_parent: 'ModelEntity'      #: Reference to a parent entity in the model.
 
-	def __init__(self):
-		self._parent = None
-
 	@property
 	def Parent(self) -> 'ModelEntity':
 		"""Returns a reference to the parent entity."""
@@ -525,21 +522,166 @@ class Range:
 	def __init__(self):
 		pass
 
-
 @export
-class InterfaceItem(ModelEntity):
-	_name: str
-	_mode: Mode
+class Object(ModelEntity, NamedEntity):
+	_subType: SubType
 
-	def __init__(self, name: str, mode: Mode):
+	def __init__(self, name: str):
 		super().__init__()
-
-		self._name = name
-		self._mode = mode
+		NamedEntity.__init__(self, name)
 
 	@property
-	def Name(self) -> str:
-		return self._name
+	def SubType(self) -> SubType:
+		return self._subType
+
+
+@export
+class BaseConstant(Object):
+	pass
+
+
+@export
+class Constant(BaseConstant):
+	_defaultExpression: Expression
+
+	def __init__(self, name: str):
+		super().__init__(name)
+
+	@property
+	def DefaultExpression(self) -> Expression:
+		return self._defaultExpression
+
+
+@export
+class DeferredConstant(BaseConstant):
+	_constantReference: Constant
+
+	def __init__(self, name: str):
+		super().__init__(name)
+
+	@property
+	def ConstantReference(self) -> Constant:
+		return self._constantReference
+
+
+@export
+class Variable(Object):
+	_defaultExpression: Expression
+
+	def __init__(self, name: str):
+		super().__init__(name)
+
+	@property
+	def DefaultExpression(self) -> Expression:
+		return self._defaultExpression
+
+
+@export
+class Signal(Object):
+	_defaultExpression: Expression
+
+	def __init__(self, name: str):
+		super().__init__(name)
+
+	@property
+	def DefaultExpression(self) -> Expression:
+		return self._defaultExpression
+
+@export
+class File(Object):
+#	_defaultExpression: Expression
+
+	def __init__(self, name: str):
+		super().__init__(name)
+
+@export
+class SubProgramm(ModelEntity, NamedEntity):
+	_genericItems:   List['GenericInterfaceItem']
+	_parameterItems: List['ParameterInterfaceItem']
+	_declaredItems:  List
+	_bodyItems:      List['SequentialStatement']
+	_isPure:         bool
+
+	def __init__(self, name: str):
+		super().__init__()
+		NamedEntity.__init__(self, name)
+
+		self._genericItems =    []
+		self._parameterItems =  []
+		self._declaredItems =   []
+		self._bodyItems =       []
+
+	@property
+	def GenericItems(self) -> List['GenericInterfaceItem']:
+		return self._genericItems
+
+	@property
+	def ParameterItems(self) -> List['ParameterInterfaceItem']:
+		return self._parameterItems
+
+	@property
+	def DeclaredItems(self) -> List:
+		return self._declaredItems
+
+	@property
+	def BodyItems(self) -> List['SequentialStatement']:
+		return self._bodyItems
+
+	@property
+	def IsPure(self) -> bool:
+		return self._isPure
+
+
+@export
+class Procedure(SubProgramm):
+	_isPure: bool = False
+
+
+@export
+class Function(SubProgramm):
+	_returnType: SubType
+
+	def __init__(self, name: str, isPure: bool = True):
+		super().__init__(name)
+		self._isPure = isPure
+
+	@property
+	def ReturnType(self) -> SubType:
+		return self._returnType
+
+
+@export
+class Method:
+	_protectedType: ProtectedType
+
+	def __init__(self, protectedType: ProtectedType):
+		self._protectedType = protectedType
+
+	@property
+	def ProtectedType(self) -> ProtectedType:
+		return self._protectedType
+
+
+@export
+class ProcedureMethod(Procedure, Method):
+	def __init__(self, name: str, protectedType: ProtectedType):
+		super().__init__(name)
+		Method.__init__(self, protectedType)
+
+
+@export
+class FunctionMethod(Function, Method):
+	def __init__(self, name: str, protectedType: ProtectedType):
+		super().__init__(name)
+		Method.__init__(self, protectedType)
+
+
+@export
+class InterfaceItem:
+	_mode: Mode
+
+	def __init__(self, mode: Mode):
+		self._mode = mode
 
 	@property
 	def Mode(self) -> Mode:
@@ -562,17 +704,11 @@ class ParameterInterfaceItem(InterfaceItem):
 
 
 @export
-class GenericConstantInterfaceItem(GenericInterfaceItem):
-	_subtype:           SubType   # FIXME: add documentation
-	_defaultExpression: Expression   # FIXME: add documentation
+class GenericConstantInterfaceItem(Constant, GenericInterfaceItem):
+	def __init__(self, name: str, mode: Mode):
+		super().__init__(name)
+		GenericInterfaceItem.__init__(self, mode)
 
-	@property
-	def SubType(self) -> SubType:
-		return self._subType
-
-	@property
-	def DefaultExpression(self) -> Expression:
-		return self._defaultExpression
 
 @export
 class GenericTypeInterfaceItem(GenericInterfaceItem):
@@ -588,57 +724,38 @@ class GenericPackageInterfaceItem(GenericInterfaceItem):
 
 
 @export
-class PortSignalInterfaceItem(PortInterfaceItem):
-	_subType:           SubType
-	_defaultExpression: Expression
-
+class PortSignalInterfaceItem(Signal, PortInterfaceItem):
 	def __init__(self, name: str, mode: Mode):
-		super().__init__(name, mode)
-
-	@property
-	def SubType(self) -> SubType:
-		return self._subType
-
-	@property
-	def DefaultExpression(self) -> Expression:
-		return self._defaultExpression
-
-
-@export
-class ParameterConstantInterfaceItem(ParameterInterfaceItem):
-	pass
-
-
-@export
-class ParameterVariableInterfaceItem(ParameterInterfaceItem):
-	_subType:           SubType
-	_mode:              Mode
-	_defaultExpression: Expression
-
-	def __init__(self, name: str):
 		super().__init__(name)
-
-	@property
-	def SubType(self) -> SubType:
-		return self._subType
-
-	@property
-	def Mode(self) -> Mode:
-		return self._mode
-
-	@property
-	def DefaultExpression(self) -> Expression:
-		return self._defaultExpression
+		PortInterfaceItem.__init__(self, mode)
 
 
 @export
-class ParameterSignalInterfaceItem(ParameterInterfaceItem):
-	pass
+class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem):
+	def __init__(self, name: str, mode: Mode):
+		super().__init__(name)
+		ParameterInterfaceItem.__init__(self, mode)
 
 
 @export
-class ParameterFileInterfaceItem(ParameterInterfaceItem):
-	pass
+class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem):
+	def __init__(self, name: str, mode: Mode):
+		super().__init__(name)
+		ParameterInterfaceItem.__init__(self, mode)
+
+
+@export
+class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem):
+	def __init__(self, name: str, mode: Mode):
+		super().__init__(name)
+		ParameterInterfaceItem.__init__(self, mode)
+
+
+@export
+class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
+	def __init__(self, name: str, mode: Mode):
+		super().__init__(name)
+		ParameterInterfaceItem.__init__(self, mode)
 
 # class GenericItem(ModelEntity):
 # 	def __init__(self):
@@ -849,6 +966,23 @@ class Configuration(ModelEntity, NamedEntity):
 class Instantiation:
 	pass
 
+@export
+class SubprogramInstantiation(ModelEntity, Instantiation):
+	def __init__(self):
+		super().__init__()
+		Instantiation.__init__(self)
+		self._subprogramReference = None
+
+
+@export
+class ProcedureInstantiation(SubprogramInstantiation):
+	pass
+
+
+@export
+class FunctionInstantiation(SubprogramInstantiation):
+	pass
+
 
 @export
 class Package(PrimaryUnit):
@@ -931,165 +1065,6 @@ class PackageInstantiation(PrimaryUnit, Instantiation):
 	@property
 	def GenericAssociations(self) -> List[GenericAssociationItem]:
 		return self._genericAssociations
-
-
-@export
-class Object(ModelEntity, NamedEntity):
-	_subType: SubType
-
-	def __init__(self, name: str):
-		super().__init__()
-		NamedEntity.__init__(self, name)
-
-	@property
-	def SubType(self) -> SubType:
-		return self._subType
-
-
-@export
-class BaseConstant(Object):
-	pass
-
-
-@export
-class Constant(BaseConstant):
-	_defaultExpression: Expression
-
-	def __init__(self, name: str):
-		super().__init__(name)
-
-	@property
-	def DefaultExpression(self) -> Expression:
-		return self._defaultExpression
-
-
-@export
-class DeferredConstant(BaseConstant):
-	_constantReference: Constant
-
-	def __init__(self, name: str):
-		super().__init__(name)
-
-	@property
-	def ConstantReference(self) -> Constant:
-		return self._constantReference
-
-
-@export
-class Variable(Object):
-	_defaultExpression: Expression
-
-	def __init__(self, name: str):
-		super().__init__(name)
-
-	@property
-	def DefaultExpression(self) -> Expression:
-		return self._defaultExpression
-
-
-@export
-class Signal(Object):
-	_defaultExpression: Expression
-
-	def __init__(self, name: str):
-		super().__init__(name)
-
-	@property
-	def DefaultExpression(self) -> Expression:
-		return self._defaultExpression
-
-
-@export
-class SubProgramm(ModelEntity, NamedEntity):
-	_genericItems:   List[GenericInterfaceItem]
-	_parameterItems: List[ParameterInterfaceItem]
-	_declaredItems:  List
-	_bodyItems:      List['SequentialStatement']
-
-	def __init__(self, name: str):
-		super().__init__()
-		NamedEntity.__init__(self, name)
-
-		self._genericItems =    []
-		self._parameterItems =  []
-		self._declaredItems =   []
-		self._bodyItems =       []
-
-	@property
-	def GenericItems(self) -> List[GenericInterfaceItem]:
-		return self._genericItems
-
-	@property
-	def ParameterItems(self) -> List[ParameterInterfaceItem]:
-		return self._parameterItems
-
-	@property
-	def DeclaredItems(self) -> List:
-		return self._declaredItems
-
-	@property
-	def BodyItems(self) -> List['SequentialStatement']:
-		return self._bodyItems
-
-
-@export
-class Procedure(SubProgramm):
-	pass
-
-
-@export
-class Function(SubProgramm):
-	_returnType: SubType
-	_isPure:     bool    = True
-
-	def __init__(self, name: str):
-		super().__init__(name)
-
-	@property
-	def ReturnType(self) -> SubType:
-		return self._returnType
-
-	@property
-	def IsPure(self) -> bool:
-		return self._isPure
-
-
-@export
-class SubprogramInstantiation(ModelEntity, Instantiation):
-	def __init__(self):
-		super().__init__()
-		Instantiation.__init__(self)
-		self._subprogramReference = None
-
-
-@export
-class ProcedureInstantiation(SubprogramInstantiation):
-	pass
-
-
-@export
-class FunctionInstantiation(SubprogramInstantiation):
-	pass
-
-
-@export
-class Method:
-	def __init__(self):
-		self._protectedType = None
-
-
-@export
-class ProcedureMethod(Procedure, Method):
-	def __init__(self, name: str):
-		super().__init__(name)
-		Method.__init__(self)
-
-
-@export
-class FunctionMethod(Function, Method):
-	def __init__(self, name: str):
-		super().__init__(name)
-		Method.__init__(self)
 
 
 @export

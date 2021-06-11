@@ -3,6 +3,8 @@
 Object Declarations
 ###################
 
+.. rubric:: Table of Content
+
 * :ref:`vhdlmodel-constants`
 
   * :ref:`vhdlmodel-constant`
@@ -27,6 +29,8 @@ Object Declarations
   * :ref:`vhdlmodel-file`
   * :ref:`vhdlmodel-obj-parameterfile`
 
+
+
 .. _vhdlmodel-constants:
 
 Constants
@@ -39,19 +43,71 @@ are constants. Also most *in* parameters to subprograms are constants.
 .. inheritance-diagram:: pyVHDLModel.VHDLModel.Constant pyVHDLModel.VHDLModel.DeferredConstant pyVHDLModel.VHDLModel.GenericConstantInterfaceItem pyVHDLModel.VHDLModel.ParameterConstantInterfaceItem
    :parts: 1
 
+
+
 .. _vhdlmodel-constant:
 
 Constant
 --------
+
+A constant represents immutable data. This data (value) must be assigned via a
+default expression. If a constant's value is delayed in calculation, it's called
+a deferred constant. See :ref:`vhdlmodel-deferredconstant` in next section.
+
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Constant`:
+
+.. code-block:: Python
+
+   @export
+   class Constant(BaseConstant):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Object
+     @property
+     def SubType(self) -> SubType:
+
+     @property
+     def DefaultExpression(self) -> Expression:
+
+
 
 .. _vhdlmodel-deferredconstant:
 
 DeferredConstant
 ----------------
 
-.. todo::
+If a constant's value is delayed in calculation, it's a deferred constant. Such
+a deferred constant has a reference to the *regular* constant of the same name.
 
-   Write documentation.
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.DeferredConstant`:
+
+.. code-block:: Python
+
+   @export
+   class DeferredConstant(BaseConstant):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Object
+     @property
+     def SubType(self) -> SubType:
+
+     @property
+     def ConstantReference(self) -> Constant:
+
+
 
 .. _vhdlmodel-obj-genericconstant:
 

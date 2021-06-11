@@ -830,17 +830,71 @@ class PackageReference(ModelEntity):
 
 
 @export
-class PrimaryUnit(ModelEntity, NamedEntity):
-	def __init__(self, name: str):
+class ContextReference(ModelEntity):
+	_library: Library
+	_context: 'Context'
+
+	def __init__(self):
 		super().__init__()
-		NamedEntity.__init__(self, name)
+
+	@property
+	def Library(self) -> Library:
+		return self._library
+
+	@property
+	def Context(self) -> 'Context':
+		return self._context
 
 
 @export
-class SecondaryUnit(ModelEntity, NamedEntity):
+class DesignUnit(ModelEntity, NamedEntity):
+	"""
+	A ``DesignUnit`` is a base-class for all design units.
+	"""
+
 	def __init__(self, name: str):
 		super().__init__()
-		NamedEntity.__init__(self, name)
+		NamedEntity.__init__(self, name)\
+
+@export
+class DesignUnitWithReferences:
+	"""
+	A ``DesignUnitWithReferences`` is a base-class for all design units with contexts.
+	"""
+	_libraryReferences: List[LibraryReference]
+	_packageReferences: List[PackageReference]
+	_contextReferences: List[ContextReference]
+
+	def __init__(self):
+		self._libraryReferences = []
+		self._packageReferences = []
+		self._contextReferences = []
+
+	@property
+	def LibraryReferences(self) -> List[Library]:
+		return self._libraryReferences
+
+	@property
+	def PackageReferences(self) -> List[PackageReference]:
+		return self._packageReferences
+
+	@property
+	def ContextReferences(self) -> List[ContextReference]:
+		return self._contextReferences
+
+
+@export
+class PrimaryUnit(DesignUnit):
+	"""
+	A ``PrimaryUnit`` is a base-class for all primary units.
+	"""
+
+
+@export
+class SecondaryUnit(DesignUnit):
+	"""
+	A ``SecondaryUnit`` is a base-class for all secondary units.
+	"""
 
 
 @export
@@ -864,31 +918,20 @@ class Context(PrimaryUnit):
 
 
 @export
-class Entity(PrimaryUnit):
-	_libraryReferences: List[LibraryReference]
-	_packageReferences: List[PackageReference]
+class Entity(PrimaryUnit, DesignUnitWithReferences):
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
-	_declaredItems:     List   # FIXME: define liste element type e.g. via Union
+	_declaredItems:     List   # FIXME: define list element type e.g. via Union
 	_bodyItems:         List['ConcurrentStatement']
 
 	def __init__(self, name: str):
 		super().__init__(name)
+		DesignUnitWithReferences.__init__(self)
 
-		self._libraryReferences = []
-		self._packageReferences = []
 		self._genericItems      = []
 		self._portItems         = []
 		self._declaredItems     = []
 		self._bodyItems         = []
-
-	@property
-	def LibraryReferences(self) -> List[LibraryReference]:
-		return self._libraryReferences
-
-	@property
-	def PackageReferences(self) -> List[PackageReference]:
-		return self._packageReferences
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -899,7 +942,7 @@ class Entity(PrimaryUnit):
 		return self._portItems
 
 	@property
-	def DeclaredItems(self) -> List:   # FIXME: define liste element type e.g. via Union
+	def DeclaredItems(self) -> List:   # FIXME: define list element type e.g. via Union
 		return self._declaredItems
 
 	@property
@@ -908,18 +951,15 @@ class Entity(PrimaryUnit):
 
 
 @export
-class Architecture(SecondaryUnit):
+class Architecture(SecondaryUnit, DesignUnitWithReferences):
 	_entity:            Entity
-	_libraryReferences: List[Library]
-	_packageReferences: List[PackageReference]
-	_declaredItems:     List   # FIXME: define liste element type e.g. via Union
+	_declaredItems:     List   # FIXME: define list element type e.g. via Union
 	_bodyItems:         List['ConcurrentStatement']
 
 	def __init__(self, name: str):
 		super().__init__(name)
+		DesignUnitWithReferences.__init__(self)
 
-		self._libraryReferences = []
-		self._packageReferences = []
 		self._declaredItems =     []
 		self._bodyItems =         []
 
@@ -928,20 +968,19 @@ class Architecture(SecondaryUnit):
 		return self._entity
 
 	@property
-	def LibraryReferences(self) -> List[Library]:
-		return self._libraryReferences
-
-	@property
-	def PackageReferences(self) -> List[PackageReference]:
-		return self._packageReferences
-
-	@property
-	def DeclaredItems(self) -> List:   # FIXME: define liste element type e.g. via Union
+	def DeclaredItems(self) -> List:   # FIXME: define list element type e.g. via Union
 		return self._declaredItems
 
 	@property
 	def BodyItems(self) -> List['ConcurrentStatement']:
 		return self._bodyItems
+
+
+@export
+class Configuration(PrimaryUnit, DesignUnitWithReferences):
+	def __init__(self, name: str):
+		super().__init__(name)
+		DesignUnitWithReferences.__init__(self)
 
 
 @export
@@ -975,13 +1014,6 @@ class ParameterAssociationItem(AssociationItem):
 
 
 @export
-class Configuration(ModelEntity, NamedEntity):
-	def __init__(self, name: str):
-		super().__init__()
-		NamedEntity.__init__(self, name)
-
-
-@export
 class Instantiation:
 	pass
 
@@ -1004,27 +1036,16 @@ class FunctionInstantiation(Function, SubprogramInstantiation):
 
 
 @export
-class Package(PrimaryUnit):
-	_libraryReferences: List[Library]
-	_packageReferences: List[PackageReference]
+class Package(PrimaryUnit, DesignUnitWithReferences):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
 	def __init__(self, name: str):
 		super().__init__(name)
+		DesignUnitWithReferences.__init__(self)
 
-		self._libraryReferences = []
-		self._packageReferences =              []
 		self._genericItems =      []
 		self._declaredItems =     []
-
-	@property
-	def LibraryReferences(self) -> List[Library]:
-		return self._libraryReferences
-
-	@property
-	def PackageReferences(self) -> List[PackageReference]:
-		return self._packageReferences
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -1036,30 +1057,19 @@ class Package(PrimaryUnit):
 
 
 @export
-class PackageBody(SecondaryUnit):
+class PackageBody(SecondaryUnit, DesignUnitWithReferences):
 	_package:           Package
-	_libraryReferences: List[Library]
-	_packageReferences: List[PackageReference]
 	_declaredItems:     List
 
 	def __init__(self, name: str):
 		super().__init__(name)
+		DesignUnitWithReferences.__init__(self)
 
-		self._libraryReferences = []
-		self._packageReferences = []
 		self._declaredItems =     []
 
 	@property
 	def Package(self) -> Package:
 		return self._package
-
-	@property
-	def LibraryReferences(self) -> List[Library]:
-		return self._libraryReferences
-
-	@property
-	def PackageReferences(self) -> List[PackageReference]:
-		return self._packageReferences
 
 	@property
 	def DeclaredItems(self) -> List:

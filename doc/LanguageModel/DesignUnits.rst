@@ -21,6 +21,11 @@ between *primary* and *secondary* design units.
   * :ref:`vhdlmodel-packagebody`
 
 
+.. rubric:: Class Hierarchy
+
+.. inheritance-diagram:: pyVHDLModel.VHDLModel.Architecture pyVHDLModel.VHDLModel.Context pyVHDLModel.VHDLModel.Configuration pyVHDLModel.VHDLModel.Entity pyVHDLModel.VHDLModel.Package pyVHDLModel.VHDLModel.PackageBody
+   :parts: 1
+
 .. _vhdlmodel-primary:
 
 Primary Units
@@ -53,8 +58,11 @@ Configuration
 Entity
 ------
 
-An ``Entity`` represents a VHDL entity declaration. It has a list of generic and
-port items. It can contain a list of declared and body items.
+An ``Entity`` represents a VHDL entity declaration. Libraries and package
+references declared ahead an entity are consumed by that entity and made
+available as lists. An entities also provides lists of generic and port items.
+The list of declared items (e.g. objects) also contains defined items (e.g.
+types). An entity's list of statements is called body items.
 
 **Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Entity`:
 
@@ -62,13 +70,15 @@ port items. It can contain a list of declared and body items.
 
    @export
    class Entity(PrimaryUnit):
-     _libraryReferences: List[LibraryReference]
-     _packageReferences: List[PackageReference]
-     _genericItems:      List[GenericInterfaceItem]
-     _portItems:         List[PortInterfaceItem]
-     _declaredItems:     List   # FIXME: define liste element type e.g. via Union
-     _bodyItems:         List['ConcurrentStatement']
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
 
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # from Entity
      def __init__(self, name: str):
 
      @property
@@ -76,6 +86,9 @@ port items. It can contain a list of declared and body items.
 
      @property
      def PackageReferences(self) -> List[PackageReference]:
+
+     @property
+     def ContextReferences(self) -> List[ContextReference]:
 
      @property
      def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -106,11 +119,15 @@ Package
 
    @export
    class Package(PrimaryUnit):
-     _libraryReferences: List[Library]
-     _packageReferences: List[PackageReference]
-     _genericItems:      List[GenericInterfaceItem]
-     _declaredItems:     List
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
 
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # from Package
      def __init__(self, name: str):
 
      @property
@@ -118,6 +135,9 @@ Package
 
      @property
      def PackageReferences(self) -> List[PackageReference]:
+
+     @property
+     def ContextReferences(self) -> List[ContextReference]:
 
      @property
      def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -147,12 +167,15 @@ Architeture
 
    @export
    class Architecture(SecondaryUnit):
-     _entity:            Entity
-     _libraryReferences: List[Library]
-     _packageReferences: List[PackageReference]
-     _declaredItems:     List   # FIXME: define liste element type e.g. via Union
-     _bodyItems:         List['ConcurrentStatement']
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
 
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # from Architecture
      def __init__(self, name: str):
 
      @property
@@ -163,6 +186,9 @@ Architeture
 
      @property
      def PackageReferences(self) -> List[PackageReference]:
+
+     @property
+     def ContextReferences(self) -> List[ContextReference]:
 
      @property
      def DeclaredItems(self) -> List:
@@ -187,11 +213,15 @@ Package Body
 
    @export
    class PackageBody(SecondaryUnit):
-     _package:           Package
-     _libraryReferences: List[Library]
-     _packageReferences: List[PackageReference]
-     _declaredItems:     List
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
 
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # from Package Body
      def __init__(self, name: str):
 
      @property
@@ -202,6 +232,9 @@ Package Body
 
      @property
      def PackageReferences(self) -> List[PackageReference]:
+
+     @property
+     def ContextReferences(self) -> List[ContextReference]:
 
      @property
      def DeclaredItems(self) -> List:

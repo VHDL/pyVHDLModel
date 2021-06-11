@@ -27,3 +27,4 @@ VHDL Language Model
    ObjectDeclarations
    ConcurrentStatements
    SequentialStatements
+   Expressions

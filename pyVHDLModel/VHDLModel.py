@@ -482,46 +482,83 @@ class RecordType(CompositeType):
 
 
 @export
-class Expression:
-	pass
+class Expression(ModelEntity):
+	"""
+	A ``Expression`` is a base-class for all expressions.
+	"""
 
 
 @export
-class Literal:
-	pass
+class Literal(Expression):
+	"""
+	A ``Literal`` is a base-class for all literals.
+	"""
+# TODO: add a reference to a basetype ?
+
+@export
+class EnumerationLiteral(Literal):
+	_value: str
+
+	def __init__(self, value: str):
+		self._value = value
+
+	@property
+	def Value(self) -> str:
+		return self._value
 
 
 @export
-class IntegerLiteral(Literal):
+class NumericLiteral(Literal):
+	"""
+	A ``NumericLiteral`` is a base-class for all numeric literals.
+	"""
+
+
+@export
+class IntegerLiteral(NumericLiteral):
 	_value: int
 
 	def __init__(self, value: int):
 		self._value = value
 
 	@property
-	def Value(self):
+	def Value(self) -> int:
 		return self._value
 
 
 @export
-class FloatingPointLiteral(Literal):
+class FloatingPointLiteral(NumericLiteral):
 	_value: float
 
 	def __init__(self, value: float):
 		self._value = value
 
 	@property
-	def Value(self):
+	def Value(self) -> float:
 		return self._value
 
-# CharacterLiteral
-# StringLiteral
-# BitStringLiteral
-# EnumerationLiteral
-# PhysicalLiteral
+@export
+class PhysicalLiteral(NumericLiteral):
+	pass
+
+@export
+class CharacterLiteral(Literal):
+	pass
+
+@export
+class StringLiteral(Literal):
+	pass
+
+@export
+class BitStringLiteral(Literal):
+	pass
+
 
 @export
 class UnaryExpression(Expression):
+	"""
+	A ``UnaryExpression`` is a base-class for all unary expressions.
+	"""
 	_operand:  Expression
 
 	def __init__(self):
@@ -532,15 +569,39 @@ class UnaryExpression(Expression):
 		return self._operand
 
 @export
-class FunctionCall(Expression):
+class InverseExpression(UnaryExpression):
 	pass
 
 @export
-class QualifiedExpression(Expression):
+class IdentityExpression(UnaryExpression):
+	pass
+
+@export
+class NegationExpression(UnaryExpression):
+	pass
+
+@export
+class AbsoluteExpression(UnaryExpression):
+	pass
+
+@export
+class TypeConversion(UnaryExpression):
+	pass
+
+@export
+class FunctionCall(UnaryExpression):
+	pass
+
+@export
+class QualifiedExpression(UnaryExpression):
 	pass
 
 @export
 class BinaryExpression(Expression):
+	"""
+	A ``BinaryExpression`` is a base-class for all binary expressions.
+	"""
+
 	_leftOperand:  Expression
 	_rightOperand: Expression
 
@@ -555,10 +616,86 @@ class BinaryExpression(Expression):
 	def RightOperand(self):
 		return self._rightOperand
 
-# AddingExpression
-# MultiplyingExpression
-# LogicalExpression
-# ShiftExpression
+
+@export
+class	AddingExpression(BinaryExpression):
+	"""
+	A ``AddingExpression`` is a base-class for all adding expressions.
+	"""
+
+@export
+class	AdditionExpression(AddingExpression):
+	pass
+
+@export
+class	SubtractionExpression(AddingExpression):
+	pass
+
+@export
+class	MultiplyingExpression(BinaryExpression):
+	"""
+	A ``MultiplyingExpression`` is a base-class for all multiplying expressions.
+	"""
+
+@export
+class	MultiplyExpression(MultiplyingExpression):
+	pass
+
+@export
+class	DivisionExpression(MultiplyingExpression):
+	pass
+
+@export
+class	RemainderExpression(MultiplyingExpression):
+	pass
+
+@export
+class	ModuloExpression(MultiplyingExpression):
+	pass
+
+@export
+class	ExponentationExpression(MultiplyingExpression):
+	pass
+
+@export
+class	LogicalExpression(BinaryExpression):
+	"""
+	A ``LogicalExpression`` is a base-class for all logical expressions.
+	"""
+
+
+@export
+class	ShiftExpression(BinaryExpression):
+	"""
+	A ``ShiftExpression`` is a base-class for all shifting expressions.
+	"""
+
+
+@export
+class TernaryExpression(Expression):
+	"""
+	A ``TernaryExpression`` is a base-class for all ternary expressions.
+	"""
+
+	_firstOperand:  Expression
+	_secondOperand: Expression
+	_thirdOperand:  Expression
+
+	def __init__(self):
+		pass
+
+	@property
+	def FirstOperand(self):
+		return self._firstOperand
+
+	@property
+	def SecondOperand(self):
+		return self._secondOperand
+
+	@property
+	def ThirdOperand(self):
+		return self._thirdOperand
+
 
 @export
 class Range:

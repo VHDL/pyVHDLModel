@@ -5,28 +5,37 @@ Interface Items
 
 Interface items are used in generic, port and parameter declarations.
 
-* :class:`~pyVHDLModel.VHDLModel.GenericInterfaceItem`
+.. rubric:: Table of Content
 
-  * :class:`~pyVHDLModel.VHDLModel.GenericConstantInterfaceItem`
-  * :class:`~pyVHDLModel.VHDLModel.GenericTypeInterfaceItem`
-  * :class:`~pyVHDLModel.VHDLModel.GenericSubprogramInterfaceItem`
-  * :class:`~pyVHDLModel.VHDLModel.GenericPackageInterfaceItem`
+* :ref:`vhdlmodel-generics`
 
-* :class:`~pyVHDLModel.VHDLModel.PortInterfaceItem`
+  * :ref:`vhdlmodel-genericconstant`
+  * :ref:`vhdlmodel-generictype`
+  * :ref:`vhdlmodel-genericprocedure`
+  * :ref:`vhdlmodel-genericfunction`
+  * :ref:`vhdlmodel-genericpackage`
 
-  * :class:`~pyVHDLModel.VHDLModel.PortSignalInterfaceItem`
+* :ref:`vhdlmodel-ports`
 
-* :class:`~pyVHDLModel.VHDLModel.ParameterInterfaceItem`
+  * :ref:`vhdlmodel-portsignal`
 
-  * :class:`~pyVHDLModel.VHDLModel.ParameterConstantInterfaceItem`
-  * :class:`~pyVHDLModel.VHDLModel.ParameterVariableInterfaceItem`
-  * :class:`~pyVHDLModel.VHDLModel.ParameterSignalInterfaceItem`
-  * :class:`~pyVHDLModel.VHDLModel.ParameterFileInterfaceItem`
+* :ref:`vhdlmodel-parameters`
+
+  * :ref:`vhdlmodel-parameterconstant`
+  * :ref:`vhdlmodel-parametervariable`
+  * :ref:`vhdlmodel-parametersignal`
+  * :ref:`vhdlmodel-parameterfile`
+
+.. rubric:: Class Hierarchy
+
+.. inheritance-diagram:: pyVHDLModel.VHDLModel.GenericConstantInterfaceItem pyVHDLModel.VHDLModel.GenericTypeInterfaceItem pyVHDLModel.VHDLModel.GenericProcedureInterfaceItem pyVHDLModel.VHDLModel.GenericFunctionInterfaceItem pyVHDLModel.VHDLModel.PortSignalInterfaceItem pyVHDLModel.VHDLModel.ParameterConstantInterfaceItem pyVHDLModel.VHDLModel.ParameterVariableInterfaceItem pyVHDLModel.VHDLModel.ParameterSignalInterfaceItem pyVHDLModel.VHDLModel.ParameterFileInterfaceItem
+   :parts: 1
+
 
 .. _vhdlmodel-generics:
 
-Generic Interface Item
-======================
+Generic Interface Items
+=======================
 
 .. _vhdlmodel-genericconstant:
 
@@ -41,8 +50,28 @@ GenericConstantInterfaceItem
 
 .. code-block:: Python
 
-   @Export
-   class GenericConstantInterfaceItem(GenericInterfaceItem):
+   @export
+   class GenericConstantInterfaceItem(Constant, GenericInterfaceItem):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Object
+     @property
+     def SubType(self) -> SubType:
+
+     # inherited from WithDefaultExpression
+     @property
+     def DefaultExpression(self) -> Expression:
+
+     # inherited from InterfaceItem
+     @property
+     def Mode(self) -> Mode:
+
 
 
 .. _vhdlmodel-generictype:
@@ -133,8 +162,29 @@ PortSignalInterfaceItem
 
 .. code-block:: Python
 
-   @Export
-   class PortSignalInterfaceItem(PortInterfaceItem):
+   @export
+   class PortSignalInterfaceItem(Signal, PortInterfaceItem):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Object
+     @property
+     def SubType(self) -> SubType:
+
+     # inherited from WithDefaultExpression
+     @property
+     def DefaultExpression(self) -> Expression:
+
+     # inherited from InterfaceItem
+     @property
+     def Mode(self) -> Mode:
+
+
 
 .. _vhdlmodel-parameters:
 
@@ -154,8 +204,28 @@ ParameterConstantInterfaceItem
 
 .. code-block:: Python
 
-   @Export
-   class ParameterConstantInterfaceItem(ParameterInterfaceItem):
+   @export
+   class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Object
+     @property
+     def SubType(self) -> SubType:
+
+     # inherited from WithDefaultExpression
+     @property
+     def DefaultExpression(self) -> Expression:
+
+     # inherited from InterfaceItem
+     @property
+     def Mode(self) -> Mode:
+
 
 
 .. _vhdlmodel-parametervariable:
@@ -171,8 +241,28 @@ ParameterVariableInterfaceItem
 
 .. code-block:: Python
 
-   @Export
-   class ParameterVariableInterfaceItem(ParameterInterfaceItem):
+   @export
+   class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Object
+     @property
+     def SubType(self) -> SubType:
+
+     # inherited from WithDefaultExpression
+     @property
+     def DefaultExpression(self) -> Expression:
+
+     # inherited from InterfaceItem
+     @property
+     def Mode(self) -> Mode:
+
 
 
 .. _vhdlmodel-parametersignal:
@@ -188,8 +278,28 @@ ParameterSignalInterfaceItem
 
 .. code-block:: Python
 
-   @Export
-   class ParameterSignalInterfaceItem(ParameterInterfaceItem):
+   @export
+   class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Object
+     @property
+     def SubType(self) -> SubType:
+
+     # inherited from WithDefaultExpression
+     @property
+     def DefaultExpression(self) -> Expression:
+
+     # inherited from InterfaceItem
+     @property
+     def Mode(self) -> Mode:
+
 
 
 .. _vhdlmodel-parameterfile:

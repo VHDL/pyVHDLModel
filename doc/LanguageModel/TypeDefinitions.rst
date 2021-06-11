@@ -3,29 +3,39 @@
 Type Declarations
 #################
 
+VHDL has types (also called a base type) and subtypes. The following shows VHDL's type hierarchy:
+
+.. rubric:: Type Hierarchy
+
 * Types
 
-  * Scalar types
+  * :ref:`vhdlmodel-scalartypes`
 
-    * Enumeration
-    * Integer
-    * Real
-    * Physical
+    * :ref:`vhdlmodel-enumeratedtypes`
+    * :ref:`vhdlmodel-integertypes`
+    * :ref:`vhdlmodel-realtypes`
+    * :ref:`vhdlmodel-physicaltypes`
 
-  * Composite types
+  * :ref:`vhdlmodel-compositetypes`
 
-    * Array
-    * Record
+    * :ref:`vhdlmodel-arraytypes`
+    * :ref:`vhdlmodel-recordtypes`
 
-  * Access
-  * File
-  * Protected
+  * :ref:`vhdlmodel-accesstypes`
+  * :ref:`vhdlmodel-filetypes`
+  * :ref:`vhdlmodel-protectedtypes`
 
 * Subtype
 
 
+
+
+.. _vhdlmodel-scalartypes:
+
 Scalar Types
 ============
+
+.. _vhdlmodel-enumeratedtypes:
 
 Enumeration
 -----------
@@ -34,12 +44,17 @@ Enumeration
 
    Write documentation.
 
+.. _vhdlmodel-integertypes:
+
 Integer
 -------
 
 .. todo::
 
    Write documentation.
+
+
+.. _vhdlmodel-realtypes:
 
 Real
 ----
@@ -48,6 +63,8 @@ Real
 
    Write documentation.
 
+.. _vhdlmodel-physicaltypes:
+
 Physical
 --------
 
@@ -55,8 +72,12 @@ Physical
 
    Write documentation.
 
+.. _vhdlmodel-compositetypes:
+
 Composite Types
 ===============
+
+.. _vhdlmodel-arraytypes:
 
 Array
 -----
@@ -65,12 +86,16 @@ Array
 
    Write documentation.
 
+.. _vhdlmodel-recordtypes:
+
 Record
 ------
 
 .. todo::
 
    Write documentation.
+
+.. _vhdlmodel-accesstypes:
 
 Access
 ======
@@ -79,12 +104,16 @@ Access
 
    Write documentation.
 
+.. _vhdlmodel-filetypes:
+
 File
 ====
 
 .. todo::
 
    Write documentation.
+
+.. _vhdlmodel-protectedtypes:
 
 Protected
 =========

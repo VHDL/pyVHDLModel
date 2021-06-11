@@ -3,11 +3,13 @@
 Object Declartions
 ###################
 
-* Constant
-* Variable
-* Shared variable
-* Signal
-* File
+* :ref:`vhdlmodel-constant`
+* :ref:`vhdlmodel-variable`
+* :ref:`vhdlmodel-sharedvariable`
+* :ref:`vhdlmodel-signal`
+* :ref:`vhdlmodel-file`
+
+.. _vhdlmodel-constant:
 
 Constant
 ========
@@ -16,12 +18,16 @@ Constant
 
    Write documentation.
 
+.. _vhdlmodel-variable:
+
 Variable
 ========
 
 .. todo::
 
    Write documentation.
+
+.. _vhdlmodel-sharedvariable:
 
 Shared Variable
 ===============
@@ -30,12 +36,16 @@ Shared Variable
 
    Write documentation.
 
+.. _vhdlmodel-signal:
+
 Signal
 ======
 
 .. todo::
 
    Write documentation.
+
+.. _vhdlmodel-file:
 
 File
 ====

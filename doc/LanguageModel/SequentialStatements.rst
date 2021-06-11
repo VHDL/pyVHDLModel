@@ -3,15 +3,17 @@
 Sequential Statements
 #####################
 
-* Signal assignment
-* Variable assignment
-* If statement
-* Case statement+
-* For loop
-* While loop
-* Report statement
-* Assert statement
-* Procedure call
+* :ref:`vhdlmodel-seq-signalassignment`
+* :ref:`vhdlmodel-variableassignment`
+* :ref:`vhdlmodel-ifstatement`
+* :ref:`vhdlmodel-casestatement`
+* :ref:`vhdlmodel-forloop`
+* :ref:`vhdlmodel-whileloop`
+* :ref:`vhdlmodel-seq-reportstatement`
+* :ref:`vhdlmodel-seq-assertstatement`
+* :ref:`vhdlmodel-seq-procedurecall`
+
+.. _vhdlmodel-seq-signalassignment:
 
 Signal Assignment
 =================
@@ -20,12 +22,16 @@ Signal Assignment
 
    Write documentation.
 
+.. _vhdlmodel-variableassignment:
+
 Variable Assignment
 ===================
 
 .. todo::
 
    Write documentation.
+
+.. _vhdlmodel-ifstatement:
 
 If Statement
 ============
@@ -34,12 +40,16 @@ If Statement
 
    Write documentation.
 
+.. _vhdlmodel-casestatement:
+
 Case Statement
 ==============
 
 .. todo::
 
    Write documentation.
+
+.. _vhdlmodel-forloop:
 
 For Loop
 ========
@@ -48,12 +58,16 @@ For Loop
 
    Write documentation.
 
+.. _vhdlmodel-whileloop:
+
 While Loop
 ==========
 
 .. todo::
 
    Write documentation.
+
+.. _vhdlmodel-seq-reportstatement:
 
 Report Statement
 ================
@@ -62,12 +76,16 @@ Report Statement
 
    Write documentation.
 
+.. _vhdlmodel-seq-assertstatement:
+
 Assert Statement
 ================
 
 .. todo::
 
    Write documentation.
+
+.. _vhdlmodel-seq-procedurecall:
 
 Procedure Call
 ==============

@@ -667,6 +667,56 @@ class	LogicalExpression(BinaryExpression):
 	A ``LogicalExpression`` is a base-class for all logical expressions.
 	"""
 
+@export
+class AndExpression(LogicalExpression):
+	pass
+
+@export
+class NandExpression(LogicalExpression):
+	pass
+
+@export
+class OrExpression(LogicalExpression):
+	pass
+
+@export
+class NorExpression(LogicalExpression):
+	pass
+
+@export
+class XorExpression(LogicalExpression):
+	pass
+
+@export
+class	XnorExpression(LogicalExpression):
+	pass
+
+@export
+class	RelationalExpression(BinaryExpression):
+	"""
+	A ``RelationalExpression`` is a base-class for all shifting expressions.
+	"""
+
+@export
+class	EqualExpression(RelationalExpression):
+	pass
+
+@export
+class	UnequalExpression(RelationalExpression):
+	pass
+
+@export
+class	GreaterThanExpression(RelationalExpression):
+	pass
+
+@export
+class	GreaterEqualExpression(RelationalExpression):
+	pass
+
+@export
+class	LessThanExpression(RelationalExpression):
+	pass
+
 
 @export
 class	ShiftExpression(BinaryExpression):
@@ -674,6 +724,41 @@ class	ShiftExpression(BinaryExpression):
 	A ``ShiftExpression`` is a base-class for all shifting expressions.
 	"""
 
+@export
+class ShiftLogicExpression(ShiftExpression):
+	pass
+
+@export
+class ShiftArithmeticExpression(ShiftExpression):
+	pass
+
+@export
+class RotateExpression(ShiftExpression):
+	pass
+
+@export
+class	ShiftRightLogicExpression(ShiftLogicExpression):
+	pass
+
+@export
+class	ShiftLeftLogicExpression(ShiftLogicExpression):
+	pass
+
+@export
+class	ShiftRightArithmeticExpression(ShiftArithmeticExpression):
+	pass
+
+@export
+class	ShiftLeftArithmeticExpression(ShiftArithmeticExpression):
+	pass
+
+@export
+class	RotateRightExpression(RotateExpression):
+	pass
+
+@export
+class	RotateLeftExpression(RotateExpression):
+	pass
 
 @export
 class TernaryExpression(Expression):

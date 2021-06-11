@@ -632,6 +632,10 @@ class	SubtractionExpression(AddingExpression):
 	pass
 
 @export
+class	ConcatenationExpression(AddingExpression):
+	pass
+
+@export
 class	MultiplyingExpression(BinaryExpression):
 	"""
 	A ``MultiplyingExpression`` is a base-class for all multiplying expressions.
@@ -654,7 +658,7 @@ class	ModuloExpression(MultiplyingExpression):
 	pass
 
 @export
-class	ExponentationExpression(MultiplyingExpression):
+class	ExponentiationExpression(MultiplyingExpression):
 	pass
 
 @export

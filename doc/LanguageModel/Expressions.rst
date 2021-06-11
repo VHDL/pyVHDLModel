@@ -82,7 +82,7 @@ Expressions
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.UnaryExpression pyVHDLModel.VHDLModel.BinaryExpression pyVHDLModel.VHDLModel.TernaryExpression
+.. inheritance-diagram:: pyVHDLModel.VHDLModel.UnaryExpression pyVHDLModel.VHDLModel.AddingExpression pyVHDLModel.VHDLModel.MultiplyingExpression pyVHDLModel.VHDLModel.LogicalExpression pyVHDLModel.VHDLModel.ShiftExpression pyVHDLModel.VHDLModel.TernaryExpression
    :parts: 1
 
 .. _vhdlmodel-unary:
@@ -101,7 +101,10 @@ Unary Expressions
 Binary Expressions
 ------------------
 
+.. rubric:: Class Hierarchy
 
+.. inheritance-diagram:: pyVHDLModel.VHDLModel.AdditionExpression pyVHDLModel.VHDLModel.SubtractionExpression pyVHDLModel.VHDLModel.ConcatenationExpression pyVHDLModel.VHDLModel.MultiplyExpression pyVHDLModel.VHDLModel.DivisionExpression pyVHDLModel.VHDLModel.RemainderExpression pyVHDLModel.VHDLModel.ModuloExpression pyVHDLModel.VHDLModel.ExponentiationExpression
+   :parts: 1
 
 .. _vhdlmodel-ternary:
 

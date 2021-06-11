@@ -857,7 +857,7 @@ class DesignUnit(ModelEntity, NamedEntity):
 		NamedEntity.__init__(self, name)\
 
 @export
-class DesignUnitWithReferences:
+class DesignUnitWithContext:
 	"""
 	A ``DesignUnitWithReferences`` is a base-class for all design units with contexts.
 	"""
@@ -918,7 +918,7 @@ class Context(PrimaryUnit):
 
 
 @export
-class Entity(PrimaryUnit, DesignUnitWithReferences):
+class Entity(PrimaryUnit, DesignUnitWithContext):
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
 	_declaredItems:     List   # FIXME: define list element type e.g. via Union
@@ -926,7 +926,7 @@ class Entity(PrimaryUnit, DesignUnitWithReferences):
 
 	def __init__(self, name: str):
 		super().__init__(name)
-		DesignUnitWithReferences.__init__(self)
+		DesignUnitWithContext.__init__(self)
 
 		self._genericItems      = []
 		self._portItems         = []
@@ -951,14 +951,14 @@ class Entity(PrimaryUnit, DesignUnitWithReferences):
 
 
 @export
-class Architecture(SecondaryUnit, DesignUnitWithReferences):
+class Architecture(SecondaryUnit, DesignUnitWithContext):
 	_entity:            Entity
 	_declaredItems:     List   # FIXME: define list element type e.g. via Union
 	_bodyItems:         List['ConcurrentStatement']
 
 	def __init__(self, name: str):
 		super().__init__(name)
-		DesignUnitWithReferences.__init__(self)
+		DesignUnitWithContext.__init__(self)
 
 		self._declaredItems =     []
 		self._bodyItems =         []
@@ -977,10 +977,10 @@ class Architecture(SecondaryUnit, DesignUnitWithReferences):
 
 
 @export
-class Configuration(PrimaryUnit, DesignUnitWithReferences):
+class Configuration(PrimaryUnit, DesignUnitWithContext):
 	def __init__(self, name: str):
 		super().__init__(name)
-		DesignUnitWithReferences.__init__(self)
+		DesignUnitWithContext.__init__(self)
 
 
 @export
@@ -1036,13 +1036,13 @@ class FunctionInstantiation(Function, SubprogramInstantiation):
 
 
 @export
-class Package(PrimaryUnit, DesignUnitWithReferences):
+class Package(PrimaryUnit, DesignUnitWithContext):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
 	def __init__(self, name: str):
 		super().__init__(name)
-		DesignUnitWithReferences.__init__(self)
+		DesignUnitWithContext.__init__(self)
 
 		self._genericItems =      []
 		self._declaredItems =     []
@@ -1057,13 +1057,13 @@ class Package(PrimaryUnit, DesignUnitWithReferences):
 
 
 @export
-class PackageBody(SecondaryUnit, DesignUnitWithReferences):
+class PackageBody(SecondaryUnit, DesignUnitWithContext):
 	_package:           Package
 	_declaredItems:     List
 
 	def __init__(self, name: str):
 		super().__init__(name)
-		DesignUnitWithReferences.__init__(self)
+		DesignUnitWithContext.__init__(self)
 
 		self._declaredItems =     []
 

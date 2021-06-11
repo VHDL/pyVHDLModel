@@ -69,7 +69,7 @@ types). An entity's list of statements is called body items.
 .. code-block:: Python
 
    @export
-   class Entity(PrimaryUnit, DesignUnitWithReferences):
+   class Entity(PrimaryUnit, DesignUnitWithContext):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -78,7 +78,7 @@ types). An entity's list of statements is called body items.
      @property
      def Name(self) -> str:
 
-     # inherited from DesignUnitWithReferences
+     # inherited from DesignUnitWithContext
      @property
      def LibraryReferences(self) -> List[LibraryReference]:
 
@@ -119,7 +119,7 @@ Package
 .. code-block:: Python
 
    @export
-   class Package(PrimaryUnit):
+   class Package(PrimaryUnit, DesignUnitWithContext):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -128,7 +128,7 @@ Package
      @property
      def Name(self) -> str:
 
-     # inherited from DesignUnitWithReferences
+     # inherited from DesignUnitWithContext
      @property
      def LibraryReferences(self) -> List[LibraryReference]:
 
@@ -168,7 +168,7 @@ Architeture
 .. code-block:: Python
 
    @export
-   class Architecture(SecondaryUnit):
+   class Architecture(SecondaryUnit, DesignUnitWithContext):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -177,7 +177,7 @@ Architeture
      @property
      def Name(self) -> str:
 
-     # inherited from DesignUnitWithReferences
+     # inherited from DesignUnitWithContext
      @property
      def LibraryReferences(self) -> List[LibraryReference]:
 
@@ -215,7 +215,7 @@ Package Body
 .. code-block:: Python
 
    @export
-   class PackageBody(SecondaryUnit):
+   class PackageBody(SecondaryUnit, DesignUnitWithContext):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -224,7 +224,7 @@ Package Body
      @property
      def Name(self) -> str:
 
-     # inherited from DesignUnitWithReferences
+     # inherited from DesignUnitWithContext
      @property
      def LibraryReferences(self) -> List[LibraryReference]:
 

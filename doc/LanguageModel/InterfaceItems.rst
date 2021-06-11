@@ -23,9 +23,12 @@ Interface items are used in generic, port and parameter declarations.
   * :class:`~pyVHDLModel.VHDLModel.ParameterSignalInterfaceItem`
   * :class:`~pyVHDLModel.VHDLModel.ParameterFileInterfaceItem`
 
+.. _vhdlmodel-generics:
 
 Generic Interface Item
 ======================
+
+.. _vhdlmodel-genericconstant:
 
 GenericConstantInterfaceItem
 ----------------------------
@@ -42,6 +45,7 @@ GenericConstantInterfaceItem
    class GenericConstantInterfaceItem(GenericInterfaceItem):
 
 
+.. _vhdlmodel-generictype:
 
 GenericTypeInterfaceItem
 ------------------------
@@ -58,6 +62,7 @@ GenericTypeInterfaceItem
    class GenericTypeInterfaceItem(GenericInterfaceItem):
 
 
+.. _vhdlmodel-genericsubprogram:
 
 GenericSubprogramInterfaceItem
 ------------------------------
@@ -74,6 +79,7 @@ GenericSubprogramInterfaceItem
    class GenericSubprogramInterfaceItem(GenericInterfaceItem):
 
 
+.. _vhdlmodel-genericpackage:
 
 GenericPackageInterfaceItem
 ---------------------------
@@ -90,10 +96,12 @@ GenericPackageInterfaceItem
    class GenericPackageInterfaceItem(GenericInterfaceItem):
 
 
+.. _vhdlmodel-ports:
 
 Port Interface Item
 ===================
 
+.. _vhdlmodel-portsignal:
 
 PortSignalInterfaceItem
 -----------------------
@@ -109,10 +117,12 @@ PortSignalInterfaceItem
    @Export
    class PortSignalInterfaceItem(PortInterfaceItem):
 
+.. _vhdlmodel-parameters:
 
 Parameter Interface Item
 =========================
 
+.. _vhdlmodel-parameterconstant:
 
 ParameterConstantInterfaceItem
 ------------------------------
@@ -129,6 +139,7 @@ ParameterConstantInterfaceItem
    class ParameterConstantInterfaceItem(ParameterInterfaceItem):
 
 
+.. _vhdlmodel-parametervariable:
 
 ParameterVariableInterfaceItem
 ------------------------------
@@ -145,6 +156,7 @@ ParameterVariableInterfaceItem
    class ParameterVariableInterfaceItem(ParameterInterfaceItem):
 
 
+.. _vhdlmodel-parametersignal:
 
 ParameterSignalInterfaceItem
 ----------------------------
@@ -161,6 +173,7 @@ ParameterSignalInterfaceItem
    class ParameterSignalInterfaceItem(ParameterInterfaceItem):
 
 
+.. _vhdlmodel-parameterfile:
 
 ParameterFileInterfaceItem
 --------------------------

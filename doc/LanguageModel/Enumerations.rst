@@ -3,7 +3,8 @@
 Enumerations
 ############
 
-The language model contains some enumerations to express a *kind* of a models entity.
+The language model contains some enumerations to express a *kind* of a models
+entity. These are not enumerated types defined by VHDL itself, like `boolean`.
 
 .. rubric:: Table of Content
 
@@ -37,14 +38,8 @@ Mode
 ====
 
 A *mode* describes the direction of data exchange e.g. for entity ports or subprogram parameters.
-
-VHDL supports:
-
-* `in`
-* `out`
-* `inout`
-* `buffer`
-* `linkage`
+In addition to the modes defined by VHDL (`In`, `Out`, `InOut`, `Buffer` and `Linkage`), `Default`
+is a placeholder for omitted modes. The mode is then determined from the context.
 
 **Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Mode`:
 
@@ -66,14 +61,9 @@ VHDL supports:
 Object Class
 ============
 
-VHDL has 4 object classes.
-
-These are
-
-* `Constant`
-* `Variable`
-* `Signal`
-* `File`
+In addition to the 4 object classes defined by VHDL (`Constant`, `Variable`,
+`Signal` and `File`), `Default` is used when no object class is defined. In
+such a case, the object class is determined from the context.
 
 **Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Class`:
 

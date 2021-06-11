@@ -104,6 +104,7 @@ a deferred constant has a reference to the *regular* constant of the same name.
      @property
      def SubType(self) -> SubType:
 
+     # inherited from WithDefaultExpression
      @property
      def ConstantReference(self) -> Constant:
 
@@ -146,9 +147,33 @@ Variables
 Variable
 --------
 
-.. todo::
+A variable represents mutable data in sequential regions. Assignments to
+variables have no delay. The initial value can be assigned via a default
+expression.
 
-   Write documentation.
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Variable`:
+
+.. code-block:: Python
+
+   @export
+   class Variable(Object):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Object
+     @property
+     def SubType(self) -> SubType:
+
+     # inherited from WithDefaultExpression
+     @property
+     def DefaultExpression(self) -> Expression:
+
+
 
 .. _vhdlmodel-obj-parametervariable:
 
@@ -184,9 +209,33 @@ Signals
 Signal
 ------
 
-.. todo::
+A signal represents mutable data in concurrent regions. Assignments to signals
+are delayed until next wait statement is executed. The initial value can be
+assigned via a default expression.
 
-   Write documentation.
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Signal`:
+
+.. code-block:: Python
+
+   @export
+   class Signal(Object):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # inherited from Object
+     @property
+     def SubType(self) -> SubType:
+
+     # inherited from WithDefaultExpression
+     @property
+     def DefaultExpression(self) -> Expression:
+
+
 
 .. _vhdlmodel-obj-portsignal:
 

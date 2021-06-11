@@ -68,9 +68,6 @@ Procedure
      @property
      def IsPure(self) -> bool:
 
-     # from Procedure
-     _isPure: bool = False
-
 
 
 .. _vhdlmodel-procedureinstantiation:
@@ -121,15 +118,13 @@ ProcedureMethod
      @property
      def IsPure(self) -> bool:
 
-     # inherited from Procedure
-     _isPure: bool = False
-
      # inherited from Method
      @property
      def ProtectedType(self) -> ProtectedType:
 
      # from ProcedureMethod
      def __init__(self, name: str, protectedType: ProtectedType):
+
 
 
 .. _vhdlmodel-sub-genericprocedure:
@@ -191,8 +186,6 @@ Function
      def IsPure(self) -> bool:
 
      # from Function
-     _returnType: SubType
-
      def __init__(self, name: str, isPure: bool = True):
 
      @property
@@ -247,8 +240,6 @@ FunctionMethod
      def IsPure(self) -> bool:
 
      # inherited from Function
-     _returnType: SubType
-
      def __init__(self, name: str, isPure: bool = True):
 
      @property

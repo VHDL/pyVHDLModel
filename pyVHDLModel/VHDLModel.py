@@ -43,7 +43,7 @@ This module contains a document language model for VHDL.
 # load dependencies
 from enum               import Enum
 from pathlib            import Path
-from typing             import Any, List
+from typing             import Any, List, Tuple
 
 from pydecor.decorators import export
 
@@ -328,7 +328,27 @@ class SubType(BaseType):
 
 @export
 class ScalarType(BaseType):
-	pass
+	"""
+	A ``ScalarType`` is a base-class for all scalar types.
+	"""
+
+
+@export
+class RangedScalarType(ScalarType):
+	"""
+	A ``RangedScalarType`` is a base-class for all scalar types with a range.
+	"""
+
+	_leftBound:  'Expression'
+	_rightBound: 'Expression'
+
+	@property
+	def LeftBound(self) -> 'Expression':
+		return self._leftBound
+
+	@property
+	def RightBound(self) -> 'Expression':
+		return self._rightBound
 
 
 @export
@@ -347,7 +367,9 @@ class DiscreteType:
 
 @export
 class CompositeType(BaseType):
-	pass
+	"""
+	A ``CompositeType`` is a base-class for all composite types.
+	"""
 
 
 @export
@@ -380,30 +402,34 @@ class EnumeratedType(ScalarType, DiscreteType):
 
 
 @export
-class IntegerType(ScalarType, NumericType, DiscreteType):
-	_leftBound:  'Expression'
-	_rightBound: 'Expression'
-
+class IntegerType(RangedScalarType, NumericType, DiscreteType):
 	def __init__(self, name: str):
 		super().__init__(name)
 
 
 @export
-class RealType(ScalarType, NumericType):
-	_leftBound:  'Expression'
-	_rightBound: 'Expression'
-
+class RealType(RangedScalarType, NumericType):
 	def __init__(self, name: str):
 		super().__init__(name)
 
 
 @export
-class PhysicalType(ScalarType, NumericType):
-	_leftBound:  'Expression'
-	_rightBound: 'Expression'
+class PhysicalType(RangedScalarType, NumericType):
+	_primaryUnit:    str
+	_secondaryUnits: List[Tuple[int, str]]
 
 	def __init__(self, name: str):
 		super().__init__(name)
+
+		self._secondaryUnits = []
+
+	@property
+	def PrimaryUnit(self) -> str:
+		return self._primaryUnit
+
+	@property
+	def SecondaryUnits(self) -> List[Tuple[int, str]]:
+		return self._secondaryUnits
 
 
 @export

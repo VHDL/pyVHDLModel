@@ -81,7 +81,7 @@ Integer
 .. code-block:: Python
 
    @export
-   class IntegerType(ScalarType, NumericType, DiscreteType):
+   class IntegerType(RangedScalarType, NumericType, DiscreteType):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -89,6 +89,13 @@ Integer
      # inherited from NamedEntity
      @property
      def Name(self) -> str:
+
+     # inherited from RangedScalarType
+     @property
+     def LeftBound(self) -> 'Expression':
+
+     @property
+     def RightBound(self) -> 'Expression':
 
 
 
@@ -106,7 +113,7 @@ Real
 .. code-block:: Python
 
    @export
-   class RealType(ScalarType, NumericType):
+   class RealType(RangedScalarType, NumericType):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -114,6 +121,13 @@ Real
      # inherited from NamedEntity
      @property
      def Name(self) -> str:
+
+     # inherited from RangedScalarType
+     @property
+     def LeftBound(self) -> 'Expression':
+
+     @property
+     def RightBound(self) -> 'Expression':
 
 
 
@@ -131,7 +145,7 @@ Physical
 .. code-block:: Python
 
    @export
-   class PhysicalType(ScalarType, NumericType):
+   class PhysicalType(RangedScalarType, NumericType):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -139,6 +153,20 @@ Physical
      # inherited from NamedEntity
      @property
      def Name(self) -> str:
+
+     # inherited from RangedScalarType
+     @property
+     def LeftBound(self) -> 'Expression':
+
+     @property
+     def RightBound(self) -> 'Expression':
+
+     # from PhysicalType
+     @property
+     def PrimaryUnit(self) -> str:
+
+     @property
+     def SecondaryUnits(self) -> List[Tuple[int, str]]:
 
 
 

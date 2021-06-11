@@ -4,19 +4,26 @@ Object Declarations
 ###################
 
 * :ref:`vhdlmodel-constants`
+
   * :ref:`vhdlmodel-constant`
   * :ref:`vhdlmodel-deferredconstant`
   * :ref:`vhdlmodel-obj-genericconstant`
   * :ref:`vhdlmodel-obj-parameterconstant`
+
 * :ref:`vhdlmodel-variables`
+
   * :ref:`vhdlmodel-variable`
   * :ref:`vhdlmodel-obj-parametervariable`
+
 * :ref:`vhdlmodel-sharedvariable`
 * :ref:`vhdlmodel-signals`
+
   * :ref:`vhdlmodel-signal`
   * :ref:`vhdlmodel-obj-portsignal`
   * :ref:`vhdlmodel-obj-parametersignal`
+
 * :ref:`vhdlmodel-files`
+
   * :ref:`vhdlmodel-file`
   * :ref:`vhdlmodel-obj-parameterfile`
 
@@ -57,7 +64,7 @@ A generic without object class or a generic constant is a *regular* constant.
 
    See :ref:`vhdlmodel-genericconstant` for details.
 
-.. _vhdlmodel-obj-paramaterconstant:
+.. _vhdlmodel-obj-parameterconstant:
 
 ParameterConstantInterfaceItem
 ------------------------------
@@ -154,6 +161,11 @@ Files
 
 .. inheritance-diagram:: pyVHDLModel.VHDLModel.File pyVHDLModel.VHDLModel.ParameterFileInterfaceItem
    :parts: 1
+
+.. _vhdlmodel-file:
+
+File
+----
 
 .. todo::
 

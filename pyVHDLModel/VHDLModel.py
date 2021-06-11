@@ -396,7 +396,15 @@ class RealType(ScalarType, NumericType):
 	def __init__(self, name: str):
 		super().__init__(name)
 
-# TODO: PhysicalType
+
+@export
+class PhysicalType(ScalarType, NumericType):
+	_leftBound:  'Expression'
+	_rightBound: 'Expression'
+
+	def __init__(self, name: str):
+		super().__init__(name)
+
 
 @export
 class ArrayType(CompositeType):

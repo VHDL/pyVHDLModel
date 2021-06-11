@@ -21,13 +21,16 @@ VHDL has types (also called a base type) and subtypes. The following shows VHDL'
     * :ref:`vhdlmodel-arraytypes`
     * :ref:`vhdlmodel-recordtypes`
 
+  * :ref:`vhdlmodel-protectedtypes`
   * :ref:`vhdlmodel-accesstypes`
   * :ref:`vhdlmodel-filetypes`
-  * :ref:`vhdlmodel-protectedtypes`
 
 * Subtype
 
+.. rubric:: Class Hierarchy
 
+.. inheritance-diagram:: pyVHDLModel.VHDLModel.EnumeratedType pyVHDLModel.VHDLModel.IntegerType pyVHDLModel.VHDLModel.RealType pyVHDLModel.VHDLModel.PhysicalType pyVHDLModel.VHDLModel.ArrayType pyVHDLModel.VHDLModel.RecordType pyVHDLModel.VHDLModel.ProtectedType pyVHDLModel.VHDLModel.AccessType pyVHDLModel.VHDLModel.FileType
+   :parts: 1
 
 
 .. _vhdlmodel-scalartypes:
@@ -44,6 +47,26 @@ Enumeration
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.EnumeratedType`:
+
+.. code-block:: Python
+
+   @export
+   class EnumeratedType(ScalarType, DiscreteType):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+     # from EnumeratedType
+     @property
+     def Elements(self) -> List:
+
+
+
 .. _vhdlmodel-integertypes:
 
 Integer
@@ -52,6 +75,21 @@ Integer
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.IntegerType`:
+
+.. code-block:: Python
+
+   @export
+   class IntegerType(ScalarType, NumericType, DiscreteType):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
 
 
 .. _vhdlmodel-realtypes:
@@ -63,6 +101,22 @@ Real
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.RealType`:
+
+.. code-block:: Python
+
+   @export
+   class RealType(ScalarType, NumericType):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+
+
 .. _vhdlmodel-physicaltypes:
 
 Physical
@@ -71,6 +125,22 @@ Physical
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.PhysicalType`:
+
+.. code-block:: Python
+
+   @export
+   class PhysicalType(ScalarType, NumericType):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from NamedEntity
+     @property
+     def Name(self) -> str:
+
+
 
 .. _vhdlmodel-compositetypes:
 
@@ -95,6 +165,15 @@ Record
 
    Write documentation.
 
+.. _vhdlmodel-protectedtypes:
+
+Protected
+=========
+
+.. todo::
+
+   Write documentation.
+
 .. _vhdlmodel-accesstypes:
 
 Access
@@ -108,15 +187,6 @@ Access
 
 File
 ====
-
-.. todo::
-
-   Write documentation.
-
-.. _vhdlmodel-protectedtypes:
-
-Protected
-=========
 
 .. todo::
 

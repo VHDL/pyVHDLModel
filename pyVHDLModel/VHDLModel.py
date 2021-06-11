@@ -249,8 +249,11 @@ class Direction(Enum):
 @export
 class Mode(Enum):
 	"""
-	A ``Mode`` is an enumeration and represents a direction (``in``, ``out``, ...)
-	for how objects are passed.
+	A ``Mode`` is an enumeration. It represents the direction of data exchange
+	(``in``, ``out``, ...) for objects in generic, port or parameter lists.
+
+	In case no *mode* is define, ``Default`` is used, so the *mode* is inferred
+	from context.
 	"""
 	Default = 0
 	In =      1
@@ -263,8 +266,11 @@ class Mode(Enum):
 @export
 class Class(Enum):
 	"""
-	A ``Class`` is an enumeration and represents an object's class (``constant``,
+	A ``Class`` is an enumeration. It represents an object's class (``constant``,
 	``signal``, ...).
+
+	In case no *object class* is define, ``Default`` is used, so the *object class*
+	is inferred from context.
 	"""
 	Default =    0
 	Constant =   1
@@ -327,12 +333,16 @@ class ScalarType(BaseType):
 
 @export
 class NumericType:
-	pass
+	"""
+	A ``NumericType`` is a mixin class for all numeric types.
+	"""
 
 
 @export
 class DiscreteType:
-	pass
+	"""
+	A ``DiscreteType`` is a mixin class for all discrete types.
+	"""
 
 
 @export
@@ -445,7 +455,7 @@ class Literal:
 
 
 @export
-class IntegerLiteral:
+class IntegerLiteral(Literal):
 	_value: int
 
 	def __init__(self, value: int):
@@ -457,7 +467,7 @@ class IntegerLiteral:
 
 
 @export
-class FloatingPointLiteral:
+class FloatingPointLiteral(Literal):
 	_value: float
 
 	def __init__(self, value: float):
@@ -536,16 +546,12 @@ class Object(ModelEntity, NamedEntity):
 
 
 @export
-class BaseConstant(Object):
-	pass
-
-
-@export
-class Constant(BaseConstant):
+class WithDefaultExpression:
+	"""
+	A ``WithDefaultExpression`` is a mixin class for all objects declarations
+	accepting default expressions.
+	"""
 	_defaultExpression: Expression
-
-	def __init__(self, name: str):
-		super().__init__(name)
 
 	@property
 	def DefaultExpression(self) -> Expression:
@@ -553,11 +559,18 @@ class Constant(BaseConstant):
 
 
 @export
+class BaseConstant(Object):
+	pass
+
+
+@export
+class Constant(BaseConstant, WithDefaultExpression):
+	pass
+
+
+@export
 class DeferredConstant(BaseConstant):
 	_constantReference: Constant
-
-	def __init__(self, name: str):
-		super().__init__(name)
 
 	@property
 	def ConstantReference(self) -> Constant:
@@ -565,34 +578,19 @@ class DeferredConstant(BaseConstant):
 
 
 @export
-class Variable(Object):
-	_defaultExpression: Expression
-
-	def __init__(self, name: str):
-		super().__init__(name)
-
-	@property
-	def DefaultExpression(self) -> Expression:
-		return self._defaultExpression
+class Variable(Object, WithDefaultExpression):
+	pass
 
 
 @export
-class Signal(Object):
-	_defaultExpression: Expression
-
-	def __init__(self, name: str):
-		super().__init__(name)
-
-	@property
-	def DefaultExpression(self) -> Expression:
-		return self._defaultExpression
+class Signal(Object, WithDefaultExpression):
+	pass
 
 @export
 class File(Object):
+	pass
 #	_defaultExpression: Expression
 
-	def __init__(self, name: str):
-		super().__init__(name)
 
 @export
 class SubProgramm(ModelEntity, NamedEntity):
@@ -652,6 +650,9 @@ class Function(SubProgramm):
 
 @export
 class Method:
+	"""
+	A ``Method`` is a mixin class for all subprograms in a protected type.
+	"""
 	_protectedType: ProtectedType
 
 	def __init__(self, protectedType: ProtectedType):
@@ -678,6 +679,10 @@ class FunctionMethod(Function, Method):
 
 @export
 class InterfaceItem:
+	"""
+	An ``InterfaceItem`` is a base-class for all mixin-classes for all interface
+	items.
+	"""
 	_mode: Mode
 
 	def __init__(self, mode: Mode):
@@ -690,17 +695,23 @@ class InterfaceItem:
 
 @export
 class GenericInterfaceItem(InterfaceItem):
-	pass
+	"""
+	A ``GenericInterfaceItem`` is a mixin class for all generic interface items.
+	"""
 
 
 @export
 class PortInterfaceItem(InterfaceItem):
-	pass
+	"""
+	A ``PortInterfaceItem`` is a mixin class for all port interface items.
+	"""
 
 
 @export
 class ParameterInterfaceItem(InterfaceItem):
-	pass
+	"""
+	A ``ParameterInterfaceItem`` is a mixin class for all parameter interface items.
+	"""
 
 
 @export
@@ -716,6 +727,14 @@ class GenericTypeInterfaceItem(GenericInterfaceItem):
 
 @export
 class GenericSubprogramInterfaceItem(GenericInterfaceItem):
+	pass
+
+@export
+class GenericProcedureInterfaceItem(Procedure, GenericInterfaceItem):
+	pass
+
+@export
+class GenericFunctionInterfaceItem(Function, GenericInterfaceItem):
 	pass
 
 @export
@@ -943,23 +962,23 @@ class AssociationItem(ModelEntity):
 
 
 @export
-class GenericAssociationItem(InterfaceItem):
+class GenericAssociationItem(AssociationItem):
 	pass
 
 @export
-class PortAssociationItem(InterfaceItem):
+class PortAssociationItem(AssociationItem):
 	pass
 
 @export
-class ParameterAssociationItem(InterfaceItem):
+class ParameterAssociationItem(AssociationItem):
 	pass
+
 
 @export
 class Configuration(ModelEntity, NamedEntity):
 	def __init__(self, name: str):
 		super().__init__()
 		NamedEntity.__init__(self, name)
-
 
 
 @export
@@ -975,12 +994,12 @@ class SubprogramInstantiation(ModelEntity, Instantiation):
 
 
 @export
-class ProcedureInstantiation(SubprogramInstantiation):
+class ProcedureInstantiation(Procedure, SubprogramInstantiation):
 	pass
 
 
 @export
-class FunctionInstantiation(SubprogramInstantiation):
+class FunctionInstantiation(Function, SubprogramInstantiation):
 	pass
 
 
@@ -1076,12 +1095,16 @@ class Statement(ModelEntity, LabeledEntity):
 
 @export
 class ConcurrentStatement(Statement):
-	pass
+	"""
+	A ``ConcurrentStatement`` is a base-class for all concurrent statements.
+	"""
 
 
 @export
 class SequentialStatement(Statement):
-	pass
+	"""
+	A ``SequentialStatement`` is a base-class for all sequential statements.
+	"""
 
 
 @export
@@ -1145,10 +1168,10 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement):
 
 @export
 class BaseConditional:
+	"""
+	A ``BaseConditional`` is a base-class for all conditional statements.
+	"""
 	_condition: Expression
-
-	def __init__(self):
-		super().__init__()
 
 	@property
 	def Condition(self) -> Expression:
@@ -1157,10 +1180,15 @@ class BaseConditional:
 
 @export
 class BaseBranch:
-	pass
+	"""
+	A ``BaseBranch`` is a base-class for all statements with branches.
+	"""
 
 @export
 class BaseConditionalBranch(BaseBranch, BaseConditional):
+	"""
+	A ``BaseBranch`` is a base-class for all conditional statements with branches.
+	"""
 	def __init__(self):
 		super().__init__()
 		BaseConditional.__init__(self)
@@ -1168,19 +1196,30 @@ class BaseConditionalBranch(BaseBranch, BaseConditional):
 
 @export
 class BaseIfBranch(BaseConditionalBranch):
-	pass
+	"""
+	A ``BaseIfBranch`` is a base-class for all conditional statements with
+	if-branches.
+	"""
 
 @export
 class BaseElsifBranch(BaseConditionalBranch):
-	pass
+	"""
+	A ``BaseElsifBranch`` is a base-class for all conditional statements with
+	elsif-branches.
+	"""
 
 @export
 class BaseElseBranch(BaseBranch):
-	pass
+	"""
+	A ``BaseElseBranch`` is a base-class for all conditional statements with
+	else-branches.
+	"""
 
 @export
 class GenerateBranch(ModelEntity):
-	pass
+	"""
+	A ``GenerateBranch`` is a base-class for all branches in a generate statements.
+	"""
 
 @export
 class IfGenerateBranch(GenerateBranch, BaseIfBranch):
@@ -1257,6 +1296,9 @@ class ForGenerateStatement(GenerateStatement):
 
 @export
 class Assignment:
+	"""
+	An ``Assignment`` is a base-class for all assignment statements.
+	"""
 	_target:     Object
 	_expression: Expression
 
@@ -1274,12 +1316,16 @@ class Assignment:
 
 @export
 class SignalAssignment(Assignment):
-	pass
+	"""
+	An ``SignalAssignment`` is a base-class for all signal assignment statements.
+	"""
 
 
 @export
 class VariableAssignment(Assignment):
-	pass
+	"""
+	An ``VariableAssignment`` is a base-class for all variable assignment statements.
+	"""
 
 
 @export
@@ -1307,6 +1353,9 @@ class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
 
 @export
 class ReportStatement:
+	"""
+	A ``ReportStatement`` is a base-class for all report and assert statements.
+	"""
 	_message:  Expression
 	_severity: Expression
 
@@ -1324,6 +1373,9 @@ class ReportStatement:
 
 @export
 class AssertStatement(ReportStatement):
+	"""
+	A ``AssertStatement`` is a base-class for all assert statements.
+	"""
 	_condition: Expression
 
 	def __init__(self):
@@ -1382,6 +1434,9 @@ class ElseBranch(Branch, BaseElseBranch):
 
 @export
 class CompoundStatement(SequentialStatement):
+	"""
+	A ``CompoundStatement`` is a base-class for all compound statements.
+	"""
 	_bodyItems: List[SequentialStatement]
 
 	def __init__(self):
@@ -1420,7 +1475,9 @@ class IfStatement(CompoundStatement):
 
 @export
 class LoopStatement(CompoundStatement):
-	pass
+	"""
+	A ``LoopStatement`` is a base-class for all loop statements.
+	"""
 
 
 @export
@@ -1449,6 +1506,9 @@ class WhileLoopStatement(LoopStatement, BaseConditional):
 
 @export
 class LoopControlStatement(ModelEntity, BaseConditional):
+	"""
+	A ``LoopControlStatement`` is a base-class for all loop controlling statements.
+	"""
 	_loopReference: LoopStatement
 
 	def __init__(self):

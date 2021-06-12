@@ -27,8 +27,8 @@ Concurrent Statements
 
 .. _vhdlmodel-con-assertstatement:
 
-Assert
-======
+Assert Statement
+================
 
 .. todo::
 
@@ -63,18 +63,18 @@ Instantiations
 
 .. _vhdlmodel-entityinstantiation:
 
-EntityInstantiation
--------------------
+Entity Instantiation
+--------------------
 
 .. _vhdlmodel-componentinstantiation:
 
-ComponentInstantiation
-----------------------
+Component Instantiation
+-----------------------
 
 .. _vhdlmodel-configurationinstantiation:
 
-ConfigurationInstantiation
---------------------------
+Configuration Instantiation
+---------------------------
 
 .. _vhdlmodel-generates:
 

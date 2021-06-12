@@ -72,8 +72,8 @@ Procedure
 
 .. _vhdlmodel-procedureinstantiation:
 
-ProcedureInstantiation
-----------------------
+Procedure Instantiation
+-----------------------
 
 .. todo::
 
@@ -83,8 +83,8 @@ ProcedureInstantiation
 
 .. _vhdlmodel-proceduremethod:
 
-ProcedureMethod
----------------
+Procedure as Method
+-------------------
 
 **Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ProcedureMethod`:
 
@@ -129,8 +129,8 @@ ProcedureMethod
 
 .. _vhdlmodel-sub-genericprocedure:
 
-GenericProcedureInterfaceItem
------------------------------
+Generic Procedure
+-----------------
 
 A generic procedure is a *regular* procedure.
 
@@ -195,8 +195,8 @@ Function
 
 .. _vhdlmodel-functioninstantiation:
 
-FunctionInstantiation
----------------------
+Function Instantiation
+----------------------
 
 .. todo::
 
@@ -206,8 +206,8 @@ FunctionInstantiation
 
 .. _vhdlmodel-functionmethod:
 
-FunctionMethod
---------------
+Function as Method
+------------------
 
 **Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.FunctionMethod`:
 
@@ -256,8 +256,8 @@ FunctionMethod
 
 .. _vhdlmodel-sub-genericfunction:
 
-GenericFunctionInterfaceItem
-----------------------------
+Generic Function
+----------------
 
 A generic function is a *regular* function.
 

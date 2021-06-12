@@ -80,8 +80,8 @@ a deferred constant. See :ref:`vhdlmodel-deferredconstant` in next section.
 
 .. _vhdlmodel-deferredconstant:
 
-DeferredConstant
-----------------
+Deferred Constant
+-----------------
 
 If a constant's value is delayed in calculation, it's a deferred constant. Such
 a deferred constant has a reference to the *regular* constant of the same name.
@@ -112,8 +112,8 @@ a deferred constant has a reference to the *regular* constant of the same name.
 
 .. _vhdlmodel-obj-genericconstant:
 
-GenericConstantInterfaceItem
-----------------------------
+Generic Constant
+----------------
 
 A generic without object class or a generic constant is a *regular* constant.
 
@@ -123,8 +123,8 @@ A generic without object class or a generic constant is a *regular* constant.
 
 .. _vhdlmodel-obj-parameterconstant:
 
-ParameterConstantInterfaceItem
-------------------------------
+Constant as Parameter
+---------------------
 
 A subprogram parameter without object class of mode *in* or a parameter constant is a *regular* constant.
 
@@ -177,8 +177,8 @@ expression.
 
 .. _vhdlmodel-obj-parametervariable:
 
-ParameterVariableInterfaceItem
-------------------------------
+Variable as Parameter
+---------------------
 
 A subprogram parameter without object class of mode *out* or a parameter variable is a *regular* variable.
 
@@ -239,8 +239,8 @@ assigned via a default expression.
 
 .. _vhdlmodel-obj-portsignal:
 
-PortSignalInterfaceItem
------------------------
+Signal as Port
+--------------
 
 A port signal is a *regular* signal.
 
@@ -250,8 +250,8 @@ A port signal is a *regular* signal.
 
 .. _vhdlmodel-obj-parametersignal:
 
-ParameterSignalInterfaceItem
-----------------------------
+Signal as Parameter
+-------------------
 
 A parameter signal is a *regular* signal.
 
@@ -278,8 +278,8 @@ File
 
 .. _vhdlmodel-obj-parameterfile:
 
-ParameterFileInterfaceItem
---------------------------
+File as Parameter
+-----------------
 
 A parameter file is a *regular* file.
 

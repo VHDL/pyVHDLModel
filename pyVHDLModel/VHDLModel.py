@@ -1478,20 +1478,21 @@ class SequentialProcedureCall(SequentialStatement, ProcedureCall):
 
 
 # TODO: could be unified with ProcessStatement if 'List[ConcurrentStatement]' becomes parametric to T
-class BlockStatement(ConcurrentStatement, ConcurrentDeclarations, ConcurrentStatements):
-	def __init__(self):
-		super().__init__()
-		ConcurrentDeclarations.__init__(self)
-		ConcurrentStatements.__init__(self)
+class BlockStatement:
+	"""
+	A ``BlockStatement`` is a mixin-class for all block statements.
+	"""
 
 
 @export
-class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement):
+class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, ConcurrentDeclarations, ConcurrentStatements):
 	_portItems:     List[PortInterfaceItem]
 
 	def __init__(self, label: str = None):
 		super().__init__(label=label)
 		BlockStatement.__init__(self)
+		ConcurrentDeclarations.__init__(self)
+		ConcurrentStatements.__init__(self)
 
 		self._portItems =     []
 

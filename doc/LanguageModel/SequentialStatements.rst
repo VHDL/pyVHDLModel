@@ -3,8 +3,11 @@
 Sequential Statements
 #####################
 
-* :ref:`vhdlmodel-seq-signalassignment`
-* :ref:`vhdlmodel-variableassignment`
+* :ref:`vhdlmodel-seq-assignments`
+
+  * :ref:`vhdlmodel-seq-signalassignment`
+  * :ref:`vhdlmodel-variableassignment`
+
 * :ref:`vhdlmodel-branching`
 
   * :ref:`vhdlmodel-ifstatement`
@@ -31,10 +34,15 @@ Sequential Statements
 .. inheritance-diagram:: pyVHDLModel.VHDLModel.SequentialAssertStatement pyVHDLModel.VHDLModel.SequentialReportStatement pyVHDLModel.VHDLModel.SequentialSignalAssignment pyVHDLModel.VHDLModel.VariableAssignment pyVHDLModel.VHDLModel.IfStatement pyVHDLModel.VHDLModel.CaseStatement pyVHDLModel.VHDLModel.ForLoopStatement pyVHDLModel.VHDLModel.WhileLoopStatement pyVHDLModel.VHDLModel.NextStatement pyVHDLModel.VHDLModel.ExitStatement pyVHDLModel.VHDLModel.SequentialProcedureCall pyVHDLModel.VHDLModel.WaitStatement pyVHDLModel.VHDLModel.ReturnStatement
    :parts: 1
 
+.. _vhdlmodel-seq-assignments:
+
+Assignments
+===========
+
 .. _vhdlmodel-seq-signalassignment:
 
 Signal Assignment
-=================
+-----------------
 
 .. todo::
 
@@ -43,7 +51,7 @@ Signal Assignment
 .. _vhdlmodel-variableassignment:
 
 Variable Assignment
-===================
+-------------------
 
 .. todo::
 

@@ -1384,6 +1384,53 @@ class SequentialStatement(Statement):
 
 
 @export
+class ConcurrentDeclarations:
+	_declaredItems: List
+
+	def __init__(self):
+		self._declaredItems = []
+
+	@property
+	def DeclaredItems(self) -> List:
+		return self._declaredItems
+
+
+@export
+class ConcurrentStatements:
+	_statements: List[ConcurrentStatement]
+
+	def __init__(self):
+		self._statements = []
+
+	@property
+	def Statements(self) -> List[ConcurrentStatement]:
+		return self._statements
+
+@export
+class SequentialDeclarations:
+	_declaredItems: List
+
+	def __init__(self):
+		self._declaredItems = []
+
+	@property
+	def DeclaredItems(self) -> List:
+		return self._declaredItems
+
+
+@export
+class SequentialStatements:
+	_statements: List[SequentialStatement]
+
+	def __init__(self):
+		self._statements = []
+
+	@property
+	def Statements(self) -> List[SequentialStatement]:
+		return self._statements
+
+
+@export
 class Instantiation(ConcurrentStatement):
 	pass
 
@@ -1402,37 +1449,28 @@ class ConfigurationInstantiation(Instantiation):
 
 
 @export
-class ProcessStatement(ConcurrentStatement):
-	_parameterItems: List[Signal]
-	_declaredItems:  List # TODO: create a union for (concurrent / sequential) DeclaredItems
-	_bodyItems:      List[SequentialStatement]
+class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements):
+	_sensitivityList: List[Signal]
 
 	def __init__(self, label: str = None):
 		super().__init__(label=label)
-
-		self._parameterItems =  []
-		self._declaredItems =   []
-		self._bodyItems =       []
+		SequentialDeclarations.__init__(self)
+		SequentialStatements.__init__(self)
 
 	@property
-	def ParameterItems(self) -> List[Signal]:
-		return self._parameterItems
+	def SensitivityList(self) -> List[Signal]:
+		return self._sensitivityList
 
-	@property
-	def DeclaredItems(self) -> List:
-		return self._declaredItems
-
-	@property
-	def BodyItems(self) -> List[SequentialStatement]:
-		return self._bodyItems
 
 @export
 class ProcedureCall:
 	pass
 
+
 @export
 class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCall):
 	pass
+
 
 @export
 class SequentialProcedureCall(SequentialStatement, ProcedureCall):
@@ -1440,21 +1478,11 @@ class SequentialProcedureCall(SequentialStatement, ProcedureCall):
 
 
 # TODO: could be unified with ProcessStatement if 'List[ConcurrentStatement]' becomes parametric to T
-class BlockStatement:
-	_declaredItems: List # TODO: create a union for (concurrent / sequential) DeclaredItems
-	_bodyItems:     List[ConcurrentStatement]
-
+class BlockStatement(ConcurrentStatement, ConcurrentDeclarations, ConcurrentStatements):
 	def __init__(self):
-		self._declaredItems = []
-		self._bodyItems =     []
-
-	@property
-	def DeclaredItems(self) -> List:
-		return self._declaredItems
-
-	@property
-	def BodyItems(self) -> List[ConcurrentStatement]:
-		return self._bodyItems
+		super().__init__()
+		ConcurrentDeclarations.__init__(self)
+		ConcurrentStatements.__init__(self)
 
 
 @export
@@ -1475,7 +1503,7 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement):
 @export
 class BaseConditional:
 	"""
-	A ``BaseConditional`` is a base-class for all conditional statements.
+	A ``BaseConditional`` is a base-class for all statements with a condition.
 	"""
 	_condition: Expression
 
@@ -1487,13 +1515,14 @@ class BaseConditional:
 @export
 class BaseBranch:
 	"""
-	A ``BaseBranch`` is a base-class for all statements with branches.
+	A ``BaseBranch`` is a mixin-class for all statements with branches.
 	"""
+
 
 @export
 class BaseConditionalBranch(BaseBranch, BaseConditional):
 	"""
-	A ``BaseBranch`` is a base-class for all conditional statements with branches.
+	A ``BaseBranch`` is a mixin-class for all branch statements with a condition.
 	"""
 	def __init__(self):
 		super().__init__()
@@ -1503,29 +1532,35 @@ class BaseConditionalBranch(BaseBranch, BaseConditional):
 @export
 class BaseIfBranch(BaseConditionalBranch):
 	"""
-	A ``BaseIfBranch`` is a base-class for all conditional statements with
-	if-branches.
+	A ``BaseIfBranch`` is a mixin-class for all if-branches.
 	"""
+
 
 @export
 class BaseElsifBranch(BaseConditionalBranch):
 	"""
-	A ``BaseElsifBranch`` is a base-class for all conditional statements with
-	elsif-branches.
+	A ``BaseElsifBranch`` is a mixin-class for all elsif-branches.
 	"""
+
 
 @export
 class BaseElseBranch(BaseBranch):
 	"""
-	A ``BaseElseBranch`` is a base-class for all conditional statements with
-	else-branches.
+	A ``BaseElseBranch`` is a mixin-class for all else-branches.
 	"""
 
+
 @export
-class GenerateBranch(ModelEntity):
+class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
 	"""
 	A ``GenerateBranch`` is a base-class for all branches in a generate statements.
 	"""
+
+	def __init__(self):
+		super().__init__()
+		ConcurrentDeclarations.__init__(self)
+		ConcurrentStatements.__init__(self)
+
 
 @export
 class IfGenerateBranch(GenerateBranch, BaseIfBranch):
@@ -1550,43 +1585,103 @@ class ElseGenerateBranch(GenerateBranch, BaseElseBranch):
 
 @export
 class GenerateStatement(ConcurrentStatement):
+	"""
+	A ``GenerateStatement`` is a base-class for all generate statements.
+	"""
+
 	def __init__(self, label: str = None):
 		super().__init__(label=label)
-
-		self._declaredItems = []
-		self._bodyItems = []
-
-	@property
-	def DeclaredItems(self):
-		return self._declaredItems
-
-	@property
-	def BodyItems(self):
-		return self._bodyItems
 
 
 @export
 class IfGenerateStatement(GenerateStatement):
-	_ifBranch: IfGenerateBranch
-	_elsifBranch: List['ElsifGenerateBranch']
-	_elseBranch: ElseGenerateBranch
+	_ifBranch:      IfGenerateBranch
+	_elsifBranches: List[ElsifGenerateBranch]
+	_elseBranch:    ElseGenerateBranch
 
 	def __init__(self, label: str = None):
 		super().__init__(label=label)
 
 		self._elsifBranches = []
 
-@export
-class CaseGenerateStatement(GenerateStatement):
-	pass
+	@property
+	def IfBranch(self) -> IfGenerateBranch:
+		return self._ifBranch
+
+	@property
+	def ElsifBranches(self) -> List[ElsifGenerateBranch]:
+		return self._elsifBranches
+
+	@property
+	def ElseBranch(self) -> ElseGenerateBranch:
+		return self._elseBranch
+
 
 @export
-class ForGenerateStatement(GenerateStatement):
+class Choice(ModelEntity):
+	"""
+	A ``Choice`` is a base-class for all choices.
+	"""
+
+
+@export
+class Case(ModelEntity):
+	"""
+	A ``Case`` is a base-class for all cases.
+	"""
+
+
+@export
+class ConcurrentCase(Case, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements):
+	_choices: List
+
+	def __init__(self, label: str = None):
+		super().__init__()
+		LabeledEntity.__init__(self, label)
+		ConcurrentDeclarations.__init__(self)
+		ConcurrentStatements.__init__(self)
+
+	@property
+	def Choises(self) -> List[Choice]:
+		return self._choices
+
+
+@export
+class SequentialCase(Case, SequentialStatements):
+	_choices: List
+
+	def __init__(self):
+		super().__init__()
+		SequentialStatements.__init__(self)
+
+	@property
+	def Choises(self) -> List[Choice]:
+		return self._choices
+
+
+@export
+class CaseGenerateStatement(GenerateStatement):
+	_selectExpression: Expression
+	_cases:            List[ConcurrentCase]
+
+	@property
+	def SelectExpression(self) -> Expression:
+		return self._selectExpression
+
+	@property
+	def Cases(self) -> List[ConcurrentCase]:
+		return self._cases
+
+
+@export
+class ForGenerateStatement(GenerateStatement, ConcurrentDeclarations, ConcurrentStatements):
 	_loopIndex: Constant
 	_range:     Range
 
 	def __init__(self, label: str = None):
 		super().__init__(label=label)
+		ConcurrentDeclarations.__init__(self)
+		ConcurrentStatements.__init__(self)
 
 	@property
 	def LoopIndex(self) -> Constant:
@@ -1596,18 +1691,13 @@ class ForGenerateStatement(GenerateStatement):
 	def Range(self) -> Range:
 		return self._range
 
-# TODO: CaseGenerateStatement
-# class CaseGenerateStatement(GenerateStatement):
-# 	def __init__(self):
-# 		super().__init__()
-# 		self._expression =      None
-# 		self._cases =           []
 
 @export
 class Assignment:
 	"""
 	An ``Assignment`` is a base-class for all assignment statements.
 	"""
+
 	_target:     Object
 	_expression: Expression
 
@@ -1641,7 +1731,6 @@ class VariableAssignment(Assignment):
 class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignment):
 	def __init__(self, label: str = None):
 		super().__init__(label=label)
-
 		SignalAssignment.__init__(self)
 
 
@@ -1657,7 +1746,6 @@ class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
 	def __init__(self):
 		super().__init__()
 		VariableAssignment.__init__(self)
-
 
 
 @export
@@ -1718,7 +1806,9 @@ class SequentialAssertStatement(SequentialStatement, AssertStatement):
 
 @export
 class Branch(ModelEntity):
-	pass
+	"""
+	A ``Branch`` is a base-class for all branches.
+	"""
 
 @export
 class IfBranch(Branch, BaseIfBranch):
@@ -1742,20 +1832,14 @@ class ElseBranch(Branch, BaseElseBranch):
 
 
 @export
-class CompoundStatement(SequentialStatement):
+class CompoundStatement(SequentialStatement, SequentialStatements):
 	"""
 	A ``CompoundStatement`` is a base-class for all compound statements.
 	"""
-	_bodyItems: List[SequentialStatement]
 
 	def __init__(self):
 		super().__init__()
-
-		self._bodyItems = []
-
-	@property
-	def BodyItems(self) -> List[SequentialStatement]:
-		return self._bodyItems
+		SequentialStatements.__init__(self)
 
 
 @export
@@ -1781,9 +1865,20 @@ class IfStatement(CompoundStatement):
 	def ElseBranch(self) -> ElseBranch:
 		return self._elseBranch
 
+
 @export
 class CaseStatement(CompoundStatement):
-	pass
+	_selectExpression: Expression
+	_cases:            List[SequentialCase]
+
+	@property
+	def SelectExpression(self) -> Expression:
+		return self._selectExpression
+
+	@property
+	def Cases(self) -> List[SequentialCase]:
+		return self._cases
+
 
 @export
 class LoopStatement(CompoundStatement):
@@ -1836,14 +1931,38 @@ class LoopControlStatement(SequentialStatement, BaseConditional):
 class NextStatement(LoopControlStatement):
 	pass
 
+
 @export
 class ExitStatement(LoopControlStatement):
 	pass
 
+
 @export
-class WaitStatement(SequentialStatement):
-	pass
+class WaitStatement(SequentialStatement, BaseConditional):
+	_sensitivityList : List[Signal]
+	_timeout:          Expression
+
+	def __init__(self):
+		super().__init__()
+		BaseConditional.__init__(self)
+
+	@property
+	def SensitivityList(self) -> List[Signal]:
+		return self._sensitivityList
+
+	@property
+	def Timeout(self) -> Expression:
+		return self._timeout
+
 
 @export
 class ReturnStatement(SequentialStatement, BaseConditional):
-	pass
+	_returnValue: Expression
+
+	def __init__(self):
+		super().__init__()
+		BaseConditional.__init__(self)
+
+	@property
+	def ReturnValue(self) -> Expression:
+		return self._returnValue

@@ -389,7 +389,7 @@ class FileType(BaseType):
 
 @export
 class EnumeratedType(ScalarType, DiscreteType):
-	_elements: List[str]
+	_elements: List['EnumerationLiteral']
 
 	def __init__(self, name: str):
 		super().__init__(name)
@@ -397,7 +397,7 @@ class EnumeratedType(ScalarType, DiscreteType):
 		self._elements = []
 
 	@property
-	def Elements(self) -> List[str]:
+	def Elements(self) -> List['EnumerationLiteral']:
 		return self._elements
 
 
@@ -1781,6 +1781,9 @@ class IfStatement(CompoundStatement):
 	def ElseBranch(self) -> ElseBranch:
 		return self._elseBranch
 
+@export
+class CaseStatement(CompoundStatement):
+	pass
 
 @export
 class LoopStatement(CompoundStatement):
@@ -1814,7 +1817,7 @@ class WhileLoopStatement(LoopStatement, BaseConditional):
 
 
 @export
-class LoopControlStatement(ModelEntity, BaseConditional):
+class LoopControlStatement(SequentialStatement, BaseConditional):
 	"""
 	A ``LoopControlStatement`` is a base-class for all loop controlling statements.
 	"""
@@ -1838,5 +1841,9 @@ class ExitStatement(LoopControlStatement):
 	pass
 
 @export
-class ReturnStatement(SequentialStatement):
+class WaitStatement(SequentialStatement):
+	pass
+
+@export
+class ReturnStatement(SequentialStatement, BaseConditional):
 	pass

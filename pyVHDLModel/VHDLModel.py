@@ -1267,9 +1267,11 @@ class AssociationItem(ModelEntity):
 class GenericAssociationItem(AssociationItem):
 	pass
 
+
 @export
 class PortAssociationItem(AssociationItem):
 	pass
+
 
 @export
 class ParameterAssociationItem(AssociationItem):
@@ -1277,14 +1279,15 @@ class ParameterAssociationItem(AssociationItem):
 
 
 @export
-class Instantiation:
+class GenericEntityInstantiation:
 	pass
 
+
 @export
-class SubprogramInstantiation(ModelEntity, Instantiation):
+class SubprogramInstantiation(ModelEntity, GenericEntityInstantiation):
 	def __init__(self):
 		super().__init__()
-		Instantiation.__init__(self)
+		GenericEntityInstantiation.__init__(self)
 		self._subprogramReference = None
 
 
@@ -1340,13 +1343,13 @@ class PackageBody(SecondaryUnit, DesignUnitWithContext):
 
 
 @export
-class PackageInstantiation(PrimaryUnit, Instantiation):
+class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
 	_packageReference:    Package
 	_genericAssociations: List[GenericAssociationItem]
 
 	def __init__(self, name: str):
 		super().__init__(name)
-		Instantiation.__init__(self)
+		GenericEntityInstantiation.__init__(self)
 
 		self._genericAssociations = []
 
@@ -1381,6 +1384,24 @@ class SequentialStatement(Statement):
 
 
 @export
+class Instantiation(ConcurrentStatement):
+	pass
+
+
+@export
+class ComponentInstantiation(Instantiation):
+	pass
+
+@export
+class EntityInstantiation(Instantiation):
+	pass
+
+@export
+class ConfigurationInstantiation(Instantiation):
+	pass
+
+
+@export
 class ProcessStatement(ConcurrentStatement):
 	_parameterItems: List[Signal]
 	_declaredItems:  List # TODO: create a union for (concurrent / sequential) DeclaredItems
@@ -1404,6 +1425,18 @@ class ProcessStatement(ConcurrentStatement):
 	@property
 	def BodyItems(self) -> List[SequentialStatement]:
 		return self._bodyItems
+
+@export
+class ProcedureCall:
+	pass
+
+@export
+class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCall):
+	pass
+
+@export
+class SequentialProcedureCall(SequentialStatement, ProcedureCall):
+	pass
 
 
 # TODO: could be unified with ProcessStatement if 'List[ConcurrentStatement]' becomes parametric to T
@@ -1543,6 +1576,9 @@ class IfGenerateStatement(GenerateStatement):
 
 		self._elsifBranches = []
 
+@export
+class CaseGenerateStatement(GenerateStatement):
+	pass
 
 @export
 class ForGenerateStatement(GenerateStatement):

@@ -5,12 +5,25 @@ Concurrent Statements
 
 * :ref:`vhdlmodel-con-assertstatement`
 * :ref:`vhdlmodel-con-signalassignment`
-* :ref:`vhdlmodel-instantiation`
-* :ref:`vhdlmodel-ifgenerate`
-* :ref:`vhdlmodel-casegenerate`
-* :ref:`vhdlmodel-forgenerate`
+* :ref:`vhdlmodel-instantiations`
+
+  * :ref:`vhdlmodel-entityinstantiation`
+  * :ref:`vhdlmodel-componentinstantiation`
+  * :ref:`vhdlmodel-configurationinstantiation`
+
+* :ref:`vhdlmodel-generates`
+
+  * :ref:`vhdlmodel-ifgenerate`
+  * :ref:`vhdlmodel-casegenerate`
+  * :ref:`vhdlmodel-forgenerate`
+
 * :ref:`vhdlmodel-con-procedurecall`
 * :ref:`vhdlmodel-process`
+
+.. rubric:: Class Hierarchy
+
+.. inheritance-diagram:: pyVHDLModel.VHDLModel.ConcurrentAssertStatement pyVHDLModel.VHDLModel.ConcurrentSignalAssignment pyVHDLModel.VHDLModel.ConcurrentBlockStatement pyVHDLModel.VHDLModel.ProcessStatement pyVHDLModel.VHDLModel.IfGenerateStatement pyVHDLModel.VHDLModel.CaseGenerateStatement pyVHDLModel.VHDLModel.ForGenerateStatement pyVHDLModel.VHDLModel.ComponentInstantiation pyVHDLModel.VHDLModel.ConfigurationInstantiation pyVHDLModel.VHDLModel.EntityInstantiation pyVHDLModel.VHDLModel.ConcurrentProcedureCall
+   :parts: 1
 
 .. _vhdlmodel-con-assertstatement:
 
@@ -30,19 +43,48 @@ Signal Assignment
 
    Write documentation.
 
-.. _vhdlmodel-instantiation:
+.. _vhdlmodel-con-blockstatement:
 
-Instantiation
-=============
+Concurrent Block Statement
+==========================
 
 .. todo::
 
    Write documentation.
 
+.. _vhdlmodel-instantiations:
+
+Instantiations
+==============
+
+.. todo::
+
+   Write documentation.
+
+.. _vhdlmodel-entityinstantiation:
+
+EntityInstantiation
+-------------------
+
+.. _vhdlmodel-componentinstantiation:
+
+ComponentInstantiation
+----------------------
+
+.. _vhdlmodel-configurationinstantiation:
+
+ConfigurationInstantiation
+--------------------------
+
+.. _vhdlmodel-generates:
+
+Generate Statements
+===================
+
 .. _vhdlmodel-ifgenerate:
 
 If Generate
-===========
+-----------
 
 .. todo::
 
@@ -51,7 +93,7 @@ If Generate
 .. _vhdlmodel-casegenerate:
 
 Case Generate
-=============
+-------------
 
 .. todo::
 
@@ -60,7 +102,7 @@ Case Generate
 .. _vhdlmodel-forgenerate:
 
 For Generate
-============
+------------
 
 .. todo::
 

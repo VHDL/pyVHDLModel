@@ -136,6 +136,30 @@ Next Statement
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.NextStatement`:
+
+.. code-block:: Python
+
+   @export
+   class NextStatement(SequentialStatement, BaseConditional):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from BaseCondition
+     @property
+     def Condition(self) -> Expression:
+
+     # inherited from LoopControlStatement
+     @property
+     def LoopReference(self) -> LoopStatement:
+
+
+
 .. _vhdlmodel-exitstatement:
 
 Exit Statement
@@ -144,6 +168,30 @@ Exit Statement
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ExitStatement`:
+
+.. code-block:: Python
+
+   @export
+   class ExitStatement(SequentialStatement, BaseConditional):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from BaseCondition
+     @property
+     def Condition(self) -> Expression:
+
+     # inherited from LoopControlStatement
+     @property
+     def LoopReference(self) -> LoopStatement:
+
+
 
 .. _vhdlmodel-reporting:
 
@@ -193,6 +241,33 @@ Wait Statement
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.WaitStatement`:
+
+.. code-block:: Python
+
+   @export
+   class WaitStatement(SequentialStatement, BaseConditional):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from BaseCondition
+     @property
+     def Condition(self) -> Expression:
+
+     # from WaitStatement
+     @property
+     def SensitivityList(self) -> List[Signal]:
+
+     @property
+     def Timeout(self) -> Expression:
+
+
+
 .. _vhdlmodel-returnstatement:
 
 Return Statement
@@ -201,3 +276,25 @@ Return Statement
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ReturnStatement`:
+
+.. code-block:: Python
+
+   @export
+   class ReturnStatement(SequentialStatement, BaseConditional):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from BaseCondition
+     @property
+     def Condition(self) -> Expression:
+
+     # from ReturnStatement
+     @property
+     def ReturnValue(self) -> Expression:

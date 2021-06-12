@@ -15,6 +15,7 @@ Sequential Statements
 
 * :ref:`vhdlmodel-loops`
 
+  * :ref:`vhdlmodel-endlessloop`
   * :ref:`vhdlmodel-forloop`
   * :ref:`vhdlmodel-whileloop`
   * :ref:`vhdlmodel-nextstatement`
@@ -31,13 +32,15 @@ Sequential Statements
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.SequentialAssertStatement pyVHDLModel.VHDLModel.SequentialReportStatement pyVHDLModel.VHDLModel.SequentialSignalAssignment pyVHDLModel.VHDLModel.VariableAssignment pyVHDLModel.VHDLModel.IfStatement pyVHDLModel.VHDLModel.CaseStatement pyVHDLModel.VHDLModel.ForLoopStatement pyVHDLModel.VHDLModel.WhileLoopStatement pyVHDLModel.VHDLModel.NextStatement pyVHDLModel.VHDLModel.ExitStatement pyVHDLModel.VHDLModel.SequentialProcedureCall pyVHDLModel.VHDLModel.WaitStatement pyVHDLModel.VHDLModel.ReturnStatement
+.. inheritance-diagram:: pyVHDLModel.VHDLModel.SequentialAssertStatement pyVHDLModel.VHDLModel.SequentialReportStatement pyVHDLModel.VHDLModel.SequentialSignalAssignment pyVHDLModel.VHDLModel.VariableAssignment pyVHDLModel.VHDLModel.IfStatement pyVHDLModel.VHDLModel.CaseStatement pyVHDLModel.VHDLModel.EndlessLoopStatement pyVHDLModel.VHDLModel.ForLoopStatement pyVHDLModel.VHDLModel.WhileLoopStatement pyVHDLModel.VHDLModel.NextStatement pyVHDLModel.VHDLModel.ExitStatement pyVHDLModel.VHDLModel.SequentialProcedureCall pyVHDLModel.VHDLModel.WaitStatement pyVHDLModel.VHDLModel.ReturnStatement
    :parts: 1
 
 .. _vhdlmodel-seq-assignments:
 
 Assignments
 ===========
+
+
 
 .. _vhdlmodel-seq-signalassignment:
 
@@ -48,6 +51,8 @@ Signal Assignment
 
    Write documentation.
 
+
+
 .. _vhdlmodel-variableassignment:
 
 Variable Assignment
@@ -56,6 +61,8 @@ Variable Assignment
 .. todo::
 
    Write documentation.
+
+
 
 .. _vhdlmodel-branching:
 
@@ -71,6 +78,8 @@ If Statement
 
    Write documentation.
 
+
+
 .. _vhdlmodel-casestatement:
 
 Case Statement
@@ -80,10 +89,21 @@ Case Statement
 
    Write documentation.
 
+
+
 .. _vhdlmodel-loops:
 
 Loops
 =====
+
+.. _vhdlmodel-endlessloop:
+
+Endless Loop
+------------
+
+.. todo::
+
+   Write documentation.
 
 .. _vhdlmodel-forloop:
 
@@ -94,6 +114,8 @@ For Loop
 
    Write documentation.
 
+
+
 .. _vhdlmodel-whileloop:
 
 While Loop
@@ -102,6 +124,8 @@ While Loop
 .. todo::
 
    Write documentation.
+
+
 
 .. _vhdlmodel-nextstatement:
 
@@ -136,6 +160,8 @@ Report Statement
 
    Write documentation.
 
+
+
 .. _vhdlmodel-seq-assertstatement:
 
 Assert Statement
@@ -145,6 +171,8 @@ Assert Statement
 
    Write documentation.
 
+
+
 .. _vhdlmodel-seq-procedurecall:
 
 Procedure Call
@@ -153,6 +181,8 @@ Procedure Call
 .. todo::
 
    Write documentation.
+
+
 
 .. _vhdlmodel-waitstatement:
 

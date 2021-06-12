@@ -1504,7 +1504,7 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, ConcurrentDe
 @export
 class BaseConditional:
 	"""
-	A ``BaseConditional`` is a base-class for all statements with a condition.
+	A ``BaseConditional`` is a mixin-class for all statements with a condition.
 	"""
 	_condition: Expression
 
@@ -1806,10 +1806,15 @@ class SequentialAssertStatement(SequentialStatement, AssertStatement):
 
 
 @export
-class Branch(ModelEntity):
+class Branch(ModelEntity, SequentialStatements):
 	"""
 	A ``Branch`` is a base-class for all branches.
 	"""
+
+	def __init__(self):
+		super().__init__()
+		SequentialStatements.__init__(self)
+
 
 @export
 class IfBranch(Branch, BaseIfBranch):
@@ -1833,14 +1838,13 @@ class ElseBranch(Branch, BaseElseBranch):
 
 
 @export
-class CompoundStatement(SequentialStatement, SequentialStatements):
+class CompoundStatement(SequentialStatement):
 	"""
 	A ``CompoundStatement`` is a base-class for all compound statements.
 	"""
 
 	def __init__(self):
 		super().__init__()
-		SequentialStatements.__init__(self)
 
 
 @export
@@ -1882,10 +1886,19 @@ class CaseStatement(CompoundStatement):
 
 
 @export
-class LoopStatement(CompoundStatement):
+class LoopStatement(CompoundStatement, SequentialStatements):
 	"""
 	A ``LoopStatement`` is a base-class for all loop statements.
 	"""
+
+	def __init__(self):
+		super().__init__()
+		SequentialStatements.__init__(self)
+
+
+@export
+class EndlessLoopStatement(LoopStatement):
+	pass
 
 
 @export

@@ -68,8 +68,10 @@ News
 
 * Made generic, port, and parameter items a subclass of the matching object classes.
 * Added missing object representations for language features.
+
   * Finalized literals, expressions and types.
-  * Added properties to empty placeholder classes
+  * Added properties to empty placeholder classes.
+
 * Corrected class hierarchy according to LRM.
 * Enhanced class documentation and cross references.
 * New documentation chapter for literals and expressions.

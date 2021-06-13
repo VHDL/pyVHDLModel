@@ -72,7 +72,7 @@ types). An entity's list of statements is called body items.
    class Entity(PrimaryUnit, MixinDesignUnitWithContext):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -89,8 +89,6 @@ types). An entity's list of statements is called body items.
      def ContextReferences(self) -> List[Context]:
 
      # from Entity
-     def __init__(self, name: str):
-
      @property
      def GenericItems(self) -> List[GenericInterfaceItem]:
 
@@ -122,7 +120,7 @@ Package
    class Package(PrimaryUnit, MixinDesignUnitWithContext):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -139,8 +137,6 @@ Package
      def ContextReferences(self) -> List[Context]:
 
      # from Package
-     def __init__(self, name: str):
-
      @property
      def GenericItems(self) -> List[GenericInterfaceItem]:
 
@@ -171,7 +167,7 @@ Architeture
    class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -188,8 +184,6 @@ Architeture
      def ContextReferences(self) -> List[Context]:
 
      # from Architecture
-     def __init__(self, name: str):
-
      @property
      def Entity(self) -> Entity:
 
@@ -218,7 +212,7 @@ Package Body
    class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -235,8 +229,6 @@ Package Body
      def ContextReferences(self) -> List[Context]:
 
      # from Package Body
-     def __init__(self, name: str):
-
      @property
      def Package(self) -> Package:
 

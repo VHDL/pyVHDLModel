@@ -44,15 +44,13 @@ Procedure
    class Procedure(SubProgramm):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
      def Name(self) -> str:
 
      # inherited from Subprogram
-     def __init__(self, name: str):
-
      @property
      def GenericItems(self) -> List[GenericInterfaceItem]:
 
@@ -94,15 +92,13 @@ Procedure as Method
    class ProcedureMethod(SubProgramm):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
      def Name(self) -> str:
 
      # inherited from Subprogram
-     def __init__(self, name: str):
-
      @property
      def GenericItems(self) -> List[GenericInterfaceItem]:
 
@@ -121,9 +117,6 @@ Procedure as Method
      # inherited from Method
      @property
      def ProtectedType(self) -> ProtectedType:
-
-     # from ProcedureMethod
-     def __init__(self, name: str, protectedType: ProtectedType):
 
 
 
@@ -163,7 +156,7 @@ Function
    class Function(SubProgramm):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -186,8 +179,6 @@ Function
      def IsPure(self) -> bool:
 
      # from Function
-     def __init__(self, name: str, isPure: bool = True):
-
      @property
      def ReturnType(self) -> SubType:
 
@@ -217,7 +208,7 @@ Function as Method
    class Function(SubProgramm):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -240,17 +231,12 @@ Function as Method
      def IsPure(self) -> bool:
 
      # inherited from Function
-     def __init__(self, name: str, isPure: bool = True):
-
      @property
      def ReturnType(self) -> SubType:
 
      # inherited from Method
      @property
      def ProtectedType(self) -> ProtectedType:
-
-     # from FunctionMethod
-     def __init__(self, name: str, protectedType: ProtectedType):
 
 
 

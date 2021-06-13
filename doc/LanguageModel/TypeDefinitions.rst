@@ -55,7 +55,7 @@ Enumeration
    class EnumeratedType(ScalarType, DiscreteType):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -84,7 +84,7 @@ Integer
    class IntegerType(RangedScalarType, NumericType, DiscreteType):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -116,7 +116,7 @@ Real
    class RealType(RangedScalarType, NumericType):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -148,7 +148,7 @@ Physical
    class PhysicalType(RangedScalarType, NumericType):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -192,7 +192,7 @@ Array
    class ArrayType(CompositeType):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -224,7 +224,7 @@ Record
    class RecordType(CompositeType):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property

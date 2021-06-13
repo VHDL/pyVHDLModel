@@ -54,7 +54,7 @@ GenericConstantInterfaceItem
    class GenericConstantInterfaceItem(Constant, GenericInterfaceItem):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -166,7 +166,7 @@ PortSignalInterfaceItem
    class PortSignalInterfaceItem(Signal, PortInterfaceItem):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -208,7 +208,7 @@ ParameterConstantInterfaceItem
    class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -245,7 +245,7 @@ ParameterVariableInterfaceItem
    class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -282,7 +282,7 @@ ParameterSignalInterfaceItem
    class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property

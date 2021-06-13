@@ -32,7 +32,7 @@ a design has the two child nodes: ``Libraries`` and ``Documents``. Each is a
    class Design(ModelEntity):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # from Design
      @property
@@ -60,7 +60,7 @@ is a *primary* design unit like: ``configuration``, ``entity``, ``package`` or
    class Library(ModelEntity):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # from Library
      @property
@@ -101,7 +101,7 @@ investigate the consumed contexts.
    class Document(ModelEntity):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # from Document
      @property

@@ -63,7 +63,7 @@ a deferred constant. See :ref:`vhdlmodel-deferredconstant` in next section.
    class Constant(BaseConstant):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -94,7 +94,7 @@ a deferred constant has a reference to the *regular* constant of the same name.
    class DeferredConstant(BaseConstant):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -159,7 +159,7 @@ expression.
    class Variable(Object):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property
@@ -221,7 +221,7 @@ assigned via a default expression.
    class Signal(Object):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from NamedEntity
      @property

@@ -42,7 +42,7 @@ Assert Statement
    class ConcurrentAssertStatement(ConcurrentStatement, MixinAssertStatement):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -78,7 +78,7 @@ Signal Assignment
    class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignment):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -110,7 +110,7 @@ Concurrent Block Statement
    class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, ConcurrentDeclarations, ConcurrentStatements):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -174,7 +174,7 @@ If Generate
    class IfGenerateStatement(GenerateStatement):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -209,7 +209,7 @@ Case Generate
    class CaseGenerateStatement(GenerateStatement):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -241,7 +241,7 @@ For Generate
    class ForGenerateStatement(GenerateStatement):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -289,7 +289,7 @@ Process
    class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property

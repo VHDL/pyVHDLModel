@@ -59,7 +59,7 @@ Signal Assignment
    class SequentialSignalAssignment(SequentialStatement, SignalAssignment):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -91,7 +91,7 @@ Variable Assignment
    class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -139,7 +139,7 @@ Case Statement
    class CaseStatement(CompoundStatement):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -176,7 +176,7 @@ Endless Loop
    class EndlessLoopStatement(LoopStatement):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -205,7 +205,7 @@ For Loop
    class ForLoopStatement(LoopStatement):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -241,7 +241,7 @@ While Loop
    class WhileLoopStatement(LoopStatement, BaseConditional):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -273,7 +273,7 @@ Next Statement
    class NextStatement(SequentialStatement, BaseConditional):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -306,7 +306,7 @@ Exit Statement
    class ExitStatement(SequentialStatement, BaseConditional):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -345,7 +345,7 @@ Report Statement
    class SequentialReportStatement(SequentialStatement, MixinReportStatement):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -377,7 +377,7 @@ Assert Statement
    class SequentialAssertStatement(SequentialStatement, MixinAssertStatement):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -424,7 +424,7 @@ Wait Statement
    class WaitStatement(SequentialStatement, BaseConditional):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property
@@ -460,7 +460,7 @@ Return Statement
    class ReturnStatement(SequentialStatement, BaseConditional):
      # inherited from ModelEntity
      @property
-     def Parent(self) -> 'ModelEntity':
+     def Parent(self) -> ModelEntity:
 
      # inherited from LabeledEntity
      @property

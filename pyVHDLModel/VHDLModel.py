@@ -63,6 +63,9 @@ class ModelEntity:
 	"""
 	_parent: 'ModelEntity'      #: Reference to a parent entity in the model.
 
+	def __init__(self):
+		pass
+
 	@property
 	def Parent(self) -> 'ModelEntity':
 		"""Returns a reference to the parent entity."""
@@ -1117,7 +1120,7 @@ class DesignUnit(ModelEntity, NamedEntity):
 
 	def __init__(self, name: str):
 		super().__init__()
-		NamedEntity.__init__(self, name)\
+		NamedEntity.__init__(self, name)
 
 @export
 class MixinDesignUnitWithContext:

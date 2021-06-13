@@ -34,6 +34,33 @@ Assert Statement
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ConcurrentSignalAssignment`:
+
+.. code-block:: Python
+
+   @export
+   class ConcurrentAssertStatement(ConcurrentStatement, AssertStatement):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from ReportStatement
+     @property
+     def Message(self) -> Expression:
+
+     @property
+     def Severity(self) -> Expression:
+
+     # inherited from AssertStatement
+     @property
+     def Condition(self) -> Expression:
+
+
+
 .. _vhdlmodel-con-signalassignment:
 
 Signal Assignment
@@ -43,6 +70,29 @@ Signal Assignment
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ConcurrentSignalAssignment`:
+
+.. code-block:: Python
+
+   @export
+   class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignment):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from Assignment
+     @property
+     def Target(self) -> Object:
+
+     @property
+     def Expression(self) -> Expression:
+
+
+
 .. _vhdlmodel-con-blockstatement:
 
 Concurrent Block Statement
@@ -51,6 +101,32 @@ Concurrent Block Statement
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ConcurrentBlockStatement`:
+
+.. code-block:: Python
+
+   @export
+   class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, ConcurrentDeclarations, ConcurrentStatements):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from ConcurrentDeclarations
+     @property
+     def DeclaredItems(self) -> List:
+
+     # inherited from ConcurrentStatements
+     @property
+     def Statements(self) -> List[ConcurrentStatement]:
+
+     # from ConcurrentBlockStatement
+     @property
+     def PortItems(self) -> List[PortInterfaceItem]:
 
 .. _vhdlmodel-instantiations:
 
@@ -90,6 +166,32 @@ If Generate
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.IfGenerateStatement`:
+
+.. code-block:: Python
+
+   @export
+   class IfGenerateStatement(GenerateStatement):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # from IfGenerateStatement
+     @property
+     def IfBranch(self) -> IfGenerateBranch:
+
+     @property
+     def ElsifBranches(self) -> List[ElsifGenerateBranch]:
+
+     @property
+     def ElseBranch(self) -> ElseGenerateBranch:
+
+
+
 .. _vhdlmodel-casegenerate:
 
 Case Generate
@@ -99,6 +201,29 @@ Case Generate
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.CaseGenerateStatement`:
+
+.. code-block:: Python
+
+   @export
+   class CaseGenerateStatement(GenerateStatement):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # from CaseGenerateStatement
+     @property
+     def SelectExpression(self) -> Expression:
+
+     @property
+     def Cases(self) -> List[ConcurrentCase]:
+
+
+
 .. _vhdlmodel-forgenerate:
 
 For Generate
@@ -107,6 +232,37 @@ For Generate
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ForGenerateStatement`:
+
+.. code-block:: Python
+
+   @export
+   class ForGenerateStatement(GenerateStatement):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from ConcurrentDeclarations
+     @property
+     def DeclaredItems(self) -> List:
+
+     # inherited from ConcurrentStatements
+     @property
+     def Statements(self) -> List[ConcurrentStatement]:
+
+     # from ForGenerateStatement
+     @property
+     def LoopIndex(self) -> Constant:
+
+     @property
+     def Range(self) -> Range:
+
+
 
 .. _vhdlmodel-con-procedurecall:
 
@@ -126,3 +282,27 @@ Process
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ForGenerateStatement`:
+
+.. code-block:: Python
+
+   class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from SequentialDeclarations
+     @property
+     def DeclaredItems(self) -> List:
+
+     # inherited from SequentialStatements
+     @property
+     def Statements(self) -> List[SequentialStatement]:
+
+     # from ProcessStatement
+     @property
+     def SensitivityList(self) -> List[Signal]:

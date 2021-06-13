@@ -51,6 +51,27 @@ Signal Assignment
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.SequentialSignalAssignment`:
+
+.. code-block:: Python
+
+   @export
+   class SequentialSignalAssignment(SequentialStatement, SignalAssignment):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from Assignment
+     @property
+     def Target(self) -> Object:
+
+     @property
+     def Expression(self) -> Expression:
+
 
 
 .. _vhdlmodel-variableassignment:
@@ -61,6 +82,27 @@ Variable Assignment
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.SequentialVariableAssignment`:
+
+.. code-block:: Python
+
+   @export
+   class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from Assignment
+     @property
+     def Target(self) -> Object:
+
+     @property
+     def Expression(self) -> Expression:
 
 
 
@@ -89,6 +131,27 @@ Case Statement
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.CaseStatement`:
+
+.. code-block:: Python
+
+   @export
+   class CaseStatement(CompoundStatement):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # from CaseGenerateStatement
+     @property
+     def SelectExpression(self) -> Expression:
+
+     @property
+     def Cases(self) -> List[SequentialCase]:
+
 
 
 .. _vhdlmodel-loops:
@@ -105,6 +168,26 @@ Endless Loop
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.EndlessLoopStatement`:
+
+.. code-block:: Python
+
+   @export
+   class EndlessLoopStatement(LoopStatement):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from SequentialStatements
+     @property
+     def Statements(self) -> List[SequentialStatement]:
+
+
+
 .. _vhdlmodel-forloop:
 
 For Loop
@@ -113,6 +196,31 @@ For Loop
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ForLoopStatement`:
+
+.. code-block:: Python
+
+   @export
+   class ForLoopStatement(LoopStatement):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from SequentialStatements
+     @property
+     def Statements(self) -> List[SequentialStatement]:
+
+     # from ForLoopStatement
+     @property
+     def LoopIndex(self) -> Constant:
+
+     @property
+     def Range(self) -> Range:
 
 
 
@@ -125,6 +233,27 @@ While Loop
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.WhileLoopStatement`:
+
+.. code-block:: Python
+
+   @export
+   class WhileLoopStatement(LoopStatement, BaseConditional):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from SequentialStatements
+     @property
+     def Statements(self) -> List[SequentialStatement]:
+
+     # inherited from BaseConditional
+     @property
+     def Condition(self) -> Expression:
 
 
 .. _vhdlmodel-nextstatement:
@@ -208,6 +337,27 @@ Report Statement
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.SequentialReportStatement`:
+
+.. code-block:: Python
+
+   @export
+   class SequentialReportStatement(SequentialStatement, ReportStatement):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from ReportStatement
+     @property
+     def Message(self) -> Expression:
+
+     @property
+     def Severity(self) -> Expression:
+
 
 
 .. _vhdlmodel-seq-assertstatement:
@@ -218,6 +368,31 @@ Assert Statement
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.SequentialAssertStatement`:
+
+.. code-block:: Python
+
+   @export
+   class SequentialAssertStatement(SequentialStatement, AssertStatement):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> 'ModelEntity':
+
+     # inherited from LabeledEntity
+     @property
+     def Label(self) -> str:
+
+     # inherited from ReportStatement
+     @property
+     def Message(self) -> Expression:
+
+     @property
+     def Severity(self) -> Expression:
+
+     # inherited from AssertStatement
+     @property
+     def Condition(self) -> Expression:
 
 
 

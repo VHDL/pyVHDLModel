@@ -1752,7 +1752,7 @@ class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
 @export
 class ReportStatement:
 	"""
-	A ``ReportStatement`` is a base-class for all report and assert statements.
+	A ``ReportStatement`` is a mixin-class for all report and assert statements.
 	"""
 	_message:  Expression
 	_severity: Expression
@@ -1772,7 +1772,7 @@ class ReportStatement:
 @export
 class AssertStatement(ReportStatement):
 	"""
-	A ``AssertStatement`` is a base-class for all assert statements.
+	A ``AssertStatement`` is a mixin-class for all assert statements.
 	"""
 	_condition: Expression
 

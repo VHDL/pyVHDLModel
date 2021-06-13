@@ -342,7 +342,7 @@ Report Statement
 .. code-block:: Python
 
    @export
-   class SequentialReportStatement(SequentialStatement, ReportStatement):
+   class SequentialReportStatement(SequentialStatement, MixinReportStatement):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -351,7 +351,7 @@ Report Statement
      @property
      def Label(self) -> str:
 
-     # inherited from ReportStatement
+     # inherited from MixinReportStatement
      @property
      def Message(self) -> Expression:
 
@@ -374,7 +374,7 @@ Assert Statement
 .. code-block:: Python
 
    @export
-   class SequentialAssertStatement(SequentialStatement, AssertStatement):
+   class SequentialAssertStatement(SequentialStatement, MixinAssertStatement):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -383,14 +383,14 @@ Assert Statement
      @property
      def Label(self) -> str:
 
-     # inherited from ReportStatement
+     # inherited from MixinReportStatement
      @property
      def Message(self) -> Expression:
 
      @property
      def Severity(self) -> Expression:
 
-     # inherited from AssertStatement
+     # inherited from MixinAssertStatement
      @property
      def Condition(self) -> Expression:
 

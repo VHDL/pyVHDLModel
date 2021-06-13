@@ -69,7 +69,7 @@ types). An entity's list of statements is called body items.
 .. code-block:: Python
 
    @export
-   class Entity(PrimaryUnit, DesignUnitWithContext):
+   class Entity(PrimaryUnit, MixinDesignUnitWithContext):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -78,15 +78,15 @@ types). An entity's list of statements is called body items.
      @property
      def Name(self) -> str:
 
-     # inherited from DesignUnitWithContext
+     # inherited from MixinDesignUnitWithContext
      @property
-     def LibraryReferences(self) -> List[LibraryReference]:
+     def LibraryReferences(self) -> List[Library]:
 
      @property
      def PackageReferences(self) -> List[PackageReference]:
 
      @property
-     def ContextReferences(self) -> List[ContextReference]:
+     def ContextReferences(self) -> List[Context]:
 
      # from Entity
      def __init__(self, name: str):
@@ -101,7 +101,7 @@ types). An entity's list of statements is called body items.
      def DeclaredItems(self) -> List:
 
      @property
-     def BodyItems(self) -> List['ConcurrentStatement']:
+     def BodyItems(self) -> List[ConcurrentStatement]:
 
 
 
@@ -119,7 +119,7 @@ Package
 .. code-block:: Python
 
    @export
-   class Package(PrimaryUnit, DesignUnitWithContext):
+   class Package(PrimaryUnit, MixinDesignUnitWithContext):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -128,15 +128,15 @@ Package
      @property
      def Name(self) -> str:
 
-     # inherited from DesignUnitWithContext
+     # inherited from MixinDesignUnitWithContext
      @property
-     def LibraryReferences(self) -> List[LibraryReference]:
+     def LibraryReferences(self) -> List[Library]:
 
      @property
      def PackageReferences(self) -> List[PackageReference]:
 
      @property
-     def ContextReferences(self) -> List[ContextReference]:
+     def ContextReferences(self) -> List[Context]:
 
      # from Package
      def __init__(self, name: str):
@@ -168,7 +168,7 @@ Architeture
 .. code-block:: Python
 
    @export
-   class Architecture(SecondaryUnit, DesignUnitWithContext):
+   class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -177,15 +177,15 @@ Architeture
      @property
      def Name(self) -> str:
 
-     # inherited from DesignUnitWithContext
+     # inherited from MixinDesignUnitWithContext
      @property
-     def LibraryReferences(self) -> List[LibraryReference]:
+     def LibraryReferences(self) -> List[Library]:
 
      @property
      def PackageReferences(self) -> List[PackageReference]:
 
      @property
-     def ContextReferences(self) -> List[ContextReference]:
+     def ContextReferences(self) -> List[Context]:
 
      # from Architecture
      def __init__(self, name: str):
@@ -197,7 +197,7 @@ Architeture
      def DeclaredItems(self) -> List:
 
      @property
-     def BodyItems(self) -> List['ConcurrentStatement']:
+     def BodyItems(self) -> List[ConcurrentStatement]:
 
 
 
@@ -215,7 +215,7 @@ Package Body
 .. code-block:: Python
 
    @export
-   class PackageBody(SecondaryUnit, DesignUnitWithContext):
+   class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -224,15 +224,15 @@ Package Body
      @property
      def Name(self) -> str:
 
-     # inherited from DesignUnitWithContext
+     # inherited from MixinDesignUnitWithContext
      @property
-     def LibraryReferences(self) -> List[LibraryReference]:
+     def LibraryReferences(self) -> List[Library]:
 
      @property
      def PackageReferences(self) -> List[PackageReference]:
 
      @property
-     def ContextReferences(self) -> List[ContextReference]:
+     def ContextReferences(self) -> List[Context]:
 
      # from Package Body
      def __init__(self, name: str):

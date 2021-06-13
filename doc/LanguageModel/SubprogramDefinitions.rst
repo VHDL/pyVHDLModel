@@ -54,16 +54,16 @@ Procedure
      def __init__(self, name: str):
 
      @property
-     def GenericItems(self) -> List['GenericInterfaceItem']:
+     def GenericItems(self) -> List[GenericInterfaceItem]:
 
      @property
-     def ParameterItems(self) -> List['ParameterInterfaceItem']:
+     def ParameterItems(self) -> List[ParameterInterfaceItem]:
 
      @property
      def DeclaredItems(self) -> List:
 
      @property
-     def BodyItems(self) -> List['SequentialStatement']:
+     def BodyItems(self) -> List[SequentialStatement]:
 
      @property
      def IsPure(self) -> bool:
@@ -104,16 +104,16 @@ Procedure as Method
      def __init__(self, name: str):
 
      @property
-     def GenericItems(self) -> List['GenericInterfaceItem']:
+     def GenericItems(self) -> List[GenericInterfaceItem]:
 
      @property
-     def ParameterItems(self) -> List['ParameterInterfaceItem']:
+     def ParameterItems(self) -> List[ParameterInterfaceItem]:
 
      @property
      def DeclaredItems(self) -> List:
 
      @property
-     def BodyItems(self) -> List['SequentialStatement']:
+     def BodyItems(self) -> List[SequentialStatement]:
 
      @property
      def IsPure(self) -> bool:
@@ -171,16 +171,16 @@ Function
 
      # inherited from Subprogram
      @property
-     def GenericItems(self) -> List['GenericInterfaceItem']:
+     def GenericItems(self) -> List[GenericInterfaceItem]:
 
      @property
-     def ParameterItems(self) -> List['ParameterInterfaceItem']:
+     def ParameterItems(self) -> List[ParameterInterfaceItem]:
 
      @property
      def DeclaredItems(self) -> List:
 
      @property
-     def BodyItems(self) -> List['SequentialStatement']:
+     def BodyItems(self) -> List[SequentialStatement]:
 
      @property
      def IsPure(self) -> bool:
@@ -225,16 +225,16 @@ Function as Method
 
      # inherited from Subprogram
      @property
-     def GenericItems(self) -> List['GenericInterfaceItem']:
+     def GenericItems(self) -> List[GenericInterfaceItem]:
 
      @property
-     def ParameterItems(self) -> List['ParameterInterfaceItem']:
+     def ParameterItems(self) -> List[ParameterInterfaceItem]:
 
      @property
      def DeclaredItems(self) -> List:
 
      @property
-     def BodyItems(self) -> List['SequentialStatement']:
+     def BodyItems(self) -> List[SequentialStatement]:
 
      @property
      def IsPure(self) -> bool:

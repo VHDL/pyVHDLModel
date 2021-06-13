@@ -1120,13 +1120,13 @@ class DesignUnit(ModelEntity, NamedEntity):
 		NamedEntity.__init__(self, name)\
 
 @export
-class DesignUnitWithContext:
+class MixinDesignUnitWithContext:
 	"""
 	A ``DesignUnitWithReferences`` is a base-class for all design units with contexts.
 	"""
-	_libraryReferences: List[LibraryReference]
+	_libraryReferences: List[Library]
 	_packageReferences: List[PackageReference]
-	_contextReferences: List[ContextReference]
+	_contextReferences: List['Context']
 
 	def __init__(self):
 		self._libraryReferences = []
@@ -1142,7 +1142,7 @@ class DesignUnitWithContext:
 		return self._packageReferences
 
 	@property
-	def ContextReferences(self) -> List[ContextReference]:
+	def ContextReferences(self) -> List['Context']:
 		return self._contextReferences
 
 
@@ -1181,7 +1181,7 @@ class Context(PrimaryUnit):
 
 
 @export
-class Entity(PrimaryUnit, DesignUnitWithContext):
+class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
 	_declaredItems:     List   # FIXME: define list element type e.g. via Union
@@ -1189,7 +1189,7 @@ class Entity(PrimaryUnit, DesignUnitWithContext):
 
 	def __init__(self, name: str):
 		super().__init__(name)
-		DesignUnitWithContext.__init__(self)
+		MixinDesignUnitWithContext.__init__(self)
 
 		self._genericItems      = []
 		self._portItems         = []
@@ -1214,14 +1214,14 @@ class Entity(PrimaryUnit, DesignUnitWithContext):
 
 
 @export
-class Architecture(SecondaryUnit, DesignUnitWithContext):
+class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 	_entity:            Entity
 	_declaredItems:     List   # FIXME: define list element type e.g. via Union
 	_bodyItems:         List['ConcurrentStatement']
 
 	def __init__(self, name: str):
 		super().__init__(name)
-		DesignUnitWithContext.__init__(self)
+		MixinDesignUnitWithContext.__init__(self)
 
 		self._declaredItems =     []
 		self._bodyItems =         []
@@ -1240,10 +1240,10 @@ class Architecture(SecondaryUnit, DesignUnitWithContext):
 
 
 @export
-class Configuration(PrimaryUnit, DesignUnitWithContext):
+class Configuration(PrimaryUnit, MixinDesignUnitWithContext):
 	def __init__(self, name: str):
 		super().__init__(name)
-		DesignUnitWithContext.__init__(self)
+		MixinDesignUnitWithContext.__init__(self)
 
 
 @export
@@ -1302,13 +1302,13 @@ class FunctionInstantiation(Function, SubprogramInstantiation):
 
 
 @export
-class Package(PrimaryUnit, DesignUnitWithContext):
+class Package(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
 	def __init__(self, name: str):
 		super().__init__(name)
-		DesignUnitWithContext.__init__(self)
+		MixinDesignUnitWithContext.__init__(self)
 
 		self._genericItems =      []
 		self._declaredItems =     []
@@ -1323,13 +1323,13 @@ class Package(PrimaryUnit, DesignUnitWithContext):
 
 
 @export
-class PackageBody(SecondaryUnit, DesignUnitWithContext):
+class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
 	_package:           Package
 	_declaredItems:     List
 
 	def __init__(self, name: str):
 		super().__init__(name)
-		DesignUnitWithContext.__init__(self)
+		MixinDesignUnitWithContext.__init__(self)
 
 		self._declaredItems =     []
 
@@ -1502,7 +1502,7 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, ConcurrentDe
 
 
 @export
-class BaseConditional:
+class MixinConditional:
 	"""
 	A ``BaseConditional`` is a mixin-class for all statements with a condition.
 	"""
@@ -1514,38 +1514,38 @@ class BaseConditional:
 
 
 @export
-class BaseBranch:
+class MixinBranch:
 	"""
 	A ``BaseBranch`` is a mixin-class for all statements with branches.
 	"""
 
 
 @export
-class BaseConditionalBranch(BaseBranch, BaseConditional):
+class MixinConditionalBranch(MixinBranch, MixinConditional):
 	"""
 	A ``BaseBranch`` is a mixin-class for all branch statements with a condition.
 	"""
 	def __init__(self):
 		super().__init__()
-		BaseConditional.__init__(self)
+		MixinConditional.__init__(self)
 
 
 @export
-class BaseIfBranch(BaseConditionalBranch):
+class MixinIfBranch(MixinConditionalBranch):
 	"""
 	A ``BaseIfBranch`` is a mixin-class for all if-branches.
 	"""
 
 
 @export
-class BaseElsifBranch(BaseConditionalBranch):
+class MixinElsifBranch(MixinConditionalBranch):
 	"""
 	A ``BaseElsifBranch`` is a mixin-class for all elsif-branches.
 	"""
 
 
 @export
-class BaseElseBranch(BaseBranch):
+class MixinElseBranch(MixinBranch):
 	"""
 	A ``BaseElseBranch`` is a mixin-class for all else-branches.
 	"""
@@ -1564,24 +1564,24 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
 
 
 @export
-class IfGenerateBranch(GenerateBranch, BaseIfBranch):
+class IfGenerateBranch(GenerateBranch, MixinIfBranch):
 	def __init__(self):
 		super().__init__()
-		BaseIfBranch.__init__(self)
+		MixinIfBranch.__init__(self)
 
 
 @export
-class ElsifGenerateBranch(GenerateBranch, BaseElsifBranch):
+class ElsifGenerateBranch(GenerateBranch, MixinElsifBranch):
 	def __init__(self):
 		super().__init__()
-		BaseElsifBranch.__init__(self)
+		MixinElsifBranch.__init__(self)
 
 
 @export
-class ElseGenerateBranch(GenerateBranch, BaseElseBranch):
+class ElseGenerateBranch(GenerateBranch, MixinElseBranch):
 	def __init__(self):
 		super().__init__()
-		BaseElseBranch.__init__(self)
+		MixinElseBranch.__init__(self)
 
 
 @export
@@ -1750,9 +1750,9 @@ class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
 
 
 @export
-class ReportStatement:
+class MixinReportStatement:
 	"""
-	A ``ReportStatement`` is a mixin-class for all report and assert statements.
+	A ``MixinReportStatement`` is a mixin-class for all report and assert statements.
 	"""
 	_message:  Expression
 	_severity: Expression
@@ -1770,9 +1770,9 @@ class ReportStatement:
 
 
 @export
-class AssertStatement(ReportStatement):
+class MixinAssertStatement(MixinReportStatement):
 	"""
-	A ``AssertStatement`` is a mixin-class for all assert statements.
+	A ``MixinAssertStatement`` is a mixin-class for all assert statements.
 	"""
 	_condition: Expression
 
@@ -1785,24 +1785,24 @@ class AssertStatement(ReportStatement):
 
 
 @export
-class ConcurrentAssertStatement(ConcurrentStatement, AssertStatement):
+class ConcurrentAssertStatement(ConcurrentStatement, MixinAssertStatement):
 	def __init__(self, label: str = None):
 		super().__init__(label=label)
-		AssertStatement.__init__(self)
+		MixinAssertStatement.__init__(self)
 
 
 @export
-class SequentialReportStatement(SequentialStatement, ReportStatement):
+class SequentialReportStatement(SequentialStatement, MixinReportStatement):
 	def __init__(self):
 		super().__init__()
-		ReportStatement.__init__(self)
+		MixinReportStatement.__init__(self)
 
 
 @export
-class SequentialAssertStatement(SequentialStatement, AssertStatement):
+class SequentialAssertStatement(SequentialStatement, MixinAssertStatement):
 	def __init__(self):
 		super().__init__()
-		AssertStatement.__init__(self)
+		MixinAssertStatement.__init__(self)
 
 
 @export
@@ -1817,24 +1817,24 @@ class Branch(ModelEntity, SequentialStatements):
 
 
 @export
-class IfBranch(Branch, BaseIfBranch):
+class IfBranch(Branch, MixinIfBranch):
 	def __init__(self):
 		super().__init__()
-		BaseIfBranch.__init__(self)
+		MixinIfBranch.__init__(self)
 
 
 @export
-class ElsifBranch(Branch, BaseElsifBranch):
+class ElsifBranch(Branch, MixinElsifBranch):
 	def __init__(self):
 		super().__init__()
-		BaseElsifBranch.__init__(self)
+		MixinElsifBranch.__init__(self)
 
 
 @export
-class ElseBranch(Branch, BaseElseBranch):
+class ElseBranch(Branch, MixinElseBranch):
 	def __init__(self):
 		super().__init__()
-		BaseElseBranch.__init__(self)
+		MixinElseBranch.__init__(self)
 
 
 @export
@@ -1919,14 +1919,14 @@ class ForLoopStatement(LoopStatement):
 
 
 @export
-class WhileLoopStatement(LoopStatement, BaseConditional):
+class WhileLoopStatement(LoopStatement, MixinConditional):
 	def __init__(self):
 		super().__init__()
-		BaseConditional.__init__(self)
+		MixinConditional.__init__(self)
 
 
 @export
-class LoopControlStatement(SequentialStatement, BaseConditional):
+class LoopControlStatement(SequentialStatement, MixinConditional):
 	"""
 	A ``LoopControlStatement`` is a base-class for all loop controlling statements.
 	"""
@@ -1934,7 +1934,7 @@ class LoopControlStatement(SequentialStatement, BaseConditional):
 
 	def __init__(self):
 		super().__init__()
-		BaseConditional.__init__(self)
+		MixinConditional.__init__(self)
 
 	@property
 	def LoopReference(self) -> LoopStatement:
@@ -1952,13 +1952,13 @@ class ExitStatement(LoopControlStatement):
 
 
 @export
-class WaitStatement(SequentialStatement, BaseConditional):
+class WaitStatement(SequentialStatement, MixinConditional):
 	_sensitivityList : List[Signal]
 	_timeout:          Expression
 
 	def __init__(self):
 		super().__init__()
-		BaseConditional.__init__(self)
+		MixinConditional.__init__(self)
 
 	@property
 	def SensitivityList(self) -> List[Signal]:
@@ -1970,12 +1970,12 @@ class WaitStatement(SequentialStatement, BaseConditional):
 
 
 @export
-class ReturnStatement(SequentialStatement, BaseConditional):
+class ReturnStatement(SequentialStatement, MixinConditional):
 	_returnValue: Expression
 
 	def __init__(self):
 		super().__init__()
-		BaseConditional.__init__(self)
+		MixinConditional.__init__(self)
 
 	@property
 	def ReturnValue(self) -> Expression:

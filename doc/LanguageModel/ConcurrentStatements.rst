@@ -39,7 +39,7 @@ Assert Statement
 .. code-block:: Python
 
    @export
-   class ConcurrentAssertStatement(ConcurrentStatement, AssertStatement):
+   class ConcurrentAssertStatement(ConcurrentStatement, MixinAssertStatement):
      # inherited from ModelEntity
      @property
      def Parent(self) -> 'ModelEntity':
@@ -48,14 +48,14 @@ Assert Statement
      @property
      def Label(self) -> str:
 
-     # inherited from ReportStatement
+     # inherited from MixinReportStatement
      @property
      def Message(self) -> Expression:
 
      @property
      def Severity(self) -> Expression:
 
-     # inherited from AssertStatement
+     # inherited from MixinAssertStatement
      @property
      def Condition(self) -> Expression:
 

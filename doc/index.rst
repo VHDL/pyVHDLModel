@@ -67,11 +67,17 @@ News
    .. rubric:: Model and documentation enhancements
 
 * Made generic, port, and parameter items a subclass of the matching object classes.
-* Finalized literals, expressions and types.
+* Added missing object representations for language features.
+  * Finalized literals, expressions and types.
+  * Added properties to empty placeholder classes
 * Corrected class hierarchy according to LRM.
 * Enhanced class documentation and cross references.
 * New documentation chapter for literals and expressions.
 * Added inheritance diagrams as overviews to documentation sections.
+* Added condensed code snippets outlining the main interface of a model's object.
+* New Single-File GitHub Action workflow (pipeline) including tests, documentation, packaging and publishing.
+* Added Dependabot configuration file.
+* Removed 2 dependencies to patched Sphinx extensions (now fixed in Sphinx).
 * ...
 
 .. only:: html

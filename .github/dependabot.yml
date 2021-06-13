@@ -4,7 +4,7 @@ updates:
   directory: "/"
   target-branch: dev
   commit-message:
-    prefix: "[Dependency Update]"
+    prefix: "[Dependabot]"
   labels:
       - Dependencies
   assignees:

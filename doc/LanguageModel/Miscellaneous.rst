@@ -30,16 +30,16 @@ a design has the two child nodes: ``Libraries`` and ``Documents``. Each is a
 
    @export
    class Design(ModelEntity):
-     _libraries:  List['Library']  #: List of all libraries defined for a design
-     _documents:  List['Document'] #: List of all documents loaded for a design
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> ModelEntity:
 
-     def __init__(self):
+     # from Design
+     @property
+     def Libraries(self) -> List[Library]:
 
      @property
-     def Libraries(self) -> List['Library']:
-
-     @property
-     def Documents(self) -> List['Document']:
+     def Documents(self) -> List[Document]:
 
 
 
@@ -58,24 +58,22 @@ is a *primary* design unit like: ``configuration``, ``entity``, ``package`` or
 
    @export
    class Library(ModelEntity):
-     _contexts:       List['Context']        #: List of all contexts defined in a library.
-     _configurations: List['Configuration']  #: List of all configurations defined in a library.
-     _entities:       List['Entity']         #: List of all entities defined in a library.
-     _packages:       List['Package']        #: List of all packages defined in a library.
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> ModelEntity:
 
-     def __init__(self):
+     # from Library
+     @property
+     def Contexts(self) -> List[Context]:
 
      @property
-     def Contexts(self) -> List['Context']:
+     def Configurations(self) -> List[Configuration]:
 
      @property
-     def Configurations(self) -> List['Configuration']:
+     def Entities(self) -> List[Entity]:
 
      @property
-     def Entities(self) -> List['Entity']:
-
-     @property
-     def Packages(self) -> List['Package']:
+     def Packages(self) -> List[Package]:
 
 
 
@@ -101,33 +99,28 @@ investigate the consumed contexts.
 
    @export
    class Document(ModelEntity):
-     _path:           Path                   #: path to the document. ``None`` if virtual document.
-     _contexts:       List['Context']        #: List of all contexts defined in a document.
-     _configurations: List['Configuration']  #: List of all configurations defined in a document.
-     _entities:       List['Entity']         #: List of all entities defined in a document.
-     _architectures:  List['Architecture']   #: List of all architectures defined in a document.
-     _packages:       List['Package']        #: List of all packages defined in a document.
-     _packageBodies:  List['PackageBody']    #: List of all package bodies defined in a document.
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> ModelEntity:
 
-     def __init__(self, path: Path):
-
+     # from Document
      @property
      def Path(self) -> Path:
 
      @property
-     def Contexts(self) -> List['Context']:
+     def Contexts(self) -> List[Context]:
 
      @property
-     def Configurations(self) -> List['Configuration']:
+     def Configurations(self) -> List[Configuration]:
 
      @property
-     def Entities(self) -> List['Entity']:
+     def Entities(self) -> List[Entity]:
 
      @property
-     def Architectures(self) -> List['Architecture']:
+     def Architectures(self) -> List[Architecture]:
 
      @property
-     def Packages(self) -> List['Package']:
+     def Packages(self) -> List[Package]:
 
      @property
-     def PackageBodies(self) -> List['PackageBody']:
+     def PackageBodies(self) -> List[PackageBody]:

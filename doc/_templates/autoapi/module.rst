@@ -120,6 +120,7 @@
 {##}
    .. rubric:: Inheritance
    .. inheritance-diagram:: {{ item }}
+      :parts: 1
 {##}
    .. rubric:: Members
 {##}

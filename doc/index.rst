@@ -59,6 +59,29 @@ News
 
 .. only:: html
 
+   Jun. 2021 - Model and documentation enhancements
+   ================================================
+
+.. only:: latex
+
+   .. rubric:: Model and documentation enhancements
+
+* Made generic, port, and parameter items a subclass of the matching object classes.
+* Added missing object representations for language features.
+  * Finalized literals, expressions and types.
+  * Added properties to empty placeholder classes
+* Corrected class hierarchy according to LRM.
+* Enhanced class documentation and cross references.
+* New documentation chapter for literals and expressions.
+* Added inheritance diagrams as overviews to documentation sections.
+* Added condensed code snippets outlining the main interface of a model's object.
+* New Single-File GitHub Action workflow (pipeline) including tests, documentation, packaging and publishing.
+* Added Dependabot configuration file.
+* Removed 2 dependencies to patched Sphinx extensions (now fixed in Sphinx).
+* ...
+
+.. only:: html
+
    Jan. 2021 - Documentation enhancements
    ======================================
 
@@ -68,7 +91,8 @@ News
 
 * Enhanced class documentation.
 * Changed test runner to ``pytest``.
-* Dependency check and license clearance.
+* Dependency check and license clearance. |br|
+  See :ref:`dependency` for details.
 
 
 .. only:: html
@@ -80,7 +104,7 @@ News
 
    .. rubric:: Split from pyVHDLParser
 
-`pyVHDLModel` was split from `pyVHDLParser` (v0.6.0) as an independent Python package.
+* `pyVHDLModel` was split from `pyVHDLParser <https://github.com/Paebbels/pyVHDLParser>`__ (v0.6.0) as an independent Python package.
 
 
 

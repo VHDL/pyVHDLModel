@@ -21,7 +21,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Setup Python ${{ matrix.python }}
+      - name: 🐍 Setup Python ${{ matrix.python }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
@@ -36,7 +36,7 @@ jobs:
           python -m pytest -rA tests/unit
 
   Coverage:
-    name: Collect Coverage Data using Python 3.9
+    name: 📈 Collect Coverage Data using Python 3.9
     runs-on: ubuntu-latest
 
     env:
@@ -48,7 +48,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Setup Python ${{ env.PYTHON }}
+      - name: 🐍 Setup Python ${{ env.PYTHON }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ env.PYTHON }}
@@ -153,7 +153,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Setup Python ${{ env.PYTHON }}
+      - name: 🐍 Setup Python ${{ env.PYTHON }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ env.PYTHON }}
@@ -201,7 +201,7 @@ jobs:
           name: ${{ env.ARTIFACT }}
           path: dist/
 
-      - name: Setup Python ${{ env.PYTHON }}
+      - name: 🐍 Setup Python ${{ env.PYTHON }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ env.PYTHON }}
@@ -219,7 +219,7 @@ jobs:
           twine upload dist/*
 
   BuildTheDocs:
-    name: Run BuildTheDocs and publish to GH-Pages
+    name: 📓 Run BuildTheDocs and publish to GH-Pages
     runs-on: ubuntu-latest
     steps:
 

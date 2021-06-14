@@ -92,10 +92,10 @@ Integer
 
      # inherited from RangedScalarType
      @property
-     def LeftBound(self) -> 'Expression':
+     def LeftBound(self) -> 'BaseExpression':
 
      @property
-     def RightBound(self) -> 'Expression':
+     def RightBound(self) -> 'BaseExpression':
 
 
 
@@ -124,10 +124,10 @@ Real
 
      # inherited from RangedScalarType
      @property
-     def LeftBound(self) -> 'Expression':
+     def LeftBound(self) -> 'BaseExpression':
 
      @property
-     def RightBound(self) -> 'Expression':
+     def RightBound(self) -> 'BaseExpression':
 
 
 
@@ -156,10 +156,10 @@ Physical
 
      # inherited from RangedScalarType
      @property
-     def LeftBound(self) -> 'Expression':
+     def LeftBound(self) -> 'BaseExpression':
 
      @property
-     def RightBound(self) -> 'Expression':
+     def RightBound(self) -> 'BaseExpression':
 
      # from PhysicalType
      @property

@@ -74,7 +74,7 @@ a deferred constant. See :ref:`vhdlmodel-deferredconstant` in next section.
      def SubType(self) -> SubType:
 
      @property
-     def DefaultExpression(self) -> Expression:
+     def DefaultExpression(self) -> BaseExpression:
 
 
 
@@ -171,7 +171,7 @@ expression.
 
      # inherited from WithDefaultExpression
      @property
-     def DefaultExpression(self) -> Expression:
+     def DefaultExpression(self) -> BaseExpression:
 
 
 
@@ -233,7 +233,7 @@ assigned via a default expression.
 
      # inherited from WithDefaultExpression
      @property
-     def DefaultExpression(self) -> Expression:
+     def DefaultExpression(self) -> BaseExpression:
 
 
 

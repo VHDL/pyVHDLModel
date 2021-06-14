@@ -66,7 +66,7 @@ GenericConstantInterfaceItem
 
      # inherited from WithDefaultExpression
      @property
-     def DefaultExpression(self) -> Expression:
+     def DefaultExpression(self) -> BaseExpression:
 
      # inherited from InterfaceItem
      @property
@@ -178,7 +178,7 @@ PortSignalInterfaceItem
 
      # inherited from WithDefaultExpression
      @property
-     def DefaultExpression(self) -> Expression:
+     def DefaultExpression(self) -> BaseExpression:
 
      # inherited from InterfaceItem
      @property
@@ -220,7 +220,7 @@ ParameterConstantInterfaceItem
 
      # inherited from WithDefaultExpression
      @property
-     def DefaultExpression(self) -> Expression:
+     def DefaultExpression(self) -> BaseExpression:
 
      # inherited from InterfaceItem
      @property
@@ -257,7 +257,7 @@ ParameterVariableInterfaceItem
 
      # inherited from WithDefaultExpression
      @property
-     def DefaultExpression(self) -> Expression:
+     def DefaultExpression(self) -> BaseExpression:
 
      # inherited from InterfaceItem
      @property
@@ -294,7 +294,7 @@ ParameterSignalInterfaceItem
 
      # inherited from WithDefaultExpression
      @property
-     def DefaultExpression(self) -> Expression:
+     def DefaultExpression(self) -> BaseExpression:
 
      # inherited from InterfaceItem
      @property

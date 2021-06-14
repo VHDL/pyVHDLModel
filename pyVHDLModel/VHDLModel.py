@@ -43,12 +43,81 @@ This module contains a document language model for VHDL.
 # load dependencies
 from enum               import Enum
 from pathlib            import Path
-from typing             import Any, List, Tuple
+from typing             import Any, List, Tuple, Union
 
 from pydecor.decorators import export
 
 __all__ = []
 #__api__ = __all__ # FIXME: disabled due to a bug in pydecors export decorator
+
+LibraryOrSymbol =       Union['Library',       'LibrarySymbol']
+EntityOrSymbol =        Union['Entity',        'EntitySymbol']
+ArchitectureOrSymbol =  Union['Architecture',  'ArchitectureSymbol']
+PackageOrSymbol =       Union['Package',       'PackageSymbol']
+ConfigurationOrSymbol = Union['Configuration', 'ConfigurationSymbol']
+ContextOrSymbol =       Union['Context',       'ContextSymbol']
+
+SubTypeOrSymbol =       Union['SubType',       'SubTypeSymbol']
+
+ConstantOrSymbol =      Union['Constant',      'ConstantSymbol']
+VariableOrSymbol =      Union['Variable',      'VariableSymbol']
+SignalOrSymbol =        Union['Signal',        'SignalSymbol']
+
+Expression = Union[
+	'BaseExpression',
+	'QualifiedExpression',
+	'FunctionCall',
+	'TypeConversion',
+	ConstantOrSymbol,
+	VariableOrSymbol,
+	SignalOrSymbol,
+	'Literal',
+]
+
+
+@export
+class Direction(Enum):
+	"""
+	A ``Direction`` is an enumeration and represents a direction in a range
+	(``to`` or ``downto``).
+	"""
+	To =      0
+	DownTo =  1
+
+
+@export
+class Mode(Enum):
+	"""
+	A ``Mode`` is an enumeration. It represents the direction of data exchange
+	(``in``, ``out``, ...) for objects in generic, port or parameter lists.
+
+	In case no *mode* is define, ``Default`` is used, so the *mode* is inferred
+	from context.
+	"""
+	Default = 0
+	In =      1
+	Out =     2
+	InOut =   3
+	Buffer =  4
+	Linkage = 5
+
+
+@export
+class Class(Enum):
+	"""
+	A ``Class`` is an enumeration. It represents an object's class (``constant``,
+	``signal``, ...).
+
+	In case no *object class* is define, ``Default`` is used, so the *object class*
+	is inferred from context.
+	"""
+	Default =    0
+	Constant =   1
+	Variable =   2
+	Signal =     3
+	File =       4
+	Type =       5
+	Subprogram = 6
 
 
 @export
@@ -109,6 +178,165 @@ class LabeledEntity:
 	def Label(self) -> str:
 		"""Returns a model entity's label."""
 		return self._label
+
+
+@export
+class Symbol(ModelEntity):
+	_symbolName: str
+
+	def __init__(self, symbolName: str):
+		super().__init__()
+		self._symbolName = symbolName
+
+	@property
+	def SymbolName(self) -> str:
+		return self._symbolName
+
+
+@export
+class LibrarySymbol(Symbol):
+	_library: Library
+
+	def __init__(self):
+		super().__init__()
+		self._library = None
+
+	@property
+	def Library(self) -> Library:
+		return self._library
+
+	def ResolvesTo(self, library: Library):
+		self._library = library
+
+
+@export
+class EntitySymbol(Symbol):
+	_entity: 'Entity'
+
+	def __init__(self):
+		super().__init__()
+		self._entity = None
+
+	@property
+	def Package(self) -> 'Entity':
+		return self._entity
+
+
+@export
+class ArchitectureSymbol(Symbol):
+	_architecture: Architecture
+
+	def __init__(self):
+		super().__init__()
+		self._architecture = None
+
+	@property
+	def Architecture(self) -> Architecture:
+		return self._architecture
+
+
+@export
+class ConfigurationSymbol(Symbol):
+	_configuration: Configuration
+
+	def __init__(self):
+		super().__init__()
+		self._configuration = None
+
+	@property
+	def Configuration(self) -> Configuration:
+		return self._configuration
+
+
+@export
+class PackageSymbol(Symbol):
+	_package: Package
+
+	def __init__(self):
+		super().__init__()
+		self._package = None
+
+	@property
+	def Package(self) -> Package:
+		return self._package
+
+
+@export
+class ContextSymbol(Symbol):
+	_context: Context
+
+	def __init__(self):
+		super().__init__()
+		self._context = None
+
+	@property
+	def Context(self) -> Context:
+		return self._context
+
+
+@export
+class SubTypeSymbol(Symbol):
+	_subType: SubType
+
+	def __init__(self):
+		super().__init__()
+		self._subType = None
+
+	@property
+	def SubType(self) -> SubType:
+		return self._subType
+
+
+@export
+class ConstantSymbol(Symbol):
+	_constant: Constant
+
+	def __init__(self):
+		super().__init__()
+		self._constant = None
+
+	@property
+	def Constant(self) -> Constant:
+		return self._constant
+
+
+@export
+class VariableSymbol(Symbol):
+	_variable: Variable
+
+	def __init__(self):
+		super().__init__()
+		self._variable = None
+
+	@property
+	def Variable(self) -> Variable:
+		return self._variable
+
+
+@export
+class SignalSymbol(Symbol):
+	_signal: Signal
+
+	def __init__(self):
+		super().__init__()
+		self._signal = None
+
+	@property
+	def Signal(self) -> Signal:
+		return self._signal
+
+
+@export
+class FileSymbol(Symbol):
+	_file: File
+
+	def __init__(self):
+		super().__init__()
+		self._file = None
+
+	@property
+	def File(self) -> File:
+		return self._file
 
 
 @export
@@ -240,51 +468,6 @@ class Document(ModelEntity):
 
 
 @export
-class Direction(Enum):
-	"""
-	A ``Direction`` is an enumeration and represents a direction in a range
-	(``to`` or ``downto``).
-	"""
-	To =      0
-	DownTo =  1
-
-
-@export
-class Mode(Enum):
-	"""
-	A ``Mode`` is an enumeration. It represents the direction of data exchange
-	(``in``, ``out``, ...) for objects in generic, port or parameter lists.
-
-	In case no *mode* is define, ``Default`` is used, so the *mode* is inferred
-	from context.
-	"""
-	Default = 0
-	In =      1
-	Out =     2
-	InOut =   3
-	Buffer =  4
-	Linkage = 5
-
-
-@export
-class Class(Enum):
-	"""
-	A ``Class`` is an enumeration. It represents an object's class (``constant``,
-	``signal``, ...).
-
-	In case no *object class* is define, ``Default`` is used, so the *object class*
-	is inferred from context.
-	"""
-	Default =    0
-	Constant =   1
-	Variable =   2
-	Signal =     3
-	File =       4
-	Type =       5
-	Subprogram = 6
-
-
-@export
 class BaseType(ModelEntity, NamedEntity):
 	"""``BaseType`` is the base class of all type entities in this model."""
 	def __init__(self, name: str):
@@ -342,15 +525,15 @@ class RangedScalarType(ScalarType):
 	A ``RangedScalarType`` is a base-class for all scalar types with a range.
 	"""
 
-	_leftBound:  'Expression'
-	_rightBound: 'Expression'
+	_leftBound: Expression
+	_rightBound: Expression
 
 	@property
-	def LeftBound(self) -> 'Expression':
+	def LeftBound(self) -> Expression:
 		return self._leftBound
 
 	@property
-	def RightBound(self) -> 'Expression':
+	def RightBound(self) -> Expression:
 		return self._rightBound
 
 
@@ -485,14 +668,14 @@ class RecordType(CompositeType):
 
 
 @export
-class Expression(ModelEntity):
+class BaseExpression(ModelEntity):
 	"""
-	A ``Expression`` is a base-class for all expressions.
+	A ``BaseExpression`` is a base-class for all expressions.
 	"""
 
 
 @export
-class Literal(Expression):
+class Literal(BaseExpression):
 	"""
 	A ``Literal`` is a base-class for all literals.
 	"""
@@ -558,7 +741,7 @@ class BitStringLiteral(Literal):
 
 
 @export
-class UnaryExpression(Expression):
+class UnaryExpression(BaseExpression):
 	"""
 	A ``UnaryExpression`` is a base-class for all unary expressions.
 	"""
@@ -600,7 +783,7 @@ class QualifiedExpression(UnaryExpression):
 	pass
 
 @export
-class BinaryExpression(Expression):
+class BinaryExpression(BaseExpression):
 	"""
 	A ``BinaryExpression`` is a base-class for all binary expressions.
 	"""
@@ -764,7 +947,7 @@ class	RotateLeftExpression(RotateExpression):
 	pass
 
 @export
-class TernaryExpression(Expression):
+class TernaryExpression(BaseExpression):
 	"""
 	A ``TernaryExpression`` is a base-class for all ternary expressions.
 	"""
@@ -800,14 +983,14 @@ class Range:
 
 @export
 class Object(ModelEntity, NamedEntity):
-	_subType: SubType
+	_subType: SubTypeOrSymbol
 
 	def __init__(self, name: str):
 		super().__init__()
 		NamedEntity.__init__(self, name)
 
 	@property
-	def SubType(self) -> SubType:
+	def SubType(self) -> SubTypeOrSymbol:
 		return self._subType
 
 
@@ -1059,23 +1242,27 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
 # 		self._mode =        None
 # 		self._class =       None
 
+@export
+class Reference(ModelEntity):
+	pass
+
 
 @export
-class LibraryReference(ModelEntity):
-	_library: Library
+class LibraryStatement(Reference):
+	_library:       Union[None, LibraryOrSymbol]
 
 	def __init__(self):
 		super().__init__()
 		self._library = None
 
 	@property
-	def Library(self) -> Library:
+	def Library(self) -> Union[None, LibraryOrSymbol]:
 		return self._library
 
 
 @export
-class PackageReference(ModelEntity):
-	_library: Library
+class UseStatement(Reference):
+	_library: Union[None, LibraryOrSymbol]
 	_package: 'Package'
 	_item:    str
 
@@ -1083,7 +1270,7 @@ class PackageReference(ModelEntity):
 		super().__init__()
 
 	@property
-	def Library(self) -> Library:
+	def Library(self) -> Union[None, LibraryOrSymbol]:
 		return self._library
 
 	@property
@@ -1096,15 +1283,15 @@ class PackageReference(ModelEntity):
 
 
 @export
-class ContextReference(ModelEntity):
-	_library: Library
+class ContextStatement(Reference):
+	_library: Union[None, LibraryOrSymbol]
 	_context: 'Context'
 
 	def __init__(self):
 		super().__init__()
 
 	@property
-	def Library(self) -> Library:
+	def Library(self) -> Union[None, LibraryOrSymbol]:
 		return self._library
 
 	@property
@@ -1127,8 +1314,8 @@ class MixinDesignUnitWithContext:
 	"""
 	A ``DesignUnitWithReferences`` is a base-class for all design units with contexts.
 	"""
-	_libraryReferences: List[Library]
-	_packageReferences: List[PackageReference]
+	_libraryReferences: List[LibraryStatement]
+	_packageReferences: List[UseStatement]
 	_contextReferences: List['Context']
 
 	def __init__(self):
@@ -1137,11 +1324,11 @@ class MixinDesignUnitWithContext:
 		self._contextReferences = []
 
 	@property
-	def LibraryReferences(self) -> List[Library]:
+	def LibraryReferences(self) -> List[LibraryStatement]:
 		return self._libraryReferences
 
 	@property
-	def PackageReferences(self) -> List[PackageReference]:
+	def PackageReferences(self) -> List[UseStatement]:
 		return self._packageReferences
 
 	@property
@@ -1165,8 +1352,8 @@ class SecondaryUnit(DesignUnit):
 
 @export
 class Context(PrimaryUnit):
-	_libraryReferences: List[LibraryReference]
-	_packageReferences: List[PackageReference]
+	_libraryReferences: List[LibraryStatement]
+	_packageReferences: List[UseStatement]
 
 	def __init__(self, name):
 		super().__init__(name)
@@ -1175,11 +1362,11 @@ class Context(PrimaryUnit):
 		self._packageReferences = []
 
 	@property
-	def LibraryReferences(self) -> List[LibraryReference]:
+	def LibraryReferences(self) -> List[LibraryStatement]:
 		return self._libraryReferences
 
 	@property
-	def PackageReferences(self) -> List[PackageReference]:
+	def PackageReferences(self) -> List[UseStatement]:
 		return self._packageReferences
 
 

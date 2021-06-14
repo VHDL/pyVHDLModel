@@ -50,14 +50,14 @@ Assert Statement
 
      # inherited from MixinReportStatement
      @property
-     def Message(self) -> Expression:
+     def Message(self) -> BaseExpression:
 
      @property
-     def Severity(self) -> Expression:
+     def Severity(self) -> BaseExpression:
 
      # inherited from MixinAssertStatement
      @property
-     def Condition(self) -> Expression:
+     def Condition(self) -> BaseExpression:
 
 
 
@@ -89,7 +89,7 @@ Signal Assignment
      def Target(self) -> Object:
 
      @property
-     def Expression(self) -> Expression:
+     def BaseExpression(self) -> BaseExpression:
 
 
 
@@ -217,7 +217,7 @@ Case Generate
 
      # from CaseGenerateStatement
      @property
-     def SelectExpression(self) -> Expression:
+     def SelectExpression(self) -> BaseExpression:
 
      @property
      def Cases(self) -> List[ConcurrentCase]:

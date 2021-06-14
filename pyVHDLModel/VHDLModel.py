@@ -195,17 +195,17 @@ class Symbol(ModelEntity):
 
 @export
 class LibrarySymbol(Symbol):
-	_library: Library
+	_library: 'Library'
 
 	def __init__(self):
 		super().__init__()
 		self._library = None
 
 	@property
-	def Library(self) -> Library:
+	def Library(self) -> 'Library':
 		return self._library
 
-	def ResolvesTo(self, library: Library):
+	def ResolvesTo(self, library: 'Library'):
 		self._library = library
 
 
@@ -224,118 +224,118 @@ class EntitySymbol(Symbol):
 
 @export
 class ArchitectureSymbol(Symbol):
-	_architecture: Architecture
+	_architecture: 'Architecture'
 
 	def __init__(self):
 		super().__init__()
 		self._architecture = None
 
 	@property
-	def Architecture(self) -> Architecture:
+	def Architecture(self) -> 'Architecture':
 		return self._architecture
 
 
 @export
 class ConfigurationSymbol(Symbol):
-	_configuration: Configuration
+	_configuration: 'Configuration'
 
 	def __init__(self):
 		super().__init__()
 		self._configuration = None
 
 	@property
-	def Configuration(self) -> Configuration:
+	def Configuration(self) -> 'Configuration':
 		return self._configuration
 
 
 @export
 class PackageSymbol(Symbol):
-	_package: Package
+	_package: 'Package'
 
 	def __init__(self):
 		super().__init__()
 		self._package = None
 
 	@property
-	def Package(self) -> Package:
+	def Package(self) -> 'Package':
 		return self._package
 
 
 @export
 class ContextSymbol(Symbol):
-	_context: Context
+	_context: 'Context'
 
 	def __init__(self):
 		super().__init__()
 		self._context = None
 
 	@property
-	def Context(self) -> Context:
+	def Context(self) -> 'Context':
 		return self._context
 
 
 @export
 class SubTypeSymbol(Symbol):
-	_subType: SubType
+	_subType: 'SubType'
 
 	def __init__(self):
 		super().__init__()
 		self._subType = None
 
 	@property
-	def SubType(self) -> SubType:
+	def SubType(self) -> 'SubType':
 		return self._subType
 
 
 @export
 class ConstantSymbol(Symbol):
-	_constant: Constant
+	_constant: 'Constant'
 
 	def __init__(self):
 		super().__init__()
 		self._constant = None
 
 	@property
-	def Constant(self) -> Constant:
+	def Constant(self) -> 'Constant':
 		return self._constant
 
 
 @export
 class VariableSymbol(Symbol):
-	_variable: Variable
+	_variable: 'Variable'
 
 	def __init__(self):
 		super().__init__()
 		self._variable = None
 
 	@property
-	def Variable(self) -> Variable:
+	def Variable(self) -> 'Variable':
 		return self._variable
 
 
 @export
 class SignalSymbol(Symbol):
-	_signal: Signal
+	_signal: 'Signal'
 
 	def __init__(self):
 		super().__init__()
 		self._signal = None
 
 	@property
-	def Signal(self) -> Signal:
+	def Signal(self) -> 'Signal':
 		return self._signal
 
 
 @export
 class FileSymbol(Symbol):
-	_file: File
+	_file: 'File'
 
 	def __init__(self):
 		super().__init__()
 		self._file = None
 
 	@property
-	def File(self) -> File:
+	def File(self) -> 'File':
 		return self._file
 
 

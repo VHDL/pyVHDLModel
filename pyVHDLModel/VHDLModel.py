@@ -278,8 +278,8 @@ class ContextSymbol(Symbol):
 class SubTypeSymbol(Symbol):
 	_subType: 'SubType'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, subTypeName: str):
+		super().__init__(symbolName = subTypeName)
 		self._subType = None
 
 	@property
@@ -973,13 +973,23 @@ class TernaryExpression(BaseExpression):
 
 
 @export
-class Range:
-	_leftBound:  Any
-	_rightBound: Any
+class Range(ModelEntity):
+	_leftBound:  Expression
+	_rightBound: Expression
 	_direction:  Direction
 
-	def __init__(self):
-		pass
+	@property
+	def LeftBound(self) -> Expression:
+		return self._leftBound
+
+	@property
+	def RightBound(self) -> Expression:
+		return self._rightBound
+
+	@property
+	def Direction(self) -> Direction:
+		return self._direction
+
 
 @export
 class Object(ModelEntity, NamedEntity):

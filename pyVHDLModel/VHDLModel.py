@@ -63,6 +63,12 @@ ConstantOrSymbol =      Union['Constant',      'ConstantSymbol']
 VariableOrSymbol =      Union['Variable',      'VariableSymbol']
 SignalOrSymbol =        Union['Signal',        'SignalSymbol']
 
+Constraint = Union[
+	'RangeExpression',
+	'RangeAttribute',
+	'RangeSubtype',
+]
+
 Expression = Union[
 	'BaseExpression',
 	'QualifiedExpression',
@@ -276,15 +282,25 @@ class ContextSymbol(Symbol):
 
 @export
 class SubTypeSymbol(Symbol):
-	_subType: 'SubType'
+	_subType:     'SubType'
+	_constraints: List[Constraint]
 
-	def __init__(self, subTypeName: str):
+	def __init__(self, subTypeName: str, constraints: List[Constraint] = None):
 		super().__init__(symbolName = subTypeName)
 		self._subType = None
+		self._constraints = constraints
 
 	@property
 	def SubType(self) -> 'SubType':
 		return self._subType
+
+	@property
+	def HasConstraints(self) -> bool:
+		return self._constraints is not None
+
+	@property
+	def Constraints(self) -> List[Constraint]:
+		return self._constraints
 
 
 @export
@@ -989,6 +1005,30 @@ class Range(ModelEntity):
 	@property
 	def Direction(self) -> Direction:
 		return self._direction
+
+
+@export
+class BaseConstraint(ModelEntity):
+	pass
+
+
+@export
+class RangeExpression(BaseConstraint):
+	_range: Range
+
+	@property
+	def Range(self):
+		return self._range
+
+
+@export
+class RangeAttribute(BaseConstraint):
+	pass
+
+
+@export
+class RangeSubtype(BaseConstraint):
+	pass
 
 
 @export

@@ -736,6 +736,7 @@ class IntegerLiteral(NumericLiteral):
 	_value: int
 
 	def __init__(self, value: int):
+		super().__init__()
 		self._value = value
 
 	@property
@@ -748,27 +749,56 @@ class FloatingPointLiteral(NumericLiteral):
 	_value: float
 
 	def __init__(self, value: float):
+		super().__init__()
 		self._value = value
 
 	@property
 	def Value(self) -> float:
 		return self._value
 
+
 @export
 class PhysicalLiteral(NumericLiteral):
 	pass
 
+
 @export
 class CharacterLiteral(Literal):
-	pass
+	_value: str
+
+	def __init__(self, value: str):
+		super().__init__()
+		self._value = value
+
+	@property
+	def Value(self) -> str:
+		return self._value
+
 
 @export
 class StringLiteral(Literal):
-	pass
+	_value: str
+
+	def __init__(self, value: str):
+		super().__init__()
+		self._value = value
+
+	@property
+	def Value(self) -> str:
+		return self._value
+
 
 @export
 class BitStringLiteral(Literal):
-	pass
+	_value: str
+
+	def __init__(self, value: str):
+		super().__init__()
+		self._value = value
+
+	@property
+	def Value(self) -> str:
+		return self._value
 
 
 @export
@@ -779,7 +809,7 @@ class UnaryExpression(BaseExpression):
 	_operand:  Expression
 
 	def __init__(self):
-		pass
+		super().__init__()
 
 	@property
 	def Operand(self):
@@ -823,7 +853,7 @@ class BinaryExpression(BaseExpression):
 	_rightOperand: Expression
 
 	def __init__(self):
-		pass
+		super().__init__()
 
 	@property
 	def LeftOperand(self):
@@ -988,7 +1018,7 @@ class TernaryExpression(BaseExpression):
 	_thirdOperand:  Expression
 
 	def __init__(self):
-		pass
+		super().__init__()
 
 	@property
 	def FirstOperand(self):

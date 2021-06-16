@@ -283,6 +283,21 @@ class ContextSymbol(Symbol):
 @export
 class SubTypeSymbol(Symbol):
 	_subType:     'SubType'
+
+	@property
+	def SubType(self) -> 'SubType':
+		return self._subType
+
+
+@export
+class SimpleSubTypeSymbol(SubTypeSymbol):
+	def __init__(self, subTypeName: str):
+		super().__init__(symbolName = subTypeName)
+		self._subType = None
+
+
+@export
+class ConstrainedSubTypeSymbol(SubTypeSymbol):
 	_constraints: List[Constraint]
 
 	def __init__(self, subTypeName: str, constraints: List[Constraint] = None):
@@ -291,20 +306,20 @@ class SubTypeSymbol(Symbol):
 		self._constraints = constraints
 
 	@property
-	def SubType(self) -> 'SubType':
-		return self._subType
-
-	@property
-	def HasConstraints(self) -> bool:
-		return self._constraints is not None
-
-	@property
 	def Constraints(self) -> List[Constraint]:
 		return self._constraints
 
 
 @export
-class ConstantSymbol(Symbol):
+class ObjectSymbol(Symbol):
+	pass
+
+@export
+class SimpleObjectSymbol(Symbol):
+	pass
+
+@export
+class ConstantSymbol(ObjectSymbol):
 	_constant: 'Constant'
 
 	def __init__(self):
@@ -317,7 +332,7 @@ class ConstantSymbol(Symbol):
 
 
 @export
-class VariableSymbol(Symbol):
+class VariableSymbol(ObjectSymbol):
 	_variable: 'Variable'
 
 	def __init__(self):
@@ -330,7 +345,7 @@ class VariableSymbol(Symbol):
 
 
 @export
-class SignalSymbol(Symbol):
+class SignalSymbol(ObjectSymbol):
 	_signal: 'Signal'
 
 	def __init__(self):
@@ -343,7 +358,7 @@ class SignalSymbol(Symbol):
 
 
 @export
-class FileSymbol(Symbol):
+class FileSymbol(ObjectSymbol):
 	_file: 'File'
 
 	def __init__(self):

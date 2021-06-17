@@ -840,6 +840,10 @@ class FunctionCall(UnaryExpression):
 	pass
 
 @export
+class ParenthesisExpression(UnaryExpression):
+	pass
+
+@export
 class QualifiedExpression(UnaryExpression):
 	pass
 

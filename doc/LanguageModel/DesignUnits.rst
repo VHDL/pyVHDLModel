@@ -83,7 +83,7 @@ types). An entity's list of statements is called body items.
      def LibraryReferences(self) -> List[Library]:
 
      @property
-     def PackageReferences(self) -> List[PackageReference]:
+     def PackageReferences(self) -> List[UseStatement]:
 
      @property
      def ContextReferences(self) -> List[Context]:
@@ -131,7 +131,7 @@ Package
      def LibraryReferences(self) -> List[Library]:
 
      @property
-     def PackageReferences(self) -> List[PackageReference]:
+     def PackageReferences(self) -> List[UseStatement]:
 
      @property
      def ContextReferences(self) -> List[Context]:
@@ -178,7 +178,7 @@ Architeture
      def LibraryReferences(self) -> List[Library]:
 
      @property
-     def PackageReferences(self) -> List[PackageReference]:
+     def PackageReferences(self) -> List[UseStatement]:
 
      @property
      def ContextReferences(self) -> List[Context]:
@@ -223,7 +223,7 @@ Package Body
      def LibraryReferences(self) -> List[Library]:
 
      @property
-     def PackageReferences(self) -> List[PackageReference]:
+     def PackageReferences(self) -> List[UseStatement]:
 
      @property
      def ContextReferences(self) -> List[Context]:

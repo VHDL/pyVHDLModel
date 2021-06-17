@@ -70,7 +70,7 @@ Signal Assignment
      def Target(self) -> Object:
 
      @property
-     def Expression(self) -> Expression:
+     def BaseExpression(self) -> BaseExpression:
 
 
 
@@ -102,7 +102,7 @@ Variable Assignment
      def Target(self) -> Object:
 
      @property
-     def Expression(self) -> Expression:
+     def BaseExpression(self) -> BaseExpression:
 
 
 
@@ -147,7 +147,7 @@ Case Statement
 
      # from CaseGenerateStatement
      @property
-     def SelectExpression(self) -> Expression:
+     def SelectExpression(self) -> BaseExpression:
 
      @property
      def Cases(self) -> List[SequentialCase]:
@@ -253,7 +253,7 @@ While Loop
 
      # inherited from BaseConditional
      @property
-     def Condition(self) -> Expression:
+     def Condition(self) -> BaseExpression:
 
 
 .. _vhdlmodel-nextstatement:
@@ -281,7 +281,7 @@ Next Statement
 
      # inherited from BaseCondition
      @property
-     def Condition(self) -> Expression:
+     def Condition(self) -> BaseExpression:
 
      # inherited from LoopControlStatement
      @property
@@ -314,7 +314,7 @@ Exit Statement
 
      # inherited from BaseCondition
      @property
-     def Condition(self) -> Expression:
+     def Condition(self) -> BaseExpression:
 
      # inherited from LoopControlStatement
      @property
@@ -353,10 +353,10 @@ Report Statement
 
      # inherited from MixinReportStatement
      @property
-     def Message(self) -> Expression:
+     def Message(self) -> BaseExpression:
 
      @property
-     def Severity(self) -> Expression:
+     def Severity(self) -> BaseExpression:
 
 
 
@@ -385,14 +385,14 @@ Assert Statement
 
      # inherited from MixinReportStatement
      @property
-     def Message(self) -> Expression:
+     def Message(self) -> BaseExpression:
 
      @property
-     def Severity(self) -> Expression:
+     def Severity(self) -> BaseExpression:
 
      # inherited from MixinAssertStatement
      @property
-     def Condition(self) -> Expression:
+     def Condition(self) -> BaseExpression:
 
 
 
@@ -432,14 +432,14 @@ Wait Statement
 
      # inherited from BaseCondition
      @property
-     def Condition(self) -> Expression:
+     def Condition(self) -> BaseExpression:
 
      # from WaitStatement
      @property
      def SensitivityList(self) -> List[Signal]:
 
      @property
-     def Timeout(self) -> Expression:
+     def Timeout(self) -> BaseExpression:
 
 
 
@@ -468,8 +468,8 @@ Return Statement
 
      # inherited from BaseCondition
      @property
-     def Condition(self) -> Expression:
+     def Condition(self) -> BaseExpression:
 
      # from ReturnStatement
      @property
-     def ReturnValue(self) -> Expression:
+     def ReturnValue(self) -> BaseExpression:

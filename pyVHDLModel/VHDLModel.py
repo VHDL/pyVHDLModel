@@ -311,6 +311,11 @@ class ConstrainedSubTypeSymbol(SubTypeSymbol):
 
 
 @export
+class EnumerationLiteralSymbol(Symbol):
+	pass
+
+
+@export
 class ObjectSymbol(Symbol):
 	pass
 
@@ -843,9 +848,6 @@ class FunctionCall(UnaryExpression):
 class ParenthesisExpression(UnaryExpression):
 	pass
 
-@export
-class QualifiedExpression(UnaryExpression):
-	pass
 
 @export
 class BinaryExpression(BaseExpression):
@@ -867,6 +869,10 @@ class BinaryExpression(BaseExpression):
 	def RightOperand(self):
 		return self._rightOperand
 
+
+@export
+class QualifiedExpression(BinaryExpression):
+	pass
 
 @export
 class	AddingExpression(BinaryExpression):
@@ -1035,6 +1041,65 @@ class TernaryExpression(BaseExpression):
 	@property
 	def ThirdOperand(self):
 		return self._thirdOperand
+
+
+@export
+class AggregateElement(ModelEntity):
+	"""
+	A ``AggregateElement`` is a base-class for all aggregate elements.
+	"""
+
+	_expression: Expression
+
+	@property
+	def Expression(self):
+		return self._expression
+
+
+@export
+class SimpleAggregateElement(AggregateElement):
+	pass
+
+
+@export
+class IndexedAggregateElement(AggregateElement):
+	_index: int
+
+	@property
+	def Index(self) -> int:
+		return self._index
+
+
+@export
+class RangedAggregateElement(AggregateElement):
+	_range: 'Range'
+
+	@property
+	def Range(self) -> 'Range':
+		return self._range
+
+
+@export
+class NamedAggregateElement(AggregateElement):
+	_name: str
+
+	@property
+	def Name(self) -> str:
+		return self._name
+
+
+@export
+class OthersAggregateElement(AggregateElement):
+	pass
+
+
+@export
+class Aggregate(BaseExpression):
+	_elements: List[AggregateElement]
+
+	@property
+	def Elements(self) -> List[AggregateElement]:
+		return self._elements
 
 
 @export

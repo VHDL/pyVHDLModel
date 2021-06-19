@@ -90,6 +90,9 @@ class Direction(Enum):
 	To =      0
 	DownTo =  1
 
+	def __str__(self):
+		return ("to", "downto")[self.value]       # TODO: check performance
+
 
 @export
 class Mode(Enum):
@@ -106,6 +109,9 @@ class Mode(Enum):
 	InOut =   3
 	Buffer =  4
 	Linkage = 5
+
+	def __str__(self):
+			return ("", "in", "out", "inout", "buffer", "linkage")[self.value]       # TODO: check performance
 
 
 @export
@@ -198,6 +204,9 @@ class Symbol(ModelEntity):
 	def SymbolName(self) -> str:
 		return self._symbolName
 
+	def __str__(self) -> str:
+		return self._symbolName
+
 
 @export
 class LibrarySymbol(Symbol):
@@ -219,8 +228,9 @@ class LibrarySymbol(Symbol):
 class EntitySymbol(Symbol):
 	_entity: 'Entity'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, entityName: str):
+		super().__init__(symbolName=entityName)
+
 		self._entity = None
 
 	@property
@@ -311,12 +321,31 @@ class ConstrainedSubTypeSymbol(SubTypeSymbol):
 
 
 @export
+class EnumerationLiteralSymbol(Symbol):
+	pass
+
+
+@export
 class ObjectSymbol(Symbol):
 	pass
 
 @export
 class SimpleObjectSymbol(Symbol):
-	pass
+	_object: Union['Constant', 'Signal', 'Variable']
+
+	def __init__(self, objectName: str):
+		super().__init__(objectName)
+		self._object = None
+
+	@property
+	def Object(self) -> Union['Constant', 'Signal', 'Variable']:
+		return self._object
+
+	def __str__(self) -> str:
+		if self._object is not None:
+			return str(self._object)
+		return super().__str__()
+
 
 @export
 class ConstantSymbol(ObjectSymbol):
@@ -712,6 +741,7 @@ class Literal(BaseExpression):
 	"""
 # TODO: add a reference to a basetype ?
 
+
 @export
 class EnumerationLiteral(Literal):
 	_value: str
@@ -721,6 +751,9 @@ class EnumerationLiteral(Literal):
 
 	@property
 	def Value(self) -> str:
+		return self._value
+
+	def __str__(self) -> str:
 		return self._value
 
 
@@ -743,6 +776,9 @@ class IntegerLiteral(NumericLiteral):
 	def Value(self) -> int:
 		return self._value
 
+	def __str__(self) -> str:
+		return str(self._value)
+
 
 @export
 class FloatingPointLiteral(NumericLiteral):
@@ -755,6 +791,9 @@ class FloatingPointLiteral(NumericLiteral):
 	@property
 	def Value(self) -> float:
 		return self._value
+
+	def __str__(self) -> str:
+		return str(self._value)
 
 
 @export
@@ -774,6 +813,9 @@ class CharacterLiteral(Literal):
 	def Value(self) -> str:
 		return self._value
 
+	def __str__(self) -> str:
+		return str(self._value)
+
 
 @export
 class StringLiteral(Literal):
@@ -786,6 +828,9 @@ class StringLiteral(Literal):
 	@property
 	def Value(self) -> str:
 		return self._value
+
+	def __str__(self) -> str:
+		return "\"" + self._value + "\""
 
 
 @export
@@ -800,12 +845,17 @@ class BitStringLiteral(Literal):
 	def Value(self) -> str:
 		return self._value
 
+	def __str__(self) -> str:
+		return "\"" + self._value + "\""
+
 
 @export
 class UnaryExpression(BaseExpression):
 	"""
 	A ``UnaryExpression`` is a base-class for all unary expressions.
 	"""
+
+	_FORMAT: Tuple[str, str]
 	_operand:  Expression
 
 	def __init__(self):
@@ -815,21 +865,28 @@ class UnaryExpression(BaseExpression):
 	def Operand(self):
 		return self._operand
 
+	def __str__(self) -> str:
+		return "{leftOperator}{operand!s}{rightOperator}".format(
+			leftOperator=self._FORMAT[0],
+			operand=self._operand,
+			rightOperator=self._FORMAT[1],
+		)
+
 @export
 class InverseExpression(UnaryExpression):
-	pass
+	_FORMAT = ("-", "")
 
 @export
 class IdentityExpression(UnaryExpression):
-	pass
+	_FORMAT = ("+", "")
 
 @export
 class NegationExpression(UnaryExpression):
-	pass
+	_FORMAT = ("not ", "")
 
 @export
 class AbsoluteExpression(UnaryExpression):
-	pass
+	_FORMAT = ("abs ", "")
 
 @export
 class TypeConversion(UnaryExpression):
@@ -840,8 +897,9 @@ class FunctionCall(UnaryExpression):
 	pass
 
 @export
-class QualifiedExpression(UnaryExpression):
-	pass
+class ParenthesisExpression(UnaryExpression):
+	_FORMAT = ("(", ")")
+
 
 @export
 class BinaryExpression(BaseExpression):
@@ -849,6 +907,7 @@ class BinaryExpression(BaseExpression):
 	A ``BinaryExpression`` is a base-class for all binary expressions.
 	"""
 
+	_FORMAT: Tuple[str, str, str]
 	_leftOperand:  Expression
 	_rightOperand: Expression
 
@@ -863,6 +922,19 @@ class BinaryExpression(BaseExpression):
 	def RightOperand(self):
 		return self._rightOperand
 
+	def __str__(self) -> str:
+		return "{leftOperator}{leftOperand!s}{middleOperator}{rightOperand!s}{rightOperator}".format(
+			leftOperator=self._FORMAT[0],
+			leftOperand=self._leftOperand,
+			middleOperator=self._FORMAT[1],
+			rightOperand=self._rightOperand,
+			rightOperator=self._FORMAT[2],
+		)
+
+
+@export
+class QualifiedExpression(BinaryExpression):
+	pass
 
 @export
 class	AddingExpression(BinaryExpression):
@@ -872,15 +944,15 @@ class	AddingExpression(BinaryExpression):
 
 @export
 class	AdditionExpression(AddingExpression):
-	pass
+	_FORMAT = ("", " + ", "")
 
 @export
 class	SubtractionExpression(AddingExpression):
-	pass
+	_FORMAT = ("", " - ", "")
 
 @export
 class	ConcatenationExpression(AddingExpression):
-	pass
+	_FORMAT = ("", " & ", "")
 
 @export
 class	MultiplyingExpression(BinaryExpression):
@@ -890,23 +962,23 @@ class	MultiplyingExpression(BinaryExpression):
 
 @export
 class	MultiplyExpression(MultiplyingExpression):
-	pass
+	_FORMAT = ("", " * ", "")
 
 @export
 class	DivisionExpression(MultiplyingExpression):
-	pass
+	_FORMAT = ("", " / ", "")
 
 @export
 class	RemainderExpression(MultiplyingExpression):
-	pass
+	_FORMAT = ("", " rem ", "")
 
 @export
 class	ModuloExpression(MultiplyingExpression):
-	pass
+	_FORMAT = ("", " mod ", "")
 
 @export
 class	ExponentiationExpression(MultiplyingExpression):
-	pass
+	_FORMAT = ("", "**", "")
 
 @export
 class	LogicalExpression(BinaryExpression):
@@ -916,27 +988,27 @@ class	LogicalExpression(BinaryExpression):
 
 @export
 class AndExpression(LogicalExpression):
-	pass
+	_FORMAT = ("", " and ", "")
 
 @export
 class NandExpression(LogicalExpression):
-	pass
+	_FORMAT = ("", " nand ", "")
 
 @export
 class OrExpression(LogicalExpression):
-	pass
+	_FORMAT = ("", " or ", "")
 
 @export
 class NorExpression(LogicalExpression):
-	pass
+	_FORMAT = ("", " nor ", "")
 
 @export
 class XorExpression(LogicalExpression):
-	pass
+	_FORMAT = ("", " xor ", "")
 
 @export
 class	XnorExpression(LogicalExpression):
-	pass
+	_FORMAT = ("", " xnor ", "")
 
 @export
 class	RelationalExpression(BinaryExpression):
@@ -946,23 +1018,27 @@ class	RelationalExpression(BinaryExpression):
 
 @export
 class	EqualExpression(RelationalExpression):
-	pass
+	_FORMAT = ("", " = ", "")
 
 @export
 class	UnequalExpression(RelationalExpression):
-	pass
+	_FORMAT = ("", " /= ", "")
 
 @export
 class	GreaterThanExpression(RelationalExpression):
-	pass
+	_FORMAT = ("", " > ", "")
 
 @export
 class	GreaterEqualExpression(RelationalExpression):
-	pass
+	_FORMAT = ("", " >= ", "")
 
 @export
 class	LessThanExpression(RelationalExpression):
-	pass
+	_FORMAT = ("", " < ", "")
+
+@export
+class	LessEqualExpression(RelationalExpression):
+	_FORMAT = ("", " <= ", "")
 
 
 @export
@@ -985,27 +1061,27 @@ class RotateExpression(ShiftExpression):
 
 @export
 class	ShiftRightLogicExpression(ShiftLogicExpression):
-	pass
+	_FORMAT = ("", " srl ", "")
 
 @export
 class	ShiftLeftLogicExpression(ShiftLogicExpression):
-	pass
+	_FORMAT = ("", " sll ", "")
 
 @export
 class	ShiftRightArithmeticExpression(ShiftArithmeticExpression):
-	pass
+	_FORMAT = ("", " sra ", "")
 
 @export
 class	ShiftLeftArithmeticExpression(ShiftArithmeticExpression):
-	pass
+	_FORMAT = ("", " sla ", "")
 
 @export
 class	RotateRightExpression(RotateExpression):
-	pass
+	_FORMAT = ("", " ror ", "")
 
 @export
 class	RotateLeftExpression(RotateExpression):
-	pass
+	_FORMAT = ("", " rol ", "")
 
 @export
 class TernaryExpression(BaseExpression):
@@ -1013,6 +1089,7 @@ class TernaryExpression(BaseExpression):
 	A ``TernaryExpression`` is a base-class for all ternary expressions.
 	"""
 
+	_FORMAT: Tuple[str, str, str, str]
 	_firstOperand:  Expression
 	_secondOperand: Expression
 	_thirdOperand:  Expression
@@ -1032,6 +1109,109 @@ class TernaryExpression(BaseExpression):
 	def ThirdOperand(self):
 		return self._thirdOperand
 
+	def __str__(self) -> str:
+		return "{beforeFirstOperator}{firstOperand!s}{beforeSecondOperator}{secondOperand!s}{beforeThirdOperator}{thirdOperand!s}{lastOperator}".format(
+			beforeFirstOperator=self._FORMAT[0],
+			firstOperand=self._firstOperand,
+			beforeSecondOperator=self._FORMAT[1],
+			secondOperand=self._secondOperand,
+			beforeThirdOperator=self._FORMAT[2],
+			thirdOperand=self._thirdOperand,
+			lastOperator=self._FORMAT[4],
+		)
+
+
+@export
+class	WhenElseExpression(TernaryExpression):
+	_FORMAT = ("", " when ", " else ", "")
+
+
+@export
+class AggregateElement(ModelEntity):
+	"""
+	A ``AggregateElement`` is a base-class for all aggregate elements.
+	"""
+
+	_expression: Expression
+
+	@property
+	def Expression(self):
+		return self._expression
+
+
+@export
+class SimpleAggregateElement(AggregateElement):
+	def __str__(self) -> str:
+		return str(self._expression)
+
+
+@export
+class IndexedAggregateElement(AggregateElement):
+	_index: int
+
+	@property
+	def Index(self) -> int:
+		return self._index
+
+	def __str__(self) -> str:
+		return "{index!s} => {value!s}".format(
+			index=self._index,
+			value=self._expression,
+		)
+
+
+@export
+class RangedAggregateElement(AggregateElement):
+	_range: 'Range'
+
+	@property
+	def Range(self) -> 'Range':
+		return self._range
+
+	def __str__(self) -> str:
+		return "{range!s} => {value!s}".format(
+			range=self._range,
+			value=self._expression,
+		)
+
+
+@export
+class NamedAggregateElement(AggregateElement):
+	_name: EnumerationLiteralSymbol
+
+	@property
+	def Name(self) -> EnumerationLiteralSymbol:
+		return self._name
+
+	def __str__(self) -> str:
+		return "{name!s} => {value!s}".format(
+			name=self._name,
+			value=self._expression,
+		)
+
+
+@export
+class OthersAggregateElement(AggregateElement):
+	def __str__(self) -> str:
+		return "others => {value!s}".format(
+			value=self._expression,
+		)
+
+
+@export
+class Aggregate(BaseExpression):
+	_elements: List[AggregateElement]
+
+	@property
+	def Elements(self) -> List[AggregateElement]:
+		return self._elements
+
+	def __str__(self) -> str:
+		choices = [self.formatAggregateElement(element) for element in self._elements]
+		return "({choices})".format(
+			choices=", ".join(choices)
+		)
+
 
 @export
 class Range(ModelEntity):
@@ -1050,6 +1230,13 @@ class Range(ModelEntity):
 	@property
 	def Direction(self) -> Direction:
 		return self._direction
+
+	def __str__(self) -> str:
+		return "{leftBound!s} {direction!s} {rightBound!s}".format(
+			leftBound=self._leftBound,
+			direction=self._direction,
+			rightBound=self._rightBound,
+		)
 
 
 @export

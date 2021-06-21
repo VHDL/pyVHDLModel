@@ -252,6 +252,19 @@ class ArchitectureSymbol(Symbol):
 
 
 @export
+class ComponentSymbol(Symbol):
+	_component: 'Component'
+
+	def __init__(self):
+		super().__init__()
+		self._component = None
+
+	@property
+	def Component(self) -> 'Component':
+		return self._component
+
+
+@export
 class ConfigurationSymbol(Symbol):
 	_configuration: 'Configuration'
 
@@ -1768,6 +1781,27 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 	@property
 	def BodyItems(self) -> List['ConcurrentStatement']:
 		return self._bodyItems
+
+
+@export
+class Component(ModelEntity, NamedEntity):
+	_genericItems:      List[GenericInterfaceItem]
+	_portItems:         List[PortInterfaceItem]
+
+	def __init__(self, name: str):
+		super().__init__()
+		NamedEntity.__init__(self, name)
+
+		self._genericItems      = []
+		self._portItems         = []
+
+	@property
+	def GenericItems(self) -> List[GenericInterfaceItem]:
+		return self._genericItems
+
+	@property
+	def PortItems(self) -> List[PortInterfaceItem]:
+		return self._portItems
 
 
 @export

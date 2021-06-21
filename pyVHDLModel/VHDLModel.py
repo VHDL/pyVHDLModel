@@ -43,7 +43,12 @@ This module contains a document language model for VHDL.
 # load dependencies
 from enum               import Enum
 from pathlib            import Path
-from typing import List, Tuple, Union, Protocol
+from typing import List, Tuple, Union
+try:
+	from typing import Protocol
+except ImportError:
+	class Protocol:
+		pass
 
 from pydecor.decorators import export
 

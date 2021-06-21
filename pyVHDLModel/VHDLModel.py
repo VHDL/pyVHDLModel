@@ -329,16 +329,35 @@ class EnumerationLiteralSymbol(Symbol):
 class ObjectSymbol(Symbol):
 	pass
 
+
 @export
-class SimpleObjectSymbol(Symbol):
-	_object: Union['Constant', 'Signal', 'Variable']
+class SimpleObjectOrFunctionCallSymbol(Symbol):
+	_object: Union['Constant', 'Signal', 'Variable', 'Function']
 
 	def __init__(self, objectName: str):
 		super().__init__(objectName)
 		self._object = None
 
 	@property
-	def Object(self) -> Union['Constant', 'Signal', 'Variable']:
+	def Object(self) -> Union['Constant', 'Signal', 'Variable', 'Function']:
+		return self._object
+
+	def __str__(self) -> str:
+		if self._object is not None:
+			return str(self._object)
+		return super().__str__()
+
+
+@export
+class IndexedObjectOrFunctionCallSymbol(Symbol):
+	_object: Union['Constant', 'Signal', 'Variable', 'Function']
+
+	def __init__(self, objectName: str):
+		super().__init__(objectName)
+		self._object = None
+
+	@property
+	def Object(self) -> Union['Constant', 'Signal', 'Variable', 'Function']:
 		return self._object
 
 	def __str__(self) -> str:

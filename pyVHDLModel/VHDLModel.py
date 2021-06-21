@@ -904,7 +904,7 @@ class UnaryExpression(BaseExpression):
 		)
 
 @export
-class InverseExpression(UnaryExpression):
+class NegationExpression(UnaryExpression):
 	_FORMAT = ("-", "")
 
 @export
@@ -912,7 +912,7 @@ class IdentityExpression(UnaryExpression):
 	_FORMAT = ("+", "")
 
 @export
-class NegationExpression(UnaryExpression):
+class InverseExpression(UnaryExpression):
 	_FORMAT = ("not ", "")
 
 @export

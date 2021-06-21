@@ -43,7 +43,7 @@ This module contains a document language model for VHDL.
 # load dependencies
 from enum               import Enum
 from pathlib            import Path
-from typing             import List, Tuple, Union
+from typing import List, Tuple, Union, Protocol
 
 from pydecor.decorators import export
 
@@ -881,6 +881,13 @@ class BitStringLiteral(Literal):
 
 
 @export
+class ParenthesisExpression(Protocol):
+	@property
+	def Operand(self) -> Expression:
+		pass
+
+
+@export
 class UnaryExpression(BaseExpression):
 	"""
 	A ``UnaryExpression`` is a base-class for all unary expressions.
@@ -927,8 +934,9 @@ class TypeConversion(UnaryExpression):
 class FunctionCall(UnaryExpression):
 	pass
 
+
 @export
-class ParenthesisExpression(UnaryExpression):
+class SubExpression(UnaryExpression, ParenthesisExpression):
 	_FORMAT = ("(", ")")
 
 
@@ -962,10 +970,6 @@ class BinaryExpression(BaseExpression):
 			rightOperator=self._FORMAT[2],
 		)
 
-
-@export
-class QualifiedExpression(BinaryExpression):
-	pass
 
 @export
 class	AddingExpression(BinaryExpression):
@@ -1114,6 +1118,30 @@ class	RotateRightExpression(RotateExpression):
 class	RotateLeftExpression(RotateExpression):
 	_FORMAT = ("", " rol ", "")
 
+
+@export
+class QualifiedExpression(BaseExpression, ParenthesisExpression):
+	_operand:  Expression
+	_subtype:  SubTypeOrSymbol
+
+	def __init__(self):
+		super().__init__()
+
+	@property
+	def Operand(self):
+		return self._operand
+
+	@property
+	def SubTyped(self):
+		return self._subtype
+
+	def __str__(self) -> str:
+		return "{subtype}'({operand!s})".format(
+			subtype=self._subtype,
+			operand=self._operand,
+		)
+
+
 @export
 class TernaryExpression(BaseExpression):
 	"""
@@ -1238,7 +1266,7 @@ class Aggregate(BaseExpression):
 		return self._elements
 
 	def __str__(self) -> str:
-		choices = [self.formatAggregateElement(element) for element in self._elements]
+		choices = [str(element) for element in self._elements]
 		return "({choices})".format(
 			choices=", ".join(choices)
 		)

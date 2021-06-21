@@ -43,7 +43,12 @@ This module contains a document language model for VHDL.
 # load dependencies
 from enum               import Enum
 from pathlib            import Path
-from typing             import List, Tuple, Union
+from typing import List, Tuple, Union
+try:
+	from typing import Protocol
+except ImportError:
+	class Protocol:
+		pass
 
 from pydecor.decorators import export
 
@@ -252,6 +257,19 @@ class ArchitectureSymbol(Symbol):
 
 
 @export
+class ComponentSymbol(Symbol):
+	_component: 'Component'
+
+	def __init__(self):
+		super().__init__()
+		self._component = None
+
+	@property
+	def Component(self) -> 'Component':
+		return self._component
+
+
+@export
 class ConfigurationSymbol(Symbol):
 	_configuration: 'Configuration'
 
@@ -329,16 +347,35 @@ class EnumerationLiteralSymbol(Symbol):
 class ObjectSymbol(Symbol):
 	pass
 
+
 @export
-class SimpleObjectSymbol(Symbol):
-	_object: Union['Constant', 'Signal', 'Variable']
+class SimpleObjectOrFunctionCallSymbol(Symbol):
+	_object: Union['Constant', 'Signal', 'Variable', 'Function']
 
 	def __init__(self, objectName: str):
 		super().__init__(objectName)
 		self._object = None
 
 	@property
-	def Object(self) -> Union['Constant', 'Signal', 'Variable']:
+	def Object(self) -> Union['Constant', 'Signal', 'Variable', 'Function']:
+		return self._object
+
+	def __str__(self) -> str:
+		if self._object is not None:
+			return str(self._object)
+		return super().__str__()
+
+
+@export
+class IndexedObjectOrFunctionCallSymbol(Symbol):
+	_object: Union['Constant', 'Signal', 'Variable', 'Function']
+
+	def __init__(self, objectName: str):
+		super().__init__(objectName)
+		self._object = None
+
+	@property
+	def Object(self) -> Union['Constant', 'Signal', 'Variable', 'Function']:
 		return self._object
 
 	def __str__(self) -> str:
@@ -525,6 +562,18 @@ class Document(ModelEntity):
 	def PackageBodies(self) -> List['PackageBody']:
 		"""Returns a list of all package body declarations found in this document."""
 		return self._packageBodies
+
+
+@export
+class Alias(ModelEntity, NamedEntity):
+	def __init__(self, name: str):
+		"""
+		Initializes underlying ``BaseType``.
+
+		:param name: Name of the type.
+		"""
+		super().__init__()
+		NamedEntity.__init__(self, name)
 
 
 @export
@@ -798,7 +847,45 @@ class FloatingPointLiteral(NumericLiteral):
 
 @export
 class PhysicalLiteral(NumericLiteral):
-	pass
+	_unitName: str
+
+	def __init__(self, unitName: str):
+		super().__init__()
+		self._unitName = unitName
+
+	@property
+	def UnitName(self) -> str:
+		return self._unitName
+
+	def __str__(self) -> str:
+		return "{value} {unit}".format(value=self._value, unit=self._unitName)
+
+
+@export
+class PhysicalIntegerLiteral(PhysicalLiteral):
+	_value: int
+	_unitName: str
+
+	def __init__(self, value: int, unitName: str):
+		super().__init__(unitName)
+		self._value = value
+
+	@property
+	def Value(self) -> int:
+		return self._value
+
+
+@export
+class PhysicalFloatingLiteral(PhysicalLiteral):
+	_value: float
+
+	def __init__(self, value: float, unitName: str):
+		super().__init__(unitName)
+		self._value = value
+
+	@property
+	def Value(self) -> float:
+		return self._value
 
 
 @export
@@ -850,6 +937,13 @@ class BitStringLiteral(Literal):
 
 
 @export
+class ParenthesisExpression(Protocol):
+	@property
+	def Operand(self) -> Expression:
+		pass
+
+
+@export
 class UnaryExpression(BaseExpression):
 	"""
 	A ``UnaryExpression`` is a base-class for all unary expressions.
@@ -873,7 +967,7 @@ class UnaryExpression(BaseExpression):
 		)
 
 @export
-class InverseExpression(UnaryExpression):
+class NegationExpression(UnaryExpression):
 	_FORMAT = ("-", "")
 
 @export
@@ -881,7 +975,7 @@ class IdentityExpression(UnaryExpression):
 	_FORMAT = ("+", "")
 
 @export
-class NegationExpression(UnaryExpression):
+class InverseExpression(UnaryExpression):
 	_FORMAT = ("not ", "")
 
 @export
@@ -896,8 +990,9 @@ class TypeConversion(UnaryExpression):
 class FunctionCall(UnaryExpression):
 	pass
 
+
 @export
-class ParenthesisExpression(UnaryExpression):
+class SubExpression(UnaryExpression, ParenthesisExpression):
 	_FORMAT = ("(", ")")
 
 
@@ -931,10 +1026,6 @@ class BinaryExpression(BaseExpression):
 			rightOperator=self._FORMAT[2],
 		)
 
-
-@export
-class QualifiedExpression(BinaryExpression):
-	pass
 
 @export
 class	AddingExpression(BinaryExpression):
@@ -1083,6 +1174,30 @@ class	RotateRightExpression(RotateExpression):
 class	RotateLeftExpression(RotateExpression):
 	_FORMAT = ("", " rol ", "")
 
+
+@export
+class QualifiedExpression(BaseExpression, ParenthesisExpression):
+	_operand:  Expression
+	_subtype:  SubTypeOrSymbol
+
+	def __init__(self):
+		super().__init__()
+
+	@property
+	def Operand(self):
+		return self._operand
+
+	@property
+	def SubTyped(self):
+		return self._subtype
+
+	def __str__(self) -> str:
+		return "{subtype}'({operand!s})".format(
+			subtype=self._subtype,
+			operand=self._operand,
+		)
+
+
 @export
 class TernaryExpression(BaseExpression):
 	"""
@@ -1207,7 +1322,7 @@ class Aggregate(BaseExpression):
 		return self._elements
 
 	def __str__(self) -> str:
-		choices = [self.formatAggregateElement(element) for element in self._elements]
+		choices = [str(element) for element in self._elements]
 		return "({choices})".format(
 			choices=", ".join(choices)
 		)
@@ -1709,6 +1824,27 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 	@property
 	def BodyItems(self) -> List['ConcurrentStatement']:
 		return self._bodyItems
+
+
+@export
+class Component(ModelEntity, NamedEntity):
+	_genericItems:      List[GenericInterfaceItem]
+	_portItems:         List[PortInterfaceItem]
+
+	def __init__(self, name: str):
+		super().__init__()
+		NamedEntity.__init__(self, name)
+
+		self._genericItems      = []
+		self._portItems         = []
+
+	@property
+	def GenericItems(self) -> List[GenericInterfaceItem]:
+		return self._genericItems
+
+	@property
+	def PortItems(self) -> List[PortInterfaceItem]:
+		return self._portItems
 
 
 @export

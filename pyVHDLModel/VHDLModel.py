@@ -842,7 +842,45 @@ class FloatingPointLiteral(NumericLiteral):
 
 @export
 class PhysicalLiteral(NumericLiteral):
-	pass
+	_unitName: str
+
+	def __init__(self, unitName: str):
+		super().__init__()
+		self._unitName = unitName
+
+	@property
+	def UnitName(self) -> str:
+		return self._unitName
+
+	def __str__(self) -> str:
+		return "{value} {unit}".format(value=self._value, unit=self._unitName)
+
+
+@export
+class PhysicalIntegerLiteral(PhysicalLiteral):
+	_value: int
+	_unitName: str
+
+	def __init__(self, value: int, unitName: str):
+		super().__init__(unitName)
+		self._value = value
+
+	@property
+	def Value(self) -> int:
+		return self._value
+
+
+@export
+class PhysicalFloatingLiteral(PhysicalLiteral):
+	_value: float
+
+	def __init__(self, value: float, unitName: str):
+		super().__init__(unitName)
+		self._value = value
+
+	@property
+	def Value(self) -> float:
+		return self._value
 
 
 @export

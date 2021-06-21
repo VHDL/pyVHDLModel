@@ -547,6 +547,18 @@ class Document(ModelEntity):
 
 
 @export
+class Alias(ModelEntity, NamedEntity):
+	def __init__(self, name: str):
+		"""
+		Initializes underlying ``BaseType``.
+
+		:param name: Name of the type.
+		"""
+		super().__init__()
+		NamedEntity.__init__(self, name)
+
+
+@export
 class BaseType(ModelEntity, NamedEntity):
 	"""``BaseType`` is the base class of all type entities in this model."""
 	def __init__(self, name: str):

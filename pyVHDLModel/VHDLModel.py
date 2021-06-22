@@ -43,7 +43,8 @@ This module contains a document language model for VHDL.
 # load dependencies
 from enum               import Enum
 from pathlib            import Path
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
+
 try:
 	from typing import Protocol
 except ImportError:
@@ -443,17 +444,17 @@ class Design(ModelEntity):
 	and analysed. It's the root of this document-object-model (DOM). It contains
 	at least on VHDL library (see :class:`~pyVHDLModel.VHDLModel.Library`).
 	"""
-	_libraries:  List['Library']  #: List of all libraries defined for a design.
+	_libraries:  Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:  List['Document'] #: List of all documents loaded for a design.
 
 	def __init__(self):
 		super().__init__()
 
-		self._libraries = []
+		self._libraries = {}
 		self._documents = []
 
 	@property
-	def Libraries(self) -> List['Library']:
+	def Libraries(self) -> Dict[str, 'Library']:
 		"""Returns a list of all libraries specified for this design."""
 		return self._libraries
 
@@ -461,6 +462,30 @@ class Design(ModelEntity):
 	def Documents(self) -> List['Document']:
 		"""Returns a list of all documents (files) loaded for this design."""
 		return self._documents
+
+	def GetLibrary(self, libraryName: str) -> 'Library':
+		if libraryName not in self._libraries:
+			lib = Library(libraryName)
+			self._libraries[libraryName] = lib
+		else:
+			lib = self._libraries[libraryName]
+
+		return lib
+
+	def AddDocument(self, document: 'Document', library: 'Library') -> None:
+		self._documents.append(document)
+
+		for entity in document.Entities:
+			library.Entities.append(entity)
+
+		for package in document.Packages:
+			library.Packages.append(package)
+
+		for configuration in document.Configurations:
+			library.Configurations.append(configuration)
+
+		for context in document.Contexts:
+			library.Contexts.append(context)
 
 
 @export

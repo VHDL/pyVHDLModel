@@ -1454,6 +1454,11 @@ class Variable(Object, WithDefaultExpression):
 
 
 @export
+class SharedVariable(Object):
+	pass
+
+
+@export
 class Signal(Object, WithDefaultExpression):
 	pass
 

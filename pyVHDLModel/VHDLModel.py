@@ -647,7 +647,7 @@ class SubType(BaseType):
 
 
 @export
-class ScalarType(BaseType):
+class ScalarType(Type):
 	"""
 	A ``ScalarType`` is a base-class for all scalar types.
 	"""
@@ -686,24 +686,24 @@ class DiscreteType:
 
 
 @export
-class CompositeType(BaseType):
+class CompositeType(Type):
 	"""
 	A ``CompositeType`` is a base-class for all composite types.
 	"""
 
 
 @export
-class ProtectedType(BaseType):
+class ProtectedType(Type):
 	pass
 
 
 @export
-class AccessType(BaseType):
+class AccessType(Type):
 	pass
 
 
 @export
-class FileType(BaseType):
+class FileType(Type):
 	pass
 
 

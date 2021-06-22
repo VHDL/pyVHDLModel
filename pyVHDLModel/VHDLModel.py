@@ -1769,19 +1769,19 @@ class Context(PrimaryUnit):
 
 @export
 class Entity(PrimaryUnit, MixinDesignUnitWithContext):
-	_genericItems:      List[GenericInterfaceItem]
-	_portItems:         List[PortInterfaceItem]
-	_declaredItems:     List   # FIXME: define list element type e.g. via Union
-	_bodyItems:         List['ConcurrentStatement']
+	_genericItems:  List[GenericInterfaceItem]
+	_portItems:     List[PortInterfaceItem]
+	_declaredItems: List   # FIXME: define list element type e.g. via Union
+	_bodyItems:     List['ConcurrentStatement']
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, genericItems: List[GenericInterfaceItem] = None, portItems: List[PortInterfaceItem] = None, declaredItems: List = None, bodyItems: List['ConcurrentStatement'] = None):
 		super().__init__(name)
 		MixinDesignUnitWithContext.__init__(self)
 
-		self._genericItems      = []
-		self._portItems         = []
-		self._declaredItems     = []
-		self._bodyItems         = []
+		self._genericItems  = [] if genericItems is None else [g for g in genericItems]
+		self._portItems     = [] if portItems is None else [p for p in portItems]
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		self._bodyItems     = [] if bodyItems is None else [i for i in bodyItems]
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -1802,19 +1802,20 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 
 @export
 class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
-	_entity:            Entity
-	_declaredItems:     List   # FIXME: define list element type e.g. via Union
-	_bodyItems:         List['ConcurrentStatement']
+	_entity:        EntityOrSymbol
+	_declaredItems: List   # FIXME: define list element type e.g. via Union
+	_bodyItems:     List['ConcurrentStatement']
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, entity: EntityOrSymbol, declaredItems: List = None, bodyItems: List['ConcurrentStatement'] = None):
 		super().__init__(name)
 		MixinDesignUnitWithContext.__init__(self)
 
-		self._declaredItems =     []
-		self._bodyItems =         []
+		self._entity        = entity
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		self._bodyItems     = [] if bodyItems is None else [i for i in bodyItems]
 
 	@property
-	def Entity(self) -> Entity:
+	def Entity(self) -> EntityOrSymbol:
 		return self._entity
 
 	@property
@@ -1831,12 +1832,12 @@ class Component(ModelEntity, NamedEntity):
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, genericItems: List[GenericInterfaceItem] = None, portItems: List[PortInterfaceItem] = None):
 		super().__init__()
 		NamedEntity.__init__(self, name)
 
-		self._genericItems      = []
-		self._portItems         = []
+		self._genericItems      = [] if genericItems is None else [g for g in genericItems]
+		self._portItems         = [] if portItems is None else [p for p in portItems]
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -1914,12 +1915,12 @@ class Package(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, genericItems: List[GenericInterfaceItem] = None, declaredItems: List = None):
 		super().__init__(name)
 		MixinDesignUnitWithContext.__init__(self)
 
-		self._genericItems =      []
-		self._declaredItems =     []
+		self._genericItems =  [] if genericItems is None else [g for g in genericItems]
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -1935,11 +1936,11 @@ class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
 	_package:           Package
 	_declaredItems:     List
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, declaredItems: List = None):
 		super().__init__(name)
 		MixinDesignUnitWithContext.__init__(self)
 
-		self._declaredItems =     []
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
 	@property
 	def Package(self) -> Package:

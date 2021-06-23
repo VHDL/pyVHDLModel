@@ -326,7 +326,21 @@ class SimpleSubTypeSymbol(SubTypeSymbol):
 
 
 @export
-class ConstrainedSubTypeSymbol(SubTypeSymbol):
+class ConstrainedScalarSubTypeSymbol(SubTypeSymbol):
+	_range: 'Range'
+
+	def __init__(self, subTypeName: str, range: 'Range' = None):
+		super().__init__(symbolName = subTypeName)
+		self._subType = None
+		self._range = range
+
+	@property
+	def Range(self) -> 'Range':
+		return self._range
+
+
+@export
+class ConstrainedCompositeSubTypeSymbol(SubTypeSymbol):
 	_constraints: List[Constraint]
 
 	def __init__(self, subTypeName: str, constraints: List[Constraint] = None):

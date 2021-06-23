@@ -43,7 +43,8 @@ This module contains a document language model for VHDL.
 # load dependencies
 from enum               import Enum
 from pathlib            import Path
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
+
 try:
 	from typing import Protocol
 except ImportError:
@@ -325,7 +326,21 @@ class SimpleSubTypeSymbol(SubTypeSymbol):
 
 
 @export
-class ConstrainedSubTypeSymbol(SubTypeSymbol):
+class ConstrainedScalarSubTypeSymbol(SubTypeSymbol):
+	_range: 'Range'
+
+	def __init__(self, subTypeName: str, range: 'Range' = None):
+		super().__init__(symbolName = subTypeName)
+		self._subType = None
+		self._range = range
+
+	@property
+	def Range(self) -> 'Range':
+		return self._range
+
+
+@export
+class ConstrainedCompositeSubTypeSymbol(SubTypeSymbol):
 	_constraints: List[Constraint]
 
 	def __init__(self, subTypeName: str, constraints: List[Constraint] = None):
@@ -443,17 +458,17 @@ class Design(ModelEntity):
 	and analysed. It's the root of this document-object-model (DOM). It contains
 	at least on VHDL library (see :class:`~pyVHDLModel.VHDLModel.Library`).
 	"""
-	_libraries:  List['Library']  #: List of all libraries defined for a design.
+	_libraries:  Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:  List['Document'] #: List of all documents loaded for a design.
 
 	def __init__(self):
 		super().__init__()
 
-		self._libraries = []
+		self._libraries = {}
 		self._documents = []
 
 	@property
-	def Libraries(self) -> List['Library']:
+	def Libraries(self) -> Dict[str, 'Library']:
 		"""Returns a list of all libraries specified for this design."""
 		return self._libraries
 
@@ -461,6 +476,30 @@ class Design(ModelEntity):
 	def Documents(self) -> List['Document']:
 		"""Returns a list of all documents (files) loaded for this design."""
 		return self._documents
+
+	def GetLibrary(self, libraryName: str) -> 'Library':
+		if libraryName not in self._libraries:
+			lib = Library(libraryName)
+			self._libraries[libraryName] = lib
+		else:
+			lib = self._libraries[libraryName]
+
+		return lib
+
+	def AddDocument(self, document: 'Document', library: 'Library') -> None:
+		self._documents.append(document)
+
+		for entity in document.Entities:
+			library.Entities.append(entity)
+
+		for package in document.Packages:
+			library.Packages.append(package)
+
+		for configuration in document.Configurations:
+			library.Configurations.append(configuration)
+
+		for context in document.Contexts:
+			library.Contexts.append(context)
 
 
 @export
@@ -622,7 +661,7 @@ class SubType(BaseType):
 
 
 @export
-class ScalarType(BaseType):
+class ScalarType(Type):
 	"""
 	A ``ScalarType`` is a base-class for all scalar types.
 	"""
@@ -661,39 +700,55 @@ class DiscreteType:
 
 
 @export
-class CompositeType(BaseType):
+class CompositeType(Type):
 	"""
 	A ``CompositeType`` is a base-class for all composite types.
 	"""
 
 
 @export
-class ProtectedType(BaseType):
+class ProtectedType(Type):
 	pass
 
 
 @export
-class AccessType(BaseType):
-	pass
+class AccessType(Type):
+	_designatedSubType: SubTypeOrSymbol
+
+	def __init__(self, name: str, designatedSubType: SubTypeOrSymbol):
+		super().__init__(name)
+		self._designatedSubType = designatedSubType
+
+	@property
+	def DesignatedSubtype(self):
+		return self._designatedSubType
 
 
 @export
-class FileType(BaseType):
-	pass
+class FileType(Type):
+	_designatedSubType: SubTypeOrSymbol
+
+	def __init__(self, name: str, designatedSubType: SubTypeOrSymbol):
+		super().__init__(name)
+		self._designatedSubType = designatedSubType
+
+	@property
+	def DesignatedSubtype(self):
+		return self._designatedSubType
 
 
 @export
 class EnumeratedType(ScalarType, DiscreteType):
-	_elements: List['EnumerationLiteral']
+	_literals: List['EnumerationLiteral']
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, literals: List['EnumerationLiteral']):
 		super().__init__(name)
 
-		self._elements = []
+		self._literals = [] if literals is None else [l for l in literals]
 
 	@property
-	def Elements(self) -> List['EnumerationLiteral']:
-		return self._elements
+	def Literals(self) -> List['EnumerationLiteral']:
+		return self._literals
 
 
 @export
@@ -732,7 +787,7 @@ class ArrayType(CompositeType):
 	_dimensions:  List['Range']
 	_elementType: SubType
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, indices: List, elementSubType: SubTypeOrSymbol):
 		super().__init__(name)
 
 		self._dimensions =  []
@@ -747,33 +802,37 @@ class ArrayType(CompositeType):
 
 
 @export
-class RecordTypeMember(ModelEntity):
+class RecordTypeElement(ModelEntity):
 	_name:    str
-	_subType: SubType
+	_subType: SubTypeOrSymbol
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, subType: SubTypeOrSymbol):
 		super().__init__()
 
-		self._name =        name
-		self._subType =     None
+		self._name =    name
+		self._subType = subType
 
 	@property
 	def Name(self) -> str:
 		return self._name
 
+	@property
+	def SubType(self) -> SubTypeOrSymbol:
+		return self._subType
+
 
 @export
 class RecordType(CompositeType):
-	_members: List[RecordTypeMember]
+	_elements: List[RecordTypeElement]
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, elements: List[RecordTypeElement] = None):
 		super().__init__(name)
 
-		self._members =     []
+		self._elements = [] if elements is None else [i for i in elements]
 
 	@property
-	def Members(self) -> List[RecordTypeMember]:
-		return self._members
+	def Elements(self) -> List[RecordTypeElement]:
+		return self._elements
 
 
 @export
@@ -1429,6 +1488,11 @@ class Variable(Object, WithDefaultExpression):
 
 
 @export
+class SharedVariable(Object):
+	pass
+
+
+@export
 class Signal(Object, WithDefaultExpression):
 	pass
 
@@ -1769,19 +1833,19 @@ class Context(PrimaryUnit):
 
 @export
 class Entity(PrimaryUnit, MixinDesignUnitWithContext):
-	_genericItems:      List[GenericInterfaceItem]
-	_portItems:         List[PortInterfaceItem]
-	_declaredItems:     List   # FIXME: define list element type e.g. via Union
-	_bodyItems:         List['ConcurrentStatement']
+	_genericItems:  List[GenericInterfaceItem]
+	_portItems:     List[PortInterfaceItem]
+	_declaredItems: List   # FIXME: define list element type e.g. via Union
+	_bodyItems:     List['ConcurrentStatement']
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, genericItems: List[GenericInterfaceItem] = None, portItems: List[PortInterfaceItem] = None, declaredItems: List = None, bodyItems: List['ConcurrentStatement'] = None):
 		super().__init__(name)
 		MixinDesignUnitWithContext.__init__(self)
 
-		self._genericItems      = []
-		self._portItems         = []
-		self._declaredItems     = []
-		self._bodyItems         = []
+		self._genericItems  = [] if genericItems is None else [g for g in genericItems]
+		self._portItems     = [] if portItems is None else [p for p in portItems]
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		self._bodyItems     = [] if bodyItems is None else [i for i in bodyItems]
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -1802,19 +1866,20 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 
 @export
 class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
-	_entity:            Entity
-	_declaredItems:     List   # FIXME: define list element type e.g. via Union
-	_bodyItems:         List['ConcurrentStatement']
+	_entity:        EntityOrSymbol
+	_declaredItems: List   # FIXME: define list element type e.g. via Union
+	_bodyItems:     List['ConcurrentStatement']
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, entity: EntityOrSymbol, declaredItems: List = None, bodyItems: List['ConcurrentStatement'] = None):
 		super().__init__(name)
 		MixinDesignUnitWithContext.__init__(self)
 
-		self._declaredItems =     []
-		self._bodyItems =         []
+		self._entity        = entity
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		self._bodyItems     = [] if bodyItems is None else [i for i in bodyItems]
 
 	@property
-	def Entity(self) -> Entity:
+	def Entity(self) -> EntityOrSymbol:
 		return self._entity
 
 	@property
@@ -1831,12 +1896,12 @@ class Component(ModelEntity, NamedEntity):
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, genericItems: List[GenericInterfaceItem] = None, portItems: List[PortInterfaceItem] = None):
 		super().__init__()
 		NamedEntity.__init__(self, name)
 
-		self._genericItems      = []
-		self._portItems         = []
+		self._genericItems      = [] if genericItems is None else [g for g in genericItems]
+		self._portItems         = [] if portItems is None else [p for p in portItems]
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -1914,12 +1979,12 @@ class Package(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, genericItems: List[GenericInterfaceItem] = None, declaredItems: List = None):
 		super().__init__(name)
 		MixinDesignUnitWithContext.__init__(self)
 
-		self._genericItems =      []
-		self._declaredItems =     []
+		self._genericItems =  [] if genericItems is None else [g for g in genericItems]
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -1935,11 +2000,11 @@ class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
 	_package:           Package
 	_declaredItems:     List
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, declaredItems: List = None):
 		super().__init__(name)
 		MixinDesignUnitWithContext.__init__(self)
 
-		self._declaredItems =     []
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
 	@property
 	def Package(self) -> Package:

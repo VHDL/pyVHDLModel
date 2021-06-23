@@ -90,7 +90,8 @@ class Instantiate(TestCase):
 		self.assertTrue(len(entity.BodyItems) == 0)
 
 	def test_Architecture(self):
-		architecture = Architecture("arch_1")
+		entity = Entity("entity_1")
+		architecture = Architecture("arch_1", entity)
 
 		self.assertIsNotNone(architecture)
 		self.assertTrue(architecture.Name == "arch_1")
@@ -142,7 +143,7 @@ class Instantiate(TestCase):
 		self.assertTrue(real.Name == "real")
 
 	def test_Array(self):
-		array =   ArrayType("bit_vector")
+		array =   ArrayType("bit_vector", [], None)
 
 		self.assertIsNotNone(array)
 		self.assertTrue(array.Name == "bit_vector")

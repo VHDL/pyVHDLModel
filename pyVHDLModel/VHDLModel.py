@@ -56,6 +56,8 @@ from pydecor.decorators import export
 __all__ = []
 #__api__ = __all__ # FIXME: disabled due to a bug in pydecors export decorator
 
+SimpleOrAttribute =     Union['SimpleName',    'AttributeName']
+
 LibraryOrSymbol =       Union['Library',       'LibrarySymbol']
 EntityOrSymbol =        Union['Entity',        'EntitySymbol']
 ArchitectureOrSymbol =  Union['Architecture',  'ArchitectureSymbol']
@@ -197,29 +199,106 @@ class LabeledEntity:
 		"""Returns a model entity's label."""
 		return self._label
 
+@export
+class Name:
+	_name: str
+	_root: 'Name'
+	_prefix: 'Name'
+
+	def __init__(self, name: str):
+		self._name = name
+
+	@property
+	def Name(self) -> str:
+		return self._name
+
+	@property
+	def Root(self) -> 'Name':
+		return self._root
+
+	@property
+	def Prefix(self) -> 'Name':
+		return self._prefix
+
+	@property
+	def Has_Prefix(self) -> bool:
+		return self._prefix is not None
+
+
+@export
+class SimpleName(Name):
+	def __str__(self):
+		return self._name
+
+
+@export
+class IndexedName(Name):
+	_index: Expression
+
+	@property
+	def Index(self) -> Expression:
+		return self._index
+
+
+@export
+class SlicedName(Name):
+	pass
+
+
+@export
+class SelectedName(Name):
+	_element: Name
+
+	def __init__(self, name: str, element: Name):
+		super().__init__(name)
+		self._element = element
+
+	@property
+	def Element(self) -> Name:
+		return self._element
+
+	def __str__(self):
+		return self._name + "." + str(self._element)
+
+
+@export
+class AttributeName(Name):
+	_attribute: SimpleOrAttribute
+
+	def __init__(self, name: str, attribute: SimpleOrAttribute):
+		super().__init__(name)
+		self._attribute = attribute
+
+	@property
+	def Attribute(self) -> SimpleOrAttribute:
+		return self._attribute
+
+	def __str__(self):
+		return self._name + "'" + str(self._attribute)
+
 
 @export
 class Symbol(ModelEntity):
-	_symbolName: str
+	_symbolName: Name
 
-	def __init__(self, symbolName: str):
+	def __init__(self, symbolName: Name):
 		super().__init__()
 		self._symbolName = symbolName
 
 	@property
-	def SymbolName(self) -> str:
+	def SymbolName(self) -> Name:
 		return self._symbolName
 
 	def __str__(self) -> str:
-		return self._symbolName
+		return str(self._symbolName)
 
 
 @export
 class LibrarySymbol(Symbol):
 	_library: 'Library'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._library = None
 
 	@property
@@ -234,7 +313,7 @@ class LibrarySymbol(Symbol):
 class EntitySymbol(Symbol):
 	_entity: 'Entity'
 
-	def __init__(self, entityName: str):
+	def __init__(self, entityName: Name):
 		super().__init__(symbolName=entityName)
 
 		self._entity = None
@@ -248,8 +327,8 @@ class EntitySymbol(Symbol):
 class ArchitectureSymbol(Symbol):
 	_architecture: 'Architecture'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._architecture = None
 
 	@property
@@ -261,8 +340,8 @@ class ArchitectureSymbol(Symbol):
 class ComponentSymbol(Symbol):
 	_component: 'Component'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._component = None
 
 	@property
@@ -274,8 +353,8 @@ class ComponentSymbol(Symbol):
 class ConfigurationSymbol(Symbol):
 	_configuration: 'Configuration'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._configuration = None
 
 	@property
@@ -287,8 +366,8 @@ class ConfigurationSymbol(Symbol):
 class PackageSymbol(Symbol):
 	_package: 'Package'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._package = None
 
 	@property
@@ -300,8 +379,8 @@ class PackageSymbol(Symbol):
 class ContextSymbol(Symbol):
 	_context: 'Context'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._context = None
 
 	@property
@@ -320,7 +399,7 @@ class SubTypeSymbol(Symbol):
 
 @export
 class SimpleSubTypeSymbol(SubTypeSymbol):
-	def __init__(self, subTypeName: str):
+	def __init__(self, subTypeName: Name):
 		super().__init__(symbolName = subTypeName)
 		self._subType = None
 
@@ -329,7 +408,7 @@ class SimpleSubTypeSymbol(SubTypeSymbol):
 class ConstrainedScalarSubTypeSymbol(SubTypeSymbol):
 	_range: 'Range'
 
-	def __init__(self, subTypeName: str, range: 'Range' = None):
+	def __init__(self, subTypeName: Name, range: 'Range' = None):
 		super().__init__(symbolName = subTypeName)
 		self._subType = None
 		self._range = range
@@ -343,7 +422,7 @@ class ConstrainedScalarSubTypeSymbol(SubTypeSymbol):
 class ConstrainedCompositeSubTypeSymbol(SubTypeSymbol):
 	_constraints: List[Constraint]
 
-	def __init__(self, subTypeName: str, constraints: List[Constraint] = None):
+	def __init__(self, subTypeName: Name, constraints: List[Constraint] = None):
 		super().__init__(symbolName = subTypeName)
 		self._subType = None
 		self._constraints = constraints
@@ -367,7 +446,7 @@ class ObjectSymbol(Symbol):
 class SimpleObjectOrFunctionCallSymbol(Symbol):
 	_object: Union['Constant', 'Signal', 'Variable', 'Function']
 
-	def __init__(self, objectName: str):
+	def __init__(self, objectName: Name):
 		super().__init__(objectName)
 		self._object = None
 
@@ -385,7 +464,7 @@ class SimpleObjectOrFunctionCallSymbol(Symbol):
 class IndexedObjectOrFunctionCallSymbol(Symbol):
 	_object: Union['Constant', 'Signal', 'Variable', 'Function']
 
-	def __init__(self, objectName: str):
+	def __init__(self, objectName: Name):
 		super().__init__(objectName)
 		self._object = None
 
@@ -403,8 +482,8 @@ class IndexedObjectOrFunctionCallSymbol(Symbol):
 class ConstantSymbol(ObjectSymbol):
 	_constant: 'Constant'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._constant = None
 
 	@property
@@ -416,8 +495,8 @@ class ConstantSymbol(ObjectSymbol):
 class VariableSymbol(ObjectSymbol):
 	_variable: 'Variable'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._variable = None
 
 	@property
@@ -429,8 +508,8 @@ class VariableSymbol(ObjectSymbol):
 class SignalSymbol(ObjectSymbol):
 	_signal: 'Signal'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._signal = None
 
 	@property
@@ -442,8 +521,8 @@ class SignalSymbol(ObjectSymbol):
 class FileSymbol(ObjectSymbol):
 	_file: 'File'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._file = None
 
 	@property

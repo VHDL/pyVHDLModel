@@ -772,33 +772,37 @@ class ArrayType(CompositeType):
 
 
 @export
-class RecordTypeMember(ModelEntity):
+class RecordTypeElement(ModelEntity):
 	_name:    str
-	_subType: SubType
+	_subType: SubTypeOrSymbol
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, subType: SubTypeOrSymbol):
 		super().__init__()
 
-		self._name =        name
-		self._subType =     None
+		self._name =    name
+		self._subType = subType
 
 	@property
 	def Name(self) -> str:
 		return self._name
 
+	@property
+	def SubType(self) -> SubTypeOrSymbol:
+		return self._subType
+
 
 @export
 class RecordType(CompositeType):
-	_members: List[RecordTypeMember]
+	_elements: List[RecordTypeElement]
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, elements: List[RecordTypeElement] = None):
 		super().__init__(name)
 
-		self._members =     []
+		self._elements = [] if elements is None else [i for i in elements]
 
 	@property
-	def Members(self) -> List[RecordTypeMember]:
-		return self._members
+	def Elements(self) -> List[RecordTypeElement]:
+		return self._elements
 
 
 @export

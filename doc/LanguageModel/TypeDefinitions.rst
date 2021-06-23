@@ -232,7 +232,7 @@ Record
 
      # from RecordType
      @property
-     def Members(self) -> List[RecordTypeMember]:
+     def Members(self) -> List[RecordTypeElement]:
 
 
 .. _vhdlmodel-protectedtypes:

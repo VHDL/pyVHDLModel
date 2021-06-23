@@ -699,26 +699,42 @@ class ProtectedType(Type):
 
 @export
 class AccessType(Type):
-	pass
+	_designatedSubType: SubTypeOrSymbol
+
+	def __init__(self, name: str, designatedSubType: SubTypeOrSymbol):
+		super().__init__(name)
+		self._designatedSubType = designatedSubType
+
+	@property
+	def DesignatedSubtype(self):
+		return self._designatedSubType
 
 
 @export
 class FileType(Type):
-	pass
+	_designatedSubType: SubTypeOrSymbol
+
+	def __init__(self, name: str, designatedSubType: SubTypeOrSymbol):
+		super().__init__(name)
+		self._designatedSubType = designatedSubType
+
+	@property
+	def DesignatedSubtype(self):
+		return self._designatedSubType
 
 
 @export
 class EnumeratedType(ScalarType, DiscreteType):
-	_elements: List['EnumerationLiteral']
+	_literals: List['EnumerationLiteral']
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, literals: List['EnumerationLiteral']):
 		super().__init__(name)
 
-		self._elements = []
+		self._literals = [] if literals is None else [l for l in literals]
 
 	@property
-	def Elements(self) -> List['EnumerationLiteral']:
-		return self._elements
+	def Literals(self) -> List['EnumerationLiteral']:
+		return self._literals
 
 
 @export
@@ -757,7 +773,7 @@ class ArrayType(CompositeType):
 	_dimensions:  List['Range']
 	_elementType: SubType
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, indices: List, elementSubType: SubTypeOrSymbol):
 		super().__init__(name)
 
 		self._dimensions =  []

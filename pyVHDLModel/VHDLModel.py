@@ -43,7 +43,7 @@ This module contains a document language model for VHDL.
 # load dependencies
 from enum               import Enum
 from pathlib            import Path
-from typing import List, Tuple, Union, Dict
+from typing import List, Tuple, Union, Dict, Iterator
 
 try:
 	from typing import Protocol
@@ -811,7 +811,28 @@ class CompositeType(Type):
 
 @export
 class ProtectedType(Type):
-	pass
+	_methods: List[Union['Procedure', 'Function']]
+
+	def __init__(self, name: str, methods: Union[List, Iterator] = None):
+		super().__init__(name)
+		self._methods = [] if methods is None else [m for m in methods]
+
+	@property
+	def Methods(self) -> List[Union['Procedure', 'Function']]:
+		return self._methods
+
+
+@export
+class ProtectedTypeBody(Type):
+	_methods: List[Union['Procedure', 'Function']]
+
+	def __init__(self, name: str, methods: Union[List, Iterator] = None):
+		super().__init__(name)
+		self._methods = [] if methods is None else [m for m in methods]
+
+	@property
+	def Methods(self) -> List[Union['Procedure', 'Function']]:
+		return self._methods
 
 
 @export

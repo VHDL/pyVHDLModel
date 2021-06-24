@@ -975,6 +975,12 @@ class Literal(BaseExpression):
 
 
 @export
+class NullLiteral(Literal):
+	def __str__(self) -> str:
+		return "null"
+
+
+@export
 class EnumerationLiteral(Literal):
 	_value: str
 

@@ -1536,6 +1536,7 @@ class BaseConstraint(ModelEntity):
 	pass
 
 
+# FIXME: exists 2 times
 @export
 class RangeExpression(BaseConstraint):
 	_range: Range
@@ -1544,12 +1545,12 @@ class RangeExpression(BaseConstraint):
 	def Range(self):
 		return self._range
 
-
+# FIXME: Is this used?
 @export
 class RangeAttribute(BaseConstraint):
 	pass
 
-
+# FIXME: Is this used?
 @export
 class RangeSubtype(BaseConstraint):
 	pass
@@ -1703,6 +1704,21 @@ class FunctionMethod(Function, Method):
 	def __init__(self, name: str, protectedType: ProtectedType):
 		super().__init__(name)
 		Method.__init__(self, protectedType)
+
+
+@export
+class Attribute(ModelEntity, NamedEntity):
+	_subType: SubTypeOrSymbol
+
+	def __init__(self, name: str, subType: SubTypeOrSymbol):
+		super().__init__()
+		NamedEntity.__init__(self, name)
+
+		self._subType = subType
+
+	@property
+	def SubType(self):
+		return self._subType
 
 
 @export

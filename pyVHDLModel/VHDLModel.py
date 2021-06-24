@@ -143,7 +143,7 @@ class Class(Enum):
 @export
 class ModelEntity:
 	"""
-	``ModelEntity`` is a base class for all classes in the VHDL language model,
+	``ModelEntity`` is the base class for all classes in the VHDL language model,
 	except for mixin classes (see multiple inheritance) and enumerations.
 
 	Each entity in this model has a reference to its parent entity. Therefore
@@ -201,12 +201,18 @@ class LabeledEntity:
 
 @export
 class Name:
+	"""
+	``Name`` is the base class for all *names* in the VHDL language model.
+  """
+
 	_name: str
 	_root: 'Name'
 	_prefix: 'Name'
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, prefix: 'Name' = None):
 		self._name = name
+		self._prefix = prefix
+		self._root = prefix._root
 
 	@property
 	def Name(self) -> str:
@@ -227,17 +233,49 @@ class Name:
 
 @export
 class SimpleName(Name):
+	def __init__(self, name: str):
+		self._name = name
+		self._root = self
+		self._prefix = None
+
+	@property
+	def Root(self) -> 'Name':
+		return self
+
+	@property
+	def Prefix(self) -> 'Name':
+		return None
+
+	@property
+	def Has_Prefix(self) -> bool:
+		return False
+
 	def __str__(self):
 		return self._name
+
+@export
+class ParenthesisName(Name):
+	_associations: List
+
+	def __init__(self, prefix: Name, associations: List):
+		super().__init__("", prefix=prefix)
+		self._associations = associations
+
+	@property
+	def Associations(self) -> List:
+		return self._associations
+
+	def __str__(self):
+		return str(self._prefix) + "(" + ", ".join([str(a) for a in self._associations]) + ")"
 
 
 @export
 class IndexedName(Name):
-	_index: Expression
+	_indices: List[Expression]
 
 	@property
-	def Index(self) -> Expression:
-		return self._index
+	def Indices(self) -> List[Expression]:
+		return self._indices
 
 
 @export
@@ -247,34 +285,20 @@ class SlicedName(Name):
 
 @export
 class SelectedName(Name):
-	_element: Name
-
-	def __init__(self, name: str, element: Name):
-		super().__init__(name)
-		self._element = element
-
-	@property
-	def Element(self) -> Name:
-		return self._element
+	def __init__(self, name: str, prefix: Name):
+		super().__init__(name, prefix=prefix)
 
 	def __str__(self):
-		return self._name + "." + str(self._element)
+		return str(self._prefix) + "." + self._name
 
 
 @export
 class AttributeName(Name):
-	_attribute: SimpleOrAttribute
-
-	def __init__(self, name: str, attribute: SimpleOrAttribute):
-		super().__init__(name)
-		self._attribute = attribute
-
-	@property
-	def Attribute(self) -> SimpleOrAttribute:
-		return self._attribute
+	def __init__(self, name: str, prefix: Name):
+		super().__init__(name, prefix=prefix)
 
 	def __str__(self):
-		return self._name + "'" + str(self._attribute)
+		return str(self._prefix) + "'" + self._name
 
 
 @export
@@ -1166,6 +1190,21 @@ class BinaryExpression(BaseExpression):
 
 
 @export
+class RangeExpression(BinaryExpression):
+	pass
+
+
+@export
+class AscendingRangeExpression(RangeExpression):
+	_FORMAT = ("", " to ", "")
+
+
+@export
+class DescendingRangeExpression(RangeExpression):
+	_FORMAT = ("", " downto ", "")
+
+
+@export
 class	AddingExpression(BinaryExpression):
 	"""
 	A ``AddingExpression`` is a base-class for all adding expressions.
@@ -1914,7 +1953,7 @@ class Context(PrimaryUnit):
 class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:  List[GenericInterfaceItem]
 	_portItems:     List[PortInterfaceItem]
-	_declaredItems: List   # FIXME: define list element type e.g. via Union
+	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
 	_bodyItems:     List['ConcurrentStatement']
 
 	def __init__(self, name: str, genericItems: List[GenericInterfaceItem] = None, portItems: List[PortInterfaceItem] = None, declaredItems: List = None, bodyItems: List['ConcurrentStatement'] = None):
@@ -1935,7 +1974,7 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 		return self._portItems
 
 	@property
-	def DeclaredItems(self) -> List:   # FIXME: define list element type e.g. via Union
+	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
 		return self._declaredItems
 
 	@property
@@ -1946,7 +1985,7 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 @export
 class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 	_entity:        EntityOrSymbol
-	_declaredItems: List   # FIXME: define list element type e.g. via Union
+	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
 	_bodyItems:     List['ConcurrentStatement']
 
 	def __init__(self, name: str, entity: EntityOrSymbol, declaredItems: List = None, bodyItems: List['ConcurrentStatement'] = None):
@@ -1962,7 +2001,7 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 		return self._entity
 
 	@property
-	def DeclaredItems(self) -> List:   # FIXME: define list element type e.g. via Union
+	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
 		return self._declaredItems
 
 	@property

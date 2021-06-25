@@ -258,7 +258,7 @@ class ParenthesisName(Name):
 	_associations: List
 
 	def __init__(self, prefix: Name, associations: List):
-		super().__init__("", prefix=prefix)
+		super().__init__("", prefix)
 		self._associations = associations
 
 	@property
@@ -286,7 +286,7 @@ class SlicedName(Name):
 @export
 class SelectedName(Name):
 	def __init__(self, name: str, prefix: Name):
-		super().__init__(name, prefix=prefix)
+		super().__init__(name, prefix)
 
 	def __str__(self):
 		return str(self._prefix) + "." + self._name
@@ -295,7 +295,7 @@ class SelectedName(Name):
 @export
 class AttributeName(Name):
 	def __init__(self, name: str, prefix: Name):
-		super().__init__(name, prefix=prefix)
+		super().__init__(name, prefix)
 
 	def __str__(self):
 		return str(self._prefix) + "'" + self._name
@@ -834,10 +834,11 @@ class ProtectedType(Type):
 class ProtectedTypeBody(Type):
 	_methods: List[Union['Procedure', 'Function']]
 
-	def __init__(self, name: str, methods: Union[List, Iterator] = None):
+	def __init__(self, name: str, declaredItems: Union[List, Iterator] = None):
 		super().__init__(name)
-		self._methods = [] if methods is None else [m for m in methods]
+		self._methods = [] if declaredItems is None else [m for m in declaredItems]
 
+	# FIXME: needs to be declared items or so
 	@property
 	def Methods(self) -> List[Union['Procedure', 'Function']]:
 		return self._methods
@@ -900,10 +901,11 @@ class PhysicalType(RangedScalarType, NumericType):
 	_primaryUnit:    str
 	_secondaryUnits: List[Tuple[int, str]]
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, primaryUnit: str, units: List[Tuple[str, 'PhysicalIntegerLiteral']]):
 		super().__init__(name)
 
-		self._secondaryUnits = []
+		self._primaryUnit = primaryUnit
+		self._secondaryUnits = units
 
 	@property
 	def PrimaryUnit(self) -> str:

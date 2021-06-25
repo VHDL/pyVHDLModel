@@ -44,6 +44,41 @@ frontends.
 * Created a (re)formatted output of VHDL.
 
 
+## Examples
+### List all Entities with Generics and Ports
+
+The following tiny example is based on GHDL's [`pyGHDL.dom`](https://github.com/ghdl/ghdl/tree/master/pyGHDL/dom) package implementing
+pyVHDLModel.
+
+```python
+from pathlib import Path
+from pyGHDL.dom.NonStandard import Design, Document
+
+sourceFile = Path("example.vhdl")
+
+design = Design()
+library = Design.GetLibrary("lib")
+document = Document(sourceFile)
+design.AddDocument(document, library)
+
+for entity in document.Entities:
+  print("{}".format(entity.Name))
+  print("  generics:")
+  for generic in entity.Generics:
+    print("  - {} : {!s} {}".format(
+      generic.Name, generic.Mode, generic.SubTypeIndication)
+    )
+  print("  ports:")
+  for port in entity.Ports:
+    print("  - {} : {!s} {}".format(
+      port.Name, port.Mode, port.SubTypeIndication)
+    )
+```
+
+
+
+
+
 ## Contributors
 * [Patrick Lehmann](https://github.com/Paebbels) (Maintainer)
 * [Unai Martinez-Corral](https://github.com/umarcor)

@@ -43,7 +43,7 @@ This module contains a document language model for VHDL.
 # load dependencies
 from enum               import Enum
 from pathlib            import Path
-from typing import List, Tuple, Union, Dict
+from typing import List, Tuple, Union, Dict, Iterator
 
 try:
 	from typing import Protocol
@@ -55,6 +55,8 @@ from pydecor.decorators import export
 
 __all__ = []
 #__api__ = __all__ # FIXME: disabled due to a bug in pydecors export decorator
+
+SimpleOrAttribute =     Union['SimpleName',    'AttributeName']
 
 LibraryOrSymbol =       Union['Library',       'LibrarySymbol']
 EntityOrSymbol =        Union['Entity',        'EntitySymbol']
@@ -141,7 +143,7 @@ class Class(Enum):
 @export
 class ModelEntity:
 	"""
-	``ModelEntity`` is a base class for all classes in the VHDL language model,
+	``ModelEntity`` is the base class for all classes in the VHDL language model,
 	except for mixin classes (see multiple inheritance) and enumerations.
 
 	Each entity in this model has a reference to its parent entity. Therefore
@@ -197,29 +199,138 @@ class LabeledEntity:
 		"""Returns a model entity's label."""
 		return self._label
 
+@export
+class Name:
+	"""
+	``Name`` is the base class for all *names* in the VHDL language model.
+  """
+
+	_name: str
+	_root: 'Name'
+	_prefix: 'Name'
+
+	def __init__(self, name: str, prefix: 'Name' = None):
+		self._name = name
+		self._prefix = prefix
+		self._root = prefix._root
+
+	@property
+	def Name(self) -> str:
+		return self._name
+
+	@property
+	def Root(self) -> 'Name':
+		return self._root
+
+	@property
+	def Prefix(self) -> 'Name':
+		return self._prefix
+
+	@property
+	def Has_Prefix(self) -> bool:
+		return self._prefix is not None
+
+
+@export
+class SimpleName(Name):
+	def __init__(self, name: str):
+		self._name = name
+		self._root = self
+		self._prefix = None
+
+	@property
+	def Root(self) -> 'Name':
+		return self
+
+	@property
+	def Prefix(self) -> 'Name':
+		return None
+
+	@property
+	def Has_Prefix(self) -> bool:
+		return False
+
+	def __str__(self):
+		return self._name
+
+@export
+class ParenthesisName(Name):
+	_associations: List
+
+	def __init__(self, prefix: Name, associations: List):
+		super().__init__("", prefix=prefix)
+		self._associations = associations
+
+	@property
+	def Associations(self) -> List:
+		return self._associations
+
+	def __str__(self):
+		return str(self._prefix) + "(" + ", ".join([str(a) for a in self._associations]) + ")"
+
+
+@export
+class IndexedName(Name):
+	_indices: List[Expression]
+
+	@property
+	def Indices(self) -> List[Expression]:
+		return self._indices
+
+
+@export
+class SlicedName(Name):
+	pass
+
+
+@export
+class SelectedName(Name):
+	def __init__(self, name: str, prefix: Name):
+		super().__init__(name, prefix=prefix)
+
+	def __str__(self):
+		return str(self._prefix) + "." + self._name
+
+
+@export
+class AttributeName(Name):
+	def __init__(self, name: str, prefix: Name):
+		super().__init__(name, prefix=prefix)
+
+	def __str__(self):
+		return str(self._prefix) + "'" + self._name
+
+
+@export
+class AllName(Name):
+	def __init__(self, prefix: Name):
+		super().__init__("all", prefix)
+
+	def __str__(self):
+		return "all"
 
 @export
 class Symbol(ModelEntity):
-	_symbolName: str
+	_symbolName: Name
 
-	def __init__(self, symbolName: str):
+	def __init__(self, symbolName: Name):
 		super().__init__()
 		self._symbolName = symbolName
 
 	@property
-	def SymbolName(self) -> str:
+	def SymbolName(self) -> Name:
 		return self._symbolName
 
 	def __str__(self) -> str:
-		return self._symbolName
+		return str(self._symbolName)
 
 
 @export
 class LibrarySymbol(Symbol):
 	_library: 'Library'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._library = None
 
 	@property
@@ -234,7 +345,7 @@ class LibrarySymbol(Symbol):
 class EntitySymbol(Symbol):
 	_entity: 'Entity'
 
-	def __init__(self, entityName: str):
+	def __init__(self, entityName: Name):
 		super().__init__(symbolName=entityName)
 
 		self._entity = None
@@ -248,8 +359,8 @@ class EntitySymbol(Symbol):
 class ArchitectureSymbol(Symbol):
 	_architecture: 'Architecture'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._architecture = None
 
 	@property
@@ -261,8 +372,8 @@ class ArchitectureSymbol(Symbol):
 class ComponentSymbol(Symbol):
 	_component: 'Component'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._component = None
 
 	@property
@@ -274,8 +385,8 @@ class ComponentSymbol(Symbol):
 class ConfigurationSymbol(Symbol):
 	_configuration: 'Configuration'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._configuration = None
 
 	@property
@@ -287,8 +398,8 @@ class ConfigurationSymbol(Symbol):
 class PackageSymbol(Symbol):
 	_package: 'Package'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._package = None
 
 	@property
@@ -300,8 +411,8 @@ class PackageSymbol(Symbol):
 class ContextSymbol(Symbol):
 	_context: 'Context'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._context = None
 
 	@property
@@ -320,7 +431,7 @@ class SubTypeSymbol(Symbol):
 
 @export
 class SimpleSubTypeSymbol(SubTypeSymbol):
-	def __init__(self, subTypeName: str):
+	def __init__(self, subTypeName: Name):
 		super().__init__(symbolName = subTypeName)
 		self._subType = None
 
@@ -329,7 +440,7 @@ class SimpleSubTypeSymbol(SubTypeSymbol):
 class ConstrainedScalarSubTypeSymbol(SubTypeSymbol):
 	_range: 'Range'
 
-	def __init__(self, subTypeName: str, range: 'Range' = None):
+	def __init__(self, subTypeName: Name, range: 'Range' = None):
 		super().__init__(symbolName = subTypeName)
 		self._subType = None
 		self._range = range
@@ -343,7 +454,7 @@ class ConstrainedScalarSubTypeSymbol(SubTypeSymbol):
 class ConstrainedCompositeSubTypeSymbol(SubTypeSymbol):
 	_constraints: List[Constraint]
 
-	def __init__(self, subTypeName: str, constraints: List[Constraint] = None):
+	def __init__(self, subTypeName: Name, constraints: List[Constraint] = None):
 		super().__init__(symbolName = subTypeName)
 		self._subType = None
 		self._constraints = constraints
@@ -367,7 +478,7 @@ class ObjectSymbol(Symbol):
 class SimpleObjectOrFunctionCallSymbol(Symbol):
 	_object: Union['Constant', 'Signal', 'Variable', 'Function']
 
-	def __init__(self, objectName: str):
+	def __init__(self, objectName: Name):
 		super().__init__(objectName)
 		self._object = None
 
@@ -385,7 +496,7 @@ class SimpleObjectOrFunctionCallSymbol(Symbol):
 class IndexedObjectOrFunctionCallSymbol(Symbol):
 	_object: Union['Constant', 'Signal', 'Variable', 'Function']
 
-	def __init__(self, objectName: str):
+	def __init__(self, objectName: Name):
 		super().__init__(objectName)
 		self._object = None
 
@@ -403,8 +514,8 @@ class IndexedObjectOrFunctionCallSymbol(Symbol):
 class ConstantSymbol(ObjectSymbol):
 	_constant: 'Constant'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._constant = None
 
 	@property
@@ -416,8 +527,8 @@ class ConstantSymbol(ObjectSymbol):
 class VariableSymbol(ObjectSymbol):
 	_variable: 'Variable'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._variable = None
 
 	@property
@@ -429,8 +540,8 @@ class VariableSymbol(ObjectSymbol):
 class SignalSymbol(ObjectSymbol):
 	_signal: 'Signal'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._signal = None
 
 	@property
@@ -442,8 +553,8 @@ class SignalSymbol(ObjectSymbol):
 class FileSymbol(ObjectSymbol):
 	_file: 'File'
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName)
 		self._file = None
 
 	@property
@@ -708,7 +819,28 @@ class CompositeType(Type):
 
 @export
 class ProtectedType(Type):
-	pass
+	_methods: List[Union['Procedure', 'Function']]
+
+	def __init__(self, name: str, methods: Union[List, Iterator] = None):
+		super().__init__(name)
+		self._methods = [] if methods is None else [m for m in methods]
+
+	@property
+	def Methods(self) -> List[Union['Procedure', 'Function']]:
+		return self._methods
+
+
+@export
+class ProtectedTypeBody(Type):
+	_methods: List[Union['Procedure', 'Function']]
+
+	def __init__(self, name: str, methods: Union[List, Iterator] = None):
+		super().__init__(name)
+		self._methods = [] if methods is None else [m for m in methods]
+
+	@property
+	def Methods(self) -> List[Union['Procedure', 'Function']]:
+		return self._methods
 
 
 @export
@@ -848,6 +980,12 @@ class Literal(BaseExpression):
 	A ``Literal`` is a base-class for all literals.
 	"""
 # TODO: add a reference to a basetype ?
+
+
+@export
+class NullLiteral(Literal):
+	def __str__(self) -> str:
+		return "null"
 
 
 @export
@@ -1084,6 +1222,21 @@ class BinaryExpression(BaseExpression):
 			rightOperand=self._rightOperand,
 			rightOperator=self._FORMAT[2],
 		)
+
+
+@export
+class RangeExpression(BinaryExpression):
+	pass
+
+
+@export
+class AscendingRangeExpression(RangeExpression):
+	_FORMAT = ("", " to ", "")
+
+
+@export
+class DescendingRangeExpression(RangeExpression):
+	_FORMAT = ("", " downto ", "")
 
 
 @export
@@ -1418,6 +1571,7 @@ class BaseConstraint(ModelEntity):
 	pass
 
 
+# FIXME: exists 2 times
 @export
 class RangeExpression(BaseConstraint):
 	_range: Range
@@ -1426,12 +1580,12 @@ class RangeExpression(BaseConstraint):
 	def Range(self):
 		return self._range
 
-
+# FIXME: Is this used?
 @export
 class RangeAttribute(BaseConstraint):
 	pass
 
-
+# FIXME: Is this used?
 @export
 class RangeSubtype(BaseConstraint):
 	pass
@@ -1588,6 +1742,32 @@ class FunctionMethod(Function, Method):
 
 
 @export
+class Attribute(ModelEntity, NamedEntity):
+	_subType: SubTypeOrSymbol
+
+	def __init__(self, name: str, subType: SubTypeOrSymbol):
+		super().__init__()
+		NamedEntity.__init__(self, name)
+
+		self._subType = subType
+
+	@property
+	def SubType(self):
+		return self._subType
+
+
+@export
+class AttributeSpecification(ModelEntity):
+	_attribute: Name
+
+	def __init__(self, attribute: Name):
+		self._attribute = attribute
+
+	@property
+	def Attribute(self) -> Attribute:
+		return self._attribute
+
+@export
 class InterfaceItem:
 	"""
 	An ``InterfaceItem`` is a base-class for all mixin-classes for all interface
@@ -1722,13 +1902,14 @@ class LibraryStatement(Reference):
 
 
 @export
-class UseStatement(Reference):
+class UseClause(Reference):
 	_library: Union[None, LibraryOrSymbol]
 	_package: 'Package'
 	_item:    str
 
-	def __init__(self):
+	def __init__(self, name: Name):
 		super().__init__()
+		self._item = str(name)
 
 	@property
 	def Library(self) -> Union[None, LibraryOrSymbol]:
@@ -1776,7 +1957,7 @@ class MixinDesignUnitWithContext:
 	A ``DesignUnitWithReferences`` is a base-class for all design units with contexts.
 	"""
 	_libraryReferences: List[LibraryStatement]
-	_packageReferences: List[UseStatement]
+	_packageReferences: List[UseClause]
 	_contextReferences: List['Context']
 
 	def __init__(self):
@@ -1789,7 +1970,7 @@ class MixinDesignUnitWithContext:
 		return self._libraryReferences
 
 	@property
-	def PackageReferences(self) -> List[UseStatement]:
+	def PackageReferences(self) -> List[UseClause]:
 		return self._packageReferences
 
 	@property
@@ -1814,7 +1995,7 @@ class SecondaryUnit(DesignUnit):
 @export
 class Context(PrimaryUnit):
 	_libraryReferences: List[LibraryStatement]
-	_packageReferences: List[UseStatement]
+	_packageReferences: List[UseClause]
 
 	def __init__(self, name):
 		super().__init__(name)
@@ -1827,7 +2008,7 @@ class Context(PrimaryUnit):
 		return self._libraryReferences
 
 	@property
-	def PackageReferences(self) -> List[UseStatement]:
+	def PackageReferences(self) -> List[UseClause]:
 		return self._packageReferences
 
 
@@ -1835,7 +2016,7 @@ class Context(PrimaryUnit):
 class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:  List[GenericInterfaceItem]
 	_portItems:     List[PortInterfaceItem]
-	_declaredItems: List   # FIXME: define list element type e.g. via Union
+	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
 	_bodyItems:     List['ConcurrentStatement']
 
 	def __init__(self, name: str, genericItems: List[GenericInterfaceItem] = None, portItems: List[PortInterfaceItem] = None, declaredItems: List = None, bodyItems: List['ConcurrentStatement'] = None):
@@ -1856,7 +2037,7 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 		return self._portItems
 
 	@property
-	def DeclaredItems(self) -> List:   # FIXME: define list element type e.g. via Union
+	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
 		return self._declaredItems
 
 	@property
@@ -1867,7 +2048,7 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 @export
 class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 	_entity:        EntityOrSymbol
-	_declaredItems: List   # FIXME: define list element type e.g. via Union
+	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
 	_bodyItems:     List['ConcurrentStatement']
 
 	def __init__(self, name: str, entity: EntityOrSymbol, declaredItems: List = None, bodyItems: List['ConcurrentStatement'] = None):
@@ -1883,7 +2064,7 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 		return self._entity
 
 	@property
-	def DeclaredItems(self) -> List:   # FIXME: define list element type e.g. via Union
+	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
 		return self._declaredItems
 
 	@property
@@ -2020,14 +2201,15 @@ class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
 	_packageReference:    Package
 	_genericAssociations: List[GenericAssociationItem]
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, uninstantiatedPackage: PackageOrSymbol):
 		super().__init__(name)
 		GenericEntityInstantiation.__init__(self)
 
+		self._packageReference = uninstantiatedPackage
 		self._genericAssociations = []
 
 	@property
-	def PackageReference(self) -> Package:
+	def PackageReference(self) -> PackageOrSymbol:
 		return self._packageReference
 
 	@property

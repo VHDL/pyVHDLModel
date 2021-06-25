@@ -2181,14 +2181,15 @@ class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
 	_packageReference:    Package
 	_genericAssociations: List[GenericAssociationItem]
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, uninstantiatedPackage: PackageOrSymbol):
 		super().__init__(name)
 		GenericEntityInstantiation.__init__(self)
 
+		self._packageReference = uninstantiatedPackage
 		self._genericAssociations = []
 
 	@property
-	def PackageReference(self) -> Package:
+	def PackageReference(self) -> PackageOrSymbol:
 		return self._packageReference
 
 	@property

@@ -302,6 +302,14 @@ class AttributeName(Name):
 
 
 @export
+class AllName(Name):
+	def __init__(self, prefix: Name):
+		super().__init__("all", prefix)
+
+	def __str__(self):
+		return "all"
+
+@export
 class Symbol(ModelEntity):
 	_symbolName: Name
 
@@ -1749,6 +1757,14 @@ class Attribute(ModelEntity, NamedEntity):
 
 
 @export
+class AttributeSpecification(ModelEntity):
+	_attribute: Name
+
+	def __init__(self, attribute: Name):
+		self._attribute = attribute
+
+
+@export
 class InterfaceItem:
 	"""
 	An ``InterfaceItem`` is a base-class for all mixin-classes for all interface
@@ -1883,12 +1899,12 @@ class LibraryStatement(Reference):
 
 
 @export
-class UseStatement(Reference):
+class UseClause(Reference):
 	_library: Union[None, LibraryOrSymbol]
 	_package: 'Package'
 	_item:    str
 
-	def __init__(self):
+	def __init__(self, name: Name):
 		super().__init__()
 
 	@property
@@ -1937,7 +1953,7 @@ class MixinDesignUnitWithContext:
 	A ``DesignUnitWithReferences`` is a base-class for all design units with contexts.
 	"""
 	_libraryReferences: List[LibraryStatement]
-	_packageReferences: List[UseStatement]
+	_packageReferences: List[UseClause]
 	_contextReferences: List['Context']
 
 	def __init__(self):
@@ -1950,7 +1966,7 @@ class MixinDesignUnitWithContext:
 		return self._libraryReferences
 
 	@property
-	def PackageReferences(self) -> List[UseStatement]:
+	def PackageReferences(self) -> List[UseClause]:
 		return self._packageReferences
 
 	@property
@@ -1975,7 +1991,7 @@ class SecondaryUnit(DesignUnit):
 @export
 class Context(PrimaryUnit):
 	_libraryReferences: List[LibraryStatement]
-	_packageReferences: List[UseStatement]
+	_packageReferences: List[UseClause]
 
 	def __init__(self, name):
 		super().__init__(name)
@@ -1988,7 +2004,7 @@ class Context(PrimaryUnit):
 		return self._libraryReferences
 
 	@property
-	def PackageReferences(self) -> List[UseStatement]:
+	def PackageReferences(self) -> List[UseClause]:
 		return self._packageReferences
 
 

@@ -1763,6 +1763,9 @@ class AttributeSpecification(ModelEntity):
 	def __init__(self, attribute: Name):
 		self._attribute = attribute
 
+	@property
+	def Attribute(self) -> Attribute:
+		return self._attribute
 
 @export
 class InterfaceItem:
@@ -1906,6 +1909,7 @@ class UseClause(Reference):
 
 	def __init__(self, name: Name):
 		super().__init__()
+		self._item = str(name)
 
 	@property
 	def Library(self) -> Union[None, LibraryOrSymbol]:

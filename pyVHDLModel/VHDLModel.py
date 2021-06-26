@@ -101,7 +101,8 @@ class Direction(Enum):
 	DownTo =  1
 
 	def __str__(self):
-		return ("to", "downto")[self.value]       # TODO: check performance
+		index: int = self.value
+		return ("to", "downto")[index]       # TODO: check performance
 
 
 @export
@@ -121,7 +122,8 @@ class Mode(Enum):
 	Linkage = 5
 
 	def __str__(self):
-		return ("", "in", "out", "inout", "buffer", "linkage")[self.value]       # TODO: check performance
+		index: int = self.value
+		return ("", "in", "out", "inout", "buffer", "linkage")[index]       # TODO: check performance
 
 
 @export
@@ -445,10 +447,10 @@ class SimpleSubTypeSymbol(SubTypeSymbol):
 class ConstrainedScalarSubTypeSymbol(SubTypeSymbol):
 	_range: 'Range'
 
-	def __init__(self, subTypeName: Name, r: 'Range' = None):
+	def __init__(self, subTypeName: Name, rng: 'Range' = None):
 		super().__init__(subTypeName)
 		self._subType = None
-		self._range = r
+		self._range = rng
 
 	@property
 	def Range(self) -> 'Range':
@@ -734,6 +736,7 @@ class Alias(ModelEntity, NamedEntity):
 @export
 class BaseType(ModelEntity, NamedEntity):
 	"""``BaseType`` is the base class of all type entities in this model."""
+
 	def __init__(self, name: str):
 		"""
 		Initializes underlying ``BaseType``.
@@ -1616,16 +1619,6 @@ class Range(ModelEntity):
 @export
 class BaseConstraint(ModelEntity):
 	pass
-
-
-# FIXME: exists 2 times
-@export
-class RangeExpression(BaseConstraint):
-	_range: Range
-
-	@property
-	def Range(self):
-		return self._range
 
 
 # FIXME: Is this used?

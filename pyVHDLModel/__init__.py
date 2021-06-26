@@ -35,7 +35,9 @@
 # ==============================================================================
 #
 """
+An abstract VHDL language model.
+
 :copyright: Copyright 2007-2021 Patrick Lehmann - Bötzingen, Germany
 :license: Apache License, Version 2.0
 """
-__version__ = "0.8.1"
+__version__ = "0.10.5"

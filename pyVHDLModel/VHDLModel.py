@@ -810,12 +810,18 @@ class NumericType:
 	A ``NumericType`` is a mixin class for all numeric types.
 	"""
 
+	def __init__(self):
+		pass
+
 
 @export
 class DiscreteType:
 	"""
 	A ``DiscreteType`` is a mixin class for all discrete types.
 	"""
+
+	def __init__(self):
+		pass
 
 
 @export
@@ -1649,7 +1655,7 @@ class Obj(ModelEntity, NamedEntity):
 
 
 @export
-class WithDefaultExpression:
+class WithDefaultExpressionMixin:
 	"""
 	A ``WithDefaultExpression`` is a mixin class for all objects declarations
 	accepting default expressions.
@@ -1670,10 +1676,10 @@ class BaseConstant(Obj):
 
 
 @export
-class Constant(BaseConstant, WithDefaultExpression):
+class Constant(BaseConstant, WithDefaultExpressionMixin):
 	def __init__(self, name: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
 		super().__init__(name, subType)
-		WithDefaultExpression.__init__(self, defaultExpression)
+		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
 @export
@@ -1689,10 +1695,10 @@ class DeferredConstant(BaseConstant):
 
 
 @export
-class Variable(Obj, WithDefaultExpression):
+class Variable(Obj, WithDefaultExpressionMixin):
 	def __init__(self, name: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
 		super().__init__(name, subType)
-		WithDefaultExpression.__init__(self, defaultExpression)
+		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
 @export
@@ -1701,10 +1707,10 @@ class SharedVariable(Obj):
 
 
 @export
-class Signal(Obj, WithDefaultExpression):
+class Signal(Obj, WithDefaultExpressionMixin):
 	def __init__(self, name: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(name, subType)
-		WithDefaultExpression.__init__(self, defaultExpression)
+		super(Signal, self).__init__(name, subType)
+		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
 @export
@@ -1827,11 +1833,14 @@ class AttributeSpecification(ModelEntity):
 
 
 @export
-class InterfaceItem(ModelEntity):
+class InterfaceItem:
 	"""
 	An ``InterfaceItem`` is a base-class for all mixin-classes for all interface
 	items.
 	"""
+
+	def __init__(self):
+		pass
 
 
 @export
@@ -2231,7 +2240,8 @@ class ParameterAssociationItem(AssociationItem):
 
 @export
 class GenericEntityInstantiation:
-	pass
+	def __init__(self):
+		pass
 
 
 @export
@@ -2419,7 +2429,8 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 
 @export
 class ProcedureCall:
-	pass
+	def __init__(self):
+		pass
 
 
 @export
@@ -2437,6 +2448,9 @@ class BlockStatement:
 	"""
 	A ``BlockStatement`` is a mixin-class for all block statements.
 	"""
+
+	def __init__(self):
+		pass
 
 
 @export
@@ -2463,6 +2477,9 @@ class MixinConditional:
 	"""
 	_condition: Expression
 
+	def __init__(self):
+		pass
+
 	@property
 	def Condition(self) -> Expression:
 		return self._condition
@@ -2473,6 +2490,9 @@ class MixinBranch:
 	"""
 	A ``BaseBranch`` is a mixin-class for all statements with branches.
 	"""
+
+	def __init__(self):
+		pass
 
 
 @export
@@ -2658,7 +2678,7 @@ class Assignment:
 	_expression: Expression
 
 	def __init__(self):
-		super().__init__()
+		pass
 
 	@property
 	def Target(self) -> Obj:
@@ -2713,7 +2733,7 @@ class MixinReportStatement:
 	_severity: Expression
 
 	def __init__(self):
-		super().__init__()
+		pass
 
 	@property
 	def Message(self) -> Expression:

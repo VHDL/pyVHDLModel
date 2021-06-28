@@ -127,9 +127,9 @@ class Mode(Enum):
 
 
 @export
-class Class(Enum):
+class ObjectClass(Enum):
 	"""
-	A ``Class`` is an enumeration. It represents an object's class (``constant``,
+	An ``ObjectClass`` is an enumeration. It represents an object's class (``constant``,
 	``signal``, ...).
 
 	In case no *object class* is define, ``Default`` is used, so the *object class*
@@ -141,7 +141,40 @@ class Class(Enum):
 	Signal =     3
 	File =       4
 	Type =       5
-	Subprogram = 6
+	Procedure =  6
+	Function =   7
+
+
+@export
+class EntityClass(Enum):
+	"""
+	A ``Class`` is an enumeration. It represents an object's class (``constant``,
+	``signal``, ...).
+
+	In case no *object class* is define, ``Default`` is used, so the *object class*
+	is inferred from context.
+	"""
+	Entity =        0
+	Architecture =  1
+	Configuration = 2
+	Procedure =     3
+	Function =      4
+	Package =       5
+	Type =          6
+	Subtype =       7
+	Constant =      8
+	Signal =        9
+	Variable =      10
+	Component =     11
+	Label =         12
+	Literal =       13
+	Units =         14
+	Group =         15
+	File =          16
+	Property =      17
+	Sequence =      18
+	View =          19
+	Others  =       20
 
 
 @export
@@ -1079,7 +1112,6 @@ class PhysicalLiteral(NumericLiteral):
 @export
 class PhysicalIntegerLiteral(PhysicalLiteral):
 	_value: int
-	_unitName: str
 
 	def __init__(self, value: int, unitName: str):
 		super().__init__(unitName)
@@ -1167,8 +1199,10 @@ class UnaryExpression(BaseExpression):
 	_FORMAT: Tuple[str, str]
 	_operand:  Expression
 
-	def __init__(self):
+	def __init__(self, operand: Expression):
 		super().__init__()
+
+		self._operand = operand
 
 	@property
 	def Operand(self):
@@ -1208,11 +1242,6 @@ class TypeConversion(UnaryExpression):
 
 
 @export
-class FunctionCall(UnaryExpression):
-	pass
-
-
-@export
 class SubExpression(UnaryExpression, ParenthesisExpression):
 	_FORMAT = ("(", ")")
 
@@ -1227,8 +1256,11 @@ class BinaryExpression(BaseExpression):
 	_leftOperand:  Expression
 	_rightOperand: Expression
 
-	def __init__(self):
+	def __init__(self, _leftOperand: Expression, _rightOperand: Expression):
 		super().__init__()
+
+		self._leftOperand = _leftOperand
+		self._rightOperand = _rightOperand
 
 	@property
 	def LeftOperand(self):
@@ -1250,16 +1282,22 @@ class BinaryExpression(BaseExpression):
 
 @export
 class RangeExpression(BinaryExpression):
-	pass
+	_direction: Direction
+
+	@property
+	def Direction(self) -> Direction:
+		return self._direction
 
 
 @export
 class AscendingRangeExpression(RangeExpression):
+	_direction = Direction.To
 	_FORMAT = ("", " to ", "")
 
 
 @export
 class DescendingRangeExpression(RangeExpression):
+	_direction = Direction.To
 	_FORMAT = ("", " downto ", "")
 
 
@@ -1448,8 +1486,11 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 	_operand:  Expression
 	_subtype:  SubTypeOrSymbol
 
-	def __init__(self):
+	def __init__(self, subType: SubTypeOrSymbol, operand: Expression):
 		super().__init__()
+
+		self._operand = operand
+		self._subtype = subType
 
 	@property
 	def Operand(self):
@@ -1507,6 +1548,11 @@ class TernaryExpression(BaseExpression):
 @export
 class WhenElseExpression(TernaryExpression):
 	_FORMAT = ("", " when ", " else ", "")
+
+
+@export
+class FunctionCall(BaseExpression):
+	pass
 
 
 @export
@@ -1584,6 +1630,11 @@ class OthersAggregateElement(AggregateElement):
 @export
 class Aggregate(BaseExpression):
 	_elements: List[AggregateElement]
+
+	def __init__(self, elements: List[AggregateElement]):
+		super().__init__()
+
+		self._elements = elements
 
 	@property
 	def Elements(self) -> List[AggregateElement]:

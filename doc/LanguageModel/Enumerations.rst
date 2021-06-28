@@ -58,19 +58,19 @@ is a placeholder for omitted modes. The mode is then determined from the context
 
 .. _vhdlmodel-objclass:
 
-Object Class
-============
+Object ObjectClass
+==================
 
 In addition to the 4 object classes defined by VHDL (`Constant`, `Variable`,
 `Signal` and `File`), `Default` is used when no object class is defined. In
 such a case, the object class is determined from the context.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Class`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ObjectClass`:
 
 .. code-block:: Python
 
    @export
-   class Class(Enum):
+   class ObjectClass(Enum):
      Default =    0
      Constant =   1
      Variable =   2

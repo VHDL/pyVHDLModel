@@ -1721,9 +1721,9 @@ class RangeSubtype(BaseConstraint):
 class Obj(ModelEntity, NamedEntity):
 	_subType: SubTypeOrSymbol
 
-	def __init__(self, namidentifier: str, subType: SubTypeOrSymbol):
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
 		super().__init__()
-		NamedEntity.__init__(self, namidentifier)
+		NamedEntity.__init__(self, identifier)
 
 		self._subType = subType
 
@@ -1755,8 +1755,8 @@ class BaseConstant(Obj):
 
 @export
 class Constant(BaseConstant, WithDefaultExpressionMixin):
-	def __init__(self, namidentifier: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(namidentifier, subType)
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -1764,8 +1764,8 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 class DeferredConstant(BaseConstant):
 	_constantReference: Constant
 
-	def __init__(self, namidentifier: str, subType: SubTypeOrSymbol):
-		super().__init__(namidentifier, subType)
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
+		super().__init__(identifier, subType)
 
 	@property
 	def ConstantReference(self) -> Constant:
@@ -1774,8 +1774,8 @@ class DeferredConstant(BaseConstant):
 
 @export
 class Variable(Obj, WithDefaultExpressionMixin):
-	def __init__(self, namidentifier: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(namidentifier, subType)
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -1786,8 +1786,8 @@ class SharedVariable(Obj):
 
 @export
 class Signal(Obj, WithDefaultExpressionMixin):
-	def __init__(self, namidentifier: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super(Signal, self).__init__(namidentifier, subType)
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super(Signal, self).__init__(identifier, subType)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -1964,8 +1964,8 @@ class ParameterInterfaceItem(InterfaceItem):
 
 @export
 class GenericConstantInterfaceItem(Constant, GenericInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, namidentifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(namidentifier, subType, defaultExpression)
+	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType, defaultExpression)
 		GenericInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
@@ -2005,39 +2005,39 @@ class GenericPackageInterfaceItem(GenericInterfaceItem):
 
 @export
 class PortSignalInterfaceItem(Signal, PortInterfaceItem):
-	def __init__(self, namidentifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(namidentifier, subType, defaultExpression)
+	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType, defaultExpression)
 		PortInterfaceItem.__init__(self, mode)
 
 
 @export
 class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, namidentifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(namidentifier, subType, defaultExpression)
+	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, namidentifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(namidentifier, subType, defaultExpression)
+	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, namidentifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(namidentifier, subType, defaultExpression)
+	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
-	def __init__(self, namidentifier: str, subType: SubTypeOrSymbol):
-		super().__init__(namidentifier, subType)
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
+		super().__init__(identifier, subType)
 		ParameterInterfaceItem.__init__(self)
 
 # class GenericItem(ModelEntity):

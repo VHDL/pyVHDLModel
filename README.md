@@ -62,17 +62,17 @@ document = Document(sourceFile)
 design.AddDocument(document, library)
 
 for entity in document.Entities:
-	print("{}".format(entity.Name))
-	print("  generics:")
-	for generic in entity.Generics:
-		print("  - {} : {!s} {}".format(
-			generic.Identifier, generic.Mode, generic.SubTypeIndication)
-		)
-	print("  ports:")
-	for port in entity.Ports:
-		print("  - {} : {!s} {}".format(
-			port.Identifier, port.Mode, port.SubTypeIndication)
-		)
+  print("{}".format(entity.Name))
+  print("  generics:")
+  for generic in entity.Generics:
+    print("  - {} : {!s} {}".format(
+      generic.Identifier, generic.Mode, generic.SubTypeIndication)
+    )
+  print("  ports:")
+  for port in entity.Ports:
+    print("  - {} : {!s} {}".format(
+      port.Identifier, port.Mode, port.SubTypeIndication)
+    )
 ```
 
 

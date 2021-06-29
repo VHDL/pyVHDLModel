@@ -67,7 +67,7 @@ PackageOrSymbol =       Union['Package',       'PackageSymbol']
 ConfigurationOrSymbol = Union['Configuration', 'ConfigurationSymbol']
 ContextOrSymbol =       Union['Context',       'ContextSymbol']
 
-SubTypeOrSymbol =       Union['SubType',       'SubTypeSymbol']
+SubtypeOrSymbol =       Union['Subtype',       'SubtypeSymbol']
 
 ConstantOrSymbol =      Union['Constant',      'ConstantSymbol']
 VariableOrSymbol =      Union['Variable',      'VariableSymbol']
@@ -192,7 +192,7 @@ class PossibleReference(IntEnum):
 	Configuration =   2**5
 	Context =         2**6
 	Type =            2**7
-	SubType =         2**8
+	Subtype =         2**8
 	ScalarType =      2**9
 	ArrayType =       2**10
 	RecordType =      2**11
@@ -497,30 +497,30 @@ class ContextSymbol(Symbol):
 
 
 @export
-class SubTypeSymbol(Symbol):
+class SubtypeSymbol(Symbol):
 	def __init__(self, symbolName: Name, possibleReferences: PossibleReference):
-		super().__init__(symbolName, PossibleReference.SubType + PossibleReference.TypeAttribute + possibleReferences)
+		super().__init__(symbolName, PossibleReference.Subtype + PossibleReference.TypeAttribute + possibleReferences)
 
 	@property
-	def SubType(self) -> 'SubType':
+	def Subtype(self) -> 'Subtype':
 		return self._reference
-	@SubType.setter
-	def SubType(self, value: 'SubType') -> None:
+	@Subtype.setter
+	def Subtype(self, value: 'Subtype') -> None:
 		self._reference = value
 
 
 @export
-class SimpleSubTypeSymbol(SubTypeSymbol):
-	def __init__(self, subTypeName: Name):
-		super().__init__(subTypeName, PossibleReference.ScalarType)
+class SimpleSubtypeSymbol(SubtypeSymbol):
+	def __init__(self, subtypeName: Name):
+		super().__init__(subtypeName, PossibleReference.ScalarType)
 
 
 @export
-class ConstrainedScalarSubTypeSymbol(SubTypeSymbol):
+class ConstrainedScalarSubtypeSymbol(SubtypeSymbol):
 	_range: 'Range'
 
-	def __init__(self, subTypeName: Name, rng: 'Range' = None):
-		super().__init__(subTypeName, PossibleReference.ArrayType)
+	def __init__(self, subtypeName: Name, rng: 'Range' = None):
+		super().__init__(subtypeName, PossibleReference.ArrayType)
 		self._range = rng
 
 	@property
@@ -529,12 +529,12 @@ class ConstrainedScalarSubTypeSymbol(SubTypeSymbol):
 
 
 @export
-class ConstrainedCompositeSubTypeSymbol(SubTypeSymbol):
+class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 	_constraints: List[Constraint]
 
-	def __init__(self, subTypeName: Name, constraints: List[Constraint] = None):
-		super().__init__(subTypeName, PossibleReference.Unknown)
-		self._subType = None
+	def __init__(self, subtypeName: Name, constraints: List[Constraint] = None):
+		super().__init__(subtypeName, PossibleReference.Unknown)
+		self._subtype = None
 		self._constraints = constraints
 
 	@property
@@ -795,8 +795,8 @@ class FullType(BaseType):
 
 
 @export
-class SubType(BaseType):
-	_type:               'SubType'
+class Subtype(BaseType):
+	_type:               'Subtype'
 	_baseType:           BaseType
 	_range:              'Range'
 	_resolutionFunction: 'Function'
@@ -805,7 +805,7 @@ class SubType(BaseType):
 		super().__init__(identifier)
 
 	@property
-	def Type(self) -> 'SubType':
+	def Type(self) -> 'Subtype':
 		return self._type
 
 	@property
@@ -907,28 +907,28 @@ class ProtectedTypeBody(FullType):
 
 @export
 class AccessType(FullType):
-	_designatedSubType: SubTypeOrSymbol
+	_designatedSubtype: SubtypeOrSymbol
 
-	def __init__(self, identifier: str, designatedSubType: SubTypeOrSymbol):
+	def __init__(self, identifier: str, designatedSubtype: SubtypeOrSymbol):
 		super().__init__(identifier)
-		self._designatedSubType = designatedSubType
+		self._designatedSubtype = designatedSubtype
 
 	@property
 	def DesignatedSubtype(self):
-		return self._designatedSubType
+		return self._designatedSubtype
 
 
 @export
 class FileType(FullType):
-	_designatedSubType: SubTypeOrSymbol
+	_designatedSubtype: SubtypeOrSymbol
 
-	def __init__(self, identifier: str, designatedSubType: SubTypeOrSymbol):
+	def __init__(self, identifier: str, designatedSubtype: SubtypeOrSymbol):
 		super().__init__(identifier)
-		self._designatedSubType = designatedSubType
+		self._designatedSubtype = designatedSubtype
 
 	@property
 	def DesignatedSubtype(self):
-		return self._designatedSubType
+		return self._designatedSubtype
 
 
 @export
@@ -980,9 +980,9 @@ class PhysicalType(RangedScalarType, NumericType):
 @export
 class ArrayType(CompositeType):
 	_dimensions:  List['Range']
-	_elementType: SubType
+	_elementType: Subtype
 
-	def __init__(self, identifier: str, indices: List, elementSubType: SubTypeOrSymbol):
+	def __init__(self, identifier: str, indices: List, elementSubtype: SubtypeOrSymbol):
 		super().__init__(identifier)
 
 		self._dimensions =  []
@@ -992,28 +992,28 @@ class ArrayType(CompositeType):
 		return self._dimensions
 
 	@property
-	def ElementType(self) -> SubType:
+	def ElementType(self) -> Subtype:
 		return self._elementType
 
 
 @export
 class RecordTypeElement(ModelEntity):
 	_identifier:    str
-	_subType: SubTypeOrSymbol
+	_subtype: SubtypeOrSymbol
 
-	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
+	def __init__(self, identifier: str, subtype: SubtypeOrSymbol):
 		super().__init__()
 
 		self._identifier =    identifier
-		self._subType = subType
+		self._subtype = subtype
 
 	@property
 	def Identifier(self) -> str:
 		return self._identifier
 
 	@property
-	def SubType(self) -> SubTypeOrSymbol:
-		return self._subType
+	def Subtype(self) -> SubtypeOrSymbol:
+		return self._subtype
 
 
 @export
@@ -1498,20 +1498,20 @@ class RotateLeftExpression(RotateExpression):
 @export
 class QualifiedExpression(BaseExpression, ParenthesisExpression):
 	_operand:  Expression
-	_subtype:  SubTypeOrSymbol
+	_subtype:  SubtypeOrSymbol
 
-	def __init__(self, subType: SubTypeOrSymbol, operand: Expression):
+	def __init__(self, subtype: SubtypeOrSymbol, operand: Expression):
 		super().__init__()
 
 		self._operand = operand
-		self._subtype = subType
+		self._subtype = subtype
 
 	@property
 	def Operand(self):
 		return self._operand
 
 	@property
-	def SubTyped(self):
+	def Subtyped(self):
 		return self._subtype
 
 	def __str__(self) -> str:
@@ -1761,17 +1761,17 @@ class RangeSubtype(BaseConstraint):
 
 @export
 class Obj(ModelEntity, NamedEntity):
-	_subType: SubTypeOrSymbol
+	_subtype: SubtypeOrSymbol
 
-	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
+	def __init__(self, identifier: str, subtype: SubtypeOrSymbol):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
 
-		self._subType = subType
+		self._subtype = subtype
 
 	@property
-	def SubType(self) -> SubTypeOrSymbol:
-		return self._subType
+	def Subtype(self) -> SubtypeOrSymbol:
+		return self._subtype
 
 
 @export
@@ -1797,8 +1797,8 @@ class BaseConstant(Obj):
 
 @export
 class Constant(BaseConstant, WithDefaultExpressionMixin):
-	def __init__(self, identifier: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subType)
+	def __init__(self, identifier: str, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subtype)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -1806,8 +1806,8 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 class DeferredConstant(BaseConstant):
 	_constantReference: Constant
 
-	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
-		super().__init__(identifier, subType)
+	def __init__(self, identifier: str, subtype: SubtypeOrSymbol):
+		super().__init__(identifier, subtype)
 
 	@property
 	def ConstantReference(self) -> Constant:
@@ -1816,8 +1816,8 @@ class DeferredConstant(BaseConstant):
 
 @export
 class Variable(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifier: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subType)
+	def __init__(self, identifier: str, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subtype)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -1828,8 +1828,8 @@ class SharedVariable(Obj):
 
 @export
 class Signal(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifier: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super(Signal, self).__init__(identifier, subType)
+	def __init__(self, identifier: str, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super(Signal, self).__init__(identifier, subtype)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -1883,14 +1883,14 @@ class Procedure(SubProgramm):
 
 @export
 class Function(SubProgramm):
-	_returnType: SubType
+	_returnType: Subtype
 
 	def __init__(self, identifier: str, isPure: bool = True):
 		super().__init__(identifier)
 		self._isPure = isPure
 
 	@property
-	def ReturnType(self) -> SubType:
+	def ReturnType(self) -> Subtype:
 		return self._returnType
 
 
@@ -1925,17 +1925,17 @@ class FunctionMethod(Function, Method):
 
 @export
 class Attribute(ModelEntity, NamedEntity):
-	_subType: SubTypeOrSymbol
+	_subtype: SubtypeOrSymbol
 
-	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
+	def __init__(self, identifier: str, subtype: SubtypeOrSymbol):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
 
-		self._subType = subType
+		self._subtype = subtype
 
 	@property
-	def SubType(self):
-		return self._subType
+	def Subtype(self):
+		return self._subtype
 
 
 @export
@@ -2006,8 +2006,8 @@ class ParameterInterfaceItem(InterfaceItem):
 
 @export
 class GenericConstantInterfaceItem(Constant, GenericInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subType, defaultExpression)
+	def __init__(self, identifier: str, mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subtype, defaultExpression)
 		GenericInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
@@ -2047,46 +2047,46 @@ class GenericPackageInterfaceItem(GenericInterfaceItem):
 
 @export
 class PortSignalInterfaceItem(Signal, PortInterfaceItem):
-	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subType, defaultExpression)
+	def __init__(self, identifier: str, mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subtype, defaultExpression)
 		PortInterfaceItem.__init__(self, mode)
 
 
 @export
 class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subType, defaultExpression)
+	def __init__(self, identifier: str, mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subtype, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subType, defaultExpression)
+	def __init__(self, identifier: str, mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subtype, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subType, defaultExpression)
+	def __init__(self, identifier: str, mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subtype, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
-	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
-		super().__init__(identifier, subType)
+	def __init__(self, identifier: str, subtype: SubtypeOrSymbol):
+		super().__init__(identifier, subtype)
 		ParameterInterfaceItem.__init__(self)
 
 # class GenericItem(ModelEntity):
 # 	def __init__(self):
 # 		super().__init__()
 # 		self._name = None
-# 		self._subType = None
+# 		self._subtype = None
 # 		self._init = None
 #
 #
@@ -2094,7 +2094,7 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
 # 	def __init__(self):
 # 		super().__init__()
 # 		self._name =        None
-# 		self._subType =     None
+# 		self._subtype =     None
 # 		self._init =        None
 # 		self._mode =        None
 # 		self._class =       None

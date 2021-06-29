@@ -1445,6 +1445,41 @@ class LessEqualExpression(RelationalExpression):
 
 
 @export
+class MatchingRelationalExpression(RelationalExpression):
+	pass
+
+
+@export
+class MatchingEqualExpression(MatchingRelationalExpression):
+	_FORMAT = ("", " ?= ", "")
+
+
+@export
+class MatchingUnequalExpression(MatchingRelationalExpression):
+	_FORMAT = ("", " ?/= ", "")
+
+
+@export
+class MatchingGreaterThanExpression(MatchingRelationalExpression):
+	_FORMAT = ("", " ?> ", "")
+
+
+@export
+class MatchingGreaterEqualExpression(MatchingRelationalExpression):
+	_FORMAT = ("", " ?>= ", "")
+
+
+@export
+class MatchingLessThanExpression(MatchingRelationalExpression):
+	_FORMAT = ("", " ?< ", "")
+
+
+@export
+class MatchingLessEqualExpression(MatchingRelationalExpression):
+	_FORMAT = ("", " ?<= ", "")
+
+
+@export
 class ShiftExpression(BinaryExpression):
 	"""
 	A ``ShiftExpression`` is a base-class for all shifting expressions.

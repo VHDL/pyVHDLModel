@@ -60,7 +60,7 @@ class Instantiate(TestCase):
 		library = Library("lib_1")
 
 		self.assertIsNotNone(library)
-		self.assertTrue(library.Name == "lib_1")
+		self.assertTrue(library.Identifier == "lib_1")
 		self.assertTrue(len(library.Contexts) == 0)
 		self.assertTrue(len(library.Entities) == 0)
 		self.assertTrue(len(library.Packages) == 0)
@@ -83,7 +83,7 @@ class Instantiate(TestCase):
 		entity = Entity("entity_1")
 
 		self.assertIsNotNone(entity)
-		self.assertTrue(entity.Name == "entity_1")
+		self.assertTrue(entity.Identifier == "entity_1")
 		self.assertTrue(len(entity.GenericItems) == 0)
 		self.assertTrue(len(entity.PortItems) == 0)
 		self.assertTrue(len(entity.DeclaredItems) == 0)
@@ -94,7 +94,7 @@ class Instantiate(TestCase):
 		architecture = Architecture("arch_1", entity)
 
 		self.assertIsNotNone(architecture)
-		self.assertTrue(architecture.Name == "arch_1")
+		self.assertTrue(architecture.Identifier == "arch_1")
 		self.assertTrue(len(architecture.DeclaredItems) == 0)
 		self.assertTrue(len(architecture.BodyItems) == 0)
 
@@ -102,54 +102,54 @@ class Instantiate(TestCase):
 		package = Package("pack_1")
 
 		self.assertIsNotNone(package)
-		self.assertTrue(package.Name == "pack_1")
+		self.assertTrue(package.Identifier == "pack_1")
 		self.assertTrue(len(package.DeclaredItems) == 0)
 
 	def test_PackageBody(self):
 		packageBody = PackageBody("pack_1")
 
 		self.assertIsNotNone(packageBody)
-		self.assertTrue(packageBody.Name == "pack_1")
+		self.assertTrue(packageBody.Identifier == "pack_1")
 		self.assertTrue(len(packageBody.DeclaredItems) == 0)
 
 	def test_Context(self):
 		context = Context("ctx_1")
 
 		self.assertIsNotNone(context)
-		self.assertTrue(context.Name == "ctx_1")
+		self.assertTrue(context.Identifier == "ctx_1")
 
 	def test_Configuration(self):
 		configuration = Configuration("conf_1")
 
 		self.assertIsNotNone(configuration)
-		self.assertTrue(configuration.Name == "conf_1")
+		self.assertTrue(configuration.Identifier == "conf_1")
 
 	def test_SubType(self):
 		subtype = SubType("bit")
 
 		self.assertIsNotNone(subtype)
-		self.assertTrue(subtype.Name == "bit")
+		self.assertTrue(subtype.Identifier == "bit")
 
 	def test_Integer(self):
 		integer = IntegerType("integer")
 
 		self.assertIsNotNone(integer)
-		self.assertTrue(integer.Name == "integer")
+		self.assertTrue(integer.Identifier == "integer")
 
 	def test_Real(self):
 		real =    RealType("real")
 
 		self.assertIsNotNone(real)
-		self.assertTrue(real.Name == "real")
+		self.assertTrue(real.Identifier == "real")
 
 	def test_Array(self):
 		array =   ArrayType("bit_vector", [], None)
 
 		self.assertIsNotNone(array)
-		self.assertTrue(array.Name == "bit_vector")
+		self.assertTrue(array.Identifier == "bit_vector")
 
 	def test_Record(self):
 		record =  RecordType("range_record")
 
 		self.assertIsNotNone(record)
-		self.assertTrue(record.Name == "range_record")
+		self.assertTrue(record.Identifier == "range_record")

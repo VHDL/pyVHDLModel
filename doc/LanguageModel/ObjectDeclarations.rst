@@ -104,7 +104,7 @@ a deferred constant has a reference to the *regular* constant of the same name.
      @property
      def SubType(self) -> SubType:
 
-     # inherited from WithDefaultExpression
+     # inherited from WithDefaultExpressionMixin
      @property
      def ConstantReference(self) -> Constant:
 
@@ -169,7 +169,7 @@ expression.
      @property
      def SubType(self) -> SubType:
 
-     # inherited from WithDefaultExpression
+     # inherited from WithDefaultExpressionMixin
      @property
      def DefaultExpression(self) -> BaseExpression:
 
@@ -231,7 +231,7 @@ assigned via a default expression.
      @property
      def SubType(self) -> SubType:
 
-     # inherited from WithDefaultExpression
+     # inherited from WithDefaultExpressionMixin
      @property
      def DefaultExpression(self) -> BaseExpression:
 

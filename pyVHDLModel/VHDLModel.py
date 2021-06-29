@@ -41,9 +41,9 @@
 This module contains a document language model for VHDL.
 """
 # load dependencies
-from enum     import Enum
+from enum import Enum, unique, IntEnum
 from pathlib  import Path
-from typing   import List, Tuple, Union, Dict, Iterator, Optional
+from typing import List, Tuple, Union, Dict, Iterator, Optional, Any
 
 try:
 	from typing import Protocol
@@ -92,6 +92,7 @@ Expression = Union[
 
 
 @export
+@unique
 class Direction(Enum):
 	"""
 	A ``Direction`` is an enumeration and represents a direction in a range
@@ -106,6 +107,7 @@ class Direction(Enum):
 
 
 @export
+@unique
 class Mode(Enum):
 	"""
 	A ``Mode`` is an enumeration. It represents the direction of data exchange
@@ -127,9 +129,10 @@ class Mode(Enum):
 
 
 @export
-class Class(Enum):
+@unique
+class ObjectClass(Enum):
 	"""
-	A ``Class`` is an enumeration. It represents an object's class (``constant``,
+	An ``ObjectClass`` is an enumeration. It represents an object's class (``constant``,
 	``signal``, ...).
 
 	In case no *object class* is define, ``Default`` is used, so the *object class*
@@ -141,8 +144,79 @@ class Class(Enum):
 	Signal =     3
 	File =       4
 	Type =       5
-	Subprogram = 6
+	Procedure =  6
+	Function =   7
 
+
+@export
+@unique
+class EntityClass(Enum):
+	"""
+	A ``Class`` is an enumeration. It represents an object's class (``constant``,
+	``signal``, ...).
+
+	In case no *object class* is define, ``Default`` is used, so the *object class*
+	is inferred from context.
+	"""
+	Entity =        0
+	Architecture =  1
+	Configuration = 2
+	Procedure =     3
+	Function =      4
+	Package =       5
+	Type =          6
+	Subtype =       7
+	Constant =      8
+	Signal =        9
+	Variable =      10
+	Component =     11
+	Label =         12
+	Literal =       13
+	Units =         14
+	Group =         15
+	File =          16
+	Property =      17
+	Sequence =      18
+	View =          19
+	Others  =       20
+
+
+@export
+class PossibleReference(IntEnum):
+	Unknown =         0
+	Library =         2**0
+	Entity =          2**1
+	Architecture =    2**2
+	Component =       2**3
+	Package =         2**4
+	Configuration =   2**5
+	Context =         2**6
+	Type =            2**7
+	SubType =         2**8
+	ScalarType =      2**9
+	ArrayType =       2**10
+	RecordType =      2**11
+	AccessType =      2**12
+	ProtectedType =   2**13
+	FileType =        2**14
+#	Alias =           2**14   # TODO: Is this needed?
+	Attribute =       2**15
+	TypeAttribute =   2**16
+	ValueAttribute =  2**17
+	SignalAttribute = 2**18
+	RangeAttribute =  2**19
+	ViewAttribute =   2**20
+	Constant =        2**16
+	Variable =        2**17
+	Signal =          2**18
+	File =            2**19
+	Object =          2**20   # TODO: Is this needed?
+	EnumLiteral =     2**21
+	Procedure =       2**22
+	Function =        2**23
+	Label =           2**24
+	View =            2**25
+	SimpleNameInExpression = Constant + Variable + Signal + ScalarType + EnumLiteral + Function
 
 @export
 class ModelEntity:
@@ -168,20 +242,20 @@ class ModelEntity:
 @export
 class NamedEntity:
 	"""
-	A ``NamedEntity`` is a mixin class for all VHDL entities that have names.
+	A ``NamedEntity`` is a mixin class for all VHDL entities that have identifiers.
 
-	A protected variable :attr:`_name` is available to derived classes as well as
-	a readonly property :attr:`Name` for public access.
+	A protected variable :attr:`_identifier` is available to derived classes as well as
+	a readonly property :attr:`Identifier` for public access.
 	"""
-	_name: str                  #: The name of a model entity.
+	_identifier: str                  #: The name of a model entity.
 
-	def __init__(self, name: str):
-		self._name = name
+	def __init__(self, identifier: str):
+		self._identifier = identifier
 
 	@property
-	def Name(self) -> str:
-		"""Returns a model entity's name."""
-		return self._name
+	def Identifier(self) -> str:
+		"""Returns a model entity's identifier (name)."""
+		return self._identifier
 
 
 @export
@@ -210,18 +284,18 @@ class Name:
 	``Name`` is the base class for all *names* in the VHDL language model.
   """
 
-	_name: str
+	_identifier: str
 	_root: 'Name'
 	_prefix: Nullable['Name']
 
-	def __init__(self, name: str, prefix: 'Name' = None):
-		self._name = name
+	def __init__(self, identifier: str, prefix: 'Name' = None):
+		self._identifier = identifier
 		self._prefix = prefix
 		self._root = prefix._root
 
 	@property
-	def Name(self) -> str:
-		return self._name
+	def Identifier(self) -> str:
+		return self._identifier
 
 	@property
 	def Root(self) -> 'Name':
@@ -238,8 +312,8 @@ class Name:
 
 @export
 class SimpleName(Name):
-	def __init__(self, name: str):
-		self._name = name
+	def __init__(self, identifier: str):
+		self._name = identifier
 		self._root = self
 		self._prefix = None
 
@@ -291,20 +365,20 @@ class SlicedName(Name):
 
 @export
 class SelectedName(Name):
-	def __init__(self, name: str, prefix: Name):
-		super().__init__(name, prefix)
+	def __init__(self, identifier: str, prefix: Name):
+		super().__init__(identifier, prefix)
 
 	def __str__(self):
-		return str(self._prefix) + "." + self._name
+		return str(self._prefix) + "." + self._identifier
 
 
 @export
 class AttributeName(Name):
-	def __init__(self, name: str, prefix: Name):
-		super().__init__(name, prefix)
+	def __init__(self, identifier: str, prefix: Name):
+		super().__init__(identifier, prefix)
 
 	def __str__(self):
-		return str(self._prefix) + "'" + self._name
+		return str(self._prefix) + "'" + self._identifier
 
 
 @export
@@ -319,16 +393,26 @@ class AllName(Name):
 @export
 class Symbol(ModelEntity):
 	_symbolName: Name
+	_possibleReferences: PossibleReference
+	_reference: Any = None
 
-	def __init__(self, symbolName: Name):
+	def __init__(self, symbolName: Name, possibleReferences: PossibleReference):
 		super().__init__()
+
 		self._symbolName = symbolName
+		self._possibleReferences = possibleReferences
 
 	@property
 	def SymbolName(self) -> Name:
 		return self._symbolName
 
+	@property
+	def Reference(self) -> Any:
+		return self._reference
+
 	def __str__(self) -> str:
+		if self._reference is not None:
+			return str(self._reference)
 		return str(self._symbolName)
 
 
@@ -337,110 +421,98 @@ class LibrarySymbol(Symbol):
 	_library: 'Library'
 
 	def __init__(self, symbolName: Name):
-		super().__init__(symbolName)
-		self._library = None
+		super().__init__(symbolName, PossibleReference.Library)
 
 	@property
 	def Library(self) -> 'Library':
 		return self._library
-
-	def ResolvesTo(self, library: 'Library'):
-		self._library = library
+	@Library.setter
+	def Library(self, value: 'Library') -> None:
+		self._reference = value
 
 
 @export
 class EntitySymbol(Symbol):
-	_entity: 'Entity'
-
 	def __init__(self, entityName: Name):
-		super().__init__(symbolName=entityName)
-
-		self._entity = None
+		super().__init__(entityName, PossibleReference.Entity)
 
 	@property
-	def Package(self) -> 'Entity':
-		return self._entity
+	def Entity(self) -> 'Entity':
+		return self._reference
+	@Entity.setter
+	def Entity(self, value: 'Entity') -> None:
+		self._reference = value
 
 
 @export
 class ArchitectureSymbol(Symbol):
-	_architecture: 'Architecture'
-
 	def __init__(self, symbolName: Name):
-		super().__init__(symbolName)
-		self._architecture = None
+		super().__init__(symbolName, PossibleReference.Architecture)
 
 	@property
 	def Architecture(self) -> 'Architecture':
-		return self._architecture
+		return self._reference
+	@Architecture.setter
+	def Architecture(self, value: 'Architecture') -> None:
+		self._reference = value
 
 
 @export
 class ComponentSymbol(Symbol):
-	_component: 'Component'
-
 	def __init__(self, symbolName: Name):
-		super().__init__(symbolName)
-		self._component = None
+		super().__init__(symbolName, PossibleReference.Component)
 
 	@property
 	def Component(self) -> 'Component':
-		return self._component
+		return self._reference
+	@Component.setter
+	def Component(self, value: 'Component') -> None:
+		self._reference = value
 
 
 @export
 class ConfigurationSymbol(Symbol):
-	_configuration: 'Configuration'
-
 	def __init__(self, symbolName: Name):
-		super().__init__(symbolName)
-		self._configuration = None
+		super().__init__(symbolName, PossibleReference.Configuration)
 
 	@property
 	def Configuration(self) -> 'Configuration':
-		return self._configuration
-
-
-@export
-class PackageSymbol(Symbol):
-	_package: 'Package'
-
-	def __init__(self, symbolName: Name):
-		super().__init__(symbolName)
-		self._package = None
-
-	@property
-	def Package(self) -> 'Package':
-		return self._package
+		return self._reference
+	@Configuration.setter
+	def Configuration(self, value: 'Configuration') -> None:
+		self._reference = value
 
 
 @export
 class ContextSymbol(Symbol):
-	_context: 'Context'
-
 	def __init__(self, symbolName: Name):
-		super().__init__(symbolName)
-		self._context = None
+		super().__init__(symbolName, PossibleReference.Context)
 
 	@property
 	def Context(self) -> 'Context':
-		return self._context
+		return self._reference
+	@Context.setter
+	def Context(self, value: 'Context') -> None:
+		self._reference = value
 
 
 @export
 class SubTypeSymbol(Symbol):
-	_subType:     'SubType'
+	def __init__(self, symbolName: Name, possibleReferences: PossibleReference):
+		super().__init__(symbolName, PossibleReference.SubType + PossibleReference.TypeAttribute + possibleReferences)
 
 	@property
 	def SubType(self) -> 'SubType':
-		return self._subType
+		return self._reference
+	@SubType.setter
+	def SubType(self, value: 'SubType') -> None:
+		self._reference = value
 
 
 @export
 class SimpleSubTypeSymbol(SubTypeSymbol):
 	def __init__(self, subTypeName: Name):
-		super().__init__(subTypeName)
-		self._subType = None
+		super().__init__(subTypeName, PossibleReference.ScalarType)
 
 
 @export
@@ -448,8 +520,7 @@ class ConstrainedScalarSubTypeSymbol(SubTypeSymbol):
 	_range: 'Range'
 
 	def __init__(self, subTypeName: Name, rng: 'Range' = None):
-		super().__init__(subTypeName)
-		self._subType = None
+		super().__init__(subTypeName, PossibleReference.ArrayType)
 		self._range = rng
 
 	@property
@@ -462,7 +533,7 @@ class ConstrainedCompositeSubTypeSymbol(SubTypeSymbol):
 	_constraints: List[Constraint]
 
 	def __init__(self, subTypeName: Name, constraints: List[Constraint] = None):
-		super().__init__(subTypeName)
+		super().__init__(subTypeName, PossibleReference.Unknown)
 		self._subType = None
 		self._constraints = constraints
 
@@ -472,101 +543,60 @@ class ConstrainedCompositeSubTypeSymbol(SubTypeSymbol):
 
 
 @export
-class EnumerationLiteralSymbol(Symbol):
-	pass
-
-
-@export
 class ObjectSymbol(Symbol):
 	pass
 
 
 @export
-class SimpleObjectOrFunctionCallSymbol(Symbol):
-	_object: Union['Constant', 'Signal', 'Variable', 'Function']
-
+class SimpleObjectOrFunctionCallSymbol(ObjectSymbol):
 	def __init__(self, objectName: Name):
-		super().__init__(objectName)
-		self._object = None
+		super().__init__(objectName, PossibleReference.Constant + PossibleReference.Variable + PossibleReference.Signal + PossibleReference.ScalarType + PossibleReference.Function + PossibleReference.EnumLiteral)
 
 	@property
-	def Object(self) -> Union['Constant', 'Signal', 'Variable', 'Function']:
-		return self._object
-
-	def __str__(self) -> str:
-		if self._object is not None:
-			return str(self._object)
-		return super().__str__()
+	def ObjectOrFunction(self) -> Union['Constant', 'Signal', 'Variable', 'Function', 'EnumerationLiteral']:
+		return self._reference
+	@ObjectOrFunction.setter
+	def ObjectOrFunction(self, value: Union['Constant', 'Signal', 'Variable', 'Function', 'EnumerationLiteral']):
+		self._reference = value
 
 
 @export
-class IndexedObjectOrFunctionCallSymbol(Symbol):
-	_object: Union['Constant', 'Signal', 'Variable', 'Function']
-
+class IndexedObjectOrFunctionCallSymbol(ObjectSymbol):
 	def __init__(self, objectName: Name):
-		super().__init__(objectName)
-		self._object = None
+		super().__init__(objectName, PossibleReference.Constant + PossibleReference.Variable + PossibleReference.Signal + PossibleReference.ArrayType + PossibleReference.Function)
 
 	@property
-	def Object(self) -> Union['Constant', 'Signal', 'Variable', 'Function']:
-		return self._object
-
-	def __str__(self) -> str:
-		if self._object is not None:
-			return str(self._object)
-		return super().__str__()
+	def ObjectOrFunction(self) -> Union['Constant', 'Signal', 'Variable', 'Function']:
+		return self._reference
+	@ObjectOrFunction.setter
+	def ObjectOrFunction(self, value: Union['Constant', 'Signal', 'Variable', 'Function']):
+		self._reference = value
 
 
 @export
 class ConstantSymbol(ObjectSymbol):
-	_constant: 'Constant'
-
 	def __init__(self, symbolName: Name):
-		super().__init__(symbolName)
-		self._constant = None
+		super().__init__(symbolName, PossibleReference.Constant)
 
 	@property
 	def Constant(self) -> 'Constant':
-		return self._constant
-
-
-@export
-class VariableSymbol(ObjectSymbol):
-	_variable: 'Variable'
-
-	def __init__(self, symbolName: Name):
-		super().__init__(symbolName)
-		self._variable = None
-
-	@property
-	def Variable(self) -> 'Variable':
-		return self._variable
+		return self._reference
+	@Constant.setter
+	def Constant(self, value: 'Constant') -> None:
+		self._reference = value
 
 
 @export
 class SignalSymbol(ObjectSymbol):
-	_signal: 'Signal'
-
 	def __init__(self, symbolName: Name):
-		super().__init__(symbolName)
-		self._signal = None
+		super().__init__(symbolName, PossibleReference.Signal)
 
 	@property
 	def Signal(self) -> 'Signal':
-		return self._signal
-
-
-@export
-class FileSymbol(ObjectSymbol):
-	_file: 'File'
-
-	def __init__(self, symbolName: Name):
-		super().__init__(symbolName)
-		self._file = None
-
-	@property
-	def File(self) -> 'File':
-		return self._file
+		return self._reference
+	@Signal.setter
+	def Signal(self, value: 'Signal') -> None:
+		self._reference = value
 
 
 @export
@@ -631,9 +661,9 @@ class Library(ModelEntity, NamedEntity):
 	_entities:       List['Entity']         #: List of all entities defined in a library.
 	_packages:       List['Package']        #: List of all packages defined in a library.
 
-	def __init__(self, name: str):
+	def __init__(self, identifier: str):
 		super().__init__()
-		NamedEntity.__init__(self, name)
+		NamedEntity.__init__(self, identifier)
 
 		self._contexts =        []
 		self._configurations =  []
@@ -723,28 +753,28 @@ class Document(ModelEntity):
 
 @export
 class Alias(ModelEntity, NamedEntity):
-	def __init__(self, name: str):
+	def __init__(self, identifier: str):
 		"""
 		Initializes underlying ``BaseType``.
 
-		:param name: Name of the type.
+		:param identifier: Name of the type.
 		"""
 		super().__init__()
-		NamedEntity.__init__(self, name)
+		NamedEntity.__init__(self, identifier)
 
 
 @export
 class BaseType(ModelEntity, NamedEntity):
 	"""``BaseType`` is the base class of all type entities in this model."""
 
-	def __init__(self, name: str):
+	def __init__(self, identifier: str):
 		"""
 		Initializes underlying ``BaseType``.
 
-		:param name: Name of the type.
+		:param identifier: Name of the type.
 		"""
 		super().__init__()
-		NamedEntity.__init__(self, name)
+		NamedEntity.__init__(self, identifier)
 
 
 @export
@@ -753,21 +783,26 @@ class Type(BaseType):
 
 
 @export
+class FullType(BaseType):
+	pass
+
+
+@export
 class SubType(BaseType):
 	_type:               'SubType'
-	_baseType:           Type
+	_baseType:           BaseType
 	_range:              'Range'
 	_resolutionFunction: 'Function'
 
-	def __init__(self, name: str):
-		super().__init__(name)
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
 
 	@property
 	def Type(self) -> 'SubType':
 		return self._type
 
 	@property
-	def BaseType(self) -> Type:
+	def BaseType(self) -> BaseType:
 		return self._baseType
 
 	@property
@@ -780,7 +815,12 @@ class SubType(BaseType):
 
 
 @export
-class ScalarType(Type):
+class AnonymousType(Type):
+	pass
+
+
+@export
+class ScalarType(FullType):
 	"""
 	A ``ScalarType`` is a base-class for all scalar types.
 	"""
@@ -810,6 +850,9 @@ class NumericType:
 	A ``NumericType`` is a mixin class for all numeric types.
 	"""
 
+	def __init__(self):
+		pass
+
 
 @export
 class DiscreteType:
@@ -817,20 +860,23 @@ class DiscreteType:
 	A ``DiscreteType`` is a mixin class for all discrete types.
 	"""
 
+	def __init__(self):
+		pass
+
 
 @export
-class CompositeType(Type):
+class CompositeType(FullType):
 	"""
 	A ``CompositeType`` is a base-class for all composite types.
 	"""
 
 
 @export
-class ProtectedType(Type):
+class ProtectedType(FullType):
 	_methods: List[Union['Procedure', 'Function']]
 
-	def __init__(self, name: str, methods: Union[List, Iterator] = None):
-		super().__init__(name)
+	def __init__(self, identifier: str, methods: Union[List, Iterator] = None):
+		super().__init__(identifier)
 		self._methods = [] if methods is None else [m for m in methods]
 
 	@property
@@ -839,11 +885,11 @@ class ProtectedType(Type):
 
 
 @export
-class ProtectedTypeBody(Type):
+class ProtectedTypeBody(FullType):
 	_methods: List[Union['Procedure', 'Function']]
 
-	def __init__(self, name: str, declaredItems: Union[List, Iterator] = None):
-		super().__init__(name)
+	def __init__(self, identifier: str, declaredItems: Union[List, Iterator] = None):
+		super().__init__(identifier)
 		self._methods = [] if declaredItems is None else [m for m in declaredItems]
 
 	# FIXME: needs to be declared items or so
@@ -853,11 +899,11 @@ class ProtectedTypeBody(Type):
 
 
 @export
-class AccessType(Type):
+class AccessType(FullType):
 	_designatedSubType: SubTypeOrSymbol
 
-	def __init__(self, name: str, designatedSubType: SubTypeOrSymbol):
-		super().__init__(name)
+	def __init__(self, identifier: str, designatedSubType: SubTypeOrSymbol):
+		super().__init__(identifier)
 		self._designatedSubType = designatedSubType
 
 	@property
@@ -866,11 +912,11 @@ class AccessType(Type):
 
 
 @export
-class FileType(Type):
+class FileType(FullType):
 	_designatedSubType: SubTypeOrSymbol
 
-	def __init__(self, name: str, designatedSubType: SubTypeOrSymbol):
-		super().__init__(name)
+	def __init__(self, identifier: str, designatedSubType: SubTypeOrSymbol):
+		super().__init__(identifier)
 		self._designatedSubType = designatedSubType
 
 	@property
@@ -882,8 +928,8 @@ class FileType(Type):
 class EnumeratedType(ScalarType, DiscreteType):
 	_literals: List['EnumerationLiteral']
 
-	def __init__(self, name: str, literals: List['EnumerationLiteral']):
-		super().__init__(name)
+	def __init__(self, identifier: str, literals: List['EnumerationLiteral']):
+		super().__init__(identifier)
 
 		self._literals = [] if literals is None else [lit for lit in literals]
 
@@ -894,14 +940,14 @@ class EnumeratedType(ScalarType, DiscreteType):
 
 @export
 class IntegerType(RangedScalarType, NumericType, DiscreteType):
-	def __init__(self, name: str):
-		super().__init__(name)
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
 
 
 @export
 class RealType(RangedScalarType, NumericType):
-	def __init__(self, name: str):
-		super().__init__(name)
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
 
 
 @export
@@ -909,8 +955,8 @@ class PhysicalType(RangedScalarType, NumericType):
 	_primaryUnit:    str
 	_secondaryUnits: List[Tuple[str, 'PhysicalIntegerLiteral']]
 
-	def __init__(self, name: str, primaryUnit: str, units: List[Tuple[str, 'PhysicalIntegerLiteral']]):
-		super().__init__(name)
+	def __init__(self, identifier: str, primaryUnit: str, units: List[Tuple[str, 'PhysicalIntegerLiteral']]):
+		super().__init__(identifier)
 
 		self._primaryUnit = primaryUnit
 		self._secondaryUnits = units
@@ -929,8 +975,8 @@ class ArrayType(CompositeType):
 	_dimensions:  List['Range']
 	_elementType: SubType
 
-	def __init__(self, name: str, indices: List, elementSubType: SubTypeOrSymbol):
-		super().__init__(name)
+	def __init__(self, identifier: str, indices: List, elementSubType: SubTypeOrSymbol):
+		super().__init__(identifier)
 
 		self._dimensions =  []
 
@@ -945,18 +991,18 @@ class ArrayType(CompositeType):
 
 @export
 class RecordTypeElement(ModelEntity):
-	_name:    str
+	_identifier:    str
 	_subType: SubTypeOrSymbol
 
-	def __init__(self, name: str, subType: SubTypeOrSymbol):
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
 		super().__init__()
 
-		self._name =    name
+		self._identifier =    identifier
 		self._subType = subType
 
 	@property
-	def Name(self) -> str:
-		return self._name
+	def Identifier(self) -> str:
+		return self._identifier
 
 	@property
 	def SubType(self) -> SubTypeOrSymbol:
@@ -967,8 +1013,8 @@ class RecordTypeElement(ModelEntity):
 class RecordType(CompositeType):
 	_elements: List[RecordTypeElement]
 
-	def __init__(self, name: str, elements: List[RecordTypeElement] = None):
-		super().__init__(name)
+	def __init__(self, identifier: str, elements: List[RecordTypeElement] = None):
+		super().__init__(identifier)
 
 		self._elements = [] if elements is None else [i for i in elements]
 
@@ -1073,7 +1119,6 @@ class PhysicalLiteral(NumericLiteral):
 @export
 class PhysicalIntegerLiteral(PhysicalLiteral):
 	_value: int
-	_unitName: str
 
 	def __init__(self, value: int, unitName: str):
 		super().__init__(unitName)
@@ -1161,8 +1206,10 @@ class UnaryExpression(BaseExpression):
 	_FORMAT: Tuple[str, str]
 	_operand:  Expression
 
-	def __init__(self):
+	def __init__(self, operand: Expression):
 		super().__init__()
+
+		self._operand = operand
 
 	@property
 	def Operand(self):
@@ -1202,11 +1249,6 @@ class TypeConversion(UnaryExpression):
 
 
 @export
-class FunctionCall(UnaryExpression):
-	pass
-
-
-@export
 class SubExpression(UnaryExpression, ParenthesisExpression):
 	_FORMAT = ("(", ")")
 
@@ -1221,8 +1263,11 @@ class BinaryExpression(BaseExpression):
 	_leftOperand:  Expression
 	_rightOperand: Expression
 
-	def __init__(self):
+	def __init__(self, _leftOperand: Expression, _rightOperand: Expression):
 		super().__init__()
+
+		self._leftOperand = _leftOperand
+		self._rightOperand = _rightOperand
 
 	@property
 	def LeftOperand(self):
@@ -1244,16 +1289,22 @@ class BinaryExpression(BaseExpression):
 
 @export
 class RangeExpression(BinaryExpression):
-	pass
+	_direction: Direction
+
+	@property
+	def Direction(self) -> Direction:
+		return self._direction
 
 
 @export
 class AscendingRangeExpression(RangeExpression):
+	_direction = Direction.To
 	_FORMAT = ("", " to ", "")
 
 
 @export
 class DescendingRangeExpression(RangeExpression):
+	_direction = Direction.To
 	_FORMAT = ("", " downto ", "")
 
 
@@ -1442,8 +1493,11 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 	_operand:  Expression
 	_subtype:  SubTypeOrSymbol
 
-	def __init__(self):
+	def __init__(self, subType: SubTypeOrSymbol, operand: Expression):
 		super().__init__()
+
+		self._operand = operand
+		self._subtype = subType
 
 	@property
 	def Operand(self):
@@ -1504,12 +1558,22 @@ class WhenElseExpression(TernaryExpression):
 
 
 @export
+class FunctionCall(BaseExpression):
+	pass
+
+
+@export
 class AggregateElement(ModelEntity):
 	"""
 	A ``AggregateElement`` is a base-class for all aggregate elements.
 	"""
 
 	_expression: Expression
+
+	def __init__(self, expression: Expression):
+		super().__init__()
+
+		self._expression = expression
 
 	@property
 	def Expression(self):
@@ -1526,6 +1590,11 @@ class SimpleAggregateElement(AggregateElement):
 class IndexedAggregateElement(AggregateElement):
 	_index: int
 
+	def __init__(self, index: Expression, expression: Expression):
+		super().__init__(expression)
+
+		self._index = index
+
 	@property
 	def Index(self) -> int:
 		return self._index
@@ -1541,6 +1610,11 @@ class IndexedAggregateElement(AggregateElement):
 class RangedAggregateElement(AggregateElement):
 	_range: 'Range'
 
+	def __init__(self, rng: 'Range', expression: Expression):
+		super().__init__(expression)
+
+		self._range = rng
+
 	@property
 	def Range(self) -> 'Range':
 		return self._range
@@ -1554,10 +1628,15 @@ class RangedAggregateElement(AggregateElement):
 
 @export
 class NamedAggregateElement(AggregateElement):
-	_name: EnumerationLiteralSymbol
+	_name: Symbol
+
+	def __init__(self, name: Symbol, expression: Expression):
+		super().__init__(expression)
+
+		self._name = name
 
 	@property
-	def Name(self) -> EnumerationLiteralSymbol:
+	def Name(self) -> Symbol:
 		return self._name
 
 	def __str__(self) -> str:
@@ -1578,6 +1657,11 @@ class OthersAggregateElement(AggregateElement):
 @export
 class Aggregate(BaseExpression):
 	_elements: List[AggregateElement]
+
+	def __init__(self, elements: List[AggregateElement]):
+		super().__init__()
+
+		self._elements = elements
 
 	@property
 	def Elements(self) -> List[AggregateElement]:
@@ -1637,9 +1721,9 @@ class RangeSubtype(BaseConstraint):
 class Obj(ModelEntity, NamedEntity):
 	_subType: SubTypeOrSymbol
 
-	def __init__(self, name: str, subType: SubTypeOrSymbol):
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
 		super().__init__()
-		NamedEntity.__init__(self, name)
+		NamedEntity.__init__(self, identifier)
 
 		self._subType = subType
 
@@ -1649,7 +1733,7 @@ class Obj(ModelEntity, NamedEntity):
 
 
 @export
-class WithDefaultExpression:
+class WithDefaultExpressionMixin:
 	"""
 	A ``WithDefaultExpression`` is a mixin class for all objects declarations
 	accepting default expressions.
@@ -1670,18 +1754,18 @@ class BaseConstant(Obj):
 
 
 @export
-class Constant(BaseConstant, WithDefaultExpression):
-	def __init__(self, name: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(name, subType)
-		WithDefaultExpression.__init__(self, defaultExpression)
+class Constant(BaseConstant, WithDefaultExpressionMixin):
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType)
+		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
 @export
 class DeferredConstant(BaseConstant):
 	_constantReference: Constant
 
-	def __init__(self, name: str, subType: SubTypeOrSymbol):
-		super().__init__(name, subType)
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
+		super().__init__(identifier, subType)
 
 	@property
 	def ConstantReference(self) -> Constant:
@@ -1689,10 +1773,10 @@ class DeferredConstant(BaseConstant):
 
 
 @export
-class Variable(Obj, WithDefaultExpression):
-	def __init__(self, name: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(name, subType)
-		WithDefaultExpression.__init__(self, defaultExpression)
+class Variable(Obj, WithDefaultExpressionMixin):
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType)
+		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
 @export
@@ -1701,10 +1785,10 @@ class SharedVariable(Obj):
 
 
 @export
-class Signal(Obj, WithDefaultExpression):
-	def __init__(self, name: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(name, subType)
-		WithDefaultExpression.__init__(self, defaultExpression)
+class Signal(Obj, WithDefaultExpressionMixin):
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super(Signal, self).__init__(identifier, subType)
+		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
 @export
@@ -1720,9 +1804,9 @@ class SubProgramm(ModelEntity, NamedEntity):
 	_bodyItems:      List['SequentialStatement']
 	_isPure:         bool
 
-	def __init__(self, name: str):
+	def __init__(self, identifier: str):
 		super().__init__()
-		NamedEntity.__init__(self, name)
+		NamedEntity.__init__(self, identifier)
 
 		self._genericItems =    []
 		self._parameterItems =  []
@@ -1759,8 +1843,8 @@ class Procedure(SubProgramm):
 class Function(SubProgramm):
 	_returnType: SubType
 
-	def __init__(self, name: str, isPure: bool = True):
-		super().__init__(name)
+	def __init__(self, identifier: str, isPure: bool = True):
+		super().__init__(identifier)
 		self._isPure = isPure
 
 	@property
@@ -1785,15 +1869,15 @@ class Method:
 
 @export
 class ProcedureMethod(Procedure, Method):
-	def __init__(self, name: str, protectedType: ProtectedType):
-		super().__init__(name)
+	def __init__(self, identifier: str, protectedType: ProtectedType):
+		super().__init__(identifier)
 		Method.__init__(self, protectedType)
 
 
 @export
 class FunctionMethod(Function, Method):
-	def __init__(self, name: str, protectedType: ProtectedType):
-		super().__init__(name)
+	def __init__(self, identifier: str, protectedType: ProtectedType):
+		super().__init__(identifier)
 		Method.__init__(self, protectedType)
 
 
@@ -1801,9 +1885,9 @@ class FunctionMethod(Function, Method):
 class Attribute(ModelEntity, NamedEntity):
 	_subType: SubTypeOrSymbol
 
-	def __init__(self, name: str, subType: SubTypeOrSymbol):
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
 		super().__init__()
-		NamedEntity.__init__(self, name)
+		NamedEntity.__init__(self, identifier)
 
 		self._subType = subType
 
@@ -1827,11 +1911,14 @@ class AttributeSpecification(ModelEntity):
 
 
 @export
-class InterfaceItem(ModelEntity):
+class InterfaceItem:
 	"""
 	An ``InterfaceItem`` is a base-class for all mixin-classes for all interface
 	items.
 	"""
+
+	def __init__(self):
+		pass
 
 
 @export
@@ -1869,28 +1956,24 @@ class PortInterfaceItem(InterfaceItem, InterfaceItemWithMode):
 
 
 @export
-class ParameterInterfaceItem(InterfaceItem, InterfaceItemWithMode):
+class ParameterInterfaceItem(InterfaceItem):
 	"""
 	A ``ParameterInterfaceItem`` is a mixin class for all parameter interface items.
 	"""
 
-	def __init__(self, mode: Mode):
-		super().__init__()
-		InterfaceItemWithMode.__init__(self, mode)
-
 
 @export
 class GenericConstantInterfaceItem(Constant, GenericInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, name: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(name, subType, defaultExpression)
+	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType, defaultExpression)
 		GenericInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class GenericTypeInterfaceItem(Type, GenericInterfaceItem):
-	def __init__(self, name: str):
-		super().__init__(name)
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
 		GenericInterfaceItem.__init__(self)
 
 
@@ -1901,58 +1984,61 @@ class GenericSubprogramInterfaceItem(GenericInterfaceItem):
 
 @export
 class GenericProcedureInterfaceItem(Procedure, GenericInterfaceItem):
-	def __init__(self, name: str):
-		super().__init__(name)
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
 		GenericInterfaceItem.__init__(self)
 
 
 @export
 class GenericFunctionInterfaceItem(Function, GenericInterfaceItem):
-	def __init__(self, name: str):
-		super().__init__(name)
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
 		GenericInterfaceItem.__init__(self)
 
 
 @export
 class GenericPackageInterfaceItem(GenericInterfaceItem):
-	def __init__(self, name: str):
-		#	super().__init__(name)
+	def __init__(self, identifier: str):
+		#	super().__init__(identifier)
 		GenericInterfaceItem.__init__(self)
 
 
 @export
 class PortSignalInterfaceItem(Signal, PortInterfaceItem):
-	def __init__(self, name: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(name, subType, defaultExpression)
+	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType, defaultExpression)
 		PortInterfaceItem.__init__(self, mode)
 
 
 @export
-class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem):
-	def __init__(self, name: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(name, subType, defaultExpression)
-		ParameterInterfaceItem.__init__(self, mode)
+class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem, InterfaceItemWithMode):
+	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType, defaultExpression)
+		ParameterInterfaceItem.__init__(self)
+		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
-class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem):
-	def __init__(self, name: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(name, subType, defaultExpression)
-		ParameterInterfaceItem.__init__(self, mode)
+class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem, InterfaceItemWithMode):
+	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType, defaultExpression)
+		ParameterInterfaceItem.__init__(self)
+		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
-class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem):
-	def __init__(self, name: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(name, subType, defaultExpression)
-		ParameterInterfaceItem.__init__(self, mode)
+class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem, InterfaceItemWithMode):
+	def __init__(self, identifier: str, mode: Mode, subType: SubTypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifier, subType, defaultExpression)
+		ParameterInterfaceItem.__init__(self)
+		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
-	def __init__(self, name: str, mode: Mode, subType: SubTypeOrSymbol):
-		super().__init__(name, subType)
-		ParameterInterfaceItem.__init__(self, mode)
+	def __init__(self, identifier: str, subType: SubTypeOrSymbol):
+		super().__init__(identifier, subType)
+		ParameterInterfaceItem.__init__(self)
 
 # class GenericItem(ModelEntity):
 # 	def __init__(self):
@@ -1998,7 +2084,7 @@ class UseClause(Reference):
 
 	def __init__(self, name: Name):
 		super().__init__()
-		self._item = str(name)
+		self._item = str(name)   # FIXME: should the name be splitted?
 
 	@property
 	def Library(self) -> Union[None, LibraryOrSymbol]:
@@ -2036,9 +2122,9 @@ class DesignUnit(ModelEntity, NamedEntity):
 	A ``DesignUnit`` is a base-class for all design units.
 	"""
 
-	def __init__(self, name: str):
+	def __init__(self, identifier: str):
 		super().__init__()
-		NamedEntity.__init__(self, name)
+		NamedEntity.__init__(self, identifier)
 
 
 @export
@@ -2087,8 +2173,8 @@ class Context(PrimaryUnit):
 	_libraryReferences: List[LibraryStatement]
 	_packageReferences: List[UseClause]
 
-	def __init__(self, name):
-		super().__init__(name)
+	def __init__(self, identifier):
+		super().__init__(identifier)
 
 		self._libraryReferences = []
 		self._packageReferences = []
@@ -2111,13 +2197,13 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 
 	def __init__(
 		self,
-		name: str,
+		identifier: str,
 		genericItems: List[GenericInterfaceItem] = None,
 		portItems: List[PortInterfaceItem] = None,
 		declaredItems: List = None,
 		bodyItems: List['ConcurrentStatement'] = None
 	):
-		super().__init__(name)
+		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
 		self._genericItems  = [] if genericItems is None else [g for g in genericItems]
@@ -2148,8 +2234,8 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
 	_bodyItems:     List['ConcurrentStatement']
 
-	def __init__(self, name: str, entity: EntityOrSymbol, declaredItems: List = None, bodyItems: List['ConcurrentStatement'] = None):
-		super().__init__(name)
+	def __init__(self, identifier: str, entity: EntityOrSymbol, declaredItems: List = None, bodyItems: List['ConcurrentStatement'] = None):
+		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
 		self._entity        = entity
@@ -2174,9 +2260,9 @@ class Component(ModelEntity, NamedEntity):
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
 
-	def __init__(self, name: str, genericItems: List[GenericInterfaceItem] = None, portItems: List[PortInterfaceItem] = None):
+	def __init__(self, identifier: str, genericItems: List[GenericInterfaceItem] = None, portItems: List[PortInterfaceItem] = None):
 		super().__init__()
-		NamedEntity.__init__(self, name)
+		NamedEntity.__init__(self, identifier)
 
 		self._genericItems      = [] if genericItems is None else [g for g in genericItems]
 		self._portItems         = [] if portItems is None else [p for p in portItems]
@@ -2192,8 +2278,8 @@ class Component(ModelEntity, NamedEntity):
 
 @export
 class Configuration(PrimaryUnit, MixinDesignUnitWithContext):
-	def __init__(self, name: str):
-		super().__init__(name)
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
 
@@ -2231,7 +2317,8 @@ class ParameterAssociationItem(AssociationItem):
 
 @export
 class GenericEntityInstantiation:
-	pass
+	def __init__(self):
+		pass
 
 
 @export
@@ -2257,8 +2344,8 @@ class Package(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
-	def __init__(self, name: str, genericItems: List[GenericInterfaceItem] = None, declaredItems: List = None):
-		super().__init__(name)
+	def __init__(self, identifier: str, genericItems: List[GenericInterfaceItem] = None, declaredItems: List = None):
+		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
 		self._genericItems =  [] if genericItems is None else [g for g in genericItems]
@@ -2278,8 +2365,8 @@ class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
 	_package:           Package
 	_declaredItems:     List
 
-	def __init__(self, name: str, declaredItems: List = None):
-		super().__init__(name)
+	def __init__(self, identifier: str, declaredItems: List = None):
+		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
@@ -2298,8 +2385,8 @@ class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
 	_packageReference:    Package
 	_genericAssociations: List[GenericAssociationItem]
 
-	def __init__(self, name: str, uninstantiatedPackage: PackageOrSymbol):
-		super().__init__(name)
+	def __init__(self, identifier: str, uninstantiatedPackage: PackageOrSymbol):
+		super().__init__(identifier)
 		GenericEntityInstantiation.__init__(self)
 
 		self._packageReference = uninstantiatedPackage
@@ -2419,7 +2506,8 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 
 @export
 class ProcedureCall:
-	pass
+	def __init__(self):
+		pass
 
 
 @export
@@ -2437,6 +2525,9 @@ class BlockStatement:
 	"""
 	A ``BlockStatement`` is a mixin-class for all block statements.
 	"""
+
+	def __init__(self):
+		pass
 
 
 @export
@@ -2463,6 +2554,9 @@ class MixinConditional:
 	"""
 	_condition: Expression
 
+	def __init__(self):
+		pass
+
 	@property
 	def Condition(self) -> Expression:
 		return self._condition
@@ -2473,6 +2567,9 @@ class MixinBranch:
 	"""
 	A ``BaseBranch`` is a mixin-class for all statements with branches.
 	"""
+
+	def __init__(self):
+		pass
 
 
 @export
@@ -2658,7 +2755,7 @@ class Assignment:
 	_expression: Expression
 
 	def __init__(self):
-		super().__init__()
+		pass
 
 	@property
 	def Target(self) -> Obj:
@@ -2713,7 +2810,7 @@ class MixinReportStatement:
 	_severity: Expression
 
 	def __init__(self):
-		super().__init__()
+		pass
 
 	@property
 	def Message(self) -> Expression:

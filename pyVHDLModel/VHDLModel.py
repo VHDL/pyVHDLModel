@@ -1570,6 +1570,41 @@ class FunctionCall(BaseExpression):
 
 
 @export
+class Allocation(BaseExpression):
+	pass
+
+
+@export
+class SubtypeAllocation(Allocation):
+	_subtype: Symbol
+
+	def __init__(self, subtype: Symbol):
+		self._subtype = subtype
+
+	@property
+	def Subtype(self) -> Symbol:
+		return self._subtype
+
+	def __str__(self) -> str:
+		return "new {subtype!s}".format(subtype=self._subtype)
+
+
+@export
+class QualifiedExpressionAllocation(Allocation):
+	_qualifiedExpression: QualifiedExpression
+
+	def __init__(self, qualifiedExpression: QualifiedExpression):
+		self._qualifiedExpression = qualifiedExpression
+
+	@property
+	def QualifiedExpression(self) -> QualifiedExpression:
+		return self._qualifiedExpression
+
+	def __str__(self) -> str:
+		return "new {expr!s}".format(expr=self._qualifiedExpression)
+
+
+@export
 class AggregateElement(ModelEntity):
 	"""
 	A ``AggregateElement`` is a base-class for all aggregate elements.

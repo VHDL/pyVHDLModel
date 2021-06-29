@@ -35,10 +35,10 @@
 # ==============================================================================
 #
 """
+This module contains a document language model for VHDL.
+
 :copyright: Copyright 2007-2021 Patrick Lehmann - Bötzingen, Germany
 :license: Apache License, Version 2.0
-
-This module contains a document language model for VHDL.
 """
 # load dependencies
 from enum import Enum, unique, IntEnum
@@ -697,24 +697,26 @@ class Document(ModelEntity):
 	A ``Document`` represents a sourcefile. It contains primary and secondary
 	design units.
 	"""
-	_path:           Path                   #: path to the document. ``None`` if virtual document.
-	_contexts:       List['Context']        #: List of all contexts defined in a document.
-	_configurations: List['Configuration']  #: List of all configurations defined in a document.
-	_entities:       List['Entity']         #: List of all entities defined in a document.
-	_architectures:  List['Architecture']   #: List of all architectures defined in a document.
-	_packages:       List['Package']        #: List of all packages defined in a document.
-	_packageBodies:  List['PackageBody']    #: List of all package bodies defined in a document.
+	_path:              Path                      #: path to the document. ``None`` if virtual document.
+	_contexts:          List['Context']           #: List of all contexts defined in a document.
+	_configurations:    List['Configuration']     #: List of all configurations defined in a document.
+	_verificationUnits: List['VerificationUnit']  #: List of all PSL verification units defined in a document.
+	_entities:          List['Entity']            #: List of all entities defined in a document.
+	_architectures:     List['Architecture']      #: List of all architectures defined in a document.
+	_packages:          List['Package']           #: List of all packages defined in a document.
+	_packageBodies:     List['PackageBody']       #: List of all package bodies defined in a document.
 
 	def __init__(self, path: Path):
 		super().__init__()
 
-		self._path =            path
-		self._contexts =        []
-		self._configurations =  []
-		self._entities =        []
-		self._architectures =   []
-		self._packages =        []
-		self._packageBodies =   []
+		self._path =              path
+		self._contexts =          []
+		self._configurations =    []
+		self._verificationUnits = []
+		self._entities =          []
+		self._architectures =     []
+		self._packages =          []
+		self._packageBodies =     []
 
 	@property
 	def Path(self) -> Path:
@@ -729,6 +731,11 @@ class Document(ModelEntity):
 	def Configurations(self) -> List['Configuration']:
 		"""Returns a list of all configuration declarations found in this document."""
 		return self._configurations
+
+	@property
+	def VerificationUnits(self) -> List['VerificationUnit']:
+		"""Returns a list of all configuration declarations found in this document."""
+		return self._verificationUnits
 
 	@property
 	def Entities(self) -> List['Entity']:

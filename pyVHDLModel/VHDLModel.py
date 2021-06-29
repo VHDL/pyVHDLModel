@@ -839,16 +839,17 @@ class RangedScalarType(ScalarType):
 	A ``RangedScalarType`` is a base-class for all scalar types with a range.
 	"""
 
-	_leftBound: Expression
+	_range:      Union['Range', Name]
+	_leftBound:  Expression
 	_rightBound: Expression
 
-	@property
-	def LeftBound(self) -> Expression:
-		return self._leftBound
+	def __init__(self, identifier: str, rng: Union['Range', Name]):
+		super().__init__(identifier)
+		self._range = rng
 
 	@property
-	def RightBound(self) -> Expression:
-		return self._rightBound
+	def Range(self) -> Union['Range', Name]:
+		return self._range
 
 
 @export
@@ -947,14 +948,14 @@ class EnumeratedType(ScalarType, DiscreteType):
 
 @export
 class IntegerType(RangedScalarType, NumericType, DiscreteType):
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, rng: Union['Range', Name]):
+		super().__init__(identifier, rng)
 
 
 @export
 class RealType(RangedScalarType, NumericType):
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, rng: Union['Range', Name]):
+		super().__init__(identifier, rng)
 
 
 @export
@@ -962,8 +963,8 @@ class PhysicalType(RangedScalarType, NumericType):
 	_primaryUnit:    str
 	_secondaryUnits: List[Tuple[str, 'PhysicalIntegerLiteral']]
 
-	def __init__(self, identifier: str, primaryUnit: str, units: List[Tuple[str, 'PhysicalIntegerLiteral']]):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, rng: Union['Range', Name], primaryUnit: str, units: List[Tuple[str, 'PhysicalIntegerLiteral']]):
+		super().__init__(identifier, rng)
 
 		self._primaryUnit = primaryUnit
 		self._secondaryUnits = units

@@ -8,7 +8,7 @@
 # ==============================================================================
 # Authors:            Patrick Lehmann
 #
-# Python package:     An abstract VHDL language model.
+# Python module:      An abstract PSL language model.
 #
 # Description:
 # ------------------------------------
@@ -35,9 +35,55 @@
 # ==============================================================================
 #
 """
-An abstract VHDL language model.
+This module contains a document language model for PSL.
 
 :copyright: Copyright 2007-2021 Patrick Lehmann - Bötzingen, Germany
 :license: Apache License, Version 2.0
 """
-__version__ = "0.11.1"
+# load dependencies
+from pydecor.decorators import export
+
+from pyVHDLModel.VHDLModel import PrimaryUnit, ModelEntity
+
+
+__all__ = []
+
+@export
+class PSLPrimaryUnit(PrimaryUnit):
+	pass
+
+
+@export
+class PSLEntity(ModelEntity):
+	pass
+
+
+@export
+class VerificationUnit(PSLPrimaryUnit):
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+
+
+@export
+class VerificationProperty(PSLPrimaryUnit):
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+
+
+@export
+class VerificationMode(PSLPrimaryUnit):
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+
+
+@export
+class DefaultClock(PSLEntity):
+	_identifier: str
+
+	def __init__(self, identifier: str):
+		super().__init__()
+		self._identifier = identifier
+
+	@property
+	def Identifier(self) -> str:
+		return self._identifier

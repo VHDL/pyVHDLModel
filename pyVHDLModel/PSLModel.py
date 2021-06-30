@@ -78,4 +78,12 @@ class VerificationMode(PSLPrimaryUnit):
 
 @export
 class DefaultClock(PSLEntity):
-	pass
+	_identifier: str
+
+	def __init__(self, identifier: str):
+		super().__init__()
+		self._identifier = identifier
+
+	@property
+	def Identifier(self) -> str:
+		return self._identifier

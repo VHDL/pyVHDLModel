@@ -1982,16 +1982,34 @@ class Attribute(ModelEntity, NamedEntity):
 
 @export
 class AttributeSpecification(ModelEntity):
+	_identifiers: List[Name]
 	_attribute: Name
+	_entityClass: EntityClass
+	_expression: Expression
 
-	def __init__(self, attribute: Name):
+	def __init__(self, identifiers: List[Name], attribute: Name, entityClass: EntityClass, expression: Expression):
 		super().__init__()
 
+		self._identifiers = identifiers
 		self._attribute = attribute
+		self._entityClass = entityClass
+		self._expression = expression
 
 	@property
-	def Attribute(self) -> Attribute:
+	def Identifiers(self) -> List[Name]:
+		return self._identifiers
+
+	@property
+	def Attribute(self) -> Name:
 		return self._attribute
+
+	@property
+	def EntityClass(self) -> EntityClass:
+		return self._entityClass
+
+	@property
+	def Expression(self) -> Expression:
+		return self._expression
 
 
 @export

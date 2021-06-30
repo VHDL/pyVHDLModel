@@ -1758,6 +1758,12 @@ class Range(ModelEntity):
 	_rightBound: Expression
 	_direction:  Direction
 
+	def __init__(self, leftBound: Expression, rightBound: Expression, direction: Direction):
+		super().__init__()
+		self._leftBound = leftBound
+		self._rightBound = rightBound
+		self._direction = direction
+
 	@property
 	def LeftBound(self) -> Expression:
 		return self._leftBound

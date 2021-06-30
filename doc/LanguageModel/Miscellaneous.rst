@@ -36,7 +36,7 @@ a design has the two child nodes: ``Libraries`` and ``Documents``. Each is a
 
      # from Design
      @property
-     def Libraries(self) -> List[Library]:
+     def Libraries(self) -> List[LibraryStatement]:
 
      @property
      def Documents(self) -> List[Document]:
@@ -45,24 +45,24 @@ a design has the two child nodes: ``Libraries`` and ``Documents``. Each is a
 
 .. _vhdlmodel-library:
 
-Library
-=======
+LibraryStatement
+================
 
 A library contains multiple *design units*. Each design unit listed in a library
 is a *primary* design unit like: ``configuration``, ``entity``, ``package`` or
 ``context``.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Library`:
+**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.LibraryStatement`:
 
 .. code-block:: Python
 
    @export
-   class Library(ModelEntity):
+   class LibraryStatement(ModelEntity):
      # inherited from ModelEntity
      @property
      def Parent(self) -> ModelEntity:
 
-     # from Library
+     # from LibraryStatement
      @property
      def Contexts(self) -> List[Context]:
 

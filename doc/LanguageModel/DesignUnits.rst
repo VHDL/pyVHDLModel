@@ -80,7 +80,7 @@ types). An entity's list of statements is called body items.
 
      # inherited from MixinDesignUnitWithContext
      @property
-     def LibraryReferences(self) -> List[Library]:
+     def LibraryReferences(self) -> List[LibraryStatement]:
 
      @property
      def PackageReferences(self) -> List[UseClause]:
@@ -128,7 +128,7 @@ Package
 
      # inherited from MixinDesignUnitWithContext
      @property
-     def LibraryReferences(self) -> List[Library]:
+     def LibraryReferences(self) -> List[LibraryStatement]:
 
      @property
      def PackageReferences(self) -> List[UseClause]:
@@ -175,7 +175,7 @@ Architeture
 
      # inherited from MixinDesignUnitWithContext
      @property
-     def LibraryReferences(self) -> List[Library]:
+     def LibraryReferences(self) -> List[LibraryStatement]:
 
      @property
      def PackageReferences(self) -> List[UseClause]:
@@ -220,7 +220,7 @@ Package Body
 
      # inherited from MixinDesignUnitWithContext
      @property
-     def LibraryReferences(self) -> List[Library]:
+     def LibraryReferences(self) -> List[LibraryStatement]:
 
      @property
      def PackageReferences(self) -> List[UseClause]:

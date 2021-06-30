@@ -37,9 +37,9 @@
 from pathlib  import Path
 from unittest import TestCase
 
-from pyVHDLModel.VHDLModel import Design, Library, Document
+from pyVHDLModel.VHDLModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral
 from pyVHDLModel.VHDLModel import Entity, Architecture, PackageBody, Package, Configuration, Context
-from pyVHDLModel.VHDLModel import SubType, IntegerType, RealType, ArrayType, RecordType
+from pyVHDLModel.VHDLModel import IntegerType, RealType, ArrayType, RecordType
 
 
 if __name__ == "__main__":
@@ -53,103 +53,103 @@ class Instantiate(TestCase):
 		design = Design()
 
 		self.assertIsNotNone(design)
-		self.assertTrue(len(design.Documents) == 0)
-		self.assertTrue(len(design.Libraries) == 0)
+		self.assertEqual(len(design.Documents), 0)
+		self.assertEqual(len(design.Libraries), 0)
 
 	def test_Library(self):
 		library = Library("lib_1")
 
 		self.assertIsNotNone(library)
-		self.assertTrue(library.Identifier == "lib_1")
-		self.assertTrue(len(library.Contexts) == 0)
-		self.assertTrue(len(library.Entities) == 0)
-		self.assertTrue(len(library.Packages) == 0)
-		self.assertTrue(len(library.Configurations) == 0)
+		self.assertEqual(library.Identifier, "lib_1")
+		self.assertEqual(len(library.Contexts), 0)
+		self.assertEqual(len(library.Entities), 0)
+		self.assertEqual(len(library.Packages), 0)
+		self.assertEqual(len(library.Configurations), 0)
 
 	def test_Document(self):
 		path = Path("tests.vhdl")
 		document = Document(path)
 
 		self.assertIsNotNone(document)
-		self.assertTrue(document.Path == path)
-		self.assertTrue(len(document.Entities) == 0)
-		self.assertTrue(len(document.Architectures) == 0)
-		self.assertTrue(len(document.Packages) == 0)
-		self.assertTrue(len(document.PackageBodies) == 0)
-		self.assertTrue(len(document.Contexts) == 0)
-		self.assertTrue(len(document.Configurations) == 0)
+		self.assertEqual(document.Path, path)
+		self.assertEqual(len(document.Entities), 0)
+		self.assertEqual(len(document.Architectures), 0)
+		self.assertEqual(len(document.Packages), 0)
+		self.assertEqual(len(document.PackageBodies), 0)
+		self.assertEqual(len(document.Contexts), 0)
+		self.assertEqual(len(document.Configurations), 0)
 
 	def test_Entity(self):
 		entity = Entity("entity_1")
 
 		self.assertIsNotNone(entity)
-		self.assertTrue(entity.Identifier == "entity_1")
-		self.assertTrue(len(entity.GenericItems) == 0)
-		self.assertTrue(len(entity.PortItems) == 0)
-		self.assertTrue(len(entity.DeclaredItems) == 0)
-		self.assertTrue(len(entity.BodyItems) == 0)
+		self.assertEqual(entity.Identifier, "entity_1")
+		self.assertEqual(len(entity.GenericItems), 0)
+		self.assertEqual(len(entity.PortItems), 0)
+		self.assertEqual(len(entity.DeclaredItems), 0)
+		self.assertEqual(len(entity.BodyItems), 0)
 
 	def test_Architecture(self):
 		entity = Entity("entity_1")
 		architecture = Architecture("arch_1", entity)
 
 		self.assertIsNotNone(architecture)
-		self.assertTrue(architecture.Identifier == "arch_1")
-		self.assertTrue(len(architecture.DeclaredItems) == 0)
-		self.assertTrue(len(architecture.BodyItems) == 0)
+		self.assertEqual(architecture.Identifier, "arch_1")
+		self.assertEqual(len(architecture.DeclaredItems), 0)
+		self.assertEqual(len(architecture.BodyItems), 0)
 
 	def test_Package(self):
 		package = Package("pack_1")
 
 		self.assertIsNotNone(package)
-		self.assertTrue(package.Identifier == "pack_1")
-		self.assertTrue(len(package.DeclaredItems) == 0)
+		self.assertEqual(package.Identifier, "pack_1")
+		self.assertEqual(len(package.DeclaredItems), 0)
 
 	def test_PackageBody(self):
 		packageBody = PackageBody("pack_1")
 
 		self.assertIsNotNone(packageBody)
-		self.assertTrue(packageBody.Identifier == "pack_1")
-		self.assertTrue(len(packageBody.DeclaredItems) == 0)
+		self.assertEqual(packageBody.Identifier, "pack_1")
+		self.assertEqual(len(packageBody.DeclaredItems), 0)
 
 	def test_Context(self):
 		context = Context("ctx_1")
 
 		self.assertIsNotNone(context)
-		self.assertTrue(context.Identifier == "ctx_1")
+		self.assertEqual(context.Identifier, "ctx_1")
 
 	def test_Configuration(self):
 		configuration = Configuration("conf_1")
 
 		self.assertIsNotNone(configuration)
-		self.assertTrue(configuration.Identifier == "conf_1")
+		self.assertEqual(configuration.Identifier, "conf_1")
 
 	def test_SubType(self):
-		subtype = SubType("bit")
+		subtype = Subtype("bit")
 
 		self.assertIsNotNone(subtype)
-		self.assertTrue(subtype.Identifier == "bit")
+		self.assertEqual(subtype.Identifier, "bit")
 
 	def test_Integer(self):
-		integer = IntegerType("integer")
+		integer = IntegerType("integer", Range(IntegerLiteral(0), IntegerLiteral(7), Direction.To))
 
 		self.assertIsNotNone(integer)
-		self.assertTrue(integer.Identifier == "integer")
+		self.assertEqual(integer.Identifier, "integer")
 
 	def test_Real(self):
-		real =    RealType("real")
+		real =    RealType("real", Range(FloatingPointLiteral(0.0), FloatingPointLiteral(1.0), Direction.To))
 
 		self.assertIsNotNone(real)
-		self.assertTrue(real.Identifier == "real")
+		self.assertEqual(real.Identifier, "real")
 
 	def test_Array(self):
 		array =   ArrayType("bit_vector", [], None)
 
 		self.assertIsNotNone(array)
-		self.assertTrue(array.Identifier == "bit_vector")
+		self.assertEqual(array.Identifier, "bit_vector")
 
 	def test_Record(self):
 		record =  RecordType("range_record")
 
 		self.assertIsNotNone(record)
-		self.assertTrue(record.Identifier == "range_record")
+		self.assertEqual(record.Identifier, "range_record")

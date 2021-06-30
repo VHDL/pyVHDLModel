@@ -53,103 +53,103 @@ class Instantiate(TestCase):
 		design = Design()
 
 		self.assertIsNotNone(design)
-		self.assertEqual(len(design.Documents), 0)
-		self.assertEqual(len(design.Libraries), 0)
+		self.assertEqual(0, len(design.Documents))
+		self.assertEqual(0, len(design.Libraries))
 
 	def test_Library(self):
 		library = Library("lib_1")
 
 		self.assertIsNotNone(library)
-		self.assertEqual(library.Identifier, "lib_1")
-		self.assertEqual(len(library.Contexts), 0)
-		self.assertEqual(len(library.Entities), 0)
-		self.assertEqual(len(library.Packages), 0)
-		self.assertEqual(len(library.Configurations), 0)
+		self.assertEqual("lib_1", library.Identifier)
+		self.assertEqual(0, len(library.Contexts))
+		self.assertEqual(0, len(library.Entities))
+		self.assertEqual(0, len(library.Packages))
+		self.assertEqual(0, len(library.Configurations))
 
 	def test_Document(self):
 		path = Path("tests.vhdl")
 		document = Document(path)
 
 		self.assertIsNotNone(document)
-		self.assertEqual(document.Path, path)
-		self.assertEqual(len(document.Entities), 0)
-		self.assertEqual(len(document.Architectures), 0)
-		self.assertEqual(len(document.Packages), 0)
-		self.assertEqual(len(document.PackageBodies), 0)
-		self.assertEqual(len(document.Contexts), 0)
-		self.assertEqual(len(document.Configurations), 0)
+		self.assertEqual(path, document.Path)
+		self.assertEqual(0, len(document.Entities))
+		self.assertEqual(0, len(document.Architectures))
+		self.assertEqual(0, len(document.Packages))
+		self.assertEqual(0, len(document.PackageBodies))
+		self.assertEqual(0, len(document.Contexts))
+		self.assertEqual(0, len(document.Configurations))
 
 	def test_Entity(self):
 		entity = Entity("entity_1")
 
 		self.assertIsNotNone(entity)
-		self.assertEqual(entity.Identifier, "entity_1")
-		self.assertEqual(len(entity.GenericItems), 0)
-		self.assertEqual(len(entity.PortItems), 0)
-		self.assertEqual(len(entity.DeclaredItems), 0)
-		self.assertEqual(len(entity.BodyItems), 0)
+		self.assertEqual("entity_1", entity.Identifier)
+		self.assertEqual(0, len(entity.GenericItems))
+		self.assertEqual(0, len(entity.PortItems))
+		self.assertEqual(0, len(entity.DeclaredItems))
+		self.assertEqual(0, len(entity.BodyItems))
 
 	def test_Architecture(self):
 		entity = Entity("entity_1")
 		architecture = Architecture("arch_1", entity)
 
 		self.assertIsNotNone(architecture)
-		self.assertEqual(architecture.Identifier, "arch_1")
-		self.assertEqual(len(architecture.DeclaredItems), 0)
-		self.assertEqual(len(architecture.BodyItems), 0)
+		self.assertEqual("arch_1", architecture.Identifier)
+		self.assertEqual(0, len(architecture.DeclaredItems))
+		self.assertEqual(0, len(architecture.BodyItems))
 
 	def test_Package(self):
 		package = Package("pack_1")
 
 		self.assertIsNotNone(package)
-		self.assertEqual(package.Identifier, "pack_1")
-		self.assertEqual(len(package.DeclaredItems), 0)
+		self.assertEqual("pack_1", package.Identifier)
+		self.assertEqual(0, len(package.DeclaredItems))
 
 	def test_PackageBody(self):
 		packageBody = PackageBody("pack_1")
 
 		self.assertIsNotNone(packageBody)
-		self.assertEqual(packageBody.Identifier, "pack_1")
-		self.assertEqual(len(packageBody.DeclaredItems), 0)
+		self.assertEqual("pack_1", packageBody.Identifier)
+		self.assertEqual(0, len(packageBody.DeclaredItems))
 
 	def test_Context(self):
 		context = Context("ctx_1")
 
 		self.assertIsNotNone(context)
-		self.assertEqual(context.Identifier, "ctx_1")
+		self.assertEqual("ctx_1", context.Identifier)
 
 	def test_Configuration(self):
 		configuration = Configuration("conf_1")
 
 		self.assertIsNotNone(configuration)
-		self.assertEqual(configuration.Identifier, "conf_1")
+		self.assertEqual("conf_1", configuration.Identifier)
 
-	def test_SubType(self):
+	def test_Subtype(self):
 		subtype = Subtype("bit")
 
 		self.assertIsNotNone(subtype)
-		self.assertEqual(subtype.Identifier, "bit")
+		self.assertEqual("bit", subtype.Identifier)
 
 	def test_Integer(self):
 		integer = IntegerType("integer", Range(IntegerLiteral(0), IntegerLiteral(7), Direction.To))
 
 		self.assertIsNotNone(integer)
-		self.assertEqual(integer.Identifier, "integer")
+		self.assertEqual("integer", integer.Identifier)
 
 	def test_Real(self):
 		real =    RealType("real", Range(FloatingPointLiteral(0.0), FloatingPointLiteral(1.0), Direction.To))
 
 		self.assertIsNotNone(real)
-		self.assertEqual(real.Identifier, "real")
+		self.assertEqual("real", real.Identifier)
 
 	def test_Array(self):
 		array =   ArrayType("bit_vector", [], None)
 
 		self.assertIsNotNone(array)
-		self.assertEqual(array.Identifier, "bit_vector")
+		self.assertEqual("bit_vector", array.Identifier)
 
 	def test_Record(self):
-		record =  RecordType("range_record")
+		record =  RecordType("rec", [])
 
 		self.assertIsNotNone(record)
-		self.assertEqual(record.Identifier, "range_record")
+		self.assertEqual("rec", record.Identifier)

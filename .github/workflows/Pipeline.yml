@@ -280,26 +280,26 @@ jobs:
       
     steps:
 
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: 🚢 Build documentation in 'pyVHDLModel/doc'
-      run: |
-        docker build -t vhdl/doc - <<-EOF
-        FROM btdi/sphinx:featured
-        RUN apk add -U --no-cache graphviz
-        EOF
+      - name: 🚢 Build documentation in 'pyVHDLModel/doc'
+        run: |
+          docker build -t vhdl/doc - <<-EOF
+          FROM btdi/sphinx:featured
+          RUN apk add -U --no-cache graphviz
+          EOF
 
-    - name: 🛳️ Unknown
-      uses: buildthedocs/btd@v0
-      with:
-        token: ${{ github.token }}
+      - name: 🛳️ Unknown
+        uses: buildthedocs/btd@v0
+        with:
+          token: ${{ github.token }}
 
-    - name: Upload artifacts to GitHub Pages
-      uses: actions/upload-artifact@master
-      with:
-        name: doc
-        path: doc/_build/html
+      - name: Upload artifacts to GitHub Pages
+        uses: actions/upload-artifact@master
+        with:
+          name: doc
+          path: doc/_build/html
 
   ArtifactCleanUp:
     name: 🗑️ Artifact Cleanup
@@ -313,8 +313,8 @@ jobs:
       ARTIFACT: ${{ needs.Package.outputs.artifact }}
 
     steps:
-    - name: 🗑️ Delete all Artifacts
-      uses: geekyeggo/delete-artifact@v1
-      with:
-        name: |
-          ${{ env.ARTIFACT }}
+      - name: 🗑️ Delete all Artifacts
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: |
+            ${{ env.ARTIFACT }}

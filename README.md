@@ -57,21 +57,21 @@ from pyGHDL.dom.NonStandard import Design, Document
 sourceFile = Path("example.vhdl")
 
 design = Design()
-library = Design.GetLibrary("lib")
+library = design.GetLibrary("lib")
 document = Document(sourceFile)
 design.AddDocument(document, library)
 
 for entity in document.Entities:
-  print("{}".format(entity.Name))
+  print("{}".format(entity.Identifier))
   print("  generics:")
-  for generic in entity.Generics:
+  for generic in entity.GenericItems:
     print("  - {} : {!s} {}".format(
-      generic.Identifier, generic.Mode, generic.SubTypeIndication)
+      generic.Identifier, generic.Mode, generic.Subtype)
     )
   print("  ports:")
-  for port in entity.Ports:
+  for port in entity.PortItems:
     print("  - {} : {!s} {}".format(
-      port.Identifier, port.Mode, port.SubTypeIndication)
+      port.Identifier, port.Mode, port.Subtype)
     )
 ```
 

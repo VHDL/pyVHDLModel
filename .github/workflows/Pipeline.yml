@@ -222,9 +222,62 @@ jobs:
         run: |
           twine upload dist/*
 
+  VerifyDocs:
+    name: 📓 Verify that example(s) is/are runnable
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v2
+
+      - name: '⚙️ Setup GHDL'
+        uses: ghdl/setup-ghdl-ci@master
+
+      - name: '🐍 Setup Python'
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: '🐍 Install dependencies'
+        run: |
+          pip3 install pytest
+          pip3 install git+https://github.com/ghdl/ghdl.git@$(ghdl version hash)
+      
+      - name: 'Extract example from README'
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          ROOT = Path('.')
+
+          with (ROOT / 'README.md').open('r') as rptr:
+              content = rptr.read()
+          
+          m = re.search(r"```py(thon)?(?P<code>.*?)```", content, re.MULTILINE|re.DOTALL)
+          
+          if m is None:
+              raise Exception("Regular expression did not find the example in the README!")
+          
+          with (ROOT / 'tests/docs/example.py').open('w') as wptr:
+              wptr.write(m["code"])
+      
+      - name: 'Print example.py'
+        run: cat tests/docs/example.py
+
+      - name: 'Run example.py'
+        run: |
+          cd tests/docs
+          python3 example.py
+
+
   BuildTheDocs:
     name: 📓 Run BuildTheDocs and publish to GH-Pages
     runs-on: ubuntu-latest
+
+    needs:
+      - VerifyDocs
+      
     steps:
 
     - name: Checkout repository

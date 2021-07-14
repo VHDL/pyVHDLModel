@@ -283,14 +283,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: 🚢 Build documentation in 'pyVHDLModel/doc'
+      - name: 🚢 Build container image 'vhdl/doc'
         run: |
           docker build -t vhdl/doc - <<-EOF
           FROM btdi/sphinx:featured
           RUN apk add -U --no-cache graphviz
           EOF
 
-      - name: 🛳️ Unknown
+      - name: 🛳️ Build documentation in 'pyVHDLModel/doc'
         uses: buildthedocs/btd@v0
         with:
           token: ${{ github.token }}

@@ -2,6 +2,13 @@ name: Unit Testing, Coverage Collection, Package, Release, Documentation and Pub
 
 on: [ push ]
 
+env:
+  PYTHON_LATEST: 3.9
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   UnitTesting:
     name: ${{ matrix.icon }} Unit Tests using Python ${{ matrix.python }}
@@ -22,7 +29,7 @@ jobs:
       python: ${{ env.PYTHON }}
 
     steps:
-      - name: Checkout repository
+      - name: ⏬ Checkout repository
         uses: actions/checkout@v2
 
       - name: 🐍 Setup Python ${{ matrix.python }}
@@ -35,7 +42,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r tests/requirements.txt
 
-      - name: Run unit tests
+      - name: ☑ Run unit tests
         run: |
           python -m pytest -rA tests/unit
 
@@ -44,12 +51,12 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PYTHON: 3.9
+      PYTHON: ${{ env.PYTHON_LATEST }}
     outputs:
       python: ${{ env.PYTHON }}
 
     steps:
-      - name: 🔋 Checkout repository
+      - name: ⏬ Checkout repository
         uses: actions/checkout@v2
 
       - name: 🐍 Setup Python ${{ env.PYTHON }}
@@ -199,7 +206,7 @@ jobs:
       artifact: ${{ env.ARTIFACT }}
 
     steps:
-      - name: Download artifacts '${{ env.ARTIFACT }}' from 'Package' job
+      - name: 📥 Download artifacts '${{ env.ARTIFACT }}' from 'Package' job
         uses: actions/download-artifact@v2
         with:
           name: ${{ env.ARTIFACT }}
@@ -223,27 +230,31 @@ jobs:
           twine upload dist/*
 
   VerifyDocs:
-    name: 📓 Verify that example(s) is/are runnable
+    name: 👍 Verify example snippets
     runs-on: ubuntu-latest
-    steps:
 
-      - name: 📥 Checkout repository
+    env:
+      PYTHON: ${{ env.PYTHON_LATEST }}
+    outputs:
+      python: ${{ env.PYTHON }}
+
+    steps:
+      - name: ⏬ Checkout repository
         uses: actions/checkout@v2
 
-      - name: '⚙️ Setup GHDL'
+      - name: ⚙ Setup GHDL
         uses: ghdl/setup-ghdl-ci@master
 
-      - name: '🐍 Setup Python'
+      - name: 🐍 Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: ${{ env.PYTHON }}
 
-      - name: '🐍 Install dependencies'
+      - name: 🐍 Install dependencies
         run: |
-          pip3 install pytest
           pip3 install git+https://github.com/ghdl/ghdl.git@$(ghdl version hash)
-      
-      - name: 'Extract example from README'
+
+      - name: ✂ Extract code snippet from README
         shell: python
         run: |
           from pathlib import Path
@@ -253,21 +264,21 @@ jobs:
 
           with (ROOT / 'README.md').open('r') as rptr:
               content = rptr.read()
-          
+
           m = re.search(r"```py(thon)?(?P<code>.*?)```", content, re.MULTILINE|re.DOTALL)
-          
+
           if m is None:
               raise Exception("Regular expression did not find the example in the README!")
-          
+
           with (ROOT / 'tests/docs/example.py').open('w') as wptr:
               wptr.write(m["code"])
-      
-      - name: 'Print example.py'
-        run: cat tests/docs/example.py
 
-      - name: 'Run example.py'
+#      - name: Print example.py
+#        run: cat tests/docs/example.py
+
+      - name: ☑ Run example snippet
+        working-directory: tests/docs
         run: |
-          cd tests/docs
           python3 example.py
 
 
@@ -277,9 +288,8 @@ jobs:
 
     needs:
       - VerifyDocs
-      
-    steps:
 
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -290,12 +300,12 @@ jobs:
           RUN apk add -U --no-cache graphviz
           EOF
 
-      - name: 🛳️ Build documentation in 'pyVHDLModel/doc'
+      - name: 🛳️ Build documentation from './pyVHDLModel/doc'
         uses: buildthedocs/btd@v0
         with:
           token: ${{ github.token }}
 
-      - name: Upload artifacts to GitHub Pages
+      - name: 📤 Upload artifacts to GitHub Pages
         uses: actions/upload-artifact@master
         with:
           name: doc

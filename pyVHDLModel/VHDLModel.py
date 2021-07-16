@@ -1312,7 +1312,7 @@ class AscendingRangeExpression(RangeExpression):
 
 @export
 class DescendingRangeExpression(RangeExpression):
-	_direction = Direction.To
+	_direction = Direction.DownTo
 	_FORMAT = ("", " downto ", "")
 
 

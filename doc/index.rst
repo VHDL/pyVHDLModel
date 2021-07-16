@@ -59,6 +59,22 @@ News
 
 .. only:: html
 
+   Jul. 2021 - First adoption and enhancements
+   ===========================================
+
+.. only:: latex
+
+   .. rubric:: First adoption and enhancements
+
+* `GHDL's <https://github.com/ghdl/ghdl>`__ is the first big adopter with `pyGHDL.dom <https://ghdl.github.io/ghdl/pyGHDL/pyGHDL.dom.html>`__
+  to generate a network of instantiated classes derived from ``pyVHDLModel``. |br|
+  It uses `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`__ as a backend (GHDL build as shared object and
+  loaded into CPython via C-binding API (``ctypes``).
+* ...
+
+
+.. only:: html
+
    Jun. 2021 - Model and documentation enhancements
    ================================================
 

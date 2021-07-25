@@ -37,9 +37,9 @@
 from pathlib  import Path
 from unittest import TestCase
 
-from pyVHDLModel.VHDLModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral
-from pyVHDLModel.VHDLModel import Entity, Architecture, PackageBody, Package, Configuration, Context
-from pyVHDLModel.VHDLModel import IntegerType, RealType, ArrayType, RecordType
+from pyVHDLModel.SyntaxModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral
+from pyVHDLModel.SyntaxModel import Entity, Architecture, PackageBody, Package, Configuration, Context
+from pyVHDLModel.SyntaxModel import IntegerType, RealType, ArrayType, RecordType
 
 
 if __name__ == "__main__":

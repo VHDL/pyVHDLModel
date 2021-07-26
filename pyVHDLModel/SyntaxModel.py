@@ -815,19 +815,14 @@ class ArrayType(CompositeType):
 
 
 @export
-class RecordTypeElement(ModelEntity):
-	_identifier:    str
+class RecordTypeElement(ModelEntity, MultipleNamedEntity):
 	_subtype: SubtypeOrSymbol
 
-	def __init__(self, identifier: str, subtype: SubtypeOrSymbol):
+	def __init__(self, identifiers: List[str], subtype: SubtypeOrSymbol):
 		super().__init__()
+		MultipleNamedEntity.__init__(self, identifiers)
 
-		self._identifier =    identifier
 		self._subtype = subtype
-
-	@property
-	def Identifier(self) -> str:
-		return self._identifier
 
 	@property
 	def Subtype(self) -> SubtypeOrSymbol:

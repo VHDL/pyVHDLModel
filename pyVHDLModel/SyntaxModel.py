@@ -42,7 +42,7 @@ This module contains a document language model for VHDL.
 """
 # load dependencies
 from pathlib              import Path
-from typing               import List, Tuple, Union, Dict, Iterator, Optional, Any
+from typing import List, Tuple, Union, Dict, Iterator, Optional, Any, Iterable
 
 from pydecor.decorators   import export
 
@@ -153,9 +153,9 @@ class SimpleName(Name):
 class ParenthesisName(Name):
 	_associations: List
 
-	def __init__(self, prefix: Name, associations: List):
+	def __init__(self, prefix: Name, associations: Iterable):
 		super().__init__("", prefix)
-		self._associations = associations
+		self._associations = [a for a in associations]
 
 	@property
 	def Associations(self) -> List:
@@ -348,10 +348,10 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol):
 class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 	_constraints: List[Constraint]
 
-	def __init__(self, subtypeName: Name, constraints: List[Constraint] = None):
+	def __init__(self, subtypeName: Name, constraints: Iterable[Constraint] = None):
 		super().__init__(subtypeName, PossibleReference.Unknown)
 		self._subtype = None
-		self._constraints = constraints
+		self._constraints = [c for c in constraints]
 
 	@property
 	def Constraints(self) -> List[Constraint]:
@@ -753,7 +753,7 @@ class FileType(FullType):
 class EnumeratedType(ScalarType, DiscreteType):
 	_literals: List['EnumerationLiteral']
 
-	def __init__(self, identifier: str, literals: List['EnumerationLiteral']):
+	def __init__(self, identifier: str, literals: Iterable['EnumerationLiteral']):
 		super().__init__(identifier)
 
 		self._literals = [] if literals is None else [lit for lit in literals]
@@ -780,11 +780,11 @@ class PhysicalType(RangedScalarType, NumericType):
 	_primaryUnit:    str
 	_secondaryUnits: List[Tuple[str, 'PhysicalIntegerLiteral']]
 
-	def __init__(self, identifier: str, rng: Union['Range', Name], primaryUnit: str, units: List[Tuple[str, 'PhysicalIntegerLiteral']]):
+	def __init__(self, identifier: str, rng: Union['Range', Name], primaryUnit: str, units: Iterable[Tuple[str, 'PhysicalIntegerLiteral']]):
 		super().__init__(identifier, rng)
 
 		self._primaryUnit = primaryUnit
-		self._secondaryUnits = units
+		self._secondaryUnits = [u for u in units]
 
 	@property
 	def PrimaryUnit(self) -> str:
@@ -818,7 +818,7 @@ class ArrayType(CompositeType):
 class RecordTypeElement(ModelEntity, MultipleNamedEntity):
 	_subtype: SubtypeOrSymbol
 
-	def __init__(self, identifiers: List[str], subtype: SubtypeOrSymbol):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
 		super().__init__()
 		MultipleNamedEntity.__init__(self, identifiers)
 
@@ -833,7 +833,7 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntity):
 class RecordType(CompositeType):
 	_elements: List[RecordTypeElement]
 
-	def __init__(self, identifier: str, elements: List[RecordTypeElement] = None):
+	def __init__(self, identifier: str, elements: Iterable[RecordTypeElement] = None):
 		super().__init__(identifier)
 
 		self._elements = [] if elements is None else [i for i in elements]
@@ -1550,10 +1550,10 @@ class OthersAggregateElement(AggregateElement):
 class Aggregate(BaseExpression):
 	_elements: List[AggregateElement]
 
-	def __init__(self, elements: List[AggregateElement]):
+	def __init__(self, elements: Iterable[AggregateElement]):
 		super().__init__()
 
-		self._elements = elements
+		self._elements = [e for e in elements]
 
 	@property
 	def Elements(self) -> List[AggregateElement]:
@@ -1619,7 +1619,7 @@ class RangeSubtype(BaseConstraint):
 class Obj(ModelEntity, MultipleNamedEntity):
 	_subtype: SubtypeOrSymbol
 
-	def __init__(self, identifiers: List[str], subtype: SubtypeOrSymbol):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
 		super().__init__()
 		MultipleNamedEntity.__init__(self, identifiers)
 
@@ -1653,7 +1653,7 @@ class BaseConstant(Obj):
 
 @export
 class Constant(BaseConstant, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: List[str], subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
 		super().__init__(identifiers, subtype)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
@@ -1662,7 +1662,7 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 class DeferredConstant(BaseConstant):
 	_constantReference: Constant
 
-	def __init__(self, identifiers: List[str], subtype: SubtypeOrSymbol):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
 		super().__init__(identifiers, subtype)
 
 	@property
@@ -1672,7 +1672,7 @@ class DeferredConstant(BaseConstant):
 
 @export
 class Variable(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: List[str], subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
 		super().__init__(identifiers, subtype)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
@@ -1684,7 +1684,7 @@ class SharedVariable(Obj):
 
 @export
 class Signal(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: List[str], subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
 		super(Signal, self).__init__(identifiers, subtype)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
@@ -1801,10 +1801,10 @@ class AttributeSpecification(ModelEntity):
 	_entityClass: EntityClass
 	_expression: Expression
 
-	def __init__(self, identifiers: List[Name], attribute: Name, entityClass: EntityClass, expression: Expression):
+	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: Expression):
 		super().__init__()
 
-		self._identifiers = identifiers
+		self._identifiers = [i for i in identifiers]
 		self._attribute = attribute
 		self._entityClass = entityClass
 		self._expression = expression
@@ -1880,7 +1880,7 @@ class ParameterInterfaceItem(InterfaceItem):
 
 @export
 class GenericConstantInterfaceItem(Constant, GenericInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: List[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
 		super().__init__(identifiers, subtype, defaultExpression)
 		GenericInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
@@ -1921,14 +1921,14 @@ class GenericPackageInterfaceItem(GenericInterfaceItem):
 
 @export
 class PortSignalInterfaceItem(Signal, PortInterfaceItem):
-	def __init__(self, identifiers: List[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
 		super().__init__(identifiers, subtype, defaultExpression)
 		PortInterfaceItem.__init__(self, mode)
 
 
 @export
 class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: List[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
 		super().__init__(identifiers, subtype, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
@@ -1936,7 +1936,7 @@ class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem, Interface
 
 @export
 class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: List[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
 		super().__init__(identifiers, subtype, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
@@ -1944,7 +1944,7 @@ class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem, Interface
 
 @export
 class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: List[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
 		super().__init__(identifiers, subtype, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
@@ -1952,7 +1952,7 @@ class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem, InterfaceItem
 
 @export
 class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
-	def __init__(self, identifiers: List[str], subtype: SubtypeOrSymbol):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
 		super().__init__(identifiers, subtype)
 		ParameterInterfaceItem.__init__(self)
 
@@ -2089,10 +2089,10 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 	def __init__(
 		self,
 		identifier: str,
-		genericItems: List[GenericInterfaceItem] = None,
-		portItems: List[PortInterfaceItem] = None,
-		declaredItems: List = None,
-		bodyItems: List['ConcurrentStatement'] = None
+		genericItems: Iterable[GenericInterfaceItem] = None,
+		portItems: Iterable[PortInterfaceItem] = None,
+		declaredItems: Iterable = None,
+		bodyItems: Iterable['ConcurrentStatement'] = None
 	):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
@@ -2125,7 +2125,7 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
 	_bodyItems:     List['ConcurrentStatement']
 
-	def __init__(self, identifier: str, entity: EntityOrSymbol, declaredItems: List = None, bodyItems: List['ConcurrentStatement'] = None):
+	def __init__(self, identifier: str, entity: EntityOrSymbol, declaredItems: Iterable = None, bodyItems: Iterable['ConcurrentStatement'] = None):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
@@ -2151,7 +2151,7 @@ class Component(ModelEntity, NamedEntity):
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
 
-	def __init__(self, identifier: str, genericItems: List[GenericInterfaceItem] = None, portItems: List[PortInterfaceItem] = None):
+	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItem] = None, portItems: Iterable[PortInterfaceItem] = None):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
 
@@ -2235,7 +2235,7 @@ class Package(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
-	def __init__(self, identifier: str, genericItems: List[GenericInterfaceItem] = None, declaredItems: List = None):
+	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
@@ -2256,7 +2256,7 @@ class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
 	_package:           Package
 	_declaredItems:     List
 
-	def __init__(self, identifier: str, declaredItems: List = None):
+	def __init__(self, identifier: str, declaredItems: Iterable = None):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
@@ -2422,20 +2422,32 @@ class BlockStatement:
 
 
 @export
-class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, ConcurrentDeclarations, ConcurrentStatements):
+class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements):
 	_portItems:     List[PortInterfaceItem]
 
-	def __init__(self, label: str = None):
+	def __init__(self, label: str, portItems: Iterable[PortInterfaceItem] = None, declaredItems: Iterable = None, bodyItems: Iterable['ConcurrentStatement'] = None):
 		super().__init__(label=label)
 		BlockStatement.__init__(self)
+		LabeledEntity.__init__(self, label)
 		ConcurrentDeclarations.__init__(self)
 		ConcurrentStatements.__init__(self)
 
-		self._portItems =     []
+		self._portItems     = [] if portItems is None else [i for i in portItems]
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		self._bodyItems     = [] if bodyItems is None else [i for i in bodyItems]
 
+	# Extract to MixIn?
 	@property
 	def PortItems(self) -> List[PortInterfaceItem]:
 		return self._portItems
+
+	@property
+	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
+		return self._declaredItems
+
+	@property
+	def BodyItems(self) -> List['ConcurrentStatement']:
+		return self._bodyItems
 
 
 @export

@@ -2341,8 +2341,8 @@ class ConcurrentStatements:
 class SequentialDeclarations:
 	_declaredItems: List
 
-	def __init__(self):
-		self._declaredItems = []
+	def __init__(self, declaredItems: Iterable):
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
 	@property
 	def DeclaredItems(self) -> List:
@@ -2353,8 +2353,8 @@ class SequentialDeclarations:
 class SequentialStatements:
 	_statements: List[SequentialStatement]
 
-	def __init__(self):
-		self._statements = []
+	def __init__(self, statements: Iterable[SequentialStatement]):
+		self._statements = [] if statements is None else [s for s in statements]
 
 	@property
 	def Statements(self) -> List[SequentialStatement]:
@@ -2416,12 +2416,15 @@ class ConfigurationInstantiation(Instantiation):
 
 @export
 class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements):
-	_sensitivityList: List[Signal]
+	_sensitivityList: List[Signal] = None
 
-	def __init__(self, label: str = None):
-		super().__init__(label=label)
-		SequentialDeclarations.__init__(self)
-		SequentialStatements.__init__(self)
+	def __init__(self, label: str = None, declaredItems: Iterable = None, statements: Iterable[SequentialStatement] = None, sensitivityList: Iterable[Name] = None):
+		super().__init__(label)
+		SequentialDeclarations.__init__(self, declaredItems)
+		SequentialStatements.__init__(self, statements)
+
+		if sensitivityList is not None:
+			self._sensitivityList = [s for s in sensitivityList]
 
 	@property
 	def SensitivityList(self) -> List[Signal]:
@@ -2459,7 +2462,7 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntit
 	_portItems:     List[PortInterfaceItem]
 
 	def __init__(self, label: str, portItems: Iterable[PortInterfaceItem] = None, declaredItems: Iterable = None, bodyItems: Iterable['ConcurrentStatement'] = None):
-		super().__init__(label=label)
+		super().__init__(label)
 		BlockStatement.__init__(self)
 		LabeledEntity.__init__(self, label)
 		ConcurrentDeclarations.__init__(self)
@@ -2579,7 +2582,7 @@ class GenerateStatement(ConcurrentStatement):
 	"""
 
 	def __init__(self, label: str = None):
-		super().__init__(label=label)
+		super().__init__(label)
 
 
 @export
@@ -2588,8 +2591,8 @@ class IfGenerateStatement(GenerateStatement):
 	_elsifBranches: List[ElsifGenerateBranch]
 	_elseBranch:    ElseGenerateBranch
 
-	def __init__(self, label: str = None):
-		super().__init__(label=label)
+	def __init__(self, label: str):
+		super().__init__(label)
 
 		self._elsifBranches = []
 
@@ -2668,7 +2671,7 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarations, Concurrent
 	_range:     Range
 
 	def __init__(self, label: str = None):
-		super().__init__(label=label)
+		super().__init__(label)
 		ConcurrentDeclarations.__init__(self)
 		ConcurrentStatements.__init__(self)
 
@@ -2719,7 +2722,7 @@ class VariableAssignment(Assignment):
 @export
 class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignment):
 	def __init__(self, label: str = None):
-		super().__init__(label=label)
+		super().__init__(label)
 		SignalAssignment.__init__(self)
 
 
@@ -2775,7 +2778,7 @@ class MixinAssertStatement(MixinReportStatement):
 @export
 class ConcurrentAssertStatement(ConcurrentStatement, MixinAssertStatement):
 	def __init__(self, label: str = None):
-		super().__init__(label=label)
+		super().__init__(label)
 		MixinAssertStatement.__init__(self)
 
 

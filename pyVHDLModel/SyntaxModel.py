@@ -2368,17 +2368,50 @@ class Instantiation(ConcurrentStatement):
 
 @export
 class ComponentInstantiation(Instantiation):
-	pass
+	_component: Component
+
+	def __init__(self, label: str, componentName: Name):
+		super().__init__(label)
+
+		self._component = componentName
+
+	@property
+	def Component(self) -> Component:
+		return self._component
 
 
 @export
 class EntityInstantiation(Instantiation):
-	pass
+	_entity: Entity
+	_architecture: Architecture
+
+	def __init__(self, label: str, entityName: Name, architectureName: Name = None):
+		super().__init__(label)
+
+		self._entity = entityName
+		self._architecture = architectureName
+
+	@property
+	def Entity(self) -> Entity:
+		return self._entity
+
+	@property
+	def Architecture(self) -> Entity:
+		return self._architecture
 
 
 @export
 class ConfigurationInstantiation(Instantiation):
-	pass
+	_configuration: Configuration
+
+	def __init__(self, label: str, configurationName: Name):
+		super().__init__(label)
+
+		self._configuration = configurationName
+
+	@property
+	def Configuration(self) -> Entity:
+		return self._configuration
 
 
 @export

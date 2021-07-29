@@ -2317,8 +2317,8 @@ class SequentialStatement(Statement):
 class ConcurrentDeclarations:
 	_declaredItems: List
 
-	def __init__(self):
-		self._declaredItems = []
+	def __init__(self, declaredItems: Iterable = None):
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
 	@property
 	def DeclaredItems(self) -> List:
@@ -2329,8 +2329,8 @@ class ConcurrentDeclarations:
 class ConcurrentStatements:
 	_statements: List[ConcurrentStatement]
 
-	def __init__(self):
-		self._statements = []
+	def __init__(self, statements: Iterable[ConcurrentStatement] = None):
+		self._statements = [] if statements is None else [s for s in statements]
 
 	@property
 	def Statements(self) -> List[ConcurrentStatement]:
@@ -2493,8 +2493,8 @@ class MixinConditional:
 	"""
 	_condition: Expression
 
-	def __init__(self):
-		pass
+	def __init__(self, condition: Expression):
+		self._condition = condition
 
 	@property
 	def Condition(self) -> Expression:
@@ -2516,9 +2516,9 @@ class MixinConditionalBranch(MixinBranch, MixinConditional):
 	"""
 	A ``BaseBranch`` is a mixin-class for all branch statements with a condition.
 	"""
-	def __init__(self):
+	def __init__(self, condition: Expression):
 		super().__init__()
-		MixinConditional.__init__(self)
+		MixinConditional.__init__(self, condition)
 
 
 @export
@@ -2548,17 +2548,17 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
 	A ``GenerateBranch`` is a base-class for all branches in a generate statements.
 	"""
 
-	def __init__(self):
+	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
 		super().__init__()
-		ConcurrentDeclarations.__init__(self)
-		ConcurrentStatements.__init__(self)
+		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentStatements.__init__(self, statements)
 
 
 @export
 class IfGenerateBranch(GenerateBranch, MixinIfBranch):
-	def __init__(self):
-		super().__init__()
-		MixinIfBranch.__init__(self)
+	def __init__(self, condition: Expression, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
+		super().__init__(declaredItems, statements)
+		MixinIfBranch.__init__(self, condition)
 
 
 @export
@@ -2591,10 +2591,12 @@ class IfGenerateStatement(GenerateStatement):
 	_elsifBranches: List[ElsifGenerateBranch]
 	_elseBranch:    ElseGenerateBranch
 
-	def __init__(self, label: str):
+	def __init__(self, label: str, ifBranch: IfGenerateBranch, elsifBranches: Iterable[ElsifGenerateBranch] = None, elseBranch: ElseGenerateBranch = None):
 		super().__init__(label)
 
-		self._elsifBranches = []
+		self._ifBranch = ifBranch
+		self._elsifBranches = [] if elsifBranches is None else [b for b in elsifBranches]
+		self._elseBranch = elseBranch
 
 	@property
 	def IfBranch(self) -> IfGenerateBranch:

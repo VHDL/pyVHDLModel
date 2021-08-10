@@ -2738,19 +2738,14 @@ class Assignment:
 	An ``Assignment`` is a base-class for all assignment statements.
 	"""
 
-	_target:     Obj
-	_expression: Expression
+	_target:     Name
 
-	def __init__(self):
-		pass
+	def __init__(self, target: Name):
+		self._target = target
 
 	@property
-	def Target(self) -> Obj:
+	def Target(self) -> Name:
 		return self._target
-
-	@property
-	def Expression(self) -> Expression:
-		return self._expression
 
 
 @export
@@ -2768,17 +2763,65 @@ class VariableAssignment(Assignment):
 
 
 @export
+class WaveformElement(ModelEntity):
+	_expression: Expression
+	_after: Expression
+
+	def __init__(self, expression: Expression, after: Expression = None):
+		super().__init__()
+
+		self._expression = expression
+		self._after = after
+
+	@property
+	def Expression(self) -> Expression:
+		return self._expression
+
+	@property
+	def After(self) -> Expression:
+		return self._after
+
+
+@export
 class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignment):
-	def __init__(self, label: str = None):
+	def __init__(self, label: str, target: Name):
 		super().__init__(label)
-		SignalAssignment.__init__(self)
+		SignalAssignment.__init__(self, target)
+
+
+@export
+class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
+	_waveform: List[WaveformElement]
+
+	def __init__(self, label: str, target: Name, waveform: Iterable[WaveformElement]):
+		super().__init__(label, target)
+
+		self._waveform = [e for e in waveform]
+
+	@property
+	def Waveform(self) -> List[WaveformElement]:
+		return self._waveform
+
+
+@export
+class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment):
+	def __init__(self, label: str, target: Name, expression: Expression):
+		super().__init__(label, target)
+		expression
+
+
+@export
+class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment):
+	def __init__(self, label: str, target: Name, expression: Expression):
+		super().__init__(label, target)
+		expression
 
 
 @export
 class SequentialSignalAssignment(SequentialStatement, SignalAssignment):
-	def __init__(self):
+	def __init__(self, target: Name, expression: Expression, label: str = None):
 		super().__init__()
-		SignalAssignment.__init__(self)
+		SignalAssignment.__init__(self, target, expression)
 
 
 @export

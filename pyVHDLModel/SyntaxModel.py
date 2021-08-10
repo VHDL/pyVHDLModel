@@ -2590,31 +2590,34 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
 	"""
 	A ``GenerateBranch`` is a base-class for all branches in a generate statements.
 	"""
+	_alternativeLabel: str = None
 
-	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
+	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
 		ConcurrentDeclarations.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
+		self._alternativeLabel = alternativeLabel
+
 
 @export
 class IfGenerateBranch(GenerateBranch, MixinIfBranch):
-	def __init__(self, condition: Expression, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
-		super().__init__(declaredItems, statements)
+	def __init__(self, condition: Expression, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
+		super().__init__(declaredItems, statements, alternativeLabel)
 		MixinIfBranch.__init__(self, condition)
 
 
 @export
 class ElsifGenerateBranch(GenerateBranch, MixinElsifBranch):
-	def __init__(self):
-		super().__init__()
-		MixinElsifBranch.__init__(self)
+	def __init__(self, condition: Expression, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
+		super().__init__(declaredItems, statements, alternativeLabel)
+		MixinElsifBranch.__init__(self, condition)
 
 
 @export
 class ElseGenerateBranch(GenerateBranch, MixinElseBranch):
-	def __init__(self):
-		super().__init__()
+	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
+		super().__init__(declaredItems, statements, alternativeLabel)
 		MixinElseBranch.__init__(self)
 
 

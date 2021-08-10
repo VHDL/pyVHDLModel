@@ -87,7 +87,7 @@ class Instantiate(TestCase):
 		self.assertEqual(0, len(entity.GenericItems))
 		self.assertEqual(0, len(entity.PortItems))
 		self.assertEqual(0, len(entity.DeclaredItems))
-		self.assertEqual(0, len(entity.BodyItems))
+		self.assertEqual(0, len(entity.Statements))
 
 	def test_Architecture(self):
 		entity = Entity("entity_1")
@@ -96,7 +96,7 @@ class Instantiate(TestCase):
 		self.assertIsNotNone(architecture)
 		self.assertEqual("arch_1", architecture.Identifier)
 		self.assertEqual(0, len(architecture.DeclaredItems))
-		self.assertEqual(0, len(architecture.BodyItems))
+		self.assertEqual(0, len(architecture.Statements))
 
 	def test_Package(self):
 		package = Package("pack_1")

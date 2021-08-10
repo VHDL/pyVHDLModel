@@ -1699,7 +1699,7 @@ class SubProgramm(ModelEntity, NamedEntity):
 	_genericItems:   List['GenericInterfaceItem']
 	_parameterItems: List['ParameterInterfaceItem']
 	_declaredItems:  List
-	_bodyItems:      List['SequentialStatement']
+	_statements:     List['SequentialStatement']
 	_isPure:         bool
 
 	def __init__(self, identifier: str):
@@ -1709,7 +1709,7 @@ class SubProgramm(ModelEntity, NamedEntity):
 		self._genericItems =    []
 		self._parameterItems =  []
 		self._declaredItems =   []
-		self._bodyItems =       []
+		self._statements =      []
 
 	@property
 	def GenericItems(self) -> List['GenericInterfaceItem']:
@@ -1724,8 +1724,8 @@ class SubProgramm(ModelEntity, NamedEntity):
 		return self._declaredItems
 
 	@property
-	def BodyItems(self) -> List['SequentialStatement']:
-		return self._bodyItems
+	def Statements(self) -> List['SequentialStatement']:
+		return self._statements
 
 	@property
 	def IsPure(self) -> bool:
@@ -2084,7 +2084,7 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:  List[GenericInterfaceItem]
 	_portItems:     List[PortInterfaceItem]
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
-	_bodyItems:     List['ConcurrentStatement']
+	_statements:    List['ConcurrentStatement']
 
 	def __init__(
 		self,
@@ -2092,7 +2092,7 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 		genericItems: Iterable[GenericInterfaceItem] = None,
 		portItems: Iterable[PortInterfaceItem] = None,
 		declaredItems: Iterable = None,
-		bodyItems: Iterable['ConcurrentStatement'] = None
+		statements: Iterable['ConcurrentStatement'] = None
 	):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
@@ -2100,7 +2100,7 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 		self._genericItems  = [] if genericItems is None else [g for g in genericItems]
 		self._portItems     = [] if portItems is None else [p for p in portItems]
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
-		self._bodyItems     = [] if bodyItems is None else [i for i in bodyItems]
+		self._statements    = [] if statements is None else [s for s in statements]
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -2115,23 +2115,23 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 		return self._declaredItems
 
 	@property
-	def BodyItems(self) -> List['ConcurrentStatement']:
-		return self._bodyItems
+	def Statements(self) -> List['ConcurrentStatement']:
+		return self._statements
 
 
 @export
 class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 	_entity:        EntityOrSymbol
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
-	_bodyItems:     List['ConcurrentStatement']
+	_statements:    List['ConcurrentStatement']
 
-	def __init__(self, identifier: str, entity: EntityOrSymbol, declaredItems: Iterable = None, bodyItems: Iterable['ConcurrentStatement'] = None):
+	def __init__(self, identifier: str, entity: EntityOrSymbol, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
 		self._entity        = entity
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
-		self._bodyItems     = [] if bodyItems is None else [i for i in bodyItems]
+		self._statements    = [] if statements is None else [s for s in statements]
 
 	@property
 	def Entity(self) -> EntityOrSymbol:
@@ -2142,8 +2142,8 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 		return self._declaredItems
 
 	@property
-	def BodyItems(self) -> List['ConcurrentStatement']:
-		return self._bodyItems
+	def Statements(self) -> List['ConcurrentStatement']:
+		return self._statements
 
 
 @export
@@ -2461,7 +2461,7 @@ class BlockStatement:
 class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements):
 	_portItems:     List[PortInterfaceItem]
 
-	def __init__(self, label: str, portItems: Iterable[PortInterfaceItem] = None, declaredItems: Iterable = None, bodyItems: Iterable['ConcurrentStatement'] = None):
+	def __init__(self, label: str, portItems: Iterable[PortInterfaceItem] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None):
 		super().__init__(label)
 		BlockStatement.__init__(self)
 		LabeledEntity.__init__(self, label)
@@ -2470,7 +2470,7 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntit
 
 		self._portItems     = [] if portItems is None else [i for i in portItems]
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
-		self._bodyItems     = [] if bodyItems is None else [i for i in bodyItems]
+		self._statements    = [] if statements is None else [s for s in statements]
 
 	# Extract to MixIn?
 	@property
@@ -2482,8 +2482,8 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntit
 		return self._declaredItems
 
 	@property
-	def BodyItems(self) -> List['ConcurrentStatement']:
-		return self._bodyItems
+	def Statements(self) -> List['ConcurrentStatement']:
+		return self._statements
 
 
 @export

@@ -274,6 +274,13 @@ class PrimaryUnit(DesignUnit):
 	A ``PrimaryUnit`` is a base-class for all primary units.
 	"""
 
+	@property
+	def Library(self) -> 'Library':
+		return self._parent
+	@Library.setter
+	def Library(self, library: 'Library') -> None:
+		self._parent = library
+
 
 @export
 class SecondaryUnit(DesignUnit):

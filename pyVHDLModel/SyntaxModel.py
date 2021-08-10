@@ -454,15 +454,30 @@ class Design(ModelEntity):
 		self._documents.append(document)
 
 		for entity in document.Entities:
+			entity.Library = library
 			library.Entities.append(entity)
 
+		for architecture in document.Architectures:
+			architecture.Library = library
+			try:
+				library.Architectures[architecture.Entity.SymbolName].append(architecture)
+			except KeyError:
+				library.Architectures[architecture.Entity.SymbolName] = [architecture]
+
 		for package in document.Packages:
+			package.Library = library
 			library.Packages.append(package)
 
+		for packageBody in document.PackageBodies:
+			packageBody.Library = library
+			library.PackageBodies.append(packageBody)
+
 		for configuration in document.Configurations:
+			configuration.Library = library
 			library.Configurations.append(configuration)
 
 		for context in document.Contexts:
+			context.Library = library
 			library.Contexts.append(context)
 
 
@@ -472,10 +487,12 @@ class Library(ModelEntity, NamedEntity):
 	A ``Library`` represents a VHDL library. It contains all *primary* design
 	units.
 	"""
-	_contexts:       List['Context']        #: List of all contexts defined in a library.
-	_configurations: List['Configuration']  #: List of all configurations defined in a library.
-	_entities:       List['Entity']         #: List of all entities defined in a library.
-	_packages:       List['Package']        #: List of all packages defined in a library.
+	_contexts:       List['Context']                     #: List of all contexts defined in a library.
+	_configurations: List['Configuration']               #: List of all configurations defined in a library.
+	_entities:       List['Entity']                      #: List of all entities defined in a library.
+	_architectures:  Dict['Name', List['Architecture']]  #: Dictionary of all architectures defined in a library.
+	_packages:       List['Package']                     #: List of all packages defined in a library.
+	_packageBodies:  List['PackageBody']                 #: List of all package bodies defined in a library.
 
 	def __init__(self, identifier: str):
 		super().__init__()
@@ -484,27 +501,39 @@ class Library(ModelEntity, NamedEntity):
 		self._contexts =        []
 		self._configurations =  []
 		self._entities =        []
+		self._architectures =   {}
 		self._packages =        []
+		self._packageBodies =   []
 
 	@property
 	def Contexts(self) -> List['Context']:
-		"""Returns a list of all context declarations loaded for this design."""
+		"""Returns a list of all context declarations declared in this library."""
 		return self._contexts
 
 	@property
 	def Configurations(self) -> List['Configuration']:
-		"""Returns a list of all configuration declarations loaded for this design."""
+		"""Returns a list of all configuration declarations declared in this library."""
 		return self._configurations
 
 	@property
 	def Entities(self) -> List['Entity']:
-		"""Returns a list of all entity declarations loaded for this design."""
+		"""Returns a list of all entity declarations declared in this library."""
 		return self._entities
 
 	@property
+	def Architectures(self) -> Dict['Name', List['Architecture']]:
+		"""Returns a list of all architectures declarations declared in this library."""
+		return self._architectures
+
+	@property
 	def Packages(self) -> List['Package']:
-		"""Returns a list of all package declarations loaded for this design."""
+		"""Returns a list of all package declarations declared in this library."""
 		return self._packages
+
+	@property
+	def PackageBodies(self) -> List['PackageBody']:
+		"""Returns a list of all package body declarations declared in this library."""
+		return self._packageBodies
 
 
 @export
@@ -2085,6 +2114,7 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 	_portItems:     List[PortInterfaceItem]
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
 	_statements:    List['ConcurrentStatement']
+	_architectures: List['Architecture']
 
 	def __init__(
 		self,
@@ -2101,6 +2131,7 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 		self._portItems     = [] if portItems is None else [p for p in portItems]
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 		self._statements    = [] if statements is None else [s for s in statements]
+		self._architectures = []
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -2118,24 +2149,36 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 	def Statements(self) -> List['ConcurrentStatement']:
 		return self._statements
 
+	@property
+	def Architectures(self) -> List['Architecture']:
+		return self._architectures
+
 
 @export
 class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
-	_entity:        EntityOrSymbol
+	_library:       Library = None
+	_entity:        EntitySymbol
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
 	_statements:    List['ConcurrentStatement']
 
-	def __init__(self, identifier: str, entity: EntityOrSymbol, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None):
+	def __init__(self, identifier: str, entity: Name, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
-		self._entity        = entity
+		self._entity        = EntitySymbol(entity)
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 		self._statements    = [] if statements is None else [s for s in statements]
 
 	@property
-	def Entity(self) -> EntityOrSymbol:
+	def Entity(self) -> EntitySymbol:
 		return self._entity
+
+	@property
+	def Library(self) -> 'Library':
+		return self._library
+	@Library.setter
+	def Library(self, library: 'Library') -> None:
+		self._library = library
 
 	@property
 	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union

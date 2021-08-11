@@ -2715,16 +2715,19 @@ class CaseGenerateStatement(GenerateStatement):
 
 @export
 class ForGenerateStatement(GenerateStatement, ConcurrentDeclarations, ConcurrentStatements):
-	_loopIndex: Constant
+	_loopIndex: str
 	_range:     Range
 
-	def __init__(self, label: str = None):
+	def __init__(self, label: str, loopIndex: str, range: Range, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
 		super().__init__(label)
-		ConcurrentDeclarations.__init__(self)
-		ConcurrentStatements.__init__(self)
+		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentStatements.__init__(self, statements)
+
+		self._loopIndex = loopIndex
+		self._range = range
 
 	@property
-	def LoopIndex(self) -> Constant:
+	def LoopIndex(self) -> str:
 		return self._loopIndex
 
 	@property

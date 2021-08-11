@@ -2665,6 +2665,14 @@ class Choice(ModelEntity):
 
 
 @export
+class ConcurrentChoice(Choice):
+	"""
+	A ``ConcurrentChoice`` is a base-class for all concurrent choices
+	(in for...generate statements).
+	"""
+
+
+@export
 class Case(ModelEntity):
 	"""
 	A ``Case`` is a base-class for all cases.
@@ -2673,17 +2681,34 @@ class Case(ModelEntity):
 
 @export
 class ConcurrentCase(Case, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements):
-	_choices: List
-
-	def __init__(self, label: str = None):
+	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
-		LabeledEntity.__init__(self, label)
-		ConcurrentDeclarations.__init__(self)
-		ConcurrentStatements.__init__(self)
+		LabeledEntity.__init__(self, alternativeLabel)
+		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentStatements.__init__(self, statements)
+
+
+@export
+class GenerateCase(ConcurrentCase):
+	_choices: List[ConcurrentChoice]
+
+	def __init__(self, choices: Iterable[ConcurrentChoice], declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
+		super().__init__(declaredItems, statements, alternativeLabel)
+
+		self._choices = [c for c in choices]
 
 	@property
-	def Choises(self) -> List[Choice]:
+	def Choises(self) -> List[ConcurrentChoice]:
 		return self._choices
+
+	def __str__(self) -> str:
+		return "when {choices} =>".format(choices=" | ".join([str(c) for c in self._choices]))
+
+
+@export
+class OthersGenerateCase(ConcurrentCase):
+	def __str__(self) -> str:
+		return "when others =>"
 
 
 @export
@@ -2700,16 +2725,56 @@ class SequentialCase(Case, SequentialStatements):
 
 
 @export
+class IndexedGenerateChoice(ConcurrentChoice):
+	_expression: Expression
+
+	def __init__(self, expression: Expression):
+		super().__init__()
+
+		self._expression = expression
+
+	@property
+	def Expression(self) -> Expression:
+		return self._expression
+
+	def __str__(self) -> str:
+		return "{expression!s}".format(expression=self._expression)
+
+
+@export
+class RangedGenerateChoice(ConcurrentChoice):
+	_range: 'Range'
+
+	def __init__(self, rng: 'Range'):
+		super().__init__()
+
+		self._range = rng
+
+	@property
+	def Range(self) -> 'Range':
+		return self._range
+
+	def __str__(self) -> str:
+		return "{range!s}".format(range=self._range)
+
+
+@export
 class CaseGenerateStatement(GenerateStatement):
-	_selectExpression: Expression
-	_cases:            List[ConcurrentCase]
+	_expression: Expression
+	_cases:      List[GenerateCase]
+
+	def __init__(self, label: str, expression: Expression, cases: Iterable[GenerateCase]):
+		super().__init__(label)
+
+		self._expression = expression
+		self._cases      = [] if cases is None else [c for c in cases]
 
 	@property
 	def SelectExpression(self) -> Expression:
-		return self._selectExpression
+		return self._expression
 
 	@property
-	def Cases(self) -> List[ConcurrentCase]:
+	def Cases(self) -> List[GenerateCase]:
 		return self._cases
 
 

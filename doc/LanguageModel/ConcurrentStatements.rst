@@ -220,7 +220,7 @@ Case Generate
      def SelectExpression(self) -> BaseExpression:
 
      @property
-     def Cases(self) -> List[ConcurrentCase]:
+     def Cases(self) -> List[GenerateCase]:
 
 
 

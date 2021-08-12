@@ -41,9 +41,13 @@ This module contains a document language model for VHDL.
 :license: Apache License, Version 2.0
 """
 # load dependencies
-from enum import Enum, unique, IntEnum
-from pathlib  import Path
-from typing import List, Tuple, Union, Dict, Iterator, Optional, Any
+from pathlib              import Path
+from typing import List, Tuple, Union, Dict, Iterator, Optional, Any, Iterable
+
+from pydecor.decorators   import export
+
+from pyVHDLModel          import ModelEntity, NamedEntity, MultipleNamedEntity, LabeledEntity, PrimaryUnit, SecondaryUnit, PossibleReference, Direction, EntityClass, Mode
+from pyVHDLModel.PSLModel import VerificationUnit
 
 try:
 	from typing import Protocol
@@ -51,7 +55,6 @@ except ImportError:
 	class Protocol:
 		pass
 
-from pydecor.decorators import export
 
 __all__ = []
 # __api__ = __all__ # FIXME: disabled due to a bug in pydecors export decorator
@@ -89,193 +92,6 @@ Expression = Union[
 	SignalOrSymbol,
 	'Literal',
 ]
-
-
-@export
-@unique
-class Direction(Enum):
-	"""
-	A ``Direction`` is an enumeration and represents a direction in a range
-	(``to`` or ``downto``).
-	"""
-	To =      0
-	DownTo =  1
-
-	def __str__(self):
-		index: int = self.value
-		return ("to", "downto")[index]       # TODO: check performance
-
-
-@export
-@unique
-class Mode(Enum):
-	"""
-	A ``Mode`` is an enumeration. It represents the direction of data exchange
-	(``in``, ``out``, ...) for objects in generic, port or parameter lists.
-
-	In case no *mode* is define, ``Default`` is used, so the *mode* is inferred
-	from context.
-	"""
-	Default = 0
-	In =      1
-	Out =     2
-	InOut =   3
-	Buffer =  4
-	Linkage = 5
-
-	def __str__(self):
-		index: int = self.value
-		return ("", "in", "out", "inout", "buffer", "linkage")[index]       # TODO: check performance
-
-
-@export
-@unique
-class ObjectClass(Enum):
-	"""
-	An ``ObjectClass`` is an enumeration. It represents an object's class (``constant``,
-	``signal``, ...).
-
-	In case no *object class* is define, ``Default`` is used, so the *object class*
-	is inferred from context.
-	"""
-	Default =    0
-	Constant =   1
-	Variable =   2
-	Signal =     3
-	File =       4
-	Type =       5
-	Procedure =  6
-	Function =   7
-
-
-@export
-@unique
-class EntityClass(Enum):
-	"""
-	A ``Class`` is an enumeration. It represents an object's class (``constant``,
-	``signal``, ...).
-
-	In case no *object class* is define, ``Default`` is used, so the *object class*
-	is inferred from context.
-	"""
-	Entity =        0
-	Architecture =  1
-	Configuration = 2
-	Procedure =     3
-	Function =      4
-	Package =       5
-	Type =          6
-	Subtype =       7
-	Constant =      8
-	Signal =        9
-	Variable =      10
-	Component =     11
-	Label =         12
-	Literal =       13
-	Units =         14
-	Group =         15
-	File =          16
-	Property =      17
-	Sequence =      18
-	View =          19
-	Others  =       20
-
-
-@export
-class PossibleReference(IntEnum):
-	Unknown =         0
-	Library =         2**0
-	Entity =          2**1
-	Architecture =    2**2
-	Component =       2**3
-	Package =         2**4
-	Configuration =   2**5
-	Context =         2**6
-	Type =            2**7
-	Subtype =         2**8
-	ScalarType =      2**9
-	ArrayType =       2**10
-	RecordType =      2**11
-	AccessType =      2**12
-	ProtectedType =   2**13
-	FileType =        2**14
-#	Alias =           2**14   # TODO: Is this needed?
-	Attribute =       2**15
-	TypeAttribute =   2**16
-	ValueAttribute =  2**17
-	SignalAttribute = 2**18
-	RangeAttribute =  2**19
-	ViewAttribute =   2**20
-	Constant =        2**16
-	Variable =        2**17
-	Signal =          2**18
-	File =            2**19
-	Object =          2**20   # TODO: Is this needed?
-	EnumLiteral =     2**21
-	Procedure =       2**22
-	Function =        2**23
-	Label =           2**24
-	View =            2**25
-	SimpleNameInExpression = Constant + Variable + Signal + ScalarType + EnumLiteral + Function
-
-@export
-class ModelEntity:
-	"""
-	``ModelEntity`` is the base class for all classes in the VHDL language model,
-	except for mixin classes (see multiple inheritance) and enumerations.
-
-	Each entity in this model has a reference to its parent entity. Therefore
-	a protected variable :attr:`_parent` is available and a readonly property
-	:attr:`Parent`.
-	"""
-	_parent: 'ModelEntity'      #: Reference to a parent entity in the model.
-
-	def __init__(self):
-		pass
-
-	@property
-	def Parent(self) -> 'ModelEntity':
-		"""Returns a reference to the parent entity."""
-		return self._parent
-
-
-@export
-class NamedEntity:
-	"""
-	A ``NamedEntity`` is a mixin class for all VHDL entities that have identifiers.
-
-	A protected variable :attr:`_identifier` is available to derived classes as well as
-	a readonly property :attr:`Identifier` for public access.
-	"""
-	_identifier: str                  #: The name of a model entity.
-
-	def __init__(self, identifier: str):
-		self._identifier = identifier
-
-	@property
-	def Identifier(self) -> str:
-		"""Returns a model entity's identifier (name)."""
-		return self._identifier
-
-
-@export
-class LabeledEntity:
-	"""
-	A ``LabeledEntity`` is a mixin class for all VHDL entities that can have
-	labels.
-
-	A protected variable :attr:`_label` is available to derived classes as well
-	as a readonly property :attr:`Label` for public access.
-	"""
-	_label: str                 #: The label of a model entity.
-
-	def __init__(self, label: str):
-		self._label = label
-
-	@property
-	def Label(self) -> str:
-		"""Returns a model entity's label."""
-		return self._label
 
 
 @export
@@ -337,9 +153,9 @@ class SimpleName(Name):
 class ParenthesisName(Name):
 	_associations: List
 
-	def __init__(self, prefix: Name, associations: List):
+	def __init__(self, prefix: Name, associations: Iterable):
 		super().__init__("", prefix)
-		self._associations = associations
+		self._associations = [a for a in associations]
 
 	@property
 	def Associations(self) -> List:
@@ -532,10 +348,10 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol):
 class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 	_constraints: List[Constraint]
 
-	def __init__(self, subtypeName: Name, constraints: List[Constraint] = None):
+	def __init__(self, subtypeName: Name, constraints: Iterable[Constraint] = None):
 		super().__init__(subtypeName, PossibleReference.Unknown)
 		self._subtype = None
-		self._constraints = constraints
+		self._constraints = [c for c in constraints]
 
 	@property
 	def Constraints(self) -> List[Constraint]:
@@ -638,15 +454,30 @@ class Design(ModelEntity):
 		self._documents.append(document)
 
 		for entity in document.Entities:
+			entity.Library = library
 			library.Entities.append(entity)
 
+		for architecture in document.Architectures:
+			architecture.Library = library
+			try:
+				library.Architectures[architecture.Entity.SymbolName].append(architecture)
+			except KeyError:
+				library.Architectures[architecture.Entity.SymbolName] = [architecture]
+
 		for package in document.Packages:
+			package.Library = library
 			library.Packages.append(package)
 
+		for packageBody in document.PackageBodies:
+			packageBody.Library = library
+			library.PackageBodies.append(packageBody)
+
 		for configuration in document.Configurations:
+			configuration.Library = library
 			library.Configurations.append(configuration)
 
 		for context in document.Contexts:
+			context.Library = library
 			library.Contexts.append(context)
 
 
@@ -656,10 +487,12 @@ class Library(ModelEntity, NamedEntity):
 	A ``Library`` represents a VHDL library. It contains all *primary* design
 	units.
 	"""
-	_contexts:       List['Context']        #: List of all contexts defined in a library.
-	_configurations: List['Configuration']  #: List of all configurations defined in a library.
-	_entities:       List['Entity']         #: List of all entities defined in a library.
-	_packages:       List['Package']        #: List of all packages defined in a library.
+	_contexts:       List['Context']                     #: List of all contexts defined in a library.
+	_configurations: List['Configuration']               #: List of all configurations defined in a library.
+	_entities:       List['Entity']                      #: List of all entities defined in a library.
+	_architectures:  Dict['Name', List['Architecture']]  #: Dictionary of all architectures defined in a library.
+	_packages:       List['Package']                     #: List of all packages defined in a library.
+	_packageBodies:  List['PackageBody']                 #: List of all package bodies defined in a library.
 
 	def __init__(self, identifier: str):
 		super().__init__()
@@ -668,27 +501,39 @@ class Library(ModelEntity, NamedEntity):
 		self._contexts =        []
 		self._configurations =  []
 		self._entities =        []
+		self._architectures =   {}
 		self._packages =        []
+		self._packageBodies =   []
 
 	@property
 	def Contexts(self) -> List['Context']:
-		"""Returns a list of all context declarations loaded for this design."""
+		"""Returns a list of all context declarations declared in this library."""
 		return self._contexts
 
 	@property
 	def Configurations(self) -> List['Configuration']:
-		"""Returns a list of all configuration declarations loaded for this design."""
+		"""Returns a list of all configuration declarations declared in this library."""
 		return self._configurations
 
 	@property
 	def Entities(self) -> List['Entity']:
-		"""Returns a list of all entity declarations loaded for this design."""
+		"""Returns a list of all entity declarations declared in this library."""
 		return self._entities
 
 	@property
+	def Architectures(self) -> Dict['Name', List['Architecture']]:
+		"""Returns a list of all architectures declarations declared in this library."""
+		return self._architectures
+
+	@property
 	def Packages(self) -> List['Package']:
-		"""Returns a list of all package declarations loaded for this design."""
+		"""Returns a list of all package declarations declared in this library."""
 		return self._packages
+
+	@property
+	def PackageBodies(self) -> List['PackageBody']:
+		"""Returns a list of all package body declarations declared in this library."""
+		return self._packageBodies
 
 
 @export
@@ -697,6 +542,7 @@ class Document(ModelEntity):
 	A ``Document`` represents a sourcefile. It contains primary and secondary
 	design units.
 	"""
+
 	_path:              Path                      #: path to the document. ``None`` if virtual document.
 	_contexts:          List['Context']           #: List of all contexts defined in a document.
 	_configurations:    List['Configuration']     #: List of all configurations defined in a document.
@@ -936,7 +782,7 @@ class FileType(FullType):
 class EnumeratedType(ScalarType, DiscreteType):
 	_literals: List['EnumerationLiteral']
 
-	def __init__(self, identifier: str, literals: List['EnumerationLiteral']):
+	def __init__(self, identifier: str, literals: Iterable['EnumerationLiteral']):
 		super().__init__(identifier)
 
 		self._literals = [] if literals is None else [lit for lit in literals]
@@ -963,11 +809,11 @@ class PhysicalType(RangedScalarType, NumericType):
 	_primaryUnit:    str
 	_secondaryUnits: List[Tuple[str, 'PhysicalIntegerLiteral']]
 
-	def __init__(self, identifier: str, rng: Union['Range', Name], primaryUnit: str, units: List[Tuple[str, 'PhysicalIntegerLiteral']]):
+	def __init__(self, identifier: str, rng: Union['Range', Name], primaryUnit: str, units: Iterable[Tuple[str, 'PhysicalIntegerLiteral']]):
 		super().__init__(identifier, rng)
 
 		self._primaryUnit = primaryUnit
-		self._secondaryUnits = units
+		self._secondaryUnits = [u for u in units]
 
 	@property
 	def PrimaryUnit(self) -> str:
@@ -998,19 +844,14 @@ class ArrayType(CompositeType):
 
 
 @export
-class RecordTypeElement(ModelEntity):
-	_identifier:    str
+class RecordTypeElement(ModelEntity, MultipleNamedEntity):
 	_subtype: SubtypeOrSymbol
 
-	def __init__(self, identifier: str, subtype: SubtypeOrSymbol):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
 		super().__init__()
+		MultipleNamedEntity.__init__(self, identifiers)
 
-		self._identifier =    identifier
 		self._subtype = subtype
-
-	@property
-	def Identifier(self) -> str:
-		return self._identifier
 
 	@property
 	def Subtype(self) -> SubtypeOrSymbol:
@@ -1021,7 +862,7 @@ class RecordTypeElement(ModelEntity):
 class RecordType(CompositeType):
 	_elements: List[RecordTypeElement]
 
-	def __init__(self, identifier: str, elements: List[RecordTypeElement] = None):
+	def __init__(self, identifier: str, elements: Iterable[RecordTypeElement] = None):
 		super().__init__(identifier)
 
 		self._elements = [] if elements is None else [i for i in elements]
@@ -1202,7 +1043,7 @@ class BitStringLiteral(Literal):
 class ParenthesisExpression(Protocol):
 	@property
 	def Operand(self) -> Expression:
-		...
+		return None
 
 
 @export
@@ -1615,6 +1456,7 @@ class SubtypeAllocation(Allocation):
 	_subtype: Symbol
 
 	def __init__(self, subtype: Symbol):
+		super().__init__()
 		self._subtype = subtype
 
 	@property
@@ -1630,6 +1472,7 @@ class QualifiedExpressionAllocation(Allocation):
 	_qualifiedExpression: QualifiedExpression
 
 	def __init__(self, qualifiedExpression: QualifiedExpression):
+		super().__init__()
 		self._qualifiedExpression = qualifiedExpression
 
 	@property
@@ -1736,10 +1579,10 @@ class OthersAggregateElement(AggregateElement):
 class Aggregate(BaseExpression):
 	_elements: List[AggregateElement]
 
-	def __init__(self, elements: List[AggregateElement]):
+	def __init__(self, elements: Iterable[AggregateElement]):
 		super().__init__()
 
-		self._elements = elements
+		self._elements = [e for e in elements]
 
 	@property
 	def Elements(self) -> List[AggregateElement]:
@@ -1802,12 +1645,12 @@ class RangeSubtype(BaseConstraint):
 
 
 @export
-class Obj(ModelEntity, NamedEntity):
+class Obj(ModelEntity, MultipleNamedEntity):
 	_subtype: SubtypeOrSymbol
 
-	def __init__(self, identifier: str, subtype: SubtypeOrSymbol):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
 		super().__init__()
-		NamedEntity.__init__(self, identifier)
+		MultipleNamedEntity.__init__(self, identifiers)
 
 		self._subtype = subtype
 
@@ -1839,8 +1682,8 @@ class BaseConstant(Obj):
 
 @export
 class Constant(BaseConstant, WithDefaultExpressionMixin):
-	def __init__(self, identifier: str, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subtype)
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifiers, subtype)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -1848,8 +1691,8 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 class DeferredConstant(BaseConstant):
 	_constantReference: Constant
 
-	def __init__(self, identifier: str, subtype: SubtypeOrSymbol):
-		super().__init__(identifier, subtype)
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
+		super().__init__(identifiers, subtype)
 
 	@property
 	def ConstantReference(self) -> Constant:
@@ -1858,8 +1701,8 @@ class DeferredConstant(BaseConstant):
 
 @export
 class Variable(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifier: str, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subtype)
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifiers, subtype)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -1870,8 +1713,8 @@ class SharedVariable(Obj):
 
 @export
 class Signal(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifier: str, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
-		super(Signal, self).__init__(identifier, subtype)
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super(Signal, self).__init__(identifiers, subtype)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -1885,7 +1728,7 @@ class SubProgramm(ModelEntity, NamedEntity):
 	_genericItems:   List['GenericInterfaceItem']
 	_parameterItems: List['ParameterInterfaceItem']
 	_declaredItems:  List
-	_bodyItems:      List['SequentialStatement']
+	_statements:     List['SequentialStatement']
 	_isPure:         bool
 
 	def __init__(self, identifier: str):
@@ -1895,7 +1738,7 @@ class SubProgramm(ModelEntity, NamedEntity):
 		self._genericItems =    []
 		self._parameterItems =  []
 		self._declaredItems =   []
-		self._bodyItems =       []
+		self._statements =      []
 
 	@property
 	def GenericItems(self) -> List['GenericInterfaceItem']:
@@ -1910,8 +1753,8 @@ class SubProgramm(ModelEntity, NamedEntity):
 		return self._declaredItems
 
 	@property
-	def BodyItems(self) -> List['SequentialStatement']:
-		return self._bodyItems
+	def Statements(self) -> List['SequentialStatement']:
+		return self._statements
 
 	@property
 	def IsPure(self) -> bool:
@@ -1987,10 +1830,10 @@ class AttributeSpecification(ModelEntity):
 	_entityClass: EntityClass
 	_expression: Expression
 
-	def __init__(self, identifiers: List[Name], attribute: Name, entityClass: EntityClass, expression: Expression):
+	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: Expression):
 		super().__init__()
 
-		self._identifiers = identifiers
+		self._identifiers = [i for i in identifiers]
 		self._attribute = attribute
 		self._entityClass = entityClass
 		self._expression = expression
@@ -2066,8 +1909,8 @@ class ParameterInterfaceItem(InterfaceItem):
 
 @export
 class GenericConstantInterfaceItem(Constant, GenericInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifier: str, mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subtype, defaultExpression)
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifiers, subtype, defaultExpression)
 		GenericInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
@@ -2107,39 +1950,39 @@ class GenericPackageInterfaceItem(GenericInterfaceItem):
 
 @export
 class PortSignalInterfaceItem(Signal, PortInterfaceItem):
-	def __init__(self, identifier: str, mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subtype, defaultExpression)
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifiers, subtype, defaultExpression)
 		PortInterfaceItem.__init__(self, mode)
 
 
 @export
 class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifier: str, mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subtype, defaultExpression)
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifiers, subtype, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifier: str, mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subtype, defaultExpression)
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifiers, subtype, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifier: str, mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
-		super().__init__(identifier, subtype, defaultExpression)
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+		super().__init__(identifiers, subtype, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
-	def __init__(self, identifier: str, subtype: SubtypeOrSymbol):
-		super().__init__(identifier, subtype)
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
+		super().__init__(identifiers, subtype)
 		ParameterInterfaceItem.__init__(self)
 
 # class GenericItem(ModelEntity):
@@ -2219,17 +2062,6 @@ class ContextStatement(Reference):
 
 
 @export
-class DesignUnit(ModelEntity, NamedEntity):
-	"""
-	A ``DesignUnit`` is a base-class for all design units.
-	"""
-
-	def __init__(self, identifier: str):
-		super().__init__()
-		NamedEntity.__init__(self, identifier)
-
-
-@export
 class MixinDesignUnitWithContext:
 	"""
 	A ``DesignUnitWithReferences`` is a base-class for all design units with contexts.
@@ -2257,20 +2089,6 @@ class MixinDesignUnitWithContext:
 
 
 @export
-class PrimaryUnit(DesignUnit):
-	"""
-	A ``PrimaryUnit`` is a base-class for all primary units.
-	"""
-
-
-@export
-class SecondaryUnit(DesignUnit):
-	"""
-	A ``SecondaryUnit`` is a base-class for all secondary units.
-	"""
-
-
-@export
 class Context(PrimaryUnit):
 	_libraryReferences: List[LibraryStatement]
 	_packageReferences: List[UseClause]
@@ -2295,15 +2113,16 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:  List[GenericInterfaceItem]
 	_portItems:     List[PortInterfaceItem]
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
-	_bodyItems:     List['ConcurrentStatement']
+	_statements:    List['ConcurrentStatement']
+	_architectures: List['Architecture']
 
 	def __init__(
 		self,
 		identifier: str,
-		genericItems: List[GenericInterfaceItem] = None,
-		portItems: List[PortInterfaceItem] = None,
-		declaredItems: List = None,
-		bodyItems: List['ConcurrentStatement'] = None
+		genericItems: Iterable[GenericInterfaceItem] = None,
+		portItems: Iterable[PortInterfaceItem] = None,
+		declaredItems: Iterable = None,
+		statements: Iterable['ConcurrentStatement'] = None
 	):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
@@ -2311,7 +2130,8 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 		self._genericItems  = [] if genericItems is None else [g for g in genericItems]
 		self._portItems     = [] if portItems is None else [p for p in portItems]
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
-		self._bodyItems     = [] if bodyItems is None else [i for i in bodyItems]
+		self._statements    = [] if statements is None else [s for s in statements]
+		self._architectures = []
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -2326,35 +2146,47 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 		return self._declaredItems
 
 	@property
-	def BodyItems(self) -> List['ConcurrentStatement']:
-		return self._bodyItems
+	def Statements(self) -> List['ConcurrentStatement']:
+		return self._statements
+
+	@property
+	def Architectures(self) -> List['Architecture']:
+		return self._architectures
 
 
 @export
 class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
-	_entity:        EntityOrSymbol
+	_library:       Library = None
+	_entity:        EntitySymbol
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
-	_bodyItems:     List['ConcurrentStatement']
+	_statements:    List['ConcurrentStatement']
 
-	def __init__(self, identifier: str, entity: EntityOrSymbol, declaredItems: List = None, bodyItems: List['ConcurrentStatement'] = None):
+	def __init__(self, identifier: str, entity: Name, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
-		self._entity        = entity
+		self._entity        = EntitySymbol(entity)
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
-		self._bodyItems     = [] if bodyItems is None else [i for i in bodyItems]
+		self._statements    = [] if statements is None else [s for s in statements]
 
 	@property
-	def Entity(self) -> EntityOrSymbol:
+	def Entity(self) -> EntitySymbol:
 		return self._entity
+
+	@property
+	def Library(self) -> 'Library':
+		return self._library
+	@Library.setter
+	def Library(self, library: 'Library') -> None:
+		self._library = library
 
 	@property
 	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
 		return self._declaredItems
 
 	@property
-	def BodyItems(self) -> List['ConcurrentStatement']:
-		return self._bodyItems
+	def Statements(self) -> List['ConcurrentStatement']:
+		return self._statements
 
 
 @export
@@ -2362,7 +2194,7 @@ class Component(ModelEntity, NamedEntity):
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
 
-	def __init__(self, identifier: str, genericItems: List[GenericInterfaceItem] = None, portItems: List[PortInterfaceItem] = None):
+	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItem] = None, portItems: Iterable[PortInterfaceItem] = None):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
 
@@ -2446,7 +2278,7 @@ class Package(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
-	def __init__(self, identifier: str, genericItems: List[GenericInterfaceItem] = None, declaredItems: List = None):
+	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
@@ -2467,7 +2299,7 @@ class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
 	_package:           Package
 	_declaredItems:     List
 
-	def __init__(self, identifier: str, declaredItems: List = None):
+	def __init__(self, identifier: str, declaredItems: Iterable = None):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
@@ -2528,8 +2360,8 @@ class SequentialStatement(Statement):
 class ConcurrentDeclarations:
 	_declaredItems: List
 
-	def __init__(self):
-		self._declaredItems = []
+	def __init__(self, declaredItems: Iterable = None):
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
 	@property
 	def DeclaredItems(self) -> List:
@@ -2540,8 +2372,8 @@ class ConcurrentDeclarations:
 class ConcurrentStatements:
 	_statements: List[ConcurrentStatement]
 
-	def __init__(self):
-		self._statements = []
+	def __init__(self, statements: Iterable[ConcurrentStatement] = None):
+		self._statements = [] if statements is None else [s for s in statements]
 
 	@property
 	def Statements(self) -> List[ConcurrentStatement]:
@@ -2552,8 +2384,8 @@ class ConcurrentStatements:
 class SequentialDeclarations:
 	_declaredItems: List
 
-	def __init__(self):
-		self._declaredItems = []
+	def __init__(self, declaredItems: Iterable):
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
 	@property
 	def DeclaredItems(self) -> List:
@@ -2564,8 +2396,8 @@ class SequentialDeclarations:
 class SequentialStatements:
 	_statements: List[SequentialStatement]
 
-	def __init__(self):
-		self._statements = []
+	def __init__(self, statements: Iterable[SequentialStatement]):
+		self._statements = [] if statements is None else [s for s in statements]
 
 	@property
 	def Statements(self) -> List[SequentialStatement]:
@@ -2579,27 +2411,63 @@ class Instantiation(ConcurrentStatement):
 
 @export
 class ComponentInstantiation(Instantiation):
-	pass
+	_component: Component
+
+	def __init__(self, label: str, componentName: Name):
+		super().__init__(label)
+
+		self._component = componentName
+
+	@property
+	def Component(self) -> Component:
+		return self._component
 
 
 @export
 class EntityInstantiation(Instantiation):
-	pass
+	_entity: Entity
+	_architecture: Architecture
+
+	def __init__(self, label: str, entityName: Name, architectureName: Name = None):
+		super().__init__(label)
+
+		self._entity = entityName
+		self._architecture = architectureName
+
+	@property
+	def Entity(self) -> Entity:
+		return self._entity
+
+	@property
+	def Architecture(self) -> Entity:
+		return self._architecture
 
 
 @export
 class ConfigurationInstantiation(Instantiation):
-	pass
+	_configuration: Configuration
+
+	def __init__(self, label: str, configurationName: Name):
+		super().__init__(label)
+
+		self._configuration = configurationName
+
+	@property
+	def Configuration(self) -> Entity:
+		return self._configuration
 
 
 @export
 class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements):
-	_sensitivityList: List[Signal]
+	_sensitivityList: List[Signal] = None
 
-	def __init__(self, label: str = None):
-		super().__init__(label=label)
-		SequentialDeclarations.__init__(self)
-		SequentialStatements.__init__(self)
+	def __init__(self, label: str = None, declaredItems: Iterable = None, statements: Iterable[SequentialStatement] = None, sensitivityList: Iterable[Name] = None):
+		super().__init__(label)
+		SequentialDeclarations.__init__(self, declaredItems)
+		SequentialStatements.__init__(self, statements)
+
+		if sensitivityList is not None:
+			self._sensitivityList = [s for s in sensitivityList]
 
 	@property
 	def SensitivityList(self) -> List[Signal]:
@@ -2608,18 +2476,34 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 
 @export
 class ProcedureCall:
-	def __init__(self):
-		pass
+	_procedure: Name
+	_parameterMappings: List
+
+	def __init__(self, procedureName: Name, parameterMappings: Iterable = None):
+		self._procedure = procedureName
+		self._parameterMappings = [] if procedureName is None else [m for m in parameterMappings]
+
+	@property
+	def Procedure(self) -> Name:
+		return self._procedure
+
+	@property
+	def ParameterMappings(self) -> List:
+		return self._parameterMappings
 
 
 @export
 class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCall):
-	pass
+	def __init__(self, label: str, procedureName: Name, parameterMappings: Iterable = None):
+		super().__init__(label)
+		ProcedureCall.__init__(self, procedureName, parameterMappings)
 
 
 @export
 class SequentialProcedureCall(SequentialStatement, ProcedureCall):
-	pass
+	def __init__(self, label: str, procedureName: Name, parameterMappings: Iterable = None):
+		super().__init__(label)
+		ProcedureCall.__init__(self, procedureName, parameterMappings)
 
 
 # TODO: could be unified with ProcessStatement if 'List[ConcurrentStatement]' becomes parametric to T
@@ -2633,20 +2517,32 @@ class BlockStatement:
 
 
 @export
-class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, ConcurrentDeclarations, ConcurrentStatements):
+class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements):
 	_portItems:     List[PortInterfaceItem]
 
-	def __init__(self, label: str = None):
-		super().__init__(label=label)
+	def __init__(self, label: str, portItems: Iterable[PortInterfaceItem] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None):
+		super().__init__(label)
 		BlockStatement.__init__(self)
+		LabeledEntity.__init__(self, label)
 		ConcurrentDeclarations.__init__(self)
 		ConcurrentStatements.__init__(self)
 
-		self._portItems =     []
+		self._portItems     = [] if portItems is None else [i for i in portItems]
+		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		self._statements    = [] if statements is None else [s for s in statements]
 
+	# Extract to MixIn?
 	@property
 	def PortItems(self) -> List[PortInterfaceItem]:
 		return self._portItems
+
+	@property
+	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
+		return self._declaredItems
+
+	@property
+	def Statements(self) -> List['ConcurrentStatement']:
+		return self._statements
 
 
 @export
@@ -2656,8 +2552,8 @@ class MixinConditional:
 	"""
 	_condition: Expression
 
-	def __init__(self):
-		pass
+	def __init__(self, condition: Expression):
+		self._condition = condition
 
 	@property
 	def Condition(self) -> Expression:
@@ -2679,9 +2575,9 @@ class MixinConditionalBranch(MixinBranch, MixinConditional):
 	"""
 	A ``BaseBranch`` is a mixin-class for all branch statements with a condition.
 	"""
-	def __init__(self):
+	def __init__(self, condition: Expression):
 		super().__init__()
-		MixinConditional.__init__(self)
+		MixinConditional.__init__(self, condition)
 
 
 @export
@@ -2710,31 +2606,34 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
 	"""
 	A ``GenerateBranch`` is a base-class for all branches in a generate statements.
 	"""
+	_alternativeLabel: str = None
 
-	def __init__(self):
+	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
-		ConcurrentDeclarations.__init__(self)
-		ConcurrentStatements.__init__(self)
+		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentStatements.__init__(self, statements)
+
+		self._alternativeLabel = alternativeLabel
 
 
 @export
 class IfGenerateBranch(GenerateBranch, MixinIfBranch):
-	def __init__(self):
-		super().__init__()
-		MixinIfBranch.__init__(self)
+	def __init__(self, condition: Expression, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
+		super().__init__(declaredItems, statements, alternativeLabel)
+		MixinIfBranch.__init__(self, condition)
 
 
 @export
 class ElsifGenerateBranch(GenerateBranch, MixinElsifBranch):
-	def __init__(self):
-		super().__init__()
-		MixinElsifBranch.__init__(self)
+	def __init__(self, condition: Expression, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
+		super().__init__(declaredItems, statements, alternativeLabel)
+		MixinElsifBranch.__init__(self, condition)
 
 
 @export
 class ElseGenerateBranch(GenerateBranch, MixinElseBranch):
-	def __init__(self):
-		super().__init__()
+	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
+		super().__init__(declaredItems, statements, alternativeLabel)
 		MixinElseBranch.__init__(self)
 
 
@@ -2745,7 +2644,7 @@ class GenerateStatement(ConcurrentStatement):
 	"""
 
 	def __init__(self, label: str = None):
-		super().__init__(label=label)
+		super().__init__(label)
 
 
 @export
@@ -2754,10 +2653,12 @@ class IfGenerateStatement(GenerateStatement):
 	_elsifBranches: List[ElsifGenerateBranch]
 	_elseBranch:    ElseGenerateBranch
 
-	def __init__(self, label: str = None):
-		super().__init__(label=label)
+	def __init__(self, label: str, ifBranch: IfGenerateBranch, elsifBranches: Iterable[ElsifGenerateBranch] = None, elseBranch: ElseGenerateBranch = None):
+		super().__init__(label)
 
-		self._elsifBranches = []
+		self._ifBranch = ifBranch
+		self._elsifBranches = [] if elsifBranches is None else [b for b in elsifBranches]
+		self._elseBranch = elseBranch
 
 	@property
 	def IfBranch(self) -> IfGenerateBranch:
@@ -2780,6 +2681,14 @@ class Choice(ModelEntity):
 
 
 @export
+class ConcurrentChoice(Choice):
+	"""
+	A ``ConcurrentChoice`` is a base-class for all concurrent choices
+	(in for...generate statements).
+	"""
+
+
+@export
 class Case(ModelEntity):
 	"""
 	A ``Case`` is a base-class for all cases.
@@ -2788,17 +2697,34 @@ class Case(ModelEntity):
 
 @export
 class ConcurrentCase(Case, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements):
-	_choices: List
-
-	def __init__(self, label: str = None):
+	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
-		LabeledEntity.__init__(self, label)
-		ConcurrentDeclarations.__init__(self)
-		ConcurrentStatements.__init__(self)
+		LabeledEntity.__init__(self, alternativeLabel)
+		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentStatements.__init__(self, statements)
+
+
+@export
+class GenerateCase(ConcurrentCase):
+	_choices: List[ConcurrentChoice]
+
+	def __init__(self, choices: Iterable[ConcurrentChoice], declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
+		super().__init__(declaredItems, statements, alternativeLabel)
+
+		self._choices = [c for c in choices]
 
 	@property
-	def Choises(self) -> List[Choice]:
+	def Choises(self) -> List[ConcurrentChoice]:
 		return self._choices
+
+	def __str__(self) -> str:
+		return "when {choices} =>".format(choices=" | ".join([str(c) for c in self._choices]))
+
+
+@export
+class OthersGenerateCase(ConcurrentCase):
+	def __str__(self) -> str:
+		return "when others =>"
 
 
 @export
@@ -2815,31 +2741,74 @@ class SequentialCase(Case, SequentialStatements):
 
 
 @export
+class IndexedGenerateChoice(ConcurrentChoice):
+	_expression: Expression
+
+	def __init__(self, expression: Expression):
+		super().__init__()
+
+		self._expression = expression
+
+	@property
+	def Expression(self) -> Expression:
+		return self._expression
+
+	def __str__(self) -> str:
+		return "{expression!s}".format(expression=self._expression)
+
+
+@export
+class RangedGenerateChoice(ConcurrentChoice):
+	_range: 'Range'
+
+	def __init__(self, rng: 'Range'):
+		super().__init__()
+
+		self._range = rng
+
+	@property
+	def Range(self) -> 'Range':
+		return self._range
+
+	def __str__(self) -> str:
+		return "{range!s}".format(range=self._range)
+
+
+@export
 class CaseGenerateStatement(GenerateStatement):
-	_selectExpression: Expression
-	_cases:            List[ConcurrentCase]
+	_expression: Expression
+	_cases:      List[GenerateCase]
+
+	def __init__(self, label: str, expression: Expression, cases: Iterable[GenerateCase]):
+		super().__init__(label)
+
+		self._expression = expression
+		self._cases      = [] if cases is None else [c for c in cases]
 
 	@property
 	def SelectExpression(self) -> Expression:
-		return self._selectExpression
+		return self._expression
 
 	@property
-	def Cases(self) -> List[ConcurrentCase]:
+	def Cases(self) -> List[GenerateCase]:
 		return self._cases
 
 
 @export
 class ForGenerateStatement(GenerateStatement, ConcurrentDeclarations, ConcurrentStatements):
-	_loopIndex: Constant
+	_loopIndex: str
 	_range:     Range
 
-	def __init__(self, label: str = None):
-		super().__init__(label=label)
-		ConcurrentDeclarations.__init__(self)
-		ConcurrentStatements.__init__(self)
+	def __init__(self, label: str, loopIndex: str, range: Range, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
+		super().__init__(label)
+		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentStatements.__init__(self, statements)
+
+		self._loopIndex = loopIndex
+		self._range = range
 
 	@property
-	def LoopIndex(self) -> Constant:
+	def LoopIndex(self) -> str:
 		return self._loopIndex
 
 	@property
@@ -2853,19 +2822,14 @@ class Assignment:
 	An ``Assignment`` is a base-class for all assignment statements.
 	"""
 
-	_target:     Obj
-	_expression: Expression
+	_target:     Name
 
-	def __init__(self):
-		pass
+	def __init__(self, target: Name):
+		self._target = target
 
 	@property
-	def Target(self) -> Obj:
+	def Target(self) -> Name:
 		return self._target
-
-	@property
-	def Expression(self) -> Expression:
-		return self._expression
 
 
 @export
@@ -2883,17 +2847,65 @@ class VariableAssignment(Assignment):
 
 
 @export
+class WaveformElement(ModelEntity):
+	_expression: Expression
+	_after: Expression
+
+	def __init__(self, expression: Expression, after: Expression = None):
+		super().__init__()
+
+		self._expression = expression
+		self._after = after
+
+	@property
+	def Expression(self) -> Expression:
+		return self._expression
+
+	@property
+	def After(self) -> Expression:
+		return self._after
+
+
+@export
 class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignment):
-	def __init__(self, label: str = None):
-		super().__init__(label=label)
-		SignalAssignment.__init__(self)
+	def __init__(self, label: str, target: Name):
+		super().__init__(label)
+		SignalAssignment.__init__(self, target)
+
+
+@export
+class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
+	_waveform: List[WaveformElement]
+
+	def __init__(self, label: str, target: Name, waveform: Iterable[WaveformElement]):
+		super().__init__(label, target)
+
+		self._waveform = [e for e in waveform]
+
+	@property
+	def Waveform(self) -> List[WaveformElement]:
+		return self._waveform
+
+
+@export
+class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment):
+	def __init__(self, label: str, target: Name, expression: Expression):
+		super().__init__(label, target)
+		expression
+
+
+@export
+class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment):
+	def __init__(self, label: str, target: Name, expression: Expression):
+		super().__init__(label, target)
+		expression
 
 
 @export
 class SequentialSignalAssignment(SequentialStatement, SignalAssignment):
-	def __init__(self):
+	def __init__(self, target: Name, expression: Expression, label: str = None):
 		super().__init__()
-		SignalAssignment.__init__(self)
+		SignalAssignment.__init__(self, target, expression)
 
 
 @export
@@ -2941,7 +2953,7 @@ class MixinAssertStatement(MixinReportStatement):
 @export
 class ConcurrentAssertStatement(ConcurrentStatement, MixinAssertStatement):
 	def __init__(self, label: str = None):
-		super().__init__(label=label)
+		super().__init__(label)
 		MixinAssertStatement.__init__(self)
 
 

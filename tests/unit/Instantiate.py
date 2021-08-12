@@ -37,9 +37,9 @@
 from pathlib  import Path
 from unittest import TestCase
 
-from pyVHDLModel.VHDLModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral
-from pyVHDLModel.VHDLModel import Entity, Architecture, PackageBody, Package, Configuration, Context
-from pyVHDLModel.VHDLModel import IntegerType, RealType, ArrayType, RecordType
+from pyVHDLModel.SyntaxModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral
+from pyVHDLModel.SyntaxModel import Entity, Architecture, PackageBody, Package, Configuration, Context
+from pyVHDLModel.SyntaxModel import IntegerType, RealType, ArrayType, RecordType
 
 
 if __name__ == "__main__":
@@ -87,7 +87,7 @@ class Instantiate(TestCase):
 		self.assertEqual(0, len(entity.GenericItems))
 		self.assertEqual(0, len(entity.PortItems))
 		self.assertEqual(0, len(entity.DeclaredItems))
-		self.assertEqual(0, len(entity.BodyItems))
+		self.assertEqual(0, len(entity.Statements))
 
 	def test_Architecture(self):
 		entity = Entity("entity_1")
@@ -96,7 +96,7 @@ class Instantiate(TestCase):
 		self.assertIsNotNone(architecture)
 		self.assertEqual("arch_1", architecture.Identifier)
 		self.assertEqual(0, len(architecture.DeclaredItems))
-		self.assertEqual(0, len(architecture.BodyItems))
+		self.assertEqual(0, len(architecture.Statements))
 
 	def test_Package(self):
 		package = Package("pack_1")

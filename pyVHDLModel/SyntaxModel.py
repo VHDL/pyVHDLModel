@@ -2684,24 +2684,45 @@ class Choice(ModelEntity):
 class ConcurrentChoice(Choice):
 	"""
 	A ``ConcurrentChoice`` is a base-class for all concurrent choices
-	(in for...generate statements).
+	(in case...generate statements).
 	"""
 
 
 @export
-class Case(ModelEntity):
+class SequentialChoice(Choice):
+	"""
+	A ``SequentialChoice`` is a base-class for all sequential choices
+	(in case statements).
+	"""
+
+
+@export
+class BaseCase(ModelEntity):
 	"""
 	A ``Case`` is a base-class for all cases.
 	"""
 
 
 @export
-class ConcurrentCase(Case, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements):
+class ConcurrentCase(BaseCase, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements):
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
 		LabeledEntity.__init__(self, alternativeLabel)
 		ConcurrentDeclarations.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
+
+
+@export
+class SequentialCase(BaseCase, SequentialStatements):
+	_choices: List
+
+	def __init__(self, statements: Iterable[SequentialStatement] = None):
+		super().__init__()
+		SequentialStatements.__init__(self, statements)
+
+	@property
+	def Choises(self) -> List[Choice]:
+		return self._choices
 
 
 @export
@@ -2725,19 +2746,6 @@ class GenerateCase(ConcurrentCase):
 class OthersGenerateCase(ConcurrentCase):
 	def __str__(self) -> str:
 		return "when others =>"
-
-
-@export
-class SequentialCase(Case, SequentialStatements):
-	_choices: List
-
-	def __init__(self):
-		super().__init__()
-		SequentialStatements.__init__(self)
-
-	@property
-	def Choises(self) -> List[Choice]:
-		return self._choices
 
 
 @export
@@ -2779,7 +2787,7 @@ class CaseGenerateStatement(GenerateStatement):
 	_expression: Expression
 	_cases:      List[GenerateCase]
 
-	def __init__(self, label: str, expression: Expression, cases: Iterable[GenerateCase]):
+	def __init__(self, label: str, expression: Expression, cases: Iterable[ConcurrentCase]):
 		super().__init__(label)
 
 		self._expression = expression
@@ -2913,9 +2921,23 @@ class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment):
 
 @export
 class SequentialSignalAssignment(SequentialStatement, SignalAssignment):
-	def __init__(self, target: Name, expression: Expression, label: str = None):
+	def __init__(self, target: Name, label: str = None):
 		super().__init__(label)
 		SignalAssignment.__init__(self, target)
+
+
+@export
+class SequentialSimpleSignalAssignment(SequentialSignalAssignment):
+	_waveform: List[WaveformElement]
+
+	def __init__(self, target: Name, waveform: Iterable[WaveformElement], label: str = None):
+		super().__init__(target, label)
+
+		self._waveform = [e for e in waveform]
+
+	@property
+	def Waveform(self) -> List[WaveformElement]:
+		return self._waveform
 
 
 @export
@@ -3047,11 +3069,68 @@ class IfStatement(CompoundStatement):
 
 
 @export
+class Case(SequentialCase):
+	_choices: List[SequentialChoice]
+
+	def __init__(self, choices: Iterable[SequentialChoice], statements: Iterable[SequentialStatement] = None):
+		super().__init__(statements)
+
+		self._choices = [c for c in choices]
+
+	@property
+	def Choises(self) -> List[SequentialChoice]:
+		return self._choices
+
+	def __str__(self) -> str:
+		return "when {choices} =>".format(choices=" | ".join([str(c) for c in self._choices]))
+
+
+@export
+class OthersCase(SequentialCase):
+	def __str__(self) -> str:
+		return "when others =>"
+
+
+@export
+class IndexedChoice(SequentialChoice):
+	_expression: Expression
+
+	def __init__(self, expression: Expression):
+		super().__init__()
+
+		self._expression = expression
+
+	@property
+	def Expression(self) -> Expression:
+		return self._expression
+
+	def __str__(self) -> str:
+		return "{expression!s}".format(expression=self._expression)
+
+
+@export
+class RangedChoice(SequentialChoice):
+	_range: 'Range'
+
+	def __init__(self, rng: 'Range'):
+		super().__init__()
+
+		self._range = rng
+
+	@property
+	def Range(self) -> 'Range':
+		return self._range
+
+	def __str__(self) -> str:
+		return "{range!s}".format(range=self._range)
+
+
+@export
 class CaseStatement(CompoundStatement):
 	_expression: Expression
-	_cases:      List[Case]
+	_cases:      List[SequentialCase]
 
-	def __init__(self, expression: Expression, cases: Iterable[GenerateCase], label: str = None):
+	def __init__(self, expression: Expression, cases: Iterable[SequentialCase], label: str = None):
 		super().__init__(label)
 
 		self._expression = expression
@@ -3062,7 +3141,7 @@ class CaseStatement(CompoundStatement):
 		return self._expression
 
 	@property
-	def Cases(self) -> List[Case]:
+	def Cases(self) -> List[SequentialCase]:
 		return self._cases
 
 

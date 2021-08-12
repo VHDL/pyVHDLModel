@@ -2396,7 +2396,7 @@ class SequentialDeclarations:
 class SequentialStatements:
 	_statements: List[SequentialStatement]
 
-	def __init__(self, statements: Iterable[SequentialStatement]):
+	def __init__(self, statements: Iterable[SequentialStatement] = None):
 		self._statements = [] if statements is None else [s for s in statements]
 
 	@property
@@ -2411,7 +2411,7 @@ class Instantiation(ConcurrentStatement):
 
 @export
 class ComponentInstantiation(Instantiation):
-	_component: Component
+	_component: Name
 
 	def __init__(self, label: str, componentName: Name):
 		super().__init__(label)
@@ -2419,14 +2419,14 @@ class ComponentInstantiation(Instantiation):
 		self._component = componentName
 
 	@property
-	def Component(self) -> Component:
+	def Component(self) -> Name:
 		return self._component
 
 
 @export
 class EntityInstantiation(Instantiation):
-	_entity: Entity
-	_architecture: Architecture
+	_entity:       Name
+	_architecture: Name
 
 	def __init__(self, label: str, entityName: Name, architectureName: Name = None):
 		super().__init__(label)
@@ -2435,17 +2435,17 @@ class EntityInstantiation(Instantiation):
 		self._architecture = architectureName
 
 	@property
-	def Entity(self) -> Entity:
+	def Entity(self) -> Name:
 		return self._entity
 
 	@property
-	def Architecture(self) -> Entity:
+	def Architecture(self) -> Name:
 		return self._architecture
 
 
 @export
 class ConfigurationInstantiation(Instantiation):
-	_configuration: Configuration
+	_configuration: Name
 
 	def __init__(self, label: str, configurationName: Name):
 		super().__init__(label)
@@ -2453,13 +2453,13 @@ class ConfigurationInstantiation(Instantiation):
 		self._configuration = configurationName
 
 	@property
-	def Configuration(self) -> Entity:
+	def Configuration(self) -> Name:
 		return self._configuration
 
 
 @export
 class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements):
-	_sensitivityList: List[Signal] = None
+	_sensitivityList: List[Name] = None
 
 	def __init__(self, label: str = None, declaredItems: Iterable = None, statements: Iterable[SequentialStatement] = None, sensitivityList: Iterable[Name] = None):
 		super().__init__(label)
@@ -2470,7 +2470,7 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 			self._sensitivityList = [s for s in sensitivityList]
 
 	@property
-	def SensitivityList(self) -> List[Signal]:
+	def SensitivityList(self) -> List[Name]:
 		return self._sensitivityList
 
 
@@ -2552,7 +2552,7 @@ class MixinConditional:
 	"""
 	_condition: Expression
 
-	def __init__(self, condition: Expression):
+	def __init__(self, condition: Expression = None):
 		self._condition = condition
 
 	@property
@@ -2891,14 +2891,14 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
 class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment):
 	def __init__(self, label: str, target: Name, expression: Expression):
 		super().__init__(label, target)
-		expression
+
 
 
 @export
 class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment):
 	def __init__(self, label: str, target: Name, expression: Expression):
 		super().__init__(label, target)
-		expression
+
 
 
 @export
@@ -3009,9 +3009,6 @@ class CompoundStatement(SequentialStatement):
 	A ``CompoundStatement`` is a base-class for all compound statements.
 	"""
 
-	def __init__(self):
-		super().__init__()
-
 
 @export
 class IfStatement(CompoundStatement):
@@ -3069,14 +3066,14 @@ class EndlessLoopStatement(LoopStatement):
 
 @export
 class ForLoopStatement(LoopStatement):
-	_loopIndex: Constant
+	_loopIndex: str
 	_range:     Range
 
 	def __init__(self):
 		super().__init__()
 
 	@property
-	def LoopIndex(self) -> Constant:
+	def LoopIndex(self) -> str:
 		return self._loopIndex
 
 	@property
@@ -3119,7 +3116,7 @@ class ExitStatement(LoopControlStatement):
 
 @export
 class WaitStatement(SequentialStatement, MixinConditional):
-	_sensitivityList: List[Signal]
+	_sensitivityList: List[Name]
 	_timeout:         Expression
 
 	def __init__(self):
@@ -3127,7 +3124,7 @@ class WaitStatement(SequentialStatement, MixinConditional):
 		MixinConditional.__init__(self)
 
 	@property
-	def SensitivityList(self) -> List[Signal]:
+	def SensitivityList(self) -> List[Name]:
 		return self._sensitivityList
 
 	@property

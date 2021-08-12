@@ -42,7 +42,7 @@ This module contains a document language model for VHDL.
 """
 # load dependencies
 from pathlib              import Path
-from typing import List, Tuple, Union, Dict, Iterator, Optional, Any, Iterable
+from typing               import List, Tuple, Union, Dict, Iterator, Optional, Any, Iterable
 
 from pydecor.decorators   import export
 

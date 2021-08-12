@@ -2844,6 +2844,16 @@ class VariableAssignment(Assignment):
 	"""
 	An ``VariableAssignment`` is a base-class for all variable assignment statements.
 	"""
+	_expression: Expression
+
+	def __init__(self, target: Name, expression: Expression):
+		super().__init__(target)
+
+		self._expression = expression
+
+	@property
+	def Expression(self) -> Expression:
+		return self._expression
 
 
 @export
@@ -2904,15 +2914,15 @@ class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment):
 @export
 class SequentialSignalAssignment(SequentialStatement, SignalAssignment):
 	def __init__(self, target: Name, expression: Expression, label: str = None):
-		super().__init__()
-		SignalAssignment.__init__(self, target, expression)
+		super().__init__(label)
+		SignalAssignment.__init__(self, target)
 
 
 @export
 class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
-	def __init__(self):
-		super().__init__()
-		VariableAssignment.__init__(self)
+	def __init__(self, target: Name, expression: Expression, label: str = None):
+		super().__init__(label)
+		VariableAssignment.__init__(self, target, expression)
 
 
 @export
@@ -2974,32 +2984,32 @@ class SequentialAssertStatement(SequentialStatement, MixinAssertStatement):
 @export
 class Branch(ModelEntity, SequentialStatements):
 	"""
-	A ``Branch`` is a base-class for all branches.
+	A ``Branch`` is a base-class for all branches in a if statement.
 	"""
 
-	def __init__(self):
+	def __init__(self, statements: Iterable[ConcurrentStatement] = None):
 		super().__init__()
-		SequentialStatements.__init__(self)
+		SequentialStatements.__init__(self, statements)
 
 
 @export
 class IfBranch(Branch, MixinIfBranch):
-	def __init__(self):
-		super().__init__()
-		MixinIfBranch.__init__(self)
+	def __init__(self, condition: Expression, statements: Iterable[ConcurrentStatement] = None):
+		super().__init__(statements)
+		MixinIfBranch.__init__(self, condition)
 
 
 @export
 class ElsifBranch(Branch, MixinElsifBranch):
-	def __init__(self):
-		super().__init__()
-		MixinElsifBranch.__init__(self)
+	def __init__(self, condition: Expression, statements: Iterable[ConcurrentStatement] = None):
+		super().__init__(statements)
+		MixinElsifBranch.__init__(self, condition)
 
 
 @export
 class ElseBranch(Branch, MixinElseBranch):
-	def __init__(self):
-		super().__init__()
+	def __init__(self, statements: Iterable[ConcurrentStatement] = None):
+		super().__init__(statements)
 		MixinElseBranch.__init__(self)
 
 
@@ -3016,10 +3026,12 @@ class IfStatement(CompoundStatement):
 	_elsifBranches: List['ElsifBranch']
 	_elseBranch: ElseBranch
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, ifBranch: IfBranch, elsifBranches: Iterable[ElsifBranch] = None, elseBranch: ElseBranch = None, label: str = None):
+		super().__init__(label)
 
-		self._elsifBranches = []
+		self._ifBranch = ifBranch
+		self._elsifBranches = [] if elsifBranches is None else [b for b in elsifBranches]
+		self._elseBranch = elseBranch
 
 	@property
 	def IfBranch(self) -> IfBranch:
@@ -3036,15 +3048,21 @@ class IfStatement(CompoundStatement):
 
 @export
 class CaseStatement(CompoundStatement):
-	_selectExpression: Expression
-	_cases:            List[SequentialCase]
+	_expression: Expression
+	_cases:      List[Case]
+
+	def __init__(self, expression: Expression, cases: Iterable[GenerateCase], label: str = None):
+		super().__init__(label)
+
+		self._expression = expression
+		self._cases      = [] if cases is None else [c for c in cases]
 
 	@property
 	def SelectExpression(self) -> Expression:
-		return self._selectExpression
+		return self._expression
 
 	@property
-	def Cases(self) -> List[SequentialCase]:
+	def Cases(self) -> List[Case]:
 		return self._cases
 
 
@@ -3054,9 +3072,9 @@ class LoopStatement(CompoundStatement, SequentialStatements):
 	A ``LoopStatement`` is a base-class for all loop statements.
 	"""
 
-	def __init__(self):
-		super().__init__()
-		SequentialStatements.__init__(self)
+	def __init__(self, statements: Iterable[ConcurrentStatement] = None, label: str = None):
+		super().__init__(label)
+		SequentialStatements.__init__(self, statements)
 
 
 @export
@@ -3069,8 +3087,11 @@ class ForLoopStatement(LoopStatement):
 	_loopIndex: str
 	_range:     Range
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, loopIndex: str, range: Range, statements: Iterable[ConcurrentStatement] = None, label: str = None):
+		super().__init__(label, statements)
+
+		self._loopIndex = loopIndex
+		self._range = range
 
 	@property
 	def LoopIndex(self) -> str:
@@ -3083,9 +3104,9 @@ class ForLoopStatement(LoopStatement):
 
 @export
 class WhileLoopStatement(LoopStatement, MixinConditional):
-	def __init__(self):
-		super().__init__()
-		MixinConditional.__init__(self)
+	def __init__(self, condition: Expression, statements: Iterable[ConcurrentStatement] = None, label: str = None):
+		super().__init__(label, statements)
+		MixinConditional.__init__(self, condition)
 
 
 @export
@@ -3095,9 +3116,9 @@ class LoopControlStatement(SequentialStatement, MixinConditional):
 	"""
 	_loopReference: LoopStatement
 
-	def __init__(self):
+	def __init__(self, condition: Expression = None, loopLabel: str = None): # TODO: is this label (currently str) a Name or a Label class?
 		super().__init__()
-		MixinConditional.__init__(self)
+		MixinConditional.__init__(self, condition)
 
 	@property
 	def LoopReference(self) -> LoopStatement:
@@ -3136,9 +3157,9 @@ class WaitStatement(SequentialStatement, MixinConditional):
 class ReturnStatement(SequentialStatement, MixinConditional):
 	_returnValue: Expression
 
-	def __init__(self):
+	def __init__(self, returnValue: Expression = None):
 		super().__init__()
-		MixinConditional.__init__(self)
+		MixinConditional.__init__(self, returnValue)
 
 	@property
 	def ReturnValue(self) -> Expression:

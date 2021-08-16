@@ -93,6 +93,11 @@ Expression = Union[
 	'Literal',
 ]
 
+Context = Union[
+	'LibraryClause'
+	'UseClause'
+	'ContextReference'
+]
 
 @export
 class Name:
@@ -203,7 +208,7 @@ class AllName(Name):
 		super().__init__("all", prefix)
 
 	def __str__(self):
-		return "all"
+		return str(self._prefix) + "." + "all"
 
 
 @export
@@ -1985,23 +1990,6 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
 		super().__init__(identifiers, subtype)
 		ParameterInterfaceItem.__init__(self)
 
-# class GenericItem(ModelEntity):
-# 	def __init__(self):
-# 		super().__init__()
-# 		self._name = None
-# 		self._subtype = None
-# 		self._init = None
-#
-#
-# class PortItem(ModelEntity):
-# 	def __init__(self):
-# 		super().__init__()
-# 		self._name =        None
-# 		self._subtype =     None
-# 		self._init =        None
-# 		self._mode =        None
-# 		self._class =       None
-
 
 @export
 class Reference(ModelEntity):
@@ -2009,12 +1997,13 @@ class Reference(ModelEntity):
 
 
 @export
-class LibraryStatement(Reference):
-	_library:       Union[None, LibraryOrSymbol]
+class LibraryClause(Reference):
+	_names:       List[Name]
 
-	def __init__(self):
+	def __init__(self, names: Iterable[Name]):
 		super().__init__()
-		self._library = None
+
+		self._names = [n for n in names]
 
 	@property
 	def Library(self) -> Union[None, LibraryOrSymbol]:
@@ -2023,25 +2012,24 @@ class LibraryStatement(Reference):
 
 @export
 class UseClause(Reference):
-	_library: Union[None, LibraryOrSymbol]
-	_package: 'Package'
-	_item:    str
+	_names: List[Name]
 
-	def __init__(self, name: Name):
+	def __init__(self, names: Iterable[Name]):
 		super().__init__()
-		self._item = str(name)   # FIXME: should the name be splitted?
+
+		self._names = [n for n in names]
 
 	@property
 	def Library(self) -> Union[None, LibraryOrSymbol]:
-		return self._library
+		return "" # self._library
 
 	@property
 	def Package(self) -> 'Package':
-		return self._package
+		return "" # self._package
 
 	@property
 	def Item(self) -> str:
-		return self._item
+		return "" # self._item
 
 
 @export
@@ -2066,7 +2054,7 @@ class MixinDesignUnitWithContext:
 	"""
 	A ``DesignUnitWithReferences`` is a base-class for all design units with contexts.
 	"""
-	_libraryReferences: List[LibraryStatement]
+	_libraryReferences: List[LibraryClause]
 	_packageReferences: List[UseClause]
 	_contextReferences: List['Context']
 
@@ -2076,7 +2064,7 @@ class MixinDesignUnitWithContext:
 		self._contextReferences = []
 
 	@property
-	def LibraryReferences(self) -> List[LibraryStatement]:
+	def LibraryReferences(self) -> List[LibraryClause]:
 		return self._libraryReferences
 
 	@property
@@ -2090,17 +2078,17 @@ class MixinDesignUnitWithContext:
 
 @export
 class Context(PrimaryUnit):
-	_libraryReferences: List[LibraryStatement]
+	_libraryReferences: List[LibraryClause]
 	_packageReferences: List[UseClause]
 
-	def __init__(self, identifier):
+	def __init__(self, identifier: str, libraryReferences: Iterable[LibraryClause] = None, packageReferences: Iterable[UseClause] = None):
 		super().__init__(identifier)
 
-		self._libraryReferences = []
-		self._packageReferences = []
+		self._libraryReferences = [] if libraryReferences is None else [l for l in libraryReferences]
+		self._packageReferences = [] if packageReferences is None else [p for p in packageReferences]
 
 	@property
-	def LibraryReferences(self) -> List[LibraryStatement]:
+	def LibraryReferences(self) -> List[LibraryClause]:
 		return self._libraryReferences
 
 	@property
@@ -2119,6 +2107,7 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 	def __init__(
 		self,
 		identifier: str,
+		contextItems: Iterable[Context] = None,
 		genericItems: Iterable[GenericInterfaceItem] = None,
 		portItems: Iterable[PortInterfaceItem] = None,
 		declaredItems: Iterable = None,
@@ -2161,7 +2150,7 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
 	_statements:    List['ConcurrentStatement']
 
-	def __init__(self, identifier: str, entity: Name, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None):
+	def __init__(self, identifier: str, entity: Name, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
@@ -2212,7 +2201,7 @@ class Component(ModelEntity, NamedEntity):
 
 @export
 class Configuration(PrimaryUnit, MixinDesignUnitWithContext):
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str, contextItems: Iterable[Context] = None):
 		super().__init__(identifier)
 		MixinDesignUnitWithContext.__init__(self)
 
@@ -2278,8 +2267,8 @@ class Package(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
-	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, contextItems: Iterable[Context] = None,genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None):
+		super().__init__(identifier, contextItems)
 		MixinDesignUnitWithContext.__init__(self)
 
 		self._genericItems =  [] if genericItems is None else [g for g in genericItems]
@@ -2299,8 +2288,8 @@ class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
 	_package:           Package
 	_declaredItems:     List
 
-	def __init__(self, identifier: str, declaredItems: Iterable = None):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, declaredItems: Iterable = None):
+		super().__init__(identifier, contextItems)
 		MixinDesignUnitWithContext.__init__(self)
 
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]

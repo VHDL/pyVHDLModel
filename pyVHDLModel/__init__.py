@@ -41,7 +41,7 @@ An abstract VHDL language model.
 :license: Apache License, Version 2.0
 """
 from enum     import IntEnum, unique, Enum
-from typing   import List
+from typing import List, Iterable
 
 from pydecor  import export
 
@@ -262,10 +262,17 @@ class DesignUnit(ModelEntity, NamedEntity):
 	"""
 	A ``DesignUnit`` is a base-class for all design units.
 	"""
+	_contextItems: List['Context']
 
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str, contextItems: Iterable['Context'] = None):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
+
+		self._contextItems = [] if contextItems is None else [c for c in contextItems]
+
+	@property
+	def ContextItems(self) -> List['Context']:
+		return self._contextItems
 
 
 @export

@@ -1993,11 +1993,6 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
 
 @export
 class Reference(ModelEntity):
-	pass
-
-
-@export
-class LibraryClause(Reference):
 	_names:       List[Name]
 
 	def __init__(self, names: Iterable[Name]):
@@ -2006,48 +2001,23 @@ class LibraryClause(Reference):
 		self._names = [n for n in names]
 
 	@property
-	def Library(self) -> Union[None, LibraryOrSymbol]:
-		return self._library
+	def Names(self) -> List[Name]:
+		return self._names
+
+
+@export
+class LibraryClause(Reference):
+	pass
 
 
 @export
 class UseClause(Reference):
-	_names: List[Name]
-
-	def __init__(self, names: Iterable[Name]):
-		super().__init__()
-
-		self._names = [n for n in names]
-
-	@property
-	def Library(self) -> Union[None, LibraryOrSymbol]:
-		return "" # self._library
-
-	@property
-	def Package(self) -> 'Package':
-		return "" # self._package
-
-	@property
-	def Item(self) -> str:
-		return "" # self._item
+	pass
 
 
 @export
 class ContextReference(Reference):
-	_names: List[Name]
-
-	def __init__(self, names: Iterable[Name]):
-		super().__init__()
-
-		self._names = [n for n in names]
-
-	@property
-	def Library(self) -> Union[None, LibraryOrSymbol]:
-		return "" # self._library
-
-	@property
-	def Context(self) -> 'Context':
-		return "" # self._context
+	pass
 
 
 @export

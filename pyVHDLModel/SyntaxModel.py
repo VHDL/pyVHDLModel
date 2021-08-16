@@ -2033,20 +2033,21 @@ class UseClause(Reference):
 
 
 @export
-class ContextStatement(Reference):
-	_library: Union[None, LibraryOrSymbol]
-	_context: 'Context'
+class ContextReference(Reference):
+	_names: List[Name]
 
-	def __init__(self):
+	def __init__(self, names: Iterable[Name]):
 		super().__init__()
+
+		self._names = [n for n in names]
 
 	@property
 	def Library(self) -> Union[None, LibraryOrSymbol]:
-		return self._library
+		return "" # self._library
 
 	@property
 	def Context(self) -> 'Context':
-		return self._context
+		return "" # self._context
 
 
 @export

@@ -2179,19 +2179,28 @@ class Configuration(PrimaryUnit, MixinDesignUnitWithContext):
 
 @export
 class AssociationItem(ModelEntity):
-	_formal: str    # FIXME: defined type
+	_formal: Name
 	_actual: Expression
 
-	def __init__(self):
+	def __init__(self, actual: Expression, formal: Name = None):
 		super().__init__()
 
+		self._formal = formal
+		self._actual = actual
+
 	@property
-	def Formal(self):    # FIXME: defined return type
+	def Formal(self) -> Name:
 		return self._formal
 
 	@property
 	def Actual(self) -> Expression:
 		return self._actual
+
+	def __str__(self):
+		if self._formal is None:
+			return str(self._actual)
+		else:
+			return "{formal!s} => {actual!s}".format(formal=self._formal, actual=self._actual)
 
 
 @export
@@ -2366,15 +2375,22 @@ class SequentialStatements:
 
 @export
 class Instantiation(ConcurrentStatement):
-	pass
+	_genericAssociations: List[AssociationItem]
+	_portAssociations: List[AssociationItem]
+
+	def __init__(self, label: str, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
+		super().__init__(label)
+
+		self._genericAssociations = [] if genericAssociations is None else [g for g in genericAssociations]
+		self._portAssociations =    [] if portAssociations is None else [p for p in portAssociations]
 
 
 @export
 class ComponentInstantiation(Instantiation):
 	_component: Name
 
-	def __init__(self, label: str, componentName: Name):
-		super().__init__(label)
+	def __init__(self, label: str, componentName: Name, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
+		super().__init__(label, genericAssociations, portAssociations)
 
 		self._component = componentName
 
@@ -2388,8 +2404,8 @@ class EntityInstantiation(Instantiation):
 	_entity:       Name
 	_architecture: Name
 
-	def __init__(self, label: str, entityName: Name, architectureName: Name = None):
-		super().__init__(label)
+	def __init__(self, label: str, entityName: Name, architectureName: Name = None, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
+		super().__init__(label, genericAssociations, portAssociations)
 
 		self._entity = entityName
 		self._architecture = architectureName
@@ -2407,8 +2423,8 @@ class EntityInstantiation(Instantiation):
 class ConfigurationInstantiation(Instantiation):
 	_configuration: Name
 
-	def __init__(self, label: str, configurationName: Name):
-		super().__init__(label)
+	def __init__(self, label: str, configurationName: Name, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
+		super().__init__(label, genericAssociations, portAssociations)
 
 		self._configuration = configurationName
 
@@ -2442,6 +2458,7 @@ class ProcedureCall:
 	def __init__(self, procedureName: Name, parameterMappings: Iterable = None):
 		self._procedure = procedureName
 		self._parameterMappings = [] if procedureName is None else [m for m in parameterMappings]
+		pass
 
 	@property
 	def Procedure(self) -> Name:

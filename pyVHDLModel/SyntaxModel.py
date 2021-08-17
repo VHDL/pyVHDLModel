@@ -3182,9 +3182,16 @@ class WaitStatement(SequentialStatement, MixinConditional):
 	_sensitivityList: List[Name]
 	_timeout:         Expression
 
-	def __init__(self):
-		super().__init__()
-		MixinConditional.__init__(self)
+	def __init__(self, sensitivityList: Iterable[Name] = None, condition: Expression = None, timeout: Expression = None, label: str = None):
+		super().__init__(label)
+		MixinConditional.__init__(self, condition)
+
+		if sensitivityList is None:
+			self._sensitivityList = None
+		else:
+			self._sensitivityList = [i for i in sensitivityList]
+
+		self._timeout = timeout
 
 	@property
 	def SensitivityList(self) -> List[Name]:

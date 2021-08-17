@@ -2453,32 +2453,31 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 @export
 class ProcedureCall:
 	_procedure: Name
-	_parameterMappings: List
+	_parameterMappings: List[ParameterAssociationItem]
 
-	def __init__(self, procedureName: Name, parameterMappings: Iterable = None):
+	def __init__(self, procedureName: Name, parameterMappings: Iterable[ParameterAssociationItem] = None):
 		self._procedure = procedureName
-		self._parameterMappings = [] if procedureName is None else [m for m in parameterMappings]
-		pass
+		self._parameterMappings = [] if parameterMappings is None else [m for m in parameterMappings]
 
 	@property
 	def Procedure(self) -> Name:
 		return self._procedure
 
 	@property
-	def ParameterMappings(self) -> List:
+	def ParameterMappings(self) -> List[ParameterAssociationItem]:
 		return self._parameterMappings
 
 
 @export
 class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCall):
-	def __init__(self, label: str, procedureName: Name, parameterMappings: Iterable = None):
+	def __init__(self, label: str, procedureName: Name, parameterMappings: Iterable[ParameterAssociationItem] = None):
 		super().__init__(label)
 		ProcedureCall.__init__(self, procedureName, parameterMappings)
 
 
 @export
 class SequentialProcedureCall(SequentialStatement, ProcedureCall):
-	def __init__(self, label: str, procedureName: Name, parameterMappings: Iterable = None):
+	def __init__(self, label: str, procedureName: Name, parameterMappings: Iterable[ParameterAssociationItem] = None):
 		super().__init__(label)
 		ProcedureCall.__init__(self, procedureName, parameterMappings)
 

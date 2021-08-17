@@ -2931,7 +2931,7 @@ class MixinReportStatement:
 	_message:  Expression
 	_severity: Expression
 
-	def __init__(self, message: Expression, severity: Expression = None):
+	def __init__(self, message: Expression = None, severity: Expression = None):
 		self._message = message
 		self._severity = severity
 
@@ -2951,7 +2951,7 @@ class MixinAssertStatement(MixinReportStatement):
 	"""
 	_condition: Expression
 
-	def __init__(self, condition: Expression, message: Expression, severity: Expression = None):
+	def __init__(self, condition: Expression, message: Expression = None, severity: Expression = None):
 		super().__init__(message, severity)
 
 		self._condition = condition
@@ -2977,7 +2977,7 @@ class SequentialReportStatement(SequentialStatement, MixinReportStatement):
 
 @export
 class SequentialAssertStatement(SequentialStatement, MixinAssertStatement):
-	def __init__(self, condition: Expression, message: Expression, severity: Expression = None, label: str = None):
+	def __init__(self, condition: Expression, message: Expression = None, severity: Expression = None, label: str = None):
 		super().__init__(label)
 		MixinAssertStatement.__init__(self, condition, message, severity)
 

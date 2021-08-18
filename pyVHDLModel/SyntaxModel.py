@@ -111,8 +111,12 @@ class Name:
 
 	def __init__(self, identifier: str, prefix: 'Name' = None):
 		self._identifier = identifier
-		self._prefix = prefix
-		self._root = prefix._root
+		if prefix is None:
+			self._prefix = self
+			self._root = None
+		else:
+			self._prefix = prefix
+			self._root = prefix._root
 
 	@property
 	def Identifier(self) -> str:
@@ -133,25 +137,8 @@ class Name:
 
 @export
 class SimpleName(Name):
-	def __init__(self, identifier: str):
-		self._name = identifier
-		self._root = self
-		self._prefix = None
-
-	@property
-	def Root(self) -> 'Name':
-		return self
-
-	@property
-	def Prefix(self) -> Nullable['Name']:
-		return None
-
-	@property
-	def Has_Prefix(self) -> bool:
-		return False
-
 	def __str__(self):
-		return self._name
+		return self._identifier
 
 
 @export
@@ -209,6 +196,15 @@ class AllName(Name):
 
 	def __str__(self):
 		return str(self._prefix) + "." + "all"
+
+
+@export
+class OpenName(Name):
+	def __init__(self):
+		super().__init__("open")
+
+	def __str__(self):
+		return "open"
 
 
 @export

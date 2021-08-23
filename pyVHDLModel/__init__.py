@@ -41,13 +41,50 @@ An abstract VHDL language model.
 :license: Apache License, Version 2.0
 """
 from enum     import IntEnum, unique, Enum
-from typing import List, Iterable
+from typing import List, Iterable, Union, Optional as Nullable
 
 from pydecor  import export
 
 
 __version__ = "0.11.5"
 
+SimpleOrAttribute =     Union['SimpleName',    'AttributeName']
+
+LibraryOrSymbol =       Union['Library',       'LibrarySymbol']
+EntityOrSymbol =        Union['Entity',        'EntitySymbol']
+ArchitectureOrSymbol =  Union['Architecture',  'ArchitectureSymbol']
+PackageOrSymbol =       Union['Package',       'PackageSymbol']
+ConfigurationOrSymbol = Union['Configuration', 'ConfigurationSymbol']
+ContextOrSymbol =       Union['Context',       'ContextSymbol']
+
+SubtypeOrSymbol =       Union['Subtype',       'SubtypeSymbol']
+
+ConstantOrSymbol =      Union['Constant',      'ConstantSymbol']
+VariableOrSymbol =      Union['Variable',      'VariableSymbol']
+SignalOrSymbol =        Union['Signal',        'SignalSymbol']
+
+ConstraintUnion = Union[
+	'RangeExpression',
+	'RangeAttribute',
+	'RangeSubtype',
+]
+
+ExpressionUnion = Union[
+	'BaseExpression',
+	'QualifiedExpression',
+	'FunctionCall',
+	'TypeConversion',
+	ConstantOrSymbol,
+	VariableOrSymbol,
+	SignalOrSymbol,
+	'Literal',
+]
+
+ContextUnion = Union[
+	'LibraryClause'
+	'UseClause'
+	'ContextReference'
+]
 
 @export
 @unique
@@ -256,23 +293,57 @@ class LabeledEntity:
 		"""Returns a model entity's label."""
 		return self._label
 
+@export
+class MixinDesignUnitWithContext:
+	_contextItems:      Nullable[List['ContextUnion']]
+	_libraryReferences: Nullable[List['LibraryClause']]
+	_packageReferences: Nullable[List['UseClause']]
+	_contextReferences: Nullable[List['ContextReference']]
+
+	def __init__(self, contextItems: Iterable['ContextUnion'] = None):
+		from pyVHDLModel.SyntaxModel import LibraryClause, UseClause, ContextReference
+
+		if contextItems is not None:
+			self._contextItems = []
+			self._libraryReferences = []
+			self._packageReferences = []
+			self._contextReferences = []
+
+			for item in contextItems:
+				self._contextItems.append(item)
+				if isinstance(item, UseClause):
+					self._packageReferences.append(item)
+				elif isinstance(item, LibraryClause):
+					self._libraryReferences.append(item)
+				elif isinstance(item, ContextReference):
+					self._contextReferences.append(item)
+
+	@property
+	def ContextItems(self) -> List['ContextUnion']:
+		return self._contextItems
+
+	@property
+	def LibraryReferences(self) -> List['LibraryClause']:
+		return self._libraryReferences
+
+	@property
+	def PackageReferences(self) -> List['UseClause']:
+		return self._packageReferences
+
+	@property
+	def ContextReferences(self) -> List['ContextReference']:
+		return self._contextReferences
+
 
 @export
 class DesignUnit(ModelEntity, NamedEntity):
 	"""
 	A ``DesignUnit`` is a base-class for all design units.
 	"""
-	_contextItems: List['Context']
 
-	def __init__(self, identifier: str, contextItems: Iterable['Context'] = None):
+	def __init__(self, identifier: str):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
-
-		self._contextItems = [] if contextItems is None else [c for c in contextItems]
-
-	@property
-	def ContextItems(self) -> List['Context']:
-		return self._contextItems
 
 
 @export

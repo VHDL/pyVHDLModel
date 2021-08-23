@@ -42,11 +42,13 @@ This module contains a document language model for VHDL.
 """
 # load dependencies
 from pathlib              import Path
-from typing               import List, Tuple, Union, Dict, Iterator, Optional, Any, Iterable
+from typing               import List, Tuple, Union, Dict, Iterator, Optional as Nullable, Any, Iterable
 
 from pydecor.decorators   import export
 
-from pyVHDLModel          import ModelEntity, NamedEntity, MultipleNamedEntity, LabeledEntity, PrimaryUnit, SecondaryUnit, PossibleReference, Direction, EntityClass, Mode
+from pyVHDLModel          import ModelEntity, NamedEntity, MultipleNamedEntity, LabeledEntity, PossibleReference, Direction, EntityClass, Mode
+from pyVHDLModel          import PrimaryUnit, SecondaryUnit
+from pyVHDLModel          import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, MixinDesignUnitWithContext, PackageOrSymbol
 from pyVHDLModel.PSLModel import VerificationUnit
 
 try:
@@ -59,45 +61,6 @@ except ImportError:
 __all__ = []
 # __api__ = __all__ # FIXME: disabled due to a bug in pydecors export decorator
 
-Nullable = Optional
-
-SimpleOrAttribute =     Union['SimpleName',    'AttributeName']
-
-LibraryOrSymbol =       Union['Library',       'LibrarySymbol']
-EntityOrSymbol =        Union['Entity',        'EntitySymbol']
-ArchitectureOrSymbol =  Union['Architecture',  'ArchitectureSymbol']
-PackageOrSymbol =       Union['Package',       'PackageSymbol']
-ConfigurationOrSymbol = Union['Configuration', 'ConfigurationSymbol']
-ContextOrSymbol =       Union['Context',       'ContextSymbol']
-
-SubtypeOrSymbol =       Union['Subtype',       'SubtypeSymbol']
-
-ConstantOrSymbol =      Union['Constant',      'ConstantSymbol']
-VariableOrSymbol =      Union['Variable',      'VariableSymbol']
-SignalOrSymbol =        Union['Signal',        'SignalSymbol']
-
-Constraint = Union[
-	'RangeExpression',
-	'RangeAttribute',
-	'RangeSubtype',
-]
-
-Expression = Union[
-	'BaseExpression',
-	'QualifiedExpression',
-	'FunctionCall',
-	'TypeConversion',
-	ConstantOrSymbol,
-	VariableOrSymbol,
-	SignalOrSymbol,
-	'Literal',
-]
-
-Context = Union[
-	'LibraryClause'
-	'UseClause'
-	'ContextReference'
-]
 
 @export
 class Name:
@@ -106,7 +69,7 @@ class Name:
   """
 
 	_identifier: str
-	_root: 'Name'
+	_root: Nullable['Name']
 	_prefix: Nullable['Name']
 
 	def __init__(self, identifier: str, prefix: 'Name' = None):
@@ -159,10 +122,10 @@ class ParenthesisName(Name):
 
 @export
 class IndexedName(Name):
-	_indices: List[Expression]
+	_indices: List[ExpressionUnion]
 
 	@property
-	def Indices(self) -> List[Expression]:
+	def Indices(self) -> List[ExpressionUnion]:
 		return self._indices
 
 
@@ -347,15 +310,15 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol):
 
 @export
 class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
-	_constraints: List[Constraint]
+	_constraints: List[ConstraintUnion]
 
-	def __init__(self, subtypeName: Name, constraints: Iterable[Constraint] = None):
+	def __init__(self, subtypeName: Name, constraints: Iterable[ConstraintUnion] = None):
 		super().__init__(subtypeName, PossibleReference.Unknown)
 		self._subtype = None
 		self._constraints = [c for c in constraints]
 
 	@property
-	def Constraints(self) -> List[Constraint]:
+	def Constraints(self) -> List[ConstraintUnion]:
 		return self._constraints
 
 
@@ -687,8 +650,8 @@ class RangedScalarType(ScalarType):
 	"""
 
 	_range:      Union['Range', Name]
-	_leftBound:  Expression
-	_rightBound: Expression
+	_leftBound:  ExpressionUnion
+	_rightBound: ExpressionUnion
 
 	def __init__(self, identifier: str, rng: Union['Range', Name]):
 		super().__init__(identifier)
@@ -1043,7 +1006,7 @@ class BitStringLiteral(Literal):
 @export
 class ParenthesisExpression(Protocol):
 	@property
-	def Operand(self) -> Expression:
+	def Operand(self) -> ExpressionUnion:
 		return None
 
 
@@ -1054,9 +1017,9 @@ class UnaryExpression(BaseExpression):
 	"""
 
 	_FORMAT: Tuple[str, str]
-	_operand:  Expression
+	_operand:  ExpressionUnion
 
-	def __init__(self, operand: Expression):
+	def __init__(self, operand: ExpressionUnion):
 		super().__init__()
 
 		self._operand = operand
@@ -1110,10 +1073,10 @@ class BinaryExpression(BaseExpression):
 	"""
 
 	_FORMAT: Tuple[str, str, str]
-	_leftOperand:  Expression
-	_rightOperand: Expression
+	_leftOperand:  ExpressionUnion
+	_rightOperand: ExpressionUnion
 
-	def __init__(self, _leftOperand: Expression, _rightOperand: Expression):
+	def __init__(self, _leftOperand: ExpressionUnion, _rightOperand: ExpressionUnion):
 		super().__init__()
 
 		self._leftOperand = _leftOperand
@@ -1375,10 +1338,10 @@ class RotateLeftExpression(RotateExpression):
 
 @export
 class QualifiedExpression(BaseExpression, ParenthesisExpression):
-	_operand:  Expression
+	_operand:  ExpressionUnion
 	_subtype:  SubtypeOrSymbol
 
-	def __init__(self, subtype: SubtypeOrSymbol, operand: Expression):
+	def __init__(self, subtype: SubtypeOrSymbol, operand: ExpressionUnion):
 		super().__init__()
 
 		self._operand = operand
@@ -1406,9 +1369,9 @@ class TernaryExpression(BaseExpression):
 	"""
 
 	_FORMAT: Tuple[str, str, str, str]
-	_firstOperand:  Expression
-	_secondOperand: Expression
-	_thirdOperand:  Expression
+	_firstOperand:  ExpressionUnion
+	_secondOperand: ExpressionUnion
+	_thirdOperand:  ExpressionUnion
 
 	def __init__(self):
 		super().__init__()
@@ -1490,9 +1453,9 @@ class AggregateElement(ModelEntity):
 	A ``AggregateElement`` is a base-class for all aggregate elements.
 	"""
 
-	_expression: Expression
+	_expression: ExpressionUnion
 
-	def __init__(self, expression: Expression):
+	def __init__(self, expression: ExpressionUnion):
 		super().__init__()
 
 		self._expression = expression
@@ -1512,7 +1475,7 @@ class SimpleAggregateElement(AggregateElement):
 class IndexedAggregateElement(AggregateElement):
 	_index: int
 
-	def __init__(self, index: Expression, expression: Expression):
+	def __init__(self, index: ExpressionUnion, expression: ExpressionUnion):
 		super().__init__(expression)
 
 		self._index = index
@@ -1532,7 +1495,7 @@ class IndexedAggregateElement(AggregateElement):
 class RangedAggregateElement(AggregateElement):
 	_range: 'Range'
 
-	def __init__(self, rng: 'Range', expression: Expression):
+	def __init__(self, rng: 'Range', expression: ExpressionUnion):
 		super().__init__(expression)
 
 		self._range = rng
@@ -1552,7 +1515,7 @@ class RangedAggregateElement(AggregateElement):
 class NamedAggregateElement(AggregateElement):
 	_name: Symbol
 
-	def __init__(self, name: Symbol, expression: Expression):
+	def __init__(self, name: Symbol, expression: ExpressionUnion):
 		super().__init__(expression)
 
 		self._name = name
@@ -1598,22 +1561,22 @@ class Aggregate(BaseExpression):
 
 @export
 class Range(ModelEntity):
-	_leftBound:  Expression
-	_rightBound: Expression
+	_leftBound:  ExpressionUnion
+	_rightBound: ExpressionUnion
 	_direction:  Direction
 
-	def __init__(self, leftBound: Expression, rightBound: Expression, direction: Direction):
+	def __init__(self, leftBound: ExpressionUnion, rightBound: ExpressionUnion, direction: Direction):
 		super().__init__()
 		self._leftBound = leftBound
 		self._rightBound = rightBound
 		self._direction = direction
 
 	@property
-	def LeftBound(self) -> Expression:
+	def LeftBound(self) -> ExpressionUnion:
 		return self._leftBound
 
 	@property
-	def RightBound(self) -> Expression:
+	def RightBound(self) -> ExpressionUnion:
 		return self._rightBound
 
 	@property
@@ -1666,13 +1629,13 @@ class WithDefaultExpressionMixin:
 	A ``WithDefaultExpression`` is a mixin class for all objects declarations
 	accepting default expressions.
 	"""
-	_defaultExpression: Expression
+	_defaultExpression: ExpressionUnion
 
-	def __init__(self, defaultExpression: Expression = None):
+	def __init__(self, defaultExpression: ExpressionUnion = None):
 		self._defaultExpression = defaultExpression
 
 	@property
-	def DefaultExpression(self) -> Expression:
+	def DefaultExpression(self) -> ExpressionUnion:
 		return self._defaultExpression
 
 
@@ -1683,7 +1646,7 @@ class BaseConstant(Obj):
 
 @export
 class Constant(BaseConstant, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
 		super().__init__(identifiers, subtype)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
@@ -1702,7 +1665,7 @@ class DeferredConstant(BaseConstant):
 
 @export
 class Variable(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
 		super().__init__(identifiers, subtype)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
@@ -1714,7 +1677,7 @@ class SharedVariable(Obj):
 
 @export
 class Signal(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
 		super(Signal, self).__init__(identifiers, subtype)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
@@ -1829,9 +1792,9 @@ class AttributeSpecification(ModelEntity):
 	_identifiers: List[Name]
 	_attribute: Name
 	_entityClass: EntityClass
-	_expression: Expression
+	_expression: ExpressionUnion
 
-	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: Expression):
+	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: ExpressionUnion):
 		super().__init__()
 
 		self._identifiers = [i for i in identifiers]
@@ -1852,7 +1815,7 @@ class AttributeSpecification(ModelEntity):
 		return self._entityClass
 
 	@property
-	def Expression(self) -> Expression:
+	def Expression(self) -> ExpressionUnion:
 		return self._expression
 
 
@@ -1910,7 +1873,7 @@ class ParameterInterfaceItem(InterfaceItem):
 
 @export
 class GenericConstantInterfaceItem(Constant, GenericInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
 		super().__init__(identifiers, subtype, defaultExpression)
 		GenericInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
@@ -1951,14 +1914,14 @@ class GenericPackageInterfaceItem(GenericInterfaceItem):
 
 @export
 class PortSignalInterfaceItem(Signal, PortInterfaceItem):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
 		super().__init__(identifiers, subtype, defaultExpression)
 		PortInterfaceItem.__init__(self, mode)
 
 
 @export
 class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
 		super().__init__(identifiers, subtype, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
@@ -1966,7 +1929,7 @@ class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem, Interface
 
 @export
 class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
 		super().__init__(identifiers, subtype, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
@@ -1974,7 +1937,7 @@ class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem, Interface
 
 @export
 class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: Expression = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
 		super().__init__(identifiers, subtype, defaultExpression)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
@@ -2017,33 +1980,6 @@ class ContextReference(Reference):
 
 
 @export
-class MixinDesignUnitWithContext:
-	"""
-	A ``DesignUnitWithReferences`` is a base-class for all design units with contexts.
-	"""
-	_libraryReferences: List[LibraryClause]
-	_packageReferences: List[UseClause]
-	_contextReferences: List['Context']
-
-	def __init__(self):
-		self._libraryReferences = []
-		self._packageReferences = []
-		self._contextReferences = []
-
-	@property
-	def LibraryReferences(self) -> List[LibraryClause]:
-		return self._libraryReferences
-
-	@property
-	def PackageReferences(self) -> List[UseClause]:
-		return self._packageReferences
-
-	@property
-	def ContextReferences(self) -> List['Context']:
-		return self._contextReferences
-
-
-@export
 class Context(PrimaryUnit):
 	_libraryReferences: List[LibraryClause]
 	_packageReferences: List[UseClause]
@@ -2074,14 +2010,14 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 	def __init__(
 		self,
 		identifier: str,
-		contextItems: Iterable[Context] = None,
+		contextItems: Iterable[ContextUnion] = None,
 		genericItems: Iterable[GenericInterfaceItem] = None,
 		portItems: Iterable[PortInterfaceItem] = None,
 		declaredItems: Iterable = None,
 		statements: Iterable['ConcurrentStatement'] = None
 	):
 		super().__init__(identifier)
-		MixinDesignUnitWithContext.__init__(self)
+		MixinDesignUnitWithContext.__init__(self, contextItems)
 
 		self._genericItems  = [] if genericItems is None else [g for g in genericItems]
 		self._portItems     = [] if portItems is None else [p for p in portItems]
@@ -2119,7 +2055,7 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 
 	def __init__(self, identifier: str, entity: Name, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None):
 		super().__init__(identifier)
-		MixinDesignUnitWithContext.__init__(self)
+		MixinDesignUnitWithContext.__init__(self, contextItems)
 
 		self._entity        = EntitySymbol(entity)
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
@@ -2170,15 +2106,15 @@ class Component(ModelEntity, NamedEntity):
 class Configuration(PrimaryUnit, MixinDesignUnitWithContext):
 	def __init__(self, identifier: str, contextItems: Iterable[Context] = None):
 		super().__init__(identifier)
-		MixinDesignUnitWithContext.__init__(self)
+		MixinDesignUnitWithContext.__init__(self, contextItems)
 
 
 @export
 class AssociationItem(ModelEntity):
 	_formal: Name
-	_actual: Expression
+	_actual: ExpressionUnion
 
-	def __init__(self, actual: Expression, formal: Name = None):
+	def __init__(self, actual: ExpressionUnion, formal: Name = None):
 		super().__init__()
 
 		self._formal = formal
@@ -2189,7 +2125,7 @@ class AssociationItem(ModelEntity):
 		return self._formal
 
 	@property
-	def Actual(self) -> Expression:
+	def Actual(self) -> ExpressionUnion:
 		return self._actual
 
 	def __str__(self):
@@ -2243,9 +2179,9 @@ class Package(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
-	def __init__(self, identifier: str, contextItems: Iterable[Context] = None,genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None):
-		super().__init__(identifier, contextItems)
-		MixinDesignUnitWithContext.__init__(self)
+	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None):
+		super().__init__(identifier)
+		MixinDesignUnitWithContext.__init__(self, contextItems)
 
 		self._genericItems =  [] if genericItems is None else [g for g in genericItems]
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
@@ -2265,8 +2201,8 @@ class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
 	_declaredItems:     List
 
 	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, declaredItems: Iterable = None):
-		super().__init__(identifier, contextItems)
-		MixinDesignUnitWithContext.__init__(self)
+		super().__init__(identifier)
+		MixinDesignUnitWithContext.__init__(self, contextItems)
 
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
@@ -2473,7 +2409,7 @@ class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCall):
 
 @export
 class SequentialProcedureCall(SequentialStatement, ProcedureCall):
-	def __init__(self, label: str, procedureName: Name, parameterMappings: Iterable[ParameterAssociationItem] = None):
+	def __init__(self, procedureName: Name, parameterMappings: Iterable[ParameterAssociationItem] = None, label: str = None):
 		super().__init__(label)
 		ProcedureCall.__init__(self, procedureName, parameterMappings)
 
@@ -2522,13 +2458,13 @@ class MixinConditional:
 	"""
 	A ``BaseConditional`` is a mixin-class for all statements with a condition.
 	"""
-	_condition: Expression
+	_condition: ExpressionUnion
 
-	def __init__(self, condition: Expression = None):
+	def __init__(self, condition: ExpressionUnion = None):
 		self._condition = condition
 
 	@property
-	def Condition(self) -> Expression:
+	def Condition(self) -> ExpressionUnion:
 		return self._condition
 
 
@@ -2547,7 +2483,7 @@ class MixinConditionalBranch(MixinBranch, MixinConditional):
 	"""
 	A ``BaseBranch`` is a mixin-class for all branch statements with a condition.
 	"""
-	def __init__(self, condition: Expression):
+	def __init__(self, condition: ExpressionUnion):
 		super().__init__()
 		MixinConditional.__init__(self, condition)
 
@@ -2590,14 +2526,14 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
 
 @export
 class IfGenerateBranch(GenerateBranch, MixinIfBranch):
-	def __init__(self, condition: Expression, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
+	def __init__(self, condition: ExpressionUnion, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
 		MixinIfBranch.__init__(self, condition)
 
 
 @export
 class ElsifGenerateBranch(GenerateBranch, MixinElsifBranch):
-	def __init__(self, condition: Expression, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
+	def __init__(self, condition: ExpressionUnion, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
 		MixinElsifBranch.__init__(self, condition)
 
@@ -2722,15 +2658,15 @@ class OthersGenerateCase(ConcurrentCase):
 
 @export
 class IndexedGenerateChoice(ConcurrentChoice):
-	_expression: Expression
+	_expression: ExpressionUnion
 
-	def __init__(self, expression: Expression):
+	def __init__(self, expression: ExpressionUnion):
 		super().__init__()
 
 		self._expression = expression
 
 	@property
-	def Expression(self) -> Expression:
+	def Expression(self) -> ExpressionUnion:
 		return self._expression
 
 	def __str__(self) -> str:
@@ -2756,17 +2692,17 @@ class RangedGenerateChoice(ConcurrentChoice):
 
 @export
 class CaseGenerateStatement(GenerateStatement):
-	_expression: Expression
+	_expression: ExpressionUnion
 	_cases:      List[GenerateCase]
 
-	def __init__(self, label: str, expression: Expression, cases: Iterable[ConcurrentCase]):
+	def __init__(self, label: str, expression: ExpressionUnion, cases: Iterable[ConcurrentCase]):
 		super().__init__(label)
 
 		self._expression = expression
 		self._cases      = [] if cases is None else [c for c in cases]
 
 	@property
-	def SelectExpression(self) -> Expression:
+	def SelectExpression(self) -> ExpressionUnion:
 		return self._expression
 
 	@property
@@ -2824,31 +2760,31 @@ class VariableAssignment(Assignment):
 	"""
 	An ``VariableAssignment`` is a base-class for all variable assignment statements.
 	"""
-	_expression: Expression
+	_expression: ExpressionUnion
 
-	def __init__(self, target: Name, expression: Expression):
+	def __init__(self, target: Name, expression: ExpressionUnion):
 		super().__init__(target)
 
 		self._expression = expression
 
 	@property
-	def Expression(self) -> Expression:
+	def Expression(self) -> ExpressionUnion:
 		return self._expression
 
 
 @export
 class WaveformElement(ModelEntity):
-	_expression: Expression
-	_after: Expression
+	_expression: ExpressionUnion
+	_after: ExpressionUnion
 
-	def __init__(self, expression: Expression, after: Expression = None):
+	def __init__(self, expression: ExpressionUnion, after: ExpressionUnion = None):
 		super().__init__()
 
 		self._expression = expression
 		self._after = after
 
 	@property
-	def Expression(self) -> Expression:
+	def Expression(self) -> ExpressionUnion:
 		return self._expression
 
 	@property
@@ -2879,14 +2815,14 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
 
 @export
 class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment):
-	def __init__(self, label: str, target: Name, expression: Expression):
+	def __init__(self, label: str, target: Name, expression: ExpressionUnion):
 		super().__init__(label, target)
 
 
 
 @export
 class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment):
-	def __init__(self, label: str, target: Name, expression: Expression):
+	def __init__(self, label: str, target: Name, expression: ExpressionUnion):
 		super().__init__(label, target)
 
 
@@ -2914,7 +2850,7 @@ class SequentialSimpleSignalAssignment(SequentialSignalAssignment):
 
 @export
 class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
-	def __init__(self, target: Name, expression: Expression, label: str = None):
+	def __init__(self, target: Name, expression: ExpressionUnion, label: str = None):
 		super().__init__(label)
 		VariableAssignment.__init__(self, target, expression)
 
@@ -2924,19 +2860,19 @@ class MixinReportStatement:
 	"""
 	A ``MixinReportStatement`` is a mixin-class for all report and assert statements.
 	"""
-	_message:  Expression
-	_severity: Expression
+	_message:  ExpressionUnion
+	_severity: ExpressionUnion
 
-	def __init__(self, message: Expression = None, severity: Expression = None):
+	def __init__(self, message: ExpressionUnion = None, severity: ExpressionUnion = None):
 		self._message = message
 		self._severity = severity
 
 	@property
-	def Message(self) -> Expression:
+	def Message(self) -> ExpressionUnion:
 		return self._message
 
 	@property
-	def Severity(self) -> Expression:
+	def Severity(self) -> ExpressionUnion:
 		return self._severity
 
 
@@ -2945,35 +2881,35 @@ class MixinAssertStatement(MixinReportStatement):
 	"""
 	A ``MixinAssertStatement`` is a mixin-class for all assert statements.
 	"""
-	_condition: Expression
+	_condition: ExpressionUnion
 
-	def __init__(self, condition: Expression, message: Expression = None, severity: Expression = None):
+	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion = None, severity: ExpressionUnion = None):
 		super().__init__(message, severity)
 
 		self._condition = condition
 
 	@property
-	def Condition(self) -> Expression:
+	def Condition(self) -> ExpressionUnion:
 		return self._condition
 
 
 @export
 class ConcurrentAssertStatement(ConcurrentStatement, MixinAssertStatement):
-	def __init__(self, condition: Expression, message: Expression, severity: Expression = None, label: str = None):
+	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion, severity: ExpressionUnion = None, label: str = None):
 		super().__init__(label)
 		MixinAssertStatement.__init__(self, condition, message, severity)
 
 
 @export
 class SequentialReportStatement(SequentialStatement, MixinReportStatement):
-	def __init__(self, message: Expression, severity: Expression = None, label: str = None):
+	def __init__(self, message: ExpressionUnion, severity: ExpressionUnion = None, label: str = None):
 		super().__init__(label)
 		MixinReportStatement.__init__(self, message, severity)
 
 
 @export
 class SequentialAssertStatement(SequentialStatement, MixinAssertStatement):
-	def __init__(self, condition: Expression, message: Expression = None, severity: Expression = None, label: str = None):
+	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion = None, severity: ExpressionUnion = None, label: str = None):
 		super().__init__(label)
 		MixinAssertStatement.__init__(self, condition, message, severity)
 
@@ -2991,14 +2927,14 @@ class Branch(ModelEntity, SequentialStatements):
 
 @export
 class IfBranch(Branch, MixinIfBranch):
-	def __init__(self, condition: Expression, statements: Iterable[ConcurrentStatement] = None):
+	def __init__(self, condition: ExpressionUnion, statements: Iterable[ConcurrentStatement] = None):
 		super().__init__(statements)
 		MixinIfBranch.__init__(self, condition)
 
 
 @export
 class ElsifBranch(Branch, MixinElsifBranch):
-	def __init__(self, condition: Expression, statements: Iterable[ConcurrentStatement] = None):
+	def __init__(self, condition: ExpressionUnion, statements: Iterable[ConcurrentStatement] = None):
 		super().__init__(statements)
 		MixinElsifBranch.__init__(self, condition)
 
@@ -3068,15 +3004,15 @@ class OthersCase(SequentialCase):
 
 @export
 class IndexedChoice(SequentialChoice):
-	_expression: Expression
+	_expression: ExpressionUnion
 
-	def __init__(self, expression: Expression):
+	def __init__(self, expression: ExpressionUnion):
 		super().__init__()
 
 		self._expression = expression
 
 	@property
-	def Expression(self) -> Expression:
+	def Expression(self) -> ExpressionUnion:
 		return self._expression
 
 	def __str__(self) -> str:
@@ -3102,17 +3038,17 @@ class RangedChoice(SequentialChoice):
 
 @export
 class CaseStatement(CompoundStatement):
-	_expression: Expression
+	_expression: ExpressionUnion
 	_cases:      List[SequentialCase]
 
-	def __init__(self, expression: Expression, cases: Iterable[SequentialCase], label: str = None):
+	def __init__(self, expression: ExpressionUnion, cases: Iterable[SequentialCase], label: str = None):
 		super().__init__(label)
 
 		self._expression = expression
 		self._cases      = [] if cases is None else [c for c in cases]
 
 	@property
-	def SelectExpression(self) -> Expression:
+	def SelectExpression(self) -> ExpressionUnion:
 		return self._expression
 
 	@property
@@ -3158,7 +3094,7 @@ class ForLoopStatement(LoopStatement):
 
 @export
 class WhileLoopStatement(LoopStatement, MixinConditional):
-	def __init__(self, condition: Expression, statements: Iterable[ConcurrentStatement] = None, label: str = None):
+	def __init__(self, condition: ExpressionUnion, statements: Iterable[ConcurrentStatement] = None, label: str = None):
 		super().__init__(label, statements)
 		MixinConditional.__init__(self, condition)
 
@@ -3170,7 +3106,7 @@ class LoopControlStatement(SequentialStatement, MixinConditional):
 	"""
 	_loopReference: LoopStatement
 
-	def __init__(self, condition: Expression = None, loopLabel: str = None): # TODO: is this label (currently str) a Name or a Label class?
+	def __init__(self, condition: ExpressionUnion = None, loopLabel: str = None): # TODO: is this label (currently str) a Name or a Label class?
 		super().__init__()
 		MixinConditional.__init__(self, condition)
 
@@ -3191,10 +3127,10 @@ class ExitStatement(LoopControlStatement):
 
 @export
 class WaitStatement(SequentialStatement, MixinConditional):
-	_sensitivityList: List[Name]
-	_timeout:         Expression
+	_sensitivityList: Nullable[List[Name]]
+	_timeout:         ExpressionUnion
 
-	def __init__(self, sensitivityList: Iterable[Name] = None, condition: Expression = None, timeout: Expression = None, label: str = None):
+	def __init__(self, sensitivityList: Iterable[Name] = None, condition: ExpressionUnion = None, timeout: ExpressionUnion = None, label: str = None):
 		super().__init__(label)
 		MixinConditional.__init__(self, condition)
 
@@ -3210,18 +3146,18 @@ class WaitStatement(SequentialStatement, MixinConditional):
 		return self._sensitivityList
 
 	@property
-	def Timeout(self) -> Expression:
+	def Timeout(self) -> ExpressionUnion:
 		return self._timeout
 
 
 @export
 class ReturnStatement(SequentialStatement, MixinConditional):
-	_returnValue: Expression
+	_returnValue: ExpressionUnion
 
-	def __init__(self, returnValue: Expression = None):
+	def __init__(self, returnValue: ExpressionUnion = None):
 		super().__init__()
 		MixinConditional.__init__(self, returnValue)
 
 	@property
-	def ReturnValue(self) -> Expression:
+	def ReturnValue(self) -> ExpressionUnion:
 		return self._returnValue

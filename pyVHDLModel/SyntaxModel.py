@@ -2629,7 +2629,7 @@ class SequentialCase(BaseCase, SequentialStatements):
 		SequentialStatements.__init__(self, statements)
 
 	@property
-	def Choises(self) -> List[Choice]:
+	def Choices(self) -> List[Choice]:
 		return self._choices
 
 
@@ -2989,7 +2989,7 @@ class Case(SequentialCase):
 		self._choices = [c for c in choices]
 
 	@property
-	def Choises(self) -> List[SequentialChoice]:
+	def Choices(self) -> List[SequentialChoice]:
 		return self._choices
 
 	def __str__(self) -> str:

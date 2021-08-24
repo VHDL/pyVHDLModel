@@ -66,12 +66,12 @@ for entity in document.Entities:
   print("  generics:")
   for generic in entity.GenericItems:
     print("  - {} : {!s} {}".format(
-      generic.Identifier, generic.Mode, generic.Subtype)
+      ", ".join([str(i) for i in generic.Identifiers]), generic.Mode, generic.Subtype)
     )
   print("  ports:")
   for port in entity.PortItems:
     print("  - {} : {!s} {}".format(
-      port.Identifier, port.Mode, port.Subtype)
+      ", ".join([str(i) for i in port.Identifiers]), port.Mode, port.Subtype)
     )
 ```
 

@@ -3126,6 +3126,11 @@ class ExitStatement(LoopControlStatement):
 
 
 @export
+class NullStatement(SequentialStatement):
+	pass
+
+
+@export
 class WaitStatement(SequentialStatement, MixinConditional):
 	_sensitivityList: Nullable[List[Name]]
 	_timeout:         ExpressionUnion

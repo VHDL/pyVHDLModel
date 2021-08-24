@@ -2643,7 +2643,7 @@ class GenerateCase(ConcurrentCase):
 		self._choices = [c for c in choices]
 
 	@property
-	def Choises(self) -> List[ConcurrentChoice]:
+	def Choices(self) -> List[ConcurrentChoice]:
 		return self._choices
 
 	def __str__(self) -> str:

@@ -41,12 +41,12 @@ An abstract VHDL language model.
 :license: Apache License, Version 2.0
 """
 from enum     import IntEnum, unique, Enum
-from typing import List, Iterable, Union, Optional as Nullable
+from typing   import List, Iterable, Union, Optional as Nullable
 
 from pydecor  import export
 
 
-__version__ = "0.12.0"
+__version__ = "0.13.0"
 
 SimpleOrAttribute =     Union['SimpleName',    'AttributeName']
 

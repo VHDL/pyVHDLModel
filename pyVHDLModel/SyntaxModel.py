@@ -2629,7 +2629,7 @@ class SequentialCase(BaseCase, SequentialStatements):
 		SequentialStatements.__init__(self, statements)
 
 	@property
-	def Choises(self) -> List[Choice]:
+	def Choices(self) -> List[Choice]:
 		return self._choices
 
 
@@ -2643,7 +2643,7 @@ class GenerateCase(ConcurrentCase):
 		self._choices = [c for c in choices]
 
 	@property
-	def Choises(self) -> List[ConcurrentChoice]:
+	def Choices(self) -> List[ConcurrentChoice]:
 		return self._choices
 
 	def __str__(self) -> str:
@@ -2989,7 +2989,7 @@ class Case(SequentialCase):
 		self._choices = [c for c in choices]
 
 	@property
-	def Choises(self) -> List[SequentialChoice]:
+	def Choices(self) -> List[SequentialChoice]:
 		return self._choices
 
 	def __str__(self) -> str:
@@ -3122,6 +3122,11 @@ class NextStatement(LoopControlStatement):
 
 @export
 class ExitStatement(LoopControlStatement):
+	pass
+
+
+@export
+class NullStatement(SequentialStatement):
 	pass
 
 

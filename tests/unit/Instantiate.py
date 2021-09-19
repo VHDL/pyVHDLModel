@@ -10,10 +10,6 @@
 #
 # Python unittest:    Instantiation tests for the language model.
 #
-# Description:
-# ------------------------------------
-#		TODO:
-#
 # License:
 # ==============================================================================
 # Copyright 2017-2021 Patrick Lehmann - Boetzingen, Germany

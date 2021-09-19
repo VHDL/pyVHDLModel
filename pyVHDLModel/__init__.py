@@ -41,7 +41,7 @@ An abstract VHDL language model.
 :license: Apache License, Version 2.0
 """
 from enum     import IntEnum, unique, Enum
-from typing   import List, Iterable, Union, Optional as Nullable
+from typing import List, Iterable, Union, Optional as Nullable, Dict
 
 from pydecor  import export
 
@@ -85,6 +85,90 @@ ContextUnion = Union[
 	'UseClause'
 	'ContextReference'
 ]
+
+
+@export
+@unique
+class VHDLVersion(Enum):
+	"""
+	An enumeration for all possible version numbers for VHDL.
+
+	A version can be given as integer or string and is represented as a unified
+	enumeration value.
+
+	This enumeration supports compare operators.
+	"""
+
+	VHDL87 =             87
+	VHDL93 =             93
+	VHDL2002 =         2002
+	VHDL2008 =         2008
+	VHDL2019 =         2019
+
+	__VERSION_MAPPINGS__: Dict[Union[int, str], Enum] = {
+		87:     VHDL87,
+		93:     VHDL93,
+		2:      VHDL2002,
+		8:      VHDL2008,
+		19:     VHDL2019,
+		1987:   VHDL87,
+		1993:   VHDL93,
+		2002:   VHDL2002,
+		2008:   VHDL2008,
+		2019:   VHDL2019,
+		"87":   VHDL87,
+		"93":   VHDL93,
+		"02":   VHDL2002,
+		"08":   VHDL2008,
+		"19":   VHDL2019,
+		"1987": VHDL87,
+		"1993": VHDL93,
+		"2002": VHDL2002,
+		"2008": VHDL2008,
+		"2019": VHDL2019
+	}
+
+	def __init__(self, *_) -> None:
+		"""Patch the embedded MAP dictionary"""
+		for k, v in self.__class__.__VERSION_MAPPINGS__.items():
+			if ((not isinstance(v, self.__class__)) and (v == self.value)):
+				self.__class__.__VERSION_MAPPINGS__[k] = self
+
+	@classmethod
+	def Parse(cls, value: Union[int, str]) -> 'Enum':
+		try:
+			return cls.__VERSION_MAPPINGS__[value]
+		except KeyError:
+			ValueError("Value '{0!s}' cannot be parsed to member of {1}.".format(value, cls.__name__))
+
+	def __lt__(self, other: Enum) -> bool:
+		return self.value < other.value
+
+	def __le__(self, other: Enum) -> bool:
+		return self.value <= other.value
+
+	def __gt__(self, other: Enum) -> bool:
+		return self.value > other.value
+
+	def __ge__(self, other: Enum) -> bool:
+		return self.value >= other.value
+
+	def __ne__(self, other: Enum) -> bool:
+		return self.value != other.value
+
+	def __eq__(self, other: Enum) -> bool:
+		if ((self is self.__class__.Any) or (other is self.__class__.Any)):
+			return True
+		else:
+			return (self.value == other.value)
+
+
+	def __str__(self) -> str:
+		return "VHDL'" + str(self.value)[-2:]
+
+	def __repr__(self) -> str:
+		return str(self.value)
+
 
 @export
 @unique

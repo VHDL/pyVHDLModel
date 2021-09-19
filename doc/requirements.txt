@@ -1,6 +1,6 @@
 -r ../requirements.txt
 # Enforce latest version on ReadTheDocs
-sphinx>=4.1.2
+sphinx>=4.2.0
 
 # Sphinx Extenstions
 #sphinx.ext.coverage

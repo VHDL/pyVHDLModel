@@ -41,7 +41,22 @@ jobs:
 
       - name: ☑ Run unit tests
         run: |
-          python -m pytest -rA tests/unit
+          python -m pytest -rA --junitxml=TestReport.xml tests/unit
+
+      - name: 📤 Upload 'TestReport.xml' artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: TestReport-${{ env.PYTHON }}
+          path: TestReport.xml
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: 📊 Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: TestReport.xml
+          comment_title: Unit Test Results (Python ${{ env.PYTHON }})
 
   Coverage:
     name: 📈 Collect Coverage Data using Python 3.9

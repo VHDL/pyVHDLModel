@@ -89,8 +89,9 @@ except Exception as ex:
 # Options for HTML output
 # ==============================================================================
 html_theme_options = {
-    'home_breadcrumbs': True,
-    'vcs_pageview_mode': 'blob',
+	'logo_only': True,
+	'home_breadcrumbs': True,
+	'vcs_pageview_mode': 'blob',
 }
 
 html_context = {}
@@ -105,6 +106,9 @@ html_theme = "_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+html_logo = str(Path(html_static_path[0]) / "logo.svg")
+html_favicon = str(Path(html_static_path[0]) / "favicon.svg")
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'pyVHDLModelDoc'

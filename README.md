@@ -22,7 +22,7 @@
 An abstract VHDL language model written in Python.
 
 <p align="center">
-  <a title="vhdl.github.io/pyVHDLModel" href="https://vhdl.github.io/pyVHDLModel"><img width="500px" src="doc/_static/logo.svg"/></a>
+  <a title="vhdl.github.io/pyVHDLModel" href="https://vhdl.github.io/pyVHDLModel"><img width="500px" src="doc/_static/banner.svg"/></a>
 </p>
 
 

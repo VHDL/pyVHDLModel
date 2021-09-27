@@ -12,3 +12,5 @@ Glossary
      * `1076-2000 <https://ieeexplore.ieee.org/document/893288>`__.
      * `1076-1993 <https://ieeexplore.ieee.org/document/392561>`__.
      * `1076-1987 <https://ieeexplore.ieee.org/document/26487>`__.
+
+     See :ref:`VASG:About:Standards` for further details.

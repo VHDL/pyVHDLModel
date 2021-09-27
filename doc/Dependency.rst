@@ -6,11 +6,11 @@ Dependency
 .. |img-pyVHDLModel-lib-status| image:: https://img.shields.io/librariesio/release/pypi/pyVHDLModel
    :alt: Libraries.io status for latest release
    :height: 22
-   :target: https://libraries.io/github/Paebbels/pyVHDLModel
-.. |img-pyVHDLModel-req-status| image:: https://img.shields.io/requires/github/Paebbels/pyVHDLModel
+   :target: https://libraries.io/github/VHDL/pyVHDLModel
+.. |img-pyVHDLModel-req-status| image:: https://img.shields.io/requires/github/VHDL/pyVHDLModel
    :alt: Requires.io
    :height: 22
-   :target: https://requires.io/github/Paebbels/pyVHDLModel/requirements/?branch=master
+   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=master
 
 +------------------------------------------+------------------------------------------+
 | `Libraries.io <https://libraries.io/>`_  | `Requires.io <https://requires.io/>`_    |

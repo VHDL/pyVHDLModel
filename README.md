@@ -19,32 +19,39 @@
 [![Documentation License](https://img.shields.io/badge/doc%20license-CC--BY%204.0-green)](LICENSE.md)
 [![Documentation - Read Now!](https://img.shields.io/badge/doc-read%20now%20%E2%9E%94-blueviolet)](https://vhdl.github.io/pyVHDLModel/)
 
-# pyVHDLModel
-
 An abstract VHDL language model written in Python.
 
-## Main Goals
-This package provides a unified abstract language model for VHDL. Projects reading
-from source files can derive own classes and implement additional logic to create
-a concrete language model for their tools.
+<p align="center">
+  <a title="vhdl.github.io/pyVHDLModel" href="https://vhdl.github.io/pyVHDLModel"><img width="500px" src="doc/_static/banner.svg"/></a>
+</p>
 
-Projects consuming pre-processed VHDL data (parsed, analyzed or elaborated) can
-build higher level features and services on such a model, while supporting multiple
-frontends.
+
+## Main Goals
+
+This package provides a unified abstract language model for VHDL.
+Projects reading from source files can derive own classes and implement additional logic to create a concrete language
+model for their tools.
+
+Projects consuming pre-processed VHDL data (parsed, analyzed or elaborated) can build higher level features and services
+on such a model, while supporting multiple frontends.
 
 
 ## Use Cases
-**pyVHDLModel Generators**
+
+### pyVHDLModel Generators
+
 * High-level API for [GHDL's](https://github.com/ghdl/ghdl) `libghdl` offered via `pyghdl`.
 * Code Document-Object-Model (Code-DOM) in [pyVHDLParser](https://github.com/Paebbels/pyVHDLParser).
 
-**pyVHDLModel Consumers**
+### pyVHDLModel Consumers
+
 * Create graphical views of VHDL files or designs.  
 	Possible candidates: [Symbolator](https://github.com/kevinpt/symbolator)
 * Created a (re)formatted output of VHDL.
 
 
 ## Examples
+
 ### List all Entities with Generics and Ports
 
 The following tiny example is based on GHDL's [`pyGHDL.dom`](https://github.com/ghdl/ghdl/tree/master/pyGHDL/dom) package implementing
@@ -76,10 +83,8 @@ for entity in document.Entities:
 ```
 
 
-
-
-
 ## Contributors
+
 * [Patrick Lehmann](https://github.com/Paebbels) (Maintainer)
 * [Unai Martinez-Corral](https://github.com/umarcor)
 * [and more...](https://github.com/VHDL/pyVHDLModel/graphs/contributors)

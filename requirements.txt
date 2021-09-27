@@ -1,2 +1,1 @@
-# py-flags>=1.1.4
 pydecor>=2.0.1

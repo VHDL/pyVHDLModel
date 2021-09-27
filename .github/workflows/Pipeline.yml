@@ -312,7 +312,7 @@ jobs:
           RUN apk add -U --no-cache graphviz
           EOF
 
-      - name: 🛳️ Build documentation from './pyVHDLModel/doc' and publish to GitHub Pages
+      - name: 🛳️ Build documentation using container vhdl/doc and publish to GitHub Pages
         uses: buildthedocs/btd@v0
         with:
           token: ${{ github.token }}

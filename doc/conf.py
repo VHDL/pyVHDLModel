@@ -36,8 +36,8 @@ def _LatestTagName():
 	return check_output(["git", "describe", "--abbrev=0", "--tags"], universal_newlines=True).strip()
 
 # The full version, including alpha/beta/rc tags
-version = "0.14"     # The short X.Y version.
-release = "0.14.0"   # The full version, including alpha/beta/rc tags.
+version = "0.13"     # The short X.Y version.
+release = "0.13.2"   # The full version, including alpha/beta/rc tags.
 try:
 	if _IsUnderGitControl:
 		latestTagName = _LatestTagName()[1:]		# remove prefix "v"

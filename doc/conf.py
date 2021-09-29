@@ -37,7 +37,7 @@ def _LatestTagName():
 
 # The full version, including alpha/beta/rc tags
 version = "0.13"     # The short X.Y version.
-release = "0.13.1"   # The full version, including alpha/beta/rc tags.
+release = "0.13.2"   # The full version, including alpha/beta/rc tags.
 try:
 	if _IsUnderGitControl:
 		latestTagName = _LatestTagName()[1:]		# remove prefix "v"
@@ -211,7 +211,8 @@ extensions = [
 # Sphinx.Ext.InterSphinx
 # ==============================================================================
 intersphinx_mapping = {
-	'python':   ('https://docs.python.org/3', None),
+	'python': ('https://docs.python.org/3', None),
+	'vasg':   ('https://IEEE-P1076.gitlab.io/', None),
 }
 
 

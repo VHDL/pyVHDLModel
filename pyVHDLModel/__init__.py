@@ -46,7 +46,7 @@ from typing import List, Iterable, Union, Optional as Nullable, Dict
 from pydecor  import export
 
 
-__version__ = "0.13.1"
+__version__ = "0.13.2"
 
 SimpleOrAttribute =     Union['SimpleName',    'AttributeName']
 
@@ -99,6 +99,7 @@ class VHDLVersion(Enum):
 	This enumeration supports compare operators.
 	"""
 
+	Any =                -1
 	VHDL87 =             87
 	VHDL93 =             93
 	VHDL2002 =         2002
@@ -116,6 +117,7 @@ class VHDLVersion(Enum):
 		2002:   VHDL2002,
 		2008:   VHDL2008,
 		2019:   VHDL2019,
+		"Any":  Any,
 		"87":   VHDL87,
 		"93":   VHDL93,
 		"02":   VHDL2002,

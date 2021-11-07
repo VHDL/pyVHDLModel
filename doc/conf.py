@@ -90,7 +90,7 @@ except Exception as ex:
 # ==============================================================================
 html_theme_options = {
 	'logo_only': True,
-	'home_breadcrumbs': True,
+	'home_breadcrumbs': False,
 	'vcs_pageview_mode': 'blob',
 }
 

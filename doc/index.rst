@@ -4,6 +4,15 @@
 
    \part{Introduction}
 
+.. image:: _static/logo.svg
+   :height: 90 px
+   :align: center
+   :target: https://github.com/vhdl/pyVHDLModel
+
+.. raw:: html
+
+    <br>
+
 .. only:: html
 
    |  |SHIELD:svg:pyVHDLModel-github| |SHIELD:svg:pyVHDLModel-src-license| |SHIELD:svg:pyVHDLModel-tag| |SHIELD:svg:pyVHDLModel-release| |SHIELD:svg:pyVHDLModel-date| |SHIELD:svg:pyVHDLModel-lib-dep|

@@ -124,28 +124,28 @@
    :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Release%22
 
 .. # PyPI tag
-.. |SHIELD:svg:pyVHDLModel-pypi-tag| image:: https://img.shields.io/pypi/v/pyVHDLModel?logo=PyPI
+.. |SHIELD:svg:pyVHDLModel-pypi-tag| image:: https://img.shields.io/pypi/v/pyVHDLModel?logo=PyPI&logoColor=FBE072
    :alt: PyPI - Tag
    :height: 22
    :target: https://pypi.org/project/pyVHDLModel/
-.. |SHIELD:png:pyVHDLModel-pypi-tag| image:: https://raster.shields.io/pypi/v/pyVHDLModel?logo=PyPI
+.. |SHIELD:png:pyVHDLModel-pypi-tag| image:: https://raster.shields.io/pypi/v/pyVHDLModel?logo=PyPI&logoColor=FBE072
    :alt: PyPI - Tag
    :height: 22
    :target: https://pypi.org/project/pyVHDLModel/
 
 .. # PyPI project status
-.. |SHIELD:svg:pyVHDLModel-pypi-status| image:: https://img.shields.io/pypi/status/pyVHDLModel?logo=PyPI
+.. |SHIELD:svg:pyVHDLModel-pypi-status| image:: https://img.shields.io/pypi/status/pyVHDLModel?logo=PyPI&logoColor=FBE072
    :alt: PyPI - Status
    :height: 22
-.. |SHIELD:png:pyVHDLModel-pypi-status| image:: https://raster.shields.io/pypi/status/pyVHDLModel?logo=PyPI
+.. |SHIELD:png:pyVHDLModel-pypi-status| image:: https://raster.shields.io/pypi/status/pyVHDLModel?logo=PyPI&logoColor=FBE072
    :alt: PyPI - Status
    :height: 22
 
 .. # PyPI Python versions
-.. |SHIELD:svg:pyVHDLModel-pypi-python| image:: https://img.shields.io/pypi/pyversions/pyVHDLModel?logo=PyPI
+.. |SHIELD:svg:pyVHDLModel-pypi-python| image:: https://img.shields.io/pypi/pyversions/pyVHDLModel?logo=PyPI&logoColor=FBE072
    :alt: PyPI - Python Version
    :height: 22
-.. |SHIELD:png:pyVHDLModel-pypi-python| image:: https://raster.shields.io/pypi/pyversions/pyVHDLModel?logo=PyPI
+.. |SHIELD:png:pyVHDLModel-pypi-python| image:: https://raster.shields.io/pypi/pyversions/pyVHDLModel?logo=PyPI&logoColor=FBE072
    :alt: PyPI - Python Version
    :height: 22
 

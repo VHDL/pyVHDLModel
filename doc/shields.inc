@@ -64,11 +64,11 @@
    :target: https://github.com/vhdl/pyVHDLModel/network/dependents
 
 .. # GHA test and coverage
-.. |SHIELD:svg:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Test%20and%20Coverage?label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
+.. |SHIELD:svg:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish?label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
    :alt: GitHub Workflow - Build and Test Status
    :height: 22
    :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22
-.. |SHIELD:png:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Test%20and%20Coverage?label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
+.. |SHIELD:png:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish?label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
    :alt: GitHub Workflow - Build and Test Status
    :height: 22
    :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22

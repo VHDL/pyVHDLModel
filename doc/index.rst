@@ -1,9 +1,5 @@
 .. include:: shields.inc
 
-.. raw:: latex
-
-   \part{Introduction}
-
 .. image:: _static/logo.svg
    :height: 90 px
    :align: center
@@ -12,6 +8,10 @@
 .. raw:: html
 
     <br>
+
+.. raw:: latex
+
+   \part{Introduction}
 
 .. only:: html
 

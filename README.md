@@ -1,3 +1,7 @@
+<p align="center">
+  <a title="vhdl.github.io/pyVHDLModel" href="https://vhdl.github.io/pyVHDLModel"><img height="80px" src="doc/_static/logo.svg"/></a>
+</p>
+
 [![Sourcecode on GitHub](https://img.shields.io/badge/vhdl-pyVHDLModel-323131.svg?logo=github&longCache=true)](https://github.com/vhdl/pyVHDLModel)
 [![Sourcecode License](https://img.shields.io/pypi/l/pyVHDLModel?logo=GitHub&label=code%20license)](LICENSE.md)
 [![GitHub tag (latest SemVer incl. pre-release)](https://img.shields.io/github/v/tag/vhdl/pyVHDLModel?logo=GitHub&include_prereleases)](https://github.com/vhdl/pyVHDLModel/tags)
@@ -20,10 +24,6 @@
 [![Documentation - Read Now!](https://img.shields.io/badge/doc-read%20now%20%E2%9E%94-blueviolet)](https://vhdl.github.io/pyVHDLModel/)
 
 An abstract VHDL language model written in Python.
-
-<p align="center">
-  <a title="vhdl.github.io/pyVHDLModel" href="https://vhdl.github.io/pyVHDLModel"><img height="80px" src="doc/_static/logo.svg"/></a>
-</p>
 
 
 ## Main Goals

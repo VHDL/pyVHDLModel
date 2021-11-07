@@ -64,11 +64,11 @@
    :target: https://github.com/vhdl/pyVHDLModel/network/dependents
 
 .. # GHA test and coverage
-.. |SHIELD:svg:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Test%20and%20Coverage?label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
+.. |SHIELD:svg:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish?label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
    :alt: GitHub Workflow - Build and Test Status
    :height: 22
    :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22
-.. |SHIELD:png:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Test%20and%20Coverage?label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
+.. |SHIELD:png:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish?label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
    :alt: GitHub Workflow - Build and Test Status
    :height: 22
    :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22
@@ -124,28 +124,28 @@
    :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Release%22
 
 .. # PyPI tag
-.. |SHIELD:svg:pyVHDLModel-pypi-tag| image:: https://img.shields.io/pypi/v/pyVHDLModel?logo=PyPI
+.. |SHIELD:svg:pyVHDLModel-pypi-tag| image:: https://img.shields.io/pypi/v/pyVHDLModel?logo=PyPI&logoColor=FBE072
    :alt: PyPI - Tag
    :height: 22
    :target: https://pypi.org/project/pyVHDLModel/
-.. |SHIELD:png:pyVHDLModel-pypi-tag| image:: https://raster.shields.io/pypi/v/pyVHDLModel?logo=PyPI
+.. |SHIELD:png:pyVHDLModel-pypi-tag| image:: https://raster.shields.io/pypi/v/pyVHDLModel?logo=PyPI&logoColor=FBE072
    :alt: PyPI - Tag
    :height: 22
    :target: https://pypi.org/project/pyVHDLModel/
 
 .. # PyPI project status
-.. |SHIELD:svg:pyVHDLModel-pypi-status| image:: https://img.shields.io/pypi/status/pyVHDLModel?logo=PyPI
+.. |SHIELD:svg:pyVHDLModel-pypi-status| image:: https://img.shields.io/pypi/status/pyVHDLModel?logo=PyPI&logoColor=FBE072
    :alt: PyPI - Status
    :height: 22
-.. |SHIELD:png:pyVHDLModel-pypi-status| image:: https://raster.shields.io/pypi/status/pyVHDLModel?logo=PyPI
+.. |SHIELD:png:pyVHDLModel-pypi-status| image:: https://raster.shields.io/pypi/status/pyVHDLModel?logo=PyPI&logoColor=FBE072
    :alt: PyPI - Status
    :height: 22
 
 .. # PyPI Python versions
-.. |SHIELD:svg:pyVHDLModel-pypi-python| image:: https://img.shields.io/pypi/pyversions/pyVHDLModel?logo=PyPI
+.. |SHIELD:svg:pyVHDLModel-pypi-python| image:: https://img.shields.io/pypi/pyversions/pyVHDLModel?logo=PyPI&logoColor=FBE072
    :alt: PyPI - Python Version
    :height: 22
-.. |SHIELD:png:pyVHDLModel-pypi-python| image:: https://raster.shields.io/pypi/pyversions/pyVHDLModel?logo=PyPI
+.. |SHIELD:png:pyVHDLModel-pypi-python| image:: https://raster.shields.io/pypi/pyversions/pyVHDLModel?logo=PyPI&logoColor=FBE072
    :alt: PyPI - Python Version
    :height: 22
 

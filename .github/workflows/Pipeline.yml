@@ -7,55 +7,9 @@ on:
 jobs:
 
   UnitTesting:
-    name: ${{ matrix.icon }} Unit Tests using Python ${{ matrix.python }}
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - {python: 3.6, icon: 🔴}
-          - {python: 3.7, icon: 🟠}
-          - {python: 3.8, icon: 🟡}
-          - {python: 3.9, icon: 🟢}
-
-    env:
-      PYTHON: ${{ matrix.python }}
-    outputs:
-      python: ${{ env.PYTHON }}
-
-    steps:
-      - name: ⏬ Checkout repository
-        uses: actions/checkout@v2
-
-      - name: 🐍 Setup Python ${{ matrix.python }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-
-      - name: 🔧 Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r tests/requirements.txt
-
-      - name: ☑ Run unit tests
-        run: |
-          python -m pytest -rA --junitxml=TestReport.xml tests/unit
-
-      - name: 📤 Upload 'TestReport.xml' artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: TestReport-${{ env.PYTHON }}
-          path: TestReport.xml
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: 📊 Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
-        with:
-          files: TestReport.xml
-          comment_title: Unit Test Results (Python ${{ env.PYTHON }})
+    uses: pyTooling/Actions/.github/workflows/UnitTesting.yml@dev
+    with:
+      TestReport: true
 
   Coverage:
     name: 📈 Collect Coverage Data using Python 3.9

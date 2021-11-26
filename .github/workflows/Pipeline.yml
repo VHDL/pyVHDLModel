@@ -12,51 +12,12 @@ jobs:
       TestReport: true
 
   Coverage:
-    name: 📈 Collect Coverage Data using Python 3.9
-    runs-on: ubuntu-latest
-
-    env:
-      PYTHON: 3.9
-    outputs:
-      python: ${{ env.PYTHON }}
-
-    steps:
-      - name: ⏬ Checkout repository
-        uses: actions/checkout@v2
-
-      - name: 🐍 Setup Python ${{ env.PYTHON }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ env.PYTHON }}
-
-      - name: 🗂 Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r tests/requirements.txt
-
-      - name: Collect coverage
-        continue-on-error: true
-        run: |
-          python -m pytest -rA --cov=.. --cov-config=tests/.coveragerc tests/unit
-
-      - name: Convert to cobertura format
-        run: |
-          coverage xml
-
-      - name: 📊 Publish coverage at CodeCov
-        continue-on-error: true
-        uses: codecov/codecov-action@v1
-        with:
-          file: ./coverage.xml
-          flags: unittests
-          env_vars: PYTHON
-
-      - name: 📉 Publish coverage at Codacy
-        continue-on-error: true
-        uses: codacy/codacy-coverage-reporter-action@master
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: ./coverage.xml
+    uses: pyTooling/Actions/.github/workflows/CoverageCollection.yml@dev
+    with:
+      pyver: '3.10'
+      artifact: pyVHDLModel-coverage
+    secrets:
+      codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
   Release:
     name: 📝 Create 'Release Page' on GitHub

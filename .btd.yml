@@ -4,6 +4,6 @@ requirements: requirements.txt
 target: gh-pages
 formats: [ html, pdf, man ]
 images:
-  base: vhdl/doc
+  base: btdi/sphinx:pytooling
   latex: btdi/latex
 theme: https://codeload.github.com/buildthedocs/sphinx.theme/tar.gz/v1

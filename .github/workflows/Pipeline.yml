@@ -46,6 +46,7 @@ jobs:
     secrets:
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
+
   VerifyDocs:
     name: 👍 Verify example snippets using Python 3.9
     runs-on: ubuntu-latest
@@ -100,33 +101,20 @@ jobs:
 
 
   BuildTheDocs:
-    name: 📓 Run BuildTheDocs and publish to GH-Pages
-    runs-on: ubuntu-latest
-
+    uses: pyTooling/Actions/.github/workflows/BuildTheDocs.yml@dev
     needs:
       - VerifyDocs
+    with:
+      artifact: pyVHDLModel-doc
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+  PublishToGitHubPages:
+    uses: pyTooling/Actions/.github/workflows/PublishToGitHubPages.yml@dev
+    needs:
+      - BuildTheDocs
+      - Coverage
+    with:
+      doc: pyVHDLModel-doc
 
-      - name: 🚢 Build container image 'vhdl/doc'
-        run: |
-          docker build -t vhdl/doc - <<-EOF
-          FROM btdi/sphinx:featured
-          RUN apk add -U --no-cache graphviz
-          EOF
-
-      - name: 🛳️ Build documentation using container vhdl/doc and publish to GitHub Pages
-        uses: buildthedocs/btd@v0
-        with:
-          token: ${{ github.token }}
-
-      - name: 📤 Upload artifacts
-        uses: actions/upload-artifact@master
-        with:
-          name: doc
-          path: doc/_build/html
 
   ArtifactCleanUp:
     name: 🗑️ Artifact Cleanup

@@ -27,49 +27,13 @@ jobs:
       - Coverage
 
   Package:
-    name: 📦 Package in Wheel Format
-    runs-on: ubuntu-latest
-
+    uses: pyTooling/Actions/.github/workflows/Package.yml@dev
     if: startsWith(github.ref, 'refs/tags')
     needs:
       - Coverage
-
-    env:
-      PYTHON:   ${{ needs.Coverage.outputs.python }}
-      ARTIFACT: pyVHDLModel-wheel
-    outputs:
-      python:   ${{ env.PYTHON }}
-      artifact: ${{ env.ARTIFACT }}
-
-    steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v2
-
-      - name: 🐍 Setup Python ${{ env.PYTHON }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ env.PYTHON }}
-
-      - name: 🔧 Install dependencies for packaging and release
-        run: |
-          python -m pip install --upgrade pip
-          pip install wheel
-
-      - name: 🔨 Build Python package (source distribution)
-        run: |
-          python setup.py sdist
-
-      - name: 🔨 Build Python package (binary distribution - wheel)
-        run: |
-          python setup.py bdist_wheel
-
-      - name: 📤 Upload 'pyVHDLModel' artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ env.ARTIFACT }}
-          path: dist/
-          if-no-files-found: error
-          retention-days: 1
+    with:
+      pyver: '3.10'
+      artifact: pyVHDLModel-wheel
 
   PublishOnPyPI:
     name: 🚀 Publish to PyPI

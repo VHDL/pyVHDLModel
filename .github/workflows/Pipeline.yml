@@ -121,15 +121,14 @@ jobs:
     runs-on: ubuntu-latest
 
     needs:
-      - Package
-      - PublishOnPyPI
-
-    env:
-      ARTIFACT: ${{ needs.Package.outputs.artifact }}
+      - Coverage
+      - BuildTheDocs
+      - PublishToGitHubPages
 
     steps:
       - name: 🗑️ Delete all Artifacts
         uses: geekyeggo/delete-artifact@v1
         with:
           name: |
-            ${{ env.ARTIFACT }}
+            pyVHDLModel-coverage
+            pyVHDLModel-doc

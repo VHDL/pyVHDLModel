@@ -4,10 +4,6 @@ on:
   push:
   workflow_dispatch:
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
 
   UnitTesting:

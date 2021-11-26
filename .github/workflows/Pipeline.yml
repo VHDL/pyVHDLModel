@@ -1,12 +1,15 @@
 name: Unit Testing, Coverage Collection, Package, Release, Documentation and Publish
 
-on: [ push ]
+on: 
+  push:
+  workflow_dispatch:
 
 defaults:
   run:
     shell: bash
 
 jobs:
+
   UnitTesting:
     name: ${{ matrix.icon }} Unit Tests using Python ${{ matrix.python }}
     runs-on: ubuntu-latest

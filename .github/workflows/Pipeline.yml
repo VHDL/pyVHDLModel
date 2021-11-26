@@ -20,56 +20,11 @@ jobs:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
   Release:
-    name: 📝 Create 'Release Page' on GitHub
-    runs-on: ubuntu-latest
-
+    uses: pyTooling/Actions/.github/workflows/Release.yml@dev
     if: startsWith(github.ref, 'refs/tags')
     needs:
       - UnitTesting
       - Coverage
-
-    env:
-      PYTHON: ${{ needs.Coverage.outputs.python }}
-    outputs:
-      python:     ${{ env.PYTHON }}
-      tag:        ${{ steps.getVariables.outputs.gitTag }}
-      version:    ${{ steps.getVariables.outputs.version }}
-      datetime:   ${{ steps.getVariables.outputs.datetime }}
-      upload_url: ${{ steps.createReleasePage.outputs.upload_url }}
-
-    steps:
-      - name: 🔁 Extract Git tag from GITHUB_REF
-        id:   getVariables
-        run: |
-          GIT_TAG=${GITHUB_REF#refs/*/}
-          RELEASE_VERSION=${GIT_TAG#v}
-          RELEASE_DATETIME="$(date --utc '+%d.%m.%Y - %H:%M:%S')"
-          # write to step outputs
-          echo ::set-output name=gitTag::${GIT_TAG}
-          echo ::set-output name=version::${RELEASE_VERSION}
-          echo ::set-output name=datetime::${RELEASE_DATETIME}
-
-      - name: 📑 Create Release Page
-        id:   createReleasePage
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.getVariables.outputs.gitTag }}
-#          release_name: ${{ steps.getVariables.outputs.gitTag }}
-          body: |
-            **Automated Release created on: ${{ steps.getVariables.outputs.datetime }}**
-
-            # New Features
-            * tbd
-
-            # Changes
-            * tbd
-
-            # Bug Fixes
-            * tbd
-          draft: false
-          prerelease: false
 
   Package:
     name: 📦 Package in Wheel Format

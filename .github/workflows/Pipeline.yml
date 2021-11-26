@@ -39,6 +39,7 @@ jobs:
     uses: pyTooling/Actions/.github/workflows/PublishOnPyPI.yml@dev
     if: startsWith(github.ref, 'refs/tags')
     needs:
+      - Release
       - Package
     with:
       pyver: '3.10'
@@ -51,11 +52,6 @@ jobs:
     name: 👍 Verify example snippets using Python 3.9
     runs-on: ubuntu-latest
 
-    env:
-      PYTHON: 3.9
-    outputs:
-      python: ${{ env.PYTHON }}
-
     steps:
       - name: ⏬ Checkout repository
         uses: actions/checkout@v2
@@ -66,7 +62,7 @@ jobs:
       - name: 🐍 Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ env.PYTHON }}
+          python-version: 3.9
 
       - name: 🐍 Install dependencies
         run: |

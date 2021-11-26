@@ -36,43 +36,15 @@ jobs:
       artifact: pyVHDLModel-wheel
 
   PublishOnPyPI:
-    name: 🚀 Publish to PyPI
-    runs-on: ubuntu-latest
-
+    uses: pyTooling/Actions/.github/workflows/PublishOnPyPI.yml@dev
     if: startsWith(github.ref, 'refs/tags')
     needs:
       - Package
-
-    env:
-      PYTHON:   ${{ needs.Package.outputs.python }}
-      ARTIFACT: ${{ needs.Package.outputs.artifact }}
-    outputs:
-      python:   ${{ env.PYTHON }}
-      artifact: ${{ env.ARTIFACT }}
-
-    steps:
-      - name: 📥 Download artifacts '${{ env.ARTIFACT }}' from 'Package' job
-        uses: actions/download-artifact@v2
-        with:
-          name: ${{ env.ARTIFACT }}
-          path: dist/
-
-      - name: 🐍 Setup Python ${{ env.PYTHON }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ env.PYTHON }}
-
-      - name: ⚙ Install dependencies for packaging and release
-        run: |
-          python -m pip install --upgrade pip
-          pip install wheel twine
-
-      - name: ⤴ Release Python package to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          twine upload dist/*
+    with:
+      pyver: '3.10'
+      artifact: pyVHDLModel-wheel
+    secrets:
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
   VerifyDocs:
     name: 👍 Verify example snippets using Python 3.9

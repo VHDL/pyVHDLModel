@@ -6,6 +6,25 @@ on:
 
 jobs:
 
+  Params:
+    runs-on: ubuntu-latest
+    outputs:
+      params: ${{ steps.params.outputs.params }}
+    steps:
+
+      - id: params
+        shell: python
+        run: |
+          params = {
+            'pyver': '3.10',
+            'artifacts': {
+              'coverage': 'pyVHDLModel-coverage',
+              'wheel': 'pyVHDLModel-wheel',
+              'doc': 'pyVHDLModel-doc',
+            }
+          }
+          print(f'::set-output name=params::{params!s}')
+
   UnitTesting:
     uses: pyTooling/Actions/.github/workflows/UnitTesting.yml@dev
     with:
@@ -13,9 +32,11 @@ jobs:
 
   Coverage:
     uses: pyTooling/Actions/.github/workflows/CoverageCollection.yml@dev
+    needs:
+      - Params
     with:
-      pyver: '3.10'
-      artifact: pyVHDLModel-coverage
+      pyver: ${{ fromJson(needs.Params.outputs.params).pyver }}
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
     secrets:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
@@ -30,26 +51,30 @@ jobs:
     uses: pyTooling/Actions/.github/workflows/Package.yml@dev
     if: startsWith(github.ref, 'refs/tags')
     needs:
+      - Params
       - Coverage
     with:
-      pyver: '3.10'
-      artifact: pyVHDLModel-wheel
+      pyver: ${{ fromJson(needs.Params.outputs.params).pyver }}
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.wheel }}
 
   PublishOnPyPI:
     uses: pyTooling/Actions/.github/workflows/PublishOnPyPI.yml@dev
     if: startsWith(github.ref, 'refs/tags')
     needs:
+      - Params
       - Release
       - Package
     with:
-      pyver: '3.10'
-      artifact: pyVHDLModel-wheel
+      pyver: ${{ fromJson(needs.Params.outputs.params).pyver }}
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.wheel }}
     secrets:
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
 
   VerifyDocs:
-    name: 👍 Verify example snippets using Python 3.9
+    needs:
+      - Params
+    name: 👍 Verify example snippets using Python ${{ fromJson(needs.Params.outputs.params).pyver }}
     runs-on: ubuntu-latest
 
     steps:
@@ -62,7 +87,7 @@ jobs:
       - name: 🐍 Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: ${{ fromJson(needs.Params.outputs.params).pyver }}
 
       - name: 🐍 Install dependencies
         run: |
@@ -99,17 +124,20 @@ jobs:
   BuildTheDocs:
     uses: pyTooling/Actions/.github/workflows/BuildTheDocs.yml@dev
     needs:
+      - Params
       - VerifyDocs
     with:
-      artifact: pyVHDLModel-doc
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}
 
   PublishToGitHubPages:
     uses: pyTooling/Actions/.github/workflows/PublishToGitHubPages.yml@dev
     needs:
+      - Params
       - BuildTheDocs
       - Coverage
     with:
-      doc: pyVHDLModel-doc
+      doc: ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}
+      coverage: ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
 
 
   ArtifactCleanUp:
@@ -117,8 +145,8 @@ jobs:
     runs-on: ubuntu-latest
 
     needs:
+      - Params
       - Coverage
-      - BuildTheDocs
       - PublishToGitHubPages
 
     steps:
@@ -126,5 +154,5 @@ jobs:
         uses: geekyeggo/delete-artifact@v1
         with:
           name: |
-            pyVHDLModel-coverage
-            pyVHDLModel-doc
+            ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
+            ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}

@@ -7,23 +7,9 @@ on:
 jobs:
 
   Params:
-    runs-on: ubuntu-latest
-    outputs:
-      params: ${{ steps.params.outputs.params }}
-    steps:
-
-      - id: params
-        shell: python
-        run: |
-          params = {
-            'pyver': '3.10',
-            'artifacts': {
-              'coverage': 'pyVHDLModel-coverage',
-              'wheel': 'pyVHDLModel-wheel',
-              'doc': 'pyVHDLModel-doc',
-            }
-          }
-          print(f'::set-output name=params::{params!s}')
+    uses: pyTooling/Actions/.github/workflows/Params.yml@dev
+    with:
+      name: pyVHDLModel
 
   UnitTesting:
     uses: pyTooling/Actions/.github/workflows/UnitTesting.yml@dev

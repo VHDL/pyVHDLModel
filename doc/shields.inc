@@ -17,7 +17,7 @@
 .. |SHIELD:svg:pyVHDLModel-src-license| image:: https://img.shields.io/pypi/l/pyVHDLModel?longCache=true&style=flat-square&logo=Apache&label=code%20license
    :alt: Code license
    :height: 22
-   :target: Code-License.html
+   :target: License.html
 .. |SHIELD:png:pyVHDLModel-src-license| image:: https://img.shields.io/pypi/l/pyVHDLModel?longCache=true&style=flat-square&logo=Apache&label=code%20license
    :alt: Code license
    :height: 22

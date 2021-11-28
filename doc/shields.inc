@@ -14,11 +14,11 @@
    :target: https://github.com/vhdl/pyVHDLModel
 
 .. # Sourcecode license
-.. |SHIELD:svg:pyVHDLModel-src-license| image:: https://img.shields.io/pypi/l/pyVHDLModel?longCache=true&style=flat-square&logo=Apache&label=code%20license
+.. |SHIELD:svg:pyVHDLModel-src-license| image:: https://img.shields.io/pypi/l/pyVHDLModel?longCache=true&style=flat-square&logo=Apache&label=code
    :alt: Code license
    :height: 22
    :target: License.html
-.. |SHIELD:png:pyVHDLModel-src-license| image:: https://img.shields.io/pypi/l/pyVHDLModel?longCache=true&style=flat-square&logo=Apache&label=code%20license
+.. |SHIELD:png:pyVHDLModel-src-license| image:: https://img.shields.io/pypi/l/pyVHDLModel?longCache=true&style=flat-square&logo=Apache&label=code
    :alt: Code license
    :height: 22
    :target: https://github.com/VHDL/pyVHDLModel/blob/master/LICENSE.md
@@ -160,11 +160,11 @@
    :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=master
 
 .. # Documentation license
-.. |SHIELD:svg:pyVHDLModel-doc-license| image:: https://img.shields.io/badge/doc%20license-CC--BY%204.0-green?longCache=true&style=flat-square&logo=CreativeCommons&logoColor=fff
+.. |SHIELD:svg:pyVHDLModel-doc-license| image:: https://img.shields.io/badge/doc-CC--BY%204.0-green?longCache=true&style=flat-square&logo=CreativeCommons&logoColor=fff
    :alt: Documentation License
    :height: 22
    :target: Doc-License.html
-.. |SHIELD:png:pyVHDLModel-doc-license| image:: https://raster.shields.io/badge/doc%20license-CC--BY%204.0-green?longCache=true&style=flat-square&logo=CreativeCommons&logoColor=fff
+.. |SHIELD:png:pyVHDLModel-doc-license| image:: https://raster.shields.io/badge/doc-CC--BY%204.0-green?longCache=true&style=flat-square&logo=CreativeCommons&logoColor=fff
    :alt: Documentation License
    :height: 22
    :target: https://github.com/VHDL/pyVHDLModel/blob/master/doc/Doc-License.rst

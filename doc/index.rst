@@ -17,8 +17,8 @@
 
    |  |SHIELD:svg:pyVHDLModel-github| |SHIELD:svg:pyVHDLModel-src-license| |SHIELD:svg:pyVHDLModel-ghp-doc| |SHIELD:svg:pyVHDLModel-doc-license|
    |  |SHIELD:svg:pyVHDLModel-tag| |SHIELD:svg:pyVHDLModel-release| |SHIELD:svg:pyVHDLModel-date|
-   |  |SHIELD:svg:pyVHDLModel-gha-test| |SHIELD:svg:pyVHDLModel-codacy-quality| |SHIELD:svg:pyVHDLModel-codacy-coverage| |SHIELD:svg:pyVHDLModel-codecov-coverage| |SHIELD:svg:pyVHDLModel-lib-rank|
    |  |SHIELD:svg:pyVHDLModel-pypi-tag| |SHIELD:svg:pyVHDLModel-pypi-status| |SHIELD:svg:pyVHDLModel-pypi-python| |SHIELD:svg:pyVHDLModel-lib-status|
+   |  |SHIELD:svg:pyVHDLModel-gha-test| |SHIELD:svg:pyVHDLModel-codacy-quality| |SHIELD:svg:pyVHDLModel-codacy-coverage| |SHIELD:svg:pyVHDLModel-codecov-coverage| |SHIELD:svg:pyVHDLModel-lib-rank|
 
 .. Disabled shields: |SHIELD:svg:pyVHDLModel-lib-dep| |SHIELD:svg:pyVHDLModel-req-status|
 
@@ -26,8 +26,8 @@
 
    |SHIELD:png:pyVHDLModel-github| |SHIELD:png:pyVHDLModel-src-license| |SHIELD:png:pyVHDLModel-ghp-doc| |SHIELD:png:pyVHDLModel-doc-license|
    |SHIELD:png:pyVHDLModel-tag| |SHIELD:png:pyVHDLModel-release| |SHIELD:png:pyVHDLModel-date|
-   |SHIELD:png:pyVHDLModel-gha-test| |SHIELD:png:pyVHDLModel-codacy-quality| |SHIELD:png:pyVHDLModel-codacy-coverage| |SHIELD:png:pyVHDLModel-codecov-coverage| |SHIELD:png:pyVHDLModel-lib-rank|
    |SHIELD:png:pyVHDLModel-pypi-tag| |SHIELD:png:pyVHDLModel-pypi-status| |SHIELD:png:pyVHDLModel-pypi-python| |SHIELD:png:pyVHDLModel-lib-status|
+   |SHIELD:png:pyVHDLModel-gha-test| |SHIELD:png:pyVHDLModel-codacy-quality| |SHIELD:png:pyVHDLModel-codacy-coverage| |SHIELD:png:pyVHDLModel-codecov-coverage| |SHIELD:png:pyVHDLModel-lib-rank|
 
 .. Disabled shields: |SHIELD:png:pyVHDLModel-lib-dep| |SHIELD:png:pyVHDLModel-req-status|
 

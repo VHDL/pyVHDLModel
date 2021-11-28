@@ -33,16 +33,6 @@
    :height: 22
    :target: https://github.com/vhdl/pyVHDLModel/tags
 
-.. # GitHub release
-.. |SHIELD:svg:pyVHDLModel-release| image:: https://img.shields.io/github/v/release/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub&include_prereleases
-   :alt: GitHub release (latest SemVer incl. including pre-releases
-   :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/releases/latest
-.. |SHIELD:png:pyVHDLModel-release| image:: https://raster.shields.io/github/v/release/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub&include_prereleases
-   :alt: GitHub release (latest SemVer incl. including pre-releases
-   :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/releases/latest
-
 .. # GitHub release date
 .. |SHIELD:svg:pyVHDLModel-date| image:: https://img.shields.io/github/release-date/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub
    :alt: GitHub release date
@@ -168,16 +158,6 @@
    :alt: Requires.io
    :height: 22
    :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main
-
-.. # GHA - documentation
-.. |SHIELD:svg:pyVHDLModel-gha-doc| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Documentation?longCache=true&style=flat-square&label=Documentation&logo=GitHub%20Actions&logoColor=FFFFFF
-   :alt: GitHub Workflow - Documentation Status
-   :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Documentation%22
-.. |SHIELD:png:pyVHDLModel-gha-doc| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Documentation?longCache=true&style=flat-square&label=Documentation&logo=GitHub%20Actions&logoColor=FFFFFF
-   :alt: GitHub Workflow - Documentation Status
-   :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Documentation%22
 
 .. # Documentation license
 .. |SHIELD:svg:pyVHDLModel-doc-license| image:: https://img.shields.io/badge/doc%20license-CC--BY%204.0-green?longCache=true&style=flat-square

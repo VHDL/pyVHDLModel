@@ -3,13 +3,13 @@
 </p>
 
 [![Sourcecode on GitHub](https://img.shields.io/badge/VHDL-pyVHDLModel-29b6f6.svg?longCache=true&style=flat-square&logo=GitHub&labelColor=0277bd)](https://github.com/vhdl/pyVHDLModel)
-[![Sourcecode License](https://img.shields.io/pypi/l/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub&label=code%20license)](LICENSE.md)
+[![Sourcecode License](https://img.shields.io/pypi/l/pyVHDLModel?longCache=true&style=flat-square&logo=Apache&label=code%20license)](LICENSE.md)
 [![Documentation](https://img.shields.io/website?longCache=true&style=flat-square&label=vhdl.github.io%2FpyVHDLModel&logo=GitHub&logoColor=fff&up_color=blueviolet&up_message=Read%20now%20%E2%9E%9A&url=https%3A%2F%2Fvhdl.github.io%2FpyVHDLModel%2Findex.html)](https://vhdl.github.io/pyVHDLModel/)
-[![Documentation License](https://img.shields.io/badge/doc%20license-CC--BY%204.0-green?longCache=true&style=flat-square)](LICENSE.md)  
+[![Documentation License](https://img.shields.io/badge/doc%20license-CC--BY%204.0-green?longCache=true&style=flat-square&logo=CreativeCommons&logoColor=fff)](LICENSE.md)  
 [![PyPI](https://img.shields.io/pypi/v/pyVHDLModel?longCache=true&style=flat-square&logo=PyPI&logoColor=FBE072)](https://pypi.org/project/pyVHDLModel/)
 ![PyPI - Status](https://img.shields.io/pypi/status/pyVHDLModel?longCache=true&style=flat-square&logo=PyPI&logoColor=FBE072)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyVHDLModel?longCache=true&style=flat-square&logo=PyPI&logoColor=FBE072)
-[![Libraries.io status for latest release](https://img.shields.io/librariesio/release/pypi/pyVHDLModel?longCache=true&style=flat-square)](https://libraries.io/github/vhdl/pyVHDLModel)  
+[![Libraries.io status for latest release](https://img.shields.io/librariesio/release/pypi/pyVHDLModel?longCache=true&style=flat-square&logo=Libraries.io&logoColor=fff)](https://libraries.io/github/vhdl/pyVHDLModel)  
 [![GitHub Workflow - Build and Test Status](https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish/master?longCache=true&style=flat-square&label=Build%20and%20test&logo=GitHub%20Actions&logoColor=FFFFFF)](https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22)
 [![Codacy - Quality](https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?longCache=true&style=flat-square&logo=Codacy)](https://www.codacy.com/manual/VHDL/pyVHDLModel)
 [![Codacy - Coverage](https://img.shields.io/codacy/coverage/2286426d2b11417e90010427b7fed8e7?longCache=true&style=flat-square&logo=Codacy)](https://www.codacy.com/manual/VHDL/pyVHDLModel)

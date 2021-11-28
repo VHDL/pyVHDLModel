@@ -4,11 +4,11 @@
    # percent encoding so that the URL is properly parsed.
 
 .. # Sourcecode link to GitHub
-.. |SHIELD:svg:pyVHDLModel-github| image:: https://img.shields.io/badge/vhdl-pyVHDLModel-323131?longCache=true&style=flat-square&logo=github
+.. |SHIELD:svg:pyVHDLModel-github| image:: https://img.shields.io/badge/VHDL-pyVHDLModel-29b6f6.svg?longCache=true&style=flat-square&logo=GitHub&labelColor=0277bd
    :alt: Sourcecode on GitHub
    :height: 22
    :target: https://github.com/vhdl/pyVHDLModel
-.. |SHIELD:png:pyVHDLModel-github| image:: https://raster.shields.io/badge/vhdl-pyVHDLModel-323131?longCache=true&style=flat-square&logo=github
+.. |SHIELD:png:pyVHDLModel-github| image:: https://raster.shields.io/badge/VHDL-pyVHDLModel-29b6f6.svg?longCache=true&style=flat-square&logo=GitHub&labelColor=0277bd
    :alt: Sourcecode on GitHub
    :height: 22
    :target: https://github.com/vhdl/pyVHDLModel
@@ -164,17 +164,17 @@
    :alt: Documentation License
    :height: 22
    :target: Doc-License.html
-.. |SHIELD:png:pyVHDLModel-doc-license| image:: https://img.shields.io/badge/doc%20license-CC--BY%204.0-green?longCache=true&style=flat-square
+.. |SHIELD:png:pyVHDLModel-doc-license| image:: https://raster.shields.io/badge/doc%20license-CC--BY%204.0-green?longCache=true&style=flat-square
    :alt: Documentation License
    :height: 22
    :target: https://github.com/VHDL/pyVHDLModel/blob/main/doc/Doc-License.rst
 
 .. # GHPages - read now
-.. |SHIELD:svg:pyVHDLModel-ghp-doc| image:: https://img.shields.io/badge/doc-read%20now%20%E2%9E%94-blueviolet?longCache=true&style=flat-square
+.. |SHIELD:svg:pyVHDLModel-ghp-doc| image:: https://img.shields.io/website?longCache=true&style=flat-square&label=vhdl.github.io%2FpyVHDLModel&logo=GitHub&logoColor=fff&up_color=blueviolet&up_message=Read%20now%20%E2%9E%9A&url=https%3A%2F%2Fvhdl.github.io%2FpyVHDLModel%2Findex.html
    :alt: Documentation - Read Now!
    :height: 22
    :target: https://vhdl.github.io/pyVHDLModel/
-.. |SHIELD:png:pyVHDLModel-ghp-doc| image:: https://img.shields.io/badge/doc-read%20now%20%E2%9E%94-blueviolet?longCache=true&style=flat-square
+.. |SHIELD:png:pyVHDLModel-ghp-doc| image:: https://raster.shields.io/website?longCache=true&style=flat-square&label=vhdl.github.io%2FpyVHDLModel&logo=GitHub&logoColor=fff&up_color=blueviolet&up_message=Read%20now%20%E2%9E%9A&url=https%3A%2F%2Fvhdl.github.io%2FpyVHDLModel%2Findex.html
    :alt: Documentation - Read Now!
    :height: 22
    :target: https://vhdl.github.io/pyVHDLModel/

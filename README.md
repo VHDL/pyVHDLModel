@@ -2,8 +2,10 @@
   <a title="vhdl.github.io/pyVHDLModel" href="https://vhdl.github.io/pyVHDLModel"><img height="80px" src="doc/_static/logo.svg"/></a>
 </p>
 
-[![Sourcecode on GitHub](https://img.shields.io/badge/vhdl-pyVHDLModel-323131.svg?longCache=true&style=flat-square&logo=github)](https://github.com/vhdl/pyVHDLModel)
+[![Sourcecode on GitHub](https://img.shields.io/badge/VHDL-pyVHDLModel-29b6f6.svg?longCache=true&style=flat-square&logo=GitHub&labelColor=0277bd)](https://github.com/vhdl/pyVHDLModel)
 [![Sourcecode License](https://img.shields.io/pypi/l/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub&label=code%20license)](LICENSE.md)
+[![Documentation](https://img.shields.io/website?longCache=true&style=flat-square&label=vhdl.github.io%2FpyVHDLModel&logo=GitHub&logoColor=fff&up_color=blueviolet&up_message=Read%20now%20%E2%9E%9A&url=https%3A%2F%2Fvhdl.github.io%2FpyVHDLModel%2Findex.html)](https://vhdl.github.io/pyVHDLModel/)
+[![Documentation License](https://img.shields.io/badge/doc%20license-CC--BY%204.0-green?longCache=true&style=flat-square)](LICENSE.md)  
 [![GitHub tag (latest SemVer incl. pre-release)](https://img.shields.io/github/v/tag/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub&include_prereleases)](https://github.com/vhdl/pyVHDLModel/tags)
 [![GitHub release (latest SemVer incl. including pre-releases)](https://img.shields.io/github/v/release/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub&include_prereleases)](https://github.com/vhdl/pyVHDLModel/releases/latest)
 [![GitHub release date](https://img.shields.io/github/release-date/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub&)](https://github.com/vhdl/pyVHDLModel/releases)  
@@ -15,9 +17,7 @@
 [![PyPI](https://img.shields.io/pypi/v/pyVHDLModel?longCache=true&style=flat-square&logo=PyPI&logoColor=FBE072)](https://pypi.org/project/pyVHDLModel/)
 ![PyPI - Status](https://img.shields.io/pypi/status/pyVHDLModel?longCache=true&style=flat-square&logo=PyPI&logoColor=FBE072)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyVHDLModel?longCache=true&style=flat-square&logo=PyPI&logoColor=FBE072)
-[![Libraries.io status for latest release](https://img.shields.io/librariesio/release/pypi/pyVHDLModel?longCache=true&style=flat-square)](https://libraries.io/github/vhdl/pyVHDLModel)  
-[![Documentation License](https://img.shields.io/badge/doc%20license-CC--BY%204.0-green?longCache=true&style=flat-square)](LICENSE.md)
-[![Documentation - Read Now!](https://img.shields.io/badge/doc-read%20now%20%E2%9E%94-blueviolet?longCache=true&style=flat-square)](https://vhdl.github.io/pyVHDLModel/)
+[![Libraries.io status for latest release](https://img.shields.io/librariesio/release/pypi/pyVHDLModel?longCache=true&style=flat-square)](https://libraries.io/github/vhdl/pyVHDLModel)
 
 <!--
 [![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/pypi/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub)](https://github.com/vhdl/pyVHDLModel/network/dependents)

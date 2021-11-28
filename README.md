@@ -13,7 +13,7 @@
 ![PyPI - Status](https://img.shields.io/pypi/status/pyVHDLModel?longCache=true&style=flat-square&logo=PyPI&logoColor=FBE072)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyVHDLModel?longCache=true&style=flat-square&logo=PyPI&logoColor=FBE072)
 [![Libraries.io status for latest release](https://img.shields.io/librariesio/release/pypi/pyVHDLModel?longCache=true&style=flat-square)](https://libraries.io/github/vhdl/pyVHDLModel)  
-[![GitHub Workflow - Build and Test Status](https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish?longCache=true&style=flat-square&label=build%20and%20test&logo=GitHub%20Actions&logoColor=FFFFFF)](https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22)
+[![GitHub Workflow - Build and Test Status](https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish/master?longCache=true&style=flat-square&label=Build%20and%20test&logo=GitHub%20Actions&logoColor=FFFFFF)](https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22)
 [![Codacy - Quality](https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?longCache=true&style=flat-square&logo=Codacy)](https://www.codacy.com/manual/VHDL/pyVHDLModel)
 [![Codacy - Coverage](https://img.shields.io/codacy/coverage/2286426d2b11417e90010427b7fed8e7?longCache=true&style=flat-square&logo=Codacy)](https://www.codacy.com/manual/VHDL/pyVHDLModel)
 [![Codecov - Branch Coverage](https://img.shields.io/codecov/c/github/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=Codecov)](https://codecov.io/gh/vhdl/pyVHDLModel)
@@ -21,7 +21,7 @@
 
 <!--
 [![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/pypi/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub)](https://github.com/vhdl/pyVHDLModel/network/dependents)
-[![Requires.io](https://img.shields.io/requires/github/VHDL/pyVHDLModel?longCache=true&style=flat-square)](https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main)
+[![Requires.io](https://img.shields.io/requires/github/VHDL/pyVHDLModel?longCache=true&style=flat-square)](https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=master)
 -->
 
 An abstract VHDL language model written in Python.

@@ -17,7 +17,7 @@ jobs:
       - Params
     with:
       jobs: ${{ needs.Params.outputs.python_jobs }}
-      TestReport: true
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}
 
   Coverage:
     uses: pyTooling/Actions/.github/workflows/CoverageCollection.yml@dev
@@ -44,7 +44,7 @@ jobs:
       - Coverage
     with:
       python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
-      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.wheel }}
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
 
   PublishOnPyPI:
     uses: pyTooling/Actions/.github/workflows/PublishOnPyPI.yml@dev
@@ -55,7 +55,7 @@ jobs:
       - Package
     with:
       python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
-      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.wheel }}
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
     secrets:
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
@@ -136,12 +136,21 @@ jobs:
     needs:
       - Params
       - Coverage
+      - BuildTheDocs
       - PublishToGitHubPages
 
     steps:
+
+      - name: 🗑️ Delete package Artifacts
+        if: ${{ ! startsWith(github.ref, 'refs/tags') }}
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
+
       - name: 🗑️ Delete all Artifacts
         uses: geekyeggo/delete-artifact@v1
         with:
           name: |
+            ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-*
             ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
             ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}

@@ -13,7 +13,10 @@ jobs:
 
   UnitTesting:
     uses: pyTooling/Actions/.github/workflows/UnitTesting.yml@dev
+    needs:
+      - Params
     with:
+      jobs: ${{ needs.Params.outputs.python_jobs }}
       TestReport: true
 
   Coverage:

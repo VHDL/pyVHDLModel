@@ -128,29 +128,16 @@ jobs:
       doc: ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}
       coverage: ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
 
-
   ArtifactCleanUp:
-    name: 🗑️ Artifact Cleanup
-    runs-on: ubuntu-latest
-
+    uses: pyTooling/Actions/.github/workflows/ArtifactCleanUp.yml@dev
     needs:
       - Params
       - Coverage
       - BuildTheDocs
       - PublishToGitHubPages
-
-    steps:
-
-      - name: 🗑️ Delete package Artifacts
-        if: ${{ ! startsWith(github.ref, 'refs/tags') }}
-        uses: geekyeggo/delete-artifact@v1
-        with:
-          name: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
-
-      - name: 🗑️ Delete all Artifacts
-        uses: geekyeggo/delete-artifact@v1
-        with:
-          name: |
-            ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-*
-            ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
-            ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}
+    with:
+      package: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
+      remaining: |
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-*
+        ${{ fromJson(needs.Params.outputs.params).artifacts.typing }}
+        ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}

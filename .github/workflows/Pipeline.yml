@@ -21,7 +21,7 @@ jobs:
     needs:
       - Params
     with:
-      pyver: ${{ fromJson(needs.Params.outputs.params).pyver }}
+      python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
       artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
     secrets:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
@@ -40,7 +40,7 @@ jobs:
       - Params
       - Coverage
     with:
-      pyver: ${{ fromJson(needs.Params.outputs.params).pyver }}
+      python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
       artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.wheel }}
 
   PublishOnPyPI:
@@ -51,7 +51,7 @@ jobs:
       - Release
       - Package
     with:
-      pyver: ${{ fromJson(needs.Params.outputs.params).pyver }}
+      python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
       artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.wheel }}
     secrets:
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
@@ -60,7 +60,7 @@ jobs:
   VerifyDocs:
     needs:
       - Params
-    name: 👍 Verify example snippets using Python ${{ fromJson(needs.Params.outputs.params).pyver }}
+    name: 👍 Verify example snippets using Python ${{ fromJson(needs.Params.outputs.params).python_version }}
     runs-on: ubuntu-latest
 
     steps:
@@ -73,7 +73,7 @@ jobs:
       - name: 🐍 Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ fromJson(needs.Params.outputs.params).pyver }}
+          python-version: ${{ fromJson(needs.Params.outputs.params).python_version }}
 
       - name: 🐍 Install dependencies
         run: |

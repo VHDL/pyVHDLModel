@@ -10,7 +10,7 @@ Dependency
 .. |img-pyVHDLModel-req-status| image:: https://img.shields.io/requires/github/VHDL/pyVHDLModel
    :alt: Requires.io
    :height: 22
-   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=master
+   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main
 
 +------------------------------------------+------------------------------------------+
 | `Libraries.io <https://libraries.io/>`_  | `Requires.io <https://requires.io/>`_    |

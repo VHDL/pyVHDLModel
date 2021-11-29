@@ -233,10 +233,9 @@ autodoc_member_order = "bysource"       # alphabetical, groupwise, bysource
 # Sphinx.Ext.ExtLinks
 # ==============================================================================
 extlinks = {
-	'issue': ('https://github.com/vhdl/pyVHDLModel/issues/%s', 'issue #'),
-	'pull':  ('https://github.com/vhdl/pyVHDLModel/pull/%s', 'pull request #'),
-	'src':   ('https://github.com/vhdl/pyVHDLModel/blob/master/pyMetaClasses/%s?ts=2', None),
-#	'test':  ('https://github.com/vhdl/pyVHDLModel/blob/master/test/%s?ts=2', None)
+	'ghissue': ('https://github.com/vhdl/pyVHDLModel/issues/%s', 'issue #'),
+	'ghpull':  ('https://github.com/vhdl/pyVHDLModel/pull/%s', 'pull request #'),
+	'ghsrc':   ('https://github.com/vhdl/pyVHDLModel/blob/main/%s?ts=2', None),
 }
 
 

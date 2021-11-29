@@ -21,7 +21,7 @@
 .. |SHIELD:png:pyVHDLModel-src-license| image:: https://img.shields.io/pypi/l/pyVHDLModel?longCache=true&style=flat-square&logo=Apache&label=code
    :alt: Code license
    :height: 22
-   :target: https://github.com/VHDL/pyVHDLModel/blob/master/LICENSE.md
+   :target: https://github.com/VHDL/pyVHDLModel/blob/main/LICENSE.md
 
 .. # GitHub tag
 .. |SHIELD:svg:pyVHDLModel-tag| image:: https://img.shields.io/github/v/tag/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub&include_prereleases
@@ -54,11 +54,11 @@
    :target: https://github.com/vhdl/pyVHDLModel/network/dependents
 
 .. # GHA test and coverage
-.. |SHIELD:svg:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish/master?longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
+.. |SHIELD:svg:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish/main?longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
    :alt: GitHub Workflow - Build and Test Status
    :height: 22
    :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22
-.. |SHIELD:png:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish/master?longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
+.. |SHIELD:png:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish/main?longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
    :alt: GitHub Workflow - Build and Test Status
    :height: 22
    :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22
@@ -153,11 +153,11 @@
 .. |SHIELD:svg:pyVHDLModel-req-status| image:: https://img.shields.io/requires/github/VHDL/pyVHDLModel?longCache=true&style=flat-square
    :alt: Requires.io
    :height: 22
-   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=master
+   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main
 .. |SHIELD:png:pyVHDLModel-req-status| image:: https://raster.shields.io/requires/github/VHDL/pyVHDLModel?longCache=true&style=flat-square
    :alt: Requires.io
    :height: 22
-   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=master
+   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main
 
 .. # Documentation license
 .. |SHIELD:svg:pyVHDLModel-doc-license| image:: https://img.shields.io/badge/doc-CC--BY%204.0-green?longCache=true&style=flat-square&logo=CreativeCommons&logoColor=fff
@@ -167,7 +167,7 @@
 .. |SHIELD:png:pyVHDLModel-doc-license| image:: https://raster.shields.io/badge/doc-CC--BY%204.0-green?longCache=true&style=flat-square&logo=CreativeCommons&logoColor=fff
    :alt: Documentation License
    :height: 22
-   :target: https://github.com/VHDL/pyVHDLModel/blob/master/doc/Doc-License.rst
+   :target: https://github.com/VHDL/pyVHDLModel/blob/main/doc/Doc-License.rst
 
 .. # GHPages - read now
 .. |SHIELD:svg:pyVHDLModel-ghp-doc| image:: https://img.shields.io/website?longCache=true&style=flat-square&label=vhdl.github.io%2FpyVHDLModel&logo=GitHub&logoColor=fff&up_color=blueviolet&up_message=Read%20now%20%E2%9E%9A&url=https%3A%2F%2Fvhdl.github.io%2FpyVHDLModel%2Findex.html

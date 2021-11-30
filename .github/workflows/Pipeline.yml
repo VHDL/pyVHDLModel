@@ -29,22 +29,22 @@ jobs:
     secrets:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
-  Release:
-    uses: pyTooling/Actions/.github/workflows/Release.yml@dev
-    if: startsWith(github.ref, 'refs/tags')
-    needs:
-      - UnitTesting
-      - Coverage
-
   Package:
     uses: pyTooling/Actions/.github/workflows/Package.yml@dev
-    if: startsWith(github.ref, 'refs/tags')
     needs:
       - Params
       - Coverage
     with:
       python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
       artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
+
+  Release:
+    uses: pyTooling/Actions/.github/workflows/Release.yml@dev
+    if: startsWith(github.ref, 'refs/tags')
+    needs:
+      - UnitTesting
+      - Coverage
+      - Package
 
   PublishOnPyPI:
     uses: pyTooling/Actions/.github/workflows/PublishOnPyPI.yml@dev

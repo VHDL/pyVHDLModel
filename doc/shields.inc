@@ -53,15 +53,15 @@
    :height: 22
    :target: https://github.com/vhdl/pyVHDLModel/network/dependents
 
-.. # GHA test and coverage
-.. |SHIELD:svg:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish/main?longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
+.. # GHA workflow
+.. |SHIELD:svg:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Pipeline/main?longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
    :alt: GitHub Workflow - Build and Test Status
    :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22
-.. |SHIELD:png:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Unit%20Testing,%20Coverage%20Collection,%20Package,%20Release,%20Documentation%20and%20Publish/main?longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
+   :target: https://github.com/VHDL/pyVHDLModel/actions/workflows/Pipeline.yml
+.. |SHIELD:png:pyVHDLModel-gha-test| image:: https://raster.shields.io/github/workflow/status/vhdl/pyVHDLModel/Pipeline/main?longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
    :alt: GitHub Workflow - Build and Test Status
    :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Test+and+Coverage%22
+   :target: https://github.com/VHDL/pyVHDLModel/actions/workflows/Pipeline.yml
 
 .. # Codacy - quality
 .. |SHIELD:svg:pyVHDLModel-codacy-quality| image:: https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?longCache=true&style=flat-square&logo=codacy
@@ -102,16 +102,6 @@
    :alt: Libraries.io SourceRank
    :height: 22
    :target: https://libraries.io/github/vhdl/pyVHDLModel/sourcerank
-
-.. # GHA release
-.. |SHIELD:svg:pyVHDLModel-gha-release| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Release?longCache=true&style=flat-square&label=release&logo=GitHub%20Actions&logoColor=FFFFFF
-   :alt: GitHub Workflow - Release Status
-   :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Release%22
-.. |SHIELD:png:pyVHDLModel-gha-release| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Release?longCache=true&style=flat-square&label=release&logo=GitHub%20Actions&logoColor=FFFFFF
-   :alt: GitHub Workflow - Release Status
-   :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/actions?query=workflow%3A%22Release%22
 
 .. # PyPI tag
 .. |SHIELD:svg:pyVHDLModel-pypi-tag| image:: https://img.shields.io/pypi/v/pyVHDLModel?longCache=true&style=flat-square&logo=PyPI&logoColor=FBE072

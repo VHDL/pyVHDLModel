@@ -7,12 +7,12 @@ on:
 jobs:
 
   Params:
-    uses: pyTooling/Actions/.github/workflows/Params.yml@dev
+    uses: pyTooling/Actions/.github/workflows/Params.yml@r0
     with:
       name: pyVHDLModel
 
   UnitTesting:
-    uses: pyTooling/Actions/.github/workflows/UnitTesting.yml@dev
+    uses: pyTooling/Actions/.github/workflows/UnitTesting.yml@r0
     needs:
       - Params
     with:
@@ -20,7 +20,7 @@ jobs:
       artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}
 
   Coverage:
-    uses: pyTooling/Actions/.github/workflows/CoverageCollection.yml@dev
+    uses: pyTooling/Actions/.github/workflows/CoverageCollection.yml@r0
     needs:
       - Params
     with:
@@ -30,7 +30,7 @@ jobs:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
   Package:
-    uses: pyTooling/Actions/.github/workflows/Package.yml@dev
+    uses: pyTooling/Actions/.github/workflows/Package.yml@r0
     needs:
       - Params
       - Coverage
@@ -39,7 +39,7 @@ jobs:
       artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
 
   Release:
-    uses: pyTooling/Actions/.github/workflows/Release.yml@dev
+    uses: pyTooling/Actions/.github/workflows/Release.yml@r0
     if: startsWith(github.ref, 'refs/tags')
     needs:
       - UnitTesting
@@ -47,7 +47,7 @@ jobs:
       - Package
 
   PublishOnPyPI:
-    uses: pyTooling/Actions/.github/workflows/PublishOnPyPI.yml@dev
+    uses: pyTooling/Actions/.github/workflows/PublishOnPyPI.yml@r0
     if: startsWith(github.ref, 'refs/tags')
     needs:
       - Params
@@ -111,7 +111,7 @@ jobs:
 
 
   BuildTheDocs:
-    uses: pyTooling/Actions/.github/workflows/BuildTheDocs.yml@dev
+    uses: pyTooling/Actions/.github/workflows/BuildTheDocs.yml@r0
     needs:
       - Params
       - VerifyDocs
@@ -119,7 +119,7 @@ jobs:
       artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}
 
   PublishToGitHubPages:
-    uses: pyTooling/Actions/.github/workflows/PublishToGitHubPages.yml@dev
+    uses: pyTooling/Actions/.github/workflows/PublishToGitHubPages.yml@r0
     needs:
       - Params
       - BuildTheDocs
@@ -129,7 +129,7 @@ jobs:
       coverage: ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
 
   ArtifactCleanUp:
-    uses: pyTooling/Actions/.github/workflows/ArtifactCleanUp.yml@dev
+    uses: pyTooling/Actions/.github/workflows/ArtifactCleanUp.yml@r0
     needs:
       - Params
       - UnitTesting

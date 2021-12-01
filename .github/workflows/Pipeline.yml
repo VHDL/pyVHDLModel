@@ -1,4 +1,4 @@
-name: Unit Testing, Coverage Collection, Package, Release, Documentation and Publish
+name: Pipeline
 
 on: [ push ]
 

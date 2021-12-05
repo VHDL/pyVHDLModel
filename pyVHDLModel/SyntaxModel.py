@@ -2312,6 +2312,14 @@ class Instantiation(ConcurrentStatement):
 		self._genericAssociations = [] if genericAssociations is None else [g for g in genericAssociations]
 		self._portAssociations =    [] if portAssociations is None else [p for p in portAssociations]
 
+	@property
+	def GenericAssociations(self) -> List[AssociationItem]:
+		return self._genericAssociations
+
+	@property
+	def PortAssociations(self) -> List[AssociationItem]:
+		return self._portAssociations
+
 
 @export
 class ComponentInstantiation(Instantiation):

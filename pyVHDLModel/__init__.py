@@ -43,7 +43,7 @@ An abstract VHDL language model.
 from enum     import IntEnum, unique, Enum
 from typing import List, Iterable, Union, Optional as Nullable, Dict
 
-from pydecor  import export
+from pyTooling.Decorators import export
 
 
 __version__ = "0.14.0"

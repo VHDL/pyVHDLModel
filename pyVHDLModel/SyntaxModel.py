@@ -44,7 +44,7 @@ This module contains a document language model for VHDL.
 from pathlib              import Path
 from typing               import List, Tuple, Union, Dict, Iterator, Optional as Nullable, Any, Iterable
 
-from pydecor.decorators   import export
+from pyTooling.Decorators import export
 
 from pyVHDLModel          import ModelEntity, NamedEntity, MultipleNamedEntity, LabeledEntity, PossibleReference, Direction, EntityClass, Mode
 from pyVHDLModel          import PrimaryUnit, SecondaryUnit
@@ -56,10 +56,6 @@ try:
 except ImportError:
 	class Protocol:
 		pass
-
-
-__all__ = []
-# __api__ = __all__ # FIXME: disabled due to a bug in pydecors export decorator
 
 
 @export

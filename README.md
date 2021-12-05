@@ -39,13 +39,13 @@ on such a model, while supporting multiple frontends.
 
 ### pyVHDLModel Generators
 
-* High-level API for [GHDL's](https://github.com/ghdl/ghdl) `libghdl` offered via `pyghdl`.
-* Code Document-Object-Model (Code-DOM) in [pyVHDLParser](https://github.com/Paebbels/pyVHDLParser).
+* High-level API for [GHDL's](https://GitHub.com/ghdl/ghdl) `libghdl` offered via `pyghdl`.
+* Code Document-Object-Model (Code-DOM) in [pyVHDLParser](https://GitHub.com/Paebbels/pyVHDLParser).
 
 ### pyVHDLModel Consumers
 
 * Create graphical views of VHDL files or designs.  
-	Possible candidates: [Symbolator](https://github.com/kevinpt/symbolator)
+	Possible candidates: [Symbolator](https://GitHub.com/kevinpt/symbolator)
 * Created a (re)formatted output of VHDL.
 
 
@@ -53,7 +53,7 @@ on such a model, while supporting multiple frontends.
 
 ### List all Entities with Generics and Ports
 
-The following tiny example is based on GHDL's [`pyGHDL.dom`](https://github.com/ghdl/ghdl/tree/master/pyGHDL/dom) package implementing
+The following tiny example is based on GHDL's [`pyGHDL.dom`](https://GitHub.com/ghdl/ghdl/tree/master/pyGHDL/dom) package implementing
 pyVHDLModel.
 
 ```python
@@ -84,9 +84,9 @@ for entity in document.Entities:
 
 ## Contributors
 
-* [Patrick Lehmann](https://github.com/Paebbels) (Maintainer)
-* [Unai Martinez-Corral](https://github.com/umarcor)
-* [and more...](https://github.com/VHDL/pyVHDLModel/graphs/contributors)
+* [Patrick Lehmann](https://GitHub.com/Paebbels) (Maintainer)
+* [Unai Martinez-Corral](https://GitHub.com/umarcor)
+* [and more...](https://GitHub.com/VHDL/pyVHDLModel/graphs/contributors)
 
 
 ## License

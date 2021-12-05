@@ -144,7 +144,7 @@ latex_elements = {
 		% ================================================================================
 		% Add more Unicode characters for pdfLaTeX.
 		% - Alternatively, compile with XeLaTeX or LuaLaTeX.
-		% - https://github.com/sphinx-doc/sphinx/issues/3511
+		% - https://GitHub.com/sphinx-doc/sphinx/issues/3511
 		%
 		\ifdefined\DeclareUnicodeCharacter
 			\DeclareUnicodeCharacter{2265}{$\geq$}
@@ -233,9 +233,9 @@ autodoc_member_order = "bysource"       # alphabetical, groupwise, bysource
 # Sphinx.Ext.ExtLinks
 # ==============================================================================
 extlinks = {
-	'ghissue': ('https://github.com/vhdl/pyVHDLModel/issues/%s', 'issue #'),
-	'ghpull':  ('https://github.com/vhdl/pyVHDLModel/pull/%s', 'pull request #'),
-	'ghsrc':   ('https://github.com/vhdl/pyVHDLModel/blob/main/%s?ts=2', None),
+	"ghissue": ('https://GitHub.com/vhdl/pyVHDLModel/issues/%s', 'issue #'),
+	"ghpull":  ('https://GitHub.com/vhdl/pyVHDLModel/pull/%s', 'pull request #'),
+	"ghsrc":   ('https://GitHub.com/vhdl/pyVHDLModel/blob/main/%s?ts=2', None),
 }
 
 

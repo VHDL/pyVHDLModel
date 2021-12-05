@@ -3,7 +3,7 @@
 .. image:: _static/logo.svg
    :height: 90 px
    :align: center
-   :target: https://github.com/vhdl/pyVHDLModel
+   :target: https://GitHub.com/vhdl/pyVHDLModel
 
 .. raw:: html
 
@@ -54,8 +54,8 @@ frontends.
 Use Cases
 *********
 
-* High-level API for `GHDL's <https://github.com/ghdl/ghdl>`__ `libghdl` offered via `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`__.
-* Code Document-Object-Model (Code-DOM) in `pyVHDLParser <https://github.com/Paebbels/pyVHDLParser>`__.
+* High-level API for `GHDL's <https://GitHub.com/ghdl/ghdl>`__ `libghdl` offered via `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`__.
+* Code Document-Object-Model (Code-DOM) in `pyVHDLParser <https://GitHub.com/Paebbels/pyVHDLParser>`__.
 
 
 .. _news:
@@ -72,7 +72,7 @@ News
 
    .. rubric:: First adoption and enhancements
 
-* `GHDL's <https://github.com/ghdl/ghdl>`__ is the first big adopter with `pyGHDL.dom <https://ghdl.github.io/ghdl/pyGHDL/pyGHDL.dom.html>`__
+* `GHDL's <https://GitHub.com/ghdl/ghdl>`__ is the first big adopter with `pyGHDL.dom <https://ghdl.github.io/ghdl/pyGHDL/pyGHDL.dom.html>`__
   to generate a network of instantiated classes derived from ``pyVHDLModel``. |br|
   It uses `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`__ as a backend (GHDL build as shared object and
   loaded into CPython via C-binding API (``ctypes``).
@@ -128,7 +128,7 @@ News
 
    .. rubric:: Split from pyVHDLParser
 
-* `pyVHDLModel` was split from `pyVHDLParser <https://github.com/Paebbels/pyVHDLParser>`__ (v0.6.0) as an independent Python package.
+* `pyVHDLModel` was split from `pyVHDLParser <https://GitHub.com/Paebbels/pyVHDLParser>`__ (v0.6.0) as an independent Python package.
 
 
 .. _contributors:
@@ -136,9 +136,9 @@ News
 Contributors
 ************
 
-* `Patrick Lehmann <https://github.com/Paebbels>`__ (Maintainer)
-* `Unai Martinez-Corral <https://github.com/umarcor/>`__
-* `and more... <https://github.com/VHDL/pyVHDLModel/graphs/contributors>`__
+* `Patrick Lehmann <https://GitHub.com/Paebbels>`__ (Maintainer)
+* `Unai Martinez-Corral <https://GitHub.com/umarcor/>`__
+* `and more... <https://GitHub.com/VHDL/pyVHDLModel/graphs/contributors>`__
 
 
 License

@@ -7,11 +7,11 @@
 .. |SHIELD:svg:pyVHDLModel-github| image:: https://img.shields.io/badge/VHDL-pyVHDLModel-29b6f6.svg?longCache=true&style=flat-square&logo=GitHub&labelColor=0277bd
    :alt: Sourcecode on GitHub
    :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel
+   :target: https://GitHub.com/vhdl/pyVHDLModel
 .. |SHIELD:png:pyVHDLModel-github| image:: https://raster.shields.io/badge/VHDL-pyVHDLModel-29b6f6.svg?longCache=true&style=flat-square&logo=GitHub&labelColor=0277bd
    :alt: Sourcecode on GitHub
    :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel
+   :target: https://GitHub.com/vhdl/pyVHDLModel
 
 .. # Sourcecode license
 .. |SHIELD:svg:pyVHDLModel-src-license| image:: https://img.shields.io/pypi/l/pyVHDLModel?longCache=true&style=flat-square&logo=Apache&label=code
@@ -21,47 +21,47 @@
 .. |SHIELD:png:pyVHDLModel-src-license| image:: https://img.shields.io/pypi/l/pyVHDLModel?longCache=true&style=flat-square&logo=Apache&label=code
    :alt: Code license
    :height: 22
-   :target: https://github.com/VHDL/pyVHDLModel/blob/main/LICENSE.md
+   :target: https://GitHub.com/VHDL/pyVHDLModel/blob/main/LICENSE.md
 
 .. # GitHub tag
 .. |SHIELD:svg:pyVHDLModel-tag| image:: https://img.shields.io/github/v/tag/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub&include_prereleases
    :alt: GitHub tag (latest SemVer incl. pre-release
    :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/tags
+   :target: https://GitHub.com/vhdl/pyVHDLModel/tags
 .. |SHIELD:png:pyVHDLModel-tag| image:: https://raster.shields.io/github/v/tag/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub&include_prereleases
    :alt: GitHub tag (latest SemVer incl. pre-release
    :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/tags
+   :target: https://GitHub.com/vhdl/pyVHDLModel/tags
 
 .. # GitHub release date
 .. |SHIELD:svg:pyVHDLModel-date| image:: https://img.shields.io/github/release-date/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub
    :alt: GitHub release date
    :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/releases
+   :target: https://GitHub.com/vhdl/pyVHDLModel/releases
 .. |SHIELD:png:pyVHDLModel-date| image:: https://raster.shields.io/github/release-date/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub
    :alt: GitHub release date
    :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/releases
+   :target: https://GitHub.com/vhdl/pyVHDLModel/releases
 
 .. # GitHub/Libraries dependent projects
 .. |SHIELD:svg:pyVHDLModel-lib-dep| image:: https://img.shields.io/librariesio/dependent-repos/pypi/pyVHDLModel?longCache=true&style=flat-square&logo=Libraries.io&logoColor=fff
    :alt: Dependent repos (via libraries.io)
    :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/network/dependents
+   :target: https://GitHub.com/vhdl/pyVHDLModel/network/dependents
 .. |SHIELD:png:pyVHDLModel-lib-dep| image:: https://raster.shields.io/librariesio/dependent-repos/pypi/pyVHDLModel?longCache=true&style=flat-square&logo=Libraries.io&logoColor=fff
    :alt: Dependent repos (via libraries.io)
    :height: 22
-   :target: https://github.com/vhdl/pyVHDLModel/network/dependents
+   :target: https://GitHub.com/vhdl/pyVHDLModel/network/dependents
 
 .. # GHA workflow
 .. |SHIELD:svg:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Pipeline/main?longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
    :alt: GitHub Workflow - Build and Test Status
    :height: 22
-   :target: https://github.com/VHDL/pyVHDLModel/actions/workflows/Pipeline.yml
+   :target: https://GitHub.com/VHDL/pyVHDLModel/actions/workflows/Pipeline.yml
 .. |SHIELD:png:pyVHDLModel-gha-test| image:: https://raster.shields.io/github/workflow/status/vhdl/pyVHDLModel/Pipeline/main?longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
    :alt: GitHub Workflow - Build and Test Status
    :height: 22
-   :target: https://github.com/VHDL/pyVHDLModel/actions/workflows/Pipeline.yml
+   :target: https://GitHub.com/VHDL/pyVHDLModel/actions/workflows/Pipeline.yml
 
 .. # Codacy - quality
 .. |SHIELD:svg:pyVHDLModel-codacy-quality| image:: https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?longCache=true&style=flat-square&logo=codacy
@@ -157,7 +157,7 @@
 .. |SHIELD:png:pyVHDLModel-doc-license| image:: https://raster.shields.io/badge/doc-CC--BY%204.0-green?longCache=true&style=flat-square&logo=CreativeCommons&logoColor=fff
    :alt: Documentation License
    :height: 22
-   :target: https://github.com/VHDL/pyVHDLModel/blob/main/doc/Doc-License.rst
+   :target: https://GitHub.com/VHDL/pyVHDLModel/blob/main/doc/Doc-License.rst
 
 .. # GHPages - read now
 .. |SHIELD:svg:pyVHDLModel-ghp-doc| image:: https://img.shields.io/website?longCache=true&style=flat-square&label=vhdl.github.io%2FpyVHDLModel&logo=GitHub&logoColor=fff&up_color=blueviolet&up_message=Read%20now%20%E2%9E%9A&url=https%3A%2F%2Fvhdl.github.io%2FpyVHDLModel%2Findex.html

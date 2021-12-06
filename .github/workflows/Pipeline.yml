@@ -1,6 +1,6 @@
 name: Pipeline
 
-on: 
+on:
   push:
   workflow_dispatch:
 
@@ -36,6 +36,7 @@ jobs:
       - Coverage
     with:
       python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
+      requirements: -r build/requirements.txt
       artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
 
   Release:
@@ -55,10 +56,10 @@ jobs:
       - Package
     with:
       python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
+      requirements: -r dist/requirements.txt
       artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
     secrets:
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-
 
   VerifyDocs:
     needs:
@@ -108,7 +109,6 @@ jobs:
         working-directory: tests/docs
         run: |
           python3 example.py
-
 
   BuildTheDocs:
     uses: pyTooling/Actions/.github/workflows/BuildTheDocs.yml@r0

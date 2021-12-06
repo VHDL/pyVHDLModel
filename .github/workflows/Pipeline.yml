@@ -29,6 +29,41 @@ jobs:
     secrets:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
+  StaticTypeCheck:
+    uses: pyTooling/Actions/.github/workflows/StaticTypeCheck.yml@main
+    needs:
+      - Params
+    with:
+      commands: mypy --html-report htmlmypy -p ToolName
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.typing }}
+      # Optional
+      python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
+      requirements: '-r tests/requirements.txt'
+      report: 'htmlmypy'
+
+  PublishTestResults:
+    name: 📊 Publish Test Results to Issue Comment
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - UnitTesting
+
+    steps:
+      - name: ⏬ Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+
+      - name: 📊 Publish Unit Test Results
+        uses: dorny/test-reporter@v1
+        with:
+          name: Unit Test Results
+          path: artifacts/**/*.xml
+          reporter: java-junit
+
   Package:
     uses: pyTooling/Actions/.github/workflows/Package.yml@r0
     needs:
@@ -124,9 +159,11 @@ jobs:
       - Params
       - BuildTheDocs
       - Coverage
+      - StaticTypeCheck
     with:
       doc: ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}
       coverage: ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
+      typing: ${{ fromJson(needs.Params.outputs.params).artifacts.typing }}
 
   ArtifactCleanUp:
     uses: pyTooling/Actions/.github/workflows/ArtifactCleanUp.yml@r0
@@ -134,11 +171,13 @@ jobs:
       - Params
       - UnitTesting
       - Coverage
+      - StaticTypeCheck
       - BuildTheDocs
       - PublishToGitHubPages
     with:
       package: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
       remaining: |
         ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-*
+        ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
         ${{ fromJson(needs.Params.outputs.params).artifacts.typing }}
         ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}

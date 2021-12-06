@@ -30,68 +30,27 @@
 # SPDX-License-Identifier: Apache-2.0
 # ============================================================================
 #
-from pathlib    import Path
-from setuptools import setup as setuptools_setup, find_packages as setuptools_find_packages
+from pathlib             import Path
+from pyTooling.Packaging import DescribePythonPackageHostedOnGitHub
 
-gitHubNamespace = "vhdl"
-projectName =     "pyVHDLModel"
+gitHubNamespace =        "VHDL"
+packageName =            "pyVHDLModel"
+packageDirectory =       packageName
+packageInformationFile = Path(f"{packageDirectory}/__init__.py")
 
-# Read README for upload to PyPI
-readmeFile = Path("README.md")
-with readmeFile.open("r") as file:
-	long_description = file.read()
-
-# Read requirements file and add them to package dependency list
-requirementsFile = Path("requirements.txt")
-with requirementsFile.open("r") as file:
-	requirements = [line for line in file.readlines()]
-
-# Derive URLs
-sourceCodeURL =     f"https://GitHub.com/{gitHubNamespace}/{projectName}"
-documentationURL =  f"https://{gitHubNamespace}.github.io/{projectName}"
-
-# Assemble all package information
-setuptools_setup(
-	name=projectName,
-	version="0.14.0",
-
-	author="Patrick Lehmann",
-	author_email="Paebbels@gmail.com",
-	# maintainer="Patrick Lehmann",
-	# maintainer_email="Paebbels@gmail.com",
-  license='Apache 2.0',
-
+DescribePythonPackageHostedOnGitHub(
+	packageName=packageName,
 	description="An abstract VHDL language model.",
-	long_description=long_description,
-	long_description_content_type="text/markdown",
-
-	url=sourceCodeURL,
-	project_urls={
-		'Documentation': f"{documentationURL}",
-		'Source Code':   f"{sourceCodeURL}",
-		'Issue Tracker': f"{sourceCodeURL}/issues"
-	},
-	# download_url="https://github.com/vhdl/pyVHDLModel/tarball/0.1.0",
-
-	packages=setuptools_find_packages(exclude=["tests", "tests.*",]),
+	gitHubNamespace=gitHubNamespace,
+	keywords="Python3 VHDL Language Model Abstract",
+	sourceFileWithVersion=packageInformationFile,
+	developmentStatus="beta",
 	classifiers=[
-		"License :: OSI Approved :: Apache Software License",
 		"Operating System :: OS Independent",
-		"Programming Language :: Python :: 3 :: Only",
-		"Programming Language :: Python :: 3.6",
-		"Programming Language :: Python :: 3.7",
-		"Programming Language :: Python :: 3.8",
-		"Programming Language :: Python :: 3.9",
-   "Development Status :: 4 - Beta",
-#		"Development Status :: 5 - Production/Stable",
 		"Intended Audience :: Developers",
 		"Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
 		"Topic :: Software Development :: Code Generators",
 		"Topic :: Software Development :: Compilers",
 		"Topic :: Utilities"
-	],
-	keywords="Python3 VHDL Language Model Abstract",
-
-	python_requires='>=3.6',
-	install_requires=requirements,
+	]
 )

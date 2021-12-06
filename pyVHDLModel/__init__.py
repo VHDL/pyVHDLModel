@@ -40,13 +40,19 @@ An abstract VHDL language model.
 :copyright: Copyright 2007-2021 Patrick Lehmann - Bötzingen, Germany
 :license: Apache License, Version 2.0
 """
+
+__author__ =    "Patrick Lehmann"
+__email__ =     "Paebbels@gmail.com"
+__copyright__ = "2016-2021, Patrick Lehmann"
+__license__ =   "Apache License, Version 2.0"
+__version__ =   "0.14.0"
+
+
 from enum     import IntEnum, unique, Enum
 from typing import List, Iterable, Union, Optional as Nullable, Dict
 
 from pyTooling.Decorators import export
 
-
-__version__ = "0.14.0"
 
 SimpleOrAttribute =     Union['SimpleName',    'AttributeName']
 

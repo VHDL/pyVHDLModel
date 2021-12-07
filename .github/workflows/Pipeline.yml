@@ -7,7 +7,7 @@ on:
 jobs:
 
   Params:
-    uses: pyTooling/Actions/.github/workflows/Params.yml@r0
+    uses: pyTooling/Actions/.github/workflows/Parameters.yml@r0
     with:
       name: pyVHDLModel
 
@@ -30,7 +30,7 @@ jobs:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
   StaticTypeCheck:
-    uses: pyTooling/Actions/.github/workflows/StaticTypeCheck.yml@main
+    uses: pyTooling/Actions/.github/workflows/StaticTypeCheck.yml@r0
     needs:
       - Params
     with:
@@ -42,27 +42,9 @@ jobs:
       report: 'htmlmypy'
 
   PublishTestResults:
-    name: 📊 Publish Test Results
-    runs-on: ubuntu-latest
-    if: always()
+    uses: pyTooling/Actions/.github/workflows/PublishTestResults.yml@r0
     needs:
       - UnitTesting
-
-    steps:
-      - name: ⏬ Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: artifacts
-
-      - name: 📊 Publish Unit Test Results
-        uses: dorny/test-reporter@v1
-        with:
-          name: Unit Test Results
-          path: artifacts/**/*.xml
-          reporter: java-junit
 
   Package:
     uses: pyTooling/Actions/.github/workflows/Package.yml@r0

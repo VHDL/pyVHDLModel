@@ -34,7 +34,7 @@ jobs:
     needs:
       - Params
     with:
-      commands: mypy --html-report htmlmypy -p ToolName
+      commands: mypy --html-report htmlmypy -p pyVHDLModel
       artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.typing }}
       # Optional
       python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}

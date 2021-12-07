@@ -8,9 +8,12 @@ __pycache__/
 coverage.xml
 
 # setuptools
-/build
-/dist
+/build/**/*.*
+/dist/**/*.*
 /*.egg-info
+
+# Dependencies
+!requirements.txt
 
 # Sphinx
 doc/_build/

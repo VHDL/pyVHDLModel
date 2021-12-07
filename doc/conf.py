@@ -2,51 +2,37 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-import sys
+from sys import path as sys_path
 from os.path import abspath
 from pathlib import Path
-from json    import dump, loads
+from json import loads
 
-sys.path.insert(0, abspath('.'))
-sys.path.insert(0, abspath('..'))
-sys.path.insert(0, abspath('../pyVHDLModel'))
-#sys.path.insert(0, abspath('_extensions'))
+from pyTooling.Packaging import extractVersionInformation
 
 
-# ==============================================================================
-# Project information
-# ==============================================================================
-project =   "pyVHDLModel"
-copyright = "2016-2021 Patrick Lehmann - Boetzingen, Germany"
-author =    "Patrick Lehmann"
+ROOT = Path(__file__).resolve().parent
+
+sys_path.insert(0, abspath('.'))
+sys_path.insert(0, abspath('..'))
+sys_path.insert(0, abspath('../pyVHDLModel'))
+#sys_path.insert(0, abspath('_extensions'))
 
 
 # ==============================================================================
-# Versioning
+# Project information and versioning
 # ==============================================================================
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-from subprocess import check_output
+project =     "pyVHDLModel"
 
-def _IsUnderGitControl():
-	return (check_output(["git", "rev-parse", "--is-inside-work-tree"], universal_newlines=True).strip() == "true")
+packageInformationFile = Path(f"../{project}/__init__.py")
+versionInformation = extractVersionInformation(packageInformationFile)
 
-def _LatestTagName():
-	return check_output(["git", "describe", "--abbrev=0", "--tags"], universal_newlines=True).strip()
-
-# The full version, including alpha/beta/rc tags
-version = "0.13"     # The short X.Y version.
-release = "0.13.2"   # The full version, including alpha/beta/rc tags.
-try:
-	if _IsUnderGitControl:
-		latestTagName = _LatestTagName()[1:]		# remove prefix "v"
-		versionParts =  latestTagName.split("-")[0].split(".")
-
-		version = ".".join(versionParts[:2])
-		release = latestTagName   # ".".join(versionParts[:3])
-except:
-	pass
+author =    versionInformation.Author
+copyright = versionInformation.Copyright
+version =   ".".join(versionInformation.Version.split(".")[:2])  # e.g. 2.3    The short X.Y version.
+release =   versionInformation.Version
 
 
 # ==============================================================================
@@ -88,19 +74,22 @@ except Exception as ex:
 # ==============================================================================
 # Options for HTML output
 # ==============================================================================
-html_theme_options = {
-	'logo_only': True,
-	'home_breadcrumbs': True,
-	'vcs_pageview_mode': 'blob',
-}
 
 html_context = {}
-ctx = Path(__file__).resolve().parent / 'context.json'
+ctx = ROOT / 'context.json'
 if ctx.is_file():
 	html_context.update(loads(ctx.open('r').read()))
 
-html_theme_path = ["."]
-html_theme = "_theme"
+if (ROOT / "_theme").is_dir():
+	html_theme_path = ["."]
+	html_theme = "_theme"
+	html_theme_options = {
+		'logo_only': True,
+		'home_breadcrumbs': False,
+		'vcs_pageview_mode': 'blob',
+	}
+else:
+	html_theme = "alabaster"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -138,7 +127,7 @@ latex_elements = {
 		% ================================================================================
 		% Add more Unicode characters for pdfLaTeX.
 		% - Alternatively, compile with XeLaTeX or LuaLaTeX.
-		% - https://github.com/sphinx-doc/sphinx/issues/3511
+		% - https://GitHub.com/sphinx-doc/sphinx/issues/3511
 		%
 		\ifdefined\DeclareUnicodeCharacter
 			\DeclareUnicodeCharacter{2265}{$\geq$}
@@ -227,10 +216,9 @@ autodoc_member_order = "bysource"       # alphabetical, groupwise, bysource
 # Sphinx.Ext.ExtLinks
 # ==============================================================================
 extlinks = {
-	'issue': ('https://github.com/vhdl/pyVHDLModel/issues/%s', 'issue #'),
-	'pull':  ('https://github.com/vhdl/pyVHDLModel/pull/%s', 'pull request #'),
-	'src':   ('https://github.com/vhdl/pyVHDLModel/blob/master/pyMetaClasses/%s?ts=2', None),
-#	'test':  ('https://github.com/vhdl/pyVHDLModel/blob/master/test/%s?ts=2', None)
+	"ghissue": ('https://GitHub.com/vhdl/pyVHDLModel/issues/%s', 'issue #'),
+	"ghpull":  ('https://GitHub.com/vhdl/pyVHDLModel/pull/%s', 'pull request #'),
+	"ghsrc":   ('https://GitHub.com/vhdl/pyVHDLModel/blob/main/%s?ts=2', None),
 }
 
 

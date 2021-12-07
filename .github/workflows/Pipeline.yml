@@ -1,254 +1,88 @@
-name: Unit Testing, Coverage Collection, Package, Release, Documentation and Publish
+name: Pipeline
 
-on: [ push ]
-
-defaults:
-  run:
-    shell: bash
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
+
+  Params:
+    uses: pyTooling/Actions/.github/workflows/Parameters.yml@r0
+    with:
+      name: pyVHDLModel
+
   UnitTesting:
-    name: ${{ matrix.icon }} Unit Tests using Python ${{ matrix.python }}
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - {python: 3.6, icon: 🔴}
-          - {python: 3.7, icon: 🟠}
-          - {python: 3.8, icon: 🟡}
-          - {python: 3.9, icon: 🟢}
-
-    env:
-      PYTHON: ${{ matrix.python }}
-    outputs:
-      python: ${{ env.PYTHON }}
-
-    steps:
-      - name: ⏬ Checkout repository
-        uses: actions/checkout@v2
-
-      - name: 🐍 Setup Python ${{ matrix.python }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-
-      - name: 🔧 Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r tests/requirements.txt
-
-      - name: ☑ Run unit tests
-        run: |
-          python -m pytest -rA --junitxml=TestReport.xml tests/unit
-
-      - name: 📤 Upload 'TestReport.xml' artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: TestReport-${{ env.PYTHON }}
-          path: TestReport.xml
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: 📊 Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
-        with:
-          files: TestReport.xml
-          comment_title: Unit Test Results (Python ${{ env.PYTHON }})
+    uses: pyTooling/Actions/.github/workflows/UnitTesting.yml@r0
+    needs:
+      - Params
+    with:
+      jobs: ${{ needs.Params.outputs.python_jobs }}
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}
 
   Coverage:
-    name: 📈 Collect Coverage Data using Python 3.9
-    runs-on: ubuntu-latest
+    uses: pyTooling/Actions/.github/workflows/CoverageCollection.yml@r0
+    needs:
+      - Params
+    with:
+      python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
+    secrets:
+      codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
-    env:
-      PYTHON: 3.9
-    outputs:
-      python: ${{ env.PYTHON }}
+  StaticTypeCheck:
+    uses: pyTooling/Actions/.github/workflows/StaticTypeCheck.yml@r0
+    needs:
+      - Params
+    with:
+      commands: mypy --html-report htmlmypy -p pyVHDLModel
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.typing }}
+      # Optional
+      python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
+      requirements: '-r tests/requirements.txt'
+      report: 'htmlmypy'
 
-    steps:
-      - name: ⏬ Checkout repository
-        uses: actions/checkout@v2
+  PublishTestResults:
+    uses: pyTooling/Actions/.github/workflows/PublishTestResults.yml@r0
+    needs:
+      - UnitTesting
 
-      - name: 🐍 Setup Python ${{ env.PYTHON }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ env.PYTHON }}
-
-      - name: 🗂 Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r tests/requirements.txt
-
-      - name: Collect coverage
-        continue-on-error: true
-        run: |
-          python -m pytest -rA --cov=.. --cov-config=tests/.coveragerc tests/unit
-
-      - name: Convert to cobertura format
-        run: |
-          coverage xml
-
-      - name: 📊 Publish coverage at CodeCov
-        continue-on-error: true
-        uses: codecov/codecov-action@v1
-        with:
-          file: ./coverage.xml
-          flags: unittests
-          env_vars: PYTHON
-
-      - name: 📉 Publish coverage at Codacy
-        continue-on-error: true
-        uses: codacy/codacy-coverage-reporter-action@master
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: ./coverage.xml
+  Package:
+    uses: pyTooling/Actions/.github/workflows/Package.yml@r0
+    needs:
+      - Params
+      - Coverage
+    with:
+      python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
+      requirements: -r build/requirements.txt
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
 
   Release:
-    name: 📝 Create 'Release Page' on GitHub
-    runs-on: ubuntu-latest
-
+    uses: pyTooling/Actions/.github/workflows/Release.yml@r0
     if: startsWith(github.ref, 'refs/tags')
     needs:
       - UnitTesting
       - Coverage
-
-    env:
-      PYTHON: ${{ needs.Coverage.outputs.python }}
-    outputs:
-      python:     ${{ env.PYTHON }}
-      tag:        ${{ steps.getVariables.outputs.gitTag }}
-      version:    ${{ steps.getVariables.outputs.version }}
-      datetime:   ${{ steps.getVariables.outputs.datetime }}
-      upload_url: ${{ steps.createReleasePage.outputs.upload_url }}
-
-    steps:
-      - name: 🔁 Extract Git tag from GITHUB_REF
-        id:   getVariables
-        run: |
-          GIT_TAG=${GITHUB_REF#refs/*/}
-          RELEASE_VERSION=${GIT_TAG#v}
-          RELEASE_DATETIME="$(date --utc '+%d.%m.%Y - %H:%M:%S')"
-          # write to step outputs
-          echo ::set-output name=gitTag::${GIT_TAG}
-          echo ::set-output name=version::${RELEASE_VERSION}
-          echo ::set-output name=datetime::${RELEASE_DATETIME}
-
-      - name: 📑 Create Release Page
-        id:   createReleasePage
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.getVariables.outputs.gitTag }}
-#          release_name: ${{ steps.getVariables.outputs.gitTag }}
-          body: |
-            **Automated Release created on: ${{ steps.getVariables.outputs.datetime }}**
-
-            # New Features
-            * tbd
-
-            # Changes
-            * tbd
-
-            # Bug Fixes
-            * tbd
-          draft: false
-          prerelease: false
-
-  Package:
-    name: 📦 Package in Wheel Format
-    runs-on: ubuntu-latest
-
-    if: startsWith(github.ref, 'refs/tags')
-    needs:
-      - Coverage
-
-    env:
-      PYTHON:   ${{ needs.Coverage.outputs.python }}
-      ARTIFACT: pyVHDLModel-wheel
-    outputs:
-      python:   ${{ env.PYTHON }}
-      artifact: ${{ env.ARTIFACT }}
-
-    steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v2
-
-      - name: 🐍 Setup Python ${{ env.PYTHON }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ env.PYTHON }}
-
-      - name: 🔧 Install dependencies for packaging and release
-        run: |
-          python -m pip install --upgrade pip
-          pip install wheel
-
-      - name: 🔨 Build Python package (source distribution)
-        run: |
-          python setup.py sdist
-
-      - name: 🔨 Build Python package (binary distribution - wheel)
-        run: |
-          python setup.py bdist_wheel
-
-      - name: 📤 Upload 'pyVHDLModel' artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ env.ARTIFACT }}
-          path: dist/
-          if-no-files-found: error
-          retention-days: 1
-
-  PublishOnPyPI:
-    name: 🚀 Publish to PyPI
-    runs-on: ubuntu-latest
-
-    if: startsWith(github.ref, 'refs/tags')
-    needs:
       - Package
 
-    env:
-      PYTHON:   ${{ needs.Package.outputs.python }}
-      ARTIFACT: ${{ needs.Package.outputs.artifact }}
-    outputs:
-      python:   ${{ env.PYTHON }}
-      artifact: ${{ env.ARTIFACT }}
-
-    steps:
-      - name: 📥 Download artifacts '${{ env.ARTIFACT }}' from 'Package' job
-        uses: actions/download-artifact@v2
-        with:
-          name: ${{ env.ARTIFACT }}
-          path: dist/
-
-      - name: 🐍 Setup Python ${{ env.PYTHON }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ env.PYTHON }}
-
-      - name: ⚙ Install dependencies for packaging and release
-        run: |
-          python -m pip install --upgrade pip
-          pip install wheel twine
-
-      - name: ⤴ Release Python package to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          twine upload dist/*
+  PublishOnPyPI:
+    uses: pyTooling/Actions/.github/workflows/PublishOnPyPI.yml@r0
+    if: startsWith(github.ref, 'refs/tags')
+    needs:
+      - Params
+      - Release
+      - Package
+    with:
+      python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
+      requirements: -r dist/requirements.txt
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
+    secrets:
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
   VerifyDocs:
-    name: 👍 Verify example snippets using Python 3.9
+    needs:
+      - Params
+    name: 👍 Verify example snippets using Python ${{ fromJson(needs.Params.outputs.params).python_version }}
     runs-on: ubuntu-latest
-
-    env:
-      PYTHON: 3.9
-    outputs:
-      python: ${{ env.PYTHON }}
 
     steps:
       - name: ⏬ Checkout repository
@@ -260,7 +94,7 @@ jobs:
       - name: 🐍 Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ env.PYTHON }}
+          python-version: ${{ fromJson(needs.Params.outputs.params).python_version }}
 
       - name: 🐍 Install dependencies
         run: |
@@ -293,50 +127,43 @@ jobs:
         run: |
           python3 example.py
 
-
   BuildTheDocs:
-    name: 📓 Run BuildTheDocs and publish to GH-Pages
-    runs-on: ubuntu-latest
-
+    uses: pyTooling/Actions/.github/workflows/BuildTheDocs.yml@r0
     needs:
+      - Params
       - VerifyDocs
+    with:
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: 🚢 Build container image 'vhdl/doc'
-        run: |
-          docker build -t vhdl/doc - <<-EOF
-          FROM btdi/sphinx:featured
-          RUN apk add -U --no-cache graphviz
-          EOF
-
-      - name: 🛳️ Build documentation using container vhdl/doc and publish to GitHub Pages
-        uses: buildthedocs/btd@v0
-        with:
-          token: ${{ github.token }}
-
-      - name: 📤 Upload artifacts
-        uses: actions/upload-artifact@master
-        with:
-          name: doc
-          path: doc/_build/html
+  PublishToGitHubPages:
+    uses: pyTooling/Actions/.github/workflows/PublishToGitHubPages.yml@r0
+    needs:
+      - Params
+      - BuildTheDocs
+      - Coverage
+      - StaticTypeCheck
+    with:
+      doc: ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}
+      coverage: ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
+      typing: ${{ fromJson(needs.Params.outputs.params).artifacts.typing }}
 
   ArtifactCleanUp:
-    name: 🗑️ Artifact Cleanup
-    runs-on: ubuntu-latest
-
+    uses: pyTooling/Actions/.github/workflows/ArtifactCleanUp.yml@r0
     needs:
-      - Package
-      - PublishOnPyPI
-
-    env:
-      ARTIFACT: ${{ needs.Package.outputs.artifact }}
-
-    steps:
-      - name: 🗑️ Delete all Artifacts
-        uses: geekyeggo/delete-artifact@v1
-        with:
-          name: |
-            ${{ env.ARTIFACT }}
+      - Params
+      - UnitTesting
+      - Coverage
+      - StaticTypeCheck
+      - BuildTheDocs
+      - PublishToGitHubPages
+    with:
+      package: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
+      remaining: |
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-3.6
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-3.7
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-3.8
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-3.9
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-3.10
+        ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
+        ${{ fromJson(needs.Params.outputs.params).artifacts.typing }}
+        ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}

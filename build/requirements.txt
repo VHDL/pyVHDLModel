@@ -1,0 +1,3 @@
+pyTooling.Packaging>=0.3.0
+
+wheel

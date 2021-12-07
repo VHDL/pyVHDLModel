@@ -1,30 +1,38 @@
 .. include:: shields.inc
 
+.. image:: _static/logo.svg
+   :height: 90 px
+   :align: center
+   :target: https://GitHub.com/vhdl/pyVHDLModel
+
+.. raw:: html
+
+    <br>
+
 .. raw:: latex
 
    \part{Introduction}
 
 .. only:: html
 
-   |  |SHIELD:svg:pyVHDLModel-github| |SHIELD:svg:pyVHDLModel-src-license| |SHIELD:svg:pyVHDLModel-tag| |SHIELD:svg:pyVHDLModel-release| |SHIELD:svg:pyVHDLModel-date| |SHIELD:svg:pyVHDLModel-lib-dep|
-   |  |SHIELD:svg:pyVHDLModel-gha-test| |SHIELD:svg:pyVHDLModel-codacy-quality| |SHIELD:svg:pyVHDLModel-codacy-coverage| |SHIELD:svg:pyVHDLModel-codecov-coverage| |SHIELD:svg:pyVHDLModel-lib-rank|
-   |  |SHIELD:svg:pyVHDLModel-gha-release| |SHIELD:svg:pyVHDLModel-pypi-tag| |SHIELD:svg:pyVHDLModel-pypi-status| |SHIELD:svg:pyVHDLModel-pypi-python| |SHIELD:svg:pyVHDLModel-lib-status| |SHIELD:svg:pyVHDLModel-req-status|
-   |  |SHIELD:svg:pyVHDLModel-gha-doc| |SHIELD:svg:pyVHDLModel-doc-license| |SHIELD:svg:pyVHDLModel-ghp-doc|
+   |  |SHIELD:svg:pyVHDLModel-github| |SHIELD:svg:pyVHDLModel-src-license| |SHIELD:svg:pyVHDLModel-ghp-doc| |SHIELD:svg:pyVHDLModel-doc-license| |SHIELD:svg:pyVHDLModel-gitter|
+   |  |SHIELD:svg:pyVHDLModel-pypi-tag| |SHIELD:svg:pyVHDLModel-pypi-status| |SHIELD:svg:pyVHDLModel-pypi-python|
+   |  |SHIELD:svg:pyVHDLModel-gha-test| |SHIELD:svg:pyVHDLModel-lib-status| |SHIELD:svg:pyVHDLModel-codacy-quality| |SHIELD:svg:pyVHDLModel-codacy-coverage| |SHIELD:svg:pyVHDLModel-codecov-coverage|
+
+.. Disabled shields: |SHIELD:svg:pyVHDLModel-lib-dep| |SHIELD:svg:pyVHDLModel-req-status| |SHIELD:svg:pyVHDLModel-lib-rank|
 
 .. only:: latex
 
-   |SHIELD:png:pyVHDLModel-github| |SHIELD:png:pyVHDLModel-src-license| |SHIELD:png:pyVHDLModel-tag| |SHIELD:png:pyVHDLModel-release| |SHIELD:png:pyVHDLModel-date| |SHIELD:png:pyVHDLModel-lib-dep|
-   |SHIELD:png:pyVHDLModel-gha-test| |SHIELD:png:pyVHDLModel-codacy-quality| |SHIELD:png:pyVHDLModel-codacy-coverage| |SHIELD:png:pyVHDLModel-codecov-coverage| |SHIELD:png:pyVHDLModel-lib-rank|
-   |SHIELD:png:pyVHDLModel-gha-release| |SHIELD:png:pyVHDLModel-pypi-tag| |SHIELD:png:pyVHDLModel-pypi-status| |SHIELD:png:pyVHDLModel-pypi-python| |SHIELD:png:pyVHDLModel-lib-status| |SHIELD:png:pyVHDLModel-req-status|
-   |SHIELD:png:pyVHDLModel-gha-doc| |SHIELD:png:pyVHDLModel-doc-license| |SHIELD:png:pyVHDLModel-ghp-doc|
+   |SHIELD:png:pyVHDLModel-github| |SHIELD:png:pyVHDLModel-src-license| |SHIELD:png:pyVHDLModel-ghp-doc| |SHIELD:png:pyVHDLModel-doc-license| |SHIELD:svg:pyVHDLModel-gitter|
+   |SHIELD:png:pyVHDLModel-pypi-tag| |SHIELD:png:pyVHDLModel-pypi-status| |SHIELD:png:pyVHDLModel-pypi-python|
+   |SHIELD:png:pyVHDLModel-gha-test| |SHIELD:png:pyVHDLModel-lib-status| |SHIELD:png:pyVHDLModel-codacy-quality| |SHIELD:png:pyVHDLModel-codacy-coverage| |SHIELD:png:pyVHDLModel-codecov-coverage|
 
---------------------------------------------------------------------------------
+.. Disabled shields: |SHIELD:png:pyVHDLModel-lib-dep| |SHIELD:png:pyVHDLModel-req-status| |SHIELD:png:pyVHDLModel-lib-rank|
 
 The pyVHDLModel Documentation
 #############################
 
 An abstract VHDL language model.
-
 
 
 .. _goals:
@@ -41,15 +49,13 @@ build higher level features and services on such a model, while supporting multi
 frontends.
 
 
-
 .. _usecase:
 
 Use Cases
 *********
 
-* High-level API for `GHDL's <https://github.com/ghdl/ghdl>`__ `libghdl` offered via `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`__.
-* Code Document-Object-Model (Code-DOM) in `pyVHDLParser <https://github.com/Paebbels/pyVHDLParser>`__.
-
+* High-level API for `GHDL's <https://GitHub.com/ghdl/ghdl>`__ `libghdl` offered via `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`__.
+* Code Document-Object-Model (Code-DOM) in `pyVHDLParser <https://GitHub.com/Paebbels/pyVHDLParser>`__.
 
 
 .. _news:
@@ -66,7 +72,7 @@ News
 
    .. rubric:: First adoption and enhancements
 
-* `GHDL's <https://github.com/ghdl/ghdl>`__ is the first big adopter with `pyGHDL.dom <https://ghdl.github.io/ghdl/pyGHDL/pyGHDL.dom.html>`__
+* `GHDL's <https://GitHub.com/ghdl/ghdl>`__ is the first big adopter with `pyGHDL.dom <https://ghdl.github.io/ghdl/pyGHDL/pyGHDL.dom.html>`__
   to generate a network of instantiated classes derived from ``pyVHDLModel``. |br|
   It uses `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`__ as a backend (GHDL build as shared object and
   loaded into CPython via C-binding API (``ctypes``).
@@ -122,8 +128,7 @@ News
 
    .. rubric:: Split from pyVHDLParser
 
-* `pyVHDLModel` was split from `pyVHDLParser <https://github.com/Paebbels/pyVHDLParser>`__ (v0.6.0) as an independent Python package.
-
+* `pyVHDLModel` was split from `pyVHDLParser <https://GitHub.com/Paebbels/pyVHDLParser>`__ (v0.6.0) as an independent Python package.
 
 
 .. _contributors:
@@ -131,9 +136,9 @@ News
 Contributors
 ************
 
-* `Patrick Lehmann <https://github.com/Paebbels>`__ (Maintainer)
-* `Unai Martinez-Corral <https://github.com/umarcor/>`__
-* `and more... <https://github.com/VHDL/pyVHDLModel/graphs/contributors>`__
+* `Patrick Lehmann <https://GitHub.com/Paebbels>`__ (Maintainer)
+* `Unai Martinez-Corral <https://GitHub.com/umarcor/>`__
+* `and more... <https://GitHub.com/VHDL/pyVHDLModel/graphs/contributors>`__
 
 
 License
@@ -156,6 +161,12 @@ License
 .. only:: html
 
    This document was generated on |docdate|.
+
+
+.. toctree::
+   :hidden:
+
+   Used as a layer of EDA² ➚ <https://edaa-org.github.io/>
 
 
 .. toctree::
@@ -196,6 +207,8 @@ License
    :caption: Appendix
    :hidden:
 
+   Coverage Report ➚ <https://VHDL.GitHub.io/pyVHDLModel/coverage/>
+   Static Type Check Report ➚ <https://VHDL.GitHub.io/pyVHDLModel/typing/>
    ChangeLog/index
    License
    Doc-License

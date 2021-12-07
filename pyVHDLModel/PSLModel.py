@@ -41,7 +41,7 @@ This module contains a document language model for PSL.
 :license: Apache License, Version 2.0
 """
 # load dependencies
-from pydecor.decorators import export
+from pyTooling.Decorators import export
 
 from pyVHDLModel import ModelEntity, PrimaryUnit
 

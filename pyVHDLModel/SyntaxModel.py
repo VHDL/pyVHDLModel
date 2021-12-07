@@ -44,7 +44,7 @@ This module contains a document language model for VHDL.
 from pathlib              import Path
 from typing               import List, Tuple, Union, Dict, Iterator, Optional as Nullable, Any, Iterable
 
-from pydecor.decorators   import export
+from pyTooling.Decorators import export
 
 from pyVHDLModel          import ModelEntity, NamedEntity, MultipleNamedEntity, LabeledEntity, PossibleReference, Direction, EntityClass, Mode
 from pyVHDLModel          import PrimaryUnit, SecondaryUnit
@@ -56,10 +56,6 @@ try:
 except ImportError:
 	class Protocol:
 		pass
-
-
-__all__ = []
-# __api__ = __all__ # FIXME: disabled due to a bug in pydecors export decorator
 
 
 @export
@@ -2315,6 +2311,14 @@ class Instantiation(ConcurrentStatement):
 
 		self._genericAssociations = [] if genericAssociations is None else [g for g in genericAssociations]
 		self._portAssociations =    [] if portAssociations is None else [p for p in portAssociations]
+
+	@property
+	def GenericAssociations(self) -> List[AssociationItem]:
+		return self._genericAssociations
+
+	@property
+	def PortAssociations(self) -> List[AssociationItem]:
+		return self._portAssociations
 
 
 @export

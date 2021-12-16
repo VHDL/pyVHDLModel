@@ -52,7 +52,6 @@ jobs:
       - Coverage
     with:
       python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
-      requirements: -r build/requirements.txt
       artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
 
   Release:

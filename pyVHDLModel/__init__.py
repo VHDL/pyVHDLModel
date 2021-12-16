@@ -45,7 +45,7 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2021, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.14.0"
+__version__ =   "0.14.1"
 
 
 from enum     import IntEnum, unique, Enum

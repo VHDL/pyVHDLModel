@@ -34,12 +34,11 @@ jobs:
     needs:
       - Params
     with:
-      commands: mypy --html-report htmlmypy -p pyVHDLModel
-      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.typing }}
-      # Optional
       python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
       requirements: '-r tests/requirements.txt'
+      commands: mypy --html-report htmlmypy -p pyVHDLModel
       report: 'htmlmypy'
+      artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.typing }}
 
   PublishTestResults:
     uses: pyTooling/Actions/.github/workflows/PublishTestResults.yml@r0
@@ -53,7 +52,6 @@ jobs:
       - Coverage
     with:
       python_version: ${{ fromJson(needs.Params.outputs.params).python_version }}
-      requirements: -r build/requirements.txt
       artifact: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
 
   Release:
@@ -62,6 +60,7 @@ jobs:
     needs:
       - UnitTesting
       - Coverage
+      - StaticTypeCheck
       - Package
 
   PublishOnPyPI:

@@ -2,11 +2,11 @@
 branch = true
 
 [report]
-skip_covered = True
-skip_empty = True
+skip_covered = true
+skip_empty = true
 
 [html]
-directory = .cov
+directory = '.cov'
 
 [xml]
-output = coverage.xml
+output = 'coverage.xml'

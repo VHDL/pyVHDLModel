@@ -8,3 +8,29 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 120
+
+[tool.pytest.ini_options]
+# Don't set 'python_classes = *' otherwise, pytest doesn't search for classes
+# derived from unittest.Testcase
+python_files = "*"
+python_functions = "test_*"
+
+[tool.coverage.run]
+branch = true
+omit = [
+	"*site-packages*",
+	"setup.py"
+]
+
+[tool.coverage.report]
+skip_covered = true
+skip_empty = true
+exclude_lines = [
+	"raise NotImplementedError"
+]
+
+[tool.coverage.html]
+directory = "report/coverage/html"
+
+[tool.coverage.xml]
+output = "report/coverage/coverage.xml"

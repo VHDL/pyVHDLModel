@@ -3,6 +3,8 @@ name: Pipeline
 on:
   push:
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 5'
 
 jobs:
 
@@ -151,6 +153,7 @@ jobs:
     needs:
       - Params
       - UnitTesting
+      - PublishTestResults
       - Coverage
       - StaticTypeCheck
       - BuildTheDocs

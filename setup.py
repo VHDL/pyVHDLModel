@@ -31,7 +31,7 @@
 # ============================================================================
 #
 from pathlib             import Path
-from pyTooling.Packaging import DescribePythonPackageHostedOnGitHub
+from pyTooling.Packaging import DescribePythonPackageHostedOnGitHub, DEFAULT_CLASSIFIERS
 
 gitHubNamespace =        "VHDL"
 packageName =            "pyVHDLModel"
@@ -45,12 +45,9 @@ DescribePythonPackageHostedOnGitHub(
 	keywords="Python3 VHDL Language Model Abstract",
 	sourceFileWithVersion=packageInformationFile,
 	developmentStatus="beta",
-	classifiers=[
-		"Operating System :: OS Independent",
-		"Intended Audience :: Developers",
+	classifiers=list(DEFAULT_CLASSIFIERS) + [
 		"Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
 		"Topic :: Software Development :: Code Generators",
 		"Topic :: Software Development :: Compilers",
-		"Topic :: Utilities"
 	]
 )

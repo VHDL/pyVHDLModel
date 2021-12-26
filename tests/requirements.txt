@@ -8,5 +8,5 @@ pytest>=6.2.5
 pytest-cov>=3.0.0
 
 # Static Type Checking
-mypy>=0.910
+mypy>=0.930
 lxml>=4.6.4

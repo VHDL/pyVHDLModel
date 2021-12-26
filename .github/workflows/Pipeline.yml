@@ -153,11 +153,11 @@ jobs:
     needs:
       - Params
       - UnitTesting
-      - PublishTestResults
       - Coverage
       - StaticTypeCheck
       - BuildTheDocs
       - PublishToGitHubPages
+      - PublishTestResults
     with:
       package: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
       remaining: |

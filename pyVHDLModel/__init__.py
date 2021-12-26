@@ -143,27 +143,44 @@ class VHDLVersion(Enum):
 		except KeyError:
 			ValueError("Value '{0!s}' cannot be parsed to member of {1}.".format(value, cls.__name__))
 
-	def __lt__(self, other: Enum) -> bool:
-		return self.value < other.value
-
-	def __le__(self, other: Enum) -> bool:
-		return self.value <= other.value
-
-	def __gt__(self, other: Enum) -> bool:
-		return self.value > other.value
-
-	def __ge__(self, other: Enum) -> bool:
-		return self.value >= other.value
-
-	def __ne__(self, other: Enum) -> bool:
-		return self.value != other.value
-
-	def __eq__(self, other: Enum) -> bool:
-		if ((self is self.__class__.Any) or (other is self.__class__.Any)):
-			return True
+	def __lt__(self, other: Any) -> bool:
+		if isinstance(other, VHDLVersion):
+			return self.value < other.value
 		else:
-			return (self.value == other.value)
+			raise TypeError("Second operand is not of type 'VHDLVersion'.")
 
+	def __le__(self, other: Any) -> bool:
+		if isinstance(other, VHDLVersion):
+			return self.value <= other.value
+		else:
+			raise TypeError("Second operand is not of type 'VHDLVersion'.")
+
+	def __gt__(self, other: Any) -> bool:
+		if isinstance(other, VHDLVersion):
+			return self.value > other.value
+		else:
+			raise TypeError("Second operand is not of type 'VHDLVersion'.")
+
+	def __ge__(self, other: Any) -> bool:
+		if isinstance(other, VHDLVersion):
+			return self.value >= other.value
+		else:
+			raise TypeError("Second operand is not of type 'VHDLVersion'.")
+
+	def __ne__(self, other: Any) -> bool:
+		if isinstance(other, VHDLVersion):
+			return self.value != other.value
+		else:
+			raise TypeError("Second operand is not of type 'VHDLVersion'.")
+
+	def __eq__(self, other: Any) -> bool:
+		if isinstance(other, VHDLVersion):
+			if ((self is self.__class__.Any) or (other is self.__class__.Any)):
+				return True
+			else:
+				return (self.value == other.value)
+		else:
+			raise TypeError("Second operand is not of type 'VHDLVersion'.")
 
 	def __str__(self) -> str:
 		return "VHDL'" + str(self.value)[-2:]

@@ -46,8 +46,6 @@ from pyTooling.Decorators import export
 from pyVHDLModel import ModelEntity, PrimaryUnit
 
 
-__all__ = []
-
 @export
 class PSLPrimaryUnit(PrimaryUnit):
 	pass

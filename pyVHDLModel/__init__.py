@@ -1,55 +1,49 @@
-# =============================================================================
-#             __     ___   _ ____  _     __  __           _      _
-#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |
-#  | '_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |
-#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |
-#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|
-#  |_|    |___/
-# ==============================================================================
-# Authors:            Patrick Lehmann
-#
-# Python package:     An abstract VHDL language model.
-#
-# Description:
-# ------------------------------------
-#		TODO:
-#
-# License:
-# ==============================================================================
-# Copyright 2017-2021 Patrick Lehmann - Boetzingen, Germany
-# Copyright 2016-2017 Patrick Lehmann - Dresden, Germany
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# SPDX-License-Identifier: Apache-2.0
-# ==============================================================================
+# ==================================================================================================================== #
+#             __     ___   _ ____  _     __  __           _      _                                                     #
+#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #
+#  | '_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #
+#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #
+#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #
+#  |_|    |___/                                                                                                        #
+# ==================================================================================================================== #
+# Authors:                                                                                                             #
+#   Patrick Lehmann                                                                                                    #
+#                                                                                                                      #
+# License:                                                                                                             #
+# ==================================================================================================================== #
+# Copyright 2017-2022 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
+#                                                                                                                      #
+# Licensed under the Apache License, Version 2.0 (the "License");                                                      #
+# you may not use this file except in compliance with the License.                                                     #
+# You may obtain a copy of the License at                                                                              #
+#                                                                                                                      #
+#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #
+#                                                                                                                      #
+# Unless required by applicable law or agreed to in writing, software                                                  #
+# distributed under the License is distributed on an "AS IS" BASIS,                                                    #
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #
+# See the License for the specific language governing permissions and                                                  #
+# limitations under the License.                                                                                       #
+#                                                                                                                      #
+# SPDX-License-Identifier: Apache-2.0                                                                                  #
+# ==================================================================================================================== #
 #
 """
 An abstract VHDL language model.
 
-:copyright: Copyright 2007-2021 Patrick Lehmann - Bötzingen, Germany
+:copyright: Copyright 2007-2022 Patrick Lehmann - Bötzingen, Germany
 :license: Apache License, Version 2.0
 """
-
 __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
-__copyright__ = "2016-2021, Patrick Lehmann"
+__copyright__ = "2016-2022, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.14.2"
+__version__ =   "0.14.3"
 
 
 from enum     import IntEnum, unique, Enum
-from typing import List, Iterable, Union, Optional as Nullable, Dict
+from typing   import List, Iterable, Union, Optional as Nullable, Dict
 
 from pyTooling.Decorators import export
 
@@ -149,27 +143,44 @@ class VHDLVersion(Enum):
 		except KeyError:
 			ValueError("Value '{0!s}' cannot be parsed to member of {1}.".format(value, cls.__name__))
 
-	def __lt__(self, other: Enum) -> bool:
-		return self.value < other.value
-
-	def __le__(self, other: Enum) -> bool:
-		return self.value <= other.value
-
-	def __gt__(self, other: Enum) -> bool:
-		return self.value > other.value
-
-	def __ge__(self, other: Enum) -> bool:
-		return self.value >= other.value
-
-	def __ne__(self, other: Enum) -> bool:
-		return self.value != other.value
-
-	def __eq__(self, other: Enum) -> bool:
-		if ((self is self.__class__.Any) or (other is self.__class__.Any)):
-			return True
+	def __lt__(self, other: Any) -> bool:
+		if isinstance(other, VHDLVersion):
+			return self.value < other.value
 		else:
-			return (self.value == other.value)
+			raise TypeError("Second operand is not of type 'VHDLVersion'.")
 
+	def __le__(self, other: Any) -> bool:
+		if isinstance(other, VHDLVersion):
+			return self.value <= other.value
+		else:
+			raise TypeError("Second operand is not of type 'VHDLVersion'.")
+
+	def __gt__(self, other: Any) -> bool:
+		if isinstance(other, VHDLVersion):
+			return self.value > other.value
+		else:
+			raise TypeError("Second operand is not of type 'VHDLVersion'.")
+
+	def __ge__(self, other: Any) -> bool:
+		if isinstance(other, VHDLVersion):
+			return self.value >= other.value
+		else:
+			raise TypeError("Second operand is not of type 'VHDLVersion'.")
+
+	def __ne__(self, other: Any) -> bool:
+		if isinstance(other, VHDLVersion):
+			return self.value != other.value
+		else:
+			raise TypeError("Second operand is not of type 'VHDLVersion'.")
+
+	def __eq__(self, other: Any) -> bool:
+		if isinstance(other, VHDLVersion):
+			if ((self is self.__class__.Any) or (other is self.__class__.Any)):
+				return True
+			else:
+				return (self.value == other.value)
+		else:
+			raise TypeError("Second operand is not of type 'VHDLVersion'.")
 
 	def __str__(self) -> str:
 		return "VHDL'" + str(self.value)[-2:]

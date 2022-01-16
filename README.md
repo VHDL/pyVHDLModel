@@ -12,8 +12,8 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyVHDLModel?longCache=true&style=flat-square&logo=PyPI&logoColor=FBE072)  
 [![GitHub Workflow - Build and Test Status](https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Pipeline/main?longCache=true&style=flat-square&label=Build%20and%20test&logo=GitHub%20Actions&logoColor=FFFFFF)](https://github.com/VHDL/pyVHDLModel/actions/workflows/Pipeline.yml)
 [![Libraries.io status for latest release](https://img.shields.io/librariesio/release/pypi/pyVHDLModel?longCache=true&style=flat-square&logo=Libraries.io&logoColor=fff)](https://libraries.io/github/vhdl/pyVHDLModel)
-[![Codacy - Quality](https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?longCache=true&style=flat-square&logo=Codacy)](https://www.codacy.com/manual/VHDL/pyVHDLModel)
-[![Codacy - Coverage](https://img.shields.io/codacy/coverage/2286426d2b11417e90010427b7fed8e7?longCache=true&style=flat-square&logo=Codacy)](https://www.codacy.com/manual/VHDL/pyVHDLModel)
+[![Codacy - Quality](https://img.shields.io/codacy/grade/2286426d2b11417e90010427b7fed8e7?longCache=true&style=flat-square&logo=Codacy)](https://www.codacy.com/gh/VHDL/pyVHDLModel)
+[![Codacy - Coverage](https://img.shields.io/codacy/coverage/2286426d2b11417e90010427b7fed8e7?longCache=true&style=flat-square&logo=Codacy)](https://www.codacy.com/gh/VHDL/pyVHDLModel)
 [![Codecov - Branch Coverage](https://img.shields.io/codecov/c/github/vhdl/pyVHDLModel?longCache=true&style=flat-square&logo=Codecov)](https://codecov.io/gh/vhdl/pyVHDLModel)
 
 <!--

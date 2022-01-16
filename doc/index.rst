@@ -207,8 +207,8 @@ License
    :caption: Appendix
    :hidden:
 
-   Coverage Report ➚ <https://VHDL.GitHub.io/pyVHDLModel/coverage/>
-   Static Type Check Report ➚ <https://VHDL.GitHub.io/pyVHDLModel/typing/>
+   Coverage Report ➚ <coverage/index>
+   Static Type Check Report ➚ <typing/index>
    ChangeLog/index
    License
    Doc-License

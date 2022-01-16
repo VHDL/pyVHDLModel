@@ -161,11 +161,19 @@ jobs:
     with:
       package: ${{ fromJson(needs.Params.outputs.params).artifacts.package }}
       remaining: |
-        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-3.6
-        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-3.7
-        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-3.8
-        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-3.9
-        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-3.10
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-ubuntu-3.7
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-ubuntu-3.8
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-ubuntu-3.9
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-ubuntu-3.10
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-windows-3.7
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-windows-3.8
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-windows-3.9
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-windows-3.10
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-msys2-3.9
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-macos-3.7
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-macos-3.8
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-macos-3.9
+        ${{ fromJson(needs.Params.outputs.params).artifacts.unittesting }}-macos-3.10
         ${{ fromJson(needs.Params.outputs.params).artifacts.coverage }}
         ${{ fromJson(needs.Params.outputs.params).artifacts.typing }}
         ${{ fromJson(needs.Params.outputs.params).artifacts.doc }}

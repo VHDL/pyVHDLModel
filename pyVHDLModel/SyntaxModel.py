@@ -54,9 +54,7 @@ except ImportError:
 
 @export
 class Name:
-	"""
-	``Name`` is the base class for all *names* in the VHDL language model.
-  """
+	"""``Name`` is the base class for all *names* in the VHDL language model."""
 
 	_identifier: str
 	_root: Nullable['Name']
@@ -437,10 +435,8 @@ class Design(ModelEntity):
 
 @export
 class Library(ModelEntity, NamedEntity):
-	"""
-	A ``Library`` represents a VHDL library. It contains all *primary* design
-	units.
-	"""
+	"""A ``Library`` represents a VHDL library. It contains all *primary* design units."""
+
 	_contexts:       List['Context']                     #: List of all contexts defined in a library.
 	_configurations: List['Configuration']               #: List of all configurations defined in a library.
 	_entities:       List['Entity']                      #: List of all entities defined in a library.
@@ -492,10 +488,7 @@ class Library(ModelEntity, NamedEntity):
 
 @export
 class Document(ModelEntity):
-	"""
-	A ``Document`` represents a sourcefile. It contains primary and secondary
-	design units.
-	"""
+	"""A ``Document`` represents a sourcefile. It contains primary and secondary design units."""
 
 	_path:              Path                      #: path to the document. ``None`` if virtual document.
 	_contexts:          List['Context']           #: List of all contexts defined in a document.
@@ -628,16 +621,12 @@ class AnonymousType(Type):
 
 @export
 class ScalarType(FullType):
-	"""
-	A ``ScalarType`` is a base-class for all scalar types.
-	"""
+	"""A ``ScalarType`` is a base-class for all scalar types."""
 
 
 @export
 class RangedScalarType(ScalarType):
-	"""
-	A ``RangedScalarType`` is a base-class for all scalar types with a range.
-	"""
+	"""A ``RangedScalarType`` is a base-class for all scalar types with a range."""
 
 	_range:      Union['Range', Name]
 	_leftBound:  ExpressionUnion
@@ -654,9 +643,7 @@ class RangedScalarType(ScalarType):
 
 @export
 class NumericType:
-	"""
-	A ``NumericType`` is a mixin class for all numeric types.
-	"""
+	"""A ``NumericType`` is a mixin class for all numeric types."""
 
 	def __init__(self):
 		pass
@@ -664,9 +651,7 @@ class NumericType:
 
 @export
 class DiscreteType:
-	"""
-	A ``DiscreteType`` is a mixin class for all discrete types.
-	"""
+	"""A ``DiscreteType`` is a mixin class for all discrete types."""
 
 	def __init__(self):
 		pass
@@ -674,9 +659,7 @@ class DiscreteType:
 
 @export
 class CompositeType(FullType):
-	"""
-	A ``CompositeType`` is a base-class for all composite types.
-	"""
+	"""A ``CompositeType`` is a base-class for all composite types."""
 
 
 @export
@@ -828,16 +811,12 @@ class RecordType(CompositeType):
 
 @export
 class BaseExpression(ModelEntity):
-	"""
-	A ``BaseExpression`` is a base-class for all expressions.
-	"""
+	"""A ``BaseExpression`` is a base-class for all expressions."""
 
 
 @export
 class Literal(BaseExpression):
-	"""
-	A ``Literal`` is a base-class for all literals.
-	"""
+	"""A ``Literal`` is a base-class for all literals."""
 # TODO: add a reference to a basetype ?
 
 
@@ -866,9 +845,7 @@ class EnumerationLiteral(Literal):
 
 @export
 class NumericLiteral(Literal):
-	"""
-	A ``NumericLiteral`` is a base-class for all numeric literals.
-	"""
+	"""A ``NumericLiteral`` is a base-class for all numeric literals."""
 
 
 @export
@@ -1002,9 +979,7 @@ class ParenthesisExpression(Protocol):
 
 @export
 class UnaryExpression(BaseExpression):
-	"""
-	A ``UnaryExpression`` is a base-class for all unary expressions.
-	"""
+	"""A ``UnaryExpression`` is a base-class for all unary expressions."""
 
 	_FORMAT: Tuple[str, str]
 	_operand:  ExpressionUnion
@@ -1058,9 +1033,7 @@ class SubExpression(UnaryExpression, ParenthesisExpression):
 
 @export
 class BinaryExpression(BaseExpression):
-	"""
-	A ``BinaryExpression`` is a base-class for all binary expressions.
-	"""
+	"""A ``BinaryExpression`` is a base-class for all binary expressions."""
 
 	_FORMAT: Tuple[str, str, str]
 	_leftOperand:  ExpressionUnion
@@ -1113,9 +1086,7 @@ class DescendingRangeExpression(RangeExpression):
 
 @export
 class AddingExpression(BinaryExpression):
-	"""
-	A ``AddingExpression`` is a base-class for all adding expressions.
-	"""
+	"""A ``AddingExpression`` is a base-class for all adding expressions."""
 
 
 @export
@@ -1135,9 +1106,7 @@ class ConcatenationExpression(AddingExpression):
 
 @export
 class MultiplyingExpression(BinaryExpression):
-	"""
-	A ``MultiplyingExpression`` is a base-class for all multiplying expressions.
-	"""
+	"""A ``MultiplyingExpression`` is a base-class for all multiplying expressions."""
 
 
 @export
@@ -1167,9 +1136,7 @@ class ExponentiationExpression(MultiplyingExpression):
 
 @export
 class LogicalExpression(BinaryExpression):
-	"""
-	A ``LogicalExpression`` is a base-class for all logical expressions.
-	"""
+	"""A ``LogicalExpression`` is a base-class for all logical expressions."""
 
 
 @export
@@ -1204,9 +1171,7 @@ class XnorExpression(LogicalExpression):
 
 @export
 class RelationalExpression(BinaryExpression):
-	"""
-	A ``RelationalExpression`` is a base-class for all shifting expressions.
-	"""
+	"""A ``RelationalExpression`` is a base-class for all shifting expressions."""
 
 
 @export
@@ -1276,9 +1241,7 @@ class MatchingLessEqualExpression(MatchingRelationalExpression):
 
 @export
 class ShiftExpression(BinaryExpression):
-	"""
-	A ``ShiftExpression`` is a base-class for all shifting expressions.
-	"""
+	"""A ``ShiftExpression`` is a base-class for all shifting expressions."""
 
 
 @export
@@ -1354,9 +1317,7 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 
 @export
 class TernaryExpression(BaseExpression):
-	"""
-	A ``TernaryExpression`` is a base-class for all ternary expressions.
-	"""
+	"""A ``TernaryExpression`` is a base-class for all ternary expressions."""
 
 	_FORMAT: Tuple[str, str, str, str]
 	_firstOperand:  ExpressionUnion
@@ -1439,9 +1400,7 @@ class QualifiedExpressionAllocation(Allocation):
 
 @export
 class AggregateElement(ModelEntity):
-	"""
-	A ``AggregateElement`` is a base-class for all aggregate elements.
-	"""
+	"""A ``AggregateElement`` is a base-class for all aggregate elements."""
 
 	_expression: ExpressionUnion
 
@@ -1615,10 +1574,8 @@ class Obj(ModelEntity, MultipleNamedEntity):
 
 @export
 class WithDefaultExpressionMixin:
-	"""
-	A ``WithDefaultExpression`` is a mixin class for all objects declarations
-	accepting default expressions.
-	"""
+	"""A ``WithDefaultExpression`` is a mixin class for all objects declarations accepting default expressions."""
+
 	_defaultExpression: ExpressionUnion
 
 	def __init__(self, defaultExpression: ExpressionUnion = None):
@@ -1735,9 +1692,8 @@ class Function(SubProgramm):
 
 @export
 class Method:
-	"""
-	A ``Method`` is a mixin class for all subprograms in a protected type.
-	"""
+	"""A ``Method`` is a mixin class for all subprograms in a protected type."""
+
 	_protectedType: ProtectedType
 
 	def __init__(self, protectedType: ProtectedType):
@@ -1811,10 +1767,7 @@ class AttributeSpecification(ModelEntity):
 
 @export
 class InterfaceItem:
-	"""
-	An ``InterfaceItem`` is a base-class for all mixin-classes for all interface
-	items.
-	"""
+	"""An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items."""
 
 	def __init__(self):
 		pass
@@ -1822,10 +1775,8 @@ class InterfaceItem:
 
 @export
 class InterfaceItemWithMode:
-	"""
-	An ``InterfaceItemWithMode`` is a mixin-class to provide a ``Mode`` to
-	interface items.
-	"""
+	"""An ``InterfaceItemWithMode`` is a mixin-class to provide a ``Mode`` to interface items."""
+
 	_mode: Mode
 
 	def __init__(self, mode: Mode):
@@ -1838,16 +1789,12 @@ class InterfaceItemWithMode:
 
 @export
 class GenericInterfaceItem(InterfaceItem):
-	"""
-	A ``GenericInterfaceItem`` is a mixin class for all generic interface items.
-	"""
+	"""A ``GenericInterfaceItem`` is a mixin class for all generic interface items."""
 
 
 @export
 class PortInterfaceItem(InterfaceItem, InterfaceItemWithMode):
-	"""
-	A ``PortInterfaceItem`` is a mixin class for all port interface items.
-	"""
+	"""A ``PortInterfaceItem`` is a mixin class for all port interface items."""
 
 	def __init__(self, mode: Mode):
 		super().__init__()
@@ -1856,9 +1803,7 @@ class PortInterfaceItem(InterfaceItem, InterfaceItemWithMode):
 
 @export
 class ParameterInterfaceItem(InterfaceItem):
-	"""
-	A ``ParameterInterfaceItem`` is a mixin class for all parameter interface items.
-	"""
+	"""A ``ParameterInterfaceItem`` is a mixin class for all parameter interface items."""
 
 
 @export
@@ -2235,16 +2180,12 @@ class Statement(ModelEntity, LabeledEntity):
 
 @export
 class ConcurrentStatement(Statement):
-	"""
-	A ``ConcurrentStatement`` is a base-class for all concurrent statements.
-	"""
+	"""A ``ConcurrentStatement`` is a base-class for all concurrent statements."""
 
 
 @export
 class SequentialStatement(Statement):
-	"""
-	A ``SequentialStatement`` is a base-class for all sequential statements.
-	"""
+	"""A ``SequentialStatement`` is a base-class for all sequential statements."""
 
 
 @export
@@ -2414,9 +2355,7 @@ class SequentialProcedureCall(SequentialStatement, ProcedureCall):
 
 # TODO: could be unified with ProcessStatement if 'List[ConcurrentStatement]' becomes parametric to T
 class BlockStatement:
-	"""
-	A ``BlockStatement`` is a mixin-class for all block statements.
-	"""
+	"""A ``BlockStatement`` is a mixin-class for all block statements."""
 
 	def __init__(self):
 		pass
@@ -2453,9 +2392,8 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntit
 
 @export
 class MixinConditional:
-	"""
-	A ``BaseConditional`` is a mixin-class for all statements with a condition.
-	"""
+	"""A ``BaseConditional`` is a mixin-class for all statements with a condition."""
+
 	_condition: ExpressionUnion
 
 	def __init__(self, condition: ExpressionUnion = None):
@@ -2468,9 +2406,7 @@ class MixinConditional:
 
 @export
 class MixinBranch:
-	"""
-	A ``BaseBranch`` is a mixin-class for all statements with branches.
-	"""
+	"""A ``BaseBranch`` is a mixin-class for all statements with branches."""
 
 	def __init__(self):
 		pass
@@ -2478,9 +2414,7 @@ class MixinBranch:
 
 @export
 class MixinConditionalBranch(MixinBranch, MixinConditional):
-	"""
-	A ``BaseBranch`` is a mixin-class for all branch statements with a condition.
-	"""
+	"""A ``BaseBranch`` is a mixin-class for all branch statements with a condition."""
 	def __init__(self, condition: ExpressionUnion):
 		super().__init__()
 		MixinConditional.__init__(self, condition)
@@ -2488,30 +2422,23 @@ class MixinConditionalBranch(MixinBranch, MixinConditional):
 
 @export
 class MixinIfBranch(MixinConditionalBranch):
-	"""
-	A ``BaseIfBranch`` is a mixin-class for all if-branches.
-	"""
+	"""A ``BaseIfBranch`` is a mixin-class for all if-branches."""
 
 
 @export
 class MixinElsifBranch(MixinConditionalBranch):
-	"""
-	A ``BaseElsifBranch`` is a mixin-class for all elsif-branches.
-	"""
+	"""A ``BaseElsifBranch`` is a mixin-class for all elsif-branches."""
 
 
 @export
 class MixinElseBranch(MixinBranch):
-	"""
-	A ``BaseElseBranch`` is a mixin-class for all else-branches.
-	"""
+	"""A ``BaseElseBranch`` is a mixin-class for all else-branches."""
 
 
 @export
 class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
-	"""
-	A ``GenerateBranch`` is a base-class for all branches in a generate statements.
-	"""
+	"""A ``GenerateBranch`` is a base-class for all branches in a generate statements."""
+
 	_alternativeLabel: str = None
 
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
@@ -2545,9 +2472,7 @@ class ElseGenerateBranch(GenerateBranch, MixinElseBranch):
 
 @export
 class GenerateStatement(ConcurrentStatement):
-	"""
-	A ``GenerateStatement`` is a base-class for all generate statements.
-	"""
+	"""A ``GenerateStatement`` is a base-class for all generate statements."""
 
 	def __init__(self, label: str = None):
 		super().__init__(label)
@@ -2581,25 +2506,17 @@ class IfGenerateStatement(GenerateStatement):
 
 @export
 class Choice(ModelEntity):
-	"""
-	A ``Choice`` is a base-class for all choices.
-	"""
+	"""A ``Choice`` is a base-class for all choices."""
 
 
 @export
 class ConcurrentChoice(Choice):
-	"""
-	A ``ConcurrentChoice`` is a base-class for all concurrent choices
-	(in case...generate statements).
-	"""
+	"""A ``ConcurrentChoice`` is a base-class for all concurrent choices (in case...generate statements)."""
 
 
 @export
 class SequentialChoice(Choice):
-	"""
-	A ``SequentialChoice`` is a base-class for all sequential choices
-	(in case statements).
-	"""
+	"""A ``SequentialChoice`` is a base-class for all sequential choices (in case statements)."""
 
 
 @export
@@ -2732,9 +2649,7 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarations, Concurrent
 
 @export
 class Assignment:
-	"""
-	An ``Assignment`` is a base-class for all assignment statements.
-	"""
+	"""An ``Assignment`` is a base-class for all assignment statements."""
 
 	_target:     Name
 
@@ -2748,16 +2663,13 @@ class Assignment:
 
 @export
 class SignalAssignment(Assignment):
-	"""
-	An ``SignalAssignment`` is a base-class for all signal assignment statements.
-	"""
+	"""An ``SignalAssignment`` is a base-class for all signal assignment statements."""
 
 
 @export
 class VariableAssignment(Assignment):
-	"""
-	An ``VariableAssignment`` is a base-class for all variable assignment statements.
-	"""
+	"""An ``VariableAssignment`` is a base-class for all variable assignment statements."""
+
 	_expression: ExpressionUnion
 
 	def __init__(self, target: Name, expression: ExpressionUnion):
@@ -2855,9 +2767,8 @@ class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
 
 @export
 class MixinReportStatement:
-	"""
-	A ``MixinReportStatement`` is a mixin-class for all report and assert statements.
-	"""
+	"""A ``MixinReportStatement`` is a mixin-class for all report and assert statements."""
+
 	_message:  ExpressionUnion
 	_severity: ExpressionUnion
 
@@ -2876,9 +2787,8 @@ class MixinReportStatement:
 
 @export
 class MixinAssertStatement(MixinReportStatement):
-	"""
-	A ``MixinAssertStatement`` is a mixin-class for all assert statements.
-	"""
+	"""A ``MixinAssertStatement`` is a mixin-class for all assert statements."""
+
 	_condition: ExpressionUnion
 
 	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion = None, severity: ExpressionUnion = None):
@@ -2914,9 +2824,7 @@ class SequentialAssertStatement(SequentialStatement, MixinAssertStatement):
 
 @export
 class Branch(ModelEntity, SequentialStatements):
-	"""
-	A ``Branch`` is a base-class for all branches in a if statement.
-	"""
+	"""A ``Branch`` is a base-class for all branches in a if statement."""
 
 	def __init__(self, statements: Iterable[ConcurrentStatement] = None):
 		super().__init__()
@@ -2946,9 +2854,7 @@ class ElseBranch(Branch, MixinElseBranch):
 
 @export
 class CompoundStatement(SequentialStatement):
-	"""
-	A ``CompoundStatement`` is a base-class for all compound statements.
-	"""
+	"""A ``CompoundStatement`` is a base-class for all compound statements."""
 
 
 @export
@@ -3056,9 +2962,7 @@ class CaseStatement(CompoundStatement):
 
 @export
 class LoopStatement(CompoundStatement, SequentialStatements):
-	"""
-	A ``LoopStatement`` is a base-class for all loop statements.
-	"""
+	"""A ``LoopStatement`` is a base-class for all loop statements."""
 
 	def __init__(self, statements: Iterable[ConcurrentStatement] = None, label: str = None):
 		super().__init__(label)
@@ -3099,9 +3003,8 @@ class WhileLoopStatement(LoopStatement, MixinConditional):
 
 @export
 class LoopControlStatement(SequentialStatement, MixinConditional):
-	"""
-	A ``LoopControlStatement`` is a base-class for all loop controlling statements.
-	"""
+	"""A ``LoopControlStatement`` is a base-class for all loop controlling statements."""
+
 	_loopReference: LoopStatement
 
 	def __init__(self, condition: ExpressionUnion = None, loopLabel: str = None): # TODO: is this label (currently str) a Name or a Label class?

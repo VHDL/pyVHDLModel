@@ -170,30 +170,10 @@ extensions = [
 	'sphinx.ext.mathjax',
 	'sphinx.ext.ifconfig',
 	'sphinx.ext.viewcode',
-#	'sphinx.ext.duration',
-
-# SphinxContrib extensions
-# 'sphinxcontrib.actdiag',
-# 'sphinxcontrib.seqdiag',
-# 'sphinxcontrib.textstyle',
-# 'sphinxcontrib.spelling',
-# 'changelog',
-
-# BuildTheDocs extensions
-#	'btd.sphinx.autoprogram',
-#	'btd.sphinx.graphviz',
-#	'btd.sphinx.inheritance_diagram',
-
 # Other extensions
-#	'DocumentMember',
+	'autoapi.sphinx',
 	'sphinx_fontawesome',
 	'sphinx_autodoc_typehints',
-
-# local extensions (patched)
-	'autoapi.sphinx',
-
-# local extensions
-#	'DocumentMember'
 ]
 
 # ==============================================================================

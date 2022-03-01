@@ -320,7 +320,7 @@ class PossibleReference(IntEnum):
 @export
 class ModelEntity:
 	"""
-	``ModelEntity`` is the base class for all classes in the VHDL language model,
+	``ModelEntity`` is the base-class for all classes in the VHDL language model,
 	except for mixin classes (see multiple inheritance) and enumerations.
 
 	Each entity in this model has a reference to its parent entity. Therefore

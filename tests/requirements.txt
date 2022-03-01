@@ -4,9 +4,9 @@
 Coverage>=6.2
 
 # Test Runner
-pytest>=6.2.5
+pytest>=7.0.1
 pytest-cov>=3.0.0
 
 # Static Type Checking
 mypy>=0.931
-lxml>=4.6
+lxml>=4.8

@@ -1,8 +1,8 @@
 [build-system]
 requires = [
-    "pyTooling >= 1.9.2",
-    "setuptools >= 35.0.2",
-    "wheel >= 0.29.0"
+    "pyTooling >= 1.9.5",
+    "setuptools >= 60.9.3",
+    "wheel >= 0.37.1"
 ]
 build-backend = "setuptools.build_meta"
 

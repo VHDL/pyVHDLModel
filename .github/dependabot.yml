@@ -6,7 +6,7 @@ updates:
   commit-message:
     prefix: "[Dependabot]"
   labels:
-      - Dependencies
+    - Dependencies
   assignees:
     - Paebbels
   reviewers:

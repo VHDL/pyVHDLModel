@@ -9,13 +9,11 @@ from json import loads
 
 from pyTooling.Packaging import extractVersionInformation
 
-
 ROOT = Path(__file__).resolve().parent
 
 sys_path.insert(0, abspath('.'))
 sys_path.insert(0, abspath('..'))
 sys_path.insert(0, abspath('../pyVHDLModel'))
-#sys_path.insert(0, abspath('_extensions'))
 
 
 # ==============================================================================
@@ -26,7 +24,7 @@ sys_path.insert(0, abspath('../pyVHDLModel'))
 # built documents.
 project =     "pyVHDLModel"
 
-packageInformationFile = Path(f"../{project}/__init__.py")
+packageInformationFile = Path(f"../{project.replace('.', '/')}/__init__.py")
 versionInformation = extractVersionInformation(packageInformationFile)
 
 author =    versionInformation.Author
@@ -40,6 +38,9 @@ release =   versionInformation.Version
 # ==============================================================================
 # The master toctree document.
 master_doc = 'index'
+
+# Add any paths that contain templates here, relative to this directory.
+templates_path = ['_templates']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -167,10 +168,12 @@ extensions = [
 	'sphinx.ext.mathjax',
 	'sphinx.ext.ifconfig',
 	'sphinx.ext.viewcode',
+# SphinxContrib extensions
+	'sphinxcontrib.mermaid',
 # Other extensions
-	'autoapi.sphinx',
 	'sphinx_fontawesome',
 	'sphinx_autodoc_typehints',
+	'autoapi.sphinx',
 ]
 
 # ==============================================================================
@@ -186,7 +189,17 @@ intersphinx_mapping = {
 # Sphinx.Ext.AutoDoc
 # ==============================================================================
 # see: https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#configuration
+autodoc_default_options = {
+	"private-members": True,
+	"special-members": True,
+	"inherited-members": True,
+	"exclude-members": "__weakref__"
+}
+#autodoc_class_signature = "separated"
 autodoc_member_order = "bysource"       # alphabetical, groupwise, bysource
+autodoc_typehints = "both"
+#autoclass_content = "both"
+
 
 
 # ==============================================================================
@@ -195,7 +208,7 @@ autodoc_member_order = "bysource"       # alphabetical, groupwise, bysource
 extlinks = {
 	"ghissue": ('https://GitHub.com/vhdl/pyVHDLModel/issues/%s', 'issue #'),
 	"ghpull":  ('https://GitHub.com/vhdl/pyVHDLModel/pull/%s', 'pull request #'),
-	"ghsrc":   ('https://GitHub.com/vhdl/pyVHDLModel/blob/main/%s?ts=2', None),
+	"ghsrc":   ('https://GitHub.com/vhdl/pyVHDLModel/blob/main/%s?ts=2', ""),
 }
 
 

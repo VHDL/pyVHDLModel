@@ -6,6 +6,8 @@
 ``{{ node.name }}``
 =={{ '=' * node.name|length }}==
 
+.. py:module:: {{ node.name }}
+
 {##}
 {%- block modules -%}
 {%- if subnodes %}

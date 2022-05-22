@@ -1,1 +1,1 @@
-pyTooling>=1.9.5
+pyTooling>=2.0.1

@@ -1,15 +1,29 @@
 version: 2
 updates:
-- package-ecosystem: pip
-  directory: "/"
-  target-branch: dev
-  commit-message:
-    prefix: "[Dependabot]"
-  labels:
+  # Maintain Python packages
+  - package-ecosystem: "pip"
+    directory: "/"
+    target-branch: dev
+    commit-message:
+      prefix: "[Dependabot]"
+    labels:
       - Dependencies
-  assignees:
-    - Paebbels
-  reviewers:
-    - Paebbels
-  schedule:
-    interval: daily
+    reviewers:
+      - Paebbels
+      - Umarcor
+    schedule:
+      interval: "daily"    # Checks on Monday trough Friday.
+
+  # Maintain GitHub Action runners
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: dev
+    commit-message:
+      prefix: "[Dependabot]"
+    labels:
+      - Dependencies
+    reviewers:
+      - Paebbels
+      - Umarcor
+    schedule:
+      interval: "weekly"

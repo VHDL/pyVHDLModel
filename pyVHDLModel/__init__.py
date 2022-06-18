@@ -39,7 +39,7 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2022, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.14.3"
+__version__ =   "0.14.4"
 
 
 from enum     import IntEnum, unique, Enum
@@ -320,7 +320,7 @@ class PossibleReference(IntEnum):
 @export
 class ModelEntity:
 	"""
-	``ModelEntity`` is the base class for all classes in the VHDL language model,
+	``ModelEntity`` is the base-class for all classes in the VHDL language model,
 	except for mixin classes (see multiple inheritance) and enumerations.
 
 	Each entity in this model has a reference to its parent entity. Therefore

@@ -68,17 +68,15 @@ document = Document(sourceFile)
 design.AddDocument(document, library)
 
 for entity in document.Entities:
-  print("{}".format(entity.Identifier))
+  print(f"{entity.Identifier}")
   print("  generics:")
   for generic in entity.GenericItems:
-    print("  - {} : {!s} {}".format(
-      ", ".join([str(i) for i in generic.Identifiers]), generic.Mode, generic.Subtype)
-    )
+    identifiers = ", ".join([str(i) for i in generic.Identifiers])
+    print(f"  - {identifiers} : {generic.Mode!s} {generic.Subtype}")
   print("  ports:")
   for port in entity.PortItems:
-    print("  - {} : {!s} {}".format(
-      ", ".join([str(i) for i in port.Identifiers]), port.Mode, port.Subtype)
-    )
+    identifiers = ", ".join([str(i) for i in port.Identifiers])
+    print(f"  - {identifiers} : {port.Mode!s} {port.Subtype}")
 ```
 
 

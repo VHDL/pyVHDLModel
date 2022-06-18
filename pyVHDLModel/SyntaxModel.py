@@ -54,7 +54,7 @@ except ImportError:
 
 @export
 class Name:
-	"""``Name`` is the base class for all *names* in the VHDL language model."""
+	"""``Name`` is the base-class for all *names* in the VHDL language model."""
 
 	_identifier: str
 	_root: Nullable['Name']
@@ -565,7 +565,7 @@ class Alias(ModelEntity, NamedEntity):
 
 @export
 class BaseType(ModelEntity, NamedEntity):
-	"""``BaseType`` is the base class of all type entities in this model."""
+	"""``BaseType`` is the base-class of all type entities in this model."""
 
 	def __init__(self, identifier: str):
 		"""

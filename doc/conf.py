@@ -169,7 +169,7 @@ extensions = [
 	'sphinx.ext.ifconfig',
 	'sphinx.ext.viewcode',
 # SphinxContrib extensions
-	'sphinxcontrib.mermaid',
+#	'sphinxcontrib.mermaid',
 # Other extensions
 	'sphinx_fontawesome',
 	'sphinx_autodoc_typehints',

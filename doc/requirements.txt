@@ -6,6 +6,7 @@ pyTooling>=2.1.0
 sphinx>=5.0.2
 
 # Sphinx Extenstions
+#sphinxcontrib-mermaid>=0.7.1
 autoapi>=2.0.1
 sphinx_fontawesome>=0.0.6
 sphinx_autodoc_typehints>=1.18.3

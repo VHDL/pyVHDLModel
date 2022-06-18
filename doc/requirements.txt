@@ -1,11 +1,11 @@
 -r ../requirements.txt
 
-pyTooling>=2.0.1
+pyTooling>=2.1.0
 
 # Enforce latest version on ReadTheDocs
-sphinx>=4.4.0
+sphinx>=5.0.2
 
 # Sphinx Extenstions
 autoapi>=2.0.1
 sphinx_fontawesome>=0.0.6
-sphinx_autodoc_typehints>=1.17.0
+sphinx_autodoc_typehints>=1.18.3

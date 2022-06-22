@@ -81,8 +81,8 @@ ExpressionUnion = Union[
 ]
 
 ContextUnion = Union[
-	'LibraryClause'
-	'UseClause'
+	'LibraryClause',
+	'UseClause',
 	'ContextReference'
 ]
 

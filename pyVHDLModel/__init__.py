@@ -39,7 +39,7 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2022, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.14.4"
+__version__ =   "0.15.0"
 
 
 from enum     import IntEnum, unique, Enum
@@ -81,8 +81,8 @@ ExpressionUnion = Union[
 ]
 
 ContextUnion = Union[
-	'LibraryClause'
-	'UseClause'
+	'LibraryClause',
+	'UseClause',
 	'ContextReference'
 ]
 
@@ -91,7 +91,7 @@ ContextUnion = Union[
 @unique
 class VHDLVersion(Enum):
 	"""
-	An enumeration for all possible version numbers for VHDL.
+	An enumeration for all possible version numbers for VHDL and VHDL-AMS.
 
 	A version can be given as integer or string and is represented as a unified
 	enumeration value.
@@ -102,31 +102,42 @@ class VHDLVersion(Enum):
 	Any =                -1
 	VHDL87 =             87
 	VHDL93 =             93
+#	AMS93 =              93
+	AMS99 =              99
 	VHDL2002 =         2002
 	VHDL2008 =         2008
+	AMS2017 =          2017
 	VHDL2019 =         2019
 
 	__VERSION_MAPPINGS__: Dict[Union[int, str], Enum] = {
 		87:     VHDL87,
 		93:     VHDL93,
+		99:     AMS99,
 		2:      VHDL2002,
 		8:      VHDL2008,
+		17:     AMS2017,
 		19:     VHDL2019,
 		1987:   VHDL87,
 		1993:   VHDL93,
+		1999:   AMS99,
 		2002:   VHDL2002,
 		2008:   VHDL2008,
+		2017:   AMS2017,
 		2019:   VHDL2019,
 		"Any":  Any,
 		"87":   VHDL87,
 		"93":   VHDL93,
+		"99":   AMS99,
 		"02":   VHDL2002,
 		"08":   VHDL2008,
+		"17":   AMS2017,
 		"19":   VHDL2019,
 		"1987": VHDL87,
 		"1993": VHDL93,
+		"1999": AMS99,
 		"2002": VHDL2002,
 		"2008": VHDL2008,
+		"2017": AMS2017,
 		"2019": VHDL2019
 	}
 
@@ -181,6 +192,12 @@ class VHDLVersion(Enum):
 				return (self.value == other.value)
 		else:
 			raise TypeError("Second operand is not of type 'VHDLVersion'.")
+
+	def IsVHDL(self) -> bool:
+		return self in (self.VHDL87, self.VHDL93, self.VHDL2002, self.VHDL2008, self.VHDL2019)
+
+	def IsAMS(self) -> bool:
+		return self in (self.AMS99, self.AMS2017)
 
 	def __str__(self) -> str:
 		return "VHDL'" + str(self.value)[-2:]
@@ -396,22 +413,23 @@ class LabeledEntity:
 		"""Returns a model entity's label."""
 		return self._label
 
+
 @export
 class MixinDesignUnitWithContext:
-	_contextItems:      Nullable[List['ContextUnion']]
-	_libraryReferences: Nullable[List['LibraryClause']]
-	_packageReferences: Nullable[List['UseClause']]
-	_contextReferences: Nullable[List['ContextReference']]
+	_contextItems:      List['ContextUnion']
+	_libraryReferences: List['LibraryClause']
+	_packageReferences: List['UseClause']
+	_contextReferences: List['ContextReference']
 
 	def __init__(self, contextItems: Iterable['ContextUnion'] = None):
 		from pyVHDLModel.SyntaxModel import LibraryClause, UseClause, ContextReference
 
-		if contextItems is not None:
-			self._contextItems = []
-			self._libraryReferences = []
-			self._packageReferences = []
-			self._contextReferences = []
+		self._contextItems = []
+		self._libraryReferences = []
+		self._packageReferences = []
+		self._contextReferences = []
 
+		if contextItems is not None:
 			for item in contextItems:
 				self._contextItems.append(item)
 				if isinstance(item, UseClause):
@@ -458,6 +476,7 @@ class PrimaryUnit(DesignUnit):
 	@property
 	def Library(self) -> 'Library':
 		return self._parent
+
 	@Library.setter
 	def Library(self, library: 'Library') -> None:
 		self._parent = library

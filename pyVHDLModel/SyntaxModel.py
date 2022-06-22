@@ -194,6 +194,7 @@ class LibrarySymbol(Symbol):
 	@property
 	def Library(self) -> 'Library':
 		return self._library
+
 	@Library.setter
 	def Library(self, value: 'Library') -> None:
 		self._reference = value
@@ -207,6 +208,7 @@ class EntitySymbol(Symbol):
 	@property
 	def Entity(self) -> 'Entity':
 		return self._reference
+
 	@Entity.setter
 	def Entity(self, value: 'Entity') -> None:
 		self._reference = value
@@ -220,6 +222,7 @@ class ArchitectureSymbol(Symbol):
 	@property
 	def Architecture(self) -> 'Architecture':
 		return self._reference
+
 	@Architecture.setter
 	def Architecture(self, value: 'Architecture') -> None:
 		self._reference = value
@@ -233,6 +236,7 @@ class ComponentSymbol(Symbol):
 	@property
 	def Component(self) -> 'Component':
 		return self._reference
+
 	@Component.setter
 	def Component(self, value: 'Component') -> None:
 		self._reference = value
@@ -246,6 +250,7 @@ class ConfigurationSymbol(Symbol):
 	@property
 	def Configuration(self) -> 'Configuration':
 		return self._reference
+
 	@Configuration.setter
 	def Configuration(self, value: 'Configuration') -> None:
 		self._reference = value
@@ -259,6 +264,7 @@ class ContextSymbol(Symbol):
 	@property
 	def Context(self) -> 'Context':
 		return self._reference
+
 	@Context.setter
 	def Context(self, value: 'Context') -> None:
 		self._reference = value
@@ -272,6 +278,7 @@ class SubtypeSymbol(Symbol):
 	@property
 	def Subtype(self) -> 'Subtype':
 		return self._reference
+
 	@Subtype.setter
 	def Subtype(self, value: 'Subtype') -> None:
 		self._reference = value
@@ -323,6 +330,7 @@ class SimpleObjectOrFunctionCallSymbol(ObjectSymbol):
 	@property
 	def ObjectOrFunction(self) -> Union['Constant', 'Signal', 'Variable', 'Function', 'EnumerationLiteral']:
 		return self._reference
+
 	@ObjectOrFunction.setter
 	def ObjectOrFunction(self, value: Union['Constant', 'Signal', 'Variable', 'Function', 'EnumerationLiteral']):
 		self._reference = value
@@ -336,6 +344,7 @@ class IndexedObjectOrFunctionCallSymbol(ObjectSymbol):
 	@property
 	def ObjectOrFunction(self) -> Union['Constant', 'Signal', 'Variable', 'Function']:
 		return self._reference
+
 	@ObjectOrFunction.setter
 	def ObjectOrFunction(self, value: Union['Constant', 'Signal', 'Variable', 'Function']):
 		self._reference = value
@@ -349,8 +358,23 @@ class ConstantSymbol(ObjectSymbol):
 	@property
 	def Constant(self) -> 'Constant':
 		return self._reference
+
 	@Constant.setter
 	def Constant(self, value: 'Constant') -> None:
+		self._reference = value
+
+
+@export
+class VariableSymbol(ObjectSymbol):
+	def __init__(self, symbolName: Name):
+		super().__init__(symbolName, PossibleReference.Constant)
+
+	@property
+	def Variable(self) -> 'Variable':
+		return self._reference
+
+	@Variable.setter
+	def Variable(self, value: 'Variable') -> None:
 		self._reference = value
 
 
@@ -362,6 +386,7 @@ class SignalSymbol(ObjectSymbol):
 	@property
 	def Signal(self) -> 'Signal':
 		return self._reference
+
 	@Signal.setter
 	def Signal(self, value: 'Signal') -> None:
 		self._reference = value

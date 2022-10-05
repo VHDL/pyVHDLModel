@@ -139,16 +139,6 @@
    :height: 22
    :target: https://libraries.io/github/vhdl/pyVHDLModel
 
-.. # Requires - status
-.. |SHIELD:svg:pyVHDLModel-req-status| image:: https://img.shields.io/requires/github/VHDL/pyVHDLModel?longCache=true&style=flat-square
-   :alt: Requires.io
-   :height: 22
-   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main
-.. |SHIELD:png:pyVHDLModel-req-status| image:: https://raster.shields.io/requires/github/VHDL/pyVHDLModel?longCache=true&style=flat-square
-   :alt: Requires.io
-   :height: 22
-   :target: https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main
-
 .. # Documentation license
 .. |SHIELD:svg:pyVHDLModel-doc-license| image:: https://img.shields.io/badge/doc-CC--BY%204.0-green?longCache=true&style=flat-square&logo=CreativeCommons&logoColor=fff
    :alt: Documentation License

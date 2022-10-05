@@ -18,7 +18,6 @@
 
 <!--
 [![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/pypi/pyVHDLModel?longCache=true&style=flat-square&logo=GitHub)](https://github.com/vhdl/pyVHDLModel/network/dependents)
-[![Requires.io](https://img.shields.io/requires/github/VHDL/pyVHDLModel?longCache=true&style=flat-square)](https://requires.io/github/VHDL/pyVHDLModel/requirements/?branch=main)
 [![Libraries.io SourceRank](https://img.shields.io/librariesio/sourcerank/pypi/pyVHDLModel?longCache=true&style=flat-square)](https://libraries.io/github/vhdl/pyVHDLModel/sourcerank)
 -->
 

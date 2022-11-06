@@ -228,7 +228,7 @@ class Mode(Enum):
 	A ``Mode`` is an enumeration. It represents the direction of data exchange
 	(``in``, ``out``, ...) for objects in generic, port or parameter lists.
 
-	In case no *mode* is define, ``Default`` is used, so the *mode* is inferred
+	In case no *mode* is defined, ``Default`` is used, so the *mode* is inferred
 	from context.
 	"""
 	Default = 0

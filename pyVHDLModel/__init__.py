@@ -104,15 +104,18 @@ class VHDLVersion(Enum):
 	VHDL93 =             93
 #	AMS93 =              93
 	AMS99 =              99
+	VHDL2000 =         2000
 	VHDL2002 =         2002
 	VHDL2008 =         2008
 	AMS2017 =          2017
 	VHDL2019 =         2019
+	Latest =           10000
 
 	__VERSION_MAPPINGS__: Dict[Union[int, str], Enum] = {
 		87:     VHDL87,
 		93:     VHDL93,
 		99:     AMS99,
+		0:      VHDL2000,
 		2:      VHDL2002,
 		8:      VHDL2008,
 		17:     AMS2017,
@@ -120,14 +123,17 @@ class VHDLVersion(Enum):
 		1987:   VHDL87,
 		1993:   VHDL93,
 		1999:   AMS99,
+		2000:   VHDL2000,
 		2002:   VHDL2002,
 		2008:   VHDL2008,
 		2017:   AMS2017,
 		2019:   VHDL2019,
 		"Any":  Any,
+		"Latest": Latest,
 		"87":   VHDL87,
 		"93":   VHDL93,
 		"99":   AMS99,
+		"00":   VHDL2000,
 		"02":   VHDL2002,
 		"08":   VHDL2008,
 		"17":   AMS2017,
@@ -135,6 +141,7 @@ class VHDLVersion(Enum):
 		"1987": VHDL87,
 		"1993": VHDL93,
 		"1999": AMS99,
+		"2000": VHDL2000,
 		"2002": VHDL2002,
 		"2008": VHDL2008,
 		"2017": AMS2017,

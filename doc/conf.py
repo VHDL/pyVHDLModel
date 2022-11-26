@@ -59,10 +59,10 @@ pygments_style = 'stata-dark'
 # ==============================================================================
 # Restructured Text settings
 # ==============================================================================
-prologPath = "prolog.inc"
+prologPath = Path("prolog.inc")
 try:
-	with open(prologPath, "r") as prologFile:
-		rst_prolog = prologFile.read()
+	with prologPath.open("r") as fileHandle:
+		rst_prolog = fileHandle.read()
 except Exception as ex:
 	print(f"[ERROR:] While reading '{prologPath}'.")
 	print(ex)

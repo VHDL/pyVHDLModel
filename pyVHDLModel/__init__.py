@@ -277,7 +277,7 @@ class EntityClass(Enum):
 	A ``Class`` is an enumeration. It represents an object's class (``constant``,
 	``signal``, ...).
 
-	In case no *object class* is define, ``Default`` is used, so the *object class*
+	In case no *object class* is defined, ``Default`` is used, so the *object class*
 	is inferred from context.
 	"""
 	Entity =        0
@@ -358,7 +358,11 @@ class ModelEntity:
 
 	@property
 	def Parent(self) -> 'ModelEntity':
-		"""Returns a reference to the parent entity."""
+		"""
+		Returns a reference to the parent entity.
+
+		:returns: Parent entity.
+		"""
 		return self._parent
 
 
@@ -370,14 +374,18 @@ class NamedEntity:
 	A protected variable :attr:`_identifier` is available to derived classes as
 	well as a readonly property :attr:`Identifier` for public access.
 	"""
-	_identifier: str                  #: The identifier of a model entity.
+	_identifier: str  #: The identifier of a model entity.
 
 	def __init__(self, identifier: str):
 		self._identifier = identifier
 
 	@property
 	def Identifier(self) -> str:
-		"""Returns a model entity's identifier (name)."""
+		"""
+		Returns a model entity's identifier (name).
+
+		:returns: Name of a model entity.
+		"""
 		return self._identifier
 
 
@@ -390,14 +398,18 @@ class MultipleNamedEntity:
 	A protected variable :attr:`_identifiers` is available to derived classes as
 	well as a readonly property :attr:`Identifiers` for public access.
 	"""
-	_identifiers: List[str]           #: A list of identifiers.
+	_identifiers: List[str]  #: A list of identifiers.
 
 	def __init__(self, identifiers: List[str]):
 		self._identifiers = identifiers
 
 	@property
 	def Identifiers(self) -> List[str]:
-		"""Returns a model entity's list of identifiers (name)."""
+		"""
+		Returns a model entity's list of identifiers (name).
+
+		:returns: List of identifiers.
+		"""
 		return self._identifiers
 
 
@@ -410,15 +422,43 @@ class LabeledEntity:
 	A protected variable :attr:`_label` is available to derived classes as well
 	as a readonly property :attr:`Label` for public access.
 	"""
-	_label: str                 #: The label of a model entity.
+	_label: str  #: The label of a model entity.
 
 	def __init__(self, label: str):
 		self._label = label
 
 	@property
 	def Label(self) -> str:
-		"""Returns a model entity's label."""
+		"""
+		Returns a model entity's label.
+
+		:returns: Label of a model entity.
+		"""
 		return self._label
+
+
+@export
+class DocumentedEntity:
+	"""
+	A ``DocumentedEntity`` is a mixin class for all VHDL entities that can have
+	an associated documentation.
+
+	A protected variable :attr:`_documentation` is available to derived classes as
+	well as a readonly property :attr:`Documentation` for public access.
+	"""
+	_documentation: str  #: The associated documentation of a model entity.
+
+	def __init__(self, documentation: str):
+		self._documentation = documentation
+
+	@property
+	def Documentation(self) -> str:
+		"""
+		Returns a model entity's associated documentation.
+
+		:returns: Associated documentation of a model entity.
+		"""
+		return self._documentation
 
 
 @export
@@ -464,21 +504,18 @@ class MixinDesignUnitWithContext:
 
 
 @export
-class DesignUnit(ModelEntity, NamedEntity):
-	"""
-	A ``DesignUnit`` is a base-class for all design units.
-	"""
+class DesignUnit(ModelEntity, NamedEntity, DocumentedEntity):
+	"""A ``DesignUnit`` is a base-class for all design units."""
 
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str, documentation: str = None):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
+		DocumentedEntity.__init__(self, documentation)
 
 
 @export
 class PrimaryUnit(DesignUnit):
-	"""
-	A ``PrimaryUnit`` is a base-class for all primary units.
-	"""
+	"""A ``PrimaryUnit`` is a base-class for all primary units."""
 
 	@property
 	def Library(self) -> 'Library':
@@ -491,6 +528,4 @@ class PrimaryUnit(DesignUnit):
 
 @export
 class SecondaryUnit(DesignUnit):
-	"""
-	A ``SecondaryUnit`` is a base-class for all secondary units.
-	"""
+	"""A ``SecondaryUnit`` is a base-class for all secondary units."""

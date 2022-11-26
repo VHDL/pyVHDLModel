@@ -40,7 +40,7 @@ from typing               import List, Tuple, Union, Dict, Iterator, Optional as
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel          import ModelEntity, NamedEntity, MultipleNamedEntity, LabeledEntity, PossibleReference, Direction, EntityClass, Mode
+from pyVHDLModel import ModelEntity, NamedEntity, MultipleNamedEntity, LabeledEntity, PossibleReference, Direction, EntityClass, Mode, DocumentedEntity
 from pyVHDLModel          import PrimaryUnit, SecondaryUnit
 from pyVHDLModel          import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, MixinDesignUnitWithContext, PackageOrSymbol
 from pyVHDLModel.PSLModel import VerificationUnit
@@ -577,8 +577,8 @@ class Document(ModelEntity):
 
 
 @export
-class Alias(ModelEntity, NamedEntity):
-	def __init__(self, identifier: str):
+class Alias(ModelEntity, NamedEntity, DocumentedEntity):
+	def __init__(self, identifier: str, documentation: str = None):
 		"""
 		Initializes underlying ``BaseType``.
 
@@ -586,13 +586,14 @@ class Alias(ModelEntity, NamedEntity):
 		"""
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
+		DocumentedEntity.__init__(self, documentation)
 
 
 @export
-class BaseType(ModelEntity, NamedEntity):
+class BaseType(ModelEntity, NamedEntity, DocumentedEntity):
 	"""``BaseType`` is the base-class of all type entities in this model."""
 
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str, documentation: str = None):
 		"""
 		Initializes underlying ``BaseType``.
 
@@ -600,6 +601,7 @@ class BaseType(ModelEntity, NamedEntity):
 		"""
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
+		DocumentedEntity.__init__(self, documentation)
 
 
 @export
@@ -1583,12 +1585,13 @@ class RangeSubtype(BaseConstraint):
 
 
 @export
-class Obj(ModelEntity, MultipleNamedEntity):
+class Obj(ModelEntity, MultipleNamedEntity, DocumentedEntity):
 	_subtype: SubtypeOrSymbol
 
-	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, documentation: str = None):
 		super().__init__()
 		MultipleNamedEntity.__init__(self, identifiers)
+		DocumentedEntity.__init__(self, documentation)
 
 		self._subtype = subtype
 
@@ -1660,16 +1663,17 @@ class File(Obj):
 
 
 @export
-class SubProgramm(ModelEntity, NamedEntity):
+class SubProgramm(ModelEntity, NamedEntity, DocumentedEntity):
 	_genericItems:   List['GenericInterfaceItem']
 	_parameterItems: List['ParameterInterfaceItem']
 	_declaredItems:  List
 	_statements:     List['SequentialStatement']
 	_isPure:         bool
 
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str, documentation: str = None):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
+		DocumentedEntity.__init__(self, documentation)
 
 		self._genericItems =    []
 		self._parameterItems =  []
@@ -1744,12 +1748,13 @@ class FunctionMethod(Function, Method):
 
 
 @export
-class Attribute(ModelEntity, NamedEntity):
+class Attribute(ModelEntity, NamedEntity, DocumentedEntity):
 	_subtype: SubtypeOrSymbol
 
-	def __init__(self, identifier: str, subtype: SubtypeOrSymbol):
+	def __init__(self, identifier: str, subtype: SubtypeOrSymbol, documentation: str = None):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
+		DocumentedEntity.__init__(self, documentation)
 
 		self._subtype = subtype
 
@@ -1759,14 +1764,15 @@ class Attribute(ModelEntity, NamedEntity):
 
 
 @export
-class AttributeSpecification(ModelEntity):
+class AttributeSpecification(ModelEntity, DocumentedEntity):
 	_identifiers: List[Name]
 	_attribute: Name
 	_entityClass: EntityClass
 	_expression: ExpressionUnion
 
-	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: ExpressionUnion):
+	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: ExpressionUnion, documentation: str = None):
 		super().__init__()
+		DocumentedEntity.__init__(self, documentation)
 
 		self._identifiers = [i for i in identifiers]
 		self._attribute = attribute
@@ -1791,11 +1797,11 @@ class AttributeSpecification(ModelEntity):
 
 
 @export
-class InterfaceItem:
+class InterfaceItem(DocumentedEntity):
 	"""An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items."""
 
-	def __init__(self):
-		pass
+	def __init__(self, documentation: str = None):
+		super().__init__(documentation)
 
 
 @export
@@ -2330,13 +2336,21 @@ class ConfigurationInstantiation(Instantiation):
 
 
 @export
-class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements):
+class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements, DocumentedEntity):
 	_sensitivityList: List[Name] = None
 
-	def __init__(self, label: str = None, declaredItems: Iterable = None, statements: Iterable[SequentialStatement] = None, sensitivityList: Iterable[Name] = None):
+	def __init__(
+		self,
+		label: str = None,
+		declaredItems: Iterable = None,
+		statements: Iterable[SequentialStatement] = None,
+		sensitivityList: Iterable[Name] = None,
+		documentation: str = None
+	):
 		super().__init__(label)
 		SequentialDeclarations.__init__(self, declaredItems)
 		SequentialStatements.__init__(self, statements)
+		DocumentedEntity.__init__(self, documentation)
 
 		if sensitivityList is not None:
 			self._sensitivityList = [s for s in sensitivityList]
@@ -2387,15 +2401,23 @@ class BlockStatement:
 
 
 @export
-class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements):
+class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements, DocumentedEntity):
 	_portItems:     List[PortInterfaceItem]
 
-	def __init__(self, label: str, portItems: Iterable[PortInterfaceItem] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None):
+	def __init__(
+		self,
+		label: str,
+		portItems: Iterable[PortInterfaceItem] = None,
+		declaredItems: Iterable = None,
+		statements: Iterable['ConcurrentStatement'] = None,
+		documentation: str = None
+	):
 		super().__init__(label)
 		BlockStatement.__init__(self)
 		LabeledEntity.__init__(self, label)
 		ConcurrentDeclarations.__init__(self)
 		ConcurrentStatements.__init__(self)
+		DocumentedEntity.__init__(self, documentation)
 
 		self._portItems     = [] if portItems is None else [i for i in portItems]
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]

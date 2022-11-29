@@ -19,7 +19,7 @@
    |  |SHIELD:svg:pyVHDLModel-pypi-tag| |SHIELD:svg:pyVHDLModel-pypi-status| |SHIELD:svg:pyVHDLModel-pypi-python|
    |  |SHIELD:svg:pyVHDLModel-gha-test| |SHIELD:svg:pyVHDLModel-lib-status| |SHIELD:svg:pyVHDLModel-codacy-quality| |SHIELD:svg:pyVHDLModel-codacy-coverage| |SHIELD:svg:pyVHDLModel-codecov-coverage|
 
-.. Disabled shields: |SHIELD:svg:pyVHDLModel-lib-dep| |SHIELD:svg:pyVHDLModel-req-status| |SHIELD:svg:pyVHDLModel-lib-rank|
+.. Disabled shields: |SHIELD:svg:pyVHDLModel-lib-dep| |SHIELD:svg:pyVHDLModel-lib-rank|
 
 .. only:: latex
 
@@ -27,7 +27,7 @@
    |SHIELD:png:pyVHDLModel-pypi-tag| |SHIELD:png:pyVHDLModel-pypi-status| |SHIELD:png:pyVHDLModel-pypi-python|
    |SHIELD:png:pyVHDLModel-gha-test| |SHIELD:png:pyVHDLModel-lib-status| |SHIELD:png:pyVHDLModel-codacy-quality| |SHIELD:png:pyVHDLModel-codacy-coverage| |SHIELD:png:pyVHDLModel-codecov-coverage|
 
-.. Disabled shields: |SHIELD:png:pyVHDLModel-lib-dep| |SHIELD:png:pyVHDLModel-req-status| |SHIELD:png:pyVHDLModel-lib-rank|
+.. Disabled shields: |SHIELD:png:pyVHDLModel-lib-dep| |SHIELD:png:pyVHDLModel-lib-rank|
 
 The pyVHDLModel Documentation
 #############################

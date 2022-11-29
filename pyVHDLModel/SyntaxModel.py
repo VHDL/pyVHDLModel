@@ -40,7 +40,7 @@ from typing               import List, Tuple, Union, Dict, Iterator, Optional as
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel          import ModelEntity, NamedEntity, MultipleNamedEntity, LabeledEntity, PossibleReference, Direction, EntityClass, Mode
+from pyVHDLModel import ModelEntity, NamedEntity, MultipleNamedEntity, LabeledEntity, PossibleReference, Direction, EntityClass, Mode, DocumentedEntity
 from pyVHDLModel          import PrimaryUnit, SecondaryUnit
 from pyVHDLModel          import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, MixinDesignUnitWithContext, PackageOrSymbol
 from pyVHDLModel.PSLModel import VerificationUnit
@@ -577,8 +577,8 @@ class Document(ModelEntity):
 
 
 @export
-class Alias(ModelEntity, NamedEntity):
-	def __init__(self, identifier: str):
+class Alias(ModelEntity, NamedEntity, DocumentedEntity):
+	def __init__(self, identifier: str, documentation: str = None):
 		"""
 		Initializes underlying ``BaseType``.
 
@@ -586,13 +586,14 @@ class Alias(ModelEntity, NamedEntity):
 		"""
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
+		DocumentedEntity.__init__(self, documentation)
 
 
 @export
-class BaseType(ModelEntity, NamedEntity):
+class BaseType(ModelEntity, NamedEntity, DocumentedEntity):
 	"""``BaseType`` is the base-class of all type entities in this model."""
 
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str, documentation: str = None):
 		"""
 		Initializes underlying ``BaseType``.
 
@@ -600,6 +601,7 @@ class BaseType(ModelEntity, NamedEntity):
 		"""
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
+		DocumentedEntity.__init__(self, documentation)
 
 
 @export
@@ -918,7 +920,7 @@ class PhysicalLiteral(NumericLiteral):
 		return self._unitName
 
 	def __str__(self) -> str:
-		return "{value} {unit}".format(value=self._value, unit=self._unitName)
+		return f"{self._value} {self._unitName}"
 
 
 @export
@@ -1019,11 +1021,7 @@ class UnaryExpression(BaseExpression):
 		return self._operand
 
 	def __str__(self) -> str:
-		return "{leftOperator}{operand!s}{rightOperator}".format(
-			leftOperator=self._FORMAT[0],
-			operand=self._operand,
-			rightOperator=self._FORMAT[1],
-		)
+		return f"{self._FORMAT[0]}{self._operand!s}{self._FORMAT[1]}"
 
 
 @export
@@ -1334,10 +1332,7 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 		return self._subtype
 
 	def __str__(self) -> str:
-		return "{subtype}'({operand!s})".format(
-			subtype=self._subtype,
-			operand=self._operand,
-		)
+		return f"{self._subtype}'({self._operand!s})"
 
 
 @export
@@ -1583,12 +1578,13 @@ class RangeSubtype(BaseConstraint):
 
 
 @export
-class Obj(ModelEntity, MultipleNamedEntity):
+class Obj(ModelEntity, MultipleNamedEntity, DocumentedEntity):
 	_subtype: SubtypeOrSymbol
 
-	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, documentation: str = None):
 		super().__init__()
 		MultipleNamedEntity.__init__(self, identifiers)
+		DocumentedEntity.__init__(self, documentation)
 
 		self._subtype = subtype
 
@@ -1618,8 +1614,8 @@ class BaseConstant(Obj):
 
 @export
 class Constant(BaseConstant, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
-		super().__init__(identifiers, subtype)
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -1627,8 +1623,8 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 class DeferredConstant(BaseConstant):
 	_constantReference: Constant
 
-	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
-		super().__init__(identifiers, subtype)
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
 
 	@property
 	def ConstantReference(self) -> Constant:
@@ -1637,8 +1633,8 @@ class DeferredConstant(BaseConstant):
 
 @export
 class Variable(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
-		super().__init__(identifiers, subtype)
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -1649,8 +1645,8 @@ class SharedVariable(Obj):
 
 @export
 class Signal(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
-		super(Signal, self).__init__(identifiers, subtype)
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -1660,16 +1656,17 @@ class File(Obj):
 
 
 @export
-class SubProgramm(ModelEntity, NamedEntity):
+class SubProgramm(ModelEntity, NamedEntity, DocumentedEntity):
 	_genericItems:   List['GenericInterfaceItem']
 	_parameterItems: List['ParameterInterfaceItem']
 	_declaredItems:  List
 	_statements:     List['SequentialStatement']
 	_isPure:         bool
 
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str, documentation: str = None):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
+		DocumentedEntity.__init__(self, documentation)
 
 		self._genericItems =    []
 		self._parameterItems =  []
@@ -1706,8 +1703,8 @@ class Procedure(SubProgramm):
 class Function(SubProgramm):
 	_returnType: Subtype
 
-	def __init__(self, identifier: str, isPure: bool = True):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, isPure: bool = True, documentation: str = None):
+		super().__init__(identifier, documentation)
 		self._isPure = isPure
 
 	@property
@@ -1744,12 +1741,13 @@ class FunctionMethod(Function, Method):
 
 
 @export
-class Attribute(ModelEntity, NamedEntity):
+class Attribute(ModelEntity, NamedEntity, DocumentedEntity):
 	_subtype: SubtypeOrSymbol
 
-	def __init__(self, identifier: str, subtype: SubtypeOrSymbol):
+	def __init__(self, identifier: str, subtype: SubtypeOrSymbol, documentation: str = None):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
+		DocumentedEntity.__init__(self, documentation)
 
 		self._subtype = subtype
 
@@ -1759,14 +1757,15 @@ class Attribute(ModelEntity, NamedEntity):
 
 
 @export
-class AttributeSpecification(ModelEntity):
+class AttributeSpecification(ModelEntity, DocumentedEntity):
 	_identifiers: List[Name]
 	_attribute: Name
 	_entityClass: EntityClass
 	_expression: ExpressionUnion
 
-	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: ExpressionUnion):
+	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: ExpressionUnion, documentation: str = None):
 		super().__init__()
+		DocumentedEntity.__init__(self, documentation)
 
 		self._identifiers = [i for i in identifiers]
 		self._attribute = attribute
@@ -1791,11 +1790,11 @@ class AttributeSpecification(ModelEntity):
 
 
 @export
-class InterfaceItem:
+class InterfaceItem(DocumentedEntity):
 	"""An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items."""
 
-	def __init__(self):
-		pass
+	def __init__(self, documentation: str = None):
+		super().__init__(documentation)
 
 
 @export
@@ -1833,16 +1832,16 @@ class ParameterInterfaceItem(InterfaceItem):
 
 @export
 class GenericConstantInterfaceItem(Constant, GenericInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
-		super().__init__(identifiers, subtype, defaultExpression)
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		GenericInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class GenericTypeInterfaceItem(Type, GenericInterfaceItem):
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, documentation: str):
+		super().__init__(identifier, documentation)
 		GenericInterfaceItem.__init__(self)
 
 
@@ -1853,60 +1852,60 @@ class GenericSubprogramInterfaceItem(GenericInterfaceItem):
 
 @export
 class GenericProcedureInterfaceItem(Procedure, GenericInterfaceItem):
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, documentation: str):
+		super().__init__(identifier, documentation)
 		GenericInterfaceItem.__init__(self)
 
 
 @export
 class GenericFunctionInterfaceItem(Function, GenericInterfaceItem):
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, documentation: str):
+		super().__init__(identifier, documentation)
 		GenericInterfaceItem.__init__(self)
 
 
 @export
 class GenericPackageInterfaceItem(GenericInterfaceItem):
-	def __init__(self, identifier: str):
-		#	super().__init__(identifier)
+	def __init__(self, identifier: str, documentation: str):
+		#	super().__init__(identifier, documentation)
 		GenericInterfaceItem.__init__(self)
 
 
 @export
 class PortSignalInterfaceItem(Signal, PortInterfaceItem):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
-		super().__init__(identifiers, subtype, defaultExpression)
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		PortInterfaceItem.__init__(self, mode)
 
 
 @export
 class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
-		super().__init__(identifiers, subtype, defaultExpression)
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
-		super().__init__(identifiers, subtype, defaultExpression)
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None):
-		super().__init__(identifiers, subtype, defaultExpression)
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: SubtypeOrSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
 
 
 @export
 class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
-	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
-		super().__init__(identifiers, subtype)
+	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
 		ParameterInterfaceItem.__init__(self)
 
 
@@ -1944,8 +1943,8 @@ class Context(PrimaryUnit):
 	_libraryReferences: List[LibraryClause]
 	_packageReferences: List[UseClause]
 
-	def __init__(self, identifier: str, libraryReferences: Iterable[LibraryClause] = None, packageReferences: Iterable[UseClause] = None):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, libraryReferences: Iterable[LibraryClause] = None, packageReferences: Iterable[UseClause] = None, documentation: str = None):
+		super().__init__(identifier, documentation)
 
 		self._libraryReferences = [] if libraryReferences is None else [l for l in libraryReferences]
 		self._packageReferences = [] if packageReferences is None else [p for p in packageReferences]
@@ -1974,9 +1973,10 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 		genericItems: Iterable[GenericInterfaceItem] = None,
 		portItems: Iterable[PortInterfaceItem] = None,
 		declaredItems: Iterable = None,
-		statements: Iterable['ConcurrentStatement'] = None
+		statements: Iterable['ConcurrentStatement'] = None,
+		documentation: str = None
 	):
-		super().__init__(identifier)
+		super().__init__(identifier, documentation)
 		MixinDesignUnitWithContext.__init__(self, contextItems)
 
 		self._genericItems  = [] if genericItems is None else [g for g in genericItems]
@@ -2013,8 +2013,8 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
 	_statements:    List['ConcurrentStatement']
 
-	def __init__(self, identifier: str, entity: Name, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, entity: Name, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None, documentation: str = None):
+		super().__init__(identifier, documentation)
 		MixinDesignUnitWithContext.__init__(self, contextItems)
 
 		self._entity        = EntitySymbol(entity)
@@ -2042,13 +2042,14 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 
 
 @export
-class Component(ModelEntity, NamedEntity):
+class Component(ModelEntity, NamedEntity, DocumentedEntity):
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
 
-	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItem] = None, portItems: Iterable[PortInterfaceItem] = None):
+	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItem] = None, portItems: Iterable[PortInterfaceItem] = None, documentation: str = None):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
+		DocumentedEntity.__init__(self, documentation)
 
 		self._genericItems      = [] if genericItems is None else [g for g in genericItems]
 		self._portItems         = [] if portItems is None else [p for p in portItems]
@@ -2064,8 +2065,8 @@ class Component(ModelEntity, NamedEntity):
 
 @export
 class Configuration(PrimaryUnit, MixinDesignUnitWithContext):
-	def __init__(self, identifier: str, contextItems: Iterable[Context] = None):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, documentation: str = None):
+		super().__init__(identifier, documentation)
 		MixinDesignUnitWithContext.__init__(self, contextItems)
 
 
@@ -2139,8 +2140,8 @@ class Package(PrimaryUnit, MixinDesignUnitWithContext):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
-	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None, documentation: str = None):
+		super().__init__(identifier, documentation)
 		MixinDesignUnitWithContext.__init__(self, contextItems)
 
 		self._genericItems =  [] if genericItems is None else [g for g in genericItems]
@@ -2160,8 +2161,8 @@ class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
 	_package:           Package
 	_declaredItems:     List
 
-	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, declaredItems: Iterable = None):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, documentation: str = None):
+		super().__init__(identifier, documentation)
 		MixinDesignUnitWithContext.__init__(self, contextItems)
 
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
@@ -2180,8 +2181,8 @@ class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
 	_packageReference:    Package
 	_genericAssociations: List[GenericAssociationItem]
 
-	def __init__(self, identifier: str, uninstantiatedPackage: PackageOrSymbol):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, uninstantiatedPackage: PackageOrSymbol, documentation: str = None):
+		super().__init__(identifier, documentation)
 		GenericEntityInstantiation.__init__(self)
 
 		self._packageReference = uninstantiatedPackage
@@ -2330,13 +2331,21 @@ class ConfigurationInstantiation(Instantiation):
 
 
 @export
-class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements):
+class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements, DocumentedEntity):
 	_sensitivityList: List[Name] = None
 
-	def __init__(self, label: str = None, declaredItems: Iterable = None, statements: Iterable[SequentialStatement] = None, sensitivityList: Iterable[Name] = None):
+	def __init__(
+		self,
+		label: str = None,
+		declaredItems: Iterable = None,
+		statements: Iterable[SequentialStatement] = None,
+		sensitivityList: Iterable[Name] = None,
+		documentation: str = None
+	):
 		super().__init__(label)
 		SequentialDeclarations.__init__(self, declaredItems)
 		SequentialStatements.__init__(self, statements)
+		DocumentedEntity.__init__(self, documentation)
 
 		if sensitivityList is not None:
 			self._sensitivityList = [s for s in sensitivityList]
@@ -2387,15 +2396,23 @@ class BlockStatement:
 
 
 @export
-class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements):
+class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements, DocumentedEntity):
 	_portItems:     List[PortInterfaceItem]
 
-	def __init__(self, label: str, portItems: Iterable[PortInterfaceItem] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None):
+	def __init__(
+		self,
+		label: str,
+		portItems: Iterable[PortInterfaceItem] = None,
+		declaredItems: Iterable = None,
+		statements: Iterable['ConcurrentStatement'] = None,
+		documentation: str = None
+	):
 		super().__init__(label)
 		BlockStatement.__init__(self)
 		LabeledEntity.__init__(self, label)
 		ConcurrentDeclarations.__init__(self)
 		ConcurrentStatements.__init__(self)
+		DocumentedEntity.__init__(self, documentation)
 
 		self._portItems     = [] if portItems is None else [i for i in portItems]
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]

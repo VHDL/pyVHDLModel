@@ -39,7 +39,7 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2022, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.15.0"
+__version__ =   "0.16.0"
 
 
 from enum     import IntEnum, unique, Enum
@@ -104,15 +104,18 @@ class VHDLVersion(Enum):
 	VHDL93 =             93
 #	AMS93 =              93
 	AMS99 =              99
+	VHDL2000 =         2000
 	VHDL2002 =         2002
 	VHDL2008 =         2008
 	AMS2017 =          2017
 	VHDL2019 =         2019
+	Latest =           10000
 
 	__VERSION_MAPPINGS__: Dict[Union[int, str], Enum] = {
 		87:     VHDL87,
 		93:     VHDL93,
 		99:     AMS99,
+		0:      VHDL2000,
 		2:      VHDL2002,
 		8:      VHDL2008,
 		17:     AMS2017,
@@ -120,14 +123,17 @@ class VHDLVersion(Enum):
 		1987:   VHDL87,
 		1993:   VHDL93,
 		1999:   AMS99,
+		2000:   VHDL2000,
 		2002:   VHDL2002,
 		2008:   VHDL2008,
 		2017:   AMS2017,
 		2019:   VHDL2019,
 		"Any":  Any,
+		"Latest": Latest,
 		"87":   VHDL87,
 		"93":   VHDL93,
 		"99":   AMS99,
+		"00":   VHDL2000,
 		"02":   VHDL2002,
 		"08":   VHDL2008,
 		"17":   AMS2017,
@@ -135,6 +141,7 @@ class VHDLVersion(Enum):
 		"1987": VHDL87,
 		"1993": VHDL93,
 		"1999": AMS99,
+		"2000": VHDL2000,
 		"2002": VHDL2002,
 		"2008": VHDL2008,
 		"2017": AMS2017,
@@ -152,7 +159,7 @@ class VHDLVersion(Enum):
 		try:
 			return cls.__VERSION_MAPPINGS__[value]
 		except KeyError:
-			ValueError("Value '{0!s}' cannot be parsed to member of {1}.".format(value, cls.__name__))
+			ValueError(f"Value '{value!s}' cannot be parsed to member of {cls.__name__}.")
 
 	def __lt__(self, other: Any) -> bool:
 		if isinstance(other, VHDLVersion):
@@ -228,7 +235,7 @@ class Mode(Enum):
 	A ``Mode`` is an enumeration. It represents the direction of data exchange
 	(``in``, ``out``, ...) for objects in generic, port or parameter lists.
 
-	In case no *mode* is define, ``Default`` is used, so the *mode* is inferred
+	In case no *mode* is defined, ``Default`` is used, so the *mode* is inferred
 	from context.
 	"""
 	Default = 0
@@ -270,7 +277,7 @@ class EntityClass(Enum):
 	A ``Class`` is an enumeration. It represents an object's class (``constant``,
 	``signal``, ...).
 
-	In case no *object class* is define, ``Default`` is used, so the *object class*
+	In case no *object class* is defined, ``Default`` is used, so the *object class*
 	is inferred from context.
 	"""
 	Entity =        0
@@ -351,7 +358,11 @@ class ModelEntity:
 
 	@property
 	def Parent(self) -> 'ModelEntity':
-		"""Returns a reference to the parent entity."""
+		"""
+		Returns a reference to the parent entity.
+
+		:returns: Parent entity.
+		"""
 		return self._parent
 
 
@@ -363,14 +374,18 @@ class NamedEntity:
 	A protected variable :attr:`_identifier` is available to derived classes as
 	well as a readonly property :attr:`Identifier` for public access.
 	"""
-	_identifier: str                  #: The identifier of a model entity.
+	_identifier: str  #: The identifier of a model entity.
 
 	def __init__(self, identifier: str):
 		self._identifier = identifier
 
 	@property
 	def Identifier(self) -> str:
-		"""Returns a model entity's identifier (name)."""
+		"""
+		Returns a model entity's identifier (name).
+
+		:returns: Name of a model entity.
+		"""
 		return self._identifier
 
 
@@ -383,14 +398,18 @@ class MultipleNamedEntity:
 	A protected variable :attr:`_identifiers` is available to derived classes as
 	well as a readonly property :attr:`Identifiers` for public access.
 	"""
-	_identifiers: List[str]           #: A list of identifiers.
+	_identifiers: List[str]  #: A list of identifiers.
 
 	def __init__(self, identifiers: List[str]):
 		self._identifiers = identifiers
 
 	@property
 	def Identifiers(self) -> List[str]:
-		"""Returns a model entity's list of identifiers (name)."""
+		"""
+		Returns a model entity's list of identifiers (name).
+
+		:returns: List of identifiers.
+		"""
 		return self._identifiers
 
 
@@ -403,15 +422,43 @@ class LabeledEntity:
 	A protected variable :attr:`_label` is available to derived classes as well
 	as a readonly property :attr:`Label` for public access.
 	"""
-	_label: str                 #: The label of a model entity.
+	_label: str  #: The label of a model entity.
 
 	def __init__(self, label: str):
 		self._label = label
 
 	@property
 	def Label(self) -> str:
-		"""Returns a model entity's label."""
+		"""
+		Returns a model entity's label.
+
+		:returns: Label of a model entity.
+		"""
 		return self._label
+
+
+@export
+class DocumentedEntity:
+	"""
+	A ``DocumentedEntity`` is a mixin class for all VHDL entities that can have
+	an associated documentation.
+
+	A protected variable :attr:`_documentation` is available to derived classes as
+	well as a readonly property :attr:`Documentation` for public access.
+	"""
+	_documentation: Nullable[str]  #: The associated documentation of a model entity.
+
+	def __init__(self, documentation: str):
+		self._documentation = documentation
+
+	@property
+	def Documentation(self) -> Nullable[str]:
+		"""
+		Returns a model entity's associated documentation.
+
+		:returns: Associated documentation of a model entity.
+		"""
+		return self._documentation
 
 
 @export
@@ -457,21 +504,18 @@ class MixinDesignUnitWithContext:
 
 
 @export
-class DesignUnit(ModelEntity, NamedEntity):
-	"""
-	A ``DesignUnit`` is a base-class for all design units.
-	"""
+class DesignUnit(ModelEntity, NamedEntity, DocumentedEntity):
+	"""A ``DesignUnit`` is a base-class for all design units."""
 
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str, documentation: str = None):
 		super().__init__()
 		NamedEntity.__init__(self, identifier)
+		DocumentedEntity.__init__(self, documentation)
 
 
 @export
 class PrimaryUnit(DesignUnit):
-	"""
-	A ``PrimaryUnit`` is a base-class for all primary units.
-	"""
+	"""A ``PrimaryUnit`` is a base-class for all primary units."""
 
 	@property
 	def Library(self) -> 'Library':
@@ -484,6 +528,4 @@ class PrimaryUnit(DesignUnit):
 
 @export
 class SecondaryUnit(DesignUnit):
-	"""
-	A ``SecondaryUnit`` is a base-class for all secondary units.
-	"""
+	"""A ``SecondaryUnit`` is a base-class for all secondary units."""

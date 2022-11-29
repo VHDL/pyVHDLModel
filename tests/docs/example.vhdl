@@ -2,19 +2,20 @@ library ieee;
 use     ieee.std_logic_1164.all;
 use     ieee.numeric_std.all;
 
+--
 entity entity_1 is
 	generic (
-		FREQ : real     := (100.0 * 1024.0 * 1024.0);
-		BITS : positive := 8
+		FREQ : real     := (100.0 * 1024.0 * 1024.0);   -- Frequency in Hz
+		BITS : positive := 8                            -- Number of counter bits
 	);
 	port (
-	  Clock: in  std_logic;
-	  Reset: in  std_logic := '0';
-	  Q:     out std_logic_vector(BITS - 1 downto 0)
+	  Clock: in  std_logic;                           -- module clock
+	  Reset: in  std_logic := '0';                    -- module reset
+	  Q:     out std_logic_vector(BITS - 1 downto 0)  -- Counter value
 	);
 end entity entity_1;
 
-architecture behav of entity_1 is
+architecture rtl of entity_1 is
 	signal Reset_n : std_logic;
 begin
 	Reset_n <= (not Reset);
@@ -29,4 +30,4 @@ begin
 			end if;
 		end if;
 	end process;
-end architecture behav;
+end architecture rtl;

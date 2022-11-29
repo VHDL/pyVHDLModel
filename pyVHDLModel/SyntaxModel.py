@@ -512,7 +512,7 @@ class Library(ModelEntity, NamedEntity):
 
 
 @export
-class Document(ModelEntity):
+class Document(ModelEntity, DocumentedEntity):
 	"""A ``Document`` represents a sourcefile. It contains primary and secondary design units."""
 
 	_path:              Path                      #: path to the document. ``None`` if virtual document.
@@ -524,8 +524,9 @@ class Document(ModelEntity):
 	_packages:          List['Package']           #: List of all packages defined in a document.
 	_packageBodies:     List['PackageBody']       #: List of all package bodies defined in a document.
 
-	def __init__(self, path: Path):
+	def __init__(self, path: Path, documentation: str = None):
 		super().__init__()
+		DocumentedEntity.__init__(self, documentation)
 
 		self._path =              path
 		self._contexts =          []

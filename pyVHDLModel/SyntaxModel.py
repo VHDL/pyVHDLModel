@@ -920,7 +920,7 @@ class PhysicalLiteral(NumericLiteral):
 		return self._unitName
 
 	def __str__(self) -> str:
-		return "{value} {unit}".format(value=self._value, unit=self._unitName)
+		return f"{self._value} {self._unitName}"
 
 
 @export
@@ -1021,11 +1021,7 @@ class UnaryExpression(BaseExpression):
 		return self._operand
 
 	def __str__(self) -> str:
-		return "{leftOperator}{operand!s}{rightOperator}".format(
-			leftOperator=self._FORMAT[0],
-			operand=self._operand,
-			rightOperator=self._FORMAT[1],
-		)
+		return f"{self._FORMAT[0]}{self._operand!s}{self._FORMAT[1]}"
 
 
 @export
@@ -1336,10 +1332,7 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 		return self._subtype
 
 	def __str__(self) -> str:
-		return "{subtype}'({operand!s})".format(
-			subtype=self._subtype,
-			operand=self._operand,
-		)
+		return f"{self._subtype}'({self._operand!s})"
 
 
 @export

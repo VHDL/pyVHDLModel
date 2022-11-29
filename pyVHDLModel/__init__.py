@@ -446,13 +446,13 @@ class DocumentedEntity:
 	A protected variable :attr:`_documentation` is available to derived classes as
 	well as a readonly property :attr:`Documentation` for public access.
 	"""
-	_documentation: str  #: The associated documentation of a model entity.
+	_documentation: Nullable[str]  #: The associated documentation of a model entity.
 
 	def __init__(self, documentation: str):
 		self._documentation = documentation
 
 	@property
-	def Documentation(self) -> str:
+	def Documentation(self) -> Nullable[str]:
 		"""
 		Returns a model entity's associated documentation.
 

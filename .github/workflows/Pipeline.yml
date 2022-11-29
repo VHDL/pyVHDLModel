@@ -95,7 +95,8 @@ jobs:
       - name: 🐍 Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ needs.Params.outputs.python_version }}
+          python-version: "3.10"
+#          python-version: ${{ needs.Params.outputs.python_version }}
 
       - name: 🐍 Install dependencies
         run: |

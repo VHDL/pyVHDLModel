@@ -2215,6 +2215,7 @@ class SequentialStatement(Statement):
 	"""A ``SequentialStatement`` is a base-class for all sequential statements."""
 
 
+# FIXME: Why not used in entity, architecture, package, package body, block-statement, generate-statements
 @export
 class ConcurrentDeclarations:
 	_declaredItems: List
@@ -2227,6 +2228,7 @@ class ConcurrentDeclarations:
 		return self._declaredItems
 
 
+# FIXME: Why not used in entity, architecture, block-statement, generate-statements
 @export
 class ConcurrentStatements:
 	_statements: List[ConcurrentStatement]

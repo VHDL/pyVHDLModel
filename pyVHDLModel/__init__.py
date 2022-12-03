@@ -568,12 +568,17 @@ class DocumentedEntityMixin:
 
 @export
 class DesignUnitWithContextMixin:
-	_contextItems:      List['ContextUnion']
-	_libraryReferences: List['LibraryClause']
-	_packageReferences: List['UseClause']
-	_contextReferences: List['ContextReference']
+	_contextItems:      List['ContextUnion']      #: List of all context items (library, use and context clauses).
+	_libraryReferences: List['LibraryClause']     #: List of library clauses.
+	_packageReferences: List['UseClause']         #: List of use clauses.
+	_contextReferences: List['ContextReference']  #: List of context clauses.
 
 	def __init__(self, contextItems: Iterable['ContextUnion'] = None):
+		"""
+		Initializes a mixin for design units with a context.
+
+		:param contextItems: A sequence of library, use or context clauses.
+		"""
 		from pyVHDLModel.SyntaxModel import LibraryClause, UseClause, ContextReference
 
 		self._contextItems = []
@@ -593,19 +598,40 @@ class DesignUnitWithContextMixin:
 
 	@property
 	def ContextItems(self) -> List['ContextUnion']:
+		"""
+		Read-only property to access the sequence of all context items comprising library, use and context clauses
+		(:py:attr:`_contextItems`).
+
+		:returns: Sequence of context items.
+		"""
 		return self._contextItems
 
 	@property
+	def ContextReferences(self) -> List['ContextReference']:
+		"""
+		Read-only property to access the sequence of context clauses (:py:attr:`_contextReferences`).
+
+		:returns: Sequence of context clauses.
+		"""
+		return self._contextReferences
+
+	@property
 	def LibraryReferences(self) -> List['LibraryClause']:
+		"""
+		Read-only property to access the sequence of library clauses (:py:attr:`_libraryReferences`).
+
+		:returns: Sequence of library clauses.
+		"""
 		return self._libraryReferences
 
 	@property
 	def PackageReferences(self) -> List['UseClause']:
-		return self._packageReferences
+		"""
+		Read-only property to access the sequence of use clauses (:py:attr:`_packageReferences`).
 
-	@property
-	def ContextReferences(self) -> List['ContextReference']:
-		return self._contextReferences
+		:returns: Sequence of use clauses.
+		"""
+		return self._packageReferences
 
 
 @export
@@ -613,6 +639,12 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""A ``DesignUnit`` is a base-class for all design units."""
 
 	def __init__(self, identifier: str, documentation: str = None):
+		"""
+		Initializes a design unit.
+
+		:param identifier:    Identifier (name) of the design unit.
+		:param documentation: Associated documentation of the design unit.
+		"""
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)

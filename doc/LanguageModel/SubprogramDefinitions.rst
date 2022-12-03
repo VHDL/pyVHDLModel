@@ -3,30 +3,20 @@
 Subprogram Declarations
 ########################
 
-.. rubric:: Table of Content
+.. contents:: Table of Content
+   :local:
 
-* :ref:`vhdlmodel-procedures`
+.. #rubric:: Class Hierarchy
 
-  * :ref:`vhdlmodel-procedure`
-  * :ref:`vhdlmodel-procedureinstantiation`
-  * :ref:`vhdlmodel-proceduremethod`
-  * :ref:`vhdlmodel-sub-genericprocedure`
-
-* :ref:`vhdlmodel-functions`
-
-  * :ref:`vhdlmodel-function`
-  * :ref:`vhdlmodel-functioninstantiation`
-  * :ref:`vhdlmodel-functionmethod`
-  * :ref:`vhdlmodel-sub-genericfunction`
-
-
+.. #inheritance-diagram:: pyVHDLModel.SyntaxModel.Procedure pyVHDLModel.SyntaxModel.ProcedureMethod pyVHDLModel.SyntaxModel.GenericProcedureInterfaceItem pyVHDLModel.SyntaxModel.Function pyVHDLModel.SyntaxModel.FunctionMethod pyVHDLModel.SyntaxModel.GenericFunctionInterfaceItem
+   :parts: 1
 
 .. _vhdlmodel-procedures:
 
 Procedures
 ==========
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.Procedure pyVHDLModel.VHDLModel.ProcedureMethod pyVHDLModel.VHDLModel.GenericProcedureInterfaceItem
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.Procedure pyVHDLModel.SyntaxModel.ProcedureMethod pyVHDLModel.SyntaxModel.GenericProcedureInterfaceItem
    :parts: 1
 
 
@@ -138,7 +128,7 @@ A generic procedure is a *regular* procedure.
 Functions
 =========
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.Function pyVHDLModel.VHDLModel.FunctionMethod pyVHDLModel.VHDLModel.GenericFunctionInterfaceItem
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.Function pyVHDLModel.SyntaxModel.FunctionMethod pyVHDLModel.SyntaxModel.GenericFunctionInterfaceItem
    :parts: 1
 
 

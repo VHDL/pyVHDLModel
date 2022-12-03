@@ -5,30 +5,12 @@ Interface Items
 
 Interface items are used in generic, port and parameter declarations.
 
-.. rubric:: Table of Content
-
-* :ref:`vhdlmodel-generics`
-
-  * :ref:`vhdlmodel-genericconstant`
-  * :ref:`vhdlmodel-generictype`
-  * :ref:`vhdlmodel-genericprocedure`
-  * :ref:`vhdlmodel-genericfunction`
-  * :ref:`vhdlmodel-genericpackage`
-
-* :ref:`vhdlmodel-ports`
-
-  * :ref:`vhdlmodel-portsignal`
-
-* :ref:`vhdlmodel-parameters`
-
-  * :ref:`vhdlmodel-parameterconstant`
-  * :ref:`vhdlmodel-parametervariable`
-  * :ref:`vhdlmodel-parametersignal`
-  * :ref:`vhdlmodel-parameterfile`
+.. contents:: Table of Content
+   :local:
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.GenericConstantInterfaceItem pyVHDLModel.VHDLModel.GenericTypeInterfaceItem pyVHDLModel.VHDLModel.GenericProcedureInterfaceItem pyVHDLModel.VHDLModel.GenericFunctionInterfaceItem pyVHDLModel.VHDLModel.PortSignalInterfaceItem pyVHDLModel.VHDLModel.ParameterConstantInterfaceItem pyVHDLModel.VHDLModel.ParameterVariableInterfaceItem pyVHDLModel.VHDLModel.ParameterSignalInterfaceItem pyVHDLModel.VHDLModel.ParameterFileInterfaceItem
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.GenericConstantInterfaceItem pyVHDLModel.SyntaxModel.GenericTypeInterfaceItem pyVHDLModel.SyntaxModel.GenericProcedureInterfaceItem pyVHDLModel.SyntaxModel.GenericFunctionInterfaceItem pyVHDLModel.SyntaxModel.PortSignalInterfaceItem pyVHDLModel.SyntaxModel.ParameterConstantInterfaceItem pyVHDLModel.SyntaxModel.ParameterVariableInterfaceItem pyVHDLModel.SyntaxModel.ParameterSignalInterfaceItem pyVHDLModel.SyntaxModel.ParameterFileInterfaceItem
    :parts: 1
 
 

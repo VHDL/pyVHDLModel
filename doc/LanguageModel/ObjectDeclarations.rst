@@ -3,31 +3,13 @@
 Object Declarations
 ###################
 
-.. rubric:: Table of Content
+.. contents:: Table of Content
+   :local:
 
-* :ref:`vhdlmodel-constants`
+.. #rubric:: Class Hierarchy
 
-  * :ref:`vhdlmodel-constant`
-  * :ref:`vhdlmodel-deferredconstant`
-  * :ref:`vhdlmodel-obj-genericconstant`
-  * :ref:`vhdlmodel-obj-parameterconstant`
-
-* :ref:`vhdlmodel-variables`
-
-  * :ref:`vhdlmodel-variable`
-  * :ref:`vhdlmodel-obj-parametervariable`
-
-* :ref:`vhdlmodel-sharedvariable`
-* :ref:`vhdlmodel-signals`
-
-  * :ref:`vhdlmodel-signal`
-  * :ref:`vhdlmodel-obj-portsignal`
-  * :ref:`vhdlmodel-obj-parametersignal`
-
-* :ref:`vhdlmodel-files`
-
-  * :ref:`vhdlmodel-file`
-  * :ref:`vhdlmodel-obj-parameterfile`
+.. #inheritance-diagram:: pyVHDLModel.SyntaxModel.Constant pyVHDLModel.SyntaxModel.DeferredConstant pyVHDLModel.SyntaxModel.GenericConstantInterfaceItem pyVHDLModel.SyntaxModel.ParameterConstantInterfaceItem pyVHDLModel.SyntaxModel.Variable pyVHDLModel.SyntaxModel.ParameterVariableInterfaceItem pyVHDLModel.SyntaxModel.Signal pyVHDLModel.SyntaxModel.PortSignalInterfaceItem pyVHDLModel.SyntaxModel.ParameterSignalInterfaceItem pyVHDLModel.SyntaxModel.File pyVHDLModel.SyntaxModel.ParameterFileInterfaceItem
+   :parts: 1
 
 
 
@@ -40,7 +22,7 @@ VHDL defines regular constants as an object. In addition, deferred constants are
 supported in package declarations. Often generics to e.g. packages or entities
 are constants. Also most *in* parameters to subprograms are constants.
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.Constant pyVHDLModel.VHDLModel.DeferredConstant pyVHDLModel.VHDLModel.GenericConstantInterfaceItem pyVHDLModel.VHDLModel.ParameterConstantInterfaceItem
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.Constant pyVHDLModel.SyntaxModel.DeferredConstant pyVHDLModel.SyntaxModel.GenericConstantInterfaceItem pyVHDLModel.SyntaxModel.ParameterConstantInterfaceItem
    :parts: 1
 
 
@@ -139,7 +121,7 @@ A subprogram parameter without object class of mode *in* or a parameter constant
 Variables
 =========
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.Variable pyVHDLModel.VHDLModel.ParameterVariableInterfaceItem
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.Variable pyVHDLModel.SyntaxModel.ParameterVariableInterfaceItem
    :parts: 1
 
 .. _vhdlmodel-variable:
@@ -201,7 +183,7 @@ Shared Variable
 Signals
 =======
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.Signal pyVHDLModel.VHDLModel.PortSignalInterfaceItem pyVHDLModel.VHDLModel.ParameterSignalInterfaceItem
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.Signal pyVHDLModel.SyntaxModel.PortSignalInterfaceItem pyVHDLModel.SyntaxModel.ParameterSignalInterfaceItem
    :parts: 1
 
 .. _vhdlmodel-signal:
@@ -264,7 +246,7 @@ A parameter signal is a *regular* signal.
 Files
 =====
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.File pyVHDLModel.VHDLModel.ParameterFileInterfaceItem
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.File pyVHDLModel.SyntaxModel.ParameterFileInterfaceItem
    :parts: 1
 
 .. _vhdlmodel-file:

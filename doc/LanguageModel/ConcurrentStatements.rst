@@ -3,26 +3,12 @@
 Concurrent Statements
 #####################
 
-* :ref:`vhdlmodel-con-assertstatement`
-* :ref:`vhdlmodel-con-signalassignment`
-* :ref:`vhdlmodel-instantiations`
-
-  * :ref:`vhdlmodel-entityinstantiation`
-  * :ref:`vhdlmodel-componentinstantiation`
-  * :ref:`vhdlmodel-configurationinstantiation`
-
-* :ref:`vhdlmodel-generates`
-
-  * :ref:`vhdlmodel-ifgenerate`
-  * :ref:`vhdlmodel-casegenerate`
-  * :ref:`vhdlmodel-forgenerate`
-
-* :ref:`vhdlmodel-con-procedurecall`
-* :ref:`vhdlmodel-process`
+.. contents:: Table of Content
+   :local:
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.ConcurrentAssertStatement pyVHDLModel.VHDLModel.ConcurrentSignalAssignment pyVHDLModel.VHDLModel.ConcurrentBlockStatement pyVHDLModel.VHDLModel.ProcessStatement pyVHDLModel.VHDLModel.IfGenerateStatement pyVHDLModel.VHDLModel.CaseGenerateStatement pyVHDLModel.VHDLModel.ForGenerateStatement pyVHDLModel.VHDLModel.ComponentInstantiation pyVHDLModel.VHDLModel.ConfigurationInstantiation pyVHDLModel.VHDLModel.EntityInstantiation pyVHDLModel.VHDLModel.ConcurrentProcedureCall
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.ConcurrentAssertStatement pyVHDLModel.SyntaxModel.ConcurrentSignalAssignment pyVHDLModel.SyntaxModel.ConcurrentBlockStatement pyVHDLModel.SyntaxModel.ProcessStatement pyVHDLModel.SyntaxModel.IfGenerateStatement pyVHDLModel.SyntaxModel.CaseGenerateStatement pyVHDLModel.SyntaxModel.ForGenerateStatement pyVHDLModel.SyntaxModel.ComponentInstantiation pyVHDLModel.SyntaxModel.ConfigurationInstantiation pyVHDLModel.SyntaxModel.EntityInstantiation pyVHDLModel.SyntaxModel.ConcurrentProcedureCall
    :parts: 1
 
 .. _vhdlmodel-con-assertstatement:

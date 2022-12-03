@@ -6,24 +6,12 @@ Design Units
 A VHDL design (see :ref:`vhdlmodel-design`) is assembled from *design units*. VHDL distinguishes
 between *primary* and *secondary* design units.
 
-.. rubric:: Table of Content
-
-* :ref:`vhdlmodel-primary`
-
-  * :ref:`vhdlmodel-context`
-  * :ref:`vhdlmodel-configuration`
-  * :ref:`vhdlmodel-entity`
-  * :ref:`vhdlmodel-package`
-
-* :ref:`vhdlmodel-secondary`
-
-  * :ref:`vhdlmodel-architeture`
-  * :ref:`vhdlmodel-packagebody`
-
+.. contents:: Table of Content
+   :local:
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.Architecture pyVHDLModel.VHDLModel.Context pyVHDLModel.VHDLModel.Configuration pyVHDLModel.VHDLModel.Entity pyVHDLModel.VHDLModel.Package pyVHDLModel.VHDLModel.PackageBody
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.Architecture pyVHDLModel.SyntaxModel.Context pyVHDLModel.SyntaxModel.Configuration pyVHDLModel.SyntaxModel.Entity pyVHDLModel.SyntaxModel.Package pyVHDLModel.SyntaxModel.PackageBody
    :parts: 1
 
 .. _vhdlmodel-primary:

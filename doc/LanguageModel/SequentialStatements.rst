@@ -3,36 +3,12 @@
 Sequential Statements
 #####################
 
-* :ref:`vhdlmodel-seq-assignments`
-
-  * :ref:`vhdlmodel-seq-signalassignment`
-  * :ref:`vhdlmodel-variableassignment`
-
-* :ref:`vhdlmodel-branching`
-
-  * :ref:`vhdlmodel-ifstatement`
-  * :ref:`vhdlmodel-casestatement`
-
-* :ref:`vhdlmodel-loops`
-
-  * :ref:`vhdlmodel-endlessloop`
-  * :ref:`vhdlmodel-forloop`
-  * :ref:`vhdlmodel-whileloop`
-  * :ref:`vhdlmodel-nextstatement`
-  * :ref:`vhdlmodel-exitstatement`
-
-* :ref:`vhdlmodel-reporting`
-
-  * :ref:`vhdlmodel-seq-reportstatement`
-  * :ref:`vhdlmodel-seq-assertstatement`
-
-* :ref:`vhdlmodel-seq-procedurecall`
-* :ref:`vhdlmodel-waitstatement`
-* :ref:`vhdlmodel-returnstatement`
+.. contents:: Table of Content
+   :local:
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.SequentialAssertStatement pyVHDLModel.VHDLModel.SequentialReportStatement pyVHDLModel.VHDLModel.SequentialSignalAssignment pyVHDLModel.VHDLModel.VariableAssignment pyVHDLModel.VHDLModel.IfStatement pyVHDLModel.VHDLModel.CaseStatement pyVHDLModel.VHDLModel.EndlessLoopStatement pyVHDLModel.VHDLModel.ForLoopStatement pyVHDLModel.VHDLModel.WhileLoopStatement pyVHDLModel.VHDLModel.NextStatement pyVHDLModel.VHDLModel.ExitStatement pyVHDLModel.VHDLModel.SequentialProcedureCall pyVHDLModel.VHDLModel.WaitStatement pyVHDLModel.VHDLModel.ReturnStatement
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.SequentialAssertStatement pyVHDLModel.SyntaxModel.SequentialReportStatement pyVHDLModel.SyntaxModel.SequentialSignalAssignment pyVHDLModel.SyntaxModel.VariableAssignment pyVHDLModel.SyntaxModel.IfStatement pyVHDLModel.SyntaxModel.CaseStatement pyVHDLModel.SyntaxModel.EndlessLoopStatement pyVHDLModel.SyntaxModel.ForLoopStatement pyVHDLModel.SyntaxModel.WhileLoopStatement pyVHDLModel.SyntaxModel.NextStatement pyVHDLModel.SyntaxModel.ExitStatement pyVHDLModel.SyntaxModel.SequentialProcedureCall pyVHDLModel.SyntaxModel.WaitStatement pyVHDLModel.SyntaxModel.ReturnStatement
    :parts: 1
 
 .. _vhdlmodel-seq-assignments:

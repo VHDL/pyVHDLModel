@@ -33,11 +33,14 @@ and :attr:`~pyVHDLModel.SyntaxModel.Design.Documents`. Each is a :class:`list`.
 
      # from Design
      @property
-     def Libraries(self) -> List[LibraryClause]:
+     def Libraries(self) -> Dict[str, Library]:
 
      @property
      def Documents(self) -> List[Document]:
 
+     def GetLibrary(self, libraryName: str) -> Library:
+
+     def AddDocument(self, document: Document, library: Library):
 
 
 .. _vhdlmodel-library:

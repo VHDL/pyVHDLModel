@@ -100,7 +100,7 @@ jobs:
 
       - name: 🐍 Install dependencies
         run: |
-          pip3 install git+https://github.com/ghdl/ghdl.git@$(ghdl version hash)
+          pip3 install --disable-pip-version-check git+https://github.com/ghdl/ghdl.git@$(ghdl version hash)
 
       - name: ✂ Extract code snippet from README
         shell: python

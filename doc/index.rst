@@ -65,6 +65,19 @@ News
 
 .. only:: html
 
+   Dec. 2022 - Added Documentation Property
+   ========================================
+
+.. only:: latex
+
+   .. rubric:: Added Documentation Property
+
+* `GHDL's <https://GitHub.com/ghdl/ghdl>`__ is now able to collect and associate (documentation) comments to language
+  constructs. This enhancement adds a ``Documentation`` property to many classes similar to a *doc-string* in Python.
+
+
+.. only:: html
+
    Jul. 2021 - First adoption and enhancements
    ===========================================
 
@@ -76,7 +89,6 @@ News
   to generate a network of instantiated classes derived from ``pyVHDLModel``. |br|
   It uses `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`__ as a backend (GHDL build as shared object and
   loaded into CPython via C-binding API (``ctypes``).
-* ...
 
 
 .. only:: html
@@ -190,13 +202,16 @@ License
 
 .. raw:: latex
 
-   \part{References}
+   \part{References and Reports}
 
 .. toctree::
-   :caption: References
+   :caption: References and Reports
    :hidden:
 
-   pyVHDLModel/index
+   pyVHDLModel/pyVHDLModel
+   Unittest Report ➚ <unittests/index>
+   Coverage Report ➚ <coverage/index>
+   Static Type Check Report ➚ <typing/index>
 
 
 .. raw:: latex
@@ -207,13 +222,9 @@ License
    :caption: Appendix
    :hidden:
 
-   Coverage Report ➚ <coverage/index>
-   Static Type Check Report ➚ <typing/index>
    ChangeLog/index
    License
    Doc-License
    Glossary
    genindex
-
-.. #
-   py-modindex
+   Python Module Index <modindex>

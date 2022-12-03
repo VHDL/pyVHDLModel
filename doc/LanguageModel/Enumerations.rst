@@ -4,14 +4,10 @@ Enumerations
 ############
 
 The language model contains some enumerations to express a *kind* of a models
-entity. These are not enumerated types defined by VHDL itself, like `boolean`.
+entity. These are not enumerated types defined by VHDL itself, like ``boolean``.
 
-.. rubric:: Table of Content
-
-* :ref:`vhdlmodel-direction`
-* :ref:`vhdlmodel-mode`
-* :ref:`vhdlmodel-objclass`
-
+.. contents:: Table of Content
+   :local:
 
 
 .. _vhdlmodel-direction:
@@ -19,9 +15,9 @@ entity. These are not enumerated types defined by VHDL itself, like `boolean`.
 Direction
 =========
 
-Ranges and slices have an ascending (`to`) or descending (`downto`) direction.
+Ranges and slices have an ascending (``To``) or descending (``DownTo``) direction.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Direction`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Direction`:
 
 .. code-block:: Python
 
@@ -38,10 +34,10 @@ Mode
 ====
 
 A *mode* describes the direction of data exchange e.g. for entity ports or subprogram parameters.
-In addition to the modes defined by VHDL (`In`, `Out`, `InOut`, `Buffer` and `Linkage`), `Default`
+In addition to the modes defined by VHDL (``In``, ``Out``, ``InOut``, ``Buffer`` and ``Linkage``), ``Default``
 is a placeholder for omitted modes. The mode is then determined from the context.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Mode`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Mode`:
 
 .. code-block:: Python
 
@@ -65,7 +61,7 @@ In addition to the 4 object classes defined by VHDL (`Constant`, `Variable`,
 `Signal` and `File`), `Default` is used when no object class is defined. In
 such a case, the object class is determined from the context.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ObjectClass`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ObjectClass`:
 
 .. code-block:: Python
 

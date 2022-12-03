@@ -40,9 +40,9 @@ from typing               import List, Tuple, Union, Dict, Iterator, Optional as
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity, NamedEntity, MultipleNamedEntity, LabeledEntity, PossibleReference, Direction, EntityClass, Mode, DocumentedEntity
+from pyVHDLModel import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, PossibleReference, Direction, EntityClass, Mode, DocumentedEntityMixin
 from pyVHDLModel          import PrimaryUnit, SecondaryUnit
-from pyVHDLModel          import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, MixinDesignUnitWithContext, PackageOrSymbol
+from pyVHDLModel          import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, DesignUnitWithContextMixin, PackageOrSymbol
 from pyVHDLModel.PSLModel import VerificationUnit
 
 try:
@@ -53,7 +53,7 @@ except ImportError:
 
 
 @export
-class Name:
+class Name(ModelEntity):
 	"""``Name`` is the base-class for all *names* in the VHDL language model."""
 
 	_identifier: str
@@ -395,9 +395,9 @@ class SignalSymbol(ObjectSymbol):
 @export
 class Design(ModelEntity):
 	"""
-	A ``Design`` represents all loaded files (see :class:`~pyVHDLModel.VHDLModel.Document`)
+	A ``Design`` represents all loaded files (see :class:`~pyVHDLModel.SyntaxModel.Document`)
 	and analysed. It's the root of this document-object-model (DOM). It contains
-	at least on VHDL library (see :class:`~pyVHDLModel.VHDLModel.Library`).
+	at least on VHDL library (see :class:`~pyVHDLModel.SyntaxModel.Library`).
 	"""
 	_libraries:  Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:  List['Document']      #: List of all documents loaded for a design.
@@ -459,7 +459,7 @@ class Design(ModelEntity):
 
 
 @export
-class Library(ModelEntity, NamedEntity):
+class Library(ModelEntity, NamedEntityMixin):
 	"""A ``Library`` represents a VHDL library. It contains all *primary* design units."""
 
 	_contexts:       List['Context']                     #: List of all contexts defined in a library.
@@ -471,7 +471,7 @@ class Library(ModelEntity, NamedEntity):
 
 	def __init__(self, identifier: str):
 		super().__init__()
-		NamedEntity.__init__(self, identifier)
+		NamedEntityMixin.__init__(self, identifier)
 
 		self._contexts =        []
 		self._configurations =  []
@@ -512,7 +512,7 @@ class Library(ModelEntity, NamedEntity):
 
 
 @export
-class Document(ModelEntity):
+class Document(ModelEntity, DocumentedEntityMixin):
 	"""A ``Document`` represents a sourcefile. It contains primary and secondary design units."""
 
 	_path:              Path                      #: path to the document. ``None`` if virtual document.
@@ -524,8 +524,9 @@ class Document(ModelEntity):
 	_packages:          List['Package']           #: List of all packages defined in a document.
 	_packageBodies:     List['PackageBody']       #: List of all package bodies defined in a document.
 
-	def __init__(self, path: Path):
+	def __init__(self, path: Path, documentation: str = None):
 		super().__init__()
+		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._path =              path
 		self._contexts =          []
@@ -577,7 +578,7 @@ class Document(ModelEntity):
 
 
 @export
-class Alias(ModelEntity, NamedEntity, DocumentedEntity):
+class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	def __init__(self, identifier: str, documentation: str = None):
 		"""
 		Initializes underlying ``BaseType``.
@@ -585,12 +586,12 @@ class Alias(ModelEntity, NamedEntity, DocumentedEntity):
 		:param identifier: Name of the type.
 		"""
 		super().__init__()
-		NamedEntity.__init__(self, identifier)
-		DocumentedEntity.__init__(self, documentation)
+		NamedEntityMixin.__init__(self, identifier)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 
 @export
-class BaseType(ModelEntity, NamedEntity, DocumentedEntity):
+class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""``BaseType`` is the base-class of all type entities in this model."""
 
 	def __init__(self, identifier: str, documentation: str = None):
@@ -600,8 +601,8 @@ class BaseType(ModelEntity, NamedEntity, DocumentedEntity):
 		:param identifier: Name of the type.
 		"""
 		super().__init__()
-		NamedEntity.__init__(self, identifier)
-		DocumentedEntity.__init__(self, documentation)
+		NamedEntityMixin.__init__(self, identifier)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 
 @export
@@ -808,12 +809,12 @@ class ArrayType(CompositeType):
 
 
 @export
-class RecordTypeElement(ModelEntity, MultipleNamedEntity):
+class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin):
 	_subtype: SubtypeOrSymbol
 
 	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol):
 		super().__init__()
-		MultipleNamedEntity.__init__(self, identifiers)
+		MultipleNamedEntityMixin.__init__(self, identifiers)
 
 		self._subtype = subtype
 
@@ -1578,13 +1579,13 @@ class RangeSubtype(BaseConstraint):
 
 
 @export
-class Obj(ModelEntity, MultipleNamedEntity, DocumentedEntity):
+class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	_subtype: SubtypeOrSymbol
 
 	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, documentation: str = None):
 		super().__init__()
-		MultipleNamedEntity.__init__(self, identifiers)
-		DocumentedEntity.__init__(self, documentation)
+		MultipleNamedEntityMixin.__init__(self, identifiers)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._subtype = subtype
 
@@ -1656,7 +1657,7 @@ class File(Obj):
 
 
 @export
-class SubProgramm(ModelEntity, NamedEntity, DocumentedEntity):
+class SubProgramm(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_genericItems:   List['GenericInterfaceItem']
 	_parameterItems: List['ParameterInterfaceItem']
 	_declaredItems:  List
@@ -1665,8 +1666,8 @@ class SubProgramm(ModelEntity, NamedEntity, DocumentedEntity):
 
 	def __init__(self, identifier: str, documentation: str = None):
 		super().__init__()
-		NamedEntity.__init__(self, identifier)
-		DocumentedEntity.__init__(self, documentation)
+		NamedEntityMixin.__init__(self, identifier)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._genericItems =    []
 		self._parameterItems =  []
@@ -1741,13 +1742,13 @@ class FunctionMethod(Function, Method):
 
 
 @export
-class Attribute(ModelEntity, NamedEntity, DocumentedEntity):
+class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_subtype: SubtypeOrSymbol
 
 	def __init__(self, identifier: str, subtype: SubtypeOrSymbol, documentation: str = None):
 		super().__init__()
-		NamedEntity.__init__(self, identifier)
-		DocumentedEntity.__init__(self, documentation)
+		NamedEntityMixin.__init__(self, identifier)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._subtype = subtype
 
@@ -1757,7 +1758,7 @@ class Attribute(ModelEntity, NamedEntity, DocumentedEntity):
 
 
 @export
-class AttributeSpecification(ModelEntity, DocumentedEntity):
+class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 	_identifiers: List[Name]
 	_attribute: Name
 	_entityClass: EntityClass
@@ -1765,7 +1766,7 @@ class AttributeSpecification(ModelEntity, DocumentedEntity):
 
 	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: ExpressionUnion, documentation: str = None):
 		super().__init__()
-		DocumentedEntity.__init__(self, documentation)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._identifiers = [i for i in identifiers]
 		self._attribute = attribute
@@ -1790,7 +1791,7 @@ class AttributeSpecification(ModelEntity, DocumentedEntity):
 
 
 @export
-class InterfaceItem(DocumentedEntity):
+class InterfaceItem(DocumentedEntityMixin):
 	"""An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items."""
 
 	def __init__(self, documentation: str = None):
@@ -1959,7 +1960,7 @@ class Context(PrimaryUnit):
 
 
 @export
-class Entity(PrimaryUnit, MixinDesignUnitWithContext):
+class Entity(PrimaryUnit, DesignUnitWithContextMixin):
 	_genericItems:  List[GenericInterfaceItem]
 	_portItems:     List[PortInterfaceItem]
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
@@ -1977,7 +1978,7 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 		documentation: str = None
 	):
 		super().__init__(identifier, documentation)
-		MixinDesignUnitWithContext.__init__(self, contextItems)
+		DesignUnitWithContextMixin.__init__(self, contextItems)
 
 		self._genericItems  = [] if genericItems is None else [g for g in genericItems]
 		self._portItems     = [] if portItems is None else [p for p in portItems]
@@ -2007,7 +2008,7 @@ class Entity(PrimaryUnit, MixinDesignUnitWithContext):
 
 
 @export
-class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
+class Architecture(SecondaryUnit, DesignUnitWithContextMixin):
 	_library:       Library = None
 	_entity:        EntitySymbol
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
@@ -2015,7 +2016,7 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 
 	def __init__(self, identifier: str, entity: Name, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None, documentation: str = None):
 		super().__init__(identifier, documentation)
-		MixinDesignUnitWithContext.__init__(self, contextItems)
+		DesignUnitWithContextMixin.__init__(self, contextItems)
 
 		self._entity        = EntitySymbol(entity)
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
@@ -2042,14 +2043,14 @@ class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
 
 
 @export
-class Component(ModelEntity, NamedEntity, DocumentedEntity):
+class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
 
 	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItem] = None, portItems: Iterable[PortInterfaceItem] = None, documentation: str = None):
 		super().__init__()
-		NamedEntity.__init__(self, identifier)
-		DocumentedEntity.__init__(self, documentation)
+		NamedEntityMixin.__init__(self, identifier)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._genericItems      = [] if genericItems is None else [g for g in genericItems]
 		self._portItems         = [] if portItems is None else [p for p in portItems]
@@ -2064,10 +2065,10 @@ class Component(ModelEntity, NamedEntity, DocumentedEntity):
 
 
 @export
-class Configuration(PrimaryUnit, MixinDesignUnitWithContext):
+class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, documentation: str = None):
 		super().__init__(identifier, documentation)
-		MixinDesignUnitWithContext.__init__(self, contextItems)
+		DesignUnitWithContextMixin.__init__(self, contextItems)
 
 
 @export
@@ -2136,13 +2137,13 @@ class FunctionInstantiation(Function, SubprogramInstantiation):
 
 
 @export
-class Package(PrimaryUnit, MixinDesignUnitWithContext):
+class Package(PrimaryUnit, DesignUnitWithContextMixin):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
 	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(identifier, documentation)
-		MixinDesignUnitWithContext.__init__(self, contextItems)
+		DesignUnitWithContextMixin.__init__(self, contextItems)
 
 		self._genericItems =  [] if genericItems is None else [g for g in genericItems]
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
@@ -2157,13 +2158,13 @@ class Package(PrimaryUnit, MixinDesignUnitWithContext):
 
 
 @export
-class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
+class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 	_package:           Package
 	_declaredItems:     List
 
 	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(identifier, documentation)
-		MixinDesignUnitWithContext.__init__(self, contextItems)
+		DesignUnitWithContextMixin.__init__(self, contextItems)
 
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
@@ -2198,10 +2199,10 @@ class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
 
 
 @export
-class Statement(ModelEntity, LabeledEntity):
+class Statement(ModelEntity, LabeledEntityMixin):
 	def __init__(self, label: str = None):
 		super().__init__()
-		LabeledEntity.__init__(self, label)
+		LabeledEntityMixin.__init__(self, label)
 
 
 @export
@@ -2214,6 +2215,7 @@ class SequentialStatement(Statement):
 	"""A ``SequentialStatement`` is a base-class for all sequential statements."""
 
 
+# FIXME: Why not used in entity, architecture, package, package body, block-statement, generate-statements
 @export
 class ConcurrentDeclarations:
 	_declaredItems: List
@@ -2226,6 +2228,7 @@ class ConcurrentDeclarations:
 		return self._declaredItems
 
 
+# FIXME: Why not used in entity, architecture, block-statement, generate-statements
 @export
 class ConcurrentStatements:
 	_statements: List[ConcurrentStatement]
@@ -2331,7 +2334,7 @@ class ConfigurationInstantiation(Instantiation):
 
 
 @export
-class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements, DocumentedEntity):
+class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements, DocumentedEntityMixin):
 	_sensitivityList: List[Name] = None
 
 	def __init__(
@@ -2345,7 +2348,7 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 		super().__init__(label)
 		SequentialDeclarations.__init__(self, declaredItems)
 		SequentialStatements.__init__(self, statements)
-		DocumentedEntity.__init__(self, documentation)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 		if sensitivityList is not None:
 			self._sensitivityList = [s for s in sensitivityList]
@@ -2396,7 +2399,7 @@ class BlockStatement:
 
 
 @export
-class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements, DocumentedEntity):
+class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntityMixin, ConcurrentDeclarations, ConcurrentStatements, DocumentedEntityMixin):
 	_portItems:     List[PortInterfaceItem]
 
 	def __init__(
@@ -2409,10 +2412,10 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntit
 	):
 		super().__init__(label)
 		BlockStatement.__init__(self)
-		LabeledEntity.__init__(self, label)
+		LabeledEntityMixin.__init__(self, label)
 		ConcurrentDeclarations.__init__(self)
 		ConcurrentStatements.__init__(self)
-		DocumentedEntity.__init__(self, documentation)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._portItems     = [] if portItems is None else [i for i in portItems]
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
@@ -2569,10 +2572,10 @@ class BaseCase(ModelEntity):
 
 
 @export
-class ConcurrentCase(BaseCase, LabeledEntity, ConcurrentDeclarations, ConcurrentStatements):
+class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarations, ConcurrentStatements):
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
-		LabeledEntity.__init__(self, alternativeLabel)
+		LabeledEntityMixin.__init__(self, alternativeLabel)
 		ConcurrentDeclarations.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 

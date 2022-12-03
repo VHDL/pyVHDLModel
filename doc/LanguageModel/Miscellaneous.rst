@@ -4,14 +4,11 @@ Concepts not defined by VHDL
 ############################
 
 Some features required for a holistic language model are not defined in the VHDL
-:term:`LRM` (IEEE Std. 1076). Other features made explicitly implementation
-specific to the implementer.
+:term:`LRM` (IEEE Std. 1076). Other features are made explicitly implementation
+specific to the implementer. This chapter will cover these parts.
 
-.. rubric:: Table of Content
-
-* :ref:`vhdlmodel-design`
-* :ref:`vhdlmodel-library`
-* :ref:`vhdlmodel-document`
+.. contents:: Table of Content
+   :local:
 
 
 .. _vhdlmodel-design:
@@ -19,12 +16,12 @@ specific to the implementer.
 Design
 ======
 
-The root element in the language model is a design mode out of multiple
+The root element in the language model is a design made out of multiple
 sourcecode files (documents). Sourcecode files are compiled into libraries. Thus
-a design has the two child nodes: ``Libraries`` and ``Documents``. Each is a
-:class:`list`.
+a design has the two child nodes: :attr:`~pyVHDLModel.SyntaxModel.Design.Libraries`
+and :attr:`~pyVHDLModel.SyntaxModel.Design.Documents`. Each is a :class:`list`.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Design`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Design`:
 
 .. code-block:: Python
 
@@ -36,33 +33,37 @@ a design has the two child nodes: ``Libraries`` and ``Documents``. Each is a
 
      # from Design
      @property
-     def Libraries(self) -> List[LibraryClause]:
+     def Libraries(self) -> Dict[str, Library]:
 
      @property
      def Documents(self) -> List[Document]:
 
+     def GetLibrary(self, libraryName: str) -> Library:
+
+     def AddDocument(self, document: Document, library: Library):
 
 
 .. _vhdlmodel-library:
 
-LibraryClause
-=============
+Library
+=======
 
 A library contains multiple *design units*. Each design unit listed in a library
-is a *primary* design unit like: ``configuration``, ``entity``, ``package`` or
-``context``.
+is a *primary* design unit like: :class:`~pyVHDLModel.SyntaxModel.Configuration`,
+:class:`~pyVHDLModel.SyntaxModel.Entity`, :class:`~pyVHDLModel.SyntaxModel.Package` or
+:class:`~pyVHDLModel.SyntaxModel.Context`.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.LibraryClause`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Library`:
 
 .. code-block:: Python
 
    @export
-   class LibraryClause(ModelEntity):
+   class Library(ModelEntity):
      # inherited from ModelEntity
      @property
      def Parent(self) -> ModelEntity:
 
-     # from LibraryClause
+     # from Library
      @property
      def Contexts(self) -> List[Context]:
 
@@ -93,7 +94,7 @@ Design unit may be preceded by a context made of ``library``, ``use`` and
 units. See the ``Libraries`` and ``Uses`` fields of each design unit to
 investigate the consumed contexts.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Document`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Document`:
 
 .. code-block:: Python
 

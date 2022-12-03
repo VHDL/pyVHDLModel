@@ -24,6 +24,7 @@ VHDL Language Model
    InterfaceItems
    SubprogramDefinitions
    TypeDefinitions
+   SubtypeDefinitions
    ObjectDeclarations
    ConcurrentStatements
    SequentialStatements

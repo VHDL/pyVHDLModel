@@ -5,30 +5,12 @@ Interface Items
 
 Interface items are used in generic, port and parameter declarations.
 
-.. rubric:: Table of Content
-
-* :ref:`vhdlmodel-generics`
-
-  * :ref:`vhdlmodel-genericconstant`
-  * :ref:`vhdlmodel-generictype`
-  * :ref:`vhdlmodel-genericprocedure`
-  * :ref:`vhdlmodel-genericfunction`
-  * :ref:`vhdlmodel-genericpackage`
-
-* :ref:`vhdlmodel-ports`
-
-  * :ref:`vhdlmodel-portsignal`
-
-* :ref:`vhdlmodel-parameters`
-
-  * :ref:`vhdlmodel-parameterconstant`
-  * :ref:`vhdlmodel-parametervariable`
-  * :ref:`vhdlmodel-parametersignal`
-  * :ref:`vhdlmodel-parameterfile`
+.. contents:: Table of Content
+   :local:
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.GenericConstantInterfaceItem pyVHDLModel.VHDLModel.GenericTypeInterfaceItem pyVHDLModel.VHDLModel.GenericProcedureInterfaceItem pyVHDLModel.VHDLModel.GenericFunctionInterfaceItem pyVHDLModel.VHDLModel.PortSignalInterfaceItem pyVHDLModel.VHDLModel.ParameterConstantInterfaceItem pyVHDLModel.VHDLModel.ParameterVariableInterfaceItem pyVHDLModel.VHDLModel.ParameterSignalInterfaceItem pyVHDLModel.VHDLModel.ParameterFileInterfaceItem
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.GenericConstantInterfaceItem pyVHDLModel.SyntaxModel.GenericTypeInterfaceItem pyVHDLModel.SyntaxModel.GenericProcedureInterfaceItem pyVHDLModel.SyntaxModel.GenericFunctionInterfaceItem pyVHDLModel.SyntaxModel.PortSignalInterfaceItem pyVHDLModel.SyntaxModel.ParameterConstantInterfaceItem pyVHDLModel.SyntaxModel.ParameterVariableInterfaceItem pyVHDLModel.SyntaxModel.ParameterSignalInterfaceItem pyVHDLModel.SyntaxModel.ParameterFileInterfaceItem
    :parts: 1
 
 
@@ -46,7 +28,7 @@ GenericConstantInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.GenericConstantInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.GenericConstantInterfaceItem`:
 
 .. code-block:: Python
 
@@ -83,7 +65,7 @@ GenericTypeInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.GenericTypeInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.GenericTypeInterfaceItem`:
 
 .. code-block:: Python
 
@@ -100,7 +82,7 @@ GenericProcedureInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.GenericProcedureInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.GenericProcedureInterfaceItem`:
 
 .. code-block:: Python
 
@@ -118,7 +100,7 @@ GenericFunctionInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.GenericFunctionInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.GenericFunctionInterfaceItem`:
 
 .. code-block:: Python
 
@@ -136,7 +118,7 @@ GenericPackageInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.GenericPackageInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.GenericPackageInterfaceItem`:
 
 .. code-block:: Python
 
@@ -158,7 +140,7 @@ PortSignalInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.PortSignalInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.PortSignalInterfaceItem`:
 
 .. code-block:: Python
 
@@ -200,7 +182,7 @@ ParameterConstantInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ParameterConstantInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ParameterConstantInterfaceItem`:
 
 .. code-block:: Python
 
@@ -237,7 +219,7 @@ ParameterVariableInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ParameterVariableInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ParameterVariableInterfaceItem`:
 
 .. code-block:: Python
 
@@ -274,7 +256,7 @@ ParameterSignalInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ParameterSignalInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ParameterSignalInterfaceItem`:
 
 .. code-block:: Python
 
@@ -311,7 +293,7 @@ ParameterFileInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ParameterFileInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ParameterFileInterfaceItem`:
 
 .. code-block:: Python
 

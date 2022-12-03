@@ -3,36 +3,12 @@
 Sequential Statements
 #####################
 
-* :ref:`vhdlmodel-seq-assignments`
-
-  * :ref:`vhdlmodel-seq-signalassignment`
-  * :ref:`vhdlmodel-variableassignment`
-
-* :ref:`vhdlmodel-branching`
-
-  * :ref:`vhdlmodel-ifstatement`
-  * :ref:`vhdlmodel-casestatement`
-
-* :ref:`vhdlmodel-loops`
-
-  * :ref:`vhdlmodel-endlessloop`
-  * :ref:`vhdlmodel-forloop`
-  * :ref:`vhdlmodel-whileloop`
-  * :ref:`vhdlmodel-nextstatement`
-  * :ref:`vhdlmodel-exitstatement`
-
-* :ref:`vhdlmodel-reporting`
-
-  * :ref:`vhdlmodel-seq-reportstatement`
-  * :ref:`vhdlmodel-seq-assertstatement`
-
-* :ref:`vhdlmodel-seq-procedurecall`
-* :ref:`vhdlmodel-waitstatement`
-* :ref:`vhdlmodel-returnstatement`
+.. contents:: Table of Content
+   :local:
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.SequentialAssertStatement pyVHDLModel.VHDLModel.SequentialReportStatement pyVHDLModel.VHDLModel.SequentialSignalAssignment pyVHDLModel.VHDLModel.VariableAssignment pyVHDLModel.VHDLModel.IfStatement pyVHDLModel.VHDLModel.CaseStatement pyVHDLModel.VHDLModel.EndlessLoopStatement pyVHDLModel.VHDLModel.ForLoopStatement pyVHDLModel.VHDLModel.WhileLoopStatement pyVHDLModel.VHDLModel.NextStatement pyVHDLModel.VHDLModel.ExitStatement pyVHDLModel.VHDLModel.SequentialProcedureCall pyVHDLModel.VHDLModel.WaitStatement pyVHDLModel.VHDLModel.ReturnStatement
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.SequentialAssertStatement pyVHDLModel.SyntaxModel.SequentialReportStatement pyVHDLModel.SyntaxModel.SequentialSignalAssignment pyVHDLModel.SyntaxModel.VariableAssignment pyVHDLModel.SyntaxModel.IfStatement pyVHDLModel.SyntaxModel.CaseStatement pyVHDLModel.SyntaxModel.EndlessLoopStatement pyVHDLModel.SyntaxModel.ForLoopStatement pyVHDLModel.SyntaxModel.WhileLoopStatement pyVHDLModel.SyntaxModel.NextStatement pyVHDLModel.SyntaxModel.ExitStatement pyVHDLModel.SyntaxModel.SequentialProcedureCall pyVHDLModel.SyntaxModel.WaitStatement pyVHDLModel.SyntaxModel.ReturnStatement
    :parts: 1
 
 .. _vhdlmodel-seq-assignments:
@@ -51,7 +27,7 @@ Signal Assignment
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.SequentialSignalAssignment`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.SequentialSignalAssignment`:
 
 .. code-block:: Python
 
@@ -83,7 +59,7 @@ Variable Assignment
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.SequentialVariableAssignment`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.SequentialVariableAssignment`:
 
 .. code-block:: Python
 
@@ -131,7 +107,7 @@ Case Statement
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.CaseStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.CaseStatement`:
 
 .. code-block:: Python
 
@@ -168,7 +144,7 @@ Endless Loop
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.EndlessLoopStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.EndlessLoopStatement`:
 
 .. code-block:: Python
 
@@ -197,7 +173,7 @@ For Loop
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ForLoopStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ForLoopStatement`:
 
 .. code-block:: Python
 
@@ -233,7 +209,7 @@ While Loop
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.WhileLoopStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.WhileLoopStatement`:
 
 .. code-block:: Python
 
@@ -265,7 +241,7 @@ Next Statement
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.NextStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.NextStatement`:
 
 .. code-block:: Python
 
@@ -298,7 +274,7 @@ Exit Statement
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ExitStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ExitStatement`:
 
 .. code-block:: Python
 
@@ -337,7 +313,7 @@ Report Statement
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.SequentialReportStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.SequentialReportStatement`:
 
 .. code-block:: Python
 
@@ -369,7 +345,7 @@ Assert Statement
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.SequentialAssertStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.SequentialAssertStatement`:
 
 .. code-block:: Python
 
@@ -416,7 +392,7 @@ Wait Statement
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.WaitStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.WaitStatement`:
 
 .. code-block:: Python
 
@@ -452,7 +428,7 @@ Return Statement
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ReturnStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ReturnStatement`:
 
 .. code-block:: Python
 

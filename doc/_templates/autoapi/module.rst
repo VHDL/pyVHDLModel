@@ -1,12 +1,12 @@
-.. # Template modified  by Patrick Lehmann
+.. # Template modified by Patrick Lehmann
      * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
      * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
 
-=={{ '=' * node.name|length }}==
-``{{ node.name }}``
-=={{ '=' * node.name|length }}==
+{{ '=' * node.name|length }}
+{{ node.name }}
+{{ '=' * node.name|length }}
 
-.. py:module:: {{ node.name }}
+.. automodule:: {{ node.name }}
 
 {##}
 {%- block modules -%}
@@ -14,8 +14,8 @@
 
 **Submodules**
 
-
 .. toctree::
+   :maxdepth: 1
 {% for item in subnodes %}
    {{ item.name }}
 {%- endfor %}
@@ -25,7 +25,17 @@
 {##}
 .. currentmodule:: {{ node.name }}
 {##}
-{%- block functions -%}
+
+{%- if node.variables %}
+
+**Variables**
+
+{% for item, obj in node.variables.items() -%}
+- :py:data:`{{ item }}`
+  {#{ obj|summary }#}
+{% endfor -%}
+{%- endif -%}
+
 {%- if node.functions %}
 
 **Functions**
@@ -35,38 +45,8 @@
   {{ obj|summary }}
 
 {% endfor -%}
-
-{% for item in node.functions %}
-.. autofunction:: {{ item }}
-{##}
-{%- endfor -%}
 {%- endif -%}
-{%- endblock -%}
 
-{%- block classes -%}
-{%- if node.classes %}
-
-**Classes**
-
-{% for item, obj in node.classes.items() -%}
-- :py:class:`{{ item }}`:
-  {{ obj|summary }}
-
-{% endfor -%}
-
-{% for item in node.classes %}
-.. autoclass:: {{ item }}
-   :members:
-
-   .. rubric:: Inheritance
-   .. inheritance-diagram:: {{ item }}
-      :parts: 1
-{##}
-{%- endfor -%}
-{%- endif -%}
-{%- endblock -%}
-
-{%- block exceptions -%}
 {%- if node.exceptions %}
 
 **Exceptions**
@@ -76,6 +56,68 @@
   {{ obj|summary }}
 
 {% endfor -%}
+{%- endif -%}
+
+{%- if node.classes %}
+
+**Classes**
+
+{% for item, obj in node.classes.items() -%}
+- :py:class:`{{ item }}`:
+  {{ obj|summary }}
+
+{% endfor -%}
+{%- endif -%}
+
+{%- block variables -%}
+{%- if node.variables %}
+
+---------------------
+
+**Variables**
+
+{#% for item, obj in node.variables.items() -%}
+- :py:data:`{{ item }}`
+{% endfor -%#}
+
+{% for item, obj in node.variables.items() %}
+.. autodata:: {{ item }}
+   :annotation:
+
+   .. code-block:: text
+
+      {{ obj|pprint|indent(6) }}
+{##}
+{%- endfor -%}
+{%- endif -%}
+{%- endblock -%}
+
+{%- block functions -%}
+{%- if node.functions %}
+
+---------------------
+
+**Functions**
+
+{% for item in node.functions %}
+.. autofunction:: {{ item }}
+{##}
+{%- endfor -%}
+{%- endif -%}
+{%- endblock -%}
+
+{%- block exceptions -%}
+{%- if node.exceptions %}
+
+---------------------
+
+**Exceptions**
+
+{#% for item, obj in node.exceptions.items() -%}
+- :py:exc:`{{ item }}`:
+  {{ obj|summary }}
+
+{% endfor -%#}
 
 {% for item in node.exceptions %}
 .. autoexception:: {{ item }}
@@ -88,22 +130,30 @@
 {%- endif -%}
 {%- endblock -%}
 
-{%- block variables -%}
-{%- if node.variables %}
+{%- block classes -%}
+{%- if node.classes %}
 
-**Variables**
+---------------------
 
-{% for item, obj in node.variables.items() -%}
-- :py:data:`{{ item }}`
-{% endfor -%}
+**Classes**
 
-{% for item, obj in node.variables.items() %}
-.. autodata:: {{ item }}
-   :annotation:
+{#% for item, obj in node.classes.items() -%}
+- :py:class:`{{ item }}`:
+  {{ obj|summary }}
 
-   .. code-block:: text
+{% endfor -%#}
 
-      {{ obj|pprint|indent(6) }}
+{% for item in node.classes %}
+.. autoclass:: {{ item }}
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: {{ item }}
+      :parts: 1
 {##}
 {%- endfor -%}
 {%- endif -%}

@@ -1,11 +1,11 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-
-from sys import path as sys_path
+from importlib.util import find_spec
+from json import loads
 from os.path import abspath
 from pathlib import Path
-from json import loads
+from sys import path as sys_path
 
 from pyTooling.Packaging import extractVersionInformation
 
@@ -37,32 +37,32 @@ release =   versionInformation.Version
 # Miscellaneous settings
 # ==============================================================================
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = [
 	"_build",
-	"_themes",
+	"_theme",
 	"Thumbs.db",
 	".DS_Store"
 ]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'stata-dark'
+pygments_style = "manni"
 
 
 # ==============================================================================
 # Restructured Text settings
 # ==============================================================================
-prologPath = Path("prolog.inc")
+prologPath = "prolog.inc"
 try:
-	with prologPath.open("r") as fileHandle:
-		rst_prolog = fileHandle.read()
+	with open(prologPath, "r") as prologFile:
+		rst_prolog = prologFile.read()
 except Exception as ex:
 	print(f"[ERROR:] While reading '{prologPath}'.")
 	print(ex)
@@ -72,9 +72,8 @@ except Exception as ex:
 # ==============================================================================
 # Options for HTML output
 # ==============================================================================
-
 html_context = {}
-ctx = ROOT / 'context.json'
+ctx = ROOT / "context.json"
 if ctx.is_file():
 	html_context.update(loads(ctx.open('r').read()))
 
@@ -82,9 +81,18 @@ if (ROOT / "_theme").is_dir():
 	html_theme_path = ["."]
 	html_theme = "_theme"
 	html_theme_options = {
-		'logo_only': True,
-		'home_breadcrumbs': False,
-		'vcs_pageview_mode': 'blob',
+		"logo_only": True,
+		"home_breadcrumbs": False,
+		"vcs_pageview_mode": 'blob',
+#		"body_max_width": None
+#		"navigation_depth": 5,
+	}
+elif find_spec("sphinx_rtd_theme") is not None:
+	html_theme = "sphinx_rtd_theme"
+	html_theme_options = {
+		"logo_only": True,
+		"vcs_pageview_mode": 'blob',
+#		"navigation_depth": 5,
 	}
 else:
 	html_theme = "alabaster"
@@ -105,6 +113,13 @@ htmlhelp_basename = 'pyVHDLModelDoc'
 # The empty string is equivalent to '%b %d, %Y'.
 html_last_updated_fmt = "%d.%m.%Y"
 
+
+# ==============================================================================
+# Python settings
+# ==============================================================================
+modindex_common_prefix = [
+	f"{project}."
+]
 
 # ==============================================================================
 # Options for LaTeX / PDF output
@@ -153,28 +168,29 @@ latex_documents = [
 ]
 
 
-
 # ==============================================================================
 # Extensions
 # ==============================================================================
 extensions = [
 # Standard Sphinx extensions
 	"sphinx.ext.autodoc",
-	'sphinx.ext.extlinks',
-	'sphinx.ext.intersphinx',
-	'sphinx.ext.inheritance_diagram',
-	'sphinx.ext.todo',
-	'sphinx.ext.graphviz',
-	'sphinx.ext.mathjax',
-	'sphinx.ext.ifconfig',
-	'sphinx.ext.viewcode',
+	"sphinx.ext.coverage",
+	"sphinx.ext.extlinks",
+	"sphinx.ext.intersphinx",
+	"sphinx.ext.inheritance_diagram",
+	"sphinx.ext.todo",
+	"sphinx.ext.graphviz",
+	"sphinx.ext.mathjax",
+	"sphinx.ext.ifconfig",
+	"sphinx.ext.viewcode",
 # SphinxContrib extensions
-#	'sphinxcontrib.mermaid',
+	"sphinxcontrib.mermaid",
 # Other extensions
-	'sphinx_fontawesome',
-	'sphinx_autodoc_typehints',
-	'autoapi.sphinx',
+	"sphinx_fontawesome",
+	"sphinx_autodoc_typehints",
+	"autoapi.sphinx",
 ]
+
 
 # ==============================================================================
 # Sphinx.Ext.InterSphinx
@@ -189,17 +205,16 @@ intersphinx_mapping = {
 # Sphinx.Ext.AutoDoc
 # ==============================================================================
 # see: https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#configuration
-autodoc_default_options = {
-	"private-members": True,
-	"special-members": True,
-	"inherited-members": True,
-	"exclude-members": "__weakref__"
-}
+#autodoc_default_options = {
+#	"private-members": True,
+#	"special-members": True,
+#	"inherited-members": True,
+#	"exclude-members": "__weakref__"
+#}
 #autodoc_class_signature = "separated"
 autodoc_member_order = "bysource"       # alphabetical, groupwise, bysource
 autodoc_typehints = "both"
 #autoclass_content = "both"
-
 
 
 # ==============================================================================
@@ -218,6 +233,26 @@ extlinks = {
 graphviz_output_format = "svg"
 
 
+# ==============================================================================
+# SphinxContrib.Mermaid
+# ==============================================================================
+mermaid_params = [
+	'--backgroundColor', 'transparent',
+]
+mermaid_verbose = True
+
+
+# ==============================================================================
+# Sphinx.Ext.Inheritance_Diagram
+# ==============================================================================
+inheritance_node_attrs = {
+#	"shape": "ellipse",
+#	"fontsize": 14,
+#	"height": 0.75,
+	"color": "dodgerblue1",
+	"style": "filled"
+}
+
 
 # ==============================================================================
 # Sphinx.Ext.ToDo
@@ -226,6 +261,11 @@ graphviz_output_format = "svg"
 todo_include_todos = True
 todo_link_only = True
 
+
+# ==============================================================================
+# Sphinx.Ext.Coverage
+# ==============================================================================
+coverage_show_missing_items = True
 
 
 # ==============================================================================

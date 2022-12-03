@@ -39,11 +39,11 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2022, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.16.0"
+__version__ =   "0.17.0"
 
 
 from enum     import IntEnum, unique, Enum
-from typing   import List, Iterable, Union, Optional as Nullable, Dict
+from typing   import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple
 
 from pyTooling.Decorators import export
 
@@ -99,17 +99,17 @@ class VHDLVersion(Enum):
 	This enumeration supports compare operators.
 	"""
 
-	Any =                -1
-	VHDL87 =             87
-	VHDL93 =             93
-#	AMS93 =              93
-	AMS99 =              99
-	VHDL2000 =         2000
-	VHDL2002 =         2002
-	VHDL2008 =         2008
-	AMS2017 =          2017
-	VHDL2019 =         2019
-	Latest =           10000
+	Any =                -1  #: Any
+	VHDL87 =             87  #: VHDL-1987
+	VHDL93 =             93  #: VHDL-1993
+#	AMS93 =              93  #:
+	AMS99 =              99  #: VHDL-AMS-1999
+	VHDL2000 =         2000  #: VHDL-2000
+	VHDL2002 =         2002  #: VHDL-2002
+	VHDL2008 =         2008  #: VHDL-2008
+	AMS2017 =          2017  #: VHDL-AMS-2017
+	VHDL2019 =         2019  #: VHDL-2019
+	Latest =          10000  #: Latest VHDL (2019)
 
 	__VERSION_MAPPINGS__: Dict[Union[int, str], Enum] = {
 		87:     VHDL87,
@@ -146,7 +146,7 @@ class VHDLVersion(Enum):
 		"2008": VHDL2008,
 		"2017": AMS2017,
 		"2019": VHDL2019
-	}
+	}  #: Dictionary of VHDL and VHDL-AMS year codes variants as integer and strings for mapping to unique enum values.
 
 	def __init__(self, *_) -> None:
 		"""Patch the embedded MAP dictionary"""
@@ -156,42 +156,91 @@ class VHDLVersion(Enum):
 
 	@classmethod
 	def Parse(cls, value: Union[int, str]) -> 'Enum':
+		"""
+		Parses a VHDL or VHDL-AMS year code as integer or string to an enum value.
+
+		:param value:       VHDL/VHDL-AMS year code.
+		:returns:           Enumeration value.
+		:raises ValueError: If the year code is not recognized.
+		"""
 		try:
 			return cls.__VERSION_MAPPINGS__[value]
 		except KeyError:
 			ValueError(f"Value '{value!s}' cannot be parsed to member of {cls.__name__}.")
 
 	def __lt__(self, other: Any) -> bool:
+		"""
+		Compare two VHDL/VHDL-AMS versions if the version is less than the second operand.
+
+		:param other:      Parameter to compare against.
+		:returns:          True if version is less than the second operand.
+		:raises TypeError: If parameter ``other`` is not of type :class:`VHDLVersion`.
+		"""
 		if isinstance(other, VHDLVersion):
 			return self.value < other.value
 		else:
 			raise TypeError("Second operand is not of type 'VHDLVersion'.")
 
 	def __le__(self, other: Any) -> bool:
+		"""
+		Compare two VHDL/VHDL-AMS versions if the version is less or equal than the second operand.
+
+		:param other:      Parameter to compare against.
+		:returns:          True if version is less or equal than the second operand.
+		:raises TypeError: If parameter ``other`` is not of type :class:`VHDLVersion`.
+		"""
 		if isinstance(other, VHDLVersion):
 			return self.value <= other.value
 		else:
 			raise TypeError("Second operand is not of type 'VHDLVersion'.")
 
 	def __gt__(self, other: Any) -> bool:
+		"""
+		Compare two VHDL/VHDL-AMS versions if the version is greater than the second operand.
+
+		:param other:      Parameter to compare against.
+		:returns:          True if version is greater than the second operand.
+		:raises TypeError: If parameter ``other`` is not of type :class:`VHDLVersion`.
+		"""
 		if isinstance(other, VHDLVersion):
 			return self.value > other.value
 		else:
 			raise TypeError("Second operand is not of type 'VHDLVersion'.")
 
 	def __ge__(self, other: Any) -> bool:
+		"""
+		Compare two VHDL/VHDL-AMS versions if the version is greater or equal than the second operand.
+
+		:param other:      Parameter to compare against.
+		:returns:          True if version is greater or equal than the second operand.
+		:raises TypeError: If parameter ``other`` is not of type :class:`VHDLVersion`.
+		"""
 		if isinstance(other, VHDLVersion):
 			return self.value >= other.value
 		else:
 			raise TypeError("Second operand is not of type 'VHDLVersion'.")
 
 	def __ne__(self, other: Any) -> bool:
+		"""
+		Compare two VHDL/VHDL-AMS versions if the version is unequal to the second operand.
+
+		:param other:      Parameter to compare against.
+		:returns:          True if version is unequal to the second operand.
+		:raises TypeError: If parameter ``other`` is not of type :class:`VHDLVersion`.
+		"""
 		if isinstance(other, VHDLVersion):
 			return self.value != other.value
 		else:
 			raise TypeError("Second operand is not of type 'VHDLVersion'.")
 
 	def __eq__(self, other: Any) -> bool:
+		"""
+		Compare two VHDL/VHDL-AMS versions if the version is equal to the second operand.
+
+		:param other:      Parameter to compare against.
+		:returns:          True if version is equal to the second operand.
+		:raises TypeError: If parameter ``other`` is not of type :class:`VHDLVersion`.
+		"""
 		if isinstance(other, VHDLVersion):
 			if ((self is self.__class__.Any) or (other is self.__class__.Any)):
 				return True
@@ -200,86 +249,121 @@ class VHDLVersion(Enum):
 		else:
 			raise TypeError("Second operand is not of type 'VHDLVersion'.")
 
+	@property
 	def IsVHDL(self) -> bool:
+		"""
+		Checks if the version is a VHDL (not VHDL-AMS) version.
+
+		:returns:          True if version is a VHDL version.
+		"""
 		return self in (self.VHDL87, self.VHDL93, self.VHDL2002, self.VHDL2008, self.VHDL2019)
 
+	@property
 	def IsAMS(self) -> bool:
+		"""
+		Checks if the version is a VHDL-AMS (not VHDL) version.
+
+		:returns:          True if version is a VHDL-AMS version.
+		"""
 		return self in (self.AMS99, self.AMS2017)
 
 	def __str__(self) -> str:
-		return "VHDL'" + str(self.value)[-2:]
+		"""
+		Formats the VHDL version to pattern ``VHDL'xx`` or in case of VHDL-AMS to ``VHDL-AMS'xx``.
+
+		:return: Formatted VHDL/VHDL-AMS version.
+		"""
+		year = str(self.value)[-2:]
+		if self.IsVHDL:
+			return f"VHDL'{year}"
+		else:
+			return f"VHDL-AMS'{year}"
 
 	def __repr__(self) -> str:
+		"""
+		Formats the VHDL/VHDL-AMS version to pattern ``xxxx``.
+
+		:return: Formatted VHDL/VHDL-AMS version.
+		"""
 		return str(self.value)
 
 
 @export
 @unique
 class Direction(Enum):
-	"""
-	A ``Direction`` is an enumeration and represents a direction in a range
-	(``to`` or ``downto``).
-	"""
-	To =      0
-	DownTo =  1
+	"""A ``Direction`` is an enumeration and represents a direction in a range	(``to`` or ``downto``)."""
+
+	To =      0  #: Ascending direction
+	DownTo =  1  #: Descending direction
 
 	def __str__(self):
-		index: int = self.value
-		return ("to", "downto")[index]       # TODO: check performance
+		"""
+		Formats the direction to ``to`` or ``downto``.
+
+		:return: Formatted direction.
+		"""
+		return ("to", "downto")[cast(int, self.value)]       # TODO: check performance
 
 
 @export
 @unique
 class Mode(Enum):
 	"""
-	A ``Mode`` is an enumeration. It represents the direction of data exchange
-	(``in``, ``out``, ...) for objects in generic, port or parameter lists.
+	A ``Mode`` is an enumeration. It represents the direction of data exchange (``in``, ``out``, ...) for objects in
+	generic, port or parameter lists.
 
-	In case no *mode* is defined, ``Default`` is used, so the *mode* is inferred
-	from context.
+	In case no *mode* is defined, ``Default`` is used, so the *mode* is inferred from context.
 	"""
-	Default = 0
-	In =      1
-	Out =     2
-	InOut =   3
-	Buffer =  4
-	Linkage = 5
+
+	Default = 0  #: Mode not defined, thus it's context dependent.
+	In =      1  #: Input
+	Out =     2  #: Output
+	InOut =   3  #: Bi-directional
+	Buffer =  4  #: Buffered output
+	Linkage = 5  #: undocumented
 
 	def __str__(self):
-		index: int = self.value
-		return ("", "in", "out", "inout", "buffer", "linkage")[index]       # TODO: check performance
+		"""
+		Formats the direction.
+
+		:return: Formatted direction.
+		"""
+		return ("", "in", "out", "inout", "buffer", "linkage")[cast(int, self.value)]       # TODO: check performance
 
 
 @export
 @unique
 class ObjectClass(Enum):
 	"""
-	An ``ObjectClass`` is an enumeration. It represents an object's class (``constant``,
-	``signal``, ...).
+	An ``ObjectClass`` is an enumeration. It represents an object's class (``constant``, ``signal``, ...).
 
-	In case no *object class* is define, ``Default`` is used, so the *object class*
-	is inferred from context.
+	In case no *object class* is defined, ``Default`` is used, so the *object class* is inferred from context.
 	"""
-	Default =    0
-	Constant =   1
-	Variable =   2
-	Signal =     3
-	File =       4
-	Type =       5
-	Procedure =  6
-	Function =   7
+
+	Default =    0  #: Object class not defined, thus it's context dependent.
+	Constant =   1  #: Constant
+	Variable =   2  #: Variable
+	Signal =     3  #: Signal
+	File =       4  #: File
+	Type =       5  #: Type
+	# FIXME: Package?
+	Procedure =  6  #: Procedure
+	Function =   7  #: Function
+
+	def __str__(self):
+		"""
+		Formats the object class.
+
+		:return: Formatted object class.
+		"""
+		return ("", "constant", "variable", "signal", "file", "type", "procedure", "function")[cast(int, self.value)]       # TODO: check performance
 
 
 @export
 @unique
 class EntityClass(Enum):
-	"""
-	A ``Class`` is an enumeration. It represents an object's class (``constant``,
-	``signal``, ...).
+	"""An ``EntityClass`` is an enumeration. It represents a VHDL language entity class (``entity``, ``label``, ...)."""
 
-	In case no *object class* is defined, ``Default`` is used, so the *object class*
-	is inferred from context.
-	"""
 	Entity =        0
 	Architecture =  1
 	Configuration = 2
@@ -344,17 +428,17 @@ class PossibleReference(IntEnum):
 @export
 class ModelEntity:
 	"""
-	``ModelEntity`` is the base-class for all classes in the VHDL language model,
-	except for mixin classes (see multiple inheritance) and enumerations.
+	``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+	inheritance) and enumerations.
 
-	Each entity in this model has a reference to its parent entity. Therefore
-	a protected variable :attr:`_parent` is available and a readonly property
-	:attr:`Parent`.
+	Each entity in this model has a reference to its parent entity. Therefore, a protected variable :attr:`_parent` is
+	available and a readonly property :attr:`Parent`.
 	"""
+
 	_parent: 'ModelEntity'      #: Reference to a parent entity in the model.
 
 	def __init__(self):
-		pass
+		"""Initializes a VHDL model entity."""
 
 	@property
 	def Parent(self) -> 'ModelEntity':
@@ -367,16 +451,22 @@ class ModelEntity:
 
 
 @export
-class NamedEntity:
+class NamedEntityMixin:
 	"""
-	A ``NamedEntity`` is a mixin class for all VHDL entities that have identifiers.
+	A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have identifiers.
 
-	A protected variable :attr:`_identifier` is available to derived classes as
-	well as a readonly property :attr:`Identifier` for public access.
+	A protected variable :attr:`_identifier` is available to derived classes as well as a readonly property
+	:attr:`Identifier` for public access.
 	"""
+
 	_identifier: str  #: The identifier of a model entity.
 
 	def __init__(self, identifier: str):
+		"""
+		Initializes a named entity.
+
+		:param identifier: Identifier (name) of the model entity.
+		"""
 		self._identifier = identifier
 
 	@property
@@ -390,45 +480,55 @@ class NamedEntity:
 
 
 @export
-class MultipleNamedEntity:
+class MultipleNamedEntityMixin:
 	"""
-	A ``MultipleNamedEntity`` is a mixin class for all VHDL entities that declare
-	multiple instances at once by giving multiple identifiers.
+	A ``MultipleNamedEntityMixin`` is a mixin class for all VHDL entities that declare multiple instances at once by
+	giving multiple identifiers.
 
-	A protected variable :attr:`_identifiers` is available to derived classes as
-	well as a readonly property :attr:`Identifiers` for public access.
+	A protected variable :attr:`_identifiers` is available to derived classes as well as a readonly property
+	:attr:`Identifiers` for public access.
 	"""
-	_identifiers: List[str]  #: A list of identifiers.
 
-	def __init__(self, identifiers: List[str]):
-		self._identifiers = identifiers
+	_identifiers: Tuple[str]  #: A list of identifiers.
+
+	def __init__(self, identifiers: Iterable[str]):
+		"""
+		Initializes a multiple-named entity.
+
+		:param identifiers: Sequence of identifiers (names) of the model entity.
+		"""
+		self._identifiers = tuple(identifiers)
 
 	@property
-	def Identifiers(self) -> List[str]:
+	def Identifiers(self) -> Tuple[str]:
 		"""
-		Returns a model entity's list of identifiers (name).
+		Returns a model entity's tuple of identifiers (names).
 
-		:returns: List of identifiers.
+		:returns: Tuple of identifiers.
 		"""
 		return self._identifiers
 
 
 @export
-class LabeledEntity:
+class LabeledEntityMixin:
 	"""
-	A ``LabeledEntity`` is a mixin class for all VHDL entities that can have
-	labels.
+	A ``LabeledEntityMixin`` is a mixin class for all VHDL entities that can have labels.
 
-	A protected variable :attr:`_label` is available to derived classes as well
-	as a readonly property :attr:`Label` for public access.
+	A protected variable :attr:`_label` is available to derived classes as well as a readonly property :attr:`Label` for
+	public access.
 	"""
-	_label: str  #: The label of a model entity.
+	_label: Nullable[str]  #: The label of a model entity.
 
-	def __init__(self, label: str):
+	def __init__(self, label: Nullable[str]):
+		"""
+		Initializes a labeled entity.
+
+		:param label: Label of the model entity.
+		"""
 		self._label = label
 
 	@property
-	def Label(self) -> str:
+	def Label(self) -> Nullable[str]:
 		"""
 		Returns a model entity's label.
 
@@ -438,17 +538,22 @@ class LabeledEntity:
 
 
 @export
-class DocumentedEntity:
+class DocumentedEntityMixin:
 	"""
-	A ``DocumentedEntity`` is a mixin class for all VHDL entities that can have
-	an associated documentation.
+	A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation.
 
-	A protected variable :attr:`_documentation` is available to derived classes as
-	well as a readonly property :attr:`Documentation` for public access.
+	A protected variable :attr:`_documentation` is available to derived classes as well as a readonly property
+	:attr:`Documentation` for public access.
 	"""
+
 	_documentation: Nullable[str]  #: The associated documentation of a model entity.
 
-	def __init__(self, documentation: str):
+	def __init__(self, documentation: Nullable[str]):
+		"""
+		Initializes a documented entity.
+
+		:param documentation: Documentation of a model entity.
+		"""
 		self._documentation = documentation
 
 	@property
@@ -462,13 +567,18 @@ class DocumentedEntity:
 
 
 @export
-class MixinDesignUnitWithContext:
-	_contextItems:      List['ContextUnion']
-	_libraryReferences: List['LibraryClause']
-	_packageReferences: List['UseClause']
-	_contextReferences: List['ContextReference']
+class DesignUnitWithContextMixin:
+	_contextItems:      List['ContextUnion']      #: List of all context items (library, use and context clauses).
+	_libraryReferences: List['LibraryClause']     #: List of library clauses.
+	_packageReferences: List['UseClause']         #: List of use clauses.
+	_contextReferences: List['ContextReference']  #: List of context clauses.
 
 	def __init__(self, contextItems: Iterable['ContextUnion'] = None):
+		"""
+		Initializes a mixin for design units with a context.
+
+		:param contextItems: A sequence of library, use or context clauses.
+		"""
 		from pyVHDLModel.SyntaxModel import LibraryClause, UseClause, ContextReference
 
 		self._contextItems = []
@@ -488,29 +598,56 @@ class MixinDesignUnitWithContext:
 
 	@property
 	def ContextItems(self) -> List['ContextUnion']:
+		"""
+		Read-only property to access the sequence of all context items comprising library, use and context clauses
+		(:py:attr:`_contextItems`).
+
+		:returns: Sequence of context items.
+		"""
 		return self._contextItems
 
 	@property
+	def ContextReferences(self) -> List['ContextReference']:
+		"""
+		Read-only property to access the sequence of context clauses (:py:attr:`_contextReferences`).
+
+		:returns: Sequence of context clauses.
+		"""
+		return self._contextReferences
+
+	@property
 	def LibraryReferences(self) -> List['LibraryClause']:
+		"""
+		Read-only property to access the sequence of library clauses (:py:attr:`_libraryReferences`).
+
+		:returns: Sequence of library clauses.
+		"""
 		return self._libraryReferences
 
 	@property
 	def PackageReferences(self) -> List['UseClause']:
-		return self._packageReferences
+		"""
+		Read-only property to access the sequence of use clauses (:py:attr:`_packageReferences`).
 
-	@property
-	def ContextReferences(self) -> List['ContextReference']:
-		return self._contextReferences
+		:returns: Sequence of use clauses.
+		"""
+		return self._packageReferences
 
 
 @export
-class DesignUnit(ModelEntity, NamedEntity, DocumentedEntity):
+class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""A ``DesignUnit`` is a base-class for all design units."""
 
 	def __init__(self, identifier: str, documentation: str = None):
+		"""
+		Initializes a design unit.
+
+		:param identifier:    Identifier (name) of the design unit.
+		:param documentation: Associated documentation of the design unit.
+		"""
 		super().__init__()
-		NamedEntity.__init__(self, identifier)
-		DocumentedEntity.__init__(self, documentation)
+		NamedEntityMixin.__init__(self, identifier)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 
 @export

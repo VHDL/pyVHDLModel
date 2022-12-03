@@ -5,31 +5,12 @@ Type Declarations
 
 VHDL has types (also called a base type) and subtypes. The following shows VHDL's type hierarchy:
 
-.. rubric:: Type Hierarchy
-
-* Types
-
-  * :ref:`vhdlmodel-scalartypes`
-
-    * :ref:`vhdlmodel-enumeratedtypes`
-    * :ref:`vhdlmodel-integertypes`
-    * :ref:`vhdlmodel-realtypes`
-    * :ref:`vhdlmodel-physicaltypes`
-
-  * :ref:`vhdlmodel-compositetypes`
-
-    * :ref:`vhdlmodel-arraytypes`
-    * :ref:`vhdlmodel-recordtypes`
-
-  * :ref:`vhdlmodel-protectedtypes`
-  * :ref:`vhdlmodel-accesstypes`
-  * :ref:`vhdlmodel-filetypes`
-
-* Subtype
+.. contents:: Table of Content
+   :local:
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.VHDLModel.EnumeratedType pyVHDLModel.VHDLModel.IntegerType pyVHDLModel.VHDLModel.RealType pyVHDLModel.VHDLModel.PhysicalType pyVHDLModel.VHDLModel.ArrayType pyVHDLModel.VHDLModel.RecordType pyVHDLModel.VHDLModel.ProtectedType pyVHDLModel.VHDLModel.AccessType pyVHDLModel.VHDLModel.FileType
+.. inheritance-diagram:: pyVHDLModel.SyntaxModel.EnumeratedType pyVHDLModel.SyntaxModel.IntegerType pyVHDLModel.SyntaxModel.RealType pyVHDLModel.SyntaxModel.PhysicalType pyVHDLModel.SyntaxModel.ArrayType pyVHDLModel.SyntaxModel.RecordType pyVHDLModel.SyntaxModel.ProtectedType pyVHDLModel.SyntaxModel.AccessType pyVHDLModel.SyntaxModel.FileType
    :parts: 1
 
 
@@ -47,7 +28,7 @@ Enumeration
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.EnumeratedType`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.EnumeratedType`:
 
 .. code-block:: Python
 
@@ -76,7 +57,7 @@ Integer
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.IntegerType`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.IntegerType`:
 
 .. code-block:: Python
 
@@ -108,7 +89,7 @@ Real
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.RealType`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.RealType`:
 
 .. code-block:: Python
 
@@ -140,7 +121,7 @@ Physical
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.PhysicalType`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.PhysicalType`:
 
 .. code-block:: Python
 
@@ -184,7 +165,7 @@ Array
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ArrayType`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ArrayType`:
 
 .. code-block:: Python
 
@@ -216,7 +197,7 @@ Record
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.RecordType`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.RecordType`:
 
 .. code-block:: Python
 

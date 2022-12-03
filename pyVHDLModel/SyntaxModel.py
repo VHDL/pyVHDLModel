@@ -53,7 +53,7 @@ except ImportError:
 
 
 @export
-class Name:
+class Name(ModelEntity):
 	"""``Name`` is the base-class for all *names* in the VHDL language model."""
 
 	_identifier: str

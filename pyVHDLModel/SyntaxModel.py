@@ -395,9 +395,9 @@ class SignalSymbol(ObjectSymbol):
 @export
 class Design(ModelEntity):
 	"""
-	A ``Design`` represents all loaded files (see :class:`~pyVHDLModel.VHDLModel.Document`)
+	A ``Design`` represents all loaded files (see :class:`~pyVHDLModel.SyntaxModel.Document`)
 	and analysed. It's the root of this document-object-model (DOM). It contains
-	at least on VHDL library (see :class:`~pyVHDLModel.VHDLModel.Library`).
+	at least on VHDL library (see :class:`~pyVHDLModel.SyntaxModel.Library`).
 	"""
 	_libraries:  Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:  List['Document']      #: List of all documents loaded for a design.

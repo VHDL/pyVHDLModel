@@ -34,7 +34,7 @@ Assert Statement
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ConcurrentSignalAssignment`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ConcurrentSignalAssignment`:
 
 .. code-block:: Python
 
@@ -70,7 +70,7 @@ Signal Assignment
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ConcurrentSignalAssignment`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ConcurrentSignalAssignment`:
 
 .. code-block:: Python
 
@@ -102,7 +102,7 @@ Concurrent Block Statement
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ConcurrentBlockStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ConcurrentBlockStatement`:
 
 .. code-block:: Python
 
@@ -166,7 +166,7 @@ If Generate
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.IfGenerateStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.IfGenerateStatement`:
 
 .. code-block:: Python
 
@@ -201,7 +201,7 @@ Case Generate
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.CaseGenerateStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.CaseGenerateStatement`:
 
 .. code-block:: Python
 
@@ -233,7 +233,7 @@ For Generate
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ForGenerateStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ForGenerateStatement`:
 
 .. code-block:: Python
 
@@ -282,7 +282,7 @@ Process
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ForGenerateStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ForGenerateStatement`:
 
 .. code-block:: Python
 

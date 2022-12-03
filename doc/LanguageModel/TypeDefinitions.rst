@@ -47,7 +47,7 @@ Enumeration
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.EnumeratedType`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.EnumeratedType`:
 
 .. code-block:: Python
 
@@ -76,7 +76,7 @@ Integer
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.IntegerType`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.IntegerType`:
 
 .. code-block:: Python
 
@@ -108,7 +108,7 @@ Real
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.RealType`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.RealType`:
 
 .. code-block:: Python
 
@@ -140,7 +140,7 @@ Physical
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.PhysicalType`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.PhysicalType`:
 
 .. code-block:: Python
 
@@ -184,7 +184,7 @@ Array
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ArrayType`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ArrayType`:
 
 .. code-block:: Python
 
@@ -216,7 +216,7 @@ Record
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.RecordType`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.RecordType`:
 
 .. code-block:: Python
 

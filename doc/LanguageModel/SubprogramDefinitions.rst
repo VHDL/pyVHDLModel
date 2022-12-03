@@ -36,7 +36,7 @@ Procedures
 Procedure
 ---------
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Procedure`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Procedure`:
 
 .. code-block:: Python
 
@@ -84,7 +84,7 @@ Procedure Instantiation
 Procedure as Method
 -------------------
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.ProcedureMethod`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ProcedureMethod`:
 
 .. code-block:: Python
 
@@ -148,7 +148,7 @@ Functions
 Function
 --------
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Function`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Function`:
 
 .. code-block:: Python
 
@@ -200,7 +200,7 @@ Function Instantiation
 Function as Method
 ------------------
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.FunctionMethod`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.FunctionMethod`:
 
 .. code-block:: Python
 

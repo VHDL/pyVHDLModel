@@ -64,7 +64,7 @@ available as lists. An entities also provides lists of generic and port items.
 The list of declared items (e.g. objects) also contains defined items (e.g.
 types). An entity's list of statements is called body items.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Entity`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Entity`:
 
 .. code-block:: Python
 
@@ -112,7 +112,7 @@ Package
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Package`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Package`:
 
 .. code-block:: Python
 
@@ -159,7 +159,7 @@ Architeture
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Architecture`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Architecture`:
 
 .. code-block:: Python
 
@@ -204,7 +204,7 @@ Package Body
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.PackageBody`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.PackageBody`:
 
 .. code-block:: Python
 

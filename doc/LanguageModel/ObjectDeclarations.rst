@@ -55,7 +55,7 @@ default expression. If a constant's value is delayed in calculation, it's called
 a deferred constant. See :ref:`vhdlmodel-deferredconstant` in next section.
 
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Constant`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Constant`:
 
 .. code-block:: Python
 
@@ -86,7 +86,7 @@ Deferred Constant
 If a constant's value is delayed in calculation, it's a deferred constant. Such
 a deferred constant has a reference to the *regular* constant of the same name.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.DeferredConstant`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.DeferredConstant`:
 
 .. code-block:: Python
 
@@ -151,7 +151,7 @@ A variable represents mutable data in sequential regions. Assignments to
 variables have no delay. The initial value can be assigned via a default
 expression.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Variable`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Variable`:
 
 .. code-block:: Python
 
@@ -213,7 +213,7 @@ A signal represents mutable data in concurrent regions. Assignments to signals
 are delayed until next wait statement is executed. The initial value can be
 assigned via a default expression.
 
-**Condensed definition of class** :class:`~pyVHDLModel.VHDLModel.Signal`:
+**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Signal`:
 
 .. code-block:: Python
 

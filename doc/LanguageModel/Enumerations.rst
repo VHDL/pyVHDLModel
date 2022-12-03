@@ -4,14 +4,10 @@ Enumerations
 ############
 
 The language model contains some enumerations to express a *kind* of a models
-entity. These are not enumerated types defined by VHDL itself, like `boolean`.
+entity. These are not enumerated types defined by VHDL itself, like ``boolean``.
 
-.. rubric:: Table of Content
-
-* :ref:`vhdlmodel-direction`
-* :ref:`vhdlmodel-mode`
-* :ref:`vhdlmodel-objclass`
-
+.. contents:: Table of Content
+   :local:
 
 
 .. _vhdlmodel-direction:

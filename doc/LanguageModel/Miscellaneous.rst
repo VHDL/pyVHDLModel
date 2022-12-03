@@ -4,14 +4,11 @@ Concepts not defined by VHDL
 ############################
 
 Some features required for a holistic language model are not defined in the VHDL
-:term:`LRM` (IEEE Std. 1076). Other features made explicitly implementation
-specific to the implementer.
+:term:`LRM` (IEEE Std. 1076). Other features are made explicitly implementation
+specific to the implementer. This chapter will cover these parts.
 
-.. rubric:: Table of Content
-
-* :ref:`vhdlmodel-design`
-* :ref:`vhdlmodel-library`
-* :ref:`vhdlmodel-document`
+.. contents:: Table of Content
+   :local:
 
 
 .. _vhdlmodel-design:

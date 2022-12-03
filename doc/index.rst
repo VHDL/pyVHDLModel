@@ -196,7 +196,7 @@ License
    :caption: References
    :hidden:
 
-   pyVHDLModel/index
+   pyVHDLModel/pyVHDLModel
 
 
 .. raw:: latex

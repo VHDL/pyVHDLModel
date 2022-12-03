@@ -153,28 +153,29 @@ latex_documents = [
 ]
 
 
-
 # ==============================================================================
 # Extensions
 # ==============================================================================
 extensions = [
 # Standard Sphinx extensions
 	"sphinx.ext.autodoc",
-	'sphinx.ext.extlinks',
-	'sphinx.ext.intersphinx',
-	'sphinx.ext.inheritance_diagram',
-	'sphinx.ext.todo',
-	'sphinx.ext.graphviz',
-	'sphinx.ext.mathjax',
-	'sphinx.ext.ifconfig',
-	'sphinx.ext.viewcode',
+	"sphinx.ext.coverage",
+	"sphinx.ext.extlinks",
+	"sphinx.ext.intersphinx",
+	"sphinx.ext.inheritance_diagram",
+	"sphinx.ext.todo",
+	"sphinx.ext.graphviz",
+	"sphinx.ext.mathjax",
+	"sphinx.ext.ifconfig",
+	"sphinx.ext.viewcode",
 # SphinxContrib extensions
-#	'sphinxcontrib.mermaid',
+	"sphinxcontrib.mermaid",
 # Other extensions
-	'sphinx_fontawesome',
-	'sphinx_autodoc_typehints',
-	'autoapi.sphinx',
+	"sphinx_fontawesome",
+	"sphinx_autodoc_typehints",
+	"autoapi.sphinx",
 ]
+
 
 # ==============================================================================
 # Sphinx.Ext.InterSphinx
@@ -189,17 +190,16 @@ intersphinx_mapping = {
 # Sphinx.Ext.AutoDoc
 # ==============================================================================
 # see: https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#configuration
-autodoc_default_options = {
-	"private-members": True,
-	"special-members": True,
-	"inherited-members": True,
-	"exclude-members": "__weakref__"
-}
+#autodoc_default_options = {
+#	"private-members": True,
+#	"special-members": True,
+#	"inherited-members": True,
+#	"exclude-members": "__weakref__"
+#}
 #autodoc_class_signature = "separated"
 autodoc_member_order = "bysource"       # alphabetical, groupwise, bysource
 autodoc_typehints = "both"
 #autoclass_content = "both"
-
 
 
 # ==============================================================================
@@ -218,6 +218,26 @@ extlinks = {
 graphviz_output_format = "svg"
 
 
+# ==============================================================================
+# SphinxContrib.Mermaid
+# ==============================================================================
+mermaid_params = [
+	'--backgroundColor', 'transparent',
+]
+mermaid_verbose = True
+
+
+# ==============================================================================
+# Sphinx.Ext.Inheritance_Diagram
+# ==============================================================================
+inheritance_node_attrs = {
+#	"shape": "ellipse",
+#	"fontsize": 14,
+#	"height": 0.75,
+	"color": "dodgerblue1",
+	"style": "filled"
+}
+
 
 # ==============================================================================
 # Sphinx.Ext.ToDo
@@ -226,6 +246,11 @@ graphviz_output_format = "svg"
 todo_include_todos = True
 todo_link_only = True
 
+
+# ==============================================================================
+# Sphinx.Ext.Coverage
+# ==============================================================================
+coverage_show_missing_items = True
 
 
 # ==============================================================================

@@ -1841,7 +1841,7 @@ class GenericConstantInterfaceItem(Constant, GenericInterfaceItem, InterfaceItem
 
 @export
 class GenericTypeInterfaceItem(Type, GenericInterfaceItem):
-	def __init__(self, identifier: str, documentation: str):
+	def __init__(self, identifier: str, documentation: str = None):
 		super().__init__(identifier, documentation)
 		GenericInterfaceItem.__init__(self)
 
@@ -1853,21 +1853,21 @@ class GenericSubprogramInterfaceItem(GenericInterfaceItem):
 
 @export
 class GenericProcedureInterfaceItem(Procedure, GenericInterfaceItem):
-	def __init__(self, identifier: str, documentation: str):
+	def __init__(self, identifier: str, documentation: str = None):
 		super().__init__(identifier, documentation)
 		GenericInterfaceItem.__init__(self)
 
 
 @export
 class GenericFunctionInterfaceItem(Function, GenericInterfaceItem):
-	def __init__(self, identifier: str, documentation: str):
+	def __init__(self, identifier: str, documentation: str = None):
 		super().__init__(identifier, documentation)
 		GenericInterfaceItem.__init__(self)
 
 
 @export
 class GenericPackageInterfaceItem(GenericInterfaceItem):
-	def __init__(self, identifier: str, documentation: str):
+	def __init__(self, identifier: str, documentation: str = None):
 		#	super().__init__(identifier, documentation)
 		GenericInterfaceItem.__init__(self)
 

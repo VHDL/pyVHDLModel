@@ -40,10 +40,11 @@ from typing               import List, Tuple, Union, Dict, Iterator, Optional as
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, PossibleReference, Direction, EntityClass, Mode, DocumentedEntityMixin
+from pyVHDLModel import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, PossibleReference, Direction, EntityClass, Mode, \
+	DocumentedEntityMixin, DesignUnit
 from pyVHDLModel          import PrimaryUnit, SecondaryUnit
 from pyVHDLModel          import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, DesignUnitWithContextMixin, PackageOrSymbol
-from pyVHDLModel.PSLModel import VerificationUnit
+from pyVHDLModel.PSLModel import VerificationUnit, VerificationProperty, VerificationMode
 
 try:
 	from typing import Protocol
@@ -422,6 +423,7 @@ class Design(ModelEntity):
 		if libraryName not in self._libraries:
 			lib = Library(libraryName)
 			self._libraries[libraryName] = lib
+			lib._parent = self
 		else:
 			lib = self._libraries[libraryName]
 
@@ -429,10 +431,11 @@ class Design(ModelEntity):
 
 	def AddDocument(self, document: 'Document', library: 'Library') -> None:
 		self._documents.append(document)
+		document._parent = self
 
-		for entity in document.Entities:
+		for entity in document._entities:
 			entity.Library = library
-			library.Entities.append(entity)
+			library._entities.append(entity)
 
 		for architecture in document.Architectures:
 			architecture.Library = library
@@ -515,27 +518,130 @@ class Library(ModelEntity, NamedEntityMixin):
 class Document(ModelEntity, DocumentedEntityMixin):
 	"""A ``Document`` represents a sourcefile. It contains primary and secondary design units."""
 
-	_path:              Path                      #: path to the document. ``None`` if virtual document.
-	_contexts:          List['Context']           #: List of all contexts defined in a document.
-	_configurations:    List['Configuration']     #: List of all configurations defined in a document.
-	_verificationUnits: List['VerificationUnit']  #: List of all PSL verification units defined in a document.
-	_entities:          List['Entity']            #: List of all entities defined in a document.
-	_architectures:     List['Architecture']      #: List of all architectures defined in a document.
-	_packages:          List['Package']           #: List of all packages defined in a document.
-	_packageBodies:     List['PackageBody']       #: List of all package bodies defined in a document.
+	_path:                   Path                          #: path to the document. ``None`` if virtual document.
+	_contexts:               List['Context']               #: List of all contexts defined in a document.
+	_configurations:         List['Configuration']         #: List of all configurations defined in a document.
+	_entities:               List['Entity']                #: List of all entities defined in a document.
+	_architectures:          List['Architecture']          #: List of all architectures defined in a document.
+	_packages:               List['Package']               #: List of all packages defined in a document.
+	_packageBodies:          List['PackageBody']           #: List of all package bodies defined in a document.
+	_verificationUnits:      List['VerificationUnit']      #: List of all PSL verification units defined in a document.
+	_verificationProperties: List['VerificationProperty']  #: List of all PSL verification properties defined in a document.
+	_verificationModes:      List['VerificationMode']      #: List of all PSL verification modes defined in a document.
 
 	def __init__(self, path: Path, documentation: str = None):
 		super().__init__()
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._path =              path
-		self._contexts =          []
-		self._configurations =    []
-		self._verificationUnits = []
-		self._entities =          []
-		self._architectures =     []
-		self._packages =          []
-		self._packageBodies =     []
+		self._path =                   path
+		self._designUnit =             []
+		self._contexts =               []
+		self._configurations =         []
+		self._entities =               []
+		self._architectures =          []
+		self._packages =               []
+		self._packageBodies =          []
+		self._verificationUnits =      []
+		self._verificationProperties = []
+		self._verificationModes =      []
+
+	def _AddEntity(self, item: 'Entity'):
+		if not isinstance(item, Entity):
+			raise TypeError()
+
+		self._entities.append(item)
+		self._items.append(item)
+		item.Document = self
+
+
+	def _AddArchitecture(self, item: 'Architecture'):
+		if not isinstance(item, Architecture):
+			raise TypeError()
+
+		self._architectures.append(item)
+		self._items.append(item)
+		item.Document = self
+
+	def _AddPackage(self, item: 'Package'):
+		if not isinstance(item, Package):
+			raise TypeError()
+
+		self._packages.append(item)
+		self._items.append(item)
+		item.Document = self
+
+	def _AddPackageBody(self, item: 'PackageBody'):
+		if not isinstance(item, PackageBody):
+			raise TypeError()
+
+		self._packageBodies.append(item)
+		self._items.append(item)
+		item.Document = self
+
+	def _AddContext(self, item: 'Context'):
+		if not isinstance(item, Context):
+			raise TypeError()
+
+		self._contexts.append(item)
+		self._items.append(item)
+		item.Document = self
+
+	def _AddConfiguration(self, item: 'Configuration'):
+		if not isinstance(item, Configuration):
+			raise TypeError()
+
+		self._configurations.append(item)
+		self._items.append(item)
+		item.Document = self
+
+	def _AddVerificationUnit(self, item: VerificationUnit):
+		if not isinstance(item, VerificationUnit):
+			raise TypeError()
+
+		self._verificationUnits.append(item)
+		self._items.append(item)
+		item.Document = self
+
+	def _AddVerificationProperty(self, item: VerificationProperty):
+		if not isinstance(item, VerificationProperty):
+			raise TypeError()
+
+		self._verificationProperties.append(item)
+		self._items.append(item)
+		item.Document = self
+
+	def _AddVerificationMode(self, item: VerificationMode):
+		if not isinstance(item, VerificationMode):
+			raise TypeError()
+
+		self._verificationModes.append(item)
+		self._items.append(item)
+		item.Document = self
+
+	def _AddDesignUnit(self, item: DesignUnit):
+		if isinstance(item, Entity):
+			self._entities.append(item)
+		elif isinstance(item, Architecture):
+			self._architectures.append(item)
+		elif isinstance(item, Package):
+			self._packages.append(item)
+		elif isinstance(item, PackageBody):
+			self._packageBodies.append(item)
+		elif isinstance(item, Context):
+			self._contexts.append(item)
+		elif isinstance(item, Configuration):
+			self._configurations.append(item)
+		elif isinstance(item, VerificationUnit):
+			self._verificationUnits.append(item)
+		elif isinstance(item, VerificationProperty):
+			self._verificationProperties.append(item)
+		elif isinstance(item, VerificationMode):
+			self._verificationModes.append(item)
+		else:
+			raise TypeError()
+
+		self._items.append(item)
+		item.Document = self
 
 	@property
 	def Path(self) -> Path:
@@ -550,11 +656,6 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	def Configurations(self) -> List['Configuration']:
 		"""Returns a list of all configuration declarations found in this document."""
 		return self._configurations
-
-	@property
-	def VerificationUnits(self) -> List['VerificationUnit']:
-		"""Returns a list of all configuration declarations found in this document."""
-		return self._verificationUnits
 
 	@property
 	def Entities(self) -> List['Entity']:
@@ -575,6 +676,21 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	def PackageBodies(self) -> List['PackageBody']:
 		"""Returns a list of all package body declarations found in this document."""
 		return self._packageBodies
+
+	@property
+	def VerificationUnits(self) -> List['VerificationUnit']:
+		"""Returns a list of all verification unit declarations found in this document."""
+		return self._verificationUnits
+
+	@property
+	def VerificationProperties(self) -> List['VerificationProperty']:
+		"""Returns a list of all verification property declarations found in this document."""
+		return self._verificationProperties
+
+	@property
+	def VerificationModes(self) -> List['VerificationMode']:
+		"""Returns a list of all verification mode declarations found in this document."""
+		return self._verificationModes
 
 
 @export

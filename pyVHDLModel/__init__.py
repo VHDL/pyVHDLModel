@@ -649,18 +649,28 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
+	@property
+	def Document(self) -> 'Document':
+		return self._parent
+
+	@Document.setter
+	def Document(self, document: 'Document') -> None:
+		self._parent = document
+
 
 @export
 class PrimaryUnit(DesignUnit):
 	"""A ``PrimaryUnit`` is a base-class for all primary units."""
 
+	_library: 'Library'
+
 	@property
 	def Library(self) -> 'Library':
-		return self._parent
+		return self._library
 
 	@Library.setter
 	def Library(self, library: 'Library') -> None:
-		self._parent = library
+		self._library = library
 
 
 @export

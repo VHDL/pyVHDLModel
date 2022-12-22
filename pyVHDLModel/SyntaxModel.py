@@ -519,6 +519,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	"""A ``Document`` represents a sourcefile. It contains primary and secondary design units."""
 
 	_path:                   Path                          #: path to the document. ``None`` if virtual document.
+	_designUnits:            List['DesignUnit']            #: List of all design units defined in a document.
 	_contexts:               List['Context']               #: List of all contexts defined in a document.
 	_configurations:         List['Configuration']         #: List of all configurations defined in a document.
 	_entities:               List['Entity']                #: List of all entities defined in a document.
@@ -534,7 +535,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._path =                   path
-		self._designUnit =             []
+		self._designUnits =            []
 		self._contexts =               []
 		self._configurations =         []
 		self._entities =               []
@@ -550,7 +551,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			raise TypeError()
 
 		self._entities.append(item)
-		self._items.append(item)
+		self._designUnits.append(item)
 		item.Document = self
 
 
@@ -559,15 +560,15 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			raise TypeError()
 
 		self._architectures.append(item)
-		self._items.append(item)
+		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddPackage(self, item: 'Package'):
-		if not isinstance(item, Package):
+		if not isinstance(item, (Package, PackageInstantiation)):
 			raise TypeError()
 
 		self._packages.append(item)
-		self._items.append(item)
+		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddPackageBody(self, item: 'PackageBody'):
@@ -575,7 +576,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			raise TypeError()
 
 		self._packageBodies.append(item)
-		self._items.append(item)
+		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddContext(self, item: 'Context'):
@@ -583,7 +584,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			raise TypeError()
 
 		self._contexts.append(item)
-		self._items.append(item)
+		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddConfiguration(self, item: 'Configuration'):
@@ -591,7 +592,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			raise TypeError()
 
 		self._configurations.append(item)
-		self._items.append(item)
+		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddVerificationUnit(self, item: VerificationUnit):
@@ -599,7 +600,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			raise TypeError()
 
 		self._verificationUnits.append(item)
-		self._items.append(item)
+		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddVerificationProperty(self, item: VerificationProperty):
@@ -607,7 +608,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			raise TypeError()
 
 		self._verificationProperties.append(item)
-		self._items.append(item)
+		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddVerificationMode(self, item: VerificationMode):
@@ -615,7 +616,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			raise TypeError()
 
 		self._verificationModes.append(item)
-		self._items.append(item)
+		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddDesignUnit(self, item: DesignUnit):
@@ -640,12 +641,17 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		else:
 			raise TypeError()
 
-		self._items.append(item)
+		self._designUnits.append(item)
 		item.Document = self
 
 	@property
 	def Path(self) -> Path:
 		return self._path
+
+	@property
+	def DesignUnits(self) -> List['DesignUnit']:
+		"""Returns a list of all design units declarations found in this document."""
+		return self._designUnits
 
 	@property
 	def Contexts(self) -> List['Context']:

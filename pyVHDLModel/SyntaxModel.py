@@ -435,6 +435,25 @@ class Design(ModelEntity):
 		"""Returns a list of all documents (files) loaded for this design."""
 		return self._documents
 
+	def _LoadLibrary(self, library):
+		identifier = library.Identifier.lower()
+		if identifier in self._libraries:
+			raise Exception(f"Library '{library.Identifier}' already exists in design.")
+		self._libraries[identifier] = library
+		library._parent = self
+
+	def LoadStdLibrary(self):
+		from pyVHDLModel.std import Std
+
+		library = Std()
+		self._LoadLibrary(library)
+
+	def LoadIEEELibrary(self):
+		from pyVHDLModel.ieee import Ieee
+
+		library = Ieee()
+		self._LoadLibrary(library)
+
 	def GetLibrary(self, libraryName: str) -> 'Library':
 		try:
 			return self._libraries[libraryName]

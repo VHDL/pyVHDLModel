@@ -170,6 +170,7 @@ class Symbol(ModelEntity):
 
 		self._symbolName = symbolName
 		self._possibleReferences = possibleReferences
+		self._reference = None
 
 	@property
 	def SymbolName(self) -> Name:
@@ -178,6 +179,13 @@ class Symbol(ModelEntity):
 	@property
 	def Reference(self) -> Any:
 		return self._reference
+
+	@property
+	def IsResolved(self) -> bool:
+		return self._reference is not None
+
+	def __bool__(self) -> bool:
+		return self._reference is not None
 
 	def __str__(self) -> str:
 		if self._reference is not None:

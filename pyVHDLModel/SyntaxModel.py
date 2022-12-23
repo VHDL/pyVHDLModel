@@ -526,7 +526,16 @@ class Design(ModelEntity):
 		self.LinkPackageBodies()
 
 	def LinkLibraryReferences(self):
-		pass
+		for library in self._libraries.values():
+			for entity in library._entities.values():  # TODO: provide an 'iterate design units' generator
+				for libraryReference in entity.LibraryReferences:
+					for symbol in libraryReference.Symbols:
+						try:
+							libraryName = symbol.SymbolName.Identifier
+							lib = self._libraries[libraryName.lower()]
+							symbol.Library = lib
+						except KeyError:
+							raise Exception(f"Library '{libraryName}' referenced by library clause of design unit '{entity.Identifier}' doesn't exist in design.")
 
 	def LinkPackageReferences(self):
 		pass

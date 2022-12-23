@@ -163,7 +163,7 @@ class OpenName(Name):
 class Symbol(ModelEntity):
 	_symbolName: Name
 	_possibleReferences: PossibleReference
-	_reference: Any = None
+	_reference: Any
 
 	def __init__(self, symbolName: Name, possibleReferences: PossibleReference):
 		super().__init__()
@@ -553,51 +553,51 @@ class Design(ModelEntity):
 class Library(ModelEntity, NamedEntityMixin):
 	"""A ``Library`` represents a VHDL library. It contains all *primary* design units."""
 
-	_contexts:       List['Context']                     #: List of all contexts defined in a library.
-	_configurations: List['Configuration']               #: List of all configurations defined in a library.
-	_entities:       List['Entity']                      #: List of all entities defined in a library.
-	_architectures:  Dict['Name', List['Architecture']]  #: Dictionary of all architectures defined in a library.
-	_packages:       List['Package']                     #: List of all packages defined in a library.
-	_packageBodies:  List['PackageBody']                 #: List of all package bodies defined in a library.
+	_contexts:       Dict[str, 'Context']                  #: Dictionary of all contexts defined in a library.
+	_configurations: Dict[str, 'Configuration']            #: Dictionary of all configurations defined in a library.
+	_entities:       Dict[str, 'Entity']                   #: Dictionary of all entities defined in a library.
+	_architectures:  Dict[str, Dict[str, 'Architecture']]  #: Dictionary of all architectures defined in a library.
+	_packages:       Dict[str, 'Package']                  #: Dictionary of all packages defined in a library.
+	_packageBodies:  Dict[str, 'PackageBody']              #: Dictionary of all package bodies defined in a library.
 
 	def __init__(self, identifier: str):
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)
 
-		self._contexts =        []
-		self._configurations =  []
-		self._entities =        []
+		self._contexts =        {}
+		self._configurations =  {}
+		self._entities =        {}
 		self._architectures =   {}
-		self._packages =        []
-		self._packageBodies =   []
+		self._packages =        {}
+		self._packageBodies =   {}
 
 	@property
-	def Contexts(self) -> List['Context']:
+	def Contexts(self) -> Dict[str, 'Context']:
 		"""Returns a list of all context declarations declared in this library."""
 		return self._contexts
 
 	@property
-	def Configurations(self) -> List['Configuration']:
+	def Configurations(self) -> Dict[str, 'Configuration']:
 		"""Returns a list of all configuration declarations declared in this library."""
 		return self._configurations
 
 	@property
-	def Entities(self) -> List['Entity']:
+	def Entities(self) -> Dict[str, 'Entity']:
 		"""Returns a list of all entity declarations declared in this library."""
 		return self._entities
 
 	@property
-	def Architectures(self) -> Dict['Name', List['Architecture']]:
+	def Architectures(self) -> Dict[str, Dict[str, 'Architecture']]:
 		"""Returns a list of all architectures declarations declared in this library."""
 		return self._architectures
 
 	@property
-	def Packages(self) -> List['Package']:
+	def Packages(self) -> Dict[str, 'Package']:
 		"""Returns a list of all package declarations declared in this library."""
 		return self._packages
 
 	@property
-	def PackageBodies(self) -> List['PackageBody']:
+	def PackageBodies(self) -> Dict[str, 'PackageBody']:
 		"""Returns a list of all package body declarations declared in this library."""
 		return self._packageBodies
 
@@ -606,17 +606,17 @@ class Library(ModelEntity, NamedEntityMixin):
 class Document(ModelEntity, DocumentedEntityMixin):
 	"""A ``Document`` represents a sourcefile. It contains primary and secondary design units."""
 
-	_path:                   Path                          #: path to the document. ``None`` if virtual document.
-	_designUnits:            List['DesignUnit']            #: List of all design units defined in a document.
-	_contexts:               List['Context']               #: List of all contexts defined in a document.
-	_configurations:         List['Configuration']         #: List of all configurations defined in a document.
-	_entities:               List['Entity']                #: List of all entities defined in a document.
-	_architectures:          List['Architecture']          #: List of all architectures defined in a document.
-	_packages:               List['Package']               #: List of all packages defined in a document.
-	_packageBodies:          List['PackageBody']           #: List of all package bodies defined in a document.
-	_verificationUnits:      List['VerificationUnit']      #: List of all PSL verification units defined in a document.
-	_verificationProperties: List['VerificationProperty']  #: List of all PSL verification properties defined in a document.
-	_verificationModes:      List['VerificationMode']      #: List of all PSL verification modes defined in a document.
+	_path:                   Path                                  #: path to the document. ``None`` if virtual document.
+	_designUnits:            List['DesignUnit']                    #: List of all design units defined in a document.
+	_contexts:               Dict[str, 'Context']                  #: Dictionary of all contexts defined in a document.
+	_configurations:         Dict[str, 'Configuration']            #: Dictionary of all configurations defined in a document.
+	_entities:               Dict[str, 'Entity']                   #: Dictionary of all entities defined in a document.
+	_architectures:          Dict[str, Dict[str, 'Architecture']]  #: Dictionary of all architectures defined in a document.
+	_packages:               Dict[str, 'Package']                  #: Dictionary of all packages defined in a document.
+	_packageBodies:          Dict[str, 'PackageBody']              #: Dictionary of all package bodies defined in a document.
+	_verificationUnits:      Dict[str, 'VerificationUnit']         #: Dictionary of all PSL verification units defined in a document.
+	_verificationProperties: Dict[str, 'VerificationProperty']     #: Dictionary of all PSL verification properties defined in a document.
+	_verificationModes:      Dict[str, 'VerificationMode']         #: Dictionary of all PSL verification modes defined in a document.
 
 	def __init__(self, path: Path, documentation: str = None):
 		super().__init__()
@@ -624,110 +624,153 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._path =                   path
 		self._designUnits =            []
-		self._contexts =               []
-		self._configurations =         []
-		self._entities =               []
-		self._architectures =          []
-		self._packages =               []
-		self._packageBodies =          []
-		self._verificationUnits =      []
-		self._verificationProperties = []
-		self._verificationModes =      []
+		self._contexts =               {}
+		self._configurations =         {}
+		self._entities =               {}
+		self._architectures =          {}
+		self._packages =               {}
+		self._packageBodies =          {}
+		self._verificationUnits =      {}
+		self._verificationProperties = {}
+		self._verificationModes =      {}
 
 	def _AddEntity(self, item: 'Entity'):
 		if not isinstance(item, Entity):
-			raise TypeError()
+			raise TypeError(f"Parameter 'item' is not of type 'Entity'.")
 
-		self._entities.append(item)
+		if item.Identifier in self._entities:
+			raise ValueError(f"An entity '{item.Identifier}' already exists in this document.")
+
+		self._entities[item.Identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
 
 	def _AddArchitecture(self, item: 'Architecture'):
 		if not isinstance(item, Architecture):
-			raise TypeError()
+			raise TypeError(f"Parameter 'item' is not of type 'Architecture'.")
 
-		self._architectures.append(item)
+		entityName = item.Entity.SymbolName.Identifier
+		try:
+			architectures = self._architectures[entityName]
+			if item.Identifier in architectures:
+				raise ValueError(f"An architecture '{item.Identifier}' for entity '{entityName}' already exists in this document.")
+
+			architectures[item.Identifier] = item
+		except KeyError:
+			self._architectures[entityName] = {item.Identifier: item}
+
 		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddPackage(self, item: 'Package'):
 		if not isinstance(item, (Package, PackageInstantiation)):
-			raise TypeError()
+			raise TypeError(f"Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
 
-		self._packages.append(item)
+		if item.Identifier in self._packages:
+			raise ValueError(f"A package '{item.Identifier}' already exists in this document.")
+
+		self._packages[item.Identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddPackageBody(self, item: 'PackageBody'):
 		if not isinstance(item, PackageBody):
-			raise TypeError()
+			raise TypeError(f"Parameter 'item' is not of type 'PackageBody'.")
 
-		self._packageBodies.append(item)
+		if item.Identifier in self._packageBodies:
+			raise ValueError(f"A package body '{item.Identifier}' already exists in this document.")
+
+		self._packageBodies[item.Identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddContext(self, item: 'Context'):
 		if not isinstance(item, Context):
-			raise TypeError()
+			raise TypeError(f"Parameter 'item' is not of type 'Context'.")
 
-		self._contexts.append(item)
+		if item.Identifier in self._contexts:
+			raise ValueError(f"A context '{item.Identifier}' already exists in this document.")
+
+		self._contexts[item.Identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddConfiguration(self, item: 'Configuration'):
 		if not isinstance(item, Configuration):
-			raise TypeError()
+			raise TypeError(f"Parameter 'item' is not of type 'Configuration'.")
 
-		self._configurations.append(item)
+		if item.Identifier in self._configurations:
+			raise ValueError(f"A configuration '{item.Identifier}' already exists in this document.")
+
+		self._configurations[item.Identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddVerificationUnit(self, item: VerificationUnit):
 		if not isinstance(item, VerificationUnit):
-			raise TypeError()
+			raise TypeError(f"Parameter 'item' is not of type 'VerificationUnit'.")
 
-		self._verificationUnits.append(item)
+		if item.Identifier in self._verificationUnits:
+			raise ValueError(f"A verification unit '{item.Identifier}' already exists in this document.")
+
+		self._verificationUnits[item.Identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddVerificationProperty(self, item: VerificationProperty):
 		if not isinstance(item, VerificationProperty):
-			raise TypeError()
+			raise TypeError(f"Parameter 'item' is not of type 'VerificationProperty'.")
 
-		self._verificationProperties.append(item)
+		if item.Identifier in self._verificationProperties:
+			raise ValueError(f"A verification property '{item.Identifier}' already exists in this document.")
+
+		self._verificationProperties[item.Identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddVerificationMode(self, item: VerificationMode):
 		if not isinstance(item, VerificationMode):
-			raise TypeError()
+			raise TypeError(f"Parameter 'item' is not of type 'VerificationMode'.")
 
-		self._verificationModes.append(item)
+		if item.Identifier in self._verificationModes:
+			raise ValueError(f"A verification mode '{item.Identifier}' already exists in this document.")
+
+		self._verificationModes[item.Identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddDesignUnit(self, item: DesignUnit):
 		if isinstance(item, Entity):
-			self._entities.append(item)
+			self._entities[item.Identifier] = item
 		elif isinstance(item, Architecture):
-			self._architectures.append(item)
+			entityName = item.Entity.SymbolName.Identifier
+			try:
+				architectures = self._architectures[entityName]
+				if item.Identifier in architectures:
+					raise ValueError(f"An architecture '{item.Identifier}' for entity '{entityName}' already exists in this document.")
+
+				architectures[item.Identifier] = item
+			except KeyError:
+				self._architectures[entityName] = {item.Identifier: item}
 		elif isinstance(item, Package):
-			self._packages.append(item)
+			self._packages[item.Identifier] = item
 		elif isinstance(item, PackageBody):
-			self._packageBodies.append(item)
+			self._packageBodies[item.Identifier] = item
 		elif isinstance(item, Context):
-			self._contexts.append(item)
+			self._contexts[item.Identifier] = item
 		elif isinstance(item, Configuration):
-			self._configurations.append(item)
+			self._configurations[item.Identifier] = item
 		elif isinstance(item, VerificationUnit):
-			self._verificationUnits.append(item)
+			self._verificationUnits[item.Identifier] = item
 		elif isinstance(item, VerificationProperty):
-			self._verificationProperties.append(item)
+			self._verificationProperties[item.Identifier] = item
 		elif isinstance(item, VerificationMode):
-			self._verificationModes.append(item)
+			self._verificationModes[item.Identifier] = item
+		elif isinstance(item, DesignUnit):
+			raise TypeError(f"Parameter 'item' is an unknown 'DesignUnit'.")
 		else:
-			raise TypeError()
+			raise TypeError(f"Parameter 'item' is not of type 'DesignUnit'.")
 
 		self._designUnits.append(item)
 		item.Document = self
@@ -742,47 +785,47 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._designUnits
 
 	@property
-	def Contexts(self) -> List['Context']:
+	def Contexts(self) -> Dict[str, 'Context']:
 		"""Returns a list of all context declarations found in this document."""
 		return self._contexts
 
 	@property
-	def Configurations(self) -> List['Configuration']:
+	def Configurations(self) -> Dict[str, 'Configuration']:
 		"""Returns a list of all configuration declarations found in this document."""
 		return self._configurations
 
 	@property
-	def Entities(self) -> List['Entity']:
+	def Entities(self) -> Dict[str, 'Entity']:
 		"""Returns a list of all entity declarations found in this document."""
 		return self._entities
 
 	@property
-	def Architectures(self) -> List['Architecture']:
+	def Architectures(self) -> Dict[str, Dict[str, 'Architecture']]:
 		"""Returns a list of all architecture declarations found in this document."""
 		return self._architectures
 
 	@property
-	def Packages(self) -> List['Package']:
+	def Packages(self) -> Dict[str, 'Package']:
 		"""Returns a list of all package declarations found in this document."""
 		return self._packages
 
 	@property
-	def PackageBodies(self) -> List['PackageBody']:
+	def PackageBodies(self) -> Dict[str, 'PackageBody']:
 		"""Returns a list of all package body declarations found in this document."""
 		return self._packageBodies
 
 	@property
-	def VerificationUnits(self) -> List['VerificationUnit']:
+	def VerificationUnits(self) -> Dict[str, 'VerificationUnit']:
 		"""Returns a list of all verification unit declarations found in this document."""
 		return self._verificationUnits
 
 	@property
-	def VerificationProperties(self) -> List['VerificationProperty']:
+	def VerificationProperties(self) -> Dict[str, 'VerificationProperty']:
 		"""Returns a list of all verification property declarations found in this document."""
 		return self._verificationProperties
 
 	@property
-	def VerificationModes(self) -> List['VerificationMode']:
+	def VerificationModes(self) -> Dict[str, 'VerificationMode']:
 		"""Returns a list of all verification mode declarations found in this document."""
 		return self._verificationModes
 

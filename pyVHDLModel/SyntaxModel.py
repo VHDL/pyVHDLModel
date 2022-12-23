@@ -455,30 +455,11 @@ class Design(ModelEntity):
 
 	def LinkArchitectures(self):
 		for library in self._libraries.values():
-			for entityName, architecturesPerEntity in library._architectures.items():
-				if entityName not in library._entities:
-					architectureNames = "', '".join(architecturesPerEntity.keys())
-					raise Exception(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{library.Identifier}'.")
-
-				for architecture in architecturesPerEntity.values():
-					# entitySymbolName = architecture.Entity.SymbolName
-					# if entitySymbolName.Identifier != entityName:
-					# 	raise Exception(f"Internal error. Dictionary key doesn't match objects name/identifier.")
-
-					entity = library._entities[entityName]
-					# if entity.Identifier != entityName:
-					# 	raise Exception(f"Internal error. Dictionary key doesn't match objects name/identifier.")
-
-					architecture.Entity.Entity = entity
+			library.LinkArchitectures()
 
 	def LinkPackageBodies(self):
 		for library in self._libraries.values():
-			for packageBodyName, packageBody in library._packageBodies.items():
-				if packageBodyName not in library._packages:
-					raise Exception(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{library.Identifier}'.")
-
-				package = library._packages[packageBodyName]
-				packageBody.Package.Package = package
+			library.LinkPackageBodies()
 
 
 @export
@@ -532,6 +513,31 @@ class Library(ModelEntity, NamedEntityMixin):
 	def PackageBodies(self) -> Dict[str, 'PackageBody']:
 		"""Returns a list of all package body declarations declared in this library."""
 		return self._packageBodies
+
+	def LinkArchitectures(self):
+		for entityName, architecturesPerEntity in self._architectures.items():
+			if entityName not in self._entities:
+				architectureNames = "', '".join(architecturesPerEntity.keys())
+				raise Exception(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{self.Identifier}'.")
+
+			for architecture in architecturesPerEntity.values():
+				# entitySymbolName = architecture.Entity.SymbolName
+				# if entitySymbolName.Identifier != entityName:
+				# 	raise Exception(f"Internal error. Dictionary key doesn't match objects name/identifier.")
+
+				entity = self._entities[entityName]
+				# if entity.Identifier != entityName:
+				# 	raise Exception(f"Internal error. Dictionary key doesn't match objects name/identifier.")
+
+				architecture.Entity.Entity = entity
+
+	def LinkPackageBodies(self):
+		for packageBodyName, packageBody in self._packageBodies.items():
+			if packageBodyName not in self._packages:
+				raise Exception(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{self.Identifier}'.")
+
+			package = self._packages[packageBodyName]
+			packageBody.Package.Package = package
 
 
 @export

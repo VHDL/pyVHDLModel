@@ -466,30 +466,55 @@ class Design(ModelEntity):
 		self._documents.append(document)
 		document._parent = self
 
-		for entity in document._entities:
+		for entityName, entity in document._entities.items():
+			if entityName in library._entities:
+				raise ValueError(f"Entity '{entityName}' already exists in library '{library.Identifier}'.")
+
+			library._entities[entityName] = entity
 			entity.Library = library
-			library._entities.append(entity)
 
-		for architecture in document.Architectures:
-			architecture.Library = library
+		for entityName, architectures in document._architectures.items():
 			try:
-				library.Architectures[architecture.Entity.SymbolName].append(architecture)
+				architecturesPerEntity = library._architectures[entityName]
+				for architectureName, architecture in document._architectures.items():
+					if architectureName in architecturesPerEntity:
+						raise ValueError(f"Architecture '{architectureName}' for entity '{entityName}' already exists in library '{library.Identifier}'.")
+
+					architecturesPerEntity[architectureName] = architecture
+					architecture.Library = library
 			except KeyError:
-				library.Architectures[architecture.Entity.SymbolName] = [architecture]
+				architecturesPerEntity = document._architectures[entityName].copy()
+				library._architectures[entityName] = architecturesPerEntity
 
-		for package in document.Packages:
+				for architecture in architecturesPerEntity.values():
+					architecture.Library = library
+
+		for packageName, package in document._packages.items():
+			if packageName in library._packages:
+				raise ValueError(f"Package '{packageName}' already exists in library '{library.Identifier}'.")
+
+			library._packages[packageName] = package
 			package.Library = library
-			library.Packages.append(package)
 
-		for packageBody in document.PackageBodies:
+		for packageBodyName, packageBody in document._packageBodies.items():
+			if packageBodyName in library._packageBodies:
+				raise ValueError(f"Package body '{packageBodyName}' already exists in library '{library.Identifier}'.")
+
+			library._packageBodies[packageBodyName] = packageBody
 			packageBody.Library = library
-			library.PackageBodies.append(packageBody)
 
-		for configuration in document.Configurations:
+		for configurationName, configuration in document._configurations.items():
+			if configurationName in library._configurations:
+				raise ValueError(f"Configuration '{configurationName}' already exists in library '{library.Identifier}'.")
+
+			library._configurations[configurationName] = configuration
 			configuration.Library = library
-			library.Configurations.append(configuration)
 
-		for context in document.Contexts:
+		for contextName, context in document._contexts.items():
+			if contextName in library._contexts:
+				raise ValueError(f"Context '{contextName}' already exists in library '{library.Identifier}'.")
+
+			library._contexts[contextName] = context
 			context.Library = library
 			library.Contexts.append(context)
 

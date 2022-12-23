@@ -246,6 +246,23 @@ class ArchitectureSymbol(Symbol):
 
 
 @export
+class PackageSymbol(Symbol):
+	def __init__(self, packageName: SimpleName):
+		if not isinstance(packageName, SimpleName):
+			raise TypeError(f"Parameter 'packageName' is not of type 'SimpleName'.")
+
+		super().__init__(packageName, PossibleReference.Package)
+
+	@property
+	def Package(self) -> 'Package':
+		return self._reference
+
+	@Package.setter
+	def Package(self, value: 'Package') -> None:
+		self._reference = value
+
+
+@export
 class ComponentSymbol(Symbol):
 	def __init__(self, symbolName: Name):
 		super().__init__(symbolName, PossibleReference.Component)

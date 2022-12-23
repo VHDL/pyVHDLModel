@@ -2267,11 +2267,11 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin):
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
 	_statements:    List['ConcurrentStatement']
 
-	def __init__(self, identifier: str, entity: Name, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None, documentation: str = None):
+	def __init__(self, identifier: str, entity: EntitySymbol, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None, documentation: str = None):
 		super().__init__(identifier, documentation)
 		DesignUnitWithContextMixin.__init__(self, contextItems)
 
-		self._entity        = EntitySymbol(entity)
+		self._entity        = entity
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 		self._statements    = [] if statements is None else [s for s in statements]
 
@@ -2412,17 +2412,18 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 
 @export
 class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
-	_package:           Package
+	_package:           PackageSymbol
 	_declaredItems:     List
 
 	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(identifier, documentation)
 		DesignUnitWithContextMixin.__init__(self, contextItems)
 
+		self._package = PackageSymbol(SimpleName(identifier))
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
 	@property
-	def Package(self) -> Package:
+	def Package(self) -> PackageSymbol:
 		return self._package
 
 	@property

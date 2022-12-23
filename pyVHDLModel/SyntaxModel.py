@@ -436,14 +436,13 @@ class Design(ModelEntity):
 		return self._documents
 
 	def GetLibrary(self, libraryName: str) -> 'Library':
-		if libraryName not in self._libraries:
+		try:
+			return self._libraries[libraryName]
+		except KeyError:
 			lib = Library(libraryName)
-			self._libraries[libraryName] = lib
+			self._libraries[libraryName.lower()] = lib
 			lib._parent = self
-		else:
-			lib = self._libraries[libraryName]
-
-		return lib
+			return lib
 
 	def AddDocument(self, document: 'Document', library: 'Library') -> None:
 		self._documents.append(document)

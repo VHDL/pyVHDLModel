@@ -41,7 +41,7 @@ from typing               import List, Tuple, Union, Dict, Iterator, Optional as
 from pyTooling.Decorators import export
 
 from pyVHDLModel import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, PossibleReference, Direction, EntityClass, Mode, \
-	DocumentedEntityMixin, DesignUnit
+	DocumentedEntityMixin, DesignUnit, LibraryClause, UseClause, Name, Symbol
 from pyVHDLModel          import PrimaryUnit, SecondaryUnit
 from pyVHDLModel          import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, DesignUnitWithContextMixin, PackageOrSymbol
 from pyVHDLModel.PSLModel import VerificationUnit, VerificationProperty, VerificationMode
@@ -51,40 +51,6 @@ try:
 except ImportError:
 	class Protocol:
 		pass
-
-
-@export
-class Name(ModelEntity):
-	"""``Name`` is the base-class for all *names* in the VHDL language model."""
-
-	_identifier: str
-	_root: Nullable['Name']
-	_prefix: Nullable['Name']
-
-	def __init__(self, identifier: str, prefix: 'Name' = None):
-		self._identifier = identifier
-		if prefix is None:
-			self._prefix = self
-			self._root = None
-		else:
-			self._prefix = prefix
-			self._root = prefix._root
-
-	@property
-	def Identifier(self) -> str:
-		return self._identifier
-
-	@property
-	def Root(self) -> 'Name':
-		return self._root
-
-	@property
-	def Prefix(self) -> Nullable['Name']:
-		return self._prefix
-
-	@property
-	def Has_Prefix(self) -> bool:
-		return self._prefix is not None
 
 
 @export
@@ -157,40 +123,6 @@ class OpenName(Name):
 
 	def __str__(self):
 		return "open"
-
-
-@export
-class Symbol(ModelEntity):
-	_symbolName: Name
-	_possibleReferences: PossibleReference
-	_reference: Any
-
-	def __init__(self, symbolName: Name, possibleReferences: PossibleReference):
-		super().__init__()
-
-		self._symbolName = symbolName
-		self._possibleReferences = possibleReferences
-		self._reference = None
-
-	@property
-	def SymbolName(self) -> Name:
-		return self._symbolName
-
-	@property
-	def Reference(self) -> Any:
-		return self._reference
-
-	@property
-	def IsResolved(self) -> bool:
-		return self._reference is not None
-
-	def __bool__(self) -> bool:
-		return self._reference is not None
-
-	def __str__(self) -> str:
-		if self._reference is not None:
-			return str(self._reference)
-		return str(self._symbolName)
 
 
 @export
@@ -2161,35 +2093,6 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
 	def __init__(self, identifiers: Iterable[str], subtype: SubtypeOrSymbol, documentation: str = None):
 		super().__init__(identifiers, subtype, documentation)
 		ParameterInterfaceItem.__init__(self)
-
-
-@export
-class Reference(ModelEntity):
-	_names:       List[Name]
-
-	def __init__(self, names: Iterable[Name]):
-		super().__init__()
-
-		self._names = [n for n in names]
-
-	@property
-	def Names(self) -> List[Name]:
-		return self._names
-
-
-@export
-class LibraryClause(Reference):
-	pass
-
-
-@export
-class UseClause(Reference):
-	pass
-
-
-@export
-class ContextReference(Reference):
-	pass
 
 
 @export

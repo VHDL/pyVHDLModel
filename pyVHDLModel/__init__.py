@@ -43,7 +43,7 @@ __version__ =   "0.17.2"
 
 
 from enum     import IntEnum, unique, Enum
-from typing   import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple
+from typing   import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple, Any
 
 from pyTooling.Decorators import export
 
@@ -567,7 +567,105 @@ class DocumentedEntityMixin:
 
 
 @export
-class DesignUnitWithContextMixin:
+class Name(ModelEntity):
+	"""``Name`` is the base-class for all *names* in the VHDL language model."""
+
+	_identifier: str
+	_root: Nullable['Name']
+	_prefix: Nullable['Name']
+
+	def __init__(self, identifier: str, prefix: 'Name' = None):
+		super().__init__()
+		self._identifier = identifier
+		if prefix is None:
+			self._prefix = self
+			self._root = None
+		else:
+			self._prefix = prefix
+			self._root = prefix._root
+
+	@property
+	def Identifier(self) -> str:
+		return self._identifier
+
+	@property
+	def Root(self) -> 'Name':
+		return self._root
+
+	@property
+	def Prefix(self) -> Nullable['Name']:
+		return self._prefix
+
+	@property
+	def Has_Prefix(self) -> bool:
+		return self._prefix is not None
+
+
+@export
+class Symbol(ModelEntity):
+	_symbolName: Name
+	_possibleReferences: PossibleReference
+	_reference: Any
+
+	def __init__(self, symbolName: Name, possibleReferences: PossibleReference):
+		super().__init__()
+
+		self._symbolName = symbolName
+		self._possibleReferences = possibleReferences
+		self._reference = None
+
+	@property
+	def SymbolName(self) -> Name:
+		return self._symbolName
+
+	@property
+	def Reference(self) -> Any:
+		return self._reference
+
+	@property
+	def IsResolved(self) -> bool:
+		return self._reference is not None
+
+	def __bool__(self) -> bool:
+		return self._reference is not None
+
+	def __str__(self) -> str:
+		if self._reference is not None:
+			return str(self._reference)
+		return str(self._symbolName)
+
+
+@export
+class Reference(ModelEntity):
+	_symbols:       List[Symbol]
+
+	def __init__(self, symbols: Iterable[Symbol]):
+		super().__init__()
+
+		self._symbols = [s for s in symbols]
+
+	@property
+	def Symbols(self) -> List[Name]:
+		return self._symbols
+
+
+@export
+class LibraryClause(Reference):
+	pass
+
+
+@export
+class UseClause(Reference):
+	pass
+
+
+@export
+class ContextReference(Reference):
+	pass
+
+
+@export
+class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 	_contextItems:      List['ContextUnion']      #: List of all context items (library, use and context clauses).
 	_libraryReferences: List['LibraryClause']     #: List of library clauses.
 	_packageReferences: List['UseClause']         #: List of use clauses.
@@ -579,7 +677,6 @@ class DesignUnitWithContextMixin:
 
 		:param contextItems: A sequence of library, use or context clauses.
 		"""
-		from pyVHDLModel.SyntaxModel import LibraryClause, UseClause, ContextReference
 
 		self._contextItems = []
 		self._libraryReferences = []

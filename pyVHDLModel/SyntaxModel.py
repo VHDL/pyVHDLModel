@@ -657,10 +657,11 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, Entity):
 			raise TypeError(f"Parameter 'item' is not of type 'Entity'.")
 
-		if item.Identifier in self._entities:
+		identifier = item.Identifier.lower()
+		if identifier in self._entities:
 			raise ValueError(f"An entity '{item.Identifier}' already exists in this document.")
 
-		self._entities[item.Identifier] = item
+		self._entities[identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
@@ -670,14 +671,15 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			raise TypeError(f"Parameter 'item' is not of type 'Architecture'.")
 
 		entityName = item.Entity.SymbolName.Identifier
+		identifier = entityName.lower()
 		try:
-			architectures = self._architectures[entityName]
+			architectures = self._architectures[identifier]
 			if item.Identifier in architectures:
 				raise ValueError(f"An architecture '{item.Identifier}' for entity '{entityName}' already exists in this document.")
 
 			architectures[item.Identifier] = item
 		except KeyError:
-			self._architectures[entityName] = {item.Identifier: item}
+			self._architectures[identifier] = {item.Identifier: item}
 
 		self._designUnits.append(item)
 		item.Document = self
@@ -686,10 +688,11 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, (Package, PackageInstantiation)):
 			raise TypeError(f"Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
 
-		if item.Identifier in self._packages:
+		identifier = item.Identifier.lower()
+		if identifier in self._packages:
 			raise ValueError(f"A package '{item.Identifier}' already exists in this document.")
 
-		self._packages[item.Identifier] = item
+		self._packages[identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
@@ -697,10 +700,11 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, PackageBody):
 			raise TypeError(f"Parameter 'item' is not of type 'PackageBody'.")
 
-		if item.Identifier in self._packageBodies:
+		identifier = item.Identifier.lower()
+		if identifier in self._packageBodies:
 			raise ValueError(f"A package body '{item.Identifier}' already exists in this document.")
 
-		self._packageBodies[item.Identifier] = item
+		self._packageBodies[identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
@@ -708,10 +712,11 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, Context):
 			raise TypeError(f"Parameter 'item' is not of type 'Context'.")
 
-		if item.Identifier in self._contexts:
+		identifier = item.Identifier.lower()
+		if identifier in self._contexts:
 			raise ValueError(f"A context '{item.Identifier}' already exists in this document.")
 
-		self._contexts[item.Identifier] = item
+		self._contexts[identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
@@ -719,10 +724,11 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, Configuration):
 			raise TypeError(f"Parameter 'item' is not of type 'Configuration'.")
 
-		if item.Identifier in self._configurations:
+		identifier = item.Identifier.lower()
+		if identifier in self._configurations:
 			raise ValueError(f"A configuration '{item.Identifier}' already exists in this document.")
 
-		self._configurations[item.Identifier] = item
+		self._configurations[identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
@@ -730,10 +736,11 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, VerificationUnit):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationUnit'.")
 
-		if item.Identifier in self._verificationUnits:
+		identifier = item.Identifier.lower()
+		if identifier in self._verificationUnits:
 			raise ValueError(f"A verification unit '{item.Identifier}' already exists in this document.")
 
-		self._verificationUnits[item.Identifier] = item
+		self._verificationUnits[identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
@@ -741,10 +748,11 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, VerificationProperty):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationProperty'.")
 
-		if item.Identifier in self._verificationProperties:
+		identifier = item.Identifier.lower()
+		if identifier in self._verificationProperties:
 			raise ValueError(f"A verification property '{item.Identifier}' already exists in this document.")
 
-		self._verificationProperties[item.Identifier] = item
+		self._verificationProperties[identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
@@ -752,40 +760,43 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, VerificationMode):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationMode'.")
 
-		if item.Identifier in self._verificationModes:
+		identifier = item.Identifier.lower()
+		if identifier in self._verificationModes:
 			raise ValueError(f"A verification mode '{item.Identifier}' already exists in this document.")
 
-		self._verificationModes[item.Identifier] = item
+		self._verificationModes[identifier] = item
 		self._designUnits.append(item)
 		item.Document = self
 
 	def _AddDesignUnit(self, item: DesignUnit):
+		identifier = item.Identifier.lower()
 		if isinstance(item, Entity):
-			self._entities[item.Identifier] = item
+			self._entities[identifier] = item
 		elif isinstance(item, Architecture):
 			entityName = item.Entity.SymbolName.Identifier
+			entityIdentifier = entityName.lower()
 			try:
-				architectures = self._architectures[entityName]
-				if item.Identifier in architectures:
+				architectures = self._architectures[entityIdentifier]
+				if identifier in architectures:
 					raise ValueError(f"An architecture '{item.Identifier}' for entity '{entityName}' already exists in this document.")
 
-				architectures[item.Identifier] = item
+				architectures[identifier] = item
 			except KeyError:
-				self._architectures[entityName] = {item.Identifier: item}
+				self._architectures[entityIdentifier] = {identifier: item}
 		elif isinstance(item, Package):
-			self._packages[item.Identifier] = item
+			self._packages[identifier] = item
 		elif isinstance(item, PackageBody):
-			self._packageBodies[item.Identifier] = item
+			self._packageBodies[identifier] = item
 		elif isinstance(item, Context):
-			self._contexts[item.Identifier] = item
+			self._contexts[identifier] = item
 		elif isinstance(item, Configuration):
-			self._configurations[item.Identifier] = item
+			self._configurations[identifier] = item
 		elif isinstance(item, VerificationUnit):
-			self._verificationUnits[item.Identifier] = item
+			self._verificationUnits[identifier] = item
 		elif isinstance(item, VerificationProperty):
-			self._verificationProperties[item.Identifier] = item
+			self._verificationProperties[identifier] = item
 		elif isinstance(item, VerificationMode):
-			self._verificationModes[item.Identifier] = item
+			self._verificationModes[identifier] = item
 		elif isinstance(item, DesignUnit):
 			raise TypeError(f"Parameter 'item' is an unknown 'DesignUnit'.")
 		else:

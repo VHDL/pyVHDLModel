@@ -645,7 +645,7 @@ class Reference(ModelEntity):
 		self._symbols = [s for s in symbols]
 
 	@property
-	def Symbols(self) -> List[Name]:
+	def Symbols(self) -> List[Symbol]:
 		return self._symbols
 
 

@@ -516,7 +516,37 @@ class Design(ModelEntity):
 
 			library._contexts[contextName] = context
 			context.Library = library
-			library.Contexts.append(context)
+
+	def Analyze(self):
+		self.LinkArchitectures()
+		self.LinkPackageBodies()
+
+	def LinkArchitectures(self):
+		for library in self._libraries.values():
+			for entityName, architecturesPerEntity in library._architectures.items():
+				if entityName not in library._entities:
+					architectureNames = "', '".join(architecturesPerEntity.keys())
+					raise Exception(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{library.Identifier}'.")
+
+				for architecture in architecturesPerEntity.values():
+					# entitySymbolName = architecture.Entity.SymbolName
+					# if entitySymbolName.Identifier != entityName:
+					# 	raise Exception(f"Internal error. Dictionary key doesn't match objects name/identifier.")
+
+					entity = library._entities[entityName]
+					# if entity.Identifier != entityName:
+					# 	raise Exception(f"Internal error. Dictionary key doesn't match objects name/identifier.")
+
+					architecture.Entity.Entity = entity
+
+	def LinkPackageBodies(self):
+		for library in self._libraries.values():
+			for packageBodyName, packageBody in library._packageBodies.items():
+				if packageBodyName not in library._packages:
+					raise Exception(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{library.Identifier}'.")
+
+				package = library._packages[packageBodyName]
+				packageBody.Package.Package = package
 
 
 @export

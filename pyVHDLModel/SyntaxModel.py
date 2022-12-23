@@ -126,18 +126,72 @@ class OpenName(Name):
 
 
 @export
-class LibrarySymbol(Symbol):
-	_library: 'Library'
+class LibraryReferenceSymbol(Symbol):
+	"""A library reference in a library clause."""
 
-	def __init__(self, symbolName: Name):
-		super().__init__(symbolName, PossibleReference.Library)
+	def __init__(self, libraryName: SimpleName):
+		if not isinstance(libraryName, SimpleName):
+			raise TypeError(f"Parameter 'libraryName' is not of type 'SimpleName'.")
+		super().__init__(libraryName, PossibleReference.Library)
 
 	@property
 	def Library(self) -> 'Library':
-		return self._library
+		return self._reference
 
 	@Library.setter
 	def Library(self, value: 'Library') -> None:
+		self._reference = value
+
+
+@export
+class PackageReferenceSymbol(Symbol):
+	"""A package reference in a use clause."""
+
+	def __init__(self, packageName: SelectedName):
+		if not isinstance(packageName, (SelectedName, AllName)):
+			raise TypeError(f"Parameter 'packageName' is not of type 'SelectedName' or 'AllName'.")
+		super().__init__(packageName, PossibleReference.Package)
+
+	@property
+	def Library(self) -> 'Library':
+		return self._reference
+
+	@Library.setter
+	def Library(self, value: 'Library') -> None:
+		self._reference = value
+
+	@property
+	def Package(self) -> 'Package':
+		return self._reference
+
+	@Package.setter
+	def Package(self, value: 'Package') -> None:
+		self._reference = value
+
+
+@export
+class ContextReferenceSymbol(Symbol):
+	"""A context reference in a use clause."""
+
+	def __init__(self, contextName: SelectedName):
+		if not isinstance(contextName, SelectedName):
+			raise TypeError(f"Parameter 'contextName' is not of type 'SelectedName'.")
+		super().__init__(contextName, PossibleReference.Context)
+
+	@property
+	def Library(self) -> 'Library':
+		return self._reference
+
+	@Library.setter
+	def Library(self, value: 'Library') -> None:
+		self._reference = value
+
+	@property
+	def Context(self) -> 'Context':
+		return self._reference
+
+	@Context.setter
+	def Context(self, value: 'Context') -> None:
 		self._reference = value
 
 
@@ -148,7 +202,6 @@ class EntitySymbol(Symbol):
 	def __init__(self, entityName: SimpleName):
 		if not isinstance(entityName, SimpleName):
 			raise TypeError(f"Parameter 'entityName' is not of type 'SimpleName'.")
-
 		super().__init__(entityName, PossibleReference.Entity)
 
 	@property
@@ -165,7 +218,6 @@ class ArchitectureSymbol(Symbol):
 	def __init__(self, architectureName: SimpleName):
 		if not isinstance(architectureName, SimpleName):
 			raise TypeError(f"Parameter 'architectureName' is not of type 'SimpleName'.")
-
 		super().__init__(architectureName, PossibleReference.Architecture)
 
 	@property
@@ -182,7 +234,6 @@ class PackageSymbol(Symbol):
 	def __init__(self, packageName: SimpleName):
 		if not isinstance(packageName, SimpleName):
 			raise TypeError(f"Parameter 'packageName' is not of type 'SimpleName'.")
-
 		super().__init__(packageName, PossibleReference.Package)
 
 	@property

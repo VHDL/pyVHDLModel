@@ -450,8 +450,20 @@ class Design(ModelEntity):
 			context.Library = library
 
 	def Analyze(self):
+		self.LinkLibraryReferences()
+		self.LinkPackageReferences()
+		self.LinkContextReferences()
 		self.LinkArchitectures()
 		self.LinkPackageBodies()
+
+	def LinkLibraryReferences(self):
+		pass
+
+	def LinkPackageReferences(self):
+		pass
+
+	def LinkContextReferences(self):
+		pass
 
 	def LinkArchitectures(self):
 		for library in self._libraries.values():

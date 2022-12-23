@@ -36,11 +36,11 @@ This module contains an abstract document language model for VHDL.
 :license: Apache License, Version 2.0
 """
 from pathlib              import Path
-from typing               import List, Tuple, Union, Dict, Iterator, Optional as Nullable, Any, Iterable
+from typing               import List, Tuple, Union, Dict, Iterator, Optional as Nullable, Iterable, Generator
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, PossibleReference, Direction, EntityClass, Mode, \
+from pyVHDLModel          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, PossibleReference, Direction, EntityClass, Mode, \
 	DocumentedEntityMixin, DesignUnit, LibraryClause, UseClause, Name, Symbol
 from pyVHDLModel          import PrimaryUnit, SecondaryUnit
 from pyVHDLModel          import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, DesignUnitWithContextMixin, PackageOrSymbol
@@ -518,6 +518,10 @@ class Design(ModelEntity):
 			library._contexts[contextName] = context
 			context.Library = library
 
+	def IterateDesignUnits(self) -> Generator[DesignUnit, None, None]:
+		for library in self._libraries.values():
+			yield from library.IterateDesignUnits()
+
 	def Analyze(self):
 		self.LinkLibraryReferences()
 		self.LinkPackageReferences()
@@ -526,16 +530,15 @@ class Design(ModelEntity):
 		self.LinkPackageBodies()
 
 	def LinkLibraryReferences(self):
-		for library in self._libraries.values():
-			for entity in library._entities.values():  # TODO: provide an 'iterate design units' generator
-				for libraryReference in entity.LibraryReferences:
-					for symbol in libraryReference.Symbols:
-						try:
-							libraryName = symbol.SymbolName.Identifier
-							lib = self._libraries[libraryName.lower()]
-							symbol.Library = lib
-						except KeyError:
-							raise Exception(f"Library '{libraryName}' referenced by library clause of design unit '{entity.Identifier}' doesn't exist in design.")
+		for designUnit in self.IterateDesignUnits():
+			for libraryReference in designUnit.LibraryReferences:
+				for symbol in libraryReference.Symbols:
+					try:
+						libraryName = symbol.SymbolName.Identifier
+						lib = self._libraries[libraryName.lower()]
+						symbol.Library = lib
+					except KeyError:
+						raise Exception(f"Library '{libraryName}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
 
 	def LinkPackageReferences(self):
 		pass
@@ -603,6 +606,27 @@ class Library(ModelEntity, NamedEntityMixin):
 	def PackageBodies(self) -> Dict[str, 'PackageBody']:
 		"""Returns a list of all package body declarations declared in this library."""
 		return self._packageBodies
+
+	def IterateDesignUnits(self) -> Generator[DesignUnit, None, None]:
+		for entity in self._entities.values():
+			yield entity
+		for architectures in self._architectures.values():
+			for architecture in architectures.values():
+				yield architecture
+		for package in self._packages.values():
+			yield package
+		for packageBody in self._packageBodies.values():
+			yield packageBody
+		for configuration in self._configurations.values():
+			yield configuration
+		for context in self._contexts.values():
+			yield context
+		# for verificationProperty in self._verificationUnits.values():
+		# 	yield verificationProperty
+		# for verificationUnit in self._verificationProperties.values():
+		# 	yield entity
+		# for verificationMode in self._verificationModes.values():
+		# 	yield verificationMode
 
 	def LinkArchitectures(self):
 		for entityName, architecturesPerEntity in self._architectures.items():

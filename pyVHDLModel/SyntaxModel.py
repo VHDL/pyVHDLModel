@@ -211,7 +211,12 @@ class LibrarySymbol(Symbol):
 
 @export
 class EntitySymbol(Symbol):
-	def __init__(self, entityName: Name):
+	"""An entity reference in an architecture declaration."""
+
+	def __init__(self, entityName: SimpleName):
+		if not isinstance(entityName, SimpleName):
+			raise TypeError(f"Parameter 'entityName' is not of type 'SimpleName'.")
+
 		super().__init__(entityName, PossibleReference.Entity)
 
 	@property
@@ -225,8 +230,11 @@ class EntitySymbol(Symbol):
 
 @export
 class ArchitectureSymbol(Symbol):
-	def __init__(self, symbolName: Name):
-		super().__init__(symbolName, PossibleReference.Architecture)
+	def __init__(self, architectureName: SimpleName):
+		if not isinstance(architectureName, SimpleName):
+			raise TypeError(f"Parameter 'architectureName' is not of type 'SimpleName'.")
+
+		super().__init__(architectureName, PossibleReference.Architecture)
 
 	@property
 	def Architecture(self) -> 'Architecture':

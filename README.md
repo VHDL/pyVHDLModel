@@ -66,7 +66,7 @@ library = design.GetLibrary("lib")
 document = Document(sourceFile)
 design.AddDocument(document, library)
 
-for entity in document.Entities:
+for entity in document.Entities.values():
   print(f"{entity.Identifier}")
   print("  generics:")
   for generic in entity.GenericItems:

@@ -530,15 +530,34 @@ class Design(ModelEntity):
 		self.LinkPackageBodies()
 
 	def LinkLibraryReferences(self):
+		DEFAULT_LIBRARIES = ("std",)
+
 		for designUnit in self.IterateDesignUnits():
-			for libraryReference in designUnit.LibraryReferences:
-				for symbol in libraryReference.Symbols:
-					try:
+			if isinstance(designUnit, DesignUnitWithContextMixin):
+				for libraryIdentifier in DEFAULT_LIBRARIES:
+					designUnit._referencedLibraries[libraryIdentifier] = self._libraries[libraryIdentifier]
+					designUnit._referencedPackages[libraryIdentifier] = {}
+					# TODO: catch KeyError on self._libraries[libName]
+					# TODO: warn duplicate library reference
+
+				workingLibrary: Library = designUnit.Library
+				libraryIdentifier = workingLibrary.Identifier.lower()
+				designUnit._referencedLibraries[libraryIdentifier] = self._libraries[libraryIdentifier]
+				designUnit._referencedPackages[libraryIdentifier] = {}
+
+				for libraryReference in designUnit.LibraryReferences:
+					for symbol in libraryReference.Symbols:
 						libraryName = symbol.SymbolName.Identifier
-						lib = self._libraries[libraryName.lower()]
+						libraryIdentifier = libraryName.lower()
+						try:
+							lib = self._libraries[libraryIdentifier]
+						except KeyError:
+							raise Exception(f"Library '{libraryName}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+
 						symbol.Library = lib
-					except KeyError:
-						raise Exception(f"Library '{libraryName}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+						designUnit._referencedLibraries[libraryIdentifier] = lib
+						designUnit._referencedPackages[libraryIdentifier] = {}
+						# TODO: warn duplicate library reference
 
 	def LinkPackageReferences(self):
 		pass

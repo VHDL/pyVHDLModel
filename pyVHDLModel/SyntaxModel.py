@@ -560,7 +560,40 @@ class Design(ModelEntity):
 						# TODO: warn duplicate library reference
 
 	def LinkPackageReferences(self):
-		pass
+		DEFAULT_PACKAGES = (
+			("std", ("standard",)),
+		)
+
+		for designUnit in self.IterateDesignUnits():
+			if isinstance(designUnit, DesignUnitWithContextMixin):
+				for lib in DEFAULT_PACKAGES:
+					if lib[0] not in designUnit._referencedLibraries:
+						raise Exception()
+					for pack in lib[1]:
+						designUnit._referencedPackages[lib[0]][pack] = self._libraries[lib[0]]._packages[pack]
+						# TODO: catch KeyError on self._libraries[lib[0]]._packages[pack]
+						# TODO: warn duplicate package reference
+
+				for packageReference in designUnit.PackageReferences:
+					for symbol in packageReference.Symbols:
+						symbolName = symbol.SymbolName
+						if isinstance(symbolName, AllName):
+							packageName = symbolName.Prefix
+							libraryName = packageName.Prefix
+
+							print(libraryName, packageName, "ALL")
+							libraryIdentifier = libraryName.Identifier.lower()
+							packageIdentifier = packageName.Identifier.lower()
+							if libraryIdentifier == "work":
+								workingLibrary: Library = designUnit.Library
+								libraryIdentifier =workingLibrary.Identifier.lower()
+								designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = workingLibrary._packages[packageIdentifier]
+							else:
+								designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = self._libraries[libraryIdentifier]._packages[packageIdentifier]
+							# TODO: catch KeyError on self._libraries[...]._packages[...]
+							# TODO: warn duplicate package reference
+						else:
+							raise NotImplementedError()
 
 	def LinkContextReferences(self):
 		pass
@@ -671,6 +704,9 @@ class Library(ModelEntity, NamedEntityMixin):
 
 			package = self._packages[packageBodyName]
 			packageBody.Package.Package = package
+
+	def __str__(self):
+		return f"VHDL Library: '{self.Identifier}'"
 
 
 @export

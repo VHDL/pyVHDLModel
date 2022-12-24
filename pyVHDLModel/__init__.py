@@ -671,6 +671,9 @@ class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 	_packageReferences: List['UseClause']         #: List of use clauses.
 	_contextReferences: List['ContextReference']  #: List of context clauses.
 
+	_referencedLibraries: Dict[str, 'Library']
+	_referencedPackages:  Dict[str, Dict[str, 'Package']]
+
 	def __init__(self, contextItems: Iterable['ContextUnion'] = None):
 		"""
 		Initializes a mixin for design units with a context.
@@ -682,6 +685,9 @@ class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 		self._libraryReferences = []
 		self._packageReferences = []
 		self._contextReferences = []
+
+		self._referencedLibraries = {}
+		self._referencedPackages = {"work": {}}
 
 		if contextItems is not None:
 			for item in contextItems:
@@ -735,6 +741,8 @@ class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""A ``DesignUnit`` is a base-class for all design units."""
 
+	_library: 'Library'
+
 	def __init__(self, identifier: str, documentation: str = None):
 		"""
 		Initializes a design unit.
@@ -746,6 +754,8 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
+		self._library = None
+
 	@property
 	def Document(self) -> 'Document':
 		return self._parent
@@ -754,13 +764,6 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	def Document(self, document: 'Document') -> None:
 		self._parent = document
 
-
-@export
-class PrimaryUnit(DesignUnit):
-	"""A ``PrimaryUnit`` is a base-class for all primary units."""
-
-	_library: 'Library'
-
 	@property
 	def Library(self) -> 'Library':
 		return self._library
@@ -768,6 +771,11 @@ class PrimaryUnit(DesignUnit):
 	@Library.setter
 	def Library(self, library: 'Library') -> None:
 		self._library = library
+
+
+@export
+class PrimaryUnit(DesignUnit):
+	"""A ``PrimaryUnit`` is a base-class for all primary units."""
 
 
 @export

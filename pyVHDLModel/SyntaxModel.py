@@ -436,10 +436,10 @@ class Design(ModelEntity):
 		return self._documents
 
 	def _LoadLibrary(self, library):
-		identifier = library.Identifier.lower()
-		if identifier in self._libraries:
+		libraryIdentifier = library.NormalizedIdentifier
+		if libraryIdentifier in self._libraries:
 			raise Exception(f"Library '{library.Identifier}' already exists in design.")
-		self._libraries[identifier] = library
+		self._libraries[libraryIdentifier] = library
 		library._parent = self
 
 	def LoadStdLibrary(self):
@@ -467,55 +467,55 @@ class Design(ModelEntity):
 		self._documents.append(document)
 		document._parent = self
 
-		for entityName, entity in document._entities.items():
-			if entityName in library._entities:
-				raise ValueError(f"Entity '{entityName}' already exists in library '{library.Identifier}'.")
+		for entityIdentifier, entity in document._entities.items():
+			if entityIdentifier in library._entities:
+				raise ValueError(f"Entity '{entity.Identifier}' already exists in library '{library.Identifier}'.")
 
-			library._entities[entityName] = entity
+			library._entities[entityIdentifier] = entity
 			entity.Library = library
 
-		for entityName, architectures in document._architectures.items():
+		for entityIdentifier, architectures in document._architectures.items():
 			try:
-				architecturesPerEntity = library._architectures[entityName]
-				for architectureName, architecture in document._architectures.items():
-					if architectureName in architecturesPerEntity:
-						raise ValueError(f"Architecture '{architectureName}' for entity '{entityName}' already exists in library '{library.Identifier}'.")
+				architecturesPerEntity = library._architectures[entityIdentifier]
+				for architectureIdentifier, architecture in architectures.items():
+					if architectureIdentifier in architecturesPerEntity:
+						raise ValueError(f"Architecture '{architecture.Identifier}' for entity '{entityIdentifier}' already exists in library '{library.Identifier}'.")
 
-					architecturesPerEntity[architectureName] = architecture
+					architecturesPerEntity[architectureIdentifier] = architecture
 					architecture.Library = library
 			except KeyError:
-				architecturesPerEntity = document._architectures[entityName].copy()
-				library._architectures[entityName] = architecturesPerEntity
+				architecturesPerEntity = document._architectures[entityIdentifier].copy()
+				library._architectures[entityIdentifier] = architecturesPerEntity
 
 				for architecture in architecturesPerEntity.values():
 					architecture.Library = library
 
-		for packageName, package in document._packages.items():
-			if packageName in library._packages:
-				raise ValueError(f"Package '{packageName}' already exists in library '{library.Identifier}'.")
+		for packageIdentifier, package in document._packages.items():
+			if packageIdentifier in library._packages:
+				raise ValueError(f"Package '{packageIdentifier}' already exists in library '{library.Identifier}'.")
 
-			library._packages[packageName] = package
+			library._packages[packageIdentifier] = package
 			package.Library = library
 
-		for packageBodyName, packageBody in document._packageBodies.items():
-			if packageBodyName in library._packageBodies:
-				raise ValueError(f"Package body '{packageBodyName}' already exists in library '{library.Identifier}'.")
+		for packageBodyIdentifier, packageBody in document._packageBodies.items():
+			if packageBodyIdentifier in library._packageBodies:
+				raise ValueError(f"Package body '{packageBodyIdentifier}' already exists in library '{library.Identifier}'.")
 
-			library._packageBodies[packageBodyName] = packageBody
+			library._packageBodies[packageBodyIdentifier] = packageBody
 			packageBody.Library = library
 
-		for configurationName, configuration in document._configurations.items():
-			if configurationName in library._configurations:
-				raise ValueError(f"Configuration '{configurationName}' already exists in library '{library.Identifier}'.")
+		for configurationIdentifier, configuration in document._configurations.items():
+			if configurationIdentifier in library._configurations:
+				raise ValueError(f"Configuration '{configurationIdentifier}' already exists in library '{library.Identifier}'.")
 
-			library._configurations[configurationName] = configuration
+			library._configurations[configurationIdentifier] = configuration
 			configuration.Library = library
 
-		for contextName, context in document._contexts.items():
-			if contextName in library._contexts:
-				raise ValueError(f"Context '{contextName}' already exists in library '{library.Identifier}'.")
+		for contextIdentifier, context in document._contexts.items():
+			if contextIdentifier in library._contexts:
+				raise ValueError(f"Context '{contextIdentifier}' already exists in library '{library.Identifier}'.")
 
-			library._contexts[contextName] = context
+			library._contexts[contextIdentifier] = context
 			context.Library = library
 
 	def IterateDesignUnits(self, filter: DesignUnits = DesignUnits.All) -> Generator[DesignUnit, None, None]:
@@ -541,7 +541,7 @@ class Design(ModelEntity):
 					# TODO: warn duplicate library reference
 
 				workingLibrary: Library = designUnit.Library
-				libraryIdentifier = workingLibrary.Identifier.lower()
+				libraryIdentifier = workingLibrary.NormalizedIdentifier
 				designUnit._referencedLibraries[libraryIdentifier] = self._libraries[libraryIdentifier]
 				designUnit._referencedPackages[libraryIdentifier] = {}
 			else:
@@ -769,7 +769,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, Entity):
 			raise TypeError(f"Parameter 'item' is not of type 'Entity'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._entities:
 			raise ValueError(f"An entity '{item.Identifier}' already exists in this document.")
 
@@ -800,7 +800,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, (Package, PackageInstantiation)):
 			raise TypeError(f"Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._packages:
 			raise ValueError(f"A package '{item.Identifier}' already exists in this document.")
 
@@ -812,7 +812,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, PackageBody):
 			raise TypeError(f"Parameter 'item' is not of type 'PackageBody'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._packageBodies:
 			raise ValueError(f"A package body '{item.Identifier}' already exists in this document.")
 
@@ -824,7 +824,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, Context):
 			raise TypeError(f"Parameter 'item' is not of type 'Context'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._contexts:
 			raise ValueError(f"A context '{item.Identifier}' already exists in this document.")
 
@@ -836,7 +836,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, Configuration):
 			raise TypeError(f"Parameter 'item' is not of type 'Configuration'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._configurations:
 			raise ValueError(f"A configuration '{item.Identifier}' already exists in this document.")
 
@@ -848,7 +848,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, VerificationUnit):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationUnit'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._verificationUnits:
 			raise ValueError(f"A verification unit '{item.Identifier}' already exists in this document.")
 
@@ -860,7 +860,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, VerificationProperty):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationProperty'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._verificationProperties:
 			raise ValueError(f"A verification property '{item.Identifier}' already exists in this document.")
 
@@ -872,7 +872,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, VerificationMode):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationMode'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._verificationModes:
 			raise ValueError(f"A verification mode '{item.Identifier}' already exists in this document.")
 
@@ -881,7 +881,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		item.Document = self
 
 	def _AddDesignUnit(self, item: DesignUnit):
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if isinstance(item, Entity):
 			self._entities[identifier] = item
 		elif isinstance(item, Architecture):

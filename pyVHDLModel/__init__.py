@@ -460,7 +460,8 @@ class NamedEntityMixin:
 	:attr:`Identifier` for public access.
 	"""
 
-	_identifier: str  #: The identifier of a model entity.
+	_identifier: str            #: The identifier of a model entity.
+	_normalizedIdentifier: str  #: The normalized (lower case) identifier of a model entity.
 
 	def __init__(self, identifier: str):
 		"""
@@ -469,6 +470,7 @@ class NamedEntityMixin:
 		:param identifier: Identifier (name) of the model entity.
 		"""
 		self._identifier = identifier
+		self._normalizedIdentifier = identifier.lower()
 
 	@property
 	def Identifier(self) -> str:
@@ -478,6 +480,15 @@ class NamedEntityMixin:
 		:returns: Name of a model entity.
 		"""
 		return self._identifier
+
+	@property
+	def NormalizedIdentifier(self) -> str:
+		"""
+		Returns a model entity's normalized identifier (lower case name).
+
+		:returns: Normalized name of a model entity.
+		"""
+		return self._normalizedIdentifier
 
 
 @export
@@ -572,12 +583,14 @@ class Name(ModelEntity):
 	"""``Name`` is the base-class for all *names* in the VHDL language model."""
 
 	_identifier: str
+	_normalizedIdentifier: str
 	_root: Nullable['Name']
 	_prefix: Nullable['Name']
 
 	def __init__(self, identifier: str, prefix: 'Name' = None):
 		super().__init__()
 		self._identifier = identifier
+		self._normalizedIdentifier = identifier.lower()
 		if prefix is None:
 			self._prefix = self
 			self._root = None
@@ -588,6 +601,10 @@ class Name(ModelEntity):
 	@property
 	def Identifier(self) -> str:
 		return self._identifier
+
+	@property
+	def NormalizedIdentifier(self) -> str:
+		return self._normalizedIdentifier
 
 	@property
 	def Root(self) -> 'Name':

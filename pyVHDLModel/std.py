@@ -15,8 +15,8 @@ class PredefinedLibrary(Library):
 			package.Library = self
 			packageBody.Library = self
 
-			self._packages[package.Identifier.lower()] = package
-			self._packageBodies[packageBody.Identifier.lower()] = packageBody
+			self._packages[package.NormalizedIdentifier] = package
+			self._packageBodies[packageBody.NormalizedIdentifier] = packageBody
 
 
 @export

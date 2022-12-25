@@ -388,41 +388,42 @@ class EntityClass(Enum):
 
 
 @export
-class PossibleReference(IntEnum):
+class PossibleReference(Flag):
 	Unknown =         0
-	Library =         2**0
-	Entity =          2**1
-	Architecture =    2**2
-	Component =       2**3
-	Package =         2**4
-	Configuration =   2**5
-	Context =         2**6
-	Type =            2**7
-	Subtype =         2**8
-	ScalarType =      2**9
-	ArrayType =       2**10
-	RecordType =      2**11
-	AccessType =      2**12
-	ProtectedType =   2**13
-	FileType =        2**14
-#	Alias =           2**14   # TODO: Is this needed?
-	Attribute =       2**15
-	TypeAttribute =   2**16
-	ValueAttribute =  2**17
-	SignalAttribute = 2**18
-	RangeAttribute =  2**19
-	ViewAttribute =   2**20
-	Constant =        2**16
-	Variable =        2**17
-	Signal =          2**18
-	File =            2**19
-	Object =          2**20   # TODO: Is this needed?
-	EnumLiteral =     2**21
-	Procedure =       2**22
-	Function =        2**23
-	Label =           2**24
-	View =            2**25
-	SimpleNameInExpression = Constant + Variable + Signal + ScalarType + EnumLiteral + Function
+	Library =         auto()
+	Entity =          auto()
+	Architecture =    auto()
+	Component =       auto()
+	Package =         auto()
+	Configuration =   auto()
+	Context =         auto()
+	Type =            auto()
+	Subtype =         auto()
+	ScalarType =      auto()
+	ArrayType =       auto()
+	RecordType =      auto()
+	AccessType =      auto()
+	ProtectedType =   auto()
+	FileType =        auto()
+#	Alias =           auto()   # TODO: Is this needed?
+	Attribute =       auto()
+	TypeAttribute =   auto()
+	ValueAttribute =  auto()
+	SignalAttribute = auto()
+	RangeAttribute =  auto()
+	ViewAttribute =   auto()
+	Constant =        auto()
+	Variable =        auto()
+	Signal =          auto()
+	File =            auto()
+	Object =          auto()   # TODO: Is this needed?
+	EnumLiteral =     auto()
+	Procedure =       auto()
+	Function =        auto()
+	Label =           auto()
+	View =            auto()
+
+	SimpleNameInExpression = Constant | Variable | Signal | ScalarType | EnumLiteral | Function
 
 
 @export

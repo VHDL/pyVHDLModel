@@ -290,7 +290,7 @@ class ContextSymbol(Symbol):
 @export
 class SubtypeSymbol(Symbol):
 	def __init__(self, symbolName: Name, possibleReferences: PossibleReference):
-		super().__init__(symbolName, PossibleReference.Subtype + PossibleReference.TypeAttribute + possibleReferences)
+		super().__init__(symbolName, PossibleReference.Subtype | PossibleReference.TypeAttribute | possibleReferences)
 
 	@property
 	def Subtype(self) -> 'Subtype':
@@ -342,7 +342,7 @@ class ObjectSymbol(Symbol):
 @export
 class SimpleObjectOrFunctionCallSymbol(ObjectSymbol):
 	def __init__(self, objectName: Name):
-		super().__init__(objectName, PossibleReference.Constant + PossibleReference.Variable + PossibleReference.Signal + PossibleReference.ScalarType + PossibleReference.Function + PossibleReference.EnumLiteral)
+		super().__init__(objectName, PossibleReference.Constant | PossibleReference.Variable | PossibleReference.Signal | PossibleReference.ScalarType | PossibleReference.Function | PossibleReference.EnumLiteral)
 
 	@property
 	def ObjectOrFunction(self) -> Union['Constant', 'Signal', 'Variable', 'Function', 'EnumerationLiteral']:
@@ -356,7 +356,7 @@ class SimpleObjectOrFunctionCallSymbol(ObjectSymbol):
 @export
 class IndexedObjectOrFunctionCallSymbol(ObjectSymbol):
 	def __init__(self, objectName: Name):
-		super().__init__(objectName, PossibleReference.Constant + PossibleReference.Variable + PossibleReference.Signal + PossibleReference.ArrayType + PossibleReference.Function)
+		super().__init__(objectName, PossibleReference.Constant | PossibleReference.Variable | PossibleReference.Signal | PossibleReference.ArrayType | PossibleReference.Function)
 
 	@property
 	def ObjectOrFunction(self) -> Union['Constant', 'Signal', 'Variable', 'Function']:

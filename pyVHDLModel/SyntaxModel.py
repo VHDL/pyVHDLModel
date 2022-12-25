@@ -455,11 +455,12 @@ class Design(ModelEntity):
 		self._LoadLibrary(library)
 
 	def GetLibrary(self, libraryName: str) -> 'Library':
+		libraryIdentifier = libraryName.lower()
 		try:
-			return self._libraries[libraryName]
+			return self._libraries[libraryIdentifier]
 		except KeyError:
 			lib = Library(libraryName)
-			self._libraries[libraryName.lower()] = lib
+			self._libraries[libraryIdentifier] = lib
 			lib._parent = self
 			return lib
 

@@ -423,6 +423,10 @@ class PossibleReference(Flag):
 	Label =           auto()
 	View =            auto()
 
+	AnyType = ScalarType | ArrayType | RecordType | ProtectedType | AccessType | FileType | Subtype
+	Object = Constant | Variable | Signal | File
+	SubProgram = Procedure | Function
+	PackageMember = AnyType | Object | SubProgram | Component
 	SimpleNameInExpression = Constant | Variable | Signal | ScalarType | EnumLiteral | Function
 
 

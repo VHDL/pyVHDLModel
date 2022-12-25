@@ -42,7 +42,7 @@ __license__ =   "Apache License, Version 2.0"
 __version__ =   "0.19.0"
 
 
-from enum     import IntEnum, unique, Enum
+from enum     import IntEnum, unique, Enum, Flag, auto
 from typing   import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple, Any
 
 from pyTooling.Decorators import export
@@ -735,6 +735,23 @@ class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 		:returns: Sequence of use clauses.
 		"""
 		return self._packageReferences
+
+
+@export
+@unique
+class DesignUnits(Flag):
+	Context = auto()
+	Package = auto()
+	PackageBody = auto()
+	Entity = auto()
+	Architecture = auto()
+	Configuration = auto()
+
+	Primary = Context | Configuration | Entity | Package
+	Secondary = Architecture | PackageBody
+	WithContext = Configuration | Entity | Package | Architecture | PackageBody
+
+	All = Primary | Secondary
 
 
 @export

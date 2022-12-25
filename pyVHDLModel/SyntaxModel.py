@@ -164,6 +164,48 @@ class PackageReferenceSymbol(SelectedName, NewSymbol):
 
 
 @export
+class PackageMembersReferenceSymbol(SelectedName, NewSymbol):
+	"""A package member reference in a use clause."""
+
+	def __init__(self, identifier: str, prefix: PackageReferenceSymbol):
+		super().__init__(identifier, prefix)
+		NewSymbol.__init__(self, PossibleReference.PackageMember)
+
+	@property
+	def Prefix(self) -> PackageReferenceSymbol:
+		return cast(PackageReferenceSymbol, self._prefix)
+
+	@property
+	def Member(self) -> 'Package':
+		return self._reference
+
+	@Member.setter
+	def Member(self, value: 'Package') -> None:
+		self._reference = value
+
+
+@export
+class AllPackageMembersReferenceSymbol(AllName, NewSymbol):
+	"""A package reference in a use clause."""
+
+	def __init__(self, prefix: PackageReferenceSymbol):
+		super().__init__(prefix)
+		NewSymbol.__init__(self, PossibleReference.PackageMember)
+
+	@property
+	def Prefix(self) -> PackageReferenceSymbol:
+		return cast(PackageReferenceSymbol, self._prefix)
+
+	@property
+	def Members(self) -> 'Package':
+		return self._reference
+
+	@Members.setter
+	def Members(self, value: 'Package') -> None:
+		self._reference = value
+
+
+@export
 class ContextReferenceSymbol(Symbol):
 	"""A context reference in a use clause."""
 

@@ -640,6 +640,16 @@ class Symbol(ModelEntity):
 	def SymbolName(self) -> Name:
 		return self._symbolName
 
+
+@export
+class NewSymbol:
+	_possibleReferences: PossibleReference
+	_reference: Any
+
+	def __init__(self, possibleReferences: PossibleReference):
+		self._possibleReferences = possibleReferences
+		self._reference = None
+
 	@property
 	def Reference(self) -> Any:
 		return self._reference

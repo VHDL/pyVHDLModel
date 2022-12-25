@@ -206,21 +206,16 @@ class AllPackageMembersReferenceSymbol(AllName, NewSymbol):
 
 
 @export
-class ContextReferenceSymbol(Symbol):
-	"""A context reference in a use clause."""
+class ContextReferenceSymbol(SelectedName, NewSymbol):
+	"""A context reference in a context clause."""
 
-	def __init__(self, contextName: SelectedName):
-		if not isinstance(contextName, SelectedName):
-			raise TypeError(f"Parameter 'contextName' is not of type 'SelectedName'.")
-		super().__init__(contextName, PossibleReference.Context)
+	def __init__(self, identifier: str, prefix: LibraryReferenceSymbol):
+		super().__init__(identifier, prefix)
+		NewSymbol.__init__(self, PossibleReference.Context)
 
 	@property
-	def Library(self) -> 'Library':
-		return self._reference
-
-	@Library.setter
-	def Library(self, value: 'Library') -> None:
-		self._reference = value
+	def Prefix(self) -> LibraryReferenceSymbol:
+		return cast(LibraryReferenceSymbol, self._prefix)
 
 	@property
 	def Context(self) -> 'Context':

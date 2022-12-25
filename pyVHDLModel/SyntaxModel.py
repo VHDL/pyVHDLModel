@@ -633,20 +633,25 @@ class Design(ModelEntity):
 
 			for packageReference in designUnit.PackageReferences:
 				for symbol in packageReference.Symbols:
-					symbolName = symbol.SymbolName
-					if isinstance(symbolName, AllName):
-						packageName = symbolName.Prefix
-						libraryName = packageName.Prefix
+					if isinstance(symbol, AllPackageMembersReferenceSymbol):
+						packageSymbol = symbol.Prefix
+						librarySymbol = packageSymbol.Prefix
 
-						print(libraryName, packageName, "ALL")
-						libraryIdentifier = libraryName.Identifier.lower()
-						packageIdentifier = packageName.Identifier.lower()
+						libraryIdentifier = librarySymbol.NormalizedIdentifier
+						packageIdentifier = packageSymbol.NormalizedIdentifier
+
 						if libraryIdentifier == "work":
-							workingLibrary: Library = designUnit.Library
-							libraryIdentifier =workingLibrary.Identifier.lower()
-							designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = workingLibrary._packages[packageIdentifier]
+							library: Library = designUnit.Library
+							libraryIdentifier = library.NormalizedIdentifier
 						else:
-							designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = self._libraries[libraryIdentifier]._packages[packageIdentifier]
+							library = self._libraries[libraryIdentifier]
+
+						package = library._packages[packageIdentifier]
+						designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
+
+						librarySymbol.Library = library
+						packageSymbol.Package = package
+
 						# TODO: catch KeyError on self._libraries[...]._packages[...]
 						# TODO: warn duplicate package reference
 					elif isinstance(symbol, PackageMembersReferenceSymbol):

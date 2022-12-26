@@ -1,6 +1,6 @@
 from pyTooling.Decorators import export
 
-from pyVHDLModel.SyntaxModel import Package, PackageBody, Library
+from pyVHDLModel.SyntaxModel import Package, PackageBody, Library, PackageSymbol
 
 
 @export
@@ -28,7 +28,8 @@ class PredefinedPackage(Package):
 @export
 class PredefinedPackageBody(PackageBody):
 	def __init__(self):
-		super().__init__(self.__class__.__name__[:-5])
+		packageSymbol = PackageSymbol(self.__class__.__name__[:-5])
+		super().__init__(packageSymbol)
 
 
 @export

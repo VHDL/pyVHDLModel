@@ -36,7 +36,7 @@ This module contains an abstract document language model for VHDL.
 :license: Apache License, Version 2.0
 """
 from pathlib              import Path
-from typing               import List, Tuple, Union, Dict, Iterator, Optional as Nullable, Iterable, Generator
+from typing               import List, Tuple, Union, Dict, Iterator, Optional as Nullable, Iterable, Generator, cast
 
 from pyTooling.Decorators import export
 
@@ -78,6 +78,10 @@ class ParenthesisName(Name):
 @export
 class IndexedName(Name):
 	_indices: List[ExpressionUnion]
+
+	def __init__(self, prefix: Name, indices: Iterable[ExpressionUnion]):
+		super().__init__("", prefix)
+		self._indices = [a for a in indices]
 
 	@property
 	def Indices(self) -> List[ExpressionUnion]:
@@ -227,13 +231,12 @@ class ContextReferenceSymbol(SelectedName, NewSymbol):
 
 
 @export
-class EntitySymbol(Symbol):
+class EntitySymbol(SimpleName, NewSymbol):
 	"""An entity reference in an architecture declaration."""
 
-	def __init__(self, entityName: SimpleName):
-		if not isinstance(entityName, SimpleName):
-			raise TypeError(f"Parameter 'entityName' is not of type 'SimpleName'.")
-		super().__init__(entityName, PossibleReference.Entity)
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+		NewSymbol.__init__(self, PossibleReference.Entity)
 
 	@property
 	def Entity(self) -> 'Entity':
@@ -245,11 +248,16 @@ class EntitySymbol(Symbol):
 
 
 @export
-class ArchitectureSymbol(Symbol):
-	def __init__(self, architectureName: SimpleName):
-		if not isinstance(architectureName, SimpleName):
-			raise TypeError(f"Parameter 'architectureName' is not of type 'SimpleName'.")
-		super().__init__(architectureName, PossibleReference.Architecture)
+class ArchitectureSymbol(Name, NewSymbol):
+	"""An entity reference in an entity instantiation with architecture name."""
+
+	def __init__(self, identifier: str, prefix: EntitySymbol):
+		super().__init__(identifier, prefix)
+		NewSymbol.__init__(self, PossibleReference.Architecture)
+
+	@property
+	def Prefix(self) -> EntitySymbol:
+		return cast(EntitySymbol, self._prefix)
 
 	@property
 	def Architecture(self) -> 'Architecture':
@@ -261,11 +269,12 @@ class ArchitectureSymbol(Symbol):
 
 
 @export
-class PackageSymbol(Symbol):
-	def __init__(self, packageName: SimpleName):
-		if not isinstance(packageName, SimpleName):
-			raise TypeError(f"Parameter 'packageName' is not of type 'SimpleName'.")
-		super().__init__(packageName, PossibleReference.Package)
+class PackageSymbol(SimpleName, NewSymbol):
+	"""A package reference in a package body declaration."""
+
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+		NewSymbol.__init__(self, PossibleReference.Package)
 
 	@property
 	def Package(self) -> 'Package':
@@ -847,16 +856,16 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, Architecture):
 			raise TypeError(f"Parameter 'item' is not of type 'Architecture'.")
 
-		entityName = item.Entity.SymbolName.Identifier
-		identifier = entityName.lower()
+		entity = item.Entity
+		entityIdentifier = entity.NormalizedIdentifier
 		try:
-			architectures = self._architectures[identifier]
+			architectures = self._architectures[entityIdentifier]
 			if item.Identifier in architectures:
-				raise ValueError(f"An architecture '{item.Identifier}' for entity '{entityName}' already exists in this document.")
+				raise ValueError(f"An architecture '{item.Identifier}' for entity '{entity.Identifier}' already exists in this document.")
 
 			architectures[item.Identifier] = item
 		except KeyError:
-			self._architectures[identifier] = {item.Identifier: item}
+			self._architectures[entityIdentifier] = {item.Identifier: item}
 
 		self._designUnits.append(item)
 		item.Document = self
@@ -2389,7 +2398,7 @@ class Context(PrimaryUnit):
 		self._libraryReferences = []
 		self._packageReferences = []
 		self._contextReferences = []
-		
+
 		if references is not None:
 			for reference in references:
 				self._references.append(reference)
@@ -2620,11 +2629,11 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 	_package:           PackageSymbol
 	_declaredItems:     List
 
-	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, documentation: str = None):
-		super().__init__(identifier, documentation)
+	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, documentation: str = None):
+		super().__init__(packageSymbol.Identifier, documentation)
 		DesignUnitWithContextMixin.__init__(self, contextItems)
 
-		self._package = PackageSymbol(SimpleName(identifier))
+		self._package = packageSymbol
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
 	@property

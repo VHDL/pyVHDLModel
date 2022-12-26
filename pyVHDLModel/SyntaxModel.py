@@ -668,6 +668,21 @@ class Design(ModelEntity):
 	def LinkContextReferences(self):
 		pass
 
+	def LinkContexts(self):
+		for context in self.IterateDesignUnits(DesignUnits.Context):
+			for libraryReference in context._libraryReferences:
+				for librarySymbol in libraryReference.Symbols:
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
+					try:
+						lib = self._libraries[libraryIdentifier]
+					except KeyError:
+						raise Exception(f"Library '{librarySymbol.Identifier}' referenced by library clause of context '{context.Identifier}' doesn't exist in design.")
+
+					librarySymbol.Library = lib
+					context._referencedLibraries[libraryIdentifier] = lib
+					context._referencedPackages[libraryIdentifier] = {}
+					# TODO: warn duplicate library reference
+
 	def LinkArchitectures(self):
 		for library in self._libraries.values():
 			library.LinkArchitectures()
@@ -2357,14 +2372,39 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
 
 @export
 class Context(PrimaryUnit):
+	_references: List[Union[LibraryClause, UseClause, ContextReference]]
 	_libraryReferences: List[LibraryClause]
 	_packageReferences: List[UseClause]
+	_contextReferences: List[ContextReference]
 
-	def __init__(self, identifier: str, libraryReferences: Iterable[LibraryClause] = None, packageReferences: Iterable[UseClause] = None, documentation: str = None):
+	# TODO: move to DesignUnit?
+	_referencedLibraries: Dict[str, Library]
+	_referencedPackages: Dict[str, Dict[str, 'Package']]
+	_referencedcontexts: Dict[str, 'Context']
+
+	def __init__(self, identifier: str, references: Iterable[Union[LibraryClause, UseClause]] = None, documentation: str = None):
 		super().__init__(identifier, documentation)
 
-		self._libraryReferences = [] if libraryReferences is None else [l for l in libraryReferences]
-		self._packageReferences = [] if packageReferences is None else [p for p in packageReferences]
+		self._references = []
+		self._libraryReferences = []
+		self._packageReferences = []
+		self._contextReferences = []
+		for reference in references:
+			self._references.append(reference)
+
+			if isinstance(reference, LibraryClause):
+				self._libraryReferences.append(reference)
+			elif isinstance(reference, UseClause):
+				self._packageReferences.append(reference)
+			elif isinstance(reference, ContextReference):
+				self._contextReferences.append(reference)
+			else:
+				raise Exception()
+
+		# TODO: move to DesignUnit?
+		self._referencedLibraries = {}
+		self._referencedPackages = {}
+		self._referencedContexts = {}
 
 	@property
 	def LibraryReferences(self) -> List[LibraryClause]:

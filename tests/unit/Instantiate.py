@@ -33,7 +33,7 @@
 from pathlib  import Path
 from unittest import TestCase
 
-from pyVHDLModel.SyntaxModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral
+from pyVHDLModel.SyntaxModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral, PackageSymbol
 from pyVHDLModel.SyntaxModel import Entity, Architecture, PackageBody, Package, Configuration, Context
 from pyVHDLModel.SyntaxModel import IntegerType, RealType, ArrayType, RecordType
 
@@ -102,7 +102,8 @@ class Instantiate(TestCase):
 		self.assertEqual(0, len(package.DeclaredItems))
 
 	def test_PackageBody(self):
-		packageBody = PackageBody("pack_1")
+		packageSymbol = PackageSymbol("pack_1")
+		packageBody = PackageBody(packageSymbol)
 
 		self.assertIsNotNone(packageBody)
 		self.assertEqual("pack_1", packageBody.Identifier)

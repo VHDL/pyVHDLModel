@@ -1,86 +1,69 @@
-from pyVHDLModel.SyntaxModel import Library, Package, PackageBody
+from pyTooling.Decorators import export
+
+from pyVHDLModel.std import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 
 
-class Ieee(Library):
+@export
+class Ieee(PredefinedLibrary):
 	def __init__(self):
-		super().__init__(self.__class__.__name__)
-
-		for packageType, packageBodyType in PACKAGES:
-			package: Package = packageType()
-			packageBody: PackageBody = packageBodyType()
-
-			self._packages[package.Identifier.lower()] = package
-			self._packageBodies[packageBody.Identifier.lower()] = packageBody
+		super().__init__(PACKAGES)
 
 
-class Math_Real(Package):
-	def __init__(self):
-		super().__init__(self.__class__.__name__)
+@export
+class Math_Real(PredefinedPackage):
+	pass
 
 
-class Math_Real_Body(PackageBody):
-	def __init__(self):
-		super().__init__(self.__class__.__name__[:-5])
+class Math_Real_Body(PredefinedPackageBody):
+	pass
 
 
-class Math_Complex(Package):
-	def __init__(self):
-		super().__init__(self.__class__.__name__)
+class Math_Complex(PredefinedPackage):
+	pass
 
 
-class Math_Complex_Body(PackageBody):
-	def __init__(self):
-		super().__init__(self.__class__.__name__[:-5])
+class Math_Complex_Body(PredefinedPackageBody):
+	pass
 
 
-class Std_logic_1164(Package):
-	def __init__(self):
-		super().__init__(self.__class__.__name__)
+class Std_logic_1164(PredefinedPackage):
+	pass
 
 
-class Std_logic_1164_Body(PackageBody):
-	def __init__(self):
-		super().__init__(self.__class__.__name__[:-5])
+class Std_logic_1164_Body(PredefinedPackageBody):
+	pass
 
 
-class Numeric_Bit(Package):
-	def __init__(self):
-		super().__init__(self.__class__.__name__)
+class Numeric_Bit(PredefinedPackage):
+	pass
 
 
-class Numeric_Bit_Body(PackageBody):
-	def __init__(self):
-		super().__init__(self.__class__.__name__[:-5])
+class Numeric_Bit_Body(PredefinedPackageBody):
+	pass
 
 
-class Numeric_Bit_Unsigned(Package):
-	def __init__(self):
-		super().__init__(self.__class__.__name__)
+class Numeric_Bit_Unsigned(PredefinedPackage):
+	pass
 
 
-class Numeric_Bit_Unsigned_Body(PackageBody):
-	def __init__(self):
-		super().__init__(self.__class__.__name__[:-5])
+class Numeric_Bit_Unsigned_Body(PredefinedPackageBody):
+	pass
 
 
-class Numeric_Std(Package):
-	def __init__(self):
-		super().__init__(self.__class__.__name__)
+class Numeric_Std(PredefinedPackage):
+	pass
 
 
-class Numeric_Std_Body(PackageBody):
-	def __init__(self):
-		super().__init__(self.__class__.__name__[:-5])
+class Numeric_Std_Body(PredefinedPackageBody):
+	pass
 
 
-class Numeric_Std_Unsigned(Package):
-	def __init__(self):
-		super().__init__(self.__class__.__name__)
+class Numeric_Std_Unsigned(PredefinedPackage):
+	pass
 
 
-class Numeric_Std_Unsigned_Body(PackageBody):
-	def __init__(self):
-		super().__init__(self.__class__.__name__[:-5])
+class Numeric_Std_Unsigned_Body(PredefinedPackageBody):
+	pass
 
 
 PACKAGES = (

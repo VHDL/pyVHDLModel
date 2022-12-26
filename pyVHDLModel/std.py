@@ -1,46 +1,71 @@
-from pyVHDLModel.SyntaxModel import Package, PackageBody, Library
+from pyTooling.Decorators import export
+
+from pyVHDLModel.SyntaxModel import Package, PackageBody, Library, PackageSymbol
 
 
-class Std(Library):
-	def __init__(self):
+@export
+class PredefinedLibrary(Library):
+	def __init__(self, packages):
 		super().__init__(self.__class__.__name__)
 
-		for packageType, packageBodyType in PACKAGES:
+		for packageType, packageBodyType in packages:
 			package: Package = packageType()
 			packageBody: PackageBody = packageBodyType()
 
-			self._packages[package.Identifier.lower()] = package
-			self._packageBodies[packageBody.Identifier.lower()] = packageBody
+			package.Library = self
+			packageBody.Library = self
+
+			self._packages[package.NormalizedIdentifier] = package
+			self._packageBodies[packageBody.NormalizedIdentifier] = packageBody
 
 
-class Standard(Package):
+@export
+class PredefinedPackage(Package):
 	def __init__(self):
 		super().__init__(self.__class__.__name__)
 
 
-class Standard_Body(PackageBody):
+@export
+class PredefinedPackageBody(PackageBody):
 	def __init__(self):
-		super().__init__(self.__class__.__name__[:-5])
+		packageSymbol = PackageSymbol(self.__class__.__name__[:-5])
+		super().__init__(packageSymbol)
 
 
-class TextIO(Package):
+@export
+class Std(PredefinedLibrary):
 	def __init__(self):
-		super().__init__(self.__class__.__name__)
+		super().__init__(PACKAGES)
 
 
-class TextIO_Body(PackageBody):
-	def __init__(self):
-		super().__init__(self.__class__.__name__[:-5])
+@export
+class Standard(PredefinedPackage):
+	pass
 
 
-class Env(Package):
-	def __init__(self):
-		super().__init__(self.__class__.__name__)
+@export
+class Standard_Body(PredefinedPackageBody):
+	pass
 
 
-class Env_Body(PackageBody):
-	def __init__(self):
-		super().__init__(self.__class__.__name__[:-5])
+@export
+class TextIO(PredefinedPackage):
+	pass
+
+
+@export
+class TextIO_Body(PredefinedPackageBody):
+	pass
+
+
+@export
+class Env(PredefinedPackage):
+	pass
+
+
+@export
+class Env_Body(PredefinedPackageBody):
+	pass
 
 
 PACKAGES = (

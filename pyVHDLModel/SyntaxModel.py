@@ -36,12 +36,12 @@ This module contains an abstract document language model for VHDL.
 :license: Apache License, Version 2.0
 """
 from pathlib              import Path
-from typing               import List, Tuple, Union, Dict, Iterator, Optional as Nullable, Iterable, Generator
+from typing               import List, Tuple, Union, Dict, Iterator, Optional as Nullable, Iterable, Generator, cast
 
 from pyTooling.Decorators import export
 
 from pyVHDLModel          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, PossibleReference, Direction, EntityClass, Mode, \
-	DocumentedEntityMixin, DesignUnit, LibraryClause, UseClause, Name, Symbol
+	DocumentedEntityMixin, DesignUnit, LibraryClause, UseClause, Name, Symbol, DesignUnits, NewSymbol, ContextReference
 from pyVHDLModel          import PrimaryUnit, SecondaryUnit
 from pyVHDLModel          import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, DesignUnitWithContextMixin, PackageOrSymbol
 from pyVHDLModel.PSLModel import VerificationUnit, VerificationProperty, VerificationMode
@@ -78,6 +78,10 @@ class ParenthesisName(Name):
 @export
 class IndexedName(Name):
 	_indices: List[ExpressionUnion]
+
+	def __init__(self, prefix: Name, indices: Iterable[ExpressionUnion]):
+		super().__init__("", prefix)
+		self._indices = [a for a in indices]
 
 	@property
 	def Indices(self) -> List[ExpressionUnion]:
@@ -126,13 +130,12 @@ class OpenName(Name):
 
 
 @export
-class LibraryReferenceSymbol(Symbol):
+class LibraryReferenceSymbol(SimpleName, NewSymbol):
 	"""A library reference in a library clause."""
 
-	def __init__(self, libraryName: SimpleName):
-		if not isinstance(libraryName, SimpleName):
-			raise TypeError(f"Parameter 'libraryName' is not of type 'SimpleName'.")
-		super().__init__(libraryName, PossibleReference.Library)
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+		NewSymbol.__init__(self, PossibleReference.Library)
 
 	@property
 	def Library(self) -> 'Library':
@@ -144,21 +147,16 @@ class LibraryReferenceSymbol(Symbol):
 
 
 @export
-class PackageReferenceSymbol(Symbol):
+class PackageReferenceSymbol(SelectedName, NewSymbol):
 	"""A package reference in a use clause."""
 
-	def __init__(self, packageName: SelectedName):
-		if not isinstance(packageName, (SelectedName, AllName)):
-			raise TypeError(f"Parameter 'packageName' is not of type 'SelectedName' or 'AllName'.")
-		super().__init__(packageName, PossibleReference.Package)
+	def __init__(self, identifier: str, prefix: LibraryReferenceSymbol):
+		super().__init__(identifier, prefix)
+		NewSymbol.__init__(self, PossibleReference.Package)
 
 	@property
-	def Library(self) -> 'Library':
-		return self._reference
-
-	@Library.setter
-	def Library(self, value: 'Library') -> None:
-		self._reference = value
+	def Prefix(self) -> LibraryReferenceSymbol:
+		return cast(LibraryReferenceSymbol, self._prefix)
 
 	@property
 	def Package(self) -> 'Package':
@@ -170,21 +168,58 @@ class PackageReferenceSymbol(Symbol):
 
 
 @export
-class ContextReferenceSymbol(Symbol):
-	"""A context reference in a use clause."""
+class PackageMembersReferenceSymbol(SelectedName, NewSymbol):
+	"""A package member reference in a use clause."""
 
-	def __init__(self, contextName: SelectedName):
-		if not isinstance(contextName, SelectedName):
-			raise TypeError(f"Parameter 'contextName' is not of type 'SelectedName'.")
-		super().__init__(contextName, PossibleReference.Context)
+	def __init__(self, identifier: str, prefix: PackageReferenceSymbol):
+		super().__init__(identifier, prefix)
+		NewSymbol.__init__(self, PossibleReference.PackageMember)
 
 	@property
-	def Library(self) -> 'Library':
+	def Prefix(self) -> PackageReferenceSymbol:
+		return cast(PackageReferenceSymbol, self._prefix)
+
+	@property
+	def Member(self) -> 'Package':
 		return self._reference
 
-	@Library.setter
-	def Library(self, value: 'Library') -> None:
+	@Member.setter
+	def Member(self, value: 'Package') -> None:
 		self._reference = value
+
+
+@export
+class AllPackageMembersReferenceSymbol(AllName, NewSymbol):
+	"""A package reference in a use clause."""
+
+	def __init__(self, prefix: PackageReferenceSymbol):
+		super().__init__(prefix)
+		NewSymbol.__init__(self, PossibleReference.PackageMember)
+
+	@property
+	def Prefix(self) -> PackageReferenceSymbol:
+		return cast(PackageReferenceSymbol, self._prefix)
+
+	@property
+	def Members(self) -> 'Package':
+		return self._reference
+
+	@Members.setter
+	def Members(self, value: 'Package') -> None:
+		self._reference = value
+
+
+@export
+class ContextReferenceSymbol(SelectedName, NewSymbol):
+	"""A context reference in a context clause."""
+
+	def __init__(self, identifier: str, prefix: LibraryReferenceSymbol):
+		super().__init__(identifier, prefix)
+		NewSymbol.__init__(self, PossibleReference.Context)
+
+	@property
+	def Prefix(self) -> LibraryReferenceSymbol:
+		return cast(LibraryReferenceSymbol, self._prefix)
 
 	@property
 	def Context(self) -> 'Context':
@@ -196,13 +231,12 @@ class ContextReferenceSymbol(Symbol):
 
 
 @export
-class EntitySymbol(Symbol):
+class EntitySymbol(SimpleName, NewSymbol):
 	"""An entity reference in an architecture declaration."""
 
-	def __init__(self, entityName: SimpleName):
-		if not isinstance(entityName, SimpleName):
-			raise TypeError(f"Parameter 'entityName' is not of type 'SimpleName'.")
-		super().__init__(entityName, PossibleReference.Entity)
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+		NewSymbol.__init__(self, PossibleReference.Entity)
 
 	@property
 	def Entity(self) -> 'Entity':
@@ -214,11 +248,16 @@ class EntitySymbol(Symbol):
 
 
 @export
-class ArchitectureSymbol(Symbol):
-	def __init__(self, architectureName: SimpleName):
-		if not isinstance(architectureName, SimpleName):
-			raise TypeError(f"Parameter 'architectureName' is not of type 'SimpleName'.")
-		super().__init__(architectureName, PossibleReference.Architecture)
+class ArchitectureSymbol(Name, NewSymbol):
+	"""An entity reference in an entity instantiation with architecture name."""
+
+	def __init__(self, identifier: str, prefix: EntitySymbol):
+		super().__init__(identifier, prefix)
+		NewSymbol.__init__(self, PossibleReference.Architecture)
+
+	@property
+	def Prefix(self) -> EntitySymbol:
+		return cast(EntitySymbol, self._prefix)
 
 	@property
 	def Architecture(self) -> 'Architecture':
@@ -230,11 +269,12 @@ class ArchitectureSymbol(Symbol):
 
 
 @export
-class PackageSymbol(Symbol):
-	def __init__(self, packageName: SimpleName):
-		if not isinstance(packageName, SimpleName):
-			raise TypeError(f"Parameter 'packageName' is not of type 'SimpleName'.")
-		super().__init__(packageName, PossibleReference.Package)
+class PackageSymbol(SimpleName, NewSymbol):
+	"""A package reference in a package body declaration."""
+
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+		NewSymbol.__init__(self, PossibleReference.Package)
 
 	@property
 	def Package(self) -> 'Package':
@@ -290,7 +330,7 @@ class ContextSymbol(Symbol):
 @export
 class SubtypeSymbol(Symbol):
 	def __init__(self, symbolName: Name, possibleReferences: PossibleReference):
-		super().__init__(symbolName, PossibleReference.Subtype + PossibleReference.TypeAttribute + possibleReferences)
+		super().__init__(symbolName, PossibleReference.Subtype | PossibleReference.TypeAttribute | possibleReferences)
 
 	@property
 	def Subtype(self) -> 'Subtype':
@@ -342,7 +382,7 @@ class ObjectSymbol(Symbol):
 @export
 class SimpleObjectOrFunctionCallSymbol(ObjectSymbol):
 	def __init__(self, objectName: Name):
-		super().__init__(objectName, PossibleReference.Constant + PossibleReference.Variable + PossibleReference.Signal + PossibleReference.ScalarType + PossibleReference.Function + PossibleReference.EnumLiteral)
+		super().__init__(objectName, PossibleReference.Constant | PossibleReference.Variable | PossibleReference.Signal | PossibleReference.ScalarType | PossibleReference.Function | PossibleReference.EnumLiteral)
 
 	@property
 	def ObjectOrFunction(self) -> Union['Constant', 'Signal', 'Variable', 'Function', 'EnumerationLiteral']:
@@ -356,7 +396,7 @@ class SimpleObjectOrFunctionCallSymbol(ObjectSymbol):
 @export
 class IndexedObjectOrFunctionCallSymbol(ObjectSymbol):
 	def __init__(self, objectName: Name):
-		super().__init__(objectName, PossibleReference.Constant + PossibleReference.Variable + PossibleReference.Signal + PossibleReference.ArrayType + PossibleReference.Function)
+		super().__init__(objectName, PossibleReference.Constant | PossibleReference.Variable | PossibleReference.Signal | PossibleReference.ArrayType | PossibleReference.Function)
 
 	@property
 	def ObjectOrFunction(self) -> Union['Constant', 'Signal', 'Variable', 'Function']:
@@ -436,10 +476,10 @@ class Design(ModelEntity):
 		return self._documents
 
 	def _LoadLibrary(self, library):
-		identifier = library.Identifier.lower()
-		if identifier in self._libraries:
+		libraryIdentifier = library.NormalizedIdentifier
+		if libraryIdentifier in self._libraries:
 			raise Exception(f"Library '{library.Identifier}' already exists in design.")
-		self._libraries[identifier] = library
+		self._libraries[libraryIdentifier] = library
 		library._parent = self
 
 	def LoadStdLibrary(self):
@@ -455,11 +495,12 @@ class Design(ModelEntity):
 		self._LoadLibrary(library)
 
 	def GetLibrary(self, libraryName: str) -> 'Library':
+		libraryIdentifier = libraryName.lower()
 		try:
-			return self._libraries[libraryName]
+			return self._libraries[libraryIdentifier]
 		except KeyError:
 			lib = Library(libraryName)
-			self._libraries[libraryName.lower()] = lib
+			self._libraries[libraryIdentifier] = lib
 			lib._parent = self
 			return lib
 
@@ -467,84 +508,246 @@ class Design(ModelEntity):
 		self._documents.append(document)
 		document._parent = self
 
-		for entityName, entity in document._entities.items():
-			if entityName in library._entities:
-				raise ValueError(f"Entity '{entityName}' already exists in library '{library.Identifier}'.")
+		for entityIdentifier, entity in document._entities.items():
+			if entityIdentifier in library._entities:
+				raise ValueError(f"Entity '{entity.Identifier}' already exists in library '{library.Identifier}'.")
 
-			library._entities[entityName] = entity
+			library._entities[entityIdentifier] = entity
 			entity.Library = library
 
-		for entityName, architectures in document._architectures.items():
+		for entityIdentifier, architectures in document._architectures.items():
 			try:
-				architecturesPerEntity = library._architectures[entityName]
-				for architectureName, architecture in document._architectures.items():
-					if architectureName in architecturesPerEntity:
-						raise ValueError(f"Architecture '{architectureName}' for entity '{entityName}' already exists in library '{library.Identifier}'.")
+				architecturesPerEntity = library._architectures[entityIdentifier]
+				for architectureIdentifier, architecture in architectures.items():
+					if architectureIdentifier in architecturesPerEntity:
+						raise ValueError(f"Architecture '{architecture.Identifier}' for entity '{entityIdentifier}' already exists in library '{library.Identifier}'.")
 
-					architecturesPerEntity[architectureName] = architecture
+					architecturesPerEntity[architectureIdentifier] = architecture
 					architecture.Library = library
 			except KeyError:
-				architecturesPerEntity = document._architectures[entityName].copy()
-				library._architectures[entityName] = architecturesPerEntity
+				architecturesPerEntity = document._architectures[entityIdentifier].copy()
+				library._architectures[entityIdentifier] = architecturesPerEntity
 
 				for architecture in architecturesPerEntity.values():
 					architecture.Library = library
 
-		for packageName, package in document._packages.items():
-			if packageName in library._packages:
-				raise ValueError(f"Package '{packageName}' already exists in library '{library.Identifier}'.")
+		for packageIdentifier, package in document._packages.items():
+			if packageIdentifier in library._packages:
+				raise ValueError(f"Package '{packageIdentifier}' already exists in library '{library.Identifier}'.")
 
-			library._packages[packageName] = package
+			library._packages[packageIdentifier] = package
 			package.Library = library
 
-		for packageBodyName, packageBody in document._packageBodies.items():
-			if packageBodyName in library._packageBodies:
-				raise ValueError(f"Package body '{packageBodyName}' already exists in library '{library.Identifier}'.")
+		for packageBodyIdentifier, packageBody in document._packageBodies.items():
+			if packageBodyIdentifier in library._packageBodies:
+				raise ValueError(f"Package body '{packageBodyIdentifier}' already exists in library '{library.Identifier}'.")
 
-			library._packageBodies[packageBodyName] = packageBody
+			library._packageBodies[packageBodyIdentifier] = packageBody
 			packageBody.Library = library
 
-		for configurationName, configuration in document._configurations.items():
-			if configurationName in library._configurations:
-				raise ValueError(f"Configuration '{configurationName}' already exists in library '{library.Identifier}'.")
+		for configurationIdentifier, configuration in document._configurations.items():
+			if configurationIdentifier in library._configurations:
+				raise ValueError(f"Configuration '{configurationIdentifier}' already exists in library '{library.Identifier}'.")
 
-			library._configurations[configurationName] = configuration
+			library._configurations[configurationIdentifier] = configuration
 			configuration.Library = library
 
-		for contextName, context in document._contexts.items():
-			if contextName in library._contexts:
-				raise ValueError(f"Context '{contextName}' already exists in library '{library.Identifier}'.")
+		for contextIdentifier, context in document._contexts.items():
+			if contextIdentifier in library._contexts:
+				raise ValueError(f"Context '{contextIdentifier}' already exists in library '{library.Identifier}'.")
 
-			library._contexts[contextName] = context
+			library._contexts[contextIdentifier] = context
 			context.Library = library
 
-	def IterateDesignUnits(self) -> Generator[DesignUnit, None, None]:
+	def IterateDesignUnits(self, filter: DesignUnits = DesignUnits.All) -> Generator[DesignUnit, None, None]:
 		for library in self._libraries.values():
-			yield from library.IterateDesignUnits()
+			yield from library.IterateDesignUnits(filter)
 
 	def Analyze(self):
+		self.AnalyzeDependencies()
+
+	def AnalyzeDependencies(self):
+		self.LinkContexts()
+		self.LinkArchitectures()
+		self.LinkPackageBodies()
 		self.LinkLibraryReferences()
 		self.LinkPackageReferences()
 		self.LinkContextReferences()
-		self.LinkArchitectures()
-		self.LinkPackageBodies()
 
 	def LinkLibraryReferences(self):
-		for designUnit in self.IterateDesignUnits():
-			for libraryReference in designUnit.LibraryReferences:
-				for symbol in libraryReference.Symbols:
+		DEFAULT_LIBRARIES = ("std",)
+
+		for designUnit in self.IterateDesignUnits(DesignUnits.WithContext):
+			# All primary units supporting a context, have at least one library implicitly referenced
+			if isinstance(designUnit, PrimaryUnit):
+				for libraryIdentifier in DEFAULT_LIBRARIES:
+					designUnit._referencedLibraries[libraryIdentifier] = self._libraries[libraryIdentifier]
+					designUnit._referencedPackages[libraryIdentifier] = {}
+					# TODO: catch KeyError on self._libraries[libName]
+					# TODO: warn duplicate library reference
+
+				workingLibrary: Library = designUnit.Library
+				libraryIdentifier = workingLibrary.NormalizedIdentifier
+				designUnit._referencedLibraries[libraryIdentifier] = self._libraries[libraryIdentifier]
+				designUnit._referencedPackages[libraryIdentifier] = {}
+			# All secondary units inherit referenced libraries from their primary units.
+			else:
+				if isinstance(designUnit, Architecture):
+					referencedLibraries = designUnit.Entity.Entity._referencedLibraries
+				elif isinstance(designUnit, PackageBody):
+					referencedLibraries = designUnit.Package.Package._referencedLibraries
+				else:
+					raise Exception()
+
+				for libraryIdentifier, library in referencedLibraries.items():
+					designUnit._referencedLibraries[libraryIdentifier] = library
+
+			for libraryReference in designUnit._libraryReferences:
+				# A library clause can have multiple comma-separated references
+				for librarySymbol in libraryReference.Symbols:
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
 					try:
-						libraryName = symbol.SymbolName.Identifier
-						lib = self._libraries[libraryName.lower()]
-						symbol.Library = lib
+						library = self._libraries[libraryIdentifier]
 					except KeyError:
-						raise Exception(f"Library '{libraryName}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+						raise Exception(f"Library '{librarySymbol.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+
+					librarySymbol.Library = library
+					designUnit._referencedLibraries[libraryIdentifier] = library
+					designUnit._referencedPackages[libraryIdentifier] = {}
+					# TODO: warn duplicate library reference
 
 	def LinkPackageReferences(self):
-		pass
+		DEFAULT_PACKAGES = (
+			("std", ("standard",)),
+		)
+
+		for designUnit in self.IterateDesignUnits(DesignUnits.WithContext):
+			# All primary units supporting a context, have at least one package implicitly referenced
+			if isinstance(designUnit, PrimaryUnit):
+				for lib in DEFAULT_PACKAGES:
+					if lib[0] not in designUnit._referencedLibraries:
+						raise Exception()
+					for pack in lib[1]:
+						designUnit._referencedPackages[lib[0]][pack] = self._libraries[lib[0]]._packages[pack]
+						# TODO: catch KeyError on self._libraries[lib[0]]._packages[pack]
+						# TODO: warn duplicate package reference
+			# All secondary units inherit referenced packages from their primary units.
+			else:
+				if isinstance(designUnit, Architecture):
+					referencedPackages = designUnit.Entity.Entity._referencedPackages
+				elif isinstance(designUnit, PackageBody):
+					referencedPackages = designUnit.Package.Package._referencedPackages
+				else:
+					raise Exception()
+
+				for packageIdentifier, package in referencedPackages.items():
+					designUnit._referencedPackages[packageIdentifier] = package
+
+			for packageReference in designUnit.PackageReferences:
+				# A use clause can have multiple comma-separated references
+				for symbol in packageReference.Symbols:
+					packageSymbol = symbol.Prefix
+					librarySymbol = packageSymbol.Prefix
+
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
+					packageIdentifier = packageSymbol.NormalizedIdentifier
+
+					# In case work is used, resolve to the real library name.
+					if libraryIdentifier == "work":
+						library: Library = designUnit.Library
+						libraryIdentifier = library.NormalizedIdentifier
+					elif libraryIdentifier not in designUnit._referencedLibraries:
+						# TODO: This check doesn't trigger if it's the working library.
+						raise Exception(f"Use clause references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
+					else:
+						library = self._libraries[libraryIdentifier]
+
+					try:
+						package = library._packages[packageIdentifier]
+					except KeyError:
+						raise Exception(f"Package '{packageSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+
+					# TODO: warn duplicate package reference
+					designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
+
+					librarySymbol.Library = library
+					packageSymbol.Package = package
+
+					# TODO: update the namespace with visible members
+					if isinstance(symbol, AllPackageMembersReferenceSymbol):
+						pass
+
+					elif isinstance(symbol, PackageMembersReferenceSymbol):
+						raise NotImplementedError()
+					else:
+						raise Exception()
 
 	def LinkContextReferences(self):
 		pass
+
+	def LinkContexts(self):
+		for context in self.IterateDesignUnits(DesignUnits.Context):
+			# Create entries in _referenced*** for the current working library under its real name.
+			workingLibrary: Library = context.Library
+			libraryIdentifier = workingLibrary.NormalizedIdentifier
+			context._referencedLibraries[libraryIdentifier] = self._libraries[libraryIdentifier]
+			context._referencedPackages[libraryIdentifier] = {}
+
+			# Process all library clauses
+			for libraryReference in context._libraryReferences:
+				# A library clause can have multiple comma-separated references
+				for librarySymbol in libraryReference.Symbols:
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
+					try:
+						library = self._libraries[libraryIdentifier]
+					except KeyError:
+						raise Exception(f"Library '{librarySymbol.Identifier}' referenced by library clause of context '{context.Identifier}' doesn't exist in design.")
+						# TODO: add position to these messages
+
+					librarySymbol.Library = library
+					context._referencedLibraries[libraryIdentifier] = library
+					context._referencedPackages[libraryIdentifier] = {}
+					# TODO: warn duplicate library reference
+
+			# Process all use clauses
+			for packageReference in context.PackageReferences:
+				# A use clause can have multiple comma-separated references
+				for symbol in packageReference.Symbols:
+					packageSymbol = symbol.Prefix
+					librarySymbol = packageSymbol.Prefix
+
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
+					packageIdentifier = packageSymbol.NormalizedIdentifier
+
+					# In case work is used, resolve to the real library name.
+					if libraryIdentifier == "work":
+						library: Library = context.Library
+						libraryIdentifier = library.NormalizedIdentifier
+					elif libraryIdentifier not in context._referencedLibraries:
+						# TODO: This check doesn't trigger if it's the working library.
+						raise Exception(f"Use clause references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
+					else:
+						library = self._libraries[libraryIdentifier]
+
+					try:
+						package = library._packages[packageIdentifier]
+					except KeyError:
+						raise Exception(f"Package '{packageSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+
+					# TODO: warn duplicate package reference
+					context._referencedPackages[libraryIdentifier][packageIdentifier] = package
+
+					librarySymbol.Library = library
+					packageSymbol.Package = package
+
+					# TODO: update the namespace with visible members
+					if isinstance(symbol, AllPackageMembersReferenceSymbol):
+						pass
+
+					elif isinstance(symbol, PackageMembersReferenceSymbol):
+						raise NotImplementedError()
+					else:
+						raise Exception()
 
 	def LinkArchitectures(self):
 		for library in self._libraries.values():
@@ -607,20 +810,31 @@ class Library(ModelEntity, NamedEntityMixin):
 		"""Returns a list of all package body declarations declared in this library."""
 		return self._packageBodies
 
-	def IterateDesignUnits(self) -> Generator[DesignUnit, None, None]:
-		for entity in self._entities.values():
-			yield entity
-		for architectures in self._architectures.values():
-			for architecture in architectures.values():
-				yield architecture
-		for package in self._packages.values():
-			yield package
-		for packageBody in self._packageBodies.values():
-			yield packageBody
-		for configuration in self._configurations.values():
-			yield configuration
-		for context in self._contexts.values():
-			yield context
+	def IterateDesignUnits(self, filter: DesignUnits = DesignUnits.All) -> Generator[DesignUnit, None, None]:
+		if DesignUnits.Context in filter:
+			for context in self._contexts.values():
+				yield context
+
+		if DesignUnits.Package in filter:
+			for package in self._packages.values():
+				yield package
+
+		if DesignUnits.PackageBody in filter:
+			for packageBody in self._packageBodies.values():
+				yield packageBody
+
+		if DesignUnits.Entity in filter:
+			for entity in self._entities.values():
+				yield entity
+
+		if DesignUnits.Architecture in filter:
+			for architectures in self._architectures.values():
+				for architecture in architectures.values():
+					yield architecture
+
+		if DesignUnits.Configuration in filter:
+			for configuration in self._configurations.values():
+				yield configuration
 		# for verificationProperty in self._verificationUnits.values():
 		# 	yield verificationProperty
 		# for verificationUnit in self._verificationProperties.values():
@@ -635,14 +849,8 @@ class Library(ModelEntity, NamedEntityMixin):
 				raise Exception(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{self.Identifier}'.")
 
 			for architecture in architecturesPerEntity.values():
-				# entitySymbolName = architecture.Entity.SymbolName
-				# if entitySymbolName.Identifier != entityName:
-				# 	raise Exception(f"Internal error. Dictionary key doesn't match objects name/identifier.")
-
 				entity = self._entities[entityName]
-				# if entity.Identifier != entityName:
-				# 	raise Exception(f"Internal error. Dictionary key doesn't match objects name/identifier.")
-
+				entity._architectures.append(architecture)  # TODO: convert to dict
 				architecture.Entity.Entity = entity
 
 	def LinkPackageBodies(self):
@@ -652,6 +860,9 @@ class Library(ModelEntity, NamedEntityMixin):
 
 			package = self._packages[packageBodyName]
 			packageBody.Package.Package = package
+
+	def __str__(self):
+		return f"VHDL Library: '{self.Identifier}'"
 
 
 @export
@@ -690,7 +901,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, Entity):
 			raise TypeError(f"Parameter 'item' is not of type 'Entity'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._entities:
 			raise ValueError(f"An entity '{item.Identifier}' already exists in this document.")
 
@@ -703,16 +914,16 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, Architecture):
 			raise TypeError(f"Parameter 'item' is not of type 'Architecture'.")
 
-		entityName = item.Entity.SymbolName.Identifier
-		identifier = entityName.lower()
+		entity = item.Entity
+		entityIdentifier = entity.NormalizedIdentifier
 		try:
-			architectures = self._architectures[identifier]
+			architectures = self._architectures[entityIdentifier]
 			if item.Identifier in architectures:
-				raise ValueError(f"An architecture '{item.Identifier}' for entity '{entityName}' already exists in this document.")
+				raise ValueError(f"An architecture '{item.Identifier}' for entity '{entity.Identifier}' already exists in this document.")
 
 			architectures[item.Identifier] = item
 		except KeyError:
-			self._architectures[identifier] = {item.Identifier: item}
+			self._architectures[entityIdentifier] = {item.Identifier: item}
 
 		self._designUnits.append(item)
 		item.Document = self
@@ -721,7 +932,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, (Package, PackageInstantiation)):
 			raise TypeError(f"Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._packages:
 			raise ValueError(f"A package '{item.Identifier}' already exists in this document.")
 
@@ -733,7 +944,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, PackageBody):
 			raise TypeError(f"Parameter 'item' is not of type 'PackageBody'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._packageBodies:
 			raise ValueError(f"A package body '{item.Identifier}' already exists in this document.")
 
@@ -745,7 +956,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, Context):
 			raise TypeError(f"Parameter 'item' is not of type 'Context'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._contexts:
 			raise ValueError(f"A context '{item.Identifier}' already exists in this document.")
 
@@ -757,7 +968,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, Configuration):
 			raise TypeError(f"Parameter 'item' is not of type 'Configuration'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._configurations:
 			raise ValueError(f"A configuration '{item.Identifier}' already exists in this document.")
 
@@ -769,7 +980,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, VerificationUnit):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationUnit'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._verificationUnits:
 			raise ValueError(f"A verification unit '{item.Identifier}' already exists in this document.")
 
@@ -781,7 +992,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, VerificationProperty):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationProperty'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._verificationProperties:
 			raise ValueError(f"A verification property '{item.Identifier}' already exists in this document.")
 
@@ -793,7 +1004,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, VerificationMode):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationMode'.")
 
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if identifier in self._verificationModes:
 			raise ValueError(f"A verification mode '{item.Identifier}' already exists in this document.")
 
@@ -802,7 +1013,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		item.Document = self
 
 	def _AddDesignUnit(self, item: DesignUnit):
-		identifier = item.Identifier.lower()
+		identifier = item.NormalizedIdentifier
 		if isinstance(item, Entity):
 			self._entities[identifier] = item
 		elif isinstance(item, Architecture):
@@ -2228,14 +2439,41 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
 
 @export
 class Context(PrimaryUnit):
+	_references: List[Union[LibraryClause, UseClause, ContextReference]]
 	_libraryReferences: List[LibraryClause]
 	_packageReferences: List[UseClause]
+	_contextReferences: List[ContextReference]
 
-	def __init__(self, identifier: str, libraryReferences: Iterable[LibraryClause] = None, packageReferences: Iterable[UseClause] = None, documentation: str = None):
+	# TODO: move to DesignUnit?
+	_referencedLibraries: Dict[str, Library]
+	_referencedPackages: Dict[str, Dict[str, 'Package']]
+	_referencedContexts: Dict[str, 'Context']
+
+	def __init__(self, identifier: str, references: Iterable[Union[LibraryClause, UseClause, ContextReference]] = None, documentation: str = None):
 		super().__init__(identifier, documentation)
 
-		self._libraryReferences = [] if libraryReferences is None else [l for l in libraryReferences]
-		self._packageReferences = [] if packageReferences is None else [p for p in packageReferences]
+		self._references = []
+		self._libraryReferences = []
+		self._packageReferences = []
+		self._contextReferences = []
+
+		if references is not None:
+			for reference in references:
+				self._references.append(reference)
+
+				if isinstance(reference, LibraryClause):
+					self._libraryReferences.append(reference)
+				elif isinstance(reference, UseClause):
+					self._packageReferences.append(reference)
+				elif isinstance(reference, ContextReference):
+					self._contextReferences.append(reference)
+				else:
+					raise Exception()
+
+		# TODO: move to DesignUnit?
+		self._referencedLibraries = {}
+		self._referencedPackages = {}
+		self._referencedContexts = {}
 
 	@property
 	def LibraryReferences(self) -> List[LibraryClause]:
@@ -2449,11 +2687,11 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 	_package:           PackageSymbol
 	_declaredItems:     List
 
-	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, documentation: str = None):
-		super().__init__(identifier, documentation)
+	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, documentation: str = None):
+		super().__init__(packageSymbol.Identifier, documentation)
 		DesignUnitWithContextMixin.__init__(self, contextItems)
 
-		self._package = PackageSymbol(SimpleName(identifier))
+		self._package = packageSymbol
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
 	@property

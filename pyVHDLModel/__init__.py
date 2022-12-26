@@ -39,10 +39,10 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2022, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.18.0"
+__version__ =   "0.19.0"
 
 
-from enum     import IntEnum, unique, Enum
+from enum     import IntEnum, unique, Enum, Flag, auto
 from typing   import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple, Any
 
 from pyTooling.Decorators import export
@@ -388,41 +388,46 @@ class EntityClass(Enum):
 
 
 @export
-class PossibleReference(IntEnum):
+class PossibleReference(Flag):
 	Unknown =         0
-	Library =         2**0
-	Entity =          2**1
-	Architecture =    2**2
-	Component =       2**3
-	Package =         2**4
-	Configuration =   2**5
-	Context =         2**6
-	Type =            2**7
-	Subtype =         2**8
-	ScalarType =      2**9
-	ArrayType =       2**10
-	RecordType =      2**11
-	AccessType =      2**12
-	ProtectedType =   2**13
-	FileType =        2**14
-#	Alias =           2**14   # TODO: Is this needed?
-	Attribute =       2**15
-	TypeAttribute =   2**16
-	ValueAttribute =  2**17
-	SignalAttribute = 2**18
-	RangeAttribute =  2**19
-	ViewAttribute =   2**20
-	Constant =        2**16
-	Variable =        2**17
-	Signal =          2**18
-	File =            2**19
-	Object =          2**20   # TODO: Is this needed?
-	EnumLiteral =     2**21
-	Procedure =       2**22
-	Function =        2**23
-	Label =           2**24
-	View =            2**25
-	SimpleNameInExpression = Constant + Variable + Signal + ScalarType + EnumLiteral + Function
+	Library =         auto()
+	Entity =          auto()
+	Architecture =    auto()
+	Component =       auto()
+	Package =         auto()
+	Configuration =   auto()
+	Context =         auto()
+	Type =            auto()
+	Subtype =         auto()
+	ScalarType =      auto()
+	ArrayType =       auto()
+	RecordType =      auto()
+	AccessType =      auto()
+	ProtectedType =   auto()
+	FileType =        auto()
+#	Alias =           auto()   # TODO: Is this needed?
+	Attribute =       auto()
+	TypeAttribute =   auto()
+	ValueAttribute =  auto()
+	SignalAttribute = auto()
+	RangeAttribute =  auto()
+	ViewAttribute =   auto()
+	Constant =        auto()
+	Variable =        auto()
+	Signal =          auto()
+	File =            auto()
+#	Object =          auto()   # TODO: Is this needed?
+	EnumLiteral =     auto()
+	Procedure =       auto()
+	Function =        auto()
+	Label =           auto()
+	View =            auto()
+
+	AnyType = ScalarType | ArrayType | RecordType | ProtectedType | AccessType | FileType | Subtype
+	Object = Constant | Variable | Signal | File
+	SubProgram = Procedure | Function
+	PackageMember = AnyType | Object | SubProgram | Component
+	SimpleNameInExpression = Constant | Variable | Signal | ScalarType | EnumLiteral | Function
 
 
 @export
@@ -459,7 +464,8 @@ class NamedEntityMixin:
 	:attr:`Identifier` for public access.
 	"""
 
-	_identifier: str  #: The identifier of a model entity.
+	_identifier: str            #: The identifier of a model entity.
+	_normalizedIdentifier: str  #: The normalized (lower case) identifier of a model entity.
 
 	def __init__(self, identifier: str):
 		"""
@@ -468,6 +474,7 @@ class NamedEntityMixin:
 		:param identifier: Identifier (name) of the model entity.
 		"""
 		self._identifier = identifier
+		self._normalizedIdentifier = identifier.lower()
 
 	@property
 	def Identifier(self) -> str:
@@ -477,6 +484,15 @@ class NamedEntityMixin:
 		:returns: Name of a model entity.
 		"""
 		return self._identifier
+
+	@property
+	def NormalizedIdentifier(self) -> str:
+		"""
+		Returns a model entity's normalized identifier (lower case name).
+
+		:returns: Normalized name of a model entity.
+		"""
+		return self._normalizedIdentifier
 
 
 @export
@@ -571,12 +587,14 @@ class Name(ModelEntity):
 	"""``Name`` is the base-class for all *names* in the VHDL language model."""
 
 	_identifier: str
+	_normalizedIdentifier: str
 	_root: Nullable['Name']
 	_prefix: Nullable['Name']
 
 	def __init__(self, identifier: str, prefix: 'Name' = None):
 		super().__init__()
 		self._identifier = identifier
+		self._normalizedIdentifier = identifier.lower()
 		if prefix is None:
 			self._prefix = self
 			self._root = None
@@ -587,6 +605,10 @@ class Name(ModelEntity):
 	@property
 	def Identifier(self) -> str:
 		return self._identifier
+
+	@property
+	def NormalizedIdentifier(self) -> str:
+		return self._normalizedIdentifier
 
 	@property
 	def Root(self) -> 'Name':
@@ -617,6 +639,16 @@ class Symbol(ModelEntity):
 	@property
 	def SymbolName(self) -> Name:
 		return self._symbolName
+
+
+@export
+class NewSymbol:
+	_possibleReferences: PossibleReference
+	_reference: Any
+
+	def __init__(self, possibleReferences: PossibleReference):
+		self._possibleReferences = possibleReferences
+		self._reference = None
 
 	@property
 	def Reference(self) -> Any:
@@ -659,6 +691,7 @@ class UseClause(Reference):
 	pass
 
 
+# TODO: rename to ContextClause?
 @export
 class ContextReference(Reference):
 	pass
@@ -671,6 +704,11 @@ class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 	_packageReferences: List['UseClause']         #: List of use clauses.
 	_contextReferences: List['ContextReference']  #: List of context clauses.
 
+	# TODO: move to DesignUnit?
+	_referencedLibraries: Dict[str, 'Library']
+	_referencedPackages:  Dict[str, Dict[str, 'Package']]
+	_referencedContexts:  Dict[str, 'Library']
+
 	def __init__(self, contextItems: Iterable['ContextUnion'] = None):
 		"""
 		Initializes a mixin for design units with a context.
@@ -682,6 +720,11 @@ class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 		self._libraryReferences = []
 		self._packageReferences = []
 		self._contextReferences = []
+
+		# TODO: move to DesignUnit?
+		self._referencedLibraries = {}
+		self._referencedPackages = {"work": {}}
+		self._referencedContexts = {}
 
 		if contextItems is not None:
 			for item in contextItems:
@@ -732,8 +775,27 @@ class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 
 
 @export
+@unique
+class DesignUnits(Flag):
+	Context = auto()
+	Package = auto()
+	PackageBody = auto()
+	Entity = auto()
+	Architecture = auto()
+	Configuration = auto()
+
+	Primary = Context | Configuration | Entity | Package
+	Secondary = Architecture | PackageBody
+	WithContext = Configuration | Entity | Package | Architecture | PackageBody
+
+	All = Primary | Secondary
+
+
+@export
 class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""A ``DesignUnit`` is a base-class for all design units."""
+
+	_library: 'Library'
 
 	def __init__(self, identifier: str, documentation: str = None):
 		"""
@@ -746,6 +808,8 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
+		self._library = None
+
 	@property
 	def Document(self) -> 'Document':
 		return self._parent
@@ -754,13 +818,6 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	def Document(self, document: 'Document') -> None:
 		self._parent = document
 
-
-@export
-class PrimaryUnit(DesignUnit):
-	"""A ``PrimaryUnit`` is a base-class for all primary units."""
-
-	_library: 'Library'
-
 	@property
 	def Library(self) -> 'Library':
 		return self._library
@@ -768,6 +825,11 @@ class PrimaryUnit(DesignUnit):
 	@Library.setter
 	def Library(self, library: 'Library') -> None:
 		self._library = library
+
+
+@export
+class PrimaryUnit(DesignUnit):
+	"""A ``PrimaryUnit`` is a base-class for all primary units."""
 
 
 @export

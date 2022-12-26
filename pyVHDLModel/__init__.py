@@ -416,7 +416,7 @@ class PossibleReference(Flag):
 	Variable =        auto()
 	Signal =          auto()
 	File =            auto()
-	Object =          auto()   # TODO: Is this needed?
+#	Object =          auto()   # TODO: Is this needed?
 	EnumLiteral =     auto()
 	Procedure =       auto()
 	Function =        auto()
@@ -640,6 +640,16 @@ class Symbol(ModelEntity):
 	def SymbolName(self) -> Name:
 		return self._symbolName
 
+
+@export
+class NewSymbol:
+	_possibleReferences: PossibleReference
+	_reference: Any
+
+	def __init__(self, possibleReferences: PossibleReference):
+		self._possibleReferences = possibleReferences
+		self._reference = None
+
 	@property
 	def Reference(self) -> Any:
 		return self._reference
@@ -681,6 +691,7 @@ class UseClause(Reference):
 	pass
 
 
+# TODO: rename to ContextClause?
 @export
 class ContextReference(Reference):
 	pass
@@ -693,8 +704,10 @@ class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 	_packageReferences: List['UseClause']         #: List of use clauses.
 	_contextReferences: List['ContextReference']  #: List of context clauses.
 
+	# TODO: move to DesignUnit?
 	_referencedLibraries: Dict[str, 'Library']
 	_referencedPackages:  Dict[str, Dict[str, 'Package']]
+	_referencedContexts:  Dict[str, 'Library']
 
 	def __init__(self, contextItems: Iterable['ContextUnion'] = None):
 		"""
@@ -708,8 +721,10 @@ class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 		self._packageReferences = []
 		self._contextReferences = []
 
+		# TODO: move to DesignUnit?
 		self._referencedLibraries = {}
 		self._referencedPackages = {"work": {}}
+		self._referencedContexts = {}
 
 		if contextItems is not None:
 			for item in contextItems:

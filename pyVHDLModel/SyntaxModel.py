@@ -2380,26 +2380,28 @@ class Context(PrimaryUnit):
 	# TODO: move to DesignUnit?
 	_referencedLibraries: Dict[str, Library]
 	_referencedPackages: Dict[str, Dict[str, 'Package']]
-	_referencedcontexts: Dict[str, 'Context']
+	_referencedContexts: Dict[str, 'Context']
 
-	def __init__(self, identifier: str, references: Iterable[Union[LibraryClause, UseClause]] = None, documentation: str = None):
+	def __init__(self, identifier: str, references: Iterable[Union[LibraryClause, UseClause, ContextReference]] = None, documentation: str = None):
 		super().__init__(identifier, documentation)
 
 		self._references = []
 		self._libraryReferences = []
 		self._packageReferences = []
 		self._contextReferences = []
-		for reference in references:
-			self._references.append(reference)
+		
+		if references is not None:
+			for reference in references:
+				self._references.append(reference)
 
-			if isinstance(reference, LibraryClause):
-				self._libraryReferences.append(reference)
-			elif isinstance(reference, UseClause):
-				self._packageReferences.append(reference)
-			elif isinstance(reference, ContextReference):
-				self._contextReferences.append(reference)
-			else:
-				raise Exception()
+				if isinstance(reference, LibraryClause):
+					self._libraryReferences.append(reference)
+				elif isinstance(reference, UseClause):
+					self._packageReferences.append(reference)
+				elif isinstance(reference, ContextReference):
+					self._contextReferences.append(reference)
+				else:
+					raise Exception()
 
 		# TODO: move to DesignUnit?
 		self._referencedLibraries = {}

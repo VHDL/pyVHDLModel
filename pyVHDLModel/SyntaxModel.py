@@ -578,6 +578,7 @@ class Design(ModelEntity):
 		DEFAULT_LIBRARIES = ("std",)
 
 		for designUnit in self.IterateDesignUnits(DesignUnits.WithContext):
+			# All primary units supporting a context, have at least one library implicitly referenced
 			if isinstance(designUnit, PrimaryUnit):
 				for libraryIdentifier in DEFAULT_LIBRARIES:
 					designUnit._referencedLibraries[libraryIdentifier] = self._libraries[libraryIdentifier]
@@ -589,6 +590,7 @@ class Design(ModelEntity):
 				libraryIdentifier = workingLibrary.NormalizedIdentifier
 				designUnit._referencedLibraries[libraryIdentifier] = self._libraries[libraryIdentifier]
 				designUnit._referencedPackages[libraryIdentifier] = {}
+			# All secondary units inherit referenced libraries from their primary units.
 			else:
 				if isinstance(designUnit, Architecture):
 					referencedLibraries = designUnit.Entity.Entity._referencedLibraries
@@ -601,15 +603,16 @@ class Design(ModelEntity):
 					designUnit._referencedLibraries[libraryIdentifier] = library
 
 			for libraryReference in designUnit._libraryReferences:
+				# A library clause can have multiple comma-separated references
 				for librarySymbol in libraryReference.Symbols:
 					libraryIdentifier = librarySymbol.NormalizedIdentifier
 					try:
-						lib = self._libraries[libraryIdentifier]
+						library = self._libraries[libraryIdentifier]
 					except KeyError:
 						raise Exception(f"Library '{librarySymbol.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
 
-					librarySymbol.Library = lib
-					designUnit._referencedLibraries[libraryIdentifier] = lib
+					librarySymbol.Library = library
+					designUnit._referencedLibraries[libraryIdentifier] = library
 					designUnit._referencedPackages[libraryIdentifier] = {}
 					# TODO: warn duplicate library reference
 
@@ -619,6 +622,7 @@ class Design(ModelEntity):
 		)
 
 		for designUnit in self.IterateDesignUnits(DesignUnits.WithContext):
+			# All primary units supporting a context, have at least one package implicitly referenced
 			if isinstance(designUnit, PrimaryUnit):
 				for lib in DEFAULT_PACKAGES:
 					if lib[0] not in designUnit._referencedLibraries:
@@ -627,6 +631,7 @@ class Design(ModelEntity):
 						designUnit._referencedPackages[lib[0]][pack] = self._libraries[lib[0]]._packages[pack]
 						# TODO: catch KeyError on self._libraries[lib[0]]._packages[pack]
 						# TODO: warn duplicate package reference
+			# All secondary units inherit referenced packages from their primary units.
 			else:
 				if isinstance(designUnit, Architecture):
 					referencedPackages = designUnit.Entity.Entity._referencedPackages
@@ -639,6 +644,7 @@ class Design(ModelEntity):
 					designUnit._referencedPackages[packageIdentifier] = package
 
 			for packageReference in designUnit.PackageReferences:
+				# A use clause can have multiple comma-separated references
 				for symbol in packageReference.Symbols:
 					packageSymbol = symbol.Prefix
 					librarySymbol = packageSymbol.Prefix
@@ -646,6 +652,7 @@ class Design(ModelEntity):
 					libraryIdentifier = librarySymbol.NormalizedIdentifier
 					packageIdentifier = packageSymbol.NormalizedIdentifier
 
+					# In case work is used, resolve to the real library name.
 					if libraryIdentifier == "work":
 						library: Library = designUnit.Library
 						libraryIdentifier = library.NormalizedIdentifier
@@ -666,6 +673,7 @@ class Design(ModelEntity):
 					librarySymbol.Library = library
 					packageSymbol.Package = package
 
+					# TODO: update the namespace with visible members
 					if isinstance(symbol, AllPackageMembersReferenceSymbol):
 						pass
 
@@ -679,18 +687,67 @@ class Design(ModelEntity):
 
 	def LinkContexts(self):
 		for context in self.IterateDesignUnits(DesignUnits.Context):
+			# Create entries in _referenced*** for the current working library under its real name.
+			workingLibrary: Library = context.Library
+			libraryIdentifier = workingLibrary.NormalizedIdentifier
+			context._referencedLibraries[libraryIdentifier] = self._libraries[libraryIdentifier]
+			context._referencedPackages[libraryIdentifier] = {}
+
+			# Process all library clauses
 			for libraryReference in context._libraryReferences:
+				# A library clause can have multiple comma-separated references
 				for librarySymbol in libraryReference.Symbols:
 					libraryIdentifier = librarySymbol.NormalizedIdentifier
 					try:
-						lib = self._libraries[libraryIdentifier]
+						library = self._libraries[libraryIdentifier]
 					except KeyError:
 						raise Exception(f"Library '{librarySymbol.Identifier}' referenced by library clause of context '{context.Identifier}' doesn't exist in design.")
+						# TODO: add position to these messages
 
-					librarySymbol.Library = lib
-					context._referencedLibraries[libraryIdentifier] = lib
+					librarySymbol.Library = library
+					context._referencedLibraries[libraryIdentifier] = library
 					context._referencedPackages[libraryIdentifier] = {}
 					# TODO: warn duplicate library reference
+
+			# Process all use clauses
+			for packageReference in context.PackageReferences:
+				# A use clause can have multiple comma-separated references
+				for symbol in packageReference.Symbols:
+					packageSymbol = symbol.Prefix
+					librarySymbol = packageSymbol.Prefix
+
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
+					packageIdentifier = packageSymbol.NormalizedIdentifier
+
+					# In case work is used, resolve to the real library name.
+					if libraryIdentifier == "work":
+						library: Library = context.Library
+						libraryIdentifier = library.NormalizedIdentifier
+					elif libraryIdentifier not in context._referencedLibraries:
+						# TODO: This check doesn't trigger if it's the working library.
+						raise Exception(f"Use clause references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
+					else:
+						library = self._libraries[libraryIdentifier]
+
+					try:
+						package = library._packages[packageIdentifier]
+					except KeyError:
+						raise Exception(f"Package '{packageSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+
+					# TODO: warn duplicate package reference
+					context._referencedPackages[libraryIdentifier][packageIdentifier] = package
+
+					librarySymbol.Library = library
+					packageSymbol.Package = package
+
+					# TODO: update the namespace with visible members
+					if isinstance(symbol, AllPackageMembersReferenceSymbol):
+						pass
+
+					elif isinstance(symbol, PackageMembersReferenceSymbol):
+						raise NotImplementedError()
+					else:
+						raise Exception()
 
 	def LinkArchitectures(self):
 		for library in self._libraries.values():
@@ -793,6 +850,7 @@ class Library(ModelEntity, NamedEntityMixin):
 
 			for architecture in architecturesPerEntity.values():
 				entity = self._entities[entityName]
+				entity._architectures.append(architecture)  # TODO: convert to dict
 				architecture.Entity.Entity = entity
 
 	def LinkPackageBodies(self):

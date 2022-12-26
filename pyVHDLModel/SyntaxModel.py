@@ -41,7 +41,7 @@ from typing               import List, Tuple, Union, Dict, Iterator, Optional as
 from pyTooling.Decorators import export
 
 from pyVHDLModel          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, PossibleReference, Direction, EntityClass, Mode, \
-	DocumentedEntityMixin, DesignUnit, LibraryClause, UseClause, Name, Symbol, DesignUnits, NewSymbol
+	DocumentedEntityMixin, DesignUnit, LibraryClause, UseClause, Name, Symbol, DesignUnits, NewSymbol, ContextReference
 from pyVHDLModel          import PrimaryUnit, SecondaryUnit
 from pyVHDLModel          import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, DesignUnitWithContextMixin, PackageOrSymbol
 from pyVHDLModel.PSLModel import VerificationUnit, VerificationProperty, VerificationMode
@@ -555,6 +555,10 @@ class Design(ModelEntity):
 			yield from library.IterateDesignUnits(filter)
 
 	def Analyze(self):
+		self.AnalyzeDependencies()
+
+	def AnalyzeDependencies(self):
+		self.LinkContexts()
 		self.LinkArchitectures()
 		self.LinkPackageBodies()
 		self.LinkLibraryReferences()
@@ -587,14 +591,13 @@ class Design(ModelEntity):
 				for libraryIdentifier, library in referencedLibraries.items():
 					designUnit._referencedLibraries[libraryIdentifier] = library
 
-			for libraryReference in designUnit.LibraryReferences:
+			for libraryReference in designUnit._libraryReferences:
 				for librarySymbol in libraryReference.Symbols:
-					libraryName = librarySymbol.Identifier
-					libraryIdentifier = libraryName.lower()
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
 					try:
 						lib = self._libraries[libraryIdentifier]
 					except KeyError:
-						raise Exception(f"Library '{libraryName}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+						raise Exception(f"Library '{librarySymbol.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
 
 					librarySymbol.Library = lib
 					designUnit._referencedLibraries[libraryIdentifier] = lib
@@ -628,27 +631,35 @@ class Design(ModelEntity):
 
 			for packageReference in designUnit.PackageReferences:
 				for symbol in packageReference.Symbols:
-					if isinstance(symbol, AllPackageMembersReferenceSymbol):
-						packageSymbol = symbol.Prefix
-						librarySymbol = packageSymbol.Prefix
+					packageSymbol = symbol.Prefix
+					librarySymbol = packageSymbol.Prefix
 
-						libraryIdentifier = librarySymbol.NormalizedIdentifier
-						packageIdentifier = packageSymbol.NormalizedIdentifier
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
+					packageIdentifier = packageSymbol.NormalizedIdentifier
 
-						if libraryIdentifier == "work":
-							library: Library = designUnit.Library
-							libraryIdentifier = library.NormalizedIdentifier
-						else:
-							library = self._libraries[libraryIdentifier]
+					if libraryIdentifier == "work":
+						library: Library = designUnit.Library
+						libraryIdentifier = library.NormalizedIdentifier
+					elif libraryIdentifier not in designUnit._referencedLibraries:
+						# TODO: This check doesn't trigger if it's the working library.
+						raise Exception(f"Use clause references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
+					else:
+						library = self._libraries[libraryIdentifier]
 
+					try:
 						package = library._packages[packageIdentifier]
-						designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
+					except KeyError:
+						raise Exception(f"Package '{packageSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
 
-						librarySymbol.Library = library
-						packageSymbol.Package = package
+					# TODO: warn duplicate package reference
+					designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
-						# TODO: catch KeyError on self._libraries[...]._packages[...]
-						# TODO: warn duplicate package reference
+					librarySymbol.Library = library
+					packageSymbol.Package = package
+
+					if isinstance(symbol, AllPackageMembersReferenceSymbol):
+						pass
+
 					elif isinstance(symbol, PackageMembersReferenceSymbol):
 						raise NotImplementedError()
 					else:

@@ -2439,15 +2439,10 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
 
 @export
 class Context(PrimaryUnit):
-	_references: List[Union[LibraryClause, UseClause, ContextReference]]
+	_references:        List[Union[LibraryClause, UseClause, ContextReference]]
 	_libraryReferences: List[LibraryClause]
 	_packageReferences: List[UseClause]
 	_contextReferences: List[ContextReference]
-
-	# TODO: move to DesignUnit?
-	_referencedLibraries: Dict[str, Library]
-	_referencedPackages: Dict[str, Dict[str, 'Package']]
-	_referencedContexts: Dict[str, 'Context']
 
 	def __init__(self, identifier: str, references: Iterable[Union[LibraryClause, UseClause, ContextReference]] = None, documentation: str = None):
 		super().__init__(identifier, documentation)
@@ -2470,11 +2465,6 @@ class Context(PrimaryUnit):
 				else:
 					raise Exception()
 
-		# TODO: move to DesignUnit?
-		self._referencedLibraries = {}
-		self._referencedPackages = {}
-		self._referencedContexts = {}
-
 	@property
 	def LibraryReferences(self) -> List[LibraryClause]:
 		return self._libraryReferences
@@ -2482,6 +2472,10 @@ class Context(PrimaryUnit):
 	@property
 	def PackageReferences(self) -> List[UseClause]:
 		return self._packageReferences
+
+	@property
+	def ContextReferences(self) -> List[ContextReference]:
+		return self._contextReferences
 
 
 @export

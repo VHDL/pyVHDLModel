@@ -704,11 +704,6 @@ class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 	_packageReferences: List['UseClause']         #: List of use clauses.
 	_contextReferences: List['ContextReference']  #: List of context clauses.
 
-	# TODO: move to DesignUnit?
-	_referencedLibraries: Dict[str, 'Library']
-	_referencedPackages:  Dict[str, Dict[str, 'Package']]
-	_referencedContexts:  Dict[str, 'Library']
-
 	def __init__(self, contextItems: Iterable['ContextUnion'] = None):
 		"""
 		Initializes a mixin for design units with a context.
@@ -717,14 +712,10 @@ class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 		"""
 
 		self._contextItems = []
+		# TODO: move to DesignUnit?
 		self._libraryReferences = []
 		self._packageReferences = []
 		self._contextReferences = []
-
-		# TODO: move to DesignUnit?
-		self._referencedLibraries = {}
-		self._referencedPackages = {"work": {}}
-		self._referencedContexts = {}
 
 		if contextItems is not None:
 			for item in contextItems:
@@ -795,7 +786,10 @@ class DesignUnits(Flag):
 class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""A ``DesignUnit`` is a base-class for all design units."""
 
-	_library: 'Library'
+	_library:            'Library'
+	_referencedLibraries: Dict[str, 'Library']
+	_referencedPackages:  Dict[str, Dict[str, 'Package']]
+	_referencedContexts:  Dict[str, 'Context']
 
 	def __init__(self, identifier: str, documentation: str = None):
 		"""
@@ -809,6 +803,9 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._library = None
+		self._referencedLibraries = {}
+		self._referencedPackages = {"work": {}}  # TODO: should it be the working library name ... auto generated elsewhere already
+		self._referencedContexts = {}
 
 	@property
 	def Document(self) -> 'Document':
@@ -825,6 +822,18 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	@Library.setter
 	def Library(self, library: 'Library') -> None:
 		self._library = library
+
+	@property
+	def ReferencedLibraries(self) -> Dict[str, 'Library']:
+		return self._referencedLibraries
+
+	@property
+	def ReferencedPackages(self) -> Dict[str, 'Package']:
+		return self._referencedPackages
+
+	@property
+	def ReferencedContexts(self) -> Dict[str, 'Context']:
+		return self._referencedContexts
 
 
 @export

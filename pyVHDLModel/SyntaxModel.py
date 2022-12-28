@@ -749,16 +749,18 @@ class Design(ModelEntity):
 		for designUnit in self.IterateDesignUnits(DesignUnits.WithContext):
 			# All primary units supporting a context, have at least one package implicitly referenced
 			if isinstance(designUnit, PrimaryUnit):
-				for lib in DEFAULT_PACKAGES:
-					if lib[0] not in designUnit._referencedLibraries:
-						raise Exception()
-					for pack in lib[1]:
-						referencedPackage = self._libraries[lib[0]]._packages[pack]
-						designUnit._referencedPackages[lib[0]][pack] = referencedPackage
-						# TODO: catch KeyError on self._libraries[lib[0]]._packages[pack]
-						# TODO: warn duplicate package reference
+				if designUnit.Library.NormalizedIdentifier != "std" and \
+					designUnit.NormalizedIdentifier != "standard":
+					for lib in DEFAULT_PACKAGES:
+						if lib[0] not in designUnit._referencedLibraries:
+							raise Exception()
+						for pack in lib[1]:
+							referencedPackage = self._libraries[lib[0]]._packages[pack]
+							designUnit._referencedPackages[lib[0]][pack] = referencedPackage
+							# TODO: catch KeyError on self._libraries[lib[0]]._packages[pack]
+							# TODO: warn duplicate package reference
 
-						designUnit._dependencyVertex.LinkToVertex(referencedPackage._dependencyVertex)
+							designUnit._dependencyVertex.LinkToVertex(referencedPackage._dependencyVertex)
 
 
 			# All secondary units inherit referenced packages from their primary units.

@@ -1,6 +1,8 @@
 from pyTooling.Decorators import export
 
-from pyVHDLModel.SyntaxModel import Package, PackageBody, Library, PackageSymbol
+from pyVHDLModel import UseClause
+from pyVHDLModel.SyntaxModel import Package, PackageBody, Library, PackageSymbol, AllPackageMembersReferenceSymbol, PackageReferenceSymbol, \
+	LibraryReferenceSymbol
 
 
 @export
@@ -60,7 +62,14 @@ class TextIO_Body(PredefinedPackageBody):
 
 @export
 class Env(PredefinedPackage):
-	pass
+	def __init__(self):
+		super().__init__()
+
+		# Use clauses
+		useTextIOSymbols = (
+			AllPackageMembersReferenceSymbol(PackageReferenceSymbol("textio", LibraryReferenceSymbol("work"))),
+		)
+		self._packageReferences.append(UseClause(useTextIOSymbols))
 
 
 @export

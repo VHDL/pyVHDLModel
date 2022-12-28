@@ -1,5 +1,7 @@
 from pyTooling.Decorators import export
 
+from pyVHDLModel import UseClause
+from pyVHDLModel.SyntaxModel import AllPackageMembersReferenceSymbol, PackageReferenceSymbol, LibraryReferenceSymbol
 from pyVHDLModel.std import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 
 
@@ -19,7 +21,14 @@ class Math_Real_Body(PredefinedPackageBody):
 
 
 class Math_Complex(PredefinedPackage):
-	pass
+	def __init__(self):
+		super().__init__()
+
+		# Use clauses
+		useMathReal = (
+			AllPackageMembersReferenceSymbol(PackageReferenceSymbol("math_real", LibraryReferenceSymbol("work"))),
+		)
+		self._packageReferences.append(UseClause(useMathReal))
 
 
 class Math_Complex_Body(PredefinedPackageBody):

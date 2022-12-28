@@ -42,8 +42,10 @@ __license__ =   "Apache License, Version 2.0"
 __version__ =   "0.20.0"
 
 
-from enum     import IntEnum, unique, Enum, Flag, auto
-from typing   import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple, Any
+from enum            import IntEnum, unique, Enum, Flag, auto
+
+from pyTooling.Graph import Vertex
+from typing          import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple, Any
 
 from pyTooling.Decorators import export
 
@@ -787,6 +789,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""A ``DesignUnit`` is a base-class for all design units."""
 
 	_library:            'Library'
+	_dependencyVertex:    Vertex[str, 'DesignUnit', None, None]
 	_referencedLibraries: Dict[str, 'Library']
 	_referencedPackages:  Dict[str, Dict[str, 'Package']]
 	_referencedContexts:  Dict[str, 'Context']
@@ -803,6 +806,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._library = None
+		self._dependencyVertex = None
 		self._referencedLibraries = {}
 		self._referencedPackages = {"work": {}}  # TODO: should it be the working library name ... auto generated elsewhere already
 		self._referencedContexts = {}

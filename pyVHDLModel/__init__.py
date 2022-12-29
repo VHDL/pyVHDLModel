@@ -52,13 +52,6 @@ from pyTooling.Decorators import export
 
 SimpleOrAttribute =     Union['SimpleName',    'AttributeName']
 
-LibraryOrSymbol =       Union['Library',       'LibrarySymbol']
-EntityOrSymbol =        Union['Entity',        'EntitySymbol']
-ArchitectureOrSymbol =  Union['Architecture',  'ArchitectureSymbol']
-PackageOrSymbol =       Union['Package',       'PackageSymbol']
-ConfigurationOrSymbol = Union['Configuration', 'ConfigurationSymbol']
-ContextOrSymbol =       Union['Context',       'ContextSymbol']
-
 SubtypeOrSymbol =       Union['Subtype',       'SubtypeSymbol']
 
 ConstantOrSymbol =      Union['Constant',      'ConstantSymbol']
@@ -617,7 +610,7 @@ class Name(ModelEntity):
 
 	def __init__(self, identifier: str, prefix: 'Name' = None):
 		super().__init__()
-		
+
 		self._identifier = identifier
 		self._normalizedIdentifier = identifier.lower()
 

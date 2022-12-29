@@ -47,7 +47,7 @@ from pyVHDLModel           import EntityClass, Direction, Mode, DesignUnitKind, 
 from pyVHDLModel           import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, DocumentedEntityMixin, PossibleReference
 from pyVHDLModel           import Name, Symbol, NewSymbol, LibraryClause, UseClause, ContextReference, DesignUnit
 from pyVHDLModel           import PrimaryUnit, SecondaryUnit
-from pyVHDLModel           import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, DesignUnitWithContextMixin, PackageOrSymbol
+from pyVHDLModel           import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, DesignUnitWithContextMixin
 from pyVHDLModel.PSLModel  import VerificationUnit, VerificationProperty, VerificationMode
 
 try:
@@ -290,9 +290,33 @@ class PackageSymbol(SimpleName, NewSymbol):
 
 
 @export
-class ComponentSymbol(Symbol):
-	def __init__(self, symbolName: Name):
-		super().__init__(symbolName, PossibleReference.Component)
+class EntityInstantiationSymbol(SelectedName, NewSymbol):
+	"""An entity reference in a direct entity instantiation."""
+
+	def __init__(self, identifier: str, prefix: LibraryReferenceSymbol):
+		super().__init__(identifier, prefix)
+		NewSymbol.__init__(self, PossibleReference.Entity)
+
+	@property
+	def Prefix(self) -> LibraryReferenceSymbol:
+		return cast(LibraryReferenceSymbol, self._prefix)
+
+	@property
+	def Entity(self) -> 'Entity':
+		return self._reference
+
+	@Entity.setter
+	def Entity(self, value: 'Entity') -> None:
+		self._reference = value
+
+
+@export
+class ComponentInstantiationSymbol(SimpleName, NewSymbol):
+	"""A component reference in a component instantiation."""
+
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+		NewSymbol.__init__(self, PossibleReference.Component)
 
 	@property
 	def Component(self) -> 'Component':
@@ -304,9 +328,12 @@ class ComponentSymbol(Symbol):
 
 
 @export
-class ConfigurationSymbol(Symbol):
-	def __init__(self, symbolName: Name):
-		super().__init__(symbolName, PossibleReference.Configuration)
+class ConfigurationInstantiationSymbol(SimpleName, NewSymbol):
+	"""A configuration reference in a configuration instantiation."""
+
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+		NewSymbol.__init__(self, PossibleReference.Configuration)
 
 	@property
 	def Configuration(self) -> 'Configuration':
@@ -314,20 +341,6 @@ class ConfigurationSymbol(Symbol):
 
 	@Configuration.setter
 	def Configuration(self, value: 'Configuration') -> None:
-		self._reference = value
-
-
-@export
-class ContextSymbol(Symbol):
-	def __init__(self, symbolName: Name):
-		super().__init__(symbolName, PossibleReference.Context)
-
-	@property
-	def Context(self) -> 'Context':
-		return self._reference
-
-	@Context.setter
-	def Context(self, value: 'Context') -> None:
 		self._reference = value
 
 

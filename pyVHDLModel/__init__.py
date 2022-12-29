@@ -769,7 +769,7 @@ class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
 
 @export
 @unique
-class DesignUnits(Flag):
+class DesignUnitKind(Flag):
 	Context = auto()
 	Package = auto()
 	PackageBody = auto()
@@ -782,6 +782,30 @@ class DesignUnits(Flag):
 	WithContext = Configuration | Entity | Package | Architecture | PackageBody
 
 	All = Primary | Secondary
+
+
+@export
+@unique
+class DependencyGraphVertexKind(Flag):
+	Library = auto()
+	Context = auto()
+	Package = auto()
+	PackageBody = auto()
+	Entity = auto()
+	Architecture = auto()
+	Configuration = auto()
+
+
+@export
+@unique
+class DependencyGraphEdgeKind(Flag):
+	Library = auto()
+	Context = auto()
+	Package = auto()
+	Entity = auto()
+	# Architecture = auto()
+	Configuration = auto()
+	Component = auto()
 
 
 @export

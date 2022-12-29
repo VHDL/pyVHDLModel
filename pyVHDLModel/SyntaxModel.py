@@ -43,8 +43,9 @@ from typing                import List, Tuple, Union, Dict, Iterator, Optional a
 
 from pyTooling.Decorators  import export
 
-from pyVHDLModel           import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, PossibleReference, Direction, EntityClass, Mode, \
-	DocumentedEntityMixin, DesignUnit, LibraryClause, UseClause, Name, Symbol, DesignUnits, NewSymbol, ContextReference
+from pyVHDLModel           import EntityClass, Direction, Mode, DesignUnitKind, DependencyGraphVertexKind
+from pyVHDLModel           import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, DocumentedEntityMixin, PossibleReference
+from pyVHDLModel           import Name, Symbol, NewSymbol, LibraryClause, UseClause, ContextReference, DesignUnit
 from pyVHDLModel           import PrimaryUnit, SecondaryUnit
 from pyVHDLModel           import ExpressionUnion, ConstraintUnion, ContextUnion, SubtypeOrSymbol, DesignUnitWithContextMixin, PackageOrSymbol
 from pyVHDLModel.PSLModel  import VerificationUnit, VerificationProperty, VerificationMode
@@ -566,7 +567,7 @@ class Design(ModelEntity):
 			library._contexts[contextIdentifier] = context
 			context.Library = library
 
-	def IterateDesignUnits(self, filter: DesignUnits = DesignUnits.All) -> Generator[DesignUnit, None, None]:
+	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
 		for library in self._libraries.values():
 			yield from library.IterateDesignUnits(filter)
 
@@ -584,29 +585,43 @@ class Design(ModelEntity):
 
 	def CreateDependencyGraph(self):
 		for libraryIdentifier, library in self._libraries.items():
-			library._dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}", value=library, graph=self._dependencyGraph)
+			dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}", value=library, graph=self._dependencyGraph)
+			dependencyVertex["kind"] = DependencyGraphVertexKind.Library
+			library._dependencyVertex = dependencyVertex
 
 			for contextIdentifier, context in library._contexts.items():
-				context._dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{contextIdentifier}", value=context, graph=self._dependencyGraph)
+				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{contextIdentifier}", value=context, graph=self._dependencyGraph)
+				dependencyVertex["kind"] = DependencyGraphVertexKind.Context
+				context._dependencyVertex = dependencyVertex
 
 			for packageIdentifier, package in library._packages.items():
-				package._dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{packageIdentifier}", value=package, graph=self._dependencyGraph)
+				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{packageIdentifier}", value=package, graph=self._dependencyGraph)
+				dependencyVertex["kind"] = DependencyGraphVertexKind.Package
+				package._dependencyVertex = dependencyVertex
 
 			for packageBodyIdentifier, packageBody in library._packageBodies.items():
-				packageBody._dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{packageBodyIdentifier}(body)", value=packageBody, graph=self._dependencyGraph)
+				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{packageBodyIdentifier}(body)", value=packageBody, graph=self._dependencyGraph)
+				dependencyVertex["kind"] = DependencyGraphVertexKind.PackageBody
+				packageBody._dependencyVertex = dependencyVertex
 
 			for entityIdentifier, entity in library._entities.items():
-				entity._dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{entityIdentifier}", value=entity, graph=self._dependencyGraph)
+				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{entityIdentifier}", value=entity, graph=self._dependencyGraph)
+				dependencyVertex["kind"] = DependencyGraphVertexKind.Entity
+				entity._dependencyVertex = dependencyVertex
 
 			for entityIdentifier, architectures in library._architectures.items():
 				for architectureIdentifier, architecture in architectures.items():
-					architecture._dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{entityIdentifier}({architectureIdentifier})", value=architecture, graph=self._dependencyGraph)
+					dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{entityIdentifier}({architectureIdentifier})", value=architecture, graph=self._dependencyGraph)
+					dependencyVertex["kind"] = DependencyGraphVertexKind.Architecture
+					architecture._dependencyVertex = dependencyVertex
 
 			for configurationIdentifier, configuration in library._configurations.items():
-				configuration._dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{configurationIdentifier}", value=configuration, graph=self._dependencyGraph)
+				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{configurationIdentifier}", value=configuration, graph=self._dependencyGraph)
+				dependencyVertex["kind"] = DependencyGraphVertexKind.Configuration
+				configuration._dependencyVertex = dependencyVertex
 
 	def LinkContexts(self):
-		for context in self.IterateDesignUnits(DesignUnits.Context):
+		for context in self.IterateDesignUnits(DesignUnitKind.Context):
 			# Create entries in _referenced*** for the current working library under its real name.
 			workingLibrary: Library = context.Library
 			libraryIdentifier = workingLibrary.NormalizedIdentifier
@@ -688,7 +703,7 @@ class Design(ModelEntity):
 	def LinkLibraryReferences(self):
 		DEFAULT_LIBRARIES = ("std",)
 
-		for designUnit in self.IterateDesignUnits(DesignUnits.WithContext):
+		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):
 			# All primary units supporting a context, have at least one library implicitly referenced
 			if isinstance(designUnit, PrimaryUnit):
 				for libraryIdentifier in DEFAULT_LIBRARIES:
@@ -746,7 +761,7 @@ class Design(ModelEntity):
 			("std", ("standard",)),
 		)
 
-		for designUnit in self.IterateDesignUnits(DesignUnits.WithContext):
+		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):
 			# All primary units supporting a context, have at least one package implicitly referenced
 			if isinstance(designUnit, PrimaryUnit):
 				if designUnit.Library.NormalizedIdentifier != "std" and \
@@ -909,29 +924,29 @@ class Library(ModelEntity, NamedEntityMixin):
 		"""Returns a list of all package body declarations declared in this library."""
 		return self._packageBodies
 
-	def IterateDesignUnits(self, filter: DesignUnits = DesignUnits.All) -> Generator[DesignUnit, None, None]:
-		if DesignUnits.Context in filter:
+	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
+		if DesignUnitKind.Context in filter:
 			for context in self._contexts.values():
 				yield context
 
-		if DesignUnits.Package in filter:
+		if DesignUnitKind.Package in filter:
 			for package in self._packages.values():
 				yield package
 
-		if DesignUnits.PackageBody in filter:
+		if DesignUnitKind.PackageBody in filter:
 			for packageBody in self._packageBodies.values():
 				yield packageBody
 
-		if DesignUnits.Entity in filter:
+		if DesignUnitKind.Entity in filter:
 			for entity in self._entities.values():
 				yield entity
 
-		if DesignUnits.Architecture in filter:
+		if DesignUnitKind.Architecture in filter:
 			for architectures in self._architectures.values():
 				for architecture in architectures.values():
 					yield architecture
 
-		if DesignUnits.Configuration in filter:
+		if DesignUnitKind.Configuration in filter:
 			for configuration in self._configurations.values():
 				yield configuration
 

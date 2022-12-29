@@ -596,6 +596,9 @@ class Design(ModelEntity):
 		self.LinkPackageReferences()
 		self.LinkContextReferences()
 
+		self.IndexPackages()
+		self.IndexArchitectures()
+
 	def CreateDependencyGraph(self):
 		for libraryIdentifier, library in self._libraries.items():
 			dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}", value=library, graph=self._dependencyGraph)
@@ -880,6 +883,14 @@ class Design(ModelEntity):
 		# for vertex in self._dependencyGraph.IterateTopologically():
 		# 	print(vertex.Value.Identifier)
 
+	def IndexPackages(self):
+		for library in self._libraries.values():
+			library.IndexPackages()
+
+	def IndexArchitectures(self):
+		for library in self._libraries.values():
+			library.IndexArchitectures()
+
 
 @export
 class Library(ModelEntity, NamedEntityMixin):
@@ -994,6 +1005,15 @@ class Library(ModelEntity, NamedEntityMixin):
 
 			# add "package body -> package" relation in dependency graph
 			packageBody._dependencyVertex.LinkToVertex(package._dependencyVertex)
+
+	def IndexPackages(self):
+		for package in self._packages.values():
+			package.IndexPackage()
+
+	def IndexArchitectures(self):
+		for architectures in self._architectures.values():
+			for architecture in architectures.values():
+				architecture.IndexArchitecture()
 
 	def __str__(self):
 		return f"VHDL Library: '{self.Identifier}'"
@@ -2667,6 +2687,10 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin):
 	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
 	_statements:    List['ConcurrentStatement']
 
+	_instantiations: Dict[str, 'Instantiation']  # TODO: add another instantiation class level for entity/configuration/component inst.
+	_generates:      Dict[str, 'GenerateStatement']
+	_hierarchy:      Dict[str, Union['ConcurrentBlockStatement', 'GenerateStatement']]
+
 	def __init__(self, identifier: str, entity: EntitySymbol, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None, documentation: str = None):
 		super().__init__(identifier, documentation)
 		DesignUnitWithContextMixin.__init__(self, contextItems)
@@ -2675,6 +2699,10 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin):
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 		self._statements    = [] if statements is None else [s for s in statements]
 
+		self._instantiations = {}
+		self._generates = {}
+		self._hierarchy = {}
+
 	@property
 	def Entity(self) -> EntitySymbol:
 		return self._entity
@@ -2682,6 +2710,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin):
 	@property
 	def Library(self) -> 'Library':
 		return self._library
+
 	@Library.setter
 	def Library(self, library: 'Library') -> None:
 		self._library = library
@@ -2693,6 +2722,21 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin):
 	@property
 	def Statements(self) -> List['ConcurrentStatement']:
 		return self._statements
+
+	def IndexArchitecture(self):
+		for statement in self._statements:
+			if isinstance(statement, EntityInstantiation):
+				self._instantiations[statement.Label] = statement
+			elif isinstance(statement, ComponentInstantiation):
+				self._instantiations[statement.Label] = statement
+			elif isinstance(statement, ConfigurationInstantiation):
+				self._instantiations[statement.Label] = statement
+			elif isinstance(statement, ForGenerateStatement):
+				self._generates[statement.Label] = statement
+			elif isinstance(statement, IfGenerateStatement):
+				self._generates[statement.Label] = statement
+			elif isinstance(statement, CaseGenerateStatement):
+				self._generates[statement.Label] = statement
 
 
 @export
@@ -2794,6 +2838,12 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
+	_types:      Dict[str, Union[Type, Subtype]]
+	_objects:    Dict[str, Union[Constant, Variable, Signal]]
+	_constants:  Dict[str, Constant]
+	_functions:  Dict[str, Dict[str, Function]]
+	_procedures: Dict[str, Dict[str, Procedure]]
+
 	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(identifier, documentation)
 		DesignUnitWithContextMixin.__init__(self, contextItems)
@@ -2809,6 +2859,31 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 	def DeclaredItems(self) -> List:
 		return self._declaredItems
 
+	# TODO: move into __init__ ?
+	# TODO: share with architecture and block statement?
+	def IndexPackage(self):
+		for item in self._declaredItems:
+			if isinstance(item, Type):
+				print(item)
+			elif isinstance(item, Subtype):
+				print(item)
+			elif isinstance(item, Function):
+				print(item)
+			elif isinstance(item, Procedure):
+				print(item)
+			elif isinstance(item, Constant):
+				for identifier in item.Identifiers:
+					normalizedIdentifier = identifier.lower()
+					self._constants[normalizedIdentifier] = item
+					self._objects[normalizedIdentifier] = item
+			elif isinstance(item, Variable):
+				for identifier in item.Identifiers:
+					self._objects[identifier.lower()] = item
+			elif isinstance(item, Signal):
+				for identifier in item.Identifiers:
+					self._objects[identifier.lower()] = item
+			else:
+				print(item)
 
 @export
 class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
@@ -2829,6 +2904,12 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 	@property
 	def DeclaredItems(self) -> List:
 		return self._declaredItems
+
+	def IndexPackageBody(self):
+		pass
+
+	def LinkDeclaredItemsToPackage(self):
+		pass
 
 
 @export

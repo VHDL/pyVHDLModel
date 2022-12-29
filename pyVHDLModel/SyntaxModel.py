@@ -2914,10 +2914,10 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 
 @export
 class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
-	_packageReference:    Package
+	_packageReference:    PackageReferenceSymbol
 	_genericAssociations: List[GenericAssociationItem]
 
-	def __init__(self, identifier: str, uninstantiatedPackage: PackageOrSymbol, documentation: str = None):
+	def __init__(self, identifier: str, uninstantiatedPackage: PackageReferenceSymbol, documentation: str = None):
 		super().__init__(identifier, documentation)
 		GenericEntityInstantiation.__init__(self)
 
@@ -2925,7 +2925,7 @@ class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
 		self._genericAssociations = []
 
 	@property
-	def PackageReference(self) -> PackageOrSymbol:
+	def PackageReference(self) -> PackageReferenceSymbol:
 		return self._packageReference
 
 	@property

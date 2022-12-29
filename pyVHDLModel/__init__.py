@@ -462,8 +462,8 @@ class NamedEntityMixin:
 	"""
 	A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have identifiers.
 
-	A protected variable :attr:`_identifier` is available to derived classes as well as a readonly property
-	:attr:`Identifier` for public access.
+	Protected variables :attr:`_identifier` and :attr:`_normalizedIdentifier` are available to derived classes as well as
+	two readonly properties :attr:`Identifier` and :attr:`NormalizedIdentifier` for public access.
 	"""
 
 	_identifier: str            #: The identifier of a model entity.
@@ -501,13 +501,14 @@ class NamedEntityMixin:
 class MultipleNamedEntityMixin:
 	"""
 	A ``MultipleNamedEntityMixin`` is a mixin class for all VHDL entities that declare multiple instances at once by
-	giving multiple identifiers.
+	defining multiple identifiers.
 
-	A protected variable :attr:`_identifiers` is available to derived classes as well as a readonly property
-	:attr:`Identifiers` for public access.
+	Protected variables :attr:`_identifiers` and :attr:`_normalizedIdentifiers` are available to derived classes as well
+	as two readonly properties :attr:`Identifiers` and :attr:`NormalizedIdentifiers` for public access.
 	"""
 
-	_identifiers: Tuple[str]  #: A list of identifiers.
+	_identifiers:           Tuple[str]  #: A list of identifiers.
+	_normalizedIdentifiers: Tuple[str]  #: A list of normalized (lower case) identifiers.
 
 	def __init__(self, identifiers: Iterable[str]):
 		"""
@@ -516,6 +517,7 @@ class MultipleNamedEntityMixin:
 		:param identifiers: Sequence of identifiers (names) of the model entity.
 		"""
 		self._identifiers = tuple(identifiers)
+		self._normalizedIdentifiers = tuple([identifier.lower() for identifier in identifiers])
 
 	@property
 	def Identifiers(self) -> Tuple[str]:
@@ -526,16 +528,26 @@ class MultipleNamedEntityMixin:
 		"""
 		return self._identifiers
 
+	@property
+	def NormalizedIdentifiers(self) -> Tuple[str]:
+		"""
+		Returns a model entity's tuple of normalized identifiers (lower case names).
+
+		:returns: Tuple of normalized identifiers.
+		"""
+		return self._normalizedIdentifiers
+
 
 @export
 class LabeledEntityMixin:
 	"""
 	A ``LabeledEntityMixin`` is a mixin class for all VHDL entities that can have labels.
 
-	A protected variable :attr:`_label` is available to derived classes as well as a readonly property :attr:`Label` for
-	public access.
+	protected variables :attr:`_label` and :attr:`_normalizedLabel` are available to derived classes as well as two
+	readonly properties :attr:`Label` and :attr:`NormalizedLabel` for public access.
 	"""
-	_label: Nullable[str]  #: The label of a model entity.
+	_label:           Nullable[str]  #: The label of a model entity.
+	_normalizedLabel: Nullable[str]  #: The normalized (lower case) label of a model entity.
 
 	def __init__(self, label: Nullable[str]):
 		"""
@@ -544,6 +556,7 @@ class LabeledEntityMixin:
 		:param label: Label of the model entity.
 		"""
 		self._label = label
+		self._normalizedLabel = label.lower() if label is not None else None
 
 	@property
 	def Label(self) -> Nullable[str]:
@@ -553,6 +566,15 @@ class LabeledEntityMixin:
 		:returns: Label of a model entity.
 		"""
 		return self._label
+
+	@property
+	def NormalizedLabel(self) -> Nullable[str]:
+		"""
+		Returns a model entity's normalized (lower case) label.
+
+		:returns: Normalized label of a model entity.
+		"""
+		return self._normalizedLabel
 
 
 @export
@@ -590,13 +612,15 @@ class Name(ModelEntity):
 
 	_identifier: str
 	_normalizedIdentifier: str
-	_root: Nullable['Name']
+	_root: Nullable['Name']     # TODO: seams to be unused. There is no reverse linking
 	_prefix: Nullable['Name']
 
 	def __init__(self, identifier: str, prefix: 'Name' = None):
 		super().__init__()
+		
 		self._identifier = identifier
 		self._normalizedIdentifier = identifier.lower()
+
 		if prefix is None:
 			self._prefix = self
 			self._root = None

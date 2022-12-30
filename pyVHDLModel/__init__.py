@@ -50,13 +50,8 @@ from typing          import List, Iterable, Union, Optional as Nullable, Dict, c
 from pyTooling.Decorators import export
 
 
-SimpleOrAttribute =     Union['SimpleName',    'AttributeName']
-
 SubtypeOrSymbol =       Union['Subtype',       'SubtypeSymbol']
 
-ConstantOrSymbol =      Union['Constant',      'ConstantSymbol']
-VariableOrSymbol =      Union['Variable',      'VariableSymbol']
-SignalOrSymbol =        Union['Signal',        'SignalSymbol']
 
 ConstraintUnion = Union[
 	'RangeExpression',

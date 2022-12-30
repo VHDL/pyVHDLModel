@@ -3406,6 +3406,10 @@ class CaseGenerateStatement(GenerateStatement):
 	def Cases(self) -> List[GenerateCase]:
 		return self._cases
 
+	def Index(self):
+		for case in self._cases:
+			case.Index()
+
 
 @export
 class ForGenerateStatement(GenerateStatement, ConcurrentDeclarations, ConcurrentStatements):

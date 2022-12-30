@@ -74,6 +74,13 @@ News
 
 * `GHDL's <https://GitHub.com/ghdl/ghdl>`__ is now able to collect and associate (documentation) comments to language
   constructs. This enhancement adds a ``Documentation`` property to many classes similar to a *doc-string* in Python.
+* New -style of symbols merging a ``Name`` and a ``Symbol`` class.
+* Finding relations between packages and its bodies, entities and its architectures.
+* References to libraries, packages and contexts.
+* Dependency graph for packages, contexts, and entities.
+  * Package graph.
+  * Hierarchy graph.
+  * Compile order.
 
 
 .. only:: html

@@ -1024,7 +1024,7 @@ class Library(ModelEntity, NamedEntityMixin):
 				architecture.Index()
 
 	def __str__(self):
-		return f"VHDL Library: '{self.Identifier}'"
+		return f"Library: '{self.Identifier}'"
 
 
 @export
@@ -1728,8 +1728,8 @@ class ParenthesisExpression(Protocol):
 class UnaryExpression(BaseExpression):
 	"""A ``UnaryExpression`` is a base-class for all unary expressions."""
 
-	_FORMAT: Tuple[str, str]
-	_operand:  ExpressionUnion
+	_FORMAT:  Tuple[str, str]
+	_operand: ExpressionUnion
 
 	def __init__(self, operand: ExpressionUnion):
 		super().__init__()
@@ -2797,6 +2797,12 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 			else:
 				print(item)
 
+	def __str__(self):
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"Package: {lib}.{self.Identifier}"
+
+
 @export
 class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 	_package:           PackageSymbol
@@ -2829,6 +2835,11 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 
 	def LinkDeclaredItemsToPackage(self):
 		pass
+
+	def __str__(self):
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"Package Body: {lib}.{self.Identifier}(body)"
 
 
 @export
@@ -3011,6 +3022,10 @@ class Context(PrimaryUnit):
 	def ContextReferences(self) -> List[ContextReference]:
 		return self._contextReferences
 
+	def __str__(self):
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"Context: {lib}.{self.Identifier}"
 
 @export
 class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, ConcurrentStatements):
@@ -3064,6 +3079,10 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, Co
 	def Architectures(self) -> List['Architecture']:
 		return self._architectures
 
+	def __str__(self):
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"Entity: {lib}.{self.Identifier}({', '.join(self._architectures.keys())})"
 
 @export
 class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, ConcurrentStatements):
@@ -3091,6 +3110,12 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 	@Library.setter
 	def Library(self, library: 'Library') -> None:
 		self._library = library
+
+	def __str__(self):
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+		ent = self._entity.Identifier + "?" if self._entity is not None else ""
+
+		return f"Architecture: {lib}.{ent}({self.Identifier})"
 
 
 @export
@@ -3131,6 +3156,11 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, documentation: str = None):
 		super().__init__(identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)
+
+	def __str__(self):
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"Configuration: {lib}.{self.Identifier}"
 
 
 @export

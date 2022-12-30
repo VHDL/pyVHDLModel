@@ -3204,7 +3204,8 @@ class MixinElseBranch(MixinBranch):
 class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
 	"""A ``GenerateBranch`` is a base-class for all branches in a generate statements."""
 
-	_alternativeLabel: str = None
+	_alternativeLabel:           Nullable[str]
+	_normalizedAlternativeLabel: Nullable[str]
 
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
@@ -3212,6 +3213,15 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
 		ConcurrentStatements.__init__(self, statements)
 
 		self._alternativeLabel = alternativeLabel
+		self._normalizedAlternativeLabel = alternativeLabel.lower() if alternativeLabel is not None else None
+
+	@property
+	def AlternativeLabel(self) -> Nullable[str]:
+		return self._alternativeLabel
+
+	@property
+	def NormalizedAlternativeLabel(self) -> Nullable[str]:
+		return self._normalizedAlternativeLabel
 
 
 @export
@@ -3247,7 +3257,7 @@ class GenerateStatement(ConcurrentStatement):
 class IfGenerateStatement(GenerateStatement):
 	_ifBranch:      IfGenerateBranch
 	_elsifBranches: List[ElsifGenerateBranch]
-	_elseBranch:    ElseGenerateBranch
+	_elseBranch:    Nullable[ElseGenerateBranch]
 
 	def __init__(self, label: str, ifBranch: IfGenerateBranch, elsifBranches: Iterable[ElsifGenerateBranch] = None, elseBranch: ElseGenerateBranch = None):
 		super().__init__(label)

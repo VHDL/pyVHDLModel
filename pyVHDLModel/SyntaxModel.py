@@ -2853,12 +2853,12 @@ class SequentialStatements:
 
 @export
 class Context(PrimaryUnit):
-	_references:        List[Union[LibraryClause, UseClause, ContextReference]]
+	_references:        List[ContextUnion]
 	_libraryReferences: List[LibraryClause]
 	_packageReferences: List[UseClause]
 	_contextReferences: List[ContextReference]
 
-	def __init__(self, identifier: str, references: Iterable[Union[LibraryClause, UseClause, ContextReference]] = None, documentation: str = None):
+	def __init__(self, identifier: str, references: Iterable[ContextUnion] = None, documentation: str = None):
 		super().__init__(identifier, documentation)
 
 		self._references = []

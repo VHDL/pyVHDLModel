@@ -2805,6 +2805,27 @@ class ConcurrentStatements:
 	def Statements(self) -> List[ConcurrentStatement]:
 		return self._statements
 
+	def Index(self):
+		for statement in self._statements:
+			if isinstance(statement, EntityInstantiation):
+				self._instantiations[statement.Label] = statement
+			elif isinstance(statement, ComponentInstantiation):
+				self._instantiations[statement.Label] = statement
+			elif isinstance(statement, ConfigurationInstantiation):
+				self._instantiations[statement.Label] = statement
+			elif isinstance(statement, ForGenerateStatement):
+				self._generates[statement.Label] = statement
+				statement.Index()
+			elif isinstance(statement, IfGenerateStatement):
+				self._generates[statement.Label] = statement
+				statement.Index()
+			elif isinstance(statement, CaseGenerateStatement):
+				self._generates[statement.Label] = statement
+				statement.Index()
+			elif isinstance(statement, ConcurrentBlockStatement):
+				self._hierarchy[statement.Label] = statement
+				statement.Index()
+
 
 @export
 class SequentialDeclarations:
@@ -3246,6 +3267,13 @@ class IfGenerateStatement(GenerateStatement):
 	@property
 	def ElseBranch(self) -> ElseGenerateBranch:
 		return self._elseBranch
+
+	def Index(self):
+		self._ifBranch.Index()
+		for branch in self._elsifBranches:
+			branch.Index()
+		if self._elseBranch is not None:
+			self._elseBranch.Index()
 
 
 @export

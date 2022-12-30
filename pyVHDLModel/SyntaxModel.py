@@ -3752,7 +3752,7 @@ class ForLoopStatement(LoopStatement):
 	_range:     Range
 
 	def __init__(self, loopIndex: str, range: Range, statements: Iterable[ConcurrentStatement] = None, label: str = None):
-		super().__init__(label, statements)
+		super().__init__(statements, label)
 
 		self._loopIndex = loopIndex
 		self._range = range
@@ -3769,7 +3769,7 @@ class ForLoopStatement(LoopStatement):
 @export
 class WhileLoopStatement(LoopStatement, MixinConditional):
 	def __init__(self, condition: ExpressionUnion, statements: Iterable[ConcurrentStatement] = None, label: str = None):
-		super().__init__(label, statements)
+		super().__init__(statements, label)
 		MixinConditional.__init__(self, condition)
 
 

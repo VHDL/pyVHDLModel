@@ -2668,8 +2668,8 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 	_procedures: Dict[str, Dict[str, Procedure]]
 
 	def __init__(self, identifier: str, contextItems: Iterable['Context'] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None, documentation: str = None):
-		super().__init__(identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
+		super().__init__(identifier, contextItems, documentation)
+		DesignUnitWithContextMixin.__init__(self)
 
 		self._genericItems =  [] if genericItems is None else [g for g in genericItems]
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
@@ -2714,8 +2714,8 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 	_declaredItems:     List
 
 	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable['Context'] = None, declaredItems: Iterable = None, documentation: str = None):
-		super().__init__(packageSymbol.Identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
+		super().__init__(packageSymbol.Identifier, contextItems, documentation)
+		DesignUnitWithContextMixin.__init__(self)
 
 		self._package = packageSymbol
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
@@ -2782,7 +2782,7 @@ class ConcurrentDeclarations:
 		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
 
 	@property
-	def DeclaredItems(self) -> List:
+	def DeclaredItems(self) -> List:  # FIXME: define list prefix type e.g. via Union
 		return self._declaredItems
 
 
@@ -2910,8 +2910,8 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, Co
 		statements: Iterable[ConcurrentStatement] = None,
 		documentation: str = None
 	):
-		super().__init__(identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
+		super().__init__(identifier, contextItems, documentation)
+		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarations.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
@@ -2937,12 +2937,10 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, Co
 class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, ConcurrentStatements):
 	_library:       Library = None
 	_entity:        EntitySymbol
-	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
-	_statements:    List['ConcurrentStatement']
 
 	def __init__(self, identifier: str, entity: EntitySymbol, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None, documentation: str = None):
-		super().__init__(identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
+		super().__init__(identifier, contextItems, documentation)
+		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarations.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
@@ -2960,10 +2958,6 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 	@Library.setter
 	def Library(self, library: 'Library') -> None:
 		self._library = library
-
-	@property
-	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
-		return self._declaredItems
 
 
 @export
@@ -2991,8 +2985,8 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 @export
 class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, documentation: str = None):
-		super().__init__(identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
+		super().__init__(identifier, contextItems, documentation)
+		DesignUnitWithContextMixin.__init__(self)
 
 
 @export

@@ -69,7 +69,11 @@ class ParenthesisName(Name):
 
 	def __init__(self, prefix: Name, associations: Iterable):
 		super().__init__("", prefix)
-		self._associations = [a for a in associations]
+
+		self._associations = []
+		for association in associations:
+			self._associations.append(association)
+			association._parent = self
 
 	@property
 	def Associations(self) -> List:
@@ -85,7 +89,11 @@ class IndexedName(Name):
 
 	def __init__(self, prefix: Name, indices: Iterable[ExpressionUnion]):
 		super().__init__("", prefix)
-		self._indices = [a for a in indices]
+
+		self._indices = []
+		for index in indices:
+			self._indices.append(index)
+			index._parent = self
 
 	@property
 	def Indices(self) -> List[ExpressionUnion]:
@@ -1061,7 +1069,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._entities[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
 
 	def _AddArchitecture(self, item: 'Architecture'):
@@ -1080,7 +1088,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			self._architectures[entityIdentifier] = {item.Identifier: item}
 
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
 	def _AddPackage(self, item: 'Package'):
 		if not isinstance(item, (Package, PackageInstantiation)):
@@ -1092,7 +1100,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._packages[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
 	def _AddPackageBody(self, item: 'PackageBody'):
 		if not isinstance(item, PackageBody):
@@ -1104,7 +1112,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._packageBodies[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
 	def _AddContext(self, item: 'Context'):
 		if not isinstance(item, Context):
@@ -1116,7 +1124,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._contexts[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
 	def _AddConfiguration(self, item: 'Configuration'):
 		if not isinstance(item, Configuration):
@@ -1128,7 +1136,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._configurations[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
 	def _AddVerificationUnit(self, item: VerificationUnit):
 		if not isinstance(item, VerificationUnit):
@@ -1140,7 +1148,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._verificationUnits[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
 	def _AddVerificationProperty(self, item: VerificationProperty):
 		if not isinstance(item, VerificationProperty):
@@ -1152,7 +1160,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._verificationProperties[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
 	def _AddVerificationMode(self, item: VerificationMode):
 		if not isinstance(item, VerificationMode):
@@ -1164,7 +1172,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._verificationModes[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
 	def _AddDesignUnit(self, item: DesignUnit):
 		identifier = item.NormalizedIdentifier
@@ -1201,7 +1209,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			raise TypeError(f"Parameter 'item' is not of type 'DesignUnit'.")
 
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
 	@property
 	def Path(self) -> Path:
@@ -1377,7 +1385,12 @@ class ProtectedType(FullType):
 
 	def __init__(self, identifier: str, methods: Union[List, Iterator] = None):
 		super().__init__(identifier)
-		self._methods = [] if methods is None else [m for m in methods]
+
+		self._methods = []
+		if methods is not None:
+			for method in methods:
+				self._methods.append(method)
+				method._parent = self
 
 	@property
 	def Methods(self) -> List[Union['Procedure', 'Function']]:
@@ -1390,7 +1403,12 @@ class ProtectedTypeBody(FullType):
 
 	def __init__(self, identifier: str, declaredItems: Union[List, Iterator] = None):
 		super().__init__(identifier)
-		self._methods = [] if declaredItems is None else [m for m in declaredItems]
+
+		self._methods = []
+		if declaredItems is not None:
+			for method in declaredItems:
+				self._methods.append(method)
+				method._parent = self
 
 	# FIXME: needs to be declared items or so
 	@property
@@ -1404,7 +1422,9 @@ class AccessType(FullType):
 
 	def __init__(self, identifier: str, designatedSubtype: SubtypeOrSymbol):
 		super().__init__(identifier)
+
 		self._designatedSubtype = designatedSubtype
+		designatedSubtype._parent = self
 
 	@property
 	def DesignatedSubtype(self):
@@ -1417,7 +1437,9 @@ class FileType(FullType):
 
 	def __init__(self, identifier: str, designatedSubtype: SubtypeOrSymbol):
 		super().__init__(identifier)
+
 		self._designatedSubtype = designatedSubtype
+		designatedSubtype._parent = self
 
 	@property
 	def DesignatedSubtype(self):
@@ -1431,7 +1453,11 @@ class EnumeratedType(ScalarType, DiscreteType):
 	def __init__(self, identifier: str, literals: Iterable['EnumerationLiteral']):
 		super().__init__(identifier)
 
-		self._literals = [] if literals is None else [lit for lit in literals]
+		self._literals = []
+		if literals is not None:
+			for literal in literals:
+				self._literals.append(literal)
+				literal._parent = self
 
 	@property
 	def Literals(self) -> List['EnumerationLiteral']:
@@ -1459,7 +1485,11 @@ class PhysicalType(RangedScalarType, NumericType):
 		super().__init__(identifier, rng)
 
 		self._primaryUnit = primaryUnit
-		self._secondaryUnits = [u for u in units]
+
+		self._secondaryUnits = []  # TODO: convert to dict
+		for unit in units:
+			self._secondaryUnits.append(unit)
+			unit[1]._parent = self
 
 	@property
 	def PrimaryUnit(self) -> str:
@@ -1478,7 +1508,10 @@ class ArrayType(CompositeType):
 	def __init__(self, identifier: str, indices: List, elementSubtype: SubtypeOrSymbol):
 		super().__init__(identifier)
 
-		self._dimensions =  []
+		self._dimensions = []
+
+		self._elementType = elementSubtype
+		# elementSubtype._parent = self   # FIXME: subtype is provided as None
 
 	@property
 	def Dimensions(self) -> List['Range']:
@@ -1498,6 +1531,7 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin):
 		MultipleNamedEntityMixin.__init__(self, identifiers)
 
 		self._subtype = subtype
+		subtype._parent = self
 
 	@property
 	def Subtype(self) -> SubtypeOrSymbol:
@@ -1511,7 +1545,11 @@ class RecordType(CompositeType):
 	def __init__(self, identifier: str, elements: Iterable[RecordTypeElement] = None):
 		super().__init__(identifier)
 
-		self._elements = [] if elements is None else [i for i in elements]
+		self._elements = []  # TODO: convert to dict
+		if elements is not None:
+			for element in elements:
+				self._elements.append(element)
+				element._parent = self
 
 	@property
 	def Elements(self) -> List[RecordTypeElement]:
@@ -1697,6 +1735,7 @@ class UnaryExpression(BaseExpression):
 		super().__init__()
 
 		self._operand = operand
+		# operand._parent = self  # FIXME: operand is provided as None
 
 	@property
 	def Operand(self):
@@ -1744,11 +1783,14 @@ class BinaryExpression(BaseExpression):
 	_leftOperand:  ExpressionUnion
 	_rightOperand: ExpressionUnion
 
-	def __init__(self, _leftOperand: ExpressionUnion, _rightOperand: ExpressionUnion):
+	def __init__(self, leftOperand: ExpressionUnion, rightOperand: ExpressionUnion):
 		super().__init__()
 
-		self._leftOperand = _leftOperand
-		self._rightOperand = _rightOperand
+		self._leftOperand = leftOperand
+		leftOperand._parent = self
+
+		self._rightOperand = rightOperand
+		rightOperand._parent = self
 
 	@property
 	def LeftOperand(self):
@@ -2003,7 +2045,10 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 		super().__init__()
 
 		self._operand = operand
+		operand._parent = self
+
 		self._subtype = subtype
+		subtype._parent = self
 
 	@property
 	def Operand(self):
@@ -2074,7 +2119,9 @@ class SubtypeAllocation(Allocation):
 
 	def __init__(self, subtype: Symbol):
 		super().__init__()
+
 		self._subtype = subtype
+		subtype._parent = self
 
 	@property
 	def Subtype(self) -> Symbol:
@@ -2090,7 +2137,9 @@ class QualifiedExpressionAllocation(Allocation):
 
 	def __init__(self, qualifiedExpression: QualifiedExpression):
 		super().__init__()
+
 		self._qualifiedExpression = qualifiedExpression
+		qualifiedExpression._parent = self
 
 	@property
 	def QualifiedExpression(self) -> QualifiedExpression:
@@ -2110,6 +2159,7 @@ class AggregateElement(ModelEntity):
 		super().__init__()
 
 		self._expression = expression
+		expression._parent = self
 
 	@property
 	def Expression(self):
@@ -2150,6 +2200,7 @@ class RangedAggregateElement(AggregateElement):
 		super().__init__(expression)
 
 		self._range = rng
+		rng._parent = self
 
 	@property
 	def Range(self) -> 'Range':
@@ -2170,6 +2221,7 @@ class NamedAggregateElement(AggregateElement):
 		super().__init__(expression)
 
 		self._name = name
+		name._parent = self
 
 	@property
 	def Name(self) -> Symbol:
@@ -2197,7 +2249,10 @@ class Aggregate(BaseExpression):
 	def __init__(self, elements: Iterable[AggregateElement]):
 		super().__init__()
 
-		self._elements = [e for e in elements]
+		self._elements = []
+		for element in elements:
+			self._elements.append(element)
+			element._parent = self
 
 	@property
 	def Elements(self) -> List[AggregateElement]:
@@ -2218,8 +2273,13 @@ class Range(ModelEntity):
 
 	def __init__(self, leftBound: ExpressionUnion, rightBound: ExpressionUnion, direction: Direction):
 		super().__init__()
+
 		self._leftBound = leftBound
+		leftBound._parent = self
+
 		self._rightBound = rightBound
+		rightBound._parent = self
+
 		self._direction = direction
 
 	@property
@@ -2269,6 +2329,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._subtype = subtype
+		subtype._parent = self
 
 	@property
 	def Subtype(self) -> SubtypeOrSymbol:
@@ -2283,6 +2344,8 @@ class WithDefaultExpressionMixin:
 
 	def __init__(self, defaultExpression: ExpressionUnion = None):
 		self._defaultExpression = defaultExpression
+		if defaultExpression is not None:
+			defaultExpression._parent = self
 
 	@property
 	def DefaultExpression(self) -> ExpressionUnion:
@@ -2387,6 +2450,7 @@ class Function(SubProgramm):
 
 	def __init__(self, identifier: str, isPure: bool = True, documentation: str = None):
 		super().__init__(identifier, documentation)
+
 		self._isPure = isPure
 
 	@property
@@ -2402,6 +2466,7 @@ class Method:
 
 	def __init__(self, protectedType: ProtectedType):
 		self._protectedType = protectedType
+		protectedType._parent = self
 
 	@property
 	def ProtectedType(self) -> ProtectedType:
@@ -2432,6 +2497,7 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._subtype = subtype
+		subtype._parent = self
 
 	@property
 	def Subtype(self):
@@ -2449,10 +2515,18 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		super().__init__()
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._identifiers = [i for i in identifiers]
+		self._identifiers = []  # TODO: convert to dict
+		for identifier in identifiers:
+			self._identifiers.append(identifier)
+			identifier._parent = self
+
 		self._attribute = attribute
+		attribute._parent = self
+
 		self._entityClass = entityClass
+
 		self._expression = expression
+		expression._parent = self
 
 	@property
 	def Identifiers(self) -> List[Name]:
@@ -2600,7 +2674,11 @@ class AssociationItem(ModelEntity):
 		super().__init__()
 
 		self._formal = formal
+		if formal is not None:
+			formal._parent = self
+
 		self._actual = actual
+		# actual._parent = self  # FIXME: actual is provided as None
 
 	@property
 	def Formal(self) -> Name:
@@ -2671,8 +2749,19 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 		super().__init__(identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)
 
-		self._genericItems =  [] if genericItems is None else [g for g in genericItems]
-		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		# TODO: extract to mixin
+		self._genericItems = []  # TODO: convert to dict
+		if genericItems is not None:
+			for generic in genericItems:
+				self._genericItems.append(generic)
+				generic._parent = self
+
+		# TODO: extract to mixin
+		self._declaredItems = []  # TODO: convert to dict
+		if declaredItems is not None:
+			for item in declaredItems:
+				self._declaredItems.append(item)
+				item._parent = self
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -2718,7 +2807,14 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 		DesignUnitWithContextMixin.__init__(self)
 
 		self._package = packageSymbol
-		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		packageSymbol._parent = self
+
+		# TODO: extract to mixin
+		self._declaredItems = []  # TODO: convert to dict
+		if declaredItems is not None:
+			for item in declaredItems:
+				self._declaredItems.append(item)
+				item._parent = self
 
 	@property
 	def Package(self) -> PackageSymbol:
@@ -2745,6 +2841,9 @@ class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
 		GenericEntityInstantiation.__init__(self)
 
 		self._packageReference = uninstantiatedPackage
+		# uninstantiatedPackage._parent = self    # FIXME: uninstantiatedPackage is provided as int
+
+		# TODO: extract to mixin
 		self._genericAssociations = []
 
 	@property
@@ -2779,10 +2878,15 @@ class ConcurrentDeclarations:
 	_declaredItems: List
 
 	def __init__(self, declaredItems: Iterable = None):
-		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		# TODO: extract to mixin
+		self._declaredItems = []  # TODO: convert to dict
+		if declaredItems is not None:
+			for item in declaredItems:
+				self._declaredItems.append(item)
+				item._parent = self
 
 	@property
-	def DeclaredItems(self) -> List:  # FIXME: define list prefix type e.g. via Union
+	def DeclaredItems(self) -> List:
 		return self._declaredItems
 
 
@@ -2795,11 +2899,16 @@ class ConcurrentStatements:
 	_hierarchy:      Dict[str, Union['ConcurrentBlockStatement', 'GenerateStatement']]
 
 	def __init__(self, statements: Iterable[ConcurrentStatement] = None):
-		self._statements = [] if statements is None else [s for s in statements]
+		self._statements = []
 
 		self._instantiations = {}
 		self._generates = {}
 		self._hierarchy = {}
+
+		if statements is not None:
+			for statement in statements:
+				self._statements.append(statement)
+				statement._parent = self
 
 	@property
 	def Statements(self) -> List[ConcurrentStatement]:
@@ -2832,7 +2941,12 @@ class SequentialDeclarations:
 	_declaredItems: List
 
 	def __init__(self, declaredItems: Iterable):
-		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		# TODO: extract to mixin
+		self._declaredItems = []  # TODO: convert to dict
+		if declaredItems is not None:
+			for item in declaredItems:
+				self._declaredItems.append(item)
+				item._parent = self
 
 	@property
 	def DeclaredItems(self) -> List:
@@ -2844,7 +2958,12 @@ class SequentialStatements:
 	_statements: List[SequentialStatement]
 
 	def __init__(self, statements: Iterable[SequentialStatement] = None):
-		self._statements = [] if statements is None else [s for s in statements]
+		# TODO: extract to mixin
+		self._statements = []
+		if statements is not None:
+			for item in statements:
+				self._statements.append(item)
+				item._parent = self
 
 	@property
 	def Statements(self) -> List[SequentialStatement]:
@@ -2869,6 +2988,7 @@ class Context(PrimaryUnit):
 		if references is not None:
 			for reference in references:
 				self._references.append(reference)
+				reference._parent = self
 
 				if isinstance(reference, LibraryClause):
 					self._libraryReferences.append(reference)
@@ -2915,9 +3035,21 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, Co
 		ConcurrentDeclarations.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
-		self._genericItems  = [] if genericItems is None else [g for g in genericItems]
-		self._portItems     = [] if portItems is None else [p for p in portItems]
-		self._architectures = []
+		# TODO: extract to mixin
+		self._genericItems = []
+		if genericItems is not None:
+			for item in genericItems:
+				self._genericItems.append(item)
+				item._parent = self
+
+		# TODO: extract to mixin
+		self._portItems = []
+		if portItems is not None:
+			for item in portItems:
+				self._portItems.append(item)
+				item._parent = self
+
+		self._architectures = {}
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -2944,7 +3076,8 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		ConcurrentDeclarations.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
-		self._entity        = entity
+		self._entity = entity
+		entity._parent = self
 
 	@property
 	def Entity(self) -> EntitySymbol:
@@ -2970,8 +3103,19 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._genericItems      = [] if genericItems is None else [g for g in genericItems]
-		self._portItems         = [] if portItems is None else [p for p in portItems]
+		# TODO: extract to mixin
+		self._genericItems = []
+		if genericItems is not None:
+			for item in genericItems:
+				self._genericItems.append(item)
+				item._parent = self
+
+		# TODO: extract to mixin
+		self._portItems = []
+		if portItems is not None:
+			for item in portItems:
+				self._portItems.append(item)
+				item._parent = self
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -2997,8 +3141,19 @@ class Instantiation(ConcurrentStatement):
 	def __init__(self, label: str, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
 		super().__init__(label)
 
-		self._genericAssociations = [] if genericAssociations is None else [g for g in genericAssociations]
-		self._portAssociations =    [] if portAssociations is None else [p for p in portAssociations]
+		# TODO: extract to mixin
+		self._genericAssociations = []
+		if genericAssociations is not None:
+			for association in genericAssociations:
+				self._genericAssociations.append(association)
+				association._parent = self
+
+		# TODO: extract to mixin
+		self._portAssociations = []
+		if portAssociations is not None:
+			for association in portAssociations:
+				self._portAssociations.append(association)
+				association._parent = self
 
 	@property
 	def GenericAssociations(self) -> List[AssociationItem]:
@@ -3011,12 +3166,13 @@ class Instantiation(ConcurrentStatement):
 
 @export
 class ComponentInstantiation(Instantiation):
-	_component: Name
+	_component: ComponentInstantiationSymbol
 
-	def __init__(self, label: str, componentName: Name, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
+	def __init__(self, label: str, componentSymbol: ComponentInstantiationSymbol, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
 		super().__init__(label, genericAssociations, portAssociations)
 
-		self._component = componentName
+		self._component = componentSymbol
+		componentSymbol._parent = self
 
 	@property
 	def Component(self) -> Name:
@@ -3025,14 +3181,18 @@ class ComponentInstantiation(Instantiation):
 
 @export
 class EntityInstantiation(Instantiation):
-	_entity:       Name
-	_architecture: Name
+	_entity:       EntityInstantiationSymbol
+	_architecture: ArchitectureSymbol
 
-	def __init__(self, label: str, entityName: Name, architectureName: Name = None, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
+	def __init__(self, label: str, entitySymbol: EntityInstantiationSymbol, architectureSymbol: ArchitectureSymbol = None, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
 		super().__init__(label, genericAssociations, portAssociations)
 
-		self._entity = entityName
-		self._architecture = architectureName
+		self._entity = entitySymbol
+		entitySymbol._parent = self
+
+		self._architecture = architectureSymbol
+		if architectureSymbol is not None:
+			architectureSymbol._parent = self
 
 	@property
 	def Entity(self) -> Name:
@@ -3045,12 +3205,13 @@ class EntityInstantiation(Instantiation):
 
 @export
 class ConfigurationInstantiation(Instantiation):
-	_configuration: Name
+	_configuration: ConfigurationInstantiationSymbol
 
-	def __init__(self, label: str, configurationName: Name, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
+	def __init__(self, label: str, configurationSymbol: ConfigurationInstantiationSymbol, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
 		super().__init__(label, genericAssociations, portAssociations)
 
-		self._configuration = configurationName
+		self._configuration = configurationSymbol
+		configurationSymbol._parent = self
 
 	@property
 	def Configuration(self) -> Name:
@@ -3074,8 +3235,13 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 		SequentialStatements.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		if sensitivityList is not None:
-			self._sensitivityList = [s for s in sensitivityList]
+		if sensitivityList is None:
+			self._sensitivityList = None
+		else:
+			self._sensitivityList = []  # TODO: convert to dict
+			for signalSymbol in sensitivityList:
+				self._sensitivityList.append(signalSymbol)
+				# signalSymbol._parent = self  # FIXME: currently str are provided
 
 	@property
 	def SensitivityList(self) -> List[Name]:
@@ -3089,7 +3255,14 @@ class ProcedureCall:
 
 	def __init__(self, procedureName: Name, parameterMappings: Iterable[ParameterAssociationItem] = None):
 		self._procedure = procedureName
-		self._parameterMappings = [] if parameterMappings is None else [m for m in parameterMappings]
+		procedureName._parent = self
+
+		# TODO: extract to mixin
+		self._parameterMappings = []
+		if parameterMappings is not None:
+			for parameterMapping in parameterMappings:
+				self._parameterMappings.append(parameterMapping)
+				parameterMapping._parent = self
 
 	@property
 	def Procedure(self) -> Name:
@@ -3141,9 +3314,13 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntit
 		ConcurrentStatements.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._portItems     = [] if portItems is None else [i for i in portItems]
+		# TODO: extract to mixin
+		self._portItems = []
+		if portItems is not None:
+			for item in portItems:
+				self._portItems.append(item)
+				item._parent = self
 
-	# TODO: Extract to MixIn?
 	@property
 	def PortItems(self) -> List[PortInterfaceItem]:
 		return self._portItems
@@ -3157,6 +3334,8 @@ class MixinConditional:
 
 	def __init__(self, condition: ExpressionUnion = None):
 		self._condition = condition
+		if condition is not None:
+			condition._parent = self
 
 	@property
 	def Condition(self) -> ExpressionUnion:
@@ -3257,8 +3436,19 @@ class IfGenerateStatement(GenerateStatement):
 		super().__init__(label)
 
 		self._ifBranch = ifBranch
-		self._elsifBranches = [] if elsifBranches is None else [b for b in elsifBranches]
-		self._elseBranch = elseBranch
+		ifBranch._parent = self
+
+		self._elsifBranches = []
+		if elsifBranches is not None:
+			for branch in elsifBranches:
+				self._elsifBranches.append(branch)
+				branch._parent = self
+
+		if elseBranch is not None:
+			self._elseBranch = elseBranch
+			elseBranch._parent = self
+		else:
+			self._elseBranch = None
 
 	@property
 	def IfBranch(self) -> IfGenerateBranch:
@@ -3331,8 +3521,14 @@ class GenerateCase(ConcurrentCase):
 	def __init__(self, choices: Iterable[ConcurrentChoice], declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
 
-		self._choices = [c for c in choices]
+		# TODO: move to parent or grandparent
+		self._choices = []
+		if choices is not None:
+			for choice in choices:
+				self._choices.append(choice)
+				choice._parent = self
 
+	# TODO: move to parent or grandparent
 	@property
 	def Choices(self) -> List[ConcurrentChoice]:
 		return self._choices
@@ -3355,6 +3551,7 @@ class IndexedGenerateChoice(ConcurrentChoice):
 		super().__init__()
 
 		self._expression = expression
+		expression._parent = self
 
 	@property
 	def Expression(self) -> ExpressionUnion:
@@ -3372,6 +3569,7 @@ class RangedGenerateChoice(ConcurrentChoice):
 		super().__init__()
 
 		self._range = rng
+		rng._parent = self
 
 	@property
 	def Range(self) -> 'Range':
@@ -3390,7 +3588,14 @@ class CaseGenerateStatement(GenerateStatement):
 		super().__init__(label)
 
 		self._expression = expression
-		self._cases      = [] if cases is None else [c for c in cases]
+		expression._parent = self
+
+		# TODO: create a mixin for things with cases
+		self._cases = []
+		if cases is not None:
+			for case in cases:
+				self._cases.append(case)
+				case._parent = self
 
 	@property
 	def SelectExpression(self) -> ExpressionUnion:
@@ -3410,13 +3615,15 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarations, Concurrent
 	_loopIndex: str
 	_range:     Range
 
-	def __init__(self, label: str, loopIndex: str, range: Range, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
+	def __init__(self, label: str, loopIndex: str, rng: Range, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
 		super().__init__(label)
 		ConcurrentDeclarations.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
 		self._loopIndex = loopIndex
-		self._range = range
+
+		self._range = rng
+		rng._parent = self
 
 	@property
 	def LoopIndex(self) -> str:
@@ -3435,6 +3642,7 @@ class Assignment:
 
 	def __init__(self, target: Name):
 		self._target = target
+		target._parent = self
 
 	@property
 	def Target(self) -> Name:
@@ -3456,6 +3664,7 @@ class VariableAssignment(Assignment):
 		super().__init__(target)
 
 		self._expression = expression
+		expression._parent = self
 
 	@property
 	def Expression(self) -> ExpressionUnion:
@@ -3471,7 +3680,11 @@ class WaveformElement(ModelEntity):
 		super().__init__()
 
 		self._expression = expression
+		expression._parent = self
+
 		self._after = after
+		if after is not None:
+			after._parent = self
 
 	@property
 	def Expression(self) -> ExpressionUnion:
@@ -3496,7 +3709,12 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
 	def __init__(self, label: str, target: Name, waveform: Iterable[WaveformElement]):
 		super().__init__(label, target)
 
-		self._waveform = [e for e in waveform]
+		# TODO: extract to mixin
+		self._waveform = []
+		if waveform is not None:
+			for waveformElement in waveform:
+				self._waveform.append(waveformElement)
+				waveformElement._parent = self
 
 	@property
 	def Waveform(self) -> List[WaveformElement]:
@@ -3507,7 +3725,6 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
 class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment):
 	def __init__(self, label: str, target: Name, expression: ExpressionUnion):
 		super().__init__(label, target)
-
 
 
 @export
@@ -3531,7 +3748,12 @@ class SequentialSimpleSignalAssignment(SequentialSignalAssignment):
 	def __init__(self, target: Name, waveform: Iterable[WaveformElement], label: str = None):
 		super().__init__(target, label)
 
-		self._waveform = [e for e in waveform]
+		# TODO: extract to mixin
+		self._waveform = []
+		if waveform is not None:
+			for waveformElement in waveform:
+				self._waveform.append(waveformElement)
+				waveformElement._parent = self
 
 	@property
 	def Waveform(self) -> List[WaveformElement]:
@@ -3554,7 +3776,12 @@ class MixinReportStatement:
 
 	def __init__(self, message: ExpressionUnion = None, severity: ExpressionUnion = None):
 		self._message = message
+		if message is not None:
+			message._parent = self
+
 		self._severity = severity
+		if severity is not None:
+			severity._parent = self
 
 	@property
 	def Message(self) -> ExpressionUnion:
@@ -3575,6 +3802,8 @@ class MixinAssertStatement(MixinReportStatement):
 		super().__init__(message, severity)
 
 		self._condition = condition
+		if condition is not None:
+			condition._parent = self
 
 	@property
 	def Condition(self) -> ExpressionUnion:
@@ -3647,8 +3876,19 @@ class IfStatement(CompoundStatement):
 		super().__init__(label)
 
 		self._ifBranch = ifBranch
-		self._elsifBranches = [] if elsifBranches is None else [b for b in elsifBranches]
-		self._elseBranch = elseBranch
+		ifBranch._parent = self
+
+		self._elsifBranches = []
+		if elsifBranches is not None:
+			for branch in elsifBranches:
+				self._elsifBranches.append(branch)
+				branch._parent = self
+
+		if elseBranch is not None:
+			self._elseBranch = elseBranch
+			elseBranch._parent = self
+		else:
+			self._elseBranch = None
 
 	@property
 	def IfBranch(self) -> IfBranch:
@@ -3670,7 +3910,11 @@ class Case(SequentialCase):
 	def __init__(self, choices: Iterable[SequentialChoice], statements: Iterable[SequentialStatement] = None):
 		super().__init__(statements)
 
-		self._choices = [c for c in choices]
+		self._choices = []
+		if choices is not None:
+			for choice in choices:
+				self._choices.append(choice)
+				choice._parent = self
 
 	@property
 	def Choices(self) -> List[SequentialChoice]:
@@ -3694,6 +3938,7 @@ class IndexedChoice(SequentialChoice):
 		super().__init__()
 
 		self._expression = expression
+		# expression._parent = self    # FIXME: received None
 
 	@property
 	def Expression(self) -> ExpressionUnion:
@@ -3711,6 +3956,7 @@ class RangedChoice(SequentialChoice):
 		super().__init__()
 
 		self._range = rng
+		rng._parent = self
 
 	@property
 	def Range(self) -> 'Range':
@@ -3729,7 +3975,13 @@ class CaseStatement(CompoundStatement):
 		super().__init__(label)
 
 		self._expression = expression
-		self._cases      = [] if cases is None else [c for c in cases]
+		expression._parent = self
+
+		self._cases = []
+		if cases is not None:
+			for case in cases:
+				self._cases.append(case)
+				case._parent = self
 
 	@property
 	def SelectExpression(self) -> ExpressionUnion:
@@ -3759,11 +4011,13 @@ class ForLoopStatement(LoopStatement):
 	_loopIndex: str
 	_range:     Range
 
-	def __init__(self, loopIndex: str, range: Range, statements: Iterable[ConcurrentStatement] = None, label: str = None):
+	def __init__(self, loopIndex: str, rng: Range, statements: Iterable[ConcurrentStatement] = None, label: str = None):
 		super().__init__(statements, label)
 
 		self._loopIndex = loopIndex
-		self._range = range
+
+		self._range = rng
+		rng._parent = self
 
 	@property
 	def LoopIndex(self) -> str:
@@ -3823,9 +4077,14 @@ class WaitStatement(SequentialStatement, MixinConditional):
 		if sensitivityList is None:
 			self._sensitivityList = None
 		else:
-			self._sensitivityList = [i for i in sensitivityList]
+			self._sensitivityList = []  # TODO: convert to dict
+			for signalSymbol in sensitivityList:
+				self._sensitivityList.append(signalSymbol)
+				signalSymbol._parent = self
 
 		self._timeout = timeout
+		if timeout is not None:
+			timeout._parent = self
 
 	@property
 	def SensitivityList(self) -> List[Name]:

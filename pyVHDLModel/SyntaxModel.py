@@ -2909,6 +2909,7 @@ class ConcurrentStatements:
 	_statements:     List[ConcurrentStatement]
 
 	_instantiations: Dict[str, 'Instantiation']  # TODO: add another instantiation class level for entity/configuration/component inst.
+	_blocks:         Dict[str, 'ConcurrentBlockStatement']
 	_generates:      Dict[str, 'GenerateStatement']
 	_hierarchy:      Dict[str, Union['ConcurrentBlockStatement', 'GenerateStatement']]
 
@@ -2916,6 +2917,7 @@ class ConcurrentStatements:
 		self._statements = []
 
 		self._instantiations = {}
+		self._blocks = {}
 		self._generates = {}
 		self._hierarchy = {}
 

@@ -39,7 +39,7 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2022, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.20.1"
+__version__ =   "0.20.2"
 
 
 from enum            import unique, Enum, Flag, auto
@@ -50,13 +50,8 @@ from typing          import List, Iterable, Union, Optional as Nullable, Dict, c
 from pyTooling.Decorators import export
 
 
-SimpleOrAttribute =     Union['SimpleName',    'AttributeName']
-
 SubtypeOrSymbol =       Union['Subtype',       'SubtypeSymbol']
 
-ConstantOrSymbol =      Union['Constant',      'ConstantSymbol']
-VariableOrSymbol =      Union['Variable',      'VariableSymbol']
-SignalOrSymbol =        Union['Signal',        'SignalSymbol']
 
 ConstraintUnion = Union[
 	'RangeExpression',
@@ -69,9 +64,7 @@ ExpressionUnion = Union[
 	'QualifiedExpression',
 	'FunctionCall',
 	'TypeConversion',
-	ConstantOrSymbol,
-	VariableOrSymbol,
-	SignalOrSymbol,
+	# ConstantOrSymbol,     TODO: ObjectSymbol
 	'Literal',
 ]
 

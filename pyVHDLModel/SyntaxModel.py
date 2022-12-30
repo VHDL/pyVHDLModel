@@ -1013,7 +1013,7 @@ class Library(ModelEntity, NamedEntityMixin):
 	def IndexArchitectures(self):
 		for architectures in self._architectures.values():
 			for architecture in architectures.values():
-				architecture.IndexArchitecture()
+				architecture.Index()
 
 	def __str__(self):
 		return f"VHDL Library: '{self.Identifier}'"
@@ -2853,12 +2853,12 @@ class SequentialStatements:
 
 @export
 class Context(PrimaryUnit):
-	_references:        List[Union[LibraryClause, UseClause, ContextReference]]
+	_references:        List[ContextUnion]
 	_libraryReferences: List[LibraryClause]
 	_packageReferences: List[UseClause]
 	_contextReferences: List[ContextReference]
 
-	def __init__(self, identifier: str, references: Iterable[Union[LibraryClause, UseClause, ContextReference]] = None, documentation: str = None):
+	def __init__(self, identifier: str, references: Iterable[ContextUnion] = None, documentation: str = None):
 		super().__init__(identifier, documentation)
 
 		self._references = []
@@ -3405,6 +3405,10 @@ class CaseGenerateStatement(GenerateStatement):
 	@property
 	def Cases(self) -> List[GenerateCase]:
 		return self._cases
+
+	def Index(self):
+		for case in self._cases:
+			case.Index()
 
 
 @export

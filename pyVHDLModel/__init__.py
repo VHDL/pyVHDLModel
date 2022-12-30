@@ -44,13 +44,12 @@ __version__ =   "0.21.0"
 
 from enum            import unique, Enum, Flag, auto
 
-from pyTooling.Graph import Vertex
-from typing          import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple, Any
+from typing          import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple, Any, Type
 
 from pyTooling.Decorators import export
+from pyTooling.Graph import Vertex
 
-
-SubtypeOrSymbol =       Union['Subtype',       'SubtypeSymbol']
+SubtypeOrSymbol = Union['Subtype',       'SubtypeSymbol']
 
 
 ConstraintUnion = Union[
@@ -437,6 +436,8 @@ class ModelEntity:
 	def __init__(self):
 		"""Initializes a VHDL model entity."""
 
+		self._parent = None
+
 	@property
 	def Parent(self) -> 'ModelEntity':
 		"""
@@ -445,6 +446,13 @@ class ModelEntity:
 		:returns: Parent entity.
 		"""
 		return self._parent
+
+	def GetAncestor(self, type: Type) -> 'ModelEntity':
+		parent = self._parent
+		while not isinstance(parent, type):
+			parent = parent._parent
+
+		return parent
 
 
 @export

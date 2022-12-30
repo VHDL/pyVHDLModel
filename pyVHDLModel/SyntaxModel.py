@@ -2592,183 +2592,6 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
 
 
 @export
-class Context(PrimaryUnit):
-	_references:        List[Union[LibraryClause, UseClause, ContextReference]]
-	_libraryReferences: List[LibraryClause]
-	_packageReferences: List[UseClause]
-	_contextReferences: List[ContextReference]
-
-	def __init__(self, identifier: str, references: Iterable[Union[LibraryClause, UseClause, ContextReference]] = None, documentation: str = None):
-		super().__init__(identifier, documentation)
-
-		self._references = []
-		self._libraryReferences = []
-		self._packageReferences = []
-		self._contextReferences = []
-
-		if references is not None:
-			for reference in references:
-				self._references.append(reference)
-
-				if isinstance(reference, LibraryClause):
-					self._libraryReferences.append(reference)
-				elif isinstance(reference, UseClause):
-					self._packageReferences.append(reference)
-				elif isinstance(reference, ContextReference):
-					self._contextReferences.append(reference)
-				else:
-					raise Exception()
-
-	@property
-	def LibraryReferences(self) -> List[LibraryClause]:
-		return self._libraryReferences
-
-	@property
-	def PackageReferences(self) -> List[UseClause]:
-		return self._packageReferences
-
-	@property
-	def ContextReferences(self) -> List[ContextReference]:
-		return self._contextReferences
-
-
-@export
-class Entity(PrimaryUnit, DesignUnitWithContextMixin):
-	_genericItems:  List[GenericInterfaceItem]
-	_portItems:     List[PortInterfaceItem]
-	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
-	_statements:    List['ConcurrentStatement']
-	_architectures: List['Architecture']
-
-	def __init__(
-		self,
-		identifier: str,
-		contextItems: Iterable[ContextUnion] = None,
-		genericItems: Iterable[GenericInterfaceItem] = None,
-		portItems: Iterable[PortInterfaceItem] = None,
-		declaredItems: Iterable = None,
-		statements: Iterable['ConcurrentStatement'] = None,
-		documentation: str = None
-	):
-		super().__init__(identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
-
-		self._genericItems  = [] if genericItems is None else [g for g in genericItems]
-		self._portItems     = [] if portItems is None else [p for p in portItems]
-		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
-		self._statements    = [] if statements is None else [s for s in statements]
-		self._architectures = []
-
-	@property
-	def GenericItems(self) -> List[GenericInterfaceItem]:
-		return self._genericItems
-
-	@property
-	def PortItems(self) -> List[PortInterfaceItem]:
-		return self._portItems
-
-	@property
-	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
-		return self._declaredItems
-
-	@property
-	def Statements(self) -> List['ConcurrentStatement']:
-		return self._statements
-
-	@property
-	def Architectures(self) -> List['Architecture']:
-		return self._architectures
-
-
-@export
-class Architecture(SecondaryUnit, DesignUnitWithContextMixin):
-	_library:       Library = None
-	_entity:        EntitySymbol
-	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
-	_statements:    List['ConcurrentStatement']
-
-	_instantiations: Dict[str, 'Instantiation']  # TODO: add another instantiation class level for entity/configuration/component inst.
-	_generates:      Dict[str, 'GenerateStatement']
-	_hierarchy:      Dict[str, Union['ConcurrentBlockStatement', 'GenerateStatement']]
-
-	def __init__(self, identifier: str, entity: EntitySymbol, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None, documentation: str = None):
-		super().__init__(identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
-
-		self._entity        = entity
-		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
-		self._statements    = [] if statements is None else [s for s in statements]
-
-		self._instantiations = {}
-		self._generates = {}
-		self._hierarchy = {}
-
-	@property
-	def Entity(self) -> EntitySymbol:
-		return self._entity
-
-	@property
-	def Library(self) -> 'Library':
-		return self._library
-
-	@Library.setter
-	def Library(self, library: 'Library') -> None:
-		self._library = library
-
-	@property
-	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
-		return self._declaredItems
-
-	@property
-	def Statements(self) -> List['ConcurrentStatement']:
-		return self._statements
-
-	def IndexArchitecture(self):
-		for statement in self._statements:
-			if isinstance(statement, EntityInstantiation):
-				self._instantiations[statement.Label] = statement
-			elif isinstance(statement, ComponentInstantiation):
-				self._instantiations[statement.Label] = statement
-			elif isinstance(statement, ConfigurationInstantiation):
-				self._instantiations[statement.Label] = statement
-			elif isinstance(statement, ForGenerateStatement):
-				self._generates[statement.Label] = statement
-			elif isinstance(statement, IfGenerateStatement):
-				self._generates[statement.Label] = statement
-			elif isinstance(statement, CaseGenerateStatement):
-				self._generates[statement.Label] = statement
-
-
-@export
-class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
-	_genericItems:      List[GenericInterfaceItem]
-	_portItems:         List[PortInterfaceItem]
-
-	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItem] = None, portItems: Iterable[PortInterfaceItem] = None, documentation: str = None):
-		super().__init__()
-		NamedEntityMixin.__init__(self, identifier)
-		DocumentedEntityMixin.__init__(self, documentation)
-
-		self._genericItems      = [] if genericItems is None else [g for g in genericItems]
-		self._portItems         = [] if portItems is None else [p for p in portItems]
-
-	@property
-	def GenericItems(self) -> List[GenericInterfaceItem]:
-		return self._genericItems
-
-	@property
-	def PortItems(self) -> List[PortInterfaceItem]:
-		return self._portItems
-
-
-@export
-class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
-	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, documentation: str = None):
-		super().__init__(identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
-
-
-@export
 class AssociationItem(ModelEntity):
 	_formal: Name
 	_actual: ExpressionUnion
@@ -2844,7 +2667,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 	_functions:  Dict[str, Dict[str, Function]]
 	_procedures: Dict[str, Dict[str, Procedure]]
 
-	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None, documentation: str = None):
+	def __init__(self, identifier: str, contextItems: Iterable['Context'] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(identifier, documentation)
 		DesignUnitWithContextMixin.__init__(self, contextItems)
 
@@ -2890,7 +2713,7 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 	_package:           PackageSymbol
 	_declaredItems:     List
 
-	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, documentation: str = None):
+	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable['Context'] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(packageSymbol.Identifier, documentation)
 		DesignUnitWithContextMixin.__init__(self, contextItems)
 
@@ -2950,7 +2773,7 @@ class SequentialStatement(Statement):
 	"""A ``SequentialStatement`` is a base-class for all sequential statements."""
 
 
-# FIXME: Why not used in entity, architecture, package, package body, block-statement, generate-statements
+# FIXME: Why not used in package, package body
 @export
 class ConcurrentDeclarations:
 	_declaredItems: List
@@ -2963,13 +2786,20 @@ class ConcurrentDeclarations:
 		return self._declaredItems
 
 
-# FIXME: Why not used in entity, architecture, block-statement, generate-statements
 @export
 class ConcurrentStatements:
-	_statements: List[ConcurrentStatement]
+	_statements:     List[ConcurrentStatement]
+
+	_instantiations: Dict[str, 'Instantiation']  # TODO: add another instantiation class level for entity/configuration/component inst.
+	_generates:      Dict[str, 'GenerateStatement']
+	_hierarchy:      Dict[str, Union['ConcurrentBlockStatement', 'GenerateStatement']]
 
 	def __init__(self, statements: Iterable[ConcurrentStatement] = None):
 		self._statements = [] if statements is None else [s for s in statements]
+
+		self._instantiations = {}
+		self._generates = {}
+		self._hierarchy = {}
 
 	@property
 	def Statements(self) -> List[ConcurrentStatement]:
@@ -2998,6 +2828,150 @@ class SequentialStatements:
 	@property
 	def Statements(self) -> List[SequentialStatement]:
 		return self._statements
+
+
+@export
+class Context(PrimaryUnit):
+	_references:        List[Union[LibraryClause, UseClause, ContextReference]]
+	_libraryReferences: List[LibraryClause]
+	_packageReferences: List[UseClause]
+	_contextReferences: List[ContextReference]
+
+	def __init__(self, identifier: str, references: Iterable[Union[LibraryClause, UseClause, ContextReference]] = None, documentation: str = None):
+		super().__init__(identifier, documentation)
+
+		self._references = []
+		self._libraryReferences = []
+		self._packageReferences = []
+		self._contextReferences = []
+
+		if references is not None:
+			for reference in references:
+				self._references.append(reference)
+
+				if isinstance(reference, LibraryClause):
+					self._libraryReferences.append(reference)
+				elif isinstance(reference, UseClause):
+					self._packageReferences.append(reference)
+				elif isinstance(reference, ContextReference):
+					self._contextReferences.append(reference)
+				else:
+					raise Exception()
+
+	@property
+	def LibraryReferences(self) -> List[LibraryClause]:
+		return self._libraryReferences
+
+	@property
+	def PackageReferences(self) -> List[UseClause]:
+		return self._packageReferences
+
+	@property
+	def ContextReferences(self) -> List[ContextReference]:
+		return self._contextReferences
+
+
+@export
+class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, ConcurrentStatements):
+	_genericItems:  List[GenericInterfaceItem]
+	_portItems:     List[PortInterfaceItem]
+	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
+	_statements:    List['ConcurrentStatement']
+	_architectures: List['Architecture']
+
+	def __init__(
+		self,
+		identifier: str,
+		contextItems: Iterable[ContextUnion] = None,
+		genericItems: Iterable[GenericInterfaceItem] = None,
+		portItems: Iterable[PortInterfaceItem] = None,
+		declaredItems: Iterable = None,
+		statements: Iterable[ConcurrentStatement] = None,
+		documentation: str = None
+	):
+		super().__init__(identifier, documentation)
+		DesignUnitWithContextMixin.__init__(self, contextItems)
+		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentStatements.__init__(self, statements)
+
+		self._genericItems  = [] if genericItems is None else [g for g in genericItems]
+		self._portItems     = [] if portItems is None else [p for p in portItems]
+		self._architectures = []
+
+	@property
+	def GenericItems(self) -> List[GenericInterfaceItem]:
+		return self._genericItems
+
+	@property
+	def PortItems(self) -> List[PortInterfaceItem]:
+		return self._portItems
+
+	# TODO: convert to dict
+	@property
+	def Architectures(self) -> List['Architecture']:
+		return self._architectures
+
+
+@export
+class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, ConcurrentStatements):
+	_library:       Library = None
+	_entity:        EntitySymbol
+	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
+	_statements:    List['ConcurrentStatement']
+
+	def __init__(self, identifier: str, entity: EntitySymbol, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None, documentation: str = None):
+		super().__init__(identifier, documentation)
+		DesignUnitWithContextMixin.__init__(self, contextItems)
+		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentStatements.__init__(self, statements)
+
+		self._entity        = entity
+
+	@property
+	def Entity(self) -> EntitySymbol:
+		return self._entity
+
+	# TODO: move to Design Unit
+	@property
+	def Library(self) -> 'Library':
+		return self._library
+
+	@Library.setter
+	def Library(self, library: 'Library') -> None:
+		self._library = library
+
+	@property
+	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
+		return self._declaredItems
+
+
+@export
+class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
+	_genericItems:      List[GenericInterfaceItem]
+	_portItems:         List[PortInterfaceItem]
+
+	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItem] = None, portItems: Iterable[PortInterfaceItem] = None, documentation: str = None):
+		super().__init__()
+		NamedEntityMixin.__init__(self, identifier)
+		DocumentedEntityMixin.__init__(self, documentation)
+
+		self._genericItems      = [] if genericItems is None else [g for g in genericItems]
+		self._portItems         = [] if portItems is None else [p for p in portItems]
+
+	@property
+	def GenericItems(self) -> List[GenericInterfaceItem]:
+		return self._genericItems
+
+	@property
+	def PortItems(self) -> List[PortInterfaceItem]:
+		return self._portItems
+
+
+@export
+class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
+	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, documentation: str = None):
+		super().__init__(identifier, documentation)
+		DesignUnitWithContextMixin.__init__(self, contextItems)
 
 
 @export
@@ -3148,26 +3122,16 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntit
 		super().__init__(label)
 		BlockStatement.__init__(self)
 		LabeledEntityMixin.__init__(self, label)
-		ConcurrentDeclarations.__init__(self)
-		ConcurrentStatements.__init__(self)
+		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentStatements.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._portItems     = [] if portItems is None else [i for i in portItems]
-		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
-		self._statements    = [] if statements is None else [s for s in statements]
 
-	# Extract to MixIn?
+	# TODO: Extract to MixIn?
 	@property
 	def PortItems(self) -> List[PortInterfaceItem]:
 		return self._portItems
-
-	@property
-	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
-		return self._declaredItems
-
-	@property
-	def Statements(self) -> List['ConcurrentStatement']:
-		return self._statements
 
 
 @export

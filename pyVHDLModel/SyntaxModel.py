@@ -2342,7 +2342,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 class WithDefaultExpressionMixin:
 	"""A ``WithDefaultExpression`` is a mixin class for all objects declarations accepting default expressions."""
 
-	_defaultExpression: ExpressionUnion
+	_defaultExpression: Nullable[ExpressionUnion]
 
 	def __init__(self, defaultExpression: ExpressionUnion = None):
 		self._defaultExpression = defaultExpression
@@ -2350,7 +2350,7 @@ class WithDefaultExpressionMixin:
 			defaultExpression._parent = self
 
 	@property
-	def DefaultExpression(self) -> ExpressionUnion:
+	def DefaultExpression(self) -> Nullable[ExpressionUnion]:
 		return self._defaultExpression
 
 
@@ -3492,7 +3492,7 @@ class IfGenerateStatement(GenerateStatement):
 		return self._elsifBranches
 
 	@property
-	def ElseBranch(self) -> ElseGenerateBranch:
+	def ElseBranch(self) -> Nullable[ElseGenerateBranch]:
 		return self._elseBranch
 
 	def Index(self):
@@ -3806,8 +3806,8 @@ class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
 class MixinReportStatement:
 	"""A ``MixinReportStatement`` is a mixin-class for all report and assert statements."""
 
-	_message:  ExpressionUnion
-	_severity: ExpressionUnion
+	_message:  Nullable[ExpressionUnion]
+	_severity: Nullable[ExpressionUnion]
 
 	def __init__(self, message: ExpressionUnion = None, severity: ExpressionUnion = None):
 		self._message = message
@@ -3819,11 +3819,11 @@ class MixinReportStatement:
 			severity._parent = self
 
 	@property
-	def Message(self) -> ExpressionUnion:
+	def Message(self) -> Nullable[ExpressionUnion]:
 		return self._message
 
 	@property
-	def Severity(self) -> ExpressionUnion:
+	def Severity(self) -> Nullable[ExpressionUnion]:
 		return self._severity
 
 
@@ -3905,7 +3905,7 @@ class CompoundStatement(SequentialStatement):
 class IfStatement(CompoundStatement):
 	_ifBranch: IfBranch
 	_elsifBranches: List['ElsifBranch']
-	_elseBranch: ElseBranch
+	_elseBranch: Nullable[ElseBranch]
 
 	def __init__(self, ifBranch: IfBranch, elsifBranches: Iterable[ElsifBranch] = None, elseBranch: ElseBranch = None, label: str = None):
 		super().__init__(label)
@@ -3934,7 +3934,7 @@ class IfStatement(CompoundStatement):
 		return self._elsifBranches
 
 	@property
-	def ElseBranch(self) -> ElseBranch:
+	def ElseBranch(self) -> Nullable[ElseBranch]:
 		return self._elseBranch
 
 

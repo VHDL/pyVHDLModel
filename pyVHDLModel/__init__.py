@@ -877,6 +877,10 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	def ReferencedContexts(self) -> Dict[str, 'Context']:
 		return self._referencedContexts
 
+	@property
+	def DependencyVertex(self) -> Vertex:
+		return self._dependencyVertex
+
 
 @export
 class PrimaryUnit(DesignUnit):

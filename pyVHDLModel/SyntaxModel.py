@@ -1013,7 +1013,7 @@ class Library(ModelEntity, NamedEntityMixin):
 	def IndexArchitectures(self):
 		for architectures in self._architectures.values():
 			for architecture in architectures.values():
-				architecture.IndexArchitecture()
+				architecture.Index()
 
 	def __str__(self):
 		return f"VHDL Library: '{self.Identifier}'"

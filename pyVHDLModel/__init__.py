@@ -64,9 +64,7 @@ ExpressionUnion = Union[
 	'QualifiedExpression',
 	'FunctionCall',
 	'TypeConversion',
-	ConstantOrSymbol,
-	VariableOrSymbol,
-	SignalOrSymbol,
+	# ConstantOrSymbol,     TODO: ObjectSymbol
 	'Literal',
 ]
 

@@ -359,70 +359,74 @@ class ObjectClass(Enum):
 class EntityClass(Enum):
 	"""An ``EntityClass`` is an enumeration. It represents a VHDL language entity class (``entity``, ``label``, ...)."""
 
-	Entity =        0
-	Architecture =  1
-	Configuration = 2
-	Procedure =     3
-	Function =      4
-	Package =       5
-	Type =          6
-	Subtype =       7
-	Constant =      8
-	Signal =        9
-	Variable =      10
-	Component =     11
-	Label =         12
-	Literal =       13
-	Units =         14
-	Group =         15
-	File =          16
-	Property =      17
-	Sequence =      18
-	View =          19
-	Others  =       20
+	Entity =        0   #: Entity
+	Architecture =  1   #: Architecture
+	Configuration = 2   #: Configuration
+	Procedure =     3   #: Procedure
+	Function =      4   #: Function
+	Package =       5   #: Package
+	Type =          6   #: Type
+	Subtype =       7   #: Subtype
+	Constant =      8   #: Constant
+	Signal =        9   #: Signal
+	Variable =      10  #: Variable
+	Component =     11  #: Component
+	Label =         12  #: Label
+	Literal =       13  #: Literal
+	Units =         14  #: Units
+	Group =         15  #: Group
+	File =          16  #: File
+	Property =      17  #: Property
+	Sequence =      18  #: Sequence
+	View =          19  #: View
+	Others =        20  #: Others
 
 
 @export
 class PossibleReference(Flag):
-	Unknown =         0
-	Library =         auto()
-	Entity =          auto()
-	Architecture =    auto()
-	Component =       auto()
-	Package =         auto()
-	Configuration =   auto()
-	Context =         auto()
-	Type =            auto()
-	Subtype =         auto()
-	ScalarType =      auto()
-	ArrayType =       auto()
-	RecordType =      auto()
-	AccessType =      auto()
-	ProtectedType =   auto()
-	FileType =        auto()
-#	Alias =           auto()   # TODO: Is this needed?
-	Attribute =       auto()
-	TypeAttribute =   auto()
-	ValueAttribute =  auto()
-	SignalAttribute = auto()
-	RangeAttribute =  auto()
-	ViewAttribute =   auto()
-	Constant =        auto()
-	Variable =        auto()
-	Signal =          auto()
-	File =            auto()
-#	Object =          auto()   # TODO: Is this needed?
-	EnumLiteral =     auto()
-	Procedure =       auto()
-	Function =        auto()
-	Label =           auto()
-	View =            auto()
+	"""
+	A ``PossibleReference`` is an enumeration. It represents possible targets for a reference in a :class:`~pyVHDLModel.Symbol`.
+	"""
 
-	AnyType = ScalarType | ArrayType | RecordType | ProtectedType | AccessType | FileType | Subtype
-	Object = Constant | Variable | Signal | File
-	SubProgram = Procedure | Function
-	PackageMember = AnyType | Object | SubProgram | Component
-	SimpleNameInExpression = Constant | Variable | Signal | ScalarType | EnumLiteral | Function
+	Unknown =         0
+	Library =         auto()  #: Library
+	Entity =          auto()  #: Entity
+	Architecture =    auto()  #: Architecture
+	Component =       auto()  #: Component
+	Package =         auto()  #: Package
+	Configuration =   auto()  #: Configuration
+	Context =         auto()  #: Context
+	Type =            auto()  #: Type
+	Subtype =         auto()  #: Subtype
+	ScalarType =      auto()  #: ScalarType
+	ArrayType =       auto()  #: ArrayType
+	RecordType =      auto()  #: RecordType
+	AccessType =      auto()  #: AccessType
+	ProtectedType =   auto()  #: ProtectedType
+	FileType =        auto()  #: FileType
+#	Alias =           auto()   # TODO: Is this needed?
+	Attribute =       auto()  #: Attribute
+	TypeAttribute =   auto()  #: TypeAttribute
+	ValueAttribute =  auto()  #: ValueAttribute
+	SignalAttribute = auto()  #: SignalAttribute
+	RangeAttribute =  auto()  #: RangeAttribute
+	ViewAttribute =   auto()  #: ViewAttribute
+	Constant =        auto()  #: Constant
+	Variable =        auto()  #: Variable
+	Signal =          auto()  #: Signal
+	File =            auto()  #: File
+#	Object =          auto()   # TODO: Is this needed?
+	EnumLiteral =     auto()  #: EnumLiteral
+	Procedure =       auto()  #: Procedure
+	Function =        auto()  #: Function
+	Label =           auto()  #: Label
+	View =            auto()  #: View
+
+	AnyType = ScalarType | ArrayType | RecordType | ProtectedType | AccessType | FileType | Subtype  #: Any possible type incl. subtypes.
+	Object = Constant | Variable | Signal | File                                                     #: Any object
+	SubProgram = Procedure | Function                                                                #: Any subprogram
+	PackageMember = AnyType | Object | SubProgram | Component                                        #: Any member of a package
+	SimpleNameInExpression = Constant | Variable | Signal | ScalarType | EnumLiteral | Function      #: Any possible item in an expression.
 
 
 @export

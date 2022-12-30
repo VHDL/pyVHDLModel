@@ -78,6 +78,7 @@ News
 * Finding relations between packages and its bodies, entities and its architectures.
 * References to libraries, packages and contexts.
 * Dependency graph for packages, contexts, and entities.
+
   * Package graph.
   * Hierarchy graph.
   * Compile order.

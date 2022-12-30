@@ -2074,6 +2074,8 @@ class TernaryExpression(BaseExpression):
 	def __init__(self):
 		super().__init__()
 
+		# FIXME: parameters and initializers are missing !!
+
 	@property
 	def FirstOperand(self):
 		return self._firstOperand
@@ -2413,10 +2415,10 @@ class SubProgramm(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._genericItems =    []
-		self._parameterItems =  []
-		self._declaredItems =   []
-		self._statements =      []
+		self._genericItems =    []  # TODO: convert to dict
+		self._parameterItems =  []  # TODO: convert to dict
+		self._declaredItems =   []  # TODO: use mixin class
+		self._statements =      []  # TODO: use mixin class
 
 	@property
 	def GenericItems(self) -> List['GenericInterfaceItem']:
@@ -2452,6 +2454,7 @@ class Function(SubProgramm):
 		super().__init__(identifier, documentation)
 
 		self._isPure = isPure
+		# FIXME: return type is missing
 
 	@property
 	def ReturnType(self) -> Subtype:
@@ -2681,7 +2684,7 @@ class AssociationItem(ModelEntity):
 		# actual._parent = self  # FIXME: actual is provided as None
 
 	@property
-	def Formal(self) -> Name:
+	def Formal(self) -> Name:  # TODO: can also be a conversion function !!
 		return self._formal
 
 	@property
@@ -2886,7 +2889,7 @@ class SequentialStatement(Statement):
 # FIXME: Why not used in package, package body
 @export
 class ConcurrentDeclarations:
-	_declaredItems: List
+	_declaredItems: List  # FIXME: define list prefix type e.g. via Union
 
 	def __init__(self, declaredItems: Iterable = None):
 		# TODO: extract to mixin
@@ -3280,7 +3283,7 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 
 @export
 class ProcedureCall:
-	_procedure: Name
+	_procedure: Name  # TODO: implement a ProcedureSymbol
 	_parameterMappings: List[ParameterAssociationItem]
 
 	def __init__(self, procedureName: Name, parameterMappings: Iterable[ParameterAssociationItem] = None):
@@ -3538,6 +3541,8 @@ class SequentialCase(BaseCase, SequentialStatements):
 	def __init__(self, statements: Iterable[SequentialStatement] = None):
 		super().__init__()
 		SequentialStatements.__init__(self, statements)
+
+		# TODO: what about choices?
 
 	@property
 	def Choices(self) -> List[Choice]:
@@ -4075,6 +4080,9 @@ class LoopControlStatement(SequentialStatement, MixinConditional):
 		super().__init__()
 		MixinConditional.__init__(self, condition)
 
+		# TODO: loopLabel
+		# TODO: loop reference -> is it a symbol?
+
 	@property
 	def LoopReference(self) -> LoopStatement:
 		return self._loopReference
@@ -4132,6 +4140,8 @@ class ReturnStatement(SequentialStatement, MixinConditional):
 	def __init__(self, returnValue: ExpressionUnion = None):
 		super().__init__()
 		MixinConditional.__init__(self, returnValue)
+
+		# TODO: return value?
 
 	@property
 	def ReturnValue(self) -> ExpressionUnion:

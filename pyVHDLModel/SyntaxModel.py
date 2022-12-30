@@ -997,8 +997,11 @@ class Library(ModelEntity, NamedEntityMixin):
 
 			for architecture in architecturesPerEntity.values():
 				entity = self._entities[entityName]
-				entity._architectures.append(architecture)  # TODO: convert to dict
-				architecture.Entity.Entity = entity
+				if architecture.NormalizedIdentifier not in entity._architectures:
+					entity._architectures[architecture.NormalizedIdentifier] = architecture
+					architecture.Entity.Entity = entity
+				else:
+					raise Exception(f"Architecture '{architecture.Identifier}' already exists for entity '{entity.Identifier}'.")
 
 				# add "architecture -> entity" relation in dependency graph
 				architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex)
@@ -3047,9 +3050,8 @@ class Context(PrimaryUnit):
 class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, ConcurrentStatements):
 	_genericItems:  List[GenericInterfaceItem]
 	_portItems:     List[PortInterfaceItem]
-	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
-	_statements:    List['ConcurrentStatement']
-	_architectures: List['Architecture']
+
+	_architectures: Dict[str, 'Architecture']
 
 	def __init__(
 		self,
@@ -3090,9 +3092,8 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, Co
 	def PortItems(self) -> List[PortInterfaceItem]:
 		return self._portItems
 
-	# TODO: convert to dict
 	@property
-	def Architectures(self) -> List['Architecture']:
+	def Architectures(self) -> Dict[str, 'Architecture']:
 		return self._architectures
 
 	def __str__(self):

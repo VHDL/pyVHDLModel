@@ -807,7 +807,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 					self._contextReferences.append(item)
 
 		self._referencedLibraries = {}
-		self._referencedPackages = {"work": {}}  # TODO: should it be the working library name ... auto generated elsewhere already
+		self._referencedPackages = {}
 		self._referencedContexts = {}
 
 		self._dependencyVertex = None

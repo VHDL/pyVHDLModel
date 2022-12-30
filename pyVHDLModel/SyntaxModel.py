@@ -2930,25 +2930,36 @@ class ConcurrentStatements:
 	def Statements(self) -> List[ConcurrentStatement]:
 		return self._statements
 
+	def IterateInstantiations(self) -> Generator['Instantiation', None, None]:
+		for instance in self._instantiations.values():
+			yield instance
+
+		for block in self._blocks.values():
+			yield from block.IterateInstantiations()
+
+		for generate in self._generates.values():
+			yield from generate.IterateInstantiations()
+
+	# TODO: move into _init__
 	def Index(self):
 		for statement in self._statements:
 			if isinstance(statement, EntityInstantiation):
-				self._instantiations[statement.Label] = statement
+				self._instantiations[statement.NormalizedLabel] = statement
 			elif isinstance(statement, ComponentInstantiation):
-				self._instantiations[statement.Label] = statement
+				self._instantiations[statement.NormalizedLabel] = statement
 			elif isinstance(statement, ConfigurationInstantiation):
-				self._instantiations[statement.Label] = statement
+				self._instantiations[statement.NormalizedLabel] = statement
 			elif isinstance(statement, ForGenerateStatement):
-				self._generates[statement.Label] = statement
+				self._generates[statement.NormalizedLabel] = statement
 				statement.Index()
 			elif isinstance(statement, IfGenerateStatement):
-				self._generates[statement.Label] = statement
+				self._generates[statement.NormalizedLabel] = statement
 				statement.Index()
 			elif isinstance(statement, CaseGenerateStatement):
-				self._generates[statement.Label] = statement
+				self._generates[statement.NormalizedLabel] = statement
 				statement.Index()
 			elif isinstance(statement, ConcurrentBlockStatement):
-				self._hierarchy[statement.Label] = statement
+				self._hierarchy[statement.NormalizedLabel] = statement
 				statement.Index()
 
 
@@ -3460,6 +3471,14 @@ class GenerateStatement(ConcurrentStatement):
 	def __init__(self, label: str = None):
 		super().__init__(label)
 
+	# @mustoverride
+	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+		raise NotImplementedError()
+
+	# @mustoverride
+	def Index(self) -> None:
+		raise NotImplementedError()
+
 
 @export
 class IfGenerateStatement(GenerateStatement):
@@ -3497,7 +3516,14 @@ class IfGenerateStatement(GenerateStatement):
 	def ElseBranch(self) -> Nullable[ElseGenerateBranch]:
 		return self._elseBranch
 
-	def Index(self):
+	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+		yield from self._ifBranch.IterateInstantiations()
+		for branch in self._elsifBranches:
+			yield from branch.IterateInstantiations()
+		if self._elseBranch is not None:
+			yield from self._ifBranch.IterateInstantiations()
+
+	def Index(self) -> None:
 		self._ifBranch.Index()
 		for branch in self._elsifBranches:
 			branch.Index()
@@ -3642,6 +3668,10 @@ class CaseGenerateStatement(GenerateStatement):
 	def Cases(self) -> List[GenerateCase]:
 		return self._cases
 
+	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+		for case in self._cases:
+			yield from case.IterateInstantiations()
+
 	def Index(self):
 		for case in self._cases:
 			case.Index()
@@ -3669,6 +3699,16 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarations, Concurrent
 	@property
 	def Range(self) -> Range:
 		return self._range
+
+	IterateInstantiations = ConcurrentStatements.IterateInstantiations
+
+	Index = ConcurrentStatements.Index
+
+	# def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+	# 	return ConcurrentStatements.IterateInstantiations(self)
+	#
+	# def Index(self) -> None:
+	# 	return ConcurrentStatements.Index(self)
 
 
 @export

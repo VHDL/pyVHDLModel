@@ -607,6 +607,8 @@ class Design(ModelEntity):
 		self.IndexPackages()
 		self.IndexArchitectures()
 
+		self.LinkInstanziations()
+
 	def CreateDependencyGraph(self):
 		for libraryIdentifier, library in self._libraries.items():
 			dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}", value=library, graph=self._dependencyGraph)
@@ -888,8 +890,31 @@ class Design(ModelEntity):
 
 					designUnit._dependencyVertex.LinkToVertex(referencedContext._dependencyVertex)
 
-		# for vertex in self._dependencyGraph.IterateTopologically():
-		# 	print(vertex.Value.Identifier)
+	def LinkInstanziations(self):
+		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):
+			for instance in architecture.IterateInstantiations():
+				if isinstance(instance, EntityInstantiation):
+					libraryIdentifier = instance.Entity.Prefix.NormalizedIdentifier
+					if libraryIdentifier == "work":
+						libraryIdentifier = cast(Architecture, instance.GetAncestor(Architecture)).Library.NormalizedIdentifier
+					try:
+						library = self._libraries[libraryIdentifier]
+					except KeyError:
+						raise Exception()
+
+					try:
+						entity = library._entities[instance.Entity.NormalizedIdentifier]
+					except KeyError:
+						raise #Exception()
+
+					# pass
+					print(instance.Label, instance.Entity, instance.Architecture)
+				elif isinstance(instance, ComponentInstantiation):
+					# pass
+					print(instance.Label, instance.Component)
+				elif isinstance(instance, ConfigurationInstantiation):
+					# pass
+					print(instance.Label, instance.Configuration)
 
 	def IndexPackages(self):
 		for library in self._libraries.values():

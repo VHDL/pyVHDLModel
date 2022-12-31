@@ -894,18 +894,31 @@ class Design(ModelEntity):
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):
 			for instance in architecture.IterateInstantiations():
 				if isinstance(instance, EntityInstantiation):
-					libraryIdentifier = instance.Entity.Prefix.NormalizedIdentifier
-					if libraryIdentifier == "work":
-						libraryIdentifier = cast(Architecture, instance.GetAncestor(Architecture)).Library.NormalizedIdentifier
+					libraryIdentifier = instance.Entity.Prefix.Identifier
+					normalizedLibraryIdentifier = instance.Entity.Prefix.NormalizedIdentifier
+					if normalizedLibraryIdentifier == "work":
+						libraryIdentifier = architecture.Library.Identifier
+						normalizedLibraryIdentifier = architecture.Library.NormalizedIdentifier
+					elif normalizedLibraryIdentifier not in architecture._referencedLibraries:
+						ex =Exception(f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in architecture '{architecture!r}'.")
+						ex.add_note(f"Add a library reference to the architecture or entity using a library clause like: 'library {libraryIdentifier};'.")
+						raise ex
+
 					try:
-						library = self._libraries[libraryIdentifier]
+						library = self._libraries[normalizedLibraryIdentifier]
 					except KeyError:
-						raise Exception()
+						ex = Exception(f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in design.")
+						ex.add_note(f"No design units were parsed into library '{libraryIdentifier}'. Thus it doesn't exist in design.")
+						raise ex
 
 					try:
 						entity = library._entities[instance.Entity.NormalizedIdentifier]
 					except KeyError:
-						raise #Exception()
+						ex = Exception(f"Referenced entity '{instance.Entity.Identifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in {'working ' if instance.Entity.Prefix.NormalizedIdentifier == 'work' else ''}library '{libraryIdentifier}'.")
+						libs = [library.Identifier for library in self._libraries.values() for entityIdentifier in library._entities.keys() if entityIdentifier == instance.Entity.NormalizedIdentifier]
+						if libs:
+							ex.add_note(f"Found entity '{instance.Entity.Identifier}' in other libraries: {', '.join(libs)}")
+						raise ex
 
 					# pass
 					print(instance.Label, instance.Entity, instance.Architecture)
@@ -3153,7 +3166,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 	def Library(self, library: 'Library') -> None:
 		self._library = library
 
-	def __str__(self):
+	def __str__(self) -> str:
 		lib = self._library.Identifier + "?" if self._library is not None else ""
 		ent = self._entity.Identifier + "?" if self._entity is not None else ""
 

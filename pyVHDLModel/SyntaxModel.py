@@ -3222,7 +3222,7 @@ class ComponentInstantiation(Instantiation):
 		componentSymbol._parent = self
 
 	@property
-	def Component(self) -> Name:
+	def Component(self) -> ComponentInstantiationSymbol:
 		return self._component
 
 
@@ -3242,11 +3242,11 @@ class EntityInstantiation(Instantiation):
 			architectureSymbol._parent = self
 
 	@property
-	def Entity(self) -> Name:
+	def Entity(self) -> EntityInstantiationSymbol:
 		return self._entity
 
 	@property
-	def Architecture(self) -> Name:
+	def Architecture(self) -> ArchitectureSymbol:
 		return self._architecture
 
 
@@ -3261,13 +3261,13 @@ class ConfigurationInstantiation(Instantiation):
 		configurationSymbol._parent = self
 
 	@property
-	def Configuration(self) -> Name:
+	def Configuration(self) -> ConfigurationInstantiationSymbol:
 		return self._configuration
 
 
 @export
 class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements, DocumentedEntityMixin):
-	_sensitivityList: List[Name] = None
+	_sensitivityList: List[Name]  # TODO: implement a SignalSymbol
 
 	def __init__(
 		self,

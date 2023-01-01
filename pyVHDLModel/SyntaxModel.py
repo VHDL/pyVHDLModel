@@ -43,7 +43,7 @@ from typing                import List, Tuple, Union, Dict, Iterator, Optional a
 
 from pyTooling.Decorators  import export
 
-from pyVHDLModel           import EntityClass, Direction, Mode, DesignUnitKind, DependencyGraphVertexKind
+from pyVHDLModel import EntityClass, Direction, Mode, DesignUnitKind, DependencyGraphVertexKind, DependencyGraphEdgeKind
 from pyVHDLModel           import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, DocumentedEntityMixin, PossibleReference
 from pyVHDLModel           import Name, Symbol, NewSymbol, LibraryClause, UseClause, ContextReference, DesignUnit
 from pyVHDLModel           import PrimaryUnit, SecondaryUnit
@@ -674,7 +674,8 @@ class Design(ModelEntity):
 					context._referencedContexts[libraryIdentifier] = {}
 					# TODO: warn duplicate library reference
 
-					context._dependencyVertex.LinkToVertex(library._dependencyVertex)
+					dependency = context._dependencyVertex.LinkToVertex(library._dependencyVertex, edgeValue=libraryReference)
+					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 			# Process all use clauses
 			for packageReference in context.PackageReferences:
@@ -707,7 +708,8 @@ class Design(ModelEntity):
 					# TODO: warn duplicate package reference
 					context._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
-					context._dependencyVertex.LinkToVertex(package._dependencyVertex)
+					dependency = context._dependencyVertex.LinkToVertex(package._dependencyVertex, edgeValue=packageReference)
+					dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 					# TODO: update the namespace with visible members
 					if isinstance(symbol, AllPackageMembersReferenceSymbol):
@@ -740,7 +742,8 @@ class Design(ModelEntity):
 					# TODO: catch KeyError on self._libraries[libName]
 					# TODO: warn duplicate library reference
 
-					designUnit._dependencyVertex.LinkToVertex(referencedLibrary._dependencyVertex)
+					dependency = designUnit._dependencyVertex.LinkToVertex(referencedLibrary._dependencyVertex)
+					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 				workingLibrary: Library = designUnit.Library
 				libraryIdentifier = workingLibrary.NormalizedIdentifier
@@ -751,7 +754,8 @@ class Design(ModelEntity):
 				designUnit._referencedPackages[libraryIdentifier] = {}
 				designUnit._referencedContexts[libraryIdentifier] = {}
 
-				designUnit._dependencyVertex.LinkToVertex(referencedLibrary._dependencyVertex)
+				dependency = designUnit._dependencyVertex.LinkToVertex(referencedLibrary._dependencyVertex)
+				dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 			# All secondary units inherit referenced libraries from their primary units.
 			else:
@@ -780,7 +784,8 @@ class Design(ModelEntity):
 					designUnit._referencedContexts[libraryIdentifier] = {}
 					# TODO: warn duplicate library reference
 
-					designUnit._dependencyVertex.LinkToVertex(library._dependencyVertex)
+					dependency = designUnit._dependencyVertex.LinkToVertex(library._dependencyVertex, edgeValue=libraryReference)
+					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 	def LinkPackageReferences(self):
 		DEFAULT_PACKAGES = (
@@ -801,7 +806,8 @@ class Design(ModelEntity):
 							# TODO: catch KeyError on self._libraries[lib[0]]._packages[pack]
 							# TODO: warn duplicate package reference
 
-							designUnit._dependencyVertex.LinkToVertex(referencedPackage._dependencyVertex)
+							dependency = designUnit._dependencyVertex.LinkToVertex(referencedPackage._dependencyVertex, edgeValue=packageReference)
+							dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 
 			# All secondary units inherit referenced packages from their primary units.
@@ -846,7 +852,8 @@ class Design(ModelEntity):
 					# TODO: warn duplicate package reference
 					designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
-					designUnit._dependencyVertex.LinkToVertex(package._dependencyVertex)
+					dependency = designUnit._dependencyVertex.LinkToVertex(package._dependencyVertex, edgeValue=packageReference)
+					dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 					# TODO: update the namespace with visible members
 					if isinstance(symbol, AllPackageMembersReferenceSymbol):
@@ -888,7 +895,8 @@ class Design(ModelEntity):
 					# TODO: warn duplicate referencedContext reference
 					designUnit._referencedContexts[libraryIdentifier][contextIdentifier] = referencedContext
 
-					designUnit._dependencyVertex.LinkToVertex(referencedContext._dependencyVertex)
+					dependency = designUnit._dependencyVertex.LinkToVertex(referencedContext._dependencyVertex, edgeValue=contextReference)
+					dependency["kind"] = DependencyGraphEdgeKind.ContextReference
 
 	def LinkInstanziations(self):
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):
@@ -920,8 +928,12 @@ class Design(ModelEntity):
 							ex.add_note(f"Found entity '{instance.Entity.Identifier}' in other libraries: {', '.join(libs)}")
 						raise ex
 
-					# pass
-					print(instance.Label, instance.Entity, instance.Architecture)
+					instance.Entity.Prefix.Library = library
+					instance.Entity.Entity = entity
+
+					dependency = architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex, edgeValue=instance)
+					dependency["kind"] = DependencyGraphEdgeKind.EntityInstantiation
+
 				elif isinstance(instance, ComponentInstantiation):
 					# pass
 					print(instance.Label, instance.Component)
@@ -1032,17 +1044,22 @@ class Library(ModelEntity, NamedEntityMixin):
 			if entityName not in self._entities:
 				architectureNames = "', '".join(architecturesPerEntity.keys())
 				raise Exception(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{self.Identifier}'.")
+				# TODO: search in other libraries to find that entity.
+				# TODO: add code position
 
 			for architecture in architecturesPerEntity.values():
 				entity = self._entities[entityName]
-				if architecture.NormalizedIdentifier not in entity._architectures:
-					entity._architectures[architecture.NormalizedIdentifier] = architecture
-					architecture.Entity.Entity = entity
-				else:
+
+				if architecture.NormalizedIdentifier in entity._architectures:
 					raise Exception(f"Architecture '{architecture.Identifier}' already exists for entity '{entity.Identifier}'.")
+					# TODO: add code position of existing and current
+
+				entity._architectures[architecture.NormalizedIdentifier] = architecture
+				architecture._entity.Entity = entity
 
 				# add "architecture -> entity" relation in dependency graph
-				architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex)
+				dependency = architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex)
+				dependency["kind"] = DependencyGraphEdgeKind.EntityImplementation
 
 	def LinkPackageBodies(self):
 		for packageBodyName, packageBody in self._packageBodies.items():
@@ -1050,10 +1067,11 @@ class Library(ModelEntity, NamedEntityMixin):
 				raise Exception(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{self.Identifier}'.")
 
 			package = self._packages[packageBodyName]
-			packageBody.Package.Package = package
+			packageBody._package.Package = package
 
 			# add "package body -> package" relation in dependency graph
-			packageBody._dependencyVertex.LinkToVertex(package._dependencyVertex)
+			dependency = packageBody._dependencyVertex.LinkToVertex(package._dependencyVertex)
+			dependency["kind"] = DependencyGraphEdgeKind.PackageImplementation
 
 	def IndexPackages(self):
 		for package in self._packages.values():
@@ -2788,6 +2806,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 	_constants:  Dict[str, Constant]
 	_functions:  Dict[str, Dict[str, Function]]
 	_procedures: Dict[str, Dict[str, Procedure]]
+	_components: Dict[str, 'Component']
 
 	def __init__(self, identifier: str, contextItems: Iterable['Context'] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(identifier, contextItems, documentation)

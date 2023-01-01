@@ -766,6 +766,21 @@ class DependencyGraphEdgeKind(Flag):
 	Configuration = auto()
 	Component = auto()
 
+	Reference = auto()
+	Implementation = auto()
+	Instantiation = auto()
+
+	LibraryClause =    Library | Reference
+	UseClause =        Package | Reference
+	ContextReference = Context | Reference
+
+	EntityImplementation =       Entity | Implementation
+	PackageImplementation =      Package | Implementation
+
+	EntityInstantiation =        Entity | Instantiation
+	ComponentInstantiation =     Component | Instantiation
+	ConfigurationInstantiation = Configuration | Instantiation
+
 
 @export
 class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):

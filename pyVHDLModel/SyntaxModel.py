@@ -2826,6 +2826,13 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 				self._declaredItems.append(item)
 				item._parent = self
 
+		self._types = {}
+		self._objects = {}
+		self._constants = {}
+		self._functions = {}
+		self._procedures = {}
+		self._components = {}
+
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
 		return self._genericItems
@@ -2857,6 +2864,8 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 			elif isinstance(item, Signal):
 				for identifier in item.Identifiers:
 					self._objects[identifier.lower()] = item
+			elif isinstance(item, Component):
+				self._components[item.NormalizedIdentifier] = item
 			else:
 				print(item)
 

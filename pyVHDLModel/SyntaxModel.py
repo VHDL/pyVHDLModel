@@ -898,6 +898,25 @@ class Design(ModelEntity):
 					dependency = designUnit._dependencyVertex.LinkToVertex(referencedContext._dependencyVertex, edgeValue=contextReference)
 					dependency["kind"] = DependencyGraphEdgeKind.ContextReference
 
+		for vertex in self._dependencyGraph.IterateTopologically():
+			if vertex["kind"] is DependencyGraphVertexKind.Context:
+				context: Context = vertex.Value
+				for designUnitVertex in vertex.IteratePredecessorVertices():
+					designUnit: DesignUnit = designUnitVertex.Value
+					for libraryIdentifier, library in context._referencedLibraries.items():
+						# if libraryIdentifier in designUnit._referencedLibraries:
+						# 	raise Exception(f"Referenced library '{library.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
+
+						designUnit._referencedLibraries[libraryIdentifier] = library
+						designUnit._referencedPackages[libraryIdentifier] = {}
+
+					for libraryIdentifier, packages in context._referencedPackages.items():
+						for packageIdentifier, package in packages.items():
+							if packageIdentifier in designUnit._referencedPackages:
+								raise Exception(f"Referenced package '{package.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
+
+							designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
+
 	def LinkInstanziations(self):
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):
 			for instance in architecture.IterateInstantiations():

@@ -484,7 +484,9 @@ class Design(ModelEntity):
 	_libraries:  Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:  List['Document']      #: List of all documents loaded for a design.
 
-	_dependencyGraph: Graph[None, None, None, None, str, 'DesignUnit', None, None, None, None, None, None, None]
+	_compileOrderGraph: Graph[None, None, None, None, None, 'Document', None, None, None, None, None, None, None]
+	_dependencyGraph:   Graph[None, None, None, None, str, 'DesignUnit', None, None, None, None, None, None, None]
+	_hierarchyGraph:    Graph[None, None, None, None, str, 'DesignUnit', None, None, None, None, None, None, None]
 
 	def __init__(self):
 		super().__init__()
@@ -492,7 +494,9 @@ class Design(ModelEntity):
 		self._libraries = {}
 		self._documents = []
 
+		self._compileOrderGraph = Graph()
 		self._dependencyGraph = Graph()
+		self._hierarchyGraph = Graph()
 
 	@property
 	def Libraries(self) -> Dict[str, 'Library']:
@@ -504,20 +508,32 @@ class Design(ModelEntity):
 		"""Returns a list of all documents (files) loaded for this design."""
 		return self._documents
 
-	def _LoadLibrary(self, library):
+	@property
+	def CompileOrderGraph(self) -> Graph:
+		return self._compileOrderGraph
+
+	@property
+	def DependencyGraph(self) -> Graph:
+		return self._dependencyGraph
+
+	@property
+	def DependencyGraph(self) -> Graph:
+		return self._hierarchyGraph
+
+	def _LoadLibrary(self, library) -> None:
 		libraryIdentifier = library.NormalizedIdentifier
 		if libraryIdentifier in self._libraries:
 			raise Exception(f"Library '{library.Identifier}' already exists in design.")
 		self._libraries[libraryIdentifier] = library
 		library._parent = self
 
-	def LoadStdLibrary(self):
+	def LoadStdLibrary(self) -> None:
 		from pyVHDLModel.std import Std
 
 		library = Std()
 		self._LoadLibrary(library)
 
-	def LoadIEEELibrary(self):
+	def LoadIEEELibrary(self) -> None:
 		from pyVHDLModel.ieee import Ieee
 
 		library = Ieee()
@@ -592,11 +608,13 @@ class Design(ModelEntity):
 		for library in self._libraries.values():
 			yield from library.IterateDesignUnits(filter)
 
-	def Analyze(self):
+	def Analyze(self) -> None:
 		self.AnalyzeDependencies()
 
-	def AnalyzeDependencies(self):
+	def AnalyzeDependencies(self) -> None:
+		self.CreateCompilerOrderGraph()
 		self.CreateDependencyGraph()
+
 		self.LinkContexts()
 		self.LinkArchitectures()
 		self.LinkPackageBodies()
@@ -608,8 +626,14 @@ class Design(ModelEntity):
 		self.IndexArchitectures()
 
 		self.LinkInstanziations()
+		self.CreateHierarchyGraph()
 
-	def CreateDependencyGraph(self):
+	def CreateCompilerOrderGraph(self) -> None:
+		for document in self._documents:
+			compilerOrderVertex = Vertex(value=document, graph=self._compileOrderGraph)
+			document._compileOrderVertex = compilerOrderVertex
+
+	def CreateDependencyGraph(self) -> None:
 		for libraryIdentifier, library in self._libraries.items():
 			dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}", value=library, graph=self._dependencyGraph)
 			dependencyVertex["kind"] = DependencyGraphVertexKind.Library
@@ -646,7 +670,7 @@ class Design(ModelEntity):
 				dependencyVertex["kind"] = DependencyGraphVertexKind.Configuration
 				configuration._dependencyVertex = dependencyVertex
 
-	def LinkContexts(self):
+	def LinkContexts(self) -> None:
 		for context in self.IterateDesignUnits(DesignUnitKind.Context):
 			# Create entries in _referenced*** for the current working library under its real name.
 			workingLibrary: Library = context.Library
@@ -720,15 +744,15 @@ class Design(ModelEntity):
 					else:
 						raise Exception()
 
-	def LinkArchitectures(self):
+	def LinkArchitectures(self) -> None:
 		for library in self._libraries.values():
 			library.LinkArchitectures()
 
-	def LinkPackageBodies(self):
+	def LinkPackageBodies(self) -> None:
 		for library in self._libraries.values():
 			library.LinkPackageBodies()
 
-	def LinkLibraryReferences(self):
+	def LinkLibraryReferences(self) -> None:
 		DEFAULT_LIBRARIES = ("std",)
 
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):
@@ -787,7 +811,7 @@ class Design(ModelEntity):
 					dependency = designUnit._dependencyVertex.LinkToVertex(library._dependencyVertex, edgeValue=libraryReference)
 					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
-	def LinkPackageReferences(self):
+	def LinkPackageReferences(self) -> None:
 		DEFAULT_PACKAGES = (
 			("std", ("standard",)),
 		)
@@ -864,7 +888,7 @@ class Design(ModelEntity):
 					else:
 						raise Exception()
 
-	def LinkContextReferences(self):
+	def LinkContextReferences(self) -> None:
 		for designUnit in self.IterateDesignUnits():
 			for contextReference in designUnit._contextReferences:
 				# A context reference can have multiple comma-separated references
@@ -917,7 +941,7 @@ class Design(ModelEntity):
 
 							designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
-	def LinkInstanziations(self):
+	def LinkInstanziations(self) -> None:
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):
 			for instance in architecture.IterateInstantiations():
 				if isinstance(instance, EntityInstantiation):
@@ -960,13 +984,28 @@ class Design(ModelEntity):
 					# pass
 					print(instance.Label, instance.Configuration)
 
-	def IndexPackages(self):
+	def CreateHierarchyGraph(self) -> None:
+		pass
+
+	def IndexPackages(self) -> None:
 		for library in self._libraries.values():
 			library.IndexPackages()
 
-	def IndexArchitectures(self):
+	def IndexArchitectures(self) -> None:
 		for library in self._libraries.values():
 			library.IndexArchitectures()
+
+	def ComputeHierarchy(self) -> None:
+		raise NotImplementedError()
+
+	def GetCompileOrder(self) -> Generator['Document', None, None]:
+		raise NotImplementedError()
+
+	def GetTopLevel(self) -> 'Entity':
+		raise NotImplementedError()
+
+	def GetUnusedDesignUnits(self) -> List[DesignUnit]:
+		raise NotImplementedError()
 
 
 @export
@@ -1121,6 +1160,8 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	_verificationProperties: Dict[str, 'VerificationProperty']     #: Dictionary of all PSL verification properties defined in a document.
 	_verificationModes:      Dict[str, 'VerificationMode']         #: Dictionary of all PSL verification modes defined in a document.
 
+	_compileOrderVertex:     Vertex[None, 'Document', None, None]
+
 	def __init__(self, path: Path, documentation: str = None):
 		super().__init__()
 		DocumentedEntityMixin.__init__(self, documentation)
@@ -1137,7 +1178,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._verificationProperties = {}
 		self._verificationModes =      {}
 
-	def _AddEntity(self, item: 'Entity'):
+		self._compileOrderVertex = None
+
+	def _AddEntity(self, item: 'Entity') -> None:
 		if not isinstance(item, Entity):
 			raise TypeError(f"Parameter 'item' is not of type 'Entity'.")
 
@@ -1150,7 +1193,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		item._parent = self
 
 
-	def _AddArchitecture(self, item: 'Architecture'):
+	def _AddArchitecture(self, item: 'Architecture') -> None:
 		if not isinstance(item, Architecture):
 			raise TypeError(f"Parameter 'item' is not of type 'Architecture'.")
 
@@ -1168,7 +1211,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._designUnits.append(item)
 		item._parent = self
 
-	def _AddPackage(self, item: 'Package'):
+	def _AddPackage(self, item: 'Package') -> None:
 		if not isinstance(item, (Package, PackageInstantiation)):
 			raise TypeError(f"Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
 
@@ -1180,7 +1223,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._designUnits.append(item)
 		item._parent = self
 
-	def _AddPackageBody(self, item: 'PackageBody'):
+	def _AddPackageBody(self, item: 'PackageBody') -> None:
 		if not isinstance(item, PackageBody):
 			raise TypeError(f"Parameter 'item' is not of type 'PackageBody'.")
 
@@ -1192,7 +1235,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._designUnits.append(item)
 		item._parent = self
 
-	def _AddContext(self, item: 'Context'):
+	def _AddContext(self, item: 'Context') -> None:
 		if not isinstance(item, Context):
 			raise TypeError(f"Parameter 'item' is not of type 'Context'.")
 
@@ -1204,7 +1247,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._designUnits.append(item)
 		item._parent = self
 
-	def _AddConfiguration(self, item: 'Configuration'):
+	def _AddConfiguration(self, item: 'Configuration') -> None:
 		if not isinstance(item, Configuration):
 			raise TypeError(f"Parameter 'item' is not of type 'Configuration'.")
 
@@ -1216,7 +1259,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._designUnits.append(item)
 		item._parent = self
 
-	def _AddVerificationUnit(self, item: VerificationUnit):
+	def _AddVerificationUnit(self, item: VerificationUnit) -> None:
 		if not isinstance(item, VerificationUnit):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationUnit'.")
 
@@ -1228,7 +1271,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._designUnits.append(item)
 		item._parent = self
 
-	def _AddVerificationProperty(self, item: VerificationProperty):
+	def _AddVerificationProperty(self, item: VerificationProperty) -> None:
 		if not isinstance(item, VerificationProperty):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationProperty'.")
 
@@ -1240,7 +1283,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._designUnits.append(item)
 		item._parent = self
 
-	def _AddVerificationMode(self, item: VerificationMode):
+	def _AddVerificationMode(self, item: VerificationMode) -> None:
 		if not isinstance(item, VerificationMode):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationMode'.")
 
@@ -1252,7 +1295,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._designUnits.append(item)
 		item._parent = self
 
-	def _AddDesignUnit(self, item: DesignUnit):
+	def _AddDesignUnit(self, item: DesignUnit) -> None:
 		identifier = item.NormalizedIdentifier
 		if isinstance(item, Entity):
 			self._entities[identifier] = item

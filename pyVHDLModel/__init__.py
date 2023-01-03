@@ -799,6 +799,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_referencedContexts:  Dict[str, 'Context']             #: Referenced contexts based on explicit context references or implicit inheritance
 
 	_dependencyVertex:    Vertex[str, 'DesignUnit', None, None]  #: The vertex in the dependency graph
+	_hierarchyVertex:     Vertex[str, 'DesignUnit', None, None]  #: The vertex in the hierarchy graph
 
 	def __init__(self, identifier: str, contextItems: Iterable['ContextUnion'] = None, documentation: str = None):
 		"""
@@ -834,6 +835,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self._referencedContexts = {}
 
 		self._dependencyVertex = None
+		self._hierarchyVertex = None
 
 	@property
 	def Document(self) -> 'Document':
@@ -903,6 +905,10 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	@property
 	def DependencyVertex(self) -> Vertex:
 		return self._dependencyVertex
+
+	@property
+	def HierarchyVertex(self) -> Vertex:
+		return self._hierarchyVertex
 
 
 @export

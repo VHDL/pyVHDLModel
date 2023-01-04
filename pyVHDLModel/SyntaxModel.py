@@ -52,7 +52,7 @@ from pyVHDLModel.PSLModel  import VerificationUnit, VerificationProperty, Verifi
 
 try:
 	from typing import Protocol
-except ImportError:
+except ImportError:  # pragma: no cover
 	class Protocol:
 		pass
 

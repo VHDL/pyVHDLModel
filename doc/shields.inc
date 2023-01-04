@@ -54,11 +54,11 @@
    :target: https://GitHub.com/vhdl/pyVHDLModel/network/dependents
 
 .. # GHA workflow
-.. |SHIELD:svg:pyVHDLModel-gha-test| image:: https://img.shields.io/github/workflow/status/vhdl/pyVHDLModel/Pipeline/main?longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
+.. |SHIELD:svg:pyVHDLModel-gha-test| image:: https://img.shields.io/github/actions/workflow/status/vhdl/pyVHDLModel/Pipeline.yml?branch=main&longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
    :alt: GitHub Workflow - Build and Test Status
    :height: 22
    :target: https://GitHub.com/VHDL/pyVHDLModel/actions/workflows/Pipeline.yml
-.. |SHIELD:png:pyVHDLModel-gha-test| image:: https://raster.shields.io/github/workflow/status/vhdl/pyVHDLModel/Pipeline/main?longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
+.. |SHIELD:png:pyVHDLModel-gha-test| image:: https://raster.shields.io/github/actions/workflow/status/vhdl/pyVHDLModel/Pipeline.yml?branch=main&longCache=true&style=flat-square&label=Build%20and%20Test&logo=GitHub%20Actions&logoColor=FFFFFF
    :alt: GitHub Workflow - Build and Test Status
    :height: 22
    :target: https://GitHub.com/VHDL/pyVHDLModel/actions/workflows/Pipeline.yml

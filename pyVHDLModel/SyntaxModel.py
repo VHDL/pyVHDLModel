@@ -43,7 +43,7 @@ from typing                import List, Tuple, Union, Dict, Iterator, Optional a
 
 from pyTooling.Decorators  import export
 
-from pyVHDLModel           import EntityClass, Direction, Mode, DesignUnitKind, DependencyGraphVertexKind
+from pyVHDLModel import EntityClass, Direction, Mode, DesignUnitKind, DependencyGraphVertexKind, DependencyGraphEdgeKind
 from pyVHDLModel           import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, LabeledEntityMixin, DocumentedEntityMixin, PossibleReference
 from pyVHDLModel           import Name, Symbol, NewSymbol, LibraryClause, UseClause, ContextReference, DesignUnit
 from pyVHDLModel           import PrimaryUnit, SecondaryUnit
@@ -52,7 +52,7 @@ from pyVHDLModel.PSLModel  import VerificationUnit, VerificationProperty, Verifi
 
 try:
 	from typing import Protocol
-except ImportError:
+except ImportError:  # pragma: no cover
 	class Protocol:
 		pass
 
@@ -69,7 +69,11 @@ class ParenthesisName(Name):
 
 	def __init__(self, prefix: Name, associations: Iterable):
 		super().__init__("", prefix)
-		self._associations = [a for a in associations]
+
+		self._associations = []
+		for association in associations:
+			self._associations.append(association)
+			association._parent = self
 
 	@property
 	def Associations(self) -> List:
@@ -85,7 +89,11 @@ class IndexedName(Name):
 
 	def __init__(self, prefix: Name, indices: Iterable[ExpressionUnion]):
 		super().__init__("", prefix)
-		self._indices = [a for a in indices]
+
+		self._indices = []
+		for index in indices:
+			self._indices.append(index)
+			index._parent = self
 
 	@property
 	def Indices(self) -> List[ExpressionUnion]:
@@ -476,7 +484,9 @@ class Design(ModelEntity):
 	_libraries:  Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:  List['Document']      #: List of all documents loaded for a design.
 
-	_dependencyGraph: Graph[None, None, None, None, str, 'DesignUnit', None, None, None, None, None, None, None]
+	_compileOrderGraph: Graph[None, None, None, None, None, 'Document', None, None, None, None, None, None, None]
+	_dependencyGraph:   Graph[None, None, None, None, str, 'DesignUnit', None, None, None, None, None, None, None]
+	_hierarchyGraph:    Graph[None, None, None, None, str, 'DesignUnit', None, None, None, None, None, None, None]
 
 	def __init__(self):
 		super().__init__()
@@ -484,7 +494,9 @@ class Design(ModelEntity):
 		self._libraries = {}
 		self._documents = []
 
+		self._compileOrderGraph = Graph()
 		self._dependencyGraph = Graph()
+		self._hierarchyGraph = Graph()
 
 	@property
 	def Libraries(self) -> Dict[str, 'Library']:
@@ -496,24 +508,50 @@ class Design(ModelEntity):
 		"""Returns a list of all documents (files) loaded for this design."""
 		return self._documents
 
-	def _LoadLibrary(self, library):
+	@property
+	def CompileOrderGraph(self) -> Graph:
+		return self._compileOrderGraph
+
+	@property
+	def DependencyGraph(self) -> Graph:
+		return self._dependencyGraph
+
+	@property
+	def HierarchyGraph(self) -> Graph:
+		return self._hierarchyGraph
+
+	def _LoadLibrary(self, library) -> None:
 		libraryIdentifier = library.NormalizedIdentifier
 		if libraryIdentifier in self._libraries:
 			raise Exception(f"Library '{library.Identifier}' already exists in design.")
 		self._libraries[libraryIdentifier] = library
 		library._parent = self
 
-	def LoadStdLibrary(self):
+	def LoadStdLibrary(self) -> 'Library':
 		from pyVHDLModel.std import Std
 
 		library = Std()
 		self._LoadLibrary(library)
 
-	def LoadIEEELibrary(self):
+		return library
+
+	def LoadIEEELibrary(self) -> 'Library':
 		from pyVHDLModel.ieee import Ieee
 
 		library = Ieee()
 		self._LoadLibrary(library)
+
+		return library
+
+	def AddLibrary(self, library: 'Library') -> None:
+		if library.NormalizedIdentifier in self._libraries:
+			raise Exception(f"Library '{library.Identifier}' already exists in design.")
+
+		if library._parent is not None:
+			raise Exception(f"Library '{library.Identifier}' already registered in design '{library.Parent}'.")
+
+		self._libraries[library.NormalizedIdentifier] = library
+		library._parent = self
 
 	def GetLibrary(self, libraryName: str) -> 'Library':
 		libraryIdentifier = libraryName.lower()
@@ -525,7 +563,11 @@ class Design(ModelEntity):
 			lib._parent = self
 			return lib
 
+	# TODO: allow overloaded parameter library to be str?
 	def AddDocument(self, document: 'Document', library: 'Library') -> None:
+		if library.NormalizedIdentifier not in self._libraries:
+			raise Exception(f"Library '{library.Identifier}' is not registered in the design.")
+
 		self._documents.append(document)
 		document._parent = self
 
@@ -584,11 +626,13 @@ class Design(ModelEntity):
 		for library in self._libraries.values():
 			yield from library.IterateDesignUnits(filter)
 
-	def Analyze(self):
+	def Analyze(self) -> None:
 		self.AnalyzeDependencies()
 
-	def AnalyzeDependencies(self):
+	def AnalyzeDependencies(self) -> None:
+		self.CreateCompilerOrderGraph()
 		self.CreateDependencyGraph()
+
 		self.LinkContexts()
 		self.LinkArchitectures()
 		self.LinkPackageBodies()
@@ -599,7 +643,15 @@ class Design(ModelEntity):
 		self.IndexPackages()
 		self.IndexArchitectures()
 
-	def CreateDependencyGraph(self):
+		self.LinkInstantiations()
+		self.CreateHierarchyGraph()
+
+	def CreateCompilerOrderGraph(self) -> None:
+		for document in self._documents:
+			compilerOrderVertex = Vertex(value=document, graph=self._compileOrderGraph)
+			document._compileOrderVertex = compilerOrderVertex
+
+	def CreateDependencyGraph(self) -> None:
 		for libraryIdentifier, library in self._libraries.items():
 			dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}", value=library, graph=self._dependencyGraph)
 			dependencyVertex["kind"] = DependencyGraphVertexKind.Library
@@ -636,7 +688,7 @@ class Design(ModelEntity):
 				dependencyVertex["kind"] = DependencyGraphVertexKind.Configuration
 				configuration._dependencyVertex = dependencyVertex
 
-	def LinkContexts(self):
+	def LinkContexts(self) -> None:
 		for context in self.IterateDesignUnits(DesignUnitKind.Context):
 			# Create entries in _referenced*** for the current working library under its real name.
 			workingLibrary: Library = context.Library
@@ -664,7 +716,8 @@ class Design(ModelEntity):
 					context._referencedContexts[libraryIdentifier] = {}
 					# TODO: warn duplicate library reference
 
-					context._dependencyVertex.LinkToVertex(library._dependencyVertex)
+					dependency = context._dependencyVertex.LinkToVertex(library._dependencyVertex, edgeValue=libraryReference)
+					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 			# Process all use clauses
 			for packageReference in context.PackageReferences:
@@ -697,7 +750,8 @@ class Design(ModelEntity):
 					# TODO: warn duplicate package reference
 					context._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
-					context._dependencyVertex.LinkToVertex(package._dependencyVertex)
+					dependency = context._dependencyVertex.LinkToVertex(package._dependencyVertex, edgeValue=packageReference)
+					dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 					# TODO: update the namespace with visible members
 					if isinstance(symbol, AllPackageMembersReferenceSymbol):
@@ -708,15 +762,15 @@ class Design(ModelEntity):
 					else:
 						raise Exception()
 
-	def LinkArchitectures(self):
+	def LinkArchitectures(self) -> None:
 		for library in self._libraries.values():
 			library.LinkArchitectures()
 
-	def LinkPackageBodies(self):
+	def LinkPackageBodies(self) -> None:
 		for library in self._libraries.values():
 			library.LinkPackageBodies()
 
-	def LinkLibraryReferences(self):
+	def LinkLibraryReferences(self) -> None:
 		DEFAULT_LIBRARIES = ("std",)
 
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):
@@ -730,7 +784,8 @@ class Design(ModelEntity):
 					# TODO: catch KeyError on self._libraries[libName]
 					# TODO: warn duplicate library reference
 
-					designUnit._dependencyVertex.LinkToVertex(referencedLibrary._dependencyVertex)
+					dependency = designUnit._dependencyVertex.LinkToVertex(referencedLibrary._dependencyVertex)
+					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 				workingLibrary: Library = designUnit.Library
 				libraryIdentifier = workingLibrary.NormalizedIdentifier
@@ -741,7 +796,8 @@ class Design(ModelEntity):
 				designUnit._referencedPackages[libraryIdentifier] = {}
 				designUnit._referencedContexts[libraryIdentifier] = {}
 
-				designUnit._dependencyVertex.LinkToVertex(referencedLibrary._dependencyVertex)
+				dependency = designUnit._dependencyVertex.LinkToVertex(referencedLibrary._dependencyVertex)
+				dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 			# All secondary units inherit referenced libraries from their primary units.
 			else:
@@ -770,9 +826,10 @@ class Design(ModelEntity):
 					designUnit._referencedContexts[libraryIdentifier] = {}
 					# TODO: warn duplicate library reference
 
-					designUnit._dependencyVertex.LinkToVertex(library._dependencyVertex)
+					dependency = designUnit._dependencyVertex.LinkToVertex(library._dependencyVertex, edgeValue=libraryReference)
+					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
-	def LinkPackageReferences(self):
+	def LinkPackageReferences(self) -> None:
 		DEFAULT_PACKAGES = (
 			("std", ("standard",)),
 		)
@@ -791,7 +848,8 @@ class Design(ModelEntity):
 							# TODO: catch KeyError on self._libraries[lib[0]]._packages[pack]
 							# TODO: warn duplicate package reference
 
-							designUnit._dependencyVertex.LinkToVertex(referencedPackage._dependencyVertex)
+							dependency = designUnit._dependencyVertex.LinkToVertex(referencedPackage._dependencyVertex)
+							dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 
 			# All secondary units inherit referenced packages from their primary units.
@@ -836,7 +894,8 @@ class Design(ModelEntity):
 					# TODO: warn duplicate package reference
 					designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
-					designUnit._dependencyVertex.LinkToVertex(package._dependencyVertex)
+					dependency = designUnit._dependencyVertex.LinkToVertex(package._dependencyVertex, edgeValue=packageReference)
+					dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 					# TODO: update the namespace with visible members
 					if isinstance(symbol, AllPackageMembersReferenceSymbol):
@@ -847,7 +906,7 @@ class Design(ModelEntity):
 					else:
 						raise Exception()
 
-	def LinkContextReferences(self):
+	def LinkContextReferences(self) -> None:
 		for designUnit in self.IterateDesignUnits():
 			for contextReference in designUnit._contextReferences:
 				# A context reference can have multiple comma-separated references
@@ -878,18 +937,93 @@ class Design(ModelEntity):
 					# TODO: warn duplicate referencedContext reference
 					designUnit._referencedContexts[libraryIdentifier][contextIdentifier] = referencedContext
 
-					designUnit._dependencyVertex.LinkToVertex(referencedContext._dependencyVertex)
+					dependency = designUnit._dependencyVertex.LinkToVertex(referencedContext._dependencyVertex, edgeValue=contextReference)
+					dependency["kind"] = DependencyGraphEdgeKind.ContextReference
 
-		# for vertex in self._dependencyGraph.IterateTopologically():
-		# 	print(vertex.Value.Identifier)
+		for vertex in self._dependencyGraph.IterateTopologically():
+			if vertex["kind"] is DependencyGraphVertexKind.Context:
+				context: Context = vertex.Value
+				for designUnitVertex in vertex.IteratePredecessorVertices():
+					designUnit: DesignUnit = designUnitVertex.Value
+					for libraryIdentifier, library in context._referencedLibraries.items():
+						# if libraryIdentifier in designUnit._referencedLibraries:
+						# 	raise Exception(f"Referenced library '{library.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
 
-	def IndexPackages(self):
+						designUnit._referencedLibraries[libraryIdentifier] = library
+						designUnit._referencedPackages[libraryIdentifier] = {}
+
+					for libraryIdentifier, packages in context._referencedPackages.items():
+						for packageIdentifier, package in packages.items():
+							if packageIdentifier in designUnit._referencedPackages:
+								raise Exception(f"Referenced package '{package.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
+
+							designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
+
+	def LinkInstantiations(self) -> None:
+		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):
+			for instance in architecture.IterateInstantiations():
+				if isinstance(instance, EntityInstantiation):
+					libraryIdentifier = instance.Entity.Prefix.Identifier
+					normalizedLibraryIdentifier = instance.Entity.Prefix.NormalizedIdentifier
+					if normalizedLibraryIdentifier == "work":
+						libraryIdentifier = architecture.Library.Identifier
+						normalizedLibraryIdentifier = architecture.Library.NormalizedIdentifier
+					elif normalizedLibraryIdentifier not in architecture._referencedLibraries:
+						ex =Exception(f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in architecture '{architecture!r}'.")
+						ex.add_note(f"Add a library reference to the architecture or entity using a library clause like: 'library {libraryIdentifier};'.")
+						raise ex
+
+					try:
+						library = self._libraries[normalizedLibraryIdentifier]
+					except KeyError:
+						ex = Exception(f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in design.")
+						ex.add_note(f"No design units were parsed into library '{libraryIdentifier}'. Thus it doesn't exist in design.")
+						raise ex
+
+					try:
+						entity = library._entities[instance.Entity.NormalizedIdentifier]
+					except KeyError:
+						ex = Exception(f"Referenced entity '{instance.Entity.Identifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in {'working ' if instance.Entity.Prefix.NormalizedIdentifier == 'work' else ''}library '{libraryIdentifier}'.")
+						libs = [library.Identifier for library in self._libraries.values() for entityIdentifier in library._entities.keys() if entityIdentifier == instance.Entity.NormalizedIdentifier]
+						if libs:
+							ex.add_note(f"Found entity '{instance.Entity.Identifier}' in other libraries: {', '.join(libs)}")
+						raise ex
+
+					instance.Entity.Prefix.Library = library
+					instance.Entity.Entity = entity
+
+					dependency = architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex, edgeValue=instance)
+					dependency["kind"] = DependencyGraphEdgeKind.EntityInstantiation
+
+				elif isinstance(instance, ComponentInstantiation):
+					# pass
+					print(instance.Label, instance.Component)
+				elif isinstance(instance, ConfigurationInstantiation):
+					# pass
+					print(instance.Label, instance.Configuration)
+
+	def CreateHierarchyGraph(self) -> None:
+		pass
+
+	def IndexPackages(self) -> None:
 		for library in self._libraries.values():
 			library.IndexPackages()
 
-	def IndexArchitectures(self):
+	def IndexArchitectures(self) -> None:
 		for library in self._libraries.values():
 			library.IndexArchitectures()
+
+	def ComputeHierarchy(self) -> None:
+		raise NotImplementedError()
+
+	def GetCompileOrder(self) -> Generator['Document', None, None]:
+		raise NotImplementedError()
+
+	def GetTopLevel(self) -> 'Entity':
+		raise NotImplementedError()
+
+	def GetUnusedDesignUnits(self) -> List[DesignUnit]:
+		raise NotImplementedError()
 
 
 @export
@@ -948,6 +1082,10 @@ class Library(ModelEntity, NamedEntityMixin):
 		"""Returns a list of all package body declarations declared in this library."""
 		return self._packageBodies
 
+	@property
+	def DependencyVertex(self) -> Vertex:
+		return self._dependencyVertex
+
 	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
 		if DesignUnitKind.Context in filter:
 			for context in self._contexts.values():
@@ -986,14 +1124,22 @@ class Library(ModelEntity, NamedEntityMixin):
 			if entityName not in self._entities:
 				architectureNames = "', '".join(architecturesPerEntity.keys())
 				raise Exception(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{self.Identifier}'.")
+				# TODO: search in other libraries to find that entity.
+				# TODO: add code position
 
 			for architecture in architecturesPerEntity.values():
 				entity = self._entities[entityName]
-				entity._architectures.append(architecture)  # TODO: convert to dict
-				architecture.Entity.Entity = entity
+
+				if architecture.NormalizedIdentifier in entity._architectures:
+					raise Exception(f"Architecture '{architecture.Identifier}' already exists for entity '{entity.Identifier}'.")
+					# TODO: add code position of existing and current
+
+				entity._architectures[architecture.NormalizedIdentifier] = architecture
+				architecture._entity.Entity = entity
 
 				# add "architecture -> entity" relation in dependency graph
-				architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex)
+				dependency = architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex)
+				dependency["kind"] = DependencyGraphEdgeKind.EntityImplementation
 
 	def LinkPackageBodies(self):
 		for packageBodyName, packageBody in self._packageBodies.items():
@@ -1001,10 +1147,11 @@ class Library(ModelEntity, NamedEntityMixin):
 				raise Exception(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{self.Identifier}'.")
 
 			package = self._packages[packageBodyName]
-			packageBody.Package.Package = package
+			packageBody._package.Package = package
 
 			# add "package body -> package" relation in dependency graph
-			packageBody._dependencyVertex.LinkToVertex(package._dependencyVertex)
+			dependency = packageBody._dependencyVertex.LinkToVertex(package._dependencyVertex)
+			dependency["kind"] = DependencyGraphEdgeKind.PackageImplementation
 
 	def IndexPackages(self):
 		for package in self._packages.values():
@@ -1016,7 +1163,7 @@ class Library(ModelEntity, NamedEntityMixin):
 				architecture.Index()
 
 	def __str__(self):
-		return f"VHDL Library: '{self.Identifier}'"
+		return f"Library: '{self.Identifier}'"
 
 
 @export
@@ -1035,6 +1182,8 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	_verificationProperties: Dict[str, 'VerificationProperty']     #: Dictionary of all PSL verification properties defined in a document.
 	_verificationModes:      Dict[str, 'VerificationMode']         #: Dictionary of all PSL verification modes defined in a document.
 
+	_compileOrderVertex:     Vertex[None, 'Document', None, None]
+
 	def __init__(self, path: Path, documentation: str = None):
 		super().__init__()
 		DocumentedEntityMixin.__init__(self, documentation)
@@ -1051,7 +1200,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._verificationProperties = {}
 		self._verificationModes =      {}
 
-	def _AddEntity(self, item: 'Entity'):
+		self._compileOrderVertex = None
+
+	def _AddEntity(self, item: 'Entity') -> None:
 		if not isinstance(item, Entity):
 			raise TypeError(f"Parameter 'item' is not of type 'Entity'.")
 
@@ -1061,10 +1212,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._entities[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
 
-	def _AddArchitecture(self, item: 'Architecture'):
+	def _AddArchitecture(self, item: 'Architecture') -> None:
 		if not isinstance(item, Architecture):
 			raise TypeError(f"Parameter 'item' is not of type 'Architecture'.")
 
@@ -1080,9 +1231,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			self._architectures[entityIdentifier] = {item.Identifier: item}
 
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
-	def _AddPackage(self, item: 'Package'):
+	def _AddPackage(self, item: 'Package') -> None:
 		if not isinstance(item, (Package, PackageInstantiation)):
 			raise TypeError(f"Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
 
@@ -1092,9 +1243,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._packages[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
-	def _AddPackageBody(self, item: 'PackageBody'):
+	def _AddPackageBody(self, item: 'PackageBody') -> None:
 		if not isinstance(item, PackageBody):
 			raise TypeError(f"Parameter 'item' is not of type 'PackageBody'.")
 
@@ -1104,9 +1255,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._packageBodies[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
-	def _AddContext(self, item: 'Context'):
+	def _AddContext(self, item: 'Context') -> None:
 		if not isinstance(item, Context):
 			raise TypeError(f"Parameter 'item' is not of type 'Context'.")
 
@@ -1116,9 +1267,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._contexts[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
-	def _AddConfiguration(self, item: 'Configuration'):
+	def _AddConfiguration(self, item: 'Configuration') -> None:
 		if not isinstance(item, Configuration):
 			raise TypeError(f"Parameter 'item' is not of type 'Configuration'.")
 
@@ -1128,9 +1279,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._configurations[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
-	def _AddVerificationUnit(self, item: VerificationUnit):
+	def _AddVerificationUnit(self, item: VerificationUnit) -> None:
 		if not isinstance(item, VerificationUnit):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationUnit'.")
 
@@ -1140,9 +1291,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._verificationUnits[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
-	def _AddVerificationProperty(self, item: VerificationProperty):
+	def _AddVerificationProperty(self, item: VerificationProperty) -> None:
 		if not isinstance(item, VerificationProperty):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationProperty'.")
 
@@ -1152,9 +1303,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._verificationProperties[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
-	def _AddVerificationMode(self, item: VerificationMode):
+	def _AddVerificationMode(self, item: VerificationMode) -> None:
 		if not isinstance(item, VerificationMode):
 			raise TypeError(f"Parameter 'item' is not of type 'VerificationMode'.")
 
@@ -1164,19 +1315,18 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._verificationModes[identifier] = item
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
-	def _AddDesignUnit(self, item: DesignUnit):
+	def _AddDesignUnit(self, item: DesignUnit) -> None:
 		identifier = item.NormalizedIdentifier
 		if isinstance(item, Entity):
 			self._entities[identifier] = item
 		elif isinstance(item, Architecture):
-			entityName = item.Entity.SymbolName.Identifier
-			entityIdentifier = entityName.lower()
+			entityIdentifier = item.Entity.NormalizedIdentifier
 			try:
 				architectures = self._architectures[entityIdentifier]
 				if identifier in architectures:
-					raise ValueError(f"An architecture '{item.Identifier}' for entity '{entityName}' already exists in this document.")
+					raise ValueError(f"An architecture '{item.Identifier}' for entity '{item.Entity.Identifier}' already exists in this document.")
 
 				architectures[identifier] = item
 			except KeyError:
@@ -1201,7 +1351,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			raise TypeError(f"Parameter 'item' is not of type 'DesignUnit'.")
 
 		self._designUnits.append(item)
-		item.Document = self
+		item._parent = self
 
 	@property
 	def Path(self) -> Path:
@@ -1257,6 +1407,42 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""Returns a list of all verification mode declarations found in this document."""
 		return self._verificationModes
 
+	@property
+	def CompileOrderVertex(self) -> Vertex[None, 'Document', None, None]:
+		return self._compileOrderVertex
+
+	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
+		if DesignUnitKind.Context in filter:
+			for context in self._contexts.values():
+				yield context
+
+		if DesignUnitKind.Package in filter:
+			for package in self._packages.values():
+				yield package
+
+		if DesignUnitKind.PackageBody in filter:
+			for packageBody in self._packageBodies.values():
+				yield packageBody
+
+		if DesignUnitKind.Entity in filter:
+			for entity in self._entities.values():
+				yield entity
+
+		if DesignUnitKind.Architecture in filter:
+			for architectures in self._architectures.values():
+				for architecture in architectures.values():
+					yield architecture
+
+		if DesignUnitKind.Configuration in filter:
+			for configuration in self._configurations.values():
+				yield configuration
+
+		# for verificationProperty in self._verificationUnits.values():
+		# 	yield verificationProperty
+		# for verificationUnit in self._verificationProperties.values():
+		# 	yield entity
+		# for verificationMode in self._verificationModes.values():
+		# 	yield verificationMode
 
 @export
 class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
@@ -1377,7 +1563,12 @@ class ProtectedType(FullType):
 
 	def __init__(self, identifier: str, methods: Union[List, Iterator] = None):
 		super().__init__(identifier)
-		self._methods = [] if methods is None else [m for m in methods]
+
+		self._methods = []
+		if methods is not None:
+			for method in methods:
+				self._methods.append(method)
+				method._parent = self
 
 	@property
 	def Methods(self) -> List[Union['Procedure', 'Function']]:
@@ -1390,7 +1581,12 @@ class ProtectedTypeBody(FullType):
 
 	def __init__(self, identifier: str, declaredItems: Union[List, Iterator] = None):
 		super().__init__(identifier)
-		self._methods = [] if declaredItems is None else [m for m in declaredItems]
+
+		self._methods = []
+		if declaredItems is not None:
+			for method in declaredItems:
+				self._methods.append(method)
+				method._parent = self
 
 	# FIXME: needs to be declared items or so
 	@property
@@ -1404,7 +1600,9 @@ class AccessType(FullType):
 
 	def __init__(self, identifier: str, designatedSubtype: SubtypeOrSymbol):
 		super().__init__(identifier)
+
 		self._designatedSubtype = designatedSubtype
+		designatedSubtype._parent = self
 
 	@property
 	def DesignatedSubtype(self):
@@ -1417,7 +1615,9 @@ class FileType(FullType):
 
 	def __init__(self, identifier: str, designatedSubtype: SubtypeOrSymbol):
 		super().__init__(identifier)
+
 		self._designatedSubtype = designatedSubtype
+		designatedSubtype._parent = self
 
 	@property
 	def DesignatedSubtype(self):
@@ -1431,7 +1631,11 @@ class EnumeratedType(ScalarType, DiscreteType):
 	def __init__(self, identifier: str, literals: Iterable['EnumerationLiteral']):
 		super().__init__(identifier)
 
-		self._literals = [] if literals is None else [lit for lit in literals]
+		self._literals = []
+		if literals is not None:
+			for literal in literals:
+				self._literals.append(literal)
+				literal._parent = self
 
 	@property
 	def Literals(self) -> List['EnumerationLiteral']:
@@ -1459,7 +1663,11 @@ class PhysicalType(RangedScalarType, NumericType):
 		super().__init__(identifier, rng)
 
 		self._primaryUnit = primaryUnit
-		self._secondaryUnits = [u for u in units]
+
+		self._secondaryUnits = []  # TODO: convert to dict
+		for unit in units:
+			self._secondaryUnits.append(unit)
+			unit[1]._parent = self
 
 	@property
 	def PrimaryUnit(self) -> str:
@@ -1478,7 +1686,10 @@ class ArrayType(CompositeType):
 	def __init__(self, identifier: str, indices: List, elementSubtype: SubtypeOrSymbol):
 		super().__init__(identifier)
 
-		self._dimensions =  []
+		self._dimensions = []
+
+		self._elementType = elementSubtype
+		# elementSubtype._parent = self   # FIXME: subtype is provided as None
 
 	@property
 	def Dimensions(self) -> List['Range']:
@@ -1498,6 +1709,7 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin):
 		MultipleNamedEntityMixin.__init__(self, identifiers)
 
 		self._subtype = subtype
+		subtype._parent = self
 
 	@property
 	def Subtype(self) -> SubtypeOrSymbol:
@@ -1511,7 +1723,11 @@ class RecordType(CompositeType):
 	def __init__(self, identifier: str, elements: Iterable[RecordTypeElement] = None):
 		super().__init__(identifier)
 
-		self._elements = [] if elements is None else [i for i in elements]
+		self._elements = []  # TODO: convert to dict
+		if elements is not None:
+			for element in elements:
+				self._elements.append(element)
+				element._parent = self
 
 	@property
 	def Elements(self) -> List[RecordTypeElement]:
@@ -1690,13 +1906,14 @@ class ParenthesisExpression(Protocol):
 class UnaryExpression(BaseExpression):
 	"""A ``UnaryExpression`` is a base-class for all unary expressions."""
 
-	_FORMAT: Tuple[str, str]
-	_operand:  ExpressionUnion
+	_FORMAT:  Tuple[str, str]
+	_operand: ExpressionUnion
 
 	def __init__(self, operand: ExpressionUnion):
 		super().__init__()
 
 		self._operand = operand
+		# operand._parent = self  # FIXME: operand is provided as None
 
 	@property
 	def Operand(self):
@@ -1744,11 +1961,14 @@ class BinaryExpression(BaseExpression):
 	_leftOperand:  ExpressionUnion
 	_rightOperand: ExpressionUnion
 
-	def __init__(self, _leftOperand: ExpressionUnion, _rightOperand: ExpressionUnion):
+	def __init__(self, leftOperand: ExpressionUnion, rightOperand: ExpressionUnion):
 		super().__init__()
 
-		self._leftOperand = _leftOperand
-		self._rightOperand = _rightOperand
+		self._leftOperand = leftOperand
+		leftOperand._parent = self
+
+		self._rightOperand = rightOperand
+		rightOperand._parent = self
 
 	@property
 	def LeftOperand(self):
@@ -2003,7 +2223,10 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 		super().__init__()
 
 		self._operand = operand
+		operand._parent = self
+
 		self._subtype = subtype
+		subtype._parent = self
 
 	@property
 	def Operand(self):
@@ -2028,6 +2251,8 @@ class TernaryExpression(BaseExpression):
 
 	def __init__(self):
 		super().__init__()
+
+		# FIXME: parameters and initializers are missing !!
 
 	@property
 	def FirstOperand(self):
@@ -2074,7 +2299,9 @@ class SubtypeAllocation(Allocation):
 
 	def __init__(self, subtype: Symbol):
 		super().__init__()
+
 		self._subtype = subtype
+		subtype._parent = self
 
 	@property
 	def Subtype(self) -> Symbol:
@@ -2090,7 +2317,9 @@ class QualifiedExpressionAllocation(Allocation):
 
 	def __init__(self, qualifiedExpression: QualifiedExpression):
 		super().__init__()
+
 		self._qualifiedExpression = qualifiedExpression
+		qualifiedExpression._parent = self
 
 	@property
 	def QualifiedExpression(self) -> QualifiedExpression:
@@ -2110,6 +2339,7 @@ class AggregateElement(ModelEntity):
 		super().__init__()
 
 		self._expression = expression
+		expression._parent = self
 
 	@property
 	def Expression(self):
@@ -2150,6 +2380,7 @@ class RangedAggregateElement(AggregateElement):
 		super().__init__(expression)
 
 		self._range = rng
+		rng._parent = self
 
 	@property
 	def Range(self) -> 'Range':
@@ -2170,6 +2401,7 @@ class NamedAggregateElement(AggregateElement):
 		super().__init__(expression)
 
 		self._name = name
+		name._parent = self
 
 	@property
 	def Name(self) -> Symbol:
@@ -2197,7 +2429,10 @@ class Aggregate(BaseExpression):
 	def __init__(self, elements: Iterable[AggregateElement]):
 		super().__init__()
 
-		self._elements = [e for e in elements]
+		self._elements = []
+		for element in elements:
+			self._elements.append(element)
+			element._parent = self
 
 	@property
 	def Elements(self) -> List[AggregateElement]:
@@ -2218,8 +2453,13 @@ class Range(ModelEntity):
 
 	def __init__(self, leftBound: ExpressionUnion, rightBound: ExpressionUnion, direction: Direction):
 		super().__init__()
+
 		self._leftBound = leftBound
+		leftBound._parent = self
+
 		self._rightBound = rightBound
+		rightBound._parent = self
+
 		self._direction = direction
 
 	@property
@@ -2269,6 +2509,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._subtype = subtype
+		subtype._parent = self
 
 	@property
 	def Subtype(self) -> SubtypeOrSymbol:
@@ -2279,13 +2520,15 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 class WithDefaultExpressionMixin:
 	"""A ``WithDefaultExpression`` is a mixin class for all objects declarations accepting default expressions."""
 
-	_defaultExpression: ExpressionUnion
+	_defaultExpression: Nullable[ExpressionUnion]
 
 	def __init__(self, defaultExpression: ExpressionUnion = None):
 		self._defaultExpression = defaultExpression
+		if defaultExpression is not None:
+			defaultExpression._parent = self
 
 	@property
-	def DefaultExpression(self) -> ExpressionUnion:
+	def DefaultExpression(self) -> Nullable[ExpressionUnion]:
 		return self._defaultExpression
 
 
@@ -2350,10 +2593,10 @@ class SubProgramm(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._genericItems =    []
-		self._parameterItems =  []
-		self._declaredItems =   []
-		self._statements =      []
+		self._genericItems =    []  # TODO: convert to dict
+		self._parameterItems =  []  # TODO: convert to dict
+		self._declaredItems =   []  # TODO: use mixin class
+		self._statements =      []  # TODO: use mixin class
 
 	@property
 	def GenericItems(self) -> List['GenericInterfaceItem']:
@@ -2387,7 +2630,9 @@ class Function(SubProgramm):
 
 	def __init__(self, identifier: str, isPure: bool = True, documentation: str = None):
 		super().__init__(identifier, documentation)
+
 		self._isPure = isPure
+		# FIXME: return type is missing
 
 	@property
 	def ReturnType(self) -> Subtype:
@@ -2402,6 +2647,7 @@ class Method:
 
 	def __init__(self, protectedType: ProtectedType):
 		self._protectedType = protectedType
+		protectedType._parent = self
 
 	@property
 	def ProtectedType(self) -> ProtectedType:
@@ -2432,6 +2678,7 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._subtype = subtype
+		subtype._parent = self
 
 	@property
 	def Subtype(self):
@@ -2449,10 +2696,18 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		super().__init__()
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._identifiers = [i for i in identifiers]
+		self._identifiers = []  # TODO: convert to dict
+		for identifier in identifiers:
+			self._identifiers.append(identifier)
+			identifier._parent = self
+
 		self._attribute = attribute
+		attribute._parent = self
+
 		self._entityClass = entityClass
+
 		self._expression = expression
+		expression._parent = self
 
 	@property
 	def Identifiers(self) -> List[Name]:
@@ -2600,10 +2855,14 @@ class AssociationItem(ModelEntity):
 		super().__init__()
 
 		self._formal = formal
+		if formal is not None:
+			formal._parent = self
+
 		self._actual = actual
+		# actual._parent = self  # FIXME: actual is provided as None
 
 	@property
-	def Formal(self) -> Name:
+	def Formal(self) -> Name:  # TODO: can also be a conversion function !!
 		return self._formal
 
 	@property
@@ -2666,13 +2925,32 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 	_constants:  Dict[str, Constant]
 	_functions:  Dict[str, Dict[str, Function]]
 	_procedures: Dict[str, Dict[str, Procedure]]
+	_components: Dict[str, 'Component']
 
 	def __init__(self, identifier: str, contextItems: Iterable['Context'] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None, documentation: str = None):
-		super().__init__(identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
+		super().__init__(identifier, contextItems, documentation)
+		DesignUnitWithContextMixin.__init__(self)
 
-		self._genericItems =  [] if genericItems is None else [g for g in genericItems]
-		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		# TODO: extract to mixin
+		self._genericItems = []  # TODO: convert to dict
+		if genericItems is not None:
+			for generic in genericItems:
+				self._genericItems.append(generic)
+				generic._parent = self
+
+		# TODO: extract to mixin
+		self._declaredItems = []  # TODO: convert to dict
+		if declaredItems is not None:
+			for item in declaredItems:
+				self._declaredItems.append(item)
+				item._parent = self
+
+		self._types = {}
+		self._objects = {}
+		self._constants = {}
+		self._functions = {}
+		self._procedures = {}
+		self._components = {}
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -2705,8 +2983,21 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 			elif isinstance(item, Signal):
 				for identifier in item.Identifiers:
 					self._objects[identifier.lower()] = item
+			elif isinstance(item, Component):
+				self._components[item.NormalizedIdentifier] = item
 			else:
 				print(item)
+
+	def __str__(self) -> str:
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"Package: {lib}.{self.Identifier}"
+
+	def __repr__(self) -> str:
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"{lib}.{self.Identifier}"
+
 
 @export
 class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
@@ -2714,11 +3005,18 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 	_declaredItems:     List
 
 	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable['Context'] = None, declaredItems: Iterable = None, documentation: str = None):
-		super().__init__(packageSymbol.Identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
+		super().__init__(packageSymbol.Identifier, contextItems, documentation)
+		DesignUnitWithContextMixin.__init__(self)
 
 		self._package = packageSymbol
-		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		packageSymbol._parent = self
+
+		# TODO: extract to mixin
+		self._declaredItems = []  # TODO: convert to dict
+		if declaredItems is not None:
+			for item in declaredItems:
+				self._declaredItems.append(item)
+				item._parent = self
 
 	@property
 	def Package(self) -> PackageSymbol:
@@ -2734,6 +3032,16 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 	def LinkDeclaredItemsToPackage(self):
 		pass
 
+	def __str__(self) -> str:
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"Package Body: {lib}.{self.Identifier}(body)"
+
+	def __repr__(self) -> str:
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"{lib}.{self.Identifier}(body)"
+
 
 @export
 class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
@@ -2745,6 +3053,9 @@ class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
 		GenericEntityInstantiation.__init__(self)
 
 		self._packageReference = uninstantiatedPackage
+		# uninstantiatedPackage._parent = self    # FIXME: uninstantiatedPackage is provided as int
+
+		# TODO: extract to mixin
 		self._genericAssociations = []
 
 	@property
@@ -2776,10 +3087,15 @@ class SequentialStatement(Statement):
 # FIXME: Why not used in package, package body
 @export
 class ConcurrentDeclarations:
-	_declaredItems: List
+	_declaredItems: List  # FIXME: define list prefix type e.g. via Union
 
 	def __init__(self, declaredItems: Iterable = None):
-		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		# TODO: extract to mixin
+		self._declaredItems = []  # TODO: convert to dict
+		if declaredItems is not None:
+			for item in declaredItems:
+				self._declaredItems.append(item)
+				item._parent = self
 
 	@property
 	def DeclaredItems(self) -> List:
@@ -2791,39 +3107,57 @@ class ConcurrentStatements:
 	_statements:     List[ConcurrentStatement]
 
 	_instantiations: Dict[str, 'Instantiation']  # TODO: add another instantiation class level for entity/configuration/component inst.
+	_blocks:         Dict[str, 'ConcurrentBlockStatement']
 	_generates:      Dict[str, 'GenerateStatement']
 	_hierarchy:      Dict[str, Union['ConcurrentBlockStatement', 'GenerateStatement']]
 
 	def __init__(self, statements: Iterable[ConcurrentStatement] = None):
-		self._statements = [] if statements is None else [s for s in statements]
+		self._statements = []
 
 		self._instantiations = {}
+		self._blocks = {}
 		self._generates = {}
 		self._hierarchy = {}
+
+		if statements is not None:
+			for statement in statements:
+				self._statements.append(statement)
+				statement._parent = self
 
 	@property
 	def Statements(self) -> List[ConcurrentStatement]:
 		return self._statements
 
+	def IterateInstantiations(self) -> Generator['Instantiation', None, None]:
+		for instance in self._instantiations.values():
+			yield instance
+
+		for block in self._blocks.values():
+			yield from block.IterateInstantiations()
+
+		for generate in self._generates.values():
+			yield from generate.IterateInstantiations()
+
+	# TODO: move into _init__
 	def Index(self):
 		for statement in self._statements:
 			if isinstance(statement, EntityInstantiation):
-				self._instantiations[statement.Label] = statement
+				self._instantiations[statement.NormalizedLabel] = statement
 			elif isinstance(statement, ComponentInstantiation):
-				self._instantiations[statement.Label] = statement
+				self._instantiations[statement.NormalizedLabel] = statement
 			elif isinstance(statement, ConfigurationInstantiation):
-				self._instantiations[statement.Label] = statement
+				self._instantiations[statement.NormalizedLabel] = statement
 			elif isinstance(statement, ForGenerateStatement):
-				self._generates[statement.Label] = statement
+				self._generates[statement.NormalizedLabel] = statement
 				statement.Index()
 			elif isinstance(statement, IfGenerateStatement):
-				self._generates[statement.Label] = statement
+				self._generates[statement.NormalizedLabel] = statement
 				statement.Index()
 			elif isinstance(statement, CaseGenerateStatement):
-				self._generates[statement.Label] = statement
+				self._generates[statement.NormalizedLabel] = statement
 				statement.Index()
 			elif isinstance(statement, ConcurrentBlockStatement):
-				self._hierarchy[statement.Label] = statement
+				self._hierarchy[statement.NormalizedLabel] = statement
 				statement.Index()
 
 
@@ -2832,7 +3166,12 @@ class SequentialDeclarations:
 	_declaredItems: List
 
 	def __init__(self, declaredItems: Iterable):
-		self._declaredItems = [] if declaredItems is None else [i for i in declaredItems]
+		# TODO: extract to mixin
+		self._declaredItems = []  # TODO: convert to dict
+		if declaredItems is not None:
+			for item in declaredItems:
+				self._declaredItems.append(item)
+				item._parent = self
 
 	@property
 	def DeclaredItems(self) -> List:
@@ -2844,7 +3183,12 @@ class SequentialStatements:
 	_statements: List[SequentialStatement]
 
 	def __init__(self, statements: Iterable[SequentialStatement] = None):
-		self._statements = [] if statements is None else [s for s in statements]
+		# TODO: extract to mixin
+		self._statements = []
+		if statements is not None:
+			for item in statements:
+				self._statements.append(item)
+				item._parent = self
 
 	@property
 	def Statements(self) -> List[SequentialStatement]:
@@ -2869,6 +3213,7 @@ class Context(PrimaryUnit):
 		if references is not None:
 			for reference in references:
 				self._references.append(reference)
+				reference._parent = self
 
 				if isinstance(reference, LibraryClause):
 					self._libraryReferences.append(reference)
@@ -2891,14 +3236,17 @@ class Context(PrimaryUnit):
 	def ContextReferences(self) -> List[ContextReference]:
 		return self._contextReferences
 
+	def __str__(self):
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"Context: {lib}.{self.Identifier}"
 
 @export
 class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, ConcurrentStatements):
 	_genericItems:  List[GenericInterfaceItem]
 	_portItems:     List[PortInterfaceItem]
-	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
-	_statements:    List['ConcurrentStatement']
-	_architectures: List['Architecture']
+
+	_architectures: Dict[str, 'Architecture']
 
 	def __init__(
 		self,
@@ -2910,14 +3258,26 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, Co
 		statements: Iterable[ConcurrentStatement] = None,
 		documentation: str = None
 	):
-		super().__init__(identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
+		super().__init__(identifier, contextItems, documentation)
+		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarations.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
-		self._genericItems  = [] if genericItems is None else [g for g in genericItems]
-		self._portItems     = [] if portItems is None else [p for p in portItems]
-		self._architectures = []
+		# TODO: extract to mixin
+		self._genericItems = []
+		if genericItems is not None:
+			for item in genericItems:
+				self._genericItems.append(item)
+				item._parent = self
+
+		# TODO: extract to mixin
+		self._portItems = []
+		if portItems is not None:
+			for item in portItems:
+				self._portItems.append(item)
+				item._parent = self
+
+		self._architectures = {}
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -2927,26 +3287,34 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, Co
 	def PortItems(self) -> List[PortInterfaceItem]:
 		return self._portItems
 
-	# TODO: convert to dict
 	@property
-	def Architectures(self) -> List['Architecture']:
+	def Architectures(self) -> Dict[str, 'Architecture']:
 		return self._architectures
+
+	def __str__(self) -> str:
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"Entity: {lib}.{self.Identifier}({', '.join(self._architectures.keys())})"
+
+	def __repr__(self) -> str:
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"{lib}.{self.Identifier}({', '.join(self._architectures.keys())})"
 
 
 @export
 class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, ConcurrentStatements):
 	_library:       Library = None
 	_entity:        EntitySymbol
-	_declaredItems: List   # FIXME: define list prefix type e.g. via Union
-	_statements:    List['ConcurrentStatement']
 
 	def __init__(self, identifier: str, entity: EntitySymbol, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None, documentation: str = None):
-		super().__init__(identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
+		super().__init__(identifier, contextItems, documentation)
+		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarations.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
-		self._entity        = entity
+		self._entity = entity
+		entity._parent = self
 
 	@property
 	def Entity(self) -> EntitySymbol:
@@ -2961,9 +3329,17 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 	def Library(self, library: 'Library') -> None:
 		self._library = library
 
-	@property
-	def DeclaredItems(self) -> List:   # FIXME: define list prefix type e.g. via Union
-		return self._declaredItems
+	def __str__(self) -> str:
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+		ent = self._entity.Identifier + "?" if self._entity is not None else ""
+
+		return f"Architecture: {lib}.{ent}({self.Identifier})"
+
+	def __repr__(self) -> str:
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+		ent = self._entity.Identifier + "?" if self._entity is not None else ""
+
+		return f"{lib}.{ent}({self.Identifier})"
 
 
 @export
@@ -2976,8 +3352,19 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._genericItems      = [] if genericItems is None else [g for g in genericItems]
-		self._portItems         = [] if portItems is None else [p for p in portItems]
+		# TODO: extract to mixin
+		self._genericItems = []
+		if genericItems is not None:
+			for item in genericItems:
+				self._genericItems.append(item)
+				item._parent = self
+
+		# TODO: extract to mixin
+		self._portItems = []
+		if portItems is not None:
+			for item in portItems:
+				self._portItems.append(item)
+				item._parent = self
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -2991,8 +3378,18 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 @export
 class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, documentation: str = None):
-		super().__init__(identifier, documentation)
-		DesignUnitWithContextMixin.__init__(self, contextItems)
+		super().__init__(identifier, contextItems, documentation)
+		DesignUnitWithContextMixin.__init__(self)
+
+	def __str__(self) -> str:
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"Configuration: {lib}.{self.Identifier}"
+
+	def __repr__(self) -> str:
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"{lib}.{self.Identifier}"
 
 
 @export
@@ -3003,8 +3400,19 @@ class Instantiation(ConcurrentStatement):
 	def __init__(self, label: str, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
 		super().__init__(label)
 
-		self._genericAssociations = [] if genericAssociations is None else [g for g in genericAssociations]
-		self._portAssociations =    [] if portAssociations is None else [p for p in portAssociations]
+		# TODO: extract to mixin
+		self._genericAssociations = []
+		if genericAssociations is not None:
+			for association in genericAssociations:
+				self._genericAssociations.append(association)
+				association._parent = self
+
+		# TODO: extract to mixin
+		self._portAssociations = []
+		if portAssociations is not None:
+			for association in portAssociations:
+				self._portAssociations.append(association)
+				association._parent = self
 
 	@property
 	def GenericAssociations(self) -> List[AssociationItem]:
@@ -3017,55 +3425,61 @@ class Instantiation(ConcurrentStatement):
 
 @export
 class ComponentInstantiation(Instantiation):
-	_component: Name
+	_component: ComponentInstantiationSymbol
 
-	def __init__(self, label: str, componentName: Name, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
+	def __init__(self, label: str, componentSymbol: ComponentInstantiationSymbol, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
 		super().__init__(label, genericAssociations, portAssociations)
 
-		self._component = componentName
+		self._component = componentSymbol
+		componentSymbol._parent = self
 
 	@property
-	def Component(self) -> Name:
+	def Component(self) -> ComponentInstantiationSymbol:
 		return self._component
 
 
 @export
 class EntityInstantiation(Instantiation):
-	_entity:       Name
-	_architecture: Name
+	_entity:       EntityInstantiationSymbol
+	_architecture: ArchitectureSymbol
 
-	def __init__(self, label: str, entityName: Name, architectureName: Name = None, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
+	def __init__(self, label: str, entitySymbol: EntityInstantiationSymbol, architectureSymbol: ArchitectureSymbol = None, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
 		super().__init__(label, genericAssociations, portAssociations)
 
-		self._entity = entityName
-		self._architecture = architectureName
+		self._entity = entitySymbol
+		entitySymbol._parent = self
+
+		self._architecture = architectureSymbol
+		if architectureSymbol is not None:
+			architectureSymbol._parent = self
 
 	@property
-	def Entity(self) -> Name:
+	def Entity(self) -> EntityInstantiationSymbol:
 		return self._entity
 
 	@property
-	def Architecture(self) -> Name:
+	def Architecture(self) -> ArchitectureSymbol:
 		return self._architecture
 
 
 @export
 class ConfigurationInstantiation(Instantiation):
-	_configuration: Name
+	_configuration: ConfigurationInstantiationSymbol
 
-	def __init__(self, label: str, configurationName: Name, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
+	def __init__(self, label: str, configurationSymbol: ConfigurationInstantiationSymbol, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
 		super().__init__(label, genericAssociations, portAssociations)
 
-		self._configuration = configurationName
+		self._configuration = configurationSymbol
+		configurationSymbol._parent = self
 
 	@property
-	def Configuration(self) -> Name:
+	def Configuration(self) -> ConfigurationInstantiationSymbol:
 		return self._configuration
 
 
 @export
 class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements, DocumentedEntityMixin):
-	_sensitivityList: List[Name] = None
+	_sensitivityList: List[Name]  # TODO: implement a SignalSymbol
 
 	def __init__(
 		self,
@@ -3080,8 +3494,13 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 		SequentialStatements.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		if sensitivityList is not None:
-			self._sensitivityList = [s for s in sensitivityList]
+		if sensitivityList is None:
+			self._sensitivityList = None
+		else:
+			self._sensitivityList = []  # TODO: convert to dict
+			for signalSymbol in sensitivityList:
+				self._sensitivityList.append(signalSymbol)
+				# signalSymbol._parent = self  # FIXME: currently str are provided
 
 	@property
 	def SensitivityList(self) -> List[Name]:
@@ -3090,12 +3509,19 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 
 @export
 class ProcedureCall:
-	_procedure: Name
+	_procedure: Name  # TODO: implement a ProcedureSymbol
 	_parameterMappings: List[ParameterAssociationItem]
 
 	def __init__(self, procedureName: Name, parameterMappings: Iterable[ParameterAssociationItem] = None):
 		self._procedure = procedureName
-		self._parameterMappings = [] if parameterMappings is None else [m for m in parameterMappings]
+		procedureName._parent = self
+
+		# TODO: extract to mixin
+		self._parameterMappings = []
+		if parameterMappings is not None:
+			for parameterMapping in parameterMappings:
+				self._parameterMappings.append(parameterMapping)
+				parameterMapping._parent = self
 
 	@property
 	def Procedure(self) -> Name:
@@ -3147,9 +3573,13 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntit
 		ConcurrentStatements.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._portItems     = [] if portItems is None else [i for i in portItems]
+		# TODO: extract to mixin
+		self._portItems = []
+		if portItems is not None:
+			for item in portItems:
+				self._portItems.append(item)
+				item._parent = self
 
-	# TODO: Extract to MixIn?
 	@property
 	def PortItems(self) -> List[PortInterfaceItem]:
 		return self._portItems
@@ -3163,6 +3593,8 @@ class MixinConditional:
 
 	def __init__(self, condition: ExpressionUnion = None):
 		self._condition = condition
+		if condition is not None:
+			condition._parent = self
 
 	@property
 	def Condition(self) -> ExpressionUnion:
@@ -3252,6 +3684,14 @@ class GenerateStatement(ConcurrentStatement):
 	def __init__(self, label: str = None):
 		super().__init__(label)
 
+	# @mustoverride
+	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+		raise NotImplementedError()
+
+	# @mustoverride
+	def Index(self) -> None:
+		raise NotImplementedError()
+
 
 @export
 class IfGenerateStatement(GenerateStatement):
@@ -3263,8 +3703,19 @@ class IfGenerateStatement(GenerateStatement):
 		super().__init__(label)
 
 		self._ifBranch = ifBranch
-		self._elsifBranches = [] if elsifBranches is None else [b for b in elsifBranches]
-		self._elseBranch = elseBranch
+		ifBranch._parent = self
+
+		self._elsifBranches = []
+		if elsifBranches is not None:
+			for branch in elsifBranches:
+				self._elsifBranches.append(branch)
+				branch._parent = self
+
+		if elseBranch is not None:
+			self._elseBranch = elseBranch
+			elseBranch._parent = self
+		else:
+			self._elseBranch = None
 
 	@property
 	def IfBranch(self) -> IfGenerateBranch:
@@ -3275,10 +3726,17 @@ class IfGenerateStatement(GenerateStatement):
 		return self._elsifBranches
 
 	@property
-	def ElseBranch(self) -> ElseGenerateBranch:
+	def ElseBranch(self) -> Nullable[ElseGenerateBranch]:
 		return self._elseBranch
 
-	def Index(self):
+	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+		yield from self._ifBranch.IterateInstantiations()
+		for branch in self._elsifBranches:
+			yield from branch.IterateInstantiations()
+		if self._elseBranch is not None:
+			yield from self._ifBranch.IterateInstantiations()
+
+	def Index(self) -> None:
 		self._ifBranch.Index()
 		for branch in self._elsifBranches:
 			branch.Index()
@@ -3325,6 +3783,8 @@ class SequentialCase(BaseCase, SequentialStatements):
 		super().__init__()
 		SequentialStatements.__init__(self, statements)
 
+		# TODO: what about choices?
+
 	@property
 	def Choices(self) -> List[Choice]:
 		return self._choices
@@ -3337,8 +3797,14 @@ class GenerateCase(ConcurrentCase):
 	def __init__(self, choices: Iterable[ConcurrentChoice], declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
 
-		self._choices = [c for c in choices]
+		# TODO: move to parent or grandparent
+		self._choices = []
+		if choices is not None:
+			for choice in choices:
+				self._choices.append(choice)
+				choice._parent = self
 
+	# TODO: move to parent or grandparent
 	@property
 	def Choices(self) -> List[ConcurrentChoice]:
 		return self._choices
@@ -3361,6 +3827,7 @@ class IndexedGenerateChoice(ConcurrentChoice):
 		super().__init__()
 
 		self._expression = expression
+		expression._parent = self
 
 	@property
 	def Expression(self) -> ExpressionUnion:
@@ -3378,6 +3845,7 @@ class RangedGenerateChoice(ConcurrentChoice):
 		super().__init__()
 
 		self._range = rng
+		rng._parent = self
 
 	@property
 	def Range(self) -> 'Range':
@@ -3396,7 +3864,14 @@ class CaseGenerateStatement(GenerateStatement):
 		super().__init__(label)
 
 		self._expression = expression
-		self._cases      = [] if cases is None else [c for c in cases]
+		expression._parent = self
+
+		# TODO: create a mixin for things with cases
+		self._cases = []
+		if cases is not None:
+			for case in cases:
+				self._cases.append(case)
+				case._parent = self
 
 	@property
 	def SelectExpression(self) -> ExpressionUnion:
@@ -3405,6 +3880,10 @@ class CaseGenerateStatement(GenerateStatement):
 	@property
 	def Cases(self) -> List[GenerateCase]:
 		return self._cases
+
+	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+		for case in self._cases:
+			yield from case.IterateInstantiations()
 
 	def Index(self):
 		for case in self._cases:
@@ -3416,13 +3895,15 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarations, Concurrent
 	_loopIndex: str
 	_range:     Range
 
-	def __init__(self, label: str, loopIndex: str, range: Range, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
+	def __init__(self, label: str, loopIndex: str, rng: Range, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
 		super().__init__(label)
 		ConcurrentDeclarations.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
 		self._loopIndex = loopIndex
-		self._range = range
+
+		self._range = rng
+		rng._parent = self
 
 	@property
 	def LoopIndex(self) -> str:
@@ -3431,6 +3912,16 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarations, Concurrent
 	@property
 	def Range(self) -> Range:
 		return self._range
+
+	IterateInstantiations = ConcurrentStatements.IterateInstantiations
+
+	Index = ConcurrentStatements.Index
+
+	# def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+	# 	return ConcurrentStatements.IterateInstantiations(self)
+	#
+	# def Index(self) -> None:
+	# 	return ConcurrentStatements.Index(self)
 
 
 @export
@@ -3441,6 +3932,7 @@ class Assignment:
 
 	def __init__(self, target: Name):
 		self._target = target
+		target._parent = self
 
 	@property
 	def Target(self) -> Name:
@@ -3462,6 +3954,7 @@ class VariableAssignment(Assignment):
 		super().__init__(target)
 
 		self._expression = expression
+		expression._parent = self
 
 	@property
 	def Expression(self) -> ExpressionUnion:
@@ -3477,7 +3970,11 @@ class WaveformElement(ModelEntity):
 		super().__init__()
 
 		self._expression = expression
+		expression._parent = self
+
 		self._after = after
+		if after is not None:
+			after._parent = self
 
 	@property
 	def Expression(self) -> ExpressionUnion:
@@ -3502,7 +3999,12 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
 	def __init__(self, label: str, target: Name, waveform: Iterable[WaveformElement]):
 		super().__init__(label, target)
 
-		self._waveform = [e for e in waveform]
+		# TODO: extract to mixin
+		self._waveform = []
+		if waveform is not None:
+			for waveformElement in waveform:
+				self._waveform.append(waveformElement)
+				waveformElement._parent = self
 
 	@property
 	def Waveform(self) -> List[WaveformElement]:
@@ -3513,7 +4015,6 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
 class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment):
 	def __init__(self, label: str, target: Name, expression: ExpressionUnion):
 		super().__init__(label, target)
-
 
 
 @export
@@ -3537,7 +4038,12 @@ class SequentialSimpleSignalAssignment(SequentialSignalAssignment):
 	def __init__(self, target: Name, waveform: Iterable[WaveformElement], label: str = None):
 		super().__init__(target, label)
 
-		self._waveform = [e for e in waveform]
+		# TODO: extract to mixin
+		self._waveform = []
+		if waveform is not None:
+			for waveformElement in waveform:
+				self._waveform.append(waveformElement)
+				waveformElement._parent = self
 
 	@property
 	def Waveform(self) -> List[WaveformElement]:
@@ -3555,19 +4061,24 @@ class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
 class MixinReportStatement:
 	"""A ``MixinReportStatement`` is a mixin-class for all report and assert statements."""
 
-	_message:  ExpressionUnion
-	_severity: ExpressionUnion
+	_message:  Nullable[ExpressionUnion]
+	_severity: Nullable[ExpressionUnion]
 
 	def __init__(self, message: ExpressionUnion = None, severity: ExpressionUnion = None):
 		self._message = message
+		if message is not None:
+			message._parent = self
+
 		self._severity = severity
+		if severity is not None:
+			severity._parent = self
 
 	@property
-	def Message(self) -> ExpressionUnion:
+	def Message(self) -> Nullable[ExpressionUnion]:
 		return self._message
 
 	@property
-	def Severity(self) -> ExpressionUnion:
+	def Severity(self) -> Nullable[ExpressionUnion]:
 		return self._severity
 
 
@@ -3581,6 +4092,8 @@ class MixinAssertStatement(MixinReportStatement):
 		super().__init__(message, severity)
 
 		self._condition = condition
+		if condition is not None:
+			condition._parent = self
 
 	@property
 	def Condition(self) -> ExpressionUnion:
@@ -3647,14 +4160,25 @@ class CompoundStatement(SequentialStatement):
 class IfStatement(CompoundStatement):
 	_ifBranch: IfBranch
 	_elsifBranches: List['ElsifBranch']
-	_elseBranch: ElseBranch
+	_elseBranch: Nullable[ElseBranch]
 
 	def __init__(self, ifBranch: IfBranch, elsifBranches: Iterable[ElsifBranch] = None, elseBranch: ElseBranch = None, label: str = None):
 		super().__init__(label)
 
 		self._ifBranch = ifBranch
-		self._elsifBranches = [] if elsifBranches is None else [b for b in elsifBranches]
-		self._elseBranch = elseBranch
+		ifBranch._parent = self
+
+		self._elsifBranches = []
+		if elsifBranches is not None:
+			for branch in elsifBranches:
+				self._elsifBranches.append(branch)
+				branch._parent = self
+
+		if elseBranch is not None:
+			self._elseBranch = elseBranch
+			elseBranch._parent = self
+		else:
+			self._elseBranch = None
 
 	@property
 	def IfBranch(self) -> IfBranch:
@@ -3665,7 +4189,7 @@ class IfStatement(CompoundStatement):
 		return self._elsifBranches
 
 	@property
-	def ElseBranch(self) -> ElseBranch:
+	def ElseBranch(self) -> Nullable[ElseBranch]:
 		return self._elseBranch
 
 
@@ -3676,7 +4200,11 @@ class Case(SequentialCase):
 	def __init__(self, choices: Iterable[SequentialChoice], statements: Iterable[SequentialStatement] = None):
 		super().__init__(statements)
 
-		self._choices = [c for c in choices]
+		self._choices = []
+		if choices is not None:
+			for choice in choices:
+				self._choices.append(choice)
+				choice._parent = self
 
 	@property
 	def Choices(self) -> List[SequentialChoice]:
@@ -3700,6 +4228,7 @@ class IndexedChoice(SequentialChoice):
 		super().__init__()
 
 		self._expression = expression
+		# expression._parent = self    # FIXME: received None
 
 	@property
 	def Expression(self) -> ExpressionUnion:
@@ -3717,6 +4246,7 @@ class RangedChoice(SequentialChoice):
 		super().__init__()
 
 		self._range = rng
+		rng._parent = self
 
 	@property
 	def Range(self) -> 'Range':
@@ -3735,7 +4265,13 @@ class CaseStatement(CompoundStatement):
 		super().__init__(label)
 
 		self._expression = expression
-		self._cases      = [] if cases is None else [c for c in cases]
+		expression._parent = self
+
+		self._cases = []
+		if cases is not None:
+			for case in cases:
+				self._cases.append(case)
+				case._parent = self
 
 	@property
 	def SelectExpression(self) -> ExpressionUnion:
@@ -3765,11 +4301,13 @@ class ForLoopStatement(LoopStatement):
 	_loopIndex: str
 	_range:     Range
 
-	def __init__(self, loopIndex: str, range: Range, statements: Iterable[ConcurrentStatement] = None, label: str = None):
+	def __init__(self, loopIndex: str, rng: Range, statements: Iterable[ConcurrentStatement] = None, label: str = None):
 		super().__init__(statements, label)
 
 		self._loopIndex = loopIndex
-		self._range = range
+
+		self._range = rng
+		rng._parent = self
 
 	@property
 	def LoopIndex(self) -> str:
@@ -3796,6 +4334,9 @@ class LoopControlStatement(SequentialStatement, MixinConditional):
 	def __init__(self, condition: ExpressionUnion = None, loopLabel: str = None): # TODO: is this label (currently str) a Name or a Label class?
 		super().__init__()
 		MixinConditional.__init__(self, condition)
+
+		# TODO: loopLabel
+		# TODO: loop reference -> is it a symbol?
 
 	@property
 	def LoopReference(self) -> LoopStatement:
@@ -3829,9 +4370,14 @@ class WaitStatement(SequentialStatement, MixinConditional):
 		if sensitivityList is None:
 			self._sensitivityList = None
 		else:
-			self._sensitivityList = [i for i in sensitivityList]
+			self._sensitivityList = []  # TODO: convert to dict
+			for signalSymbol in sensitivityList:
+				self._sensitivityList.append(signalSymbol)
+				signalSymbol._parent = self
 
 		self._timeout = timeout
+		if timeout is not None:
+			timeout._parent = self
 
 	@property
 	def SensitivityList(self) -> List[Name]:
@@ -3849,6 +4395,8 @@ class ReturnStatement(SequentialStatement, MixinConditional):
 	def __init__(self, returnValue: ExpressionUnion = None):
 		super().__init__()
 		MixinConditional.__init__(self, returnValue)
+
+		# TODO: return value?
 
 	@property
 	def ReturnValue(self) -> ExpressionUnion:

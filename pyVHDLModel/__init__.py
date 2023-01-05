@@ -39,18 +39,17 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2022, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.20.2"
+__version__ =   "0.21.0"
 
 
 from enum            import unique, Enum, Flag, auto
 
-from pyTooling.Graph import Vertex
-from typing          import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple, Any
+from typing          import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple, Any, Type
 
 from pyTooling.Decorators import export
+from pyTooling.Graph import Vertex
 
-
-SubtypeOrSymbol =       Union['Subtype',       'SubtypeSymbol']
+SubtypeOrSymbol = Union['Subtype',       'SubtypeSymbol']
 
 
 ConstraintUnion = Union[
@@ -437,6 +436,8 @@ class ModelEntity:
 	def __init__(self):
 		"""Initializes a VHDL model entity."""
 
+		self._parent = None
+
 	@property
 	def Parent(self) -> 'ModelEntity':
 		"""
@@ -445,6 +446,13 @@ class ModelEntity:
 		:returns: Parent entity.
 		"""
 		return self._parent
+
+	def GetAncestor(self, type: Type) -> 'ModelEntity':
+		parent = self._parent
+		while not isinstance(parent, type):
+			parent = parent._parent
+
+		return parent
 
 
 @export
@@ -715,70 +723,7 @@ class ContextReference(Reference):
 
 @export
 class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
-	_contextItems:      List['ContextUnion']      #: List of all context items (library, use and context clauses).
-	_libraryReferences: List['LibraryClause']     #: List of library clauses.
-	_packageReferences: List['UseClause']         #: List of use clauses.
-	_contextReferences: List['ContextReference']  #: List of context clauses.
-
-	def __init__(self, contextItems: Iterable['ContextUnion'] = None):
-		"""
-		Initializes a mixin for design units with a context.
-
-		:param contextItems: A sequence of library, use or context clauses.
-		"""
-
-		self._contextItems = []
-		# TODO: move to DesignUnit?
-		self._libraryReferences = []
-		self._packageReferences = []
-		self._contextReferences = []
-
-		if contextItems is not None:
-			for item in contextItems:
-				self._contextItems.append(item)
-				if isinstance(item, UseClause):
-					self._packageReferences.append(item)
-				elif isinstance(item, LibraryClause):
-					self._libraryReferences.append(item)
-				elif isinstance(item, ContextReference):
-					self._contextReferences.append(item)
-
-	@property
-	def ContextItems(self) -> List['ContextUnion']:
-		"""
-		Read-only property to access the sequence of all context items comprising library, use and context clauses
-		(:py:attr:`_contextItems`).
-
-		:returns: Sequence of context items.
-		"""
-		return self._contextItems
-
-	@property
-	def ContextReferences(self) -> List['ContextReference']:
-		"""
-		Read-only property to access the sequence of context clauses (:py:attr:`_contextReferences`).
-
-		:returns: Sequence of context clauses.
-		"""
-		return self._contextReferences
-
-	@property
-	def LibraryReferences(self) -> List['LibraryClause']:
-		"""
-		Read-only property to access the sequence of library clauses (:py:attr:`_libraryReferences`).
-
-		:returns: Sequence of library clauses.
-		"""
-		return self._libraryReferences
-
-	@property
-	def PackageReferences(self) -> List['UseClause']:
-		"""
-		Read-only property to access the sequence of use clauses (:py:attr:`_packageReferences`).
-
-		:returns: Sequence of use clauses.
-		"""
-		return self._packageReferences
+	pass
 
 
 @export
@@ -821,22 +766,47 @@ class DependencyGraphEdgeKind(Flag):
 	Configuration = auto()
 	Component = auto()
 
+	Reference = auto()
+	Implementation = auto()
+	Instantiation = auto()
+
+	LibraryClause =    Library | Reference
+	UseClause =        Package | Reference
+	ContextReference = Context | Reference
+
+	EntityImplementation =       Entity | Implementation
+	PackageImplementation =      Package | Implementation
+
+	EntityInstantiation =        Entity | Instantiation
+	ComponentInstantiation =     Component | Instantiation
+	ConfigurationInstantiation = Configuration | Instantiation
+
 
 @export
 class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""A ``DesignUnit`` is a base-class for all design units."""
 
-	_library:            'Library'
-	_dependencyVertex:    Vertex[str, 'DesignUnit', None, None]
-	_referencedLibraries: Dict[str, 'Library']
-	_referencedPackages:  Dict[str, Dict[str, 'Package']]
-	_referencedContexts:  Dict[str, 'Context']
+	_library:             'Library'                        #: The VHDL library, the design unit was analyzed into.
 
-	def __init__(self, identifier: str, documentation: str = None):
+	# Either written as statements before (e.g. entity, architecture, package, ...), or as statements inside (context)
+	_contextItems:        List['ContextUnion']             #: List of all context items (library, use and context clauses).
+	_libraryReferences:   List['LibraryClause']            #: List of library clauses.
+	_packageReferences:   List['UseClause']                #: List of use clauses.
+	_contextReferences:   List['ContextReference']         #: List of context clauses.
+
+	_referencedLibraries: Dict[str, 'Library']             #: Referenced libraries based on explicit library clauses or implicit inheritance
+	_referencedPackages:  Dict[str, Dict[str, 'Package']]  #: Referenced packages based on explicit use clauses or implicit inheritance
+	_referencedContexts:  Dict[str, 'Context']             #: Referenced contexts based on explicit context references or implicit inheritance
+
+	_dependencyVertex:    Vertex[str, 'DesignUnit', None, None]  #: The vertex in the dependency graph
+	_hierarchyVertex:     Vertex[str, 'DesignUnit', None, None]  #: The vertex in the hierarchy graph
+
+	def __init__(self, identifier: str, contextItems: Iterable['ContextUnion'] = None, documentation: str = None):
 		"""
 		Initializes a design unit.
 
 		:param identifier:    Identifier (name) of the design unit.
+		:param contextItems:  A sequence of library, use or context clauses.
 		:param documentation: Associated documentation of the design unit.
 		"""
 		super().__init__()
@@ -844,10 +814,28 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._library = None
-		self._dependencyVertex = None
+
+		self._contextItems = []
+		self._libraryReferences = []
+		self._packageReferences = []
+		self._contextReferences = []
+
+		if contextItems is not None:
+			for item in contextItems:
+				self._contextItems.append(item)
+				if isinstance(item, UseClause):
+					self._packageReferences.append(item)
+				elif isinstance(item, LibraryClause):
+					self._libraryReferences.append(item)
+				elif isinstance(item, ContextReference):
+					self._contextReferences.append(item)
+
 		self._referencedLibraries = {}
-		self._referencedPackages = {"work": {}}  # TODO: should it be the working library name ... auto generated elsewhere already
+		self._referencedPackages = {}
 		self._referencedContexts = {}
+
+		self._dependencyVertex = None
+		self._hierarchyVertex = None
 
 	@property
 	def Document(self) -> 'Document':
@@ -866,6 +854,43 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self._library = library
 
 	@property
+	def ContextItems(self) -> List['ContextUnion']:
+		"""
+		Read-only property to access the sequence of all context items comprising library, use and context clauses
+		(:py:attr:`_contextItems`).
+
+		:returns: Sequence of context items.
+		"""
+		return self._contextItems
+
+	@property
+	def ContextReferences(self) -> List['ContextReference']:
+		"""
+		Read-only property to access the sequence of context clauses (:py:attr:`_contextReferences`).
+
+		:returns: Sequence of context clauses.
+		"""
+		return self._contextReferences
+
+	@property
+	def LibraryReferences(self) -> List['LibraryClause']:
+		"""
+		Read-only property to access the sequence of library clauses (:py:attr:`_libraryReferences`).
+
+		:returns: Sequence of library clauses.
+		"""
+		return self._libraryReferences
+
+	@property
+	def PackageReferences(self) -> List['UseClause']:
+		"""
+		Read-only property to access the sequence of use clauses (:py:attr:`_packageReferences`).
+
+		:returns: Sequence of use clauses.
+		"""
+		return self._packageReferences
+
+	@property
 	def ReferencedLibraries(self) -> Dict[str, 'Library']:
 		return self._referencedLibraries
 
@@ -876,6 +901,14 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	@property
 	def ReferencedContexts(self) -> Dict[str, 'Context']:
 		return self._referencedContexts
+
+	@property
+	def DependencyVertex(self) -> Vertex:
+		return self._dependencyVertex
+
+	@property
+	def HierarchyVertex(self) -> Vertex:
+		return self._hierarchyVertex
 
 
 @export

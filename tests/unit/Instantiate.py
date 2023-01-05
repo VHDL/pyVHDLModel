@@ -33,7 +33,9 @@
 from pathlib  import Path
 from unittest import TestCase
 
-from pyVHDLModel.SyntaxModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral, PackageSymbol
+from pyTooling.Graph import Graph
+
+from pyVHDLModel.SyntaxModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral, PackageSymbol, EntitySymbol
 from pyVHDLModel.SyntaxModel import Entity, Architecture, PackageBody, Package, Configuration, Context
 from pyVHDLModel.SyntaxModel import IntegerType, RealType, ArrayType, RecordType
 
@@ -44,13 +46,19 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class Instantiate(TestCase):
+class SimpleInstance(TestCase):
 	def test_Design(self):
 		design = Design()
 
 		self.assertIsNotNone(design)
 		self.assertEqual(0, len(design.Documents))
 		self.assertEqual(0, len(design.Libraries))
+		self.assertIsInstance(design.DependencyGraph, Graph)
+		self.assertEqual(0, design.DependencyGraph.VertexCount)
+		self.assertIsInstance(design.HierarchyGraph, Graph)
+		self.assertEqual(0, design.HierarchyGraph.VertexCount)
+		self.assertIsInstance(design.CompileOrderGraph, Graph)
+		self.assertEqual(0, design.CompileOrderGraph.VertexCount)
 
 	def test_Library(self):
 		library = Library("lib_1")
@@ -86,7 +94,7 @@ class Instantiate(TestCase):
 		self.assertEqual(0, len(entity.Statements))
 
 	def test_Architecture(self):
-		entity = Entity("entity_1")
+		entity = EntitySymbol("entity_1")
 		architecture = Architecture("arch_1", entity)
 
 		self.assertIsNotNone(architecture)
@@ -150,3 +158,184 @@ class Instantiate(TestCase):
 
 		self.assertIsNotNone(record)
 		self.assertEqual("rec", record.Identifier)
+
+
+class VHDLDocument(TestCase):
+	def test_Documentation(self):
+		path = Path("tests.vhdl")
+		document = Document(path, documentation="Testing 'Document' class.")
+
+		self.assertEqual("Testing 'Document' class.", document.Documentation)
+
+	def test_Entity(self):
+		path = Path("tests.vhdl")
+		document = Document(path, documentation="Testing 'Document' class.")
+
+		entity = Entity("entity_1")
+		document._AddEntity(entity)
+
+		self.assertEqual(1, len(document.Entities))
+		self.assertEqual(1, len(document.DesignUnits))
+
+	def test_Architecture(self):
+		path = Path("tests.vhdl")
+		document = Document(path)
+
+		entity = EntitySymbol("entity_1")
+		architecture = Architecture("arch_1", entity)
+		document._AddArchitecture(architecture)
+
+		self.assertEqual(1, len(document.Architectures))
+		self.assertEqual(1, len(document.DesignUnits))
+
+	def test_Package(self):
+		path = Path("tests.vhdl")
+		document = Document(path)
+
+		package = Package("pack_1")
+		document._AddPackage(package)
+
+		self.assertEqual(1, len(document.Packages))
+		self.assertEqual(1, len(document.DesignUnits))
+
+	def test_PackageBody(self):
+		path = Path("tests.vhdl")
+		document = Document(path)
+
+		packageSymbol = PackageSymbol("pack_1")
+		packageBody = PackageBody(packageSymbol)
+		document._AddPackageBody(packageBody)
+
+		self.assertEqual(1, len(document.PackageBodies))
+		self.assertEqual(1, len(document.DesignUnits))
+
+	def test_Context(self):
+		path = Path("tests.vhdl")
+		document = Document(path)
+
+		context = Context("ctx_1")
+		document._AddContext(context)
+
+		self.assertEqual(1, len(document.Contexts))
+		self.assertEqual(1, len(document.DesignUnits))
+
+	def test_Configuration(self):
+		path = Path("tests.vhdl")
+		document = Document(path)
+
+		configuration = Configuration("cfg_1")
+		document._AddConfiguration(configuration)
+
+		self.assertEqual(1, len(document.Configurations))
+		self.assertEqual(1, len(document.DesignUnits))
+
+	def test_DesignUnits(self):
+		path = Path("tests.vhdl")
+		document = Document(path, documentation="Testing 'Document' class.")
+
+		entity = Entity("entity_1")
+		document._AddDesignUnit(entity)
+
+		entity = EntitySymbol("entity_1")
+		architecture = Architecture("arch_1", entity)
+		document._AddDesignUnit(architecture)
+
+		package = Package("pack_1")
+		document._AddDesignUnit(package)
+
+		packageSymbol = PackageSymbol("pack_1")
+		packageBody = PackageBody(packageSymbol)
+		document._AddDesignUnit(packageBody)
+
+		context = Context("ctx_1")
+		document._AddDesignUnit(context)
+
+		configuration = Configuration("cfg_1")
+		document._AddDesignUnit(configuration)
+
+		self.assertEqual(1, len(document.Entities))
+		self.assertEqual(1, len(document.Architectures))
+		self.assertEqual(1, len(document.Packages))
+		self.assertEqual(1, len(document.PackageBodies))
+		self.assertEqual(1, len(document.Contexts))
+		self.assertEqual(1, len(document.Configurations))
+		self.assertEqual(6, len(document.DesignUnits))
+
+
+class VHDLLibrary(TestCase):
+	def test_AddLibrary(self):
+		design = Design()
+
+		library1 = Library("lib_1")
+		design.AddLibrary(library1)
+
+		self.assertEqual(1, len(design.Libraries))
+		self.assertEqual(design, library1.Parent)
+
+		with self.assertRaises(Exception):
+			design.AddLibrary(Library("lib_1"))
+
+		with self.assertRaises(Exception):
+			library2 = Library("lib_2")
+			library2._parent = True
+			design.AddLibrary(library2)
+
+	def test_GetLibrary(self):
+		design = Design()
+		library = design.GetLibrary("lib_1")
+
+		self.assertEqual(1, len(design.Libraries))
+		self.assertEqual("lib_1", library.Identifier)
+
+	def test_AddDocument(self):
+		design = Design()
+		library = design.GetLibrary("lib_1")
+
+		path = Path("tests.vhdl")
+		document = Document(path, documentation="Testing 'Library' class.")
+
+		document._AddDesignUnit(Entity("entity_1"))
+		document._AddDesignUnit(Architecture("arch_1", EntitySymbol("entity_1")))
+		document._AddDesignUnit(Package("pack_1"))
+		document._AddDesignUnit(PackageBody(PackageSymbol("pack_1")))
+		document._AddDesignUnit(Context("ctx_1"))
+		document._AddDesignUnit(Configuration("cfg_1"))
+
+		design.AddDocument(document, library)
+
+		self.assertEqual(1, len(design.Libraries))
+		self.assertEqual(1, len(design.Documents))
+
+		self.assertEqual(1, len(library.Entities))
+		self.assertEqual(1, len(library.Architectures))
+		self.assertEqual(1, len(library.Packages))
+		self.assertEqual(1, len(library.PackageBodies))
+		self.assertEqual(1, len(library.Contexts))
+		self.assertEqual(1, len(library.Configurations))
+
+		self.assertSetEqual(set(document.IterateDesignUnits()), set(library.IterateDesignUnits()))
+
+	def test_StdLibrary(self):
+		design = Design()
+		stdLibrary = design.LoadStdLibrary()
+
+		self.assertEqual(1, len(design.Libraries))
+		self.assertEqual("std", stdLibrary.NormalizedIdentifier)
+		self.assertEqual(3, len(stdLibrary.Packages))
+		self.assertEqual(3, len(stdLibrary.PackageBodies))
+
+		self.assertSetEqual(set(design.IterateDesignUnits()), set(stdLibrary.IterateDesignUnits()))
+
+		with self.assertRaises(Exception):
+			design.LoadStdLibrary()
+
+	def test_IeeeLibrary(self):
+		design = Design()
+		ieeeLibrary = design.LoadIEEELibrary()
+
+		self.assertEqual(1, len(design.Libraries))
+		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
+		self.assertEqual(13, len(ieeeLibrary.Packages))
+		self.assertEqual(9, len(ieeeLibrary.PackageBodies))
+
+		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))

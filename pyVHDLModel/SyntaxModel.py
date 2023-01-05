@@ -527,17 +527,21 @@ class Design(ModelEntity):
 		self._libraries[libraryIdentifier] = library
 		library._parent = self
 
-	def LoadStdLibrary(self) -> None:
+	def LoadStdLibrary(self) -> 'Library':
 		from pyVHDLModel.std import Std
 
 		library = Std()
 		self._LoadLibrary(library)
 
-	def LoadIEEELibrary(self) -> None:
+		return library
+
+	def LoadIEEELibrary(self) -> 'Library':
 		from pyVHDLModel.ieee import Ieee
 
 		library = Ieee()
 		self._LoadLibrary(library)
+
+		return library
 
 	def GetLibrary(self, libraryName: str) -> 'Library':
 		libraryIdentifier = libraryName.lower()
@@ -549,6 +553,7 @@ class Design(ModelEntity):
 			lib._parent = self
 			return lib
 
+	# TODO: allow overloaded parameter library to be str?
 	def AddDocument(self, document: 'Document', library: 'Library') -> None:
 		self._documents.append(document)
 		document._parent = self

@@ -848,7 +848,7 @@ class Design(ModelEntity):
 							# TODO: catch KeyError on self._libraries[lib[0]]._packages[pack]
 							# TODO: warn duplicate package reference
 
-							dependency = designUnit._dependencyVertex.LinkToVertex(referencedPackage._dependencyVertex, edgeValue=packageReference)
+							dependency = designUnit._dependencyVertex.LinkToVertex(referencedPackage._dependencyVertex)
 							dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 

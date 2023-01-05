@@ -543,6 +543,16 @@ class Design(ModelEntity):
 
 		return library
 
+	def AddLibrary(self, library: 'Library') -> None:
+		if library.NormalizedIdentifier in self._libraries:
+			raise Exception(f"Library '{library.Identifier}' already exists in design.")
+
+		if library._parent is not None:
+			raise Exception(f"Library '{library.Identifier}' already registered in design '{library.Parent}'.")
+
+		self._libraries[library.NormalizedIdentifier] = library
+		library._parent = self
+
 	def GetLibrary(self, libraryName: str) -> 'Library':
 		libraryIdentifier = libraryName.lower()
 		try:
@@ -555,6 +565,9 @@ class Design(ModelEntity):
 
 	# TODO: allow overloaded parameter library to be str?
 	def AddDocument(self, document: 'Document', library: 'Library') -> None:
+		if library.NormalizedIdentifier not in self._libraries:
+			raise Exception(f"Library '{library.Identifier}' is not registered in the design.")
+
 		self._documents.append(document)
 		document._parent = self
 

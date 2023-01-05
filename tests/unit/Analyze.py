@@ -35,7 +35,10 @@ from unittest import TestCase
 
 from pyTooling.Graph import Graph
 
-from pyVHDLModel.SyntaxModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral, PackageSymbol, EntitySymbol
+from pyVHDLModel import LibraryClause, UseClause, ContextReference
+from pyVHDLModel.SyntaxModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral, PackageSymbol, EntitySymbol, \
+	LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, ContextReferenceSymbol, EntityInstantiation, \
+	EntityInstantiationSymbol
 from pyVHDLModel.SyntaxModel import Entity, Architecture, PackageBody, Package, Configuration, Context
 from pyVHDLModel.SyntaxModel import IntegerType, RealType, ArrayType, RecordType
 
@@ -54,12 +57,69 @@ class VHDLLibrary(TestCase):
 		path = Path("tests.vhdl")
 		document = Document(path, documentation="Testing 'Library' class.")
 
-		document._AddDesignUnit(Entity("entity_1"))
-		document._AddDesignUnit(Architecture("arch_1", EntitySymbol("entity_1")))
-		document._AddDesignUnit(Package("pack_1"))
-		document._AddDesignUnit(PackageBody(PackageSymbol("pack_1")))
-		document._AddDesignUnit(Context("ctx_1"))
-		document._AddDesignUnit(Configuration("cfg_1"))
+		contextReferences = [
+			LibraryClause([
+				LibraryReferenceSymbol("ieee"),
+			]),
+			UseClause([
+				AllPackageMembersReferenceSymbol(PackageReferenceSymbol("std_logic_1164", LibraryReferenceSymbol("ieee"))),
+			])
+		]
+		context = Context("ctx_1", contextReferences, documentation="My first context.")
+		document._AddDesignUnit(context)
+
+		entityAReferences = [
+			# UseClause([
+			# 	PackageMembersReferenceSymbol("Stop", PackageReferenceSymbol("env", LibraryReferenceSymbol("std"))),
+			# ]),
+			LibraryClause([
+				LibraryReferenceSymbol("ieee"),
+			]),
+			UseClause([
+				AllPackageMembersReferenceSymbol(PackageReferenceSymbol("numeric_std", LibraryReferenceSymbol("ieee"))),
+			]),
+			UseClause([
+				AllPackageMembersReferenceSymbol(PackageReferenceSymbol("pack_1", LibraryReferenceSymbol("work"))),
+			])
+		]
+		entityA = Entity("entity_A", entityAReferences, documentation="My first entity.")
+		document._AddDesignUnit(entityA)
+
+		architectureAReferences = [
+			UseClause([
+				AllPackageMembersReferenceSymbol(PackageReferenceSymbol("textio", LibraryReferenceSymbol("std"))),
+			]),
+		]
+		architectureA = Architecture("arch_A", EntitySymbol("entity_A"), architectureAReferences, documentation="My first entity implementation.")
+		document._AddDesignUnit(architectureA)
+
+		entityBReferences = [
+			ContextReference([
+				ContextReferenceSymbol("ctx_1", LibraryReferenceSymbol("work")),
+			]),
+		]
+		entityB = Entity("entity_B", entityBReferences, documentation="My second entity.")
+		document._AddDesignUnit(entityB)
+
+		architectureBStatements = [
+			EntityInstantiation("inst", EntityInstantiationSymbol("entity_A", LibraryReferenceSymbol("work")))
+		]
+		architectureB = Architecture("arch_B", EntitySymbol("entity_B"), None, architectureBStatements, documentation="My second entity implementation.")
+		document._AddDesignUnit(architectureB)
+
+		packageReferences = [
+			ContextReference([
+				ContextReferenceSymbol("ctx_1", LibraryReferenceSymbol("work")),
+			]),
+		]
+		package = Package("pack_1", packageReferences, documentation="My first utility package.")
+		document._AddDesignUnit(package)
+
+		packageBody = PackageBody(PackageSymbol("pack_1"))
+		document._AddDesignUnit(packageBody)
+
+		configuration = Configuration("cfg_1")
+		document._AddDesignUnit(configuration)
 
 		design.AddDocument(document, library)
 
@@ -80,11 +140,12 @@ class VHDLLibrary(TestCase):
 
 		design.CreateDependencyGraph()
 
-		self.assertEqual(37, design.DependencyGraph.VertexCount)
+		self.assertEqual(39, design.DependencyGraph.VertexCount)
 
 	def test_LinkContexts(self):
 		design = self.CreateDesign()
 
+		design.CreateDependencyGraph()
 		design.LinkContexts()
 
 	def test_LinkArchitectures(self):
@@ -120,6 +181,10 @@ class VHDLLibrary(TestCase):
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
+		design.LinkArchitectures()
+		design.LinkPackageBodies()
+		design.LinkLibraryReferences()
+		design.LinkPackageReferences()
 		design.LinkContextReferences()
 
 	def test_IndexPackages(self):

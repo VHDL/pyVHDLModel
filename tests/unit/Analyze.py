@@ -198,10 +198,10 @@ class VHDLLibrary(TestCase):
 
 		design.IndexArchitectures()
 
-	def test_LinkInstanziations(self):
+	def test_LinkInstantiations(self):
 		design = self.CreateDesign()
 
-		design.LinkInstanziations()
+		design.LinkInstantiations()
 
 	def test_CreateHierarchyGraph(self):
 		design = self.CreateDesign()

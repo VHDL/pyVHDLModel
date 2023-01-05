@@ -643,7 +643,7 @@ class Design(ModelEntity):
 		self.IndexPackages()
 		self.IndexArchitectures()
 
-		self.LinkInstanziations()
+		self.LinkInstantiations()
 		self.CreateHierarchyGraph()
 
 	def CreateCompilerOrderGraph(self) -> None:
@@ -959,7 +959,7 @@ class Design(ModelEntity):
 
 							designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
-	def LinkInstanziations(self) -> None:
+	def LinkInstantiations(self) -> None:
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):
 			for instance in architecture.IterateInstantiations():
 				if isinstance(instance, EntityInstantiation):

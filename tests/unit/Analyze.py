@@ -102,9 +102,10 @@ class VHDLLibrary(TestCase):
 		document._AddDesignUnit(entityB)
 
 		architectureBStatements = [
-			EntityInstantiation("inst", EntityInstantiationSymbol("entity_A", LibraryReferenceSymbol("work")))
+			EntityInstantiation("instWork", EntityInstantiationSymbol("entity_A", LibraryReferenceSymbol("work"))),
+			EntityInstantiation("instLib", EntityInstantiationSymbol("entity_A", LibraryReferenceSymbol("lib_1"))),
 		]
-		architectureB = Architecture("arch_B", EntitySymbol("entity_B"), None, architectureBStatements, documentation="My second entity implementation.")
+		architectureB = Architecture("arch_B", EntitySymbol("entity_B"), None, None, architectureBStatements, documentation="My second entity implementation.")
 		document._AddDesignUnit(architectureB)
 
 		packageReferences = [

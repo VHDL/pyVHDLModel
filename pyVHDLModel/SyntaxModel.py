@@ -1403,6 +1403,38 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""Returns a list of all verification mode declarations found in this document."""
 		return self._verificationModes
 
+	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
+		if DesignUnitKind.Context in filter:
+			for context in self._contexts.values():
+				yield context
+
+		if DesignUnitKind.Package in filter:
+			for package in self._packages.values():
+				yield package
+
+		if DesignUnitKind.PackageBody in filter:
+			for packageBody in self._packageBodies.values():
+				yield packageBody
+
+		if DesignUnitKind.Entity in filter:
+			for entity in self._entities.values():
+				yield entity
+
+		if DesignUnitKind.Architecture in filter:
+			for architectures in self._architectures.values():
+				for architecture in architectures.values():
+					yield architecture
+
+		if DesignUnitKind.Configuration in filter:
+			for configuration in self._configurations.values():
+				yield configuration
+
+		# for verificationProperty in self._verificationUnits.values():
+		# 	yield verificationProperty
+		# for verificationUnit in self._verificationProperties.values():
+		# 	yield entity
+		# for verificationMode in self._verificationModes.values():
+		# 	yield verificationMode
 
 @export
 class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):

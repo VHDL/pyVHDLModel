@@ -517,7 +517,7 @@ class Design(ModelEntity):
 		return self._dependencyGraph
 
 	@property
-	def DependencyGraph(self) -> Graph:
+	def HierarchyGraph(self) -> Graph:
 		return self._hierarchyGraph
 
 	def _LoadLibrary(self, library) -> None:
@@ -1300,12 +1300,11 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if isinstance(item, Entity):
 			self._entities[identifier] = item
 		elif isinstance(item, Architecture):
-			entityName = item.Entity.SymbolName.Identifier
-			entityIdentifier = entityName.lower()
+			entityIdentifier = item.Entity.NormalizedIdentifier
 			try:
 				architectures = self._architectures[entityIdentifier]
 				if identifier in architectures:
-					raise ValueError(f"An architecture '{item.Identifier}' for entity '{entityName}' already exists in this document.")
+					raise ValueError(f"An architecture '{item.Identifier}' for entity '{item.Entity.Identifier}' already exists in this document.")
 
 				architectures[identifier] = item
 			except KeyError:

@@ -1403,6 +1403,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""Returns a list of all verification mode declarations found in this document."""
 		return self._verificationModes
 
+	@property
+	def CompileOrderVertex(self) -> Vertex[None, 'Document', None, None]:
+		return self._compileOrderVertex
+
 	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
 		if DesignUnitKind.Context in filter:
 			for context in self._contexts.values():

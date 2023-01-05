@@ -1082,6 +1082,10 @@ class Library(ModelEntity, NamedEntityMixin):
 		"""Returns a list of all package body declarations declared in this library."""
 		return self._packageBodies
 
+	@property
+	def DependencyVertex(self) -> Vertex:
+		return self._dependencyVertex
+
 	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
 		if DesignUnitKind.Context in filter:
 			for context in self._contexts.values():

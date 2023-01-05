@@ -99,6 +99,29 @@ class VHDLLibrary(TestCase):
 		design.CreateDependencyGraph()
 		design.LinkPackageBodies()
 
+	def test_LinkLibraryReferences(self):
+		design = self.CreateDesign()
+
+		design.CreateDependencyGraph()
+		design.LinkArchitectures()
+		design.LinkPackageBodies()
+		design.LinkLibraryReferences()
+
+	def test_LinkPackageReferences(self):
+		design = self.CreateDesign()
+
+		design.CreateDependencyGraph()
+		design.LinkArchitectures()
+		design.LinkPackageBodies()
+		design.LinkLibraryReferences()
+		design.LinkPackageReferences()
+
+	def test_LinkContextReferences(self):
+		design = self.CreateDesign()
+
+		design.CreateDependencyGraph()
+		design.LinkContextReferences()
+
 	def test_IndexPackages(self):
 		design = self.CreateDesign()
 
@@ -118,3 +141,8 @@ class VHDLLibrary(TestCase):
 		design = self.CreateDesign()
 
 		design.CreateHierarchyGraph()
+
+	def test_Analyze(self):
+		design = self.CreateDesign()
+
+		design.Analyze()

@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2022 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -32,12 +32,12 @@
 """
 An abstract VHDL language model.
 
-:copyright: Copyright 2007-2022 Patrick Lehmann - Bötzingen, Germany
+:copyright: Copyright 2007-2023 Patrick Lehmann - Bötzingen, Germany
 :license: Apache License, Version 2.0
 """
 __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
-__copyright__ = "2016-2022, Patrick Lehmann"
+__copyright__ = "2016-2023, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
 __version__ =   "0.22.0"
 

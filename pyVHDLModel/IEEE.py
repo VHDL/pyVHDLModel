@@ -1,7 +1,5 @@
 from pyTooling.Decorators import export
 
-from pyVHDLModel import UseClause, LibraryClause
-from pyVHDLModel.SyntaxModel import AllPackageMembersReferenceSymbol, PackageReferenceSymbol, LibraryReferenceSymbol
 from pyVHDLModel.std import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 
 

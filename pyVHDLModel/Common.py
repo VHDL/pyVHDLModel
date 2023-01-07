@@ -2,7 +2,8 @@ from typing import List, Iterable, Optional as Nullable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity, LabeledEntityMixin, Name, ExpressionUnion, Direction
+from pyVHDLModel import ModelEntity, LabeledEntityMixin, ExpressionUnion, Direction
+from pyVHDLModel.Symbol import NewSymbol
 from pyVHDLModel.Association import ParameterAssociationItem
 
 
@@ -15,10 +16,10 @@ class Statement(ModelEntity, LabeledEntityMixin):
 
 @export
 class ProcedureCall:
-	_procedure: Name  # TODO: implement a ProcedureSymbol
+	_procedure: NewSymbol  # TODO: implement a ProcedureSymbol
 	_parameterMappings: List[ParameterAssociationItem]
 
-	def __init__(self, procedureName: Name, parameterMappings: Iterable[ParameterAssociationItem] = None):
+	def __init__(self, procedureName: NewSymbol, parameterMappings: Iterable[ParameterAssociationItem] = None):
 		self._procedure = procedureName
 		procedureName._parent = self
 
@@ -30,7 +31,7 @@ class ProcedureCall:
 				parameterMapping._parent = self
 
 	@property
-	def Procedure(self) -> Name:
+	def Procedure(self) -> NewSymbol:
 		return self._procedure
 
 	@property
@@ -101,14 +102,14 @@ class BaseCase(ModelEntity):
 class Assignment:
 	"""An ``Assignment`` is a base-class for all assignment statements."""
 
-	_target:     Name
+	_target: NewSymbol
 
-	def __init__(self, target: Name):
+	def __init__(self, target: NewSymbol):
 		self._target = target
 		target._parent = self
 
 	@property
-	def Target(self) -> Name:
+	def Target(self) -> NewSymbol:
 		return self._target
 
 
@@ -120,10 +121,10 @@ class SignalAssignment(Assignment):
 @export
 class VariableAssignment(Assignment):
 	"""An ``VariableAssignment`` is a base-class for all variable assignment statements."""
-
+	# FIXME: move to sequential?
 	_expression: ExpressionUnion
 
-	def __init__(self, target: Name, expression: ExpressionUnion):
+	def __init__(self, target: NewSymbol, expression: ExpressionUnion):
 		super().__init__(target)
 
 		self._expression = expression

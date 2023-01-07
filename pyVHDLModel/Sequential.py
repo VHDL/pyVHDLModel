@@ -6,7 +6,7 @@ from pyVHDLModel import ExpressionUnion, ModelEntity
 from pyVHDLModel.Association import ParameterAssociationItem
 from pyVHDLModel.Common import Statement, ProcedureCall, MixinConditional, Choice, BaseCase, SignalAssignment, VariableAssignment, MixinReportStatement, \
 	MixinAssertStatement, MixinIfBranch, MixinElsifBranch, MixinElseBranch, WaveformElement, Range
-from pyVHDLModel.Name import Name
+from pyVHDLModel.Symbol import NewSymbol
 
 
 @export
@@ -33,7 +33,7 @@ class SequentialStatements:
 
 @export
 class SequentialProcedureCall(SequentialStatement, ProcedureCall):
-	def __init__(self, procedureName: Name, parameterMappings: Iterable[ParameterAssociationItem] = None, label: str = None):
+	def __init__(self, procedureName: NewSymbol, parameterMappings: Iterable[ParameterAssociationItem] = None, label: str = None):
 		super().__init__(label)
 		ProcedureCall.__init__(self, procedureName, parameterMappings)
 
@@ -60,7 +60,7 @@ class SequentialCase(BaseCase, SequentialStatements):
 
 @export
 class SequentialSignalAssignment(SequentialStatement, SignalAssignment):
-	def __init__(self, target: Name, label: str = None):
+	def __init__(self, target: NewSymbol, label: str = None):
 		super().__init__(label)
 		SignalAssignment.__init__(self, target)
 
@@ -69,7 +69,7 @@ class SequentialSignalAssignment(SequentialStatement, SignalAssignment):
 class SequentialSimpleSignalAssignment(SequentialSignalAssignment):
 	_waveform: List[WaveformElement]
 
-	def __init__(self, target: Name, waveform: Iterable[WaveformElement], label: str = None):
+	def __init__(self, target: NewSymbol, waveform: Iterable[WaveformElement], label: str = None):
 		super().__init__(target, label)
 
 		# TODO: extract to mixin
@@ -86,7 +86,7 @@ class SequentialSimpleSignalAssignment(SequentialSignalAssignment):
 
 @export
 class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
-	def __init__(self, target: Name, expression: ExpressionUnion, label: str = None):
+	def __init__(self, target: NewSymbol, expression: ExpressionUnion, label: str = None):
 		super().__init__(label)
 		VariableAssignment.__init__(self, target, expression)
 
@@ -281,10 +281,10 @@ class NullStatement(SequentialStatement):
 
 @export
 class WaitStatement(SequentialStatement, MixinConditional):
-	_sensitivityList: Nullable[List[Name]]
+	_sensitivityList: Nullable[List[NewSymbol]]
 	_timeout:         ExpressionUnion
 
-	def __init__(self, sensitivityList: Iterable[Name] = None, condition: ExpressionUnion = None, timeout: ExpressionUnion = None, label: str = None):
+	def __init__(self, sensitivityList: Iterable[NewSymbol] = None, condition: ExpressionUnion = None, timeout: ExpressionUnion = None, label: str = None):
 		super().__init__(label)
 		MixinConditional.__init__(self, condition)
 
@@ -301,7 +301,7 @@ class WaitStatement(SequentialStatement, MixinConditional):
 			timeout._parent = self
 
 	@property
-	def SensitivityList(self) -> List[Name]:
+	def SensitivityList(self) -> List[NewSymbol]:
 		return self._sensitivityList
 
 	@property

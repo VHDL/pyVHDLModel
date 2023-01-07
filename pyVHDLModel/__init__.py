@@ -919,3 +919,8 @@ class PrimaryUnit(DesignUnit):
 @export
 class SecondaryUnit(DesignUnit):
 	"""A ``SecondaryUnit`` is a base-class for all secondary units."""
+
+
+@export
+class VHDLModelException(Exception):
+	"""Base-class for all exceptions (errors) in pyVHDLModel."""

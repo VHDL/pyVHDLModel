@@ -620,8 +620,8 @@ class Name(ModelEntity):
 		self._normalizedIdentifier = identifier.lower()
 
 		if prefix is None:
-			self._prefix = self
-			self._root = None
+			self._prefix = None
+			self._root = self
 		else:
 			self._prefix = prefix
 			self._root = prefix._root
@@ -643,7 +643,7 @@ class Name(ModelEntity):
 		return self._prefix
 
 	@property
-	def Has_Prefix(self) -> bool:
+	def HasPrefix(self) -> bool:
 		return self._prefix is not None
 
 

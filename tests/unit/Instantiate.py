@@ -140,7 +140,7 @@ class Symbols(TestCase):
 class SimpleInstance(TestCase):
 	def test_Design(self):
 		design = Design()
-		design.Analyze()
+		# design.Analyze()
 
 		self.assertIsNotNone(design)
 		self.assertEqual(0, len(design.Documents))

@@ -1,10 +1,11 @@
 from typing import Iterable
 
-from pyTooling.Decorators import export
+from pyTooling.Decorators    import export
 
-from pyVHDLModel import UseClause, LibraryClause
-from pyVHDLModel.SyntaxModel import Package, PackageBody, Library, PackageSymbol, AllPackageMembersReferenceSymbol, PackageReferenceSymbol, \
-	LibraryReferenceSymbol, PackageMembersReferenceSymbol
+from pyVHDLModel             import UseClause, LibraryClause
+from pyVHDLModel.Root import Library
+from pyVHDLModel.DesignUnit import Package, PackageBody
+from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, AllPackageMembersReferenceSymbol, PackageSymbol
 
 
 @export
@@ -25,7 +26,6 @@ class PredefinedLibrary(Library):
 
 @export
 class PredefinedMixin:
-
 	def _AddLibraryClause(self, libraries: Iterable[str]):
 		symbols = [LibraryReferenceSymbol(libName) for libName in libraries]
 		libraryClause = LibraryClause(symbols)

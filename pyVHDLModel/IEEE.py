@@ -1,6 +1,6 @@
 from pyTooling.Decorators import export
 
-from pyVHDLModel.std import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
+from pyVHDLModel.STD import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 
 
 @export

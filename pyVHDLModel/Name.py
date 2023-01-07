@@ -1,8 +1,51 @@
-from typing import List, Iterable
+from typing import List, Iterable, Optional as Nullable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import Name, ExpressionUnion
+from pyVHDLModel import ExpressionUnion, ModelEntity
+
+
+@export
+class Name(ModelEntity):
+	"""``Name`` is the base-class for all *names* in the VHDL language model."""
+
+	_identifier: str
+	_normalizedIdentifier: str
+	_root: Nullable['Name']     # TODO: seams to be unused. There is no reverse linking
+	_prefix: Nullable['Name']
+
+	def __init__(self, identifier: str, prefix: 'Name' = None):
+		super().__init__()
+
+		self._identifier = identifier
+		self._normalizedIdentifier = identifier.lower()
+
+		if prefix is None:
+			self._prefix = None
+			self._root = self
+		else:
+			self._prefix = prefix
+			self._root = prefix._root
+
+	@property
+	def Identifier(self) -> str:
+		return self._identifier
+
+	@property
+	def NormalizedIdentifier(self) -> str:
+		return self._normalizedIdentifier
+
+	@property
+	def Root(self) -> 'Name':
+		return self._root
+
+	@property
+	def Prefix(self) -> Nullable['Name']:
+		return self._prefix
+
+	@property
+	def HasPrefix(self) -> bool:
+		return self._prefix is not None
 
 
 @export

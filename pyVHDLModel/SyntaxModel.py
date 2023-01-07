@@ -40,16 +40,10 @@ from typing                import List, Union, Iterable
 
 from pyTooling.Decorators  import export
 
-from pyVHDLModel import EntityClass
-from pyVHDLModel           import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, PossibleReference
-from pyVHDLModel           import Name, Symbol
-from pyVHDLModel           import PrimaryUnit
-from pyVHDLModel           import ExpressionUnion, ConstraintUnion, SubtypeOrSymbol
+from pyVHDLModel import EntityClass, ModelEntity, NamedEntityMixin, DocumentedEntityMixin, PrimaryUnit, ExpressionUnion, SubtypeOrSymbol
 from pyVHDLModel.Association import GenericAssociationItem
-from pyVHDLModel.Object import Constant, Variable, Signal
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Symbol import PackageReferenceSymbol
-from pyVHDLModel.Type import Subtype
 
 try:
 	from typing import Protocol
@@ -232,12 +226,12 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 @export
 class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
-	_identifiers: List[Name]
-	_attribute: Name
+	_identifiers: List['Name']
+	_attribute: 'Name'
 	_entityClass: EntityClass
 	_expression: ExpressionUnion
 
-	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: ExpressionUnion, documentation: str = None):
+	def __init__(self, identifiers: Iterable['Name'], attribute: 'Name', entityClass: EntityClass, expression: ExpressionUnion, documentation: str = None):
 		super().__init__()
 		DocumentedEntityMixin.__init__(self, documentation)
 
@@ -255,11 +249,11 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		expression._parent = self
 
 	@property
-	def Identifiers(self) -> List[Name]:
+	def Identifiers(self) -> List['Name']:
 		return self._identifiers
 
 	@property
-	def Attribute(self) -> Name:
+	def Attribute(self) -> 'Name':
 		return self._attribute
 
 	@property

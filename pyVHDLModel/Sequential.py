@@ -2,10 +2,11 @@ from typing import List, Iterable, Optional as Nullable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import Name, ExpressionUnion, ModelEntity
+from pyVHDLModel import ExpressionUnion, ModelEntity
 from pyVHDLModel.Association import ParameterAssociationItem
 from pyVHDLModel.Common import Statement, ProcedureCall, MixinConditional, Choice, BaseCase, SignalAssignment, VariableAssignment, MixinReportStatement, \
 	MixinAssertStatement, MixinIfBranch, MixinElsifBranch, MixinElseBranch, WaveformElement, Range
+from pyVHDLModel.Name import Name
 
 
 @export

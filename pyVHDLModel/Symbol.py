@@ -2,8 +2,8 @@ from typing import cast
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import NewSymbol, PossibleReference, Name
-from pyVHDLModel.Name import SimpleName, SelectedName, AllName
+from pyVHDLModel import NewSymbol, PossibleReference
+from pyVHDLModel.Name import Name, SimpleName, SelectedName, AllName
 
 
 @export

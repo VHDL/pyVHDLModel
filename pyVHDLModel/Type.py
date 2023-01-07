@@ -2,7 +2,7 @@ from typing import Union, List, Iterator, Iterable, Tuple
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Name, ExpressionUnion, SubtypeOrSymbol, MultipleNamedEntityMixin
+from pyVHDLModel import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, SubtypeOrSymbol, MultipleNamedEntityMixin
 from pyVHDLModel.Common import Range
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 
@@ -73,16 +73,16 @@ class ScalarType(FullType):
 class RangedScalarType(ScalarType):
 	"""A ``RangedScalarType`` is a base-class for all scalar types with a range."""
 
-	_range:      Union['Range', Name]
+	_range:      Union['Range', 'Name']
 	_leftBound:  ExpressionUnion
 	_rightBound: ExpressionUnion
 
-	def __init__(self, identifier: str, rng: Union['Range', Name]):
+	def __init__(self, identifier: str, rng: Union['Range', 'Name']):
 		super().__init__(identifier)
 		self._range = rng
 
 	@property
-	def Range(self) -> Union['Range', Name]:
+	def Range(self) -> Union['Range', 'Name']:
 		return self._range
 
 
@@ -194,13 +194,13 @@ class EnumeratedType(ScalarType, DiscreteType):
 
 @export
 class IntegerType(RangedScalarType, NumericType, DiscreteType):
-	def __init__(self, identifier: str, rng: Union['Range', Name]):
+	def __init__(self, identifier: str, rng: Union['Range', 'Name']):
 		super().__init__(identifier, rng)
 
 
 @export
 class RealType(RangedScalarType, NumericType):
-	def __init__(self, identifier: str, rng: Union['Range', Name]):
+	def __init__(self, identifier: str, rng: Union['Range', 'Name']):
 		super().__init__(identifier, rng)
 
 
@@ -209,7 +209,7 @@ class PhysicalType(RangedScalarType, NumericType):
 	_primaryUnit:    str
 	_secondaryUnits: List[Tuple[str, 'PhysicalIntegerLiteral']]
 
-	def __init__(self, identifier: str, rng: Union['Range', Name], primaryUnit: str, units: Iterable[Tuple[str, 'PhysicalIntegerLiteral']]):
+	def __init__(self, identifier: str, rng: Union['Range', 'Name'], primaryUnit: str, units: Iterable[Tuple[str, 'PhysicalIntegerLiteral']]):
 		super().__init__(identifier, rng)
 
 		self._primaryUnit = primaryUnit

@@ -39,7 +39,7 @@ from typing import Tuple, List, Iterable
 from pyTooling.Decorators import export
 
 from pyVHDLModel.Base import ModelEntity, ExpressionUnion, Direction
-from pyVHDLModel.Symbol import NewSymbol
+from pyVHDLModel.Symbol import Symbol
 
 
 @export
@@ -524,9 +524,9 @@ class RotateLeftExpression(RotateExpression):
 @export
 class QualifiedExpression(BaseExpression, ParenthesisExpression):
 	_operand:  ExpressionUnion
-	_subtype:  NewSymbol
+	_subtype:  Symbol
 
-	def __init__(self, subtype: NewSymbol, operand: ExpressionUnion):
+	def __init__(self, subtype: Symbol, operand: ExpressionUnion):
 		super().__init__()
 
 		self._operand = operand
@@ -602,16 +602,16 @@ class Allocation(BaseExpression):
 
 @export
 class SubtypeAllocation(Allocation):
-	_subtype: NewSymbol
+	_subtype: Symbol
 
-	def __init__(self, subtype: NewSymbol):
+	def __init__(self, subtype: Symbol):
 		super().__init__()
 
 		self._subtype = subtype
 		subtype._parent = self
 
 	@property
-	def Subtype(self) -> NewSymbol:
+	def Subtype(self) -> Symbol:
 		return self._subtype
 
 	def __str__(self) -> str:
@@ -702,16 +702,16 @@ class RangedAggregateElement(AggregateElement):
 
 @export
 class NamedAggregateElement(AggregateElement):
-	_name: NewSymbol
+	_name: Symbol
 
-	def __init__(self, name: NewSymbol, expression: ExpressionUnion):
+	def __init__(self, name: Symbol, expression: ExpressionUnion):
 		super().__init__(expression)
 
 		self._name = name
 		name._parent = self
 
 	@property
-	def Name(self) -> NewSymbol:
+	def Name(self) -> Symbol:
 		return self._name
 
 	def __str__(self) -> str:

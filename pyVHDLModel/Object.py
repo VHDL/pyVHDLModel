@@ -38,15 +38,15 @@ from typing import Iterable, Optional as Nullable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel.Symbol import NewSymbol
+from pyVHDLModel.Symbol import Symbol
 from pyVHDLModel.Base import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
 
 
 @export
 class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
-	_subtype: NewSymbol
+	_subtype: Symbol
 
-	def __init__(self, identifiers: Iterable[str], subtype: NewSymbol, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
 		super().__init__()
 		MultipleNamedEntityMixin.__init__(self, identifiers)
 		DocumentedEntityMixin.__init__(self, documentation)
@@ -55,7 +55,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 		subtype._parent = self
 
 	@property
-	def Subtype(self) -> NewSymbol:
+	def Subtype(self) -> Symbol:
 		return self._subtype
 
 
@@ -82,7 +82,7 @@ class WithDefaultExpressionMixin:
 
 @export
 class Constant(BaseConstant, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: NewSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
 		super().__init__(identifiers, subtype, documentation)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
@@ -91,7 +91,7 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 class DeferredConstant(BaseConstant):
 	_constantReference: Constant
 
-	def __init__(self, identifiers: Iterable[str], subtype: NewSymbol, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
 		super().__init__(identifiers, subtype, documentation)
 
 	@property
@@ -101,7 +101,7 @@ class DeferredConstant(BaseConstant):
 
 @export
 class Variable(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: NewSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
 		super().__init__(identifiers, subtype, documentation)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
@@ -113,7 +113,7 @@ class SharedVariable(Obj):
 
 @export
 class Signal(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: NewSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
 		super().__init__(identifiers, subtype, documentation)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 

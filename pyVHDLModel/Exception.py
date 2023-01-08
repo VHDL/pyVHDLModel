@@ -37,7 +37,7 @@ message in english, each exception object contains one or multiple references to
 """
 from pyTooling.Decorators import export
 
-from pyVHDLModel.Symbol import NewSymbol
+from pyVHDLModel.Symbol import Symbol
 
 
 @export
@@ -318,10 +318,10 @@ class ReferencedLibraryNotExistingError(VHDLModelException):
 	Message: :pycode:`f"Library '{librarySymbol.Identifier}' referenced by library clause of context '{context.Identifier}' doesn't exist in design."`
 	"""
 
-	_librarySymbol: NewSymbol
+	_librarySymbol: Symbol
 	_context: 'Context'
 
-	def __init__(self, context: 'Context', librarySymbol: NewSymbol):
+	def __init__(self, context: 'Context', librarySymbol: Symbol):
 		"""
 		Initializes the exception message based on given context and library objects.
 
@@ -333,7 +333,7 @@ class ReferencedLibraryNotExistingError(VHDLModelException):
 		self._context = context
 
 	@property
-	def LibrarySymbol(self) -> NewSymbol:
+	def LibrarySymbol(self) -> Symbol:
 		return self._librarySymbol
 
 	@property

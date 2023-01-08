@@ -39,7 +39,7 @@ from typing                  import List, Iterable
 from pyTooling.Decorators    import export
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, ExpressionUnion
-from pyVHDLModel.Symbol      import NewSymbol
+from pyVHDLModel.Symbol      import Symbol
 from pyVHDLModel.Association import ParameterAssociationItem
 
 
@@ -55,10 +55,10 @@ class Statement(ModelEntity, LabeledEntityMixin):
 
 @export
 class ProcedureCall:
-	_procedure:         NewSymbol  # TODO: implement a ProcedureSymbol
+	_procedure:         Symbol  # TODO: implement a ProcedureSymbol
 	_parameterMappings: List[ParameterAssociationItem]
 
-	def __init__(self, procedureName: NewSymbol, parameterMappings: Iterable[ParameterAssociationItem] = None):
+	def __init__(self, procedureName: Symbol, parameterMappings: Iterable[ParameterAssociationItem] = None):
 		self._procedure = procedureName
 		procedureName._parent = self
 
@@ -70,7 +70,7 @@ class ProcedureCall:
 				parameterMapping._parent = self
 
 	@property
-	def Procedure(self) -> NewSymbol:
+	def Procedure(self) -> Symbol:
 		return self._procedure
 
 	@property
@@ -82,14 +82,14 @@ class ProcedureCall:
 class Assignment:
 	"""An ``Assignment`` is a base-class for all assignment statements."""
 
-	_target: NewSymbol
+	_target: Symbol
 
-	def __init__(self, target: NewSymbol):
+	def __init__(self, target: Symbol):
 		self._target = target
 		target._parent = self
 
 	@property
-	def Target(self) -> NewSymbol:
+	def Target(self) -> Symbol:
 		return self._target
 
 
@@ -104,7 +104,7 @@ class VariableAssignment(Assignment):
 	# FIXME: move to sequential?
 	_expression: ExpressionUnion
 
-	def __init__(self, target: NewSymbol, expression: ExpressionUnion):
+	def __init__(self, target: Symbol, expression: ExpressionUnion):
 		super().__init__(target)
 
 		self._expression = expression

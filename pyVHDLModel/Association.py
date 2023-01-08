@@ -39,15 +39,15 @@ from typing import Optional as Nullable
 from pyTooling.Decorators import export
 
 from pyVHDLModel.Base import ModelEntity, ExpressionUnion
-from pyVHDLModel.Symbol import NewSymbol
+from pyVHDLModel.Symbol import Symbol
 
 
 @export
 class AssociationItem(ModelEntity):
-	_formal: Nullable[NewSymbol]
+	_formal: Nullable[Symbol]
 	_actual: ExpressionUnion
 
-	def __init__(self, actual: ExpressionUnion, formal: NewSymbol = None):
+	def __init__(self, actual: ExpressionUnion, formal: Symbol = None):
 		super().__init__()
 
 		self._formal = formal
@@ -58,7 +58,7 @@ class AssociationItem(ModelEntity):
 		# actual._parent = self  # FIXME: actual is provided as None
 
 	@property
-	def Formal(self) -> Nullable[NewSymbol]:  # TODO: can also be a conversion function !!
+	def Formal(self) -> Nullable[Symbol]:  # TODO: can also be a conversion function !!
 		return self._formal
 
 	@property

@@ -38,7 +38,7 @@ from typing import Iterable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel.Symbol import NewSymbol
+from pyVHDLModel.Symbol import Symbol
 from pyVHDLModel.Base import DocumentedEntityMixin, ExpressionUnion, Mode
 from pyVHDLModel.Object import Constant, Signal, Variable, File
 from pyVHDLModel.Subprogram import Procedure, Function
@@ -88,7 +88,7 @@ class ParameterInterfaceItem(InterfaceItem):
 
 @export
 class GenericConstantInterfaceItem(Constant, GenericInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: NewSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
 		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		GenericInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
@@ -129,14 +129,14 @@ class GenericPackageInterfaceItem(GenericInterfaceItem):
 
 @export
 class PortSignalInterfaceItem(Signal, PortInterfaceItem):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: NewSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
 		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		PortInterfaceItem.__init__(self, mode)
 
 
 @export
 class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: NewSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
 		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
@@ -144,7 +144,7 @@ class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem, Interface
 
 @export
 class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: NewSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
 		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
@@ -152,7 +152,7 @@ class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem, Interface
 
 @export
 class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem, InterfaceItemWithMode):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: NewSymbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
 		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		ParameterInterfaceItem.__init__(self)
 		InterfaceItemWithMode.__init__(self, mode)
@@ -160,6 +160,6 @@ class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItem, InterfaceItem
 
 @export
 class ParameterFileInterfaceItem(File, ParameterInterfaceItem):
-	def __init__(self, identifiers: Iterable[str], subtype: NewSymbol, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
 		super().__init__(identifiers, subtype, documentation)
 		ParameterInterfaceItem.__init__(self)

@@ -57,15 +57,15 @@ ContextUnion = Union[
 
 @export
 class Reference(ModelEntity):
-	_symbols:       List[NewSymbol]
+	_symbols:       List[Symbol]
 
-	def __init__(self, symbols: Iterable[NewSymbol]):
+	def __init__(self, symbols: Iterable[Symbol]):
 		super().__init__()
 
 		self._symbols = [s for s in symbols]
 
 	@property
-	def Symbols(self) -> List[NewSymbol]:
+	def Symbols(self) -> List[Symbol]:
 		return self._symbols
 
 

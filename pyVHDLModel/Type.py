@@ -39,7 +39,7 @@ from typing                 import Union, List, Iterator, Iterable, Tuple
 from pyTooling.Decorators   import export
 
 from pyVHDLModel.Base import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
-from pyVHDLModel.Symbol import NewSymbol
+from pyVHDLModel.Symbol import Symbol
 from pyVHDLModel.Name       import Name
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 
@@ -201,9 +201,9 @@ class CompositeType(FullType):
 @export
 class ArrayType(CompositeType):
 	_dimensions:  List[Range]
-	_elementType: NewSymbol
+	_elementType: Symbol
 
-	def __init__(self, identifier: str, indices: List, elementSubtype: NewSymbol):
+	def __init__(self, identifier: str, indices: List, elementSubtype: Symbol):
 		super().__init__(identifier)
 
 		self._dimensions = []
@@ -216,15 +216,15 @@ class ArrayType(CompositeType):
 		return self._dimensions
 
 	@property
-	def ElementType(self) -> NewSymbol:
+	def ElementType(self) -> Symbol:
 		return self._elementType
 
 
 @export
 class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin):
-	_subtype: NewSymbol
+	_subtype: Symbol
 
-	def __init__(self, identifiers: Iterable[str], subtype: NewSymbol):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol):
 		super().__init__()
 		MultipleNamedEntityMixin.__init__(self, identifiers)
 
@@ -232,7 +232,7 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin):
 		subtype._parent = self
 
 	@property
-	def Subtype(self) -> NewSymbol:
+	def Subtype(self) -> Symbol:
 		return self._subtype
 
 
@@ -293,9 +293,9 @@ class ProtectedTypeBody(FullType):
 
 @export
 class AccessType(FullType):
-	_designatedSubtype: NewSymbol
+	_designatedSubtype: Symbol
 
-	def __init__(self, identifier: str, designatedSubtype: NewSymbol):
+	def __init__(self, identifier: str, designatedSubtype: Symbol):
 		super().__init__(identifier)
 
 		self._designatedSubtype = designatedSubtype
@@ -308,9 +308,9 @@ class AccessType(FullType):
 
 @export
 class FileType(FullType):
-	_designatedSubtype: NewSymbol
+	_designatedSubtype: Symbol
 
-	def __init__(self, identifier: str, designatedSubtype: NewSymbol):
+	def __init__(self, identifier: str, designatedSubtype: Symbol):
 		super().__init__(identifier)
 
 		self._designatedSubtype = designatedSubtype

@@ -40,7 +40,7 @@ from typing import List, Iterable
 from pyTooling.Decorators import export
 
 from pyVHDLModel.Base import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
-from pyVHDLModel.Symbol import NewSymbol
+from pyVHDLModel.Symbol import Symbol
 
 
 @export
@@ -73,9 +73,9 @@ class EntityClass(Enum):
 
 @export
 class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
-	_subtype: NewSymbol
+	_subtype: Symbol
 
-	def __init__(self, identifier: str, subtype: NewSymbol, documentation: str = None):
+	def __init__(self, identifier: str, subtype: Symbol, documentation: str = None):
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)

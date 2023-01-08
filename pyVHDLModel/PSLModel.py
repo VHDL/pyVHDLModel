@@ -31,22 +31,20 @@
 #
 """
 This module contains an abstract document language model for PSL in VHDL.
-
-:copyright: Copyright 2007-2023 Patrick Lehmann - Bötzingen, Germany
-:license: Apache License, Version 2.0
 """
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity, PrimaryUnit
-
-
-@export
-class PSLPrimaryUnit(PrimaryUnit):
-	pass
+from pyVHDLModel.Base import ModelEntity, NamedEntityMixin
+from pyVHDLModel.DesignUnit import PrimaryUnit
 
 
 @export
 class PSLEntity(ModelEntity):
+	pass
+
+
+@export
+class PSLPrimaryUnit(PrimaryUnit):
 	pass
 
 
@@ -69,13 +67,8 @@ class VerificationMode(PSLPrimaryUnit):
 
 
 @export
-class DefaultClock(PSLEntity):
-	_identifier: str
+class DefaultClock(PSLEntity, NamedEntityMixin):
 
 	def __init__(self, identifier: str):
 		super().__init__()
-		self._identifier = identifier
-
-	@property
-	def Identifier(self) -> str:
-		return self._identifier
+		NamedEntityMixin.__init__(self, identifier)

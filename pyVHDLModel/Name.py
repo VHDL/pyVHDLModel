@@ -29,114 +29,140 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""This module contains library and package declarations for VHDL library ``STD``."""
-from typing                  import Iterable
+"""
+This module contains parts of an abstract document language model for VHDL.
 
-from pyTooling.Decorators    import export
+Names and symbols referencing declared language entities.
+"""
+from typing import List, Iterable, Optional as Nullable
 
-from pyVHDLModel import Library
-from pyVHDLModel.Symbol      import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, AllPackageMembersReferenceSymbol, PackageSymbol
-from pyVHDLModel.DesignUnit  import LibraryClause, UseClause, Package, PackageBody
+from pyTooling.Decorators import export
 
-
-@export
-class PredefinedLibrary(Library):
-	def __init__(self, packages):
-		super().__init__(self.__class__.__name__)
-
-		for packageType, packageBodyType in packages:
-			package: Package = packageType()
-			package.Library = self
-			self._packages[package.NormalizedIdentifier] = package
-
-			if packageBodyType is not None:
-				packageBody: PackageBody = packageBodyType()
-				packageBody.Library = self
-				self._packageBodies[packageBody.NormalizedIdentifier] = packageBody
+from pyVHDLModel.Base import ModelEntity, ExpressionUnion
 
 
 @export
-class PredefinedMixin:
-	def _AddLibraryClause(self, libraries: Iterable[str]):
-		symbols = [LibraryReferenceSymbol(libName) for libName in libraries]
-		libraryClause = LibraryClause(symbols)
+class Name(ModelEntity):
+	"""``Name`` is the base-class for all *names* in the VHDL language model."""
 
-		self._contextItems.append(libraryClause)
-		self._libraryReferences.append(libraryClause)
+	_identifier: str
+	_normalizedIdentifier: str
+	_root: Nullable['Name']     # TODO: seams to be unused. There is no reverse linking
+	_prefix: Nullable['Name']
 
-	def _AddPackageClause(self, packages: Iterable[str]):
-		symbols = []
-		for qualifiedPackageName in packages:
-			libName, packName, members = qualifiedPackageName.split(".")
-			packageSymbol = PackageReferenceSymbol(packName, LibraryReferenceSymbol(libName))
-			if members.lower() == "all":
-				symbols.append(AllPackageMembersReferenceSymbol(packageSymbol))
-			else:
-				symbols.append(PackageMembersReferenceSymbol(members, packageSymbol))
-
-		useClause = UseClause(symbols)
-		self._contextItems.append(useClause)
-		self._packageReferences.append(useClause)
-
-
-@export
-class PredefinedPackage(Package, PredefinedMixin):
-	def __init__(self):
-		super().__init__(self.__class__.__name__)
-
-
-@export
-class PredefinedPackageBody(PackageBody, PredefinedMixin):
-	def __init__(self):
-		packageSymbol = PackageSymbol(self.__class__.__name__[:-5])
-		super().__init__(packageSymbol)
-
-
-@export
-class Std(PredefinedLibrary):
-	def __init__(self):
-		super().__init__(PACKAGES)
-
-
-@export
-class Standard(PredefinedPackage):
-	pass
-
-
-@export
-class Standard_Body(PredefinedPackageBody):
-	pass
-
-
-@export
-class TextIO(PredefinedPackage):
-	pass
-
-
-@export
-class TextIO_Body(PredefinedPackageBody):
-	pass
-
-
-@export
-class Env(PredefinedPackage):
-	def __init__(self):
+	def __init__(self, identifier: str, prefix: 'Name' = None):
 		super().__init__()
 
-		# Use clauses
-		useTextIOSymbols = (
-			AllPackageMembersReferenceSymbol(PackageReferenceSymbol("textio", LibraryReferenceSymbol("work"))),
-		)
-		self._packageReferences.append(UseClause(useTextIOSymbols))
+		self._identifier = identifier
+		self._normalizedIdentifier = identifier.lower()
+
+		if prefix is None:
+			self._prefix = None
+			self._root = self
+		else:
+			self._prefix = prefix
+			self._root = prefix._root
+
+	@property
+	def Identifier(self) -> str:
+		return self._identifier
+
+	@property
+	def NormalizedIdentifier(self) -> str:
+		return self._normalizedIdentifier
+
+	@property
+	def Root(self) -> 'Name':
+		return self._root
+
+	@property
+	def Prefix(self) -> Nullable['Name']:
+		return self._prefix
+
+	@property
+	def HasPrefix(self) -> bool:
+		return self._prefix is not None
 
 
 @export
-class Env_Body(PredefinedPackageBody):
+class SimpleName(Name):
+	def __str__(self):
+		return self._identifier
+
+
+@export
+class ParenthesisName(Name):
+	_associations: List
+
+	def __init__(self, prefix: Name, associations: Iterable):
+		super().__init__("", prefix)
+
+		self._associations = []
+		for association in associations:
+			self._associations.append(association)
+			association._parent = self
+
+	@property
+	def Associations(self) -> List:
+		return self._associations
+
+	def __str__(self):
+		return str(self._prefix) + "(" + ", ".join([str(a) for a in self._associations]) + ")"
+
+
+@export
+class IndexedName(Name):
+	_indices: List[ExpressionUnion]
+
+	def __init__(self, prefix: Name, indices: Iterable[ExpressionUnion]):
+		super().__init__("", prefix)
+
+		self._indices = []
+		for index in indices:
+			self._indices.append(index)
+			index._parent = self
+
+	@property
+	def Indices(self) -> List[ExpressionUnion]:
+		return self._indices
+
+
+@export
+class SlicedName(Name):
 	pass
 
 
-PACKAGES = (
-	(Standard, Standard_Body),
-	(TextIO, TextIO_Body),
-	(Env, Env_Body),
-)
+@export
+class SelectedName(Name):
+	def __init__(self, identifier: str, prefix: Name):
+		super().__init__(identifier, prefix)
+
+	def __str__(self):
+		return str(self._prefix) + "." + self._identifier
+
+
+@export
+class AttributeName(Name):
+	def __init__(self, identifier: str, prefix: Name):
+		super().__init__(identifier, prefix)
+
+	def __str__(self):
+		return str(self._prefix) + "'" + self._identifier
+
+
+@export
+class AllName(Name):
+	def __init__(self, prefix: Name):
+		super().__init__("all", prefix)
+
+	def __str__(self):
+		return str(self._prefix) + "." + "all"
+
+
+@export
+class OpenName(Name):
+	def __init__(self):
+		super().__init__("open")
+
+	def __str__(self):
+		return "open"

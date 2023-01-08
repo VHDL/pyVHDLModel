@@ -30,10 +30,19 @@
 # ==================================================================================================================== #
 #
 """
-An abstract VHDL language model.
+**An abstract VHDL language model.**
 
-:copyright: Copyright 2007-2023 Patrick Lehmann - Bötzingen, Germany
-:license: Apache License, Version 2.0
+This package provides a unified abstract language model for VHDL. Projects reading from source files can derive own
+classes and implement additional logic to create a concrete language model for their tools.
+
+Projects consuming pre-processed VHDL data (parsed, analyzed or elaborated) can build higher level features and services
+on such a model, while supporting multiple frontends.
+
+.. admonition:: Copyright Information
+
+   :copyright: Copyright 2017-2023 Patrick Lehmann - Bötzingen, Germany
+   :copyright: Copyright 2016-2017 Patrick Lehmann - Dresden, Germany
+   :license: Apache License, Version 2.0
 """
 __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
@@ -42,36 +51,23 @@ __license__ =   "Apache License, Version 2.0"
 __version__ =   "0.22.0"
 
 
-from enum            import unique, Enum, Flag, auto
+from enum                      import unique, Enum, Flag, auto
+from pathlib                   import Path
 
-from typing          import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple, Any, Type
+from typing                    import Union, Dict, cast, List, Generator
 
-from pyTooling.Decorators import export
-from pyTooling.Graph import Vertex
+from pyTooling.Decorators      import export
+from pyTooling.Graph           import Graph, Vertex
 
-SubtypeOrSymbol = Union['Subtype',       'SubtypeSymbol']
-
-
-ConstraintUnion = Union[
-	'RangeExpression',
-	'RangeAttribute',
-	'RangeSubtype',
-]
-
-ExpressionUnion = Union[
-	'BaseExpression',
-	'QualifiedExpression',
-	'FunctionCall',
-	'TypeConversion',
-	# ConstantOrSymbol,     TODO: ObjectSymbol
-	'Literal',
-]
-
-ContextUnion = Union[
-	'LibraryClause',
-	'UseClause',
-	'ContextReference'
-]
+from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegisteredToForeignDesignError, LibraryNotRegisteredError, EntityExistsInLibraryError
+from pyVHDLModel.Exception     import ArchitectureExistsInLibraryError, PackageExistsInLibraryError, PackageBodyExistsError, ConfigurationExistsInLibraryError
+from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLibraryNotExistingError
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, PackageMembersReferenceSymbol
+from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation
+from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, Configuration, Package
+from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode
+from pyVHDLModel.Instantiation import PackageInstantiation
 
 
 @export
@@ -277,49 +273,6 @@ class VHDLVersion(Enum):
 
 @export
 @unique
-class Direction(Enum):
-	"""A ``Direction`` is an enumeration and represents a direction in a range	(``to`` or ``downto``)."""
-
-	To =      0  #: Ascending direction
-	DownTo =  1  #: Descending direction
-
-	def __str__(self):
-		"""
-		Formats the direction to ``to`` or ``downto``.
-
-		:return: Formatted direction.
-		"""
-		return ("to", "downto")[cast(int, self.value)]       # TODO: check performance
-
-
-@export
-@unique
-class Mode(Enum):
-	"""
-	A ``Mode`` is an enumeration. It represents the direction of data exchange (``in``, ``out``, ...) for objects in
-	generic, port or parameter lists.
-
-	In case no *mode* is defined, ``Default`` is used, so the *mode* is inferred from context.
-	"""
-
-	Default = 0  #: Mode not defined, thus it's context dependent.
-	In =      1  #: Input
-	Out =     2  #: Output
-	InOut =   3  #: Bi-directional
-	Buffer =  4  #: Buffered output
-	Linkage = 5  #: undocumented
-
-	def __str__(self):
-		"""
-		Formats the direction.
-
-		:return: Formatted direction.
-		"""
-		return ("", "in", "out", "inout", "buffer", "linkage")[cast(int, self.value)]       # TODO: check performance
-
-
-@export
-@unique
 class ObjectClass(Enum):
 	"""
 	An ``ObjectClass`` is an enumeration. It represents an object's class (``constant``, ``signal``, ...).
@@ -344,386 +297,6 @@ class ObjectClass(Enum):
 		:return: Formatted object class.
 		"""
 		return ("", "constant", "variable", "signal", "file", "type", "procedure", "function")[cast(int, self.value)]       # TODO: check performance
-
-
-@export
-@unique
-class EntityClass(Enum):
-	"""An ``EntityClass`` is an enumeration. It represents a VHDL language entity class (``entity``, ``label``, ...)."""
-
-	Entity =        0   #: Entity
-	Architecture =  1   #: Architecture
-	Configuration = 2   #: Configuration
-	Procedure =     3   #: Procedure
-	Function =      4   #: Function
-	Package =       5   #: Package
-	Type =          6   #: Type
-	Subtype =       7   #: Subtype
-	Constant =      8   #: Constant
-	Signal =        9   #: Signal
-	Variable =      10  #: Variable
-	Component =     11  #: Component
-	Label =         12  #: Label
-	Literal =       13  #: Literal
-	Units =         14  #: Units
-	Group =         15  #: Group
-	File =          16  #: File
-	Property =      17  #: Property
-	Sequence =      18  #: Sequence
-	View =          19  #: View
-	Others =        20  #: Others
-
-
-@export
-class PossibleReference(Flag):
-	"""
-	A ``PossibleReference`` is an enumeration. It represents possible targets for a reference in a :class:`~pyVHDLModel.Symbol`.
-	"""
-
-	Unknown =         0
-	Library =         auto()  #: Library
-	Entity =          auto()  #: Entity
-	Architecture =    auto()  #: Architecture
-	Component =       auto()  #: Component
-	Package =         auto()  #: Package
-	Configuration =   auto()  #: Configuration
-	Context =         auto()  #: Context
-	Type =            auto()  #: Type
-	Subtype =         auto()  #: Subtype
-	ScalarType =      auto()  #: ScalarType
-	ArrayType =       auto()  #: ArrayType
-	RecordType =      auto()  #: RecordType
-	AccessType =      auto()  #: AccessType
-	ProtectedType =   auto()  #: ProtectedType
-	FileType =        auto()  #: FileType
-#	Alias =           auto()   # TODO: Is this needed?
-	Attribute =       auto()  #: Attribute
-	TypeAttribute =   auto()  #: TypeAttribute
-	ValueAttribute =  auto()  #: ValueAttribute
-	SignalAttribute = auto()  #: SignalAttribute
-	RangeAttribute =  auto()  #: RangeAttribute
-	ViewAttribute =   auto()  #: ViewAttribute
-	Constant =        auto()  #: Constant
-	Variable =        auto()  #: Variable
-	Signal =          auto()  #: Signal
-	File =            auto()  #: File
-#	Object =          auto()   # TODO: Is this needed?
-	EnumLiteral =     auto()  #: EnumLiteral
-	Procedure =       auto()  #: Procedure
-	Function =        auto()  #: Function
-	Label =           auto()  #: Label
-	View =            auto()  #: View
-
-	AnyType = ScalarType | ArrayType | RecordType | ProtectedType | AccessType | FileType | Subtype  #: Any possible type incl. subtypes.
-	Object = Constant | Variable | Signal | File                                                     #: Any object
-	SubProgram = Procedure | Function                                                                #: Any subprogram
-	PackageMember = AnyType | Object | SubProgram | Component                                        #: Any member of a package
-	SimpleNameInExpression = Constant | Variable | Signal | ScalarType | EnumLiteral | Function      #: Any possible item in an expression.
-
-
-@export
-class ModelEntity:
-	"""
-	``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
-	inheritance) and enumerations.
-
-	Each entity in this model has a reference to its parent entity. Therefore, a protected variable :attr:`_parent` is
-	available and a readonly property :attr:`Parent`.
-	"""
-
-	_parent: 'ModelEntity'      #: Reference to a parent entity in the model.
-
-	def __init__(self):
-		"""Initializes a VHDL model entity."""
-
-		self._parent = None
-
-	@property
-	def Parent(self) -> 'ModelEntity':
-		"""
-		Returns a reference to the parent entity.
-
-		:returns: Parent entity.
-		"""
-		return self._parent
-
-	def GetAncestor(self, type: Type) -> 'ModelEntity':
-		parent = self._parent
-		while not isinstance(parent, type):
-			parent = parent._parent
-
-		return parent
-
-
-@export
-class NamedEntityMixin:
-	"""
-	A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have identifiers.
-
-	Protected variables :attr:`_identifier` and :attr:`_normalizedIdentifier` are available to derived classes as well as
-	two readonly properties :attr:`Identifier` and :attr:`NormalizedIdentifier` for public access.
-	"""
-
-	_identifier: str            #: The identifier of a model entity.
-	_normalizedIdentifier: str  #: The normalized (lower case) identifier of a model entity.
-
-	def __init__(self, identifier: str):
-		"""
-		Initializes a named entity.
-
-		:param identifier: Identifier (name) of the model entity.
-		"""
-		self._identifier = identifier
-		self._normalizedIdentifier = identifier.lower()
-
-	@property
-	def Identifier(self) -> str:
-		"""
-		Returns a model entity's identifier (name).
-
-		:returns: Name of a model entity.
-		"""
-		return self._identifier
-
-	@property
-	def NormalizedIdentifier(self) -> str:
-		"""
-		Returns a model entity's normalized identifier (lower case name).
-
-		:returns: Normalized name of a model entity.
-		"""
-		return self._normalizedIdentifier
-
-
-@export
-class MultipleNamedEntityMixin:
-	"""
-	A ``MultipleNamedEntityMixin`` is a mixin class for all VHDL entities that declare multiple instances at once by
-	defining multiple identifiers.
-
-	Protected variables :attr:`_identifiers` and :attr:`_normalizedIdentifiers` are available to derived classes as well
-	as two readonly properties :attr:`Identifiers` and :attr:`NormalizedIdentifiers` for public access.
-	"""
-
-	_identifiers:           Tuple[str]  #: A list of identifiers.
-	_normalizedIdentifiers: Tuple[str]  #: A list of normalized (lower case) identifiers.
-
-	def __init__(self, identifiers: Iterable[str]):
-		"""
-		Initializes a multiple-named entity.
-
-		:param identifiers: Sequence of identifiers (names) of the model entity.
-		"""
-		self._identifiers = tuple(identifiers)
-		self._normalizedIdentifiers = tuple([identifier.lower() for identifier in identifiers])
-
-	@property
-	def Identifiers(self) -> Tuple[str]:
-		"""
-		Returns a model entity's tuple of identifiers (names).
-
-		:returns: Tuple of identifiers.
-		"""
-		return self._identifiers
-
-	@property
-	def NormalizedIdentifiers(self) -> Tuple[str]:
-		"""
-		Returns a model entity's tuple of normalized identifiers (lower case names).
-
-		:returns: Tuple of normalized identifiers.
-		"""
-		return self._normalizedIdentifiers
-
-
-@export
-class LabeledEntityMixin:
-	"""
-	A ``LabeledEntityMixin`` is a mixin class for all VHDL entities that can have labels.
-
-	protected variables :attr:`_label` and :attr:`_normalizedLabel` are available to derived classes as well as two
-	readonly properties :attr:`Label` and :attr:`NormalizedLabel` for public access.
-	"""
-	_label:           Nullable[str]  #: The label of a model entity.
-	_normalizedLabel: Nullable[str]  #: The normalized (lower case) label of a model entity.
-
-	def __init__(self, label: Nullable[str]):
-		"""
-		Initializes a labeled entity.
-
-		:param label: Label of the model entity.
-		"""
-		self._label = label
-		self._normalizedLabel = label.lower() if label is not None else None
-
-	@property
-	def Label(self) -> Nullable[str]:
-		"""
-		Returns a model entity's label.
-
-		:returns: Label of a model entity.
-		"""
-		return self._label
-
-	@property
-	def NormalizedLabel(self) -> Nullable[str]:
-		"""
-		Returns a model entity's normalized (lower case) label.
-
-		:returns: Normalized label of a model entity.
-		"""
-		return self._normalizedLabel
-
-
-@export
-class DocumentedEntityMixin:
-	"""
-	A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation.
-
-	A protected variable :attr:`_documentation` is available to derived classes as well as a readonly property
-	:attr:`Documentation` for public access.
-	"""
-
-	_documentation: Nullable[str]  #: The associated documentation of a model entity.
-
-	def __init__(self, documentation: Nullable[str]):
-		"""
-		Initializes a documented entity.
-
-		:param documentation: Documentation of a model entity.
-		"""
-		self._documentation = documentation
-
-	@property
-	def Documentation(self) -> Nullable[str]:
-		"""
-		Returns a model entity's associated documentation.
-
-		:returns: Associated documentation of a model entity.
-		"""
-		return self._documentation
-
-
-@export
-class Name(ModelEntity):
-	"""``Name`` is the base-class for all *names* in the VHDL language model."""
-
-	_identifier: str
-	_normalizedIdentifier: str
-	_root: Nullable['Name']     # TODO: seams to be unused. There is no reverse linking
-	_prefix: Nullable['Name']
-
-	def __init__(self, identifier: str, prefix: 'Name' = None):
-		super().__init__()
-
-		self._identifier = identifier
-		self._normalizedIdentifier = identifier.lower()
-
-		if prefix is None:
-			self._prefix = self
-			self._root = None
-		else:
-			self._prefix = prefix
-			self._root = prefix._root
-
-	@property
-	def Identifier(self) -> str:
-		return self._identifier
-
-	@property
-	def NormalizedIdentifier(self) -> str:
-		return self._normalizedIdentifier
-
-	@property
-	def Root(self) -> 'Name':
-		return self._root
-
-	@property
-	def Prefix(self) -> Nullable['Name']:
-		return self._prefix
-
-	@property
-	def Has_Prefix(self) -> bool:
-		return self._prefix is not None
-
-
-@export
-class Symbol(ModelEntity):
-	_symbolName: Name
-	_possibleReferences: PossibleReference
-	_reference: Any
-
-	def __init__(self, symbolName: Name, possibleReferences: PossibleReference):
-		super().__init__()
-
-		self._symbolName = symbolName
-		self._possibleReferences = possibleReferences
-		self._reference = None
-
-	@property
-	def SymbolName(self) -> Name:
-		return self._symbolName
-
-
-@export
-class NewSymbol:
-	_possibleReferences: PossibleReference
-	_reference: Any
-
-	def __init__(self, possibleReferences: PossibleReference):
-		self._possibleReferences = possibleReferences
-		self._reference = None
-
-	@property
-	def Reference(self) -> Any:
-		return self._reference
-
-	@property
-	def IsResolved(self) -> bool:
-		return self._reference is not None
-
-	def __bool__(self) -> bool:
-		return self._reference is not None
-
-	def __str__(self) -> str:
-		if self._reference is not None:
-			return str(self._reference)
-		return str(self._symbolName)
-
-
-@export
-class Reference(ModelEntity):
-	_symbols:       List[Symbol]
-
-	def __init__(self, symbols: Iterable[Symbol]):
-		super().__init__()
-
-		self._symbols = [s for s in symbols]
-
-	@property
-	def Symbols(self) -> List[Symbol]:
-		return self._symbols
-
-
-@export
-class LibraryClause(Reference):
-	pass
-
-
-@export
-class UseClause(Reference):
-	pass
-
-
-# TODO: rename to ContextClause?
-@export
-class ContextReference(Reference):
-	pass
-
-
-@export
-class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
-	pass
 
 
 @export
@@ -783,139 +356,971 @@ class DependencyGraphEdgeKind(Flag):
 
 
 @export
-class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
-	"""A ``DesignUnit`` is a base-class for all design units."""
+class Design(ModelEntity):
+	"""
+	A ``Design`` represents all loaded and analysed files (see :class:`~pyVHDLModel.Document`). It's the root of this
+	document-object-model (DOM). It contains at least one VHDL library (see :class:`~pyVHDLModel.Library`).
+	"""
+	_libraries:  Dict[str, 'Library']  #: List of all libraries defined for a design.
+	_documents:  List['Document']      #: List of all documents loaded for a design.
 
-	_library:             'Library'                        #: The VHDL library, the design unit was analyzed into.
+	_compileOrderGraph: Graph[None, None, None, None, None, 'Document', None, None, None, None, None, None, None]
+	_dependencyGraph:   Graph[None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None]
+	_hierarchyGraph:    Graph[None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None]
 
-	# Either written as statements before (e.g. entity, architecture, package, ...), or as statements inside (context)
-	_contextItems:        List['ContextUnion']             #: List of all context items (library, use and context clauses).
-	_libraryReferences:   List['LibraryClause']            #: List of library clauses.
-	_packageReferences:   List['UseClause']                #: List of use clauses.
-	_contextReferences:   List['ContextReference']         #: List of context clauses.
+	def __init__(self):
+		super().__init__()
 
-	_referencedLibraries: Dict[str, 'Library']             #: Referenced libraries based on explicit library clauses or implicit inheritance
-	_referencedPackages:  Dict[str, Dict[str, 'Package']]  #: Referenced packages based on explicit use clauses or implicit inheritance
-	_referencedContexts:  Dict[str, 'Context']             #: Referenced contexts based on explicit context references or implicit inheritance
+		self._libraries = {}
+		self._documents = []
 
-	_dependencyVertex:    Vertex[str, 'DesignUnit', None, None]  #: The vertex in the dependency graph
-	_hierarchyVertex:     Vertex[str, 'DesignUnit', None, None]  #: The vertex in the hierarchy graph
+		self._compileOrderGraph = Graph()
+		self._dependencyGraph = Graph()
+		self._hierarchyGraph = Graph()
 
-	def __init__(self, identifier: str, contextItems: Iterable['ContextUnion'] = None, documentation: str = None):
-		"""
-		Initializes a design unit.
+	@property
+	def Libraries(self) -> Dict[str, 'Library']:
+		"""Returns a list of all libraries specified for this design."""
+		return self._libraries
 
-		:param identifier:    Identifier (name) of the design unit.
-		:param contextItems:  A sequence of library, use or context clauses.
-		:param documentation: Associated documentation of the design unit.
-		"""
+	@property
+	def Documents(self) -> List['Document']:
+		"""Returns a list of all documents (files) loaded for this design."""
+		return self._documents
+
+	@property
+	def CompileOrderGraph(self) -> Graph:
+		return self._compileOrderGraph
+
+	@property
+	def DependencyGraph(self) -> Graph:
+		return self._dependencyGraph
+
+	@property
+	def HierarchyGraph(self) -> Graph:
+		return self._hierarchyGraph
+
+	def _LoadLibrary(self, library: 'Library') -> None:
+		libraryIdentifier = library.NormalizedIdentifier
+		if libraryIdentifier in self._libraries:
+			raise LibraryExistsInDesignError(library)
+
+		self._libraries[libraryIdentifier] = library
+		library._parent = self
+
+	def LoadStdLibrary(self) -> 'Library':
+		from pyVHDLModel.STD import Std
+
+		library = Std()
+		self._LoadLibrary(library)
+
+		return library
+
+	def LoadIEEELibrary(self) -> 'Library':
+		from pyVHDLModel.IEEE import Ieee
+
+		library = Ieee()
+		self._LoadLibrary(library)
+
+		return library
+
+	def AddLibrary(self, library: 'Library') -> None:
+		if library.NormalizedIdentifier in self._libraries:
+			raise LibraryExistsInDesignError(library)
+
+		if library._parent is not None:
+			raise LibraryRegisteredToForeignDesignError(library)
+
+		self._libraries[library.NormalizedIdentifier] = library
+		library._parent = self
+
+	def GetLibrary(self, libraryName: str) -> 'Library':
+		libraryIdentifier = libraryName.lower()
+		try:
+			return self._libraries[libraryIdentifier]
+		except KeyError:
+			lib = Library(libraryName)
+			self._libraries[libraryIdentifier] = lib
+			lib._parent = self
+			return lib
+
+	# TODO: allow overloaded parameter library to be str?
+	def AddDocument(self, document: 'Document', library: 'Library') -> None:
+		if library.NormalizedIdentifier not in self._libraries:
+			raise LibraryNotRegisteredError(library)
+
+		self._documents.append(document)
+		document._parent = self
+
+		for entityIdentifier, entity in document._entities.items():
+			if entityIdentifier in library._entities:
+				raise EntityExistsInLibraryError(entity, library)
+
+			library._entities[entityIdentifier] = entity
+			entity.Library = library
+
+		for entityIdentifier, architectures in document._architectures.items():
+			try:
+				architecturesPerEntity = library._architectures[entityIdentifier]
+				for architectureIdentifier, architecture in architectures.items():
+					if architectureIdentifier in architecturesPerEntity:
+						raise ArchitectureExistsInLibraryError(architecture, library._entities[entityIdentifier], library)
+
+					architecturesPerEntity[architectureIdentifier] = architecture
+					architecture.Library = library
+			except KeyError:
+				architecturesPerEntity = document._architectures[entityIdentifier].copy()
+				library._architectures[entityIdentifier] = architecturesPerEntity
+
+				for architecture in architecturesPerEntity.values():
+					architecture.Library = library
+
+		for packageIdentifier, package in document._packages.items():
+			if packageIdentifier in library._packages:
+				raise PackageExistsInLibraryError(package, library)
+
+			library._packages[packageIdentifier] = package
+			package.Library = library
+
+		for packageBodyIdentifier, packageBody in document._packageBodies.items():
+			if packageBodyIdentifier in library._packageBodies:
+				raise PackageBodyExistsError(packageBody, library)
+
+			library._packageBodies[packageBodyIdentifier] = packageBody
+			packageBody.Library = library
+
+		for configurationIdentifier, configuration in document._configurations.items():
+			if configurationIdentifier in library._configurations:
+				raise ConfigurationExistsInLibraryError(configuration, library)
+
+			library._configurations[configurationIdentifier] = configuration
+			configuration.Library = library
+
+		for contextIdentifier, context in document._contexts.items():
+			if contextIdentifier in library._contexts:
+				raise ContextExistsInLibraryError(context, library)
+
+			library._contexts[contextIdentifier] = context
+			context.Library = library
+
+	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
+		for library in self._libraries.values():
+			yield from library.IterateDesignUnits(filter)
+
+	def Analyze(self) -> None:
+		self.AnalyzeDependencies()
+
+	def AnalyzeDependencies(self) -> None:
+		self.CreateCompilerOrderGraph()
+		self.CreateDependencyGraph()
+
+		self.LinkContexts()
+		self.LinkArchitectures()
+		self.LinkPackageBodies()
+		self.LinkLibraryReferences()
+		self.LinkPackageReferences()
+		self.LinkContextReferences()
+
+		self.IndexPackages()
+		self.IndexArchitectures()
+
+		self.LinkInstantiations()
+		self.CreateHierarchyGraph()
+
+	def CreateCompilerOrderGraph(self) -> None:
+		for document in self._documents:
+			compilerOrderVertex = Vertex(value=document, graph=self._compileOrderGraph)
+			document._compileOrderVertex = compilerOrderVertex
+
+	def CreateDependencyGraph(self) -> None:
+		for libraryIdentifier, library in self._libraries.items():
+			dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}", value=library, graph=self._dependencyGraph)
+			dependencyVertex["kind"] = DependencyGraphVertexKind.Library
+			library._dependencyVertex = dependencyVertex
+
+			for contextIdentifier, context in library._contexts.items():
+				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{contextIdentifier}", value=context, graph=self._dependencyGraph)
+				dependencyVertex["kind"] = DependencyGraphVertexKind.Context
+				context._dependencyVertex = dependencyVertex
+
+			for packageIdentifier, package in library._packages.items():
+				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{packageIdentifier}", value=package, graph=self._dependencyGraph)
+				dependencyVertex["kind"] = DependencyGraphVertexKind.Package
+				package._dependencyVertex = dependencyVertex
+
+			for packageBodyIdentifier, packageBody in library._packageBodies.items():
+				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{packageBodyIdentifier}(body)", value=packageBody, graph=self._dependencyGraph)
+				dependencyVertex["kind"] = DependencyGraphVertexKind.PackageBody
+				packageBody._dependencyVertex = dependencyVertex
+
+			for entityIdentifier, entity in library._entities.items():
+				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{entityIdentifier}", value=entity, graph=self._dependencyGraph)
+				dependencyVertex["kind"] = DependencyGraphVertexKind.Entity
+				entity._dependencyVertex = dependencyVertex
+
+			for entityIdentifier, architectures in library._architectures.items():
+				for architectureIdentifier, architecture in architectures.items():
+					dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{entityIdentifier}({architectureIdentifier})", value=architecture, graph=self._dependencyGraph)
+					dependencyVertex["kind"] = DependencyGraphVertexKind.Architecture
+					architecture._dependencyVertex = dependencyVertex
+
+			for configurationIdentifier, configuration in library._configurations.items():
+				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{configurationIdentifier}", value=configuration, graph=self._dependencyGraph)
+				dependencyVertex["kind"] = DependencyGraphVertexKind.Configuration
+				configuration._dependencyVertex = dependencyVertex
+
+	def LinkContexts(self) -> None:
+		for context in self.IterateDesignUnits(DesignUnitKind.Context):
+			# Create entries in _referenced*** for the current working library under its real name.
+			workingLibrary: Library = context.Library
+			libraryIdentifier = workingLibrary.NormalizedIdentifier
+
+			context._referencedLibraries[libraryIdentifier] = self._libraries[libraryIdentifier]
+			context._referencedPackages[libraryIdentifier] = {}
+			context._referencedContexts[libraryIdentifier] = {}
+
+			# Process all library clauses
+			for libraryReference in context._libraryReferences:
+				# A library clause can have multiple comma-separated references
+				for librarySymbol in libraryReference.Symbols:
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
+					try:
+						library = self._libraries[libraryIdentifier]
+					except KeyError:
+						raise ReferencedLibraryNotExistingError(context, librarySymbol)
+						# TODO: add position to these messages
+
+					librarySymbol.Library = library
+
+					context._referencedLibraries[libraryIdentifier] = library
+					context._referencedPackages[libraryIdentifier] = {}
+					context._referencedContexts[libraryIdentifier] = {}
+					# TODO: warn duplicate library reference
+
+					dependency = context._dependencyVertex.LinkToVertex(library._dependencyVertex, edgeValue=libraryReference)
+					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
+
+			# Process all use clauses
+			for packageReference in context.PackageReferences:
+				# A use clause can have multiple comma-separated references
+				for symbol in packageReference.Symbols:
+					packageSymbol = symbol.Prefix
+					librarySymbol = packageSymbol.Prefix
+
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
+					packageIdentifier = packageSymbol.NormalizedIdentifier
+
+					# In case work is used, resolve to the real library name.
+					if libraryIdentifier == "work":
+						library: Library = context.Library
+						libraryIdentifier = library.NormalizedIdentifier
+					elif libraryIdentifier not in context._referencedLibraries:
+						# TODO: This check doesn't trigger if it's the working library.
+						raise Exception(f"Use clause references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
+					else:
+						library = self._libraries[libraryIdentifier]
+
+					try:
+						package = library._packages[packageIdentifier]
+					except KeyError:
+						raise Exception(f"Package '{packageSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+
+					librarySymbol.Library = library
+					packageSymbol.Package = package
+
+					# TODO: warn duplicate package reference
+					context._referencedPackages[libraryIdentifier][packageIdentifier] = package
+
+					dependency = context._dependencyVertex.LinkToVertex(package._dependencyVertex, edgeValue=packageReference)
+					dependency["kind"] = DependencyGraphEdgeKind.UseClause
+
+					# TODO: update the namespace with visible members
+					if isinstance(symbol, AllPackageMembersReferenceSymbol):
+						pass
+
+					elif isinstance(symbol, PackageMembersReferenceSymbol):
+						raise NotImplementedError()
+					else:
+						raise Exception()
+
+	def LinkArchitectures(self) -> None:
+		for library in self._libraries.values():
+			library.LinkArchitectures()
+
+	def LinkPackageBodies(self) -> None:
+		for library in self._libraries.values():
+			library.LinkPackageBodies()
+
+	def LinkLibraryReferences(self) -> None:
+		DEFAULT_LIBRARIES = ("std",)
+
+		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):
+			# All primary units supporting a context, have at least one library implicitly referenced
+			if isinstance(designUnit, PrimaryUnit):
+				for libraryIdentifier in DEFAULT_LIBRARIES:
+					referencedLibrary = self._libraries[libraryIdentifier]
+					designUnit._referencedLibraries[libraryIdentifier] = referencedLibrary
+					designUnit._referencedPackages[libraryIdentifier] = {}
+					designUnit._referencedContexts[libraryIdentifier] = {}
+					# TODO: catch KeyError on self._libraries[libName]
+					# TODO: warn duplicate library reference
+
+					dependency = designUnit._dependencyVertex.LinkToVertex(referencedLibrary._dependencyVertex)
+					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
+
+				workingLibrary: Library = designUnit.Library
+				libraryIdentifier = workingLibrary.NormalizedIdentifier
+				referencedLibrary = self._libraries[libraryIdentifier]
+
+
+				designUnit._referencedLibraries[libraryIdentifier] = referencedLibrary
+				designUnit._referencedPackages[libraryIdentifier] = {}
+				designUnit._referencedContexts[libraryIdentifier] = {}
+
+				dependency = designUnit._dependencyVertex.LinkToVertex(referencedLibrary._dependencyVertex)
+				dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
+
+			# All secondary units inherit referenced libraries from their primary units.
+			else:
+				if isinstance(designUnit, Architecture):
+					referencedLibraries = designUnit.Entity.Entity._referencedLibraries
+				elif isinstance(designUnit, PackageBody):
+					referencedLibraries = designUnit.Package.Package._referencedLibraries
+				else:
+					raise Exception()
+
+				for libraryIdentifier, library in referencedLibraries.items():
+					designUnit._referencedLibraries[libraryIdentifier] = library
+
+			for libraryReference in designUnit._libraryReferences:
+				# A library clause can have multiple comma-separated references
+				for librarySymbol in libraryReference.Symbols:
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
+					try:
+						library = self._libraries[libraryIdentifier]
+					except KeyError:
+						raise Exception(f"Library '{librarySymbol.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+
+					librarySymbol.Library = library
+					designUnit._referencedLibraries[libraryIdentifier] = library
+					designUnit._referencedPackages[libraryIdentifier] = {}
+					designUnit._referencedContexts[libraryIdentifier] = {}
+					# TODO: warn duplicate library reference
+
+					dependency = designUnit._dependencyVertex.LinkToVertex(library._dependencyVertex, edgeValue=libraryReference)
+					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
+
+	def LinkPackageReferences(self) -> None:
+		DEFAULT_PACKAGES = (
+			("std", ("standard",)),
+		)
+
+		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):
+			# All primary units supporting a context, have at least one package implicitly referenced
+			if isinstance(designUnit, PrimaryUnit):
+				if designUnit.Library.NormalizedIdentifier != "std" and \
+					designUnit.NormalizedIdentifier != "standard":
+					for lib in DEFAULT_PACKAGES:
+						if lib[0] not in designUnit._referencedLibraries:
+							raise Exception()
+						for pack in lib[1]:
+							referencedPackage = self._libraries[lib[0]]._packages[pack]
+							designUnit._referencedPackages[lib[0]][pack] = referencedPackage
+							# TODO: catch KeyError on self._libraries[lib[0]]._packages[pack]
+							# TODO: warn duplicate package reference
+
+							dependency = designUnit._dependencyVertex.LinkToVertex(referencedPackage._dependencyVertex)
+							dependency["kind"] = DependencyGraphEdgeKind.UseClause
+
+
+			# All secondary units inherit referenced packages from their primary units.
+			else:
+				if isinstance(designUnit, Architecture):
+					referencedPackages = designUnit.Entity.Entity._referencedPackages
+				elif isinstance(designUnit, PackageBody):
+					referencedPackages = designUnit.Package.Package._referencedPackages
+				else:
+					raise Exception()
+
+				for packageIdentifier, package in referencedPackages.items():
+					designUnit._referencedPackages[packageIdentifier] = package
+
+			for packageReference in designUnit.PackageReferences:
+				# A use clause can have multiple comma-separated references
+				for symbol in packageReference.Symbols:
+					packageSymbol = symbol.Prefix
+					librarySymbol = packageSymbol.Prefix
+
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
+					packageIdentifier = packageSymbol.NormalizedIdentifier
+
+					# In case work is used, resolve to the real library name.
+					if libraryIdentifier == "work":
+						library: Library = designUnit.Library
+						libraryIdentifier = library.NormalizedIdentifier
+					elif libraryIdentifier not in designUnit._referencedLibraries:
+						# TODO: This check doesn't trigger if it's the working library.
+						raise Exception(f"Use clause references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
+					else:
+						library = self._libraries[libraryIdentifier]
+
+					try:
+						package = library._packages[packageIdentifier]
+					except KeyError:
+						raise Exception(f"Package '{packageSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+
+					librarySymbol.Library = library
+					packageSymbol.Package = package
+
+					# TODO: warn duplicate package reference
+					designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
+
+					dependency = designUnit._dependencyVertex.LinkToVertex(package._dependencyVertex, edgeValue=packageReference)
+					dependency["kind"] = DependencyGraphEdgeKind.UseClause
+
+					# TODO: update the namespace with visible members
+					if isinstance(symbol, AllPackageMembersReferenceSymbol):
+						pass
+
+					elif isinstance(symbol, PackageMembersReferenceSymbol):
+						raise NotImplementedError()
+					else:
+						raise Exception()
+
+	def LinkContextReferences(self) -> None:
+		for designUnit in self.IterateDesignUnits():
+			for contextReference in designUnit._contextReferences:
+				# A context reference can have multiple comma-separated references
+				for contextSymbol in contextReference.Symbols:
+					librarySymbol = contextSymbol.Prefix
+
+					libraryIdentifier = librarySymbol.NormalizedIdentifier
+					contextIdentifier = contextSymbol.NormalizedIdentifier
+
+					# In case work is used, resolve to the real library name.
+					if libraryIdentifier == "work":
+						referencedLibrary = designUnit.Library
+						libraryIdentifier = referencedLibrary.NormalizedIdentifier
+					elif libraryIdentifier not in designUnit._referencedLibraries:
+						# TODO: This check doesn't trigger if it's the working library.
+						raise Exception(f"Context reference references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
+					else:
+						referencedLibrary = self._libraries[libraryIdentifier]
+
+					try:
+						referencedContext = referencedLibrary._contexts[contextIdentifier]
+					except KeyError:
+						raise Exception(f"Context '{contextSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{referencedLibrary.Identifier}'.")
+
+					librarySymbol.Library = referencedLibrary
+					contextSymbol.Package = referencedContext
+
+					# TODO: warn duplicate referencedContext reference
+					designUnit._referencedContexts[libraryIdentifier][contextIdentifier] = referencedContext
+
+					dependency = designUnit._dependencyVertex.LinkToVertex(referencedContext._dependencyVertex, edgeValue=contextReference)
+					dependency["kind"] = DependencyGraphEdgeKind.ContextReference
+
+		for vertex in self._dependencyGraph.IterateTopologically():
+			if vertex["kind"] is DependencyGraphVertexKind.Context:
+				context: Context = vertex.Value
+				for designUnitVertex in vertex.IteratePredecessorVertices():
+					designUnit: DesignUnit = designUnitVertex.Value
+					for libraryIdentifier, library in context._referencedLibraries.items():
+						# if libraryIdentifier in designUnit._referencedLibraries:
+						# 	raise Exception(f"Referenced library '{library.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
+
+						designUnit._referencedLibraries[libraryIdentifier] = library
+						designUnit._referencedPackages[libraryIdentifier] = {}
+
+					for libraryIdentifier, packages in context._referencedPackages.items():
+						for packageIdentifier, package in packages.items():
+							if packageIdentifier in designUnit._referencedPackages:
+								raise Exception(f"Referenced package '{package.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
+
+							designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
+
+	def LinkInstantiations(self) -> None:
+		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):
+			for instance in architecture.IterateInstantiations():
+				if isinstance(instance, EntityInstantiation):
+					libraryIdentifier = instance.Entity.Prefix.Identifier
+					normalizedLibraryIdentifier = instance.Entity.Prefix.NormalizedIdentifier
+					if normalizedLibraryIdentifier == "work":
+						libraryIdentifier = architecture.Library.Identifier
+						normalizedLibraryIdentifier = architecture.Library.NormalizedIdentifier
+					elif normalizedLibraryIdentifier not in architecture._referencedLibraries:
+						ex =Exception(f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in architecture '{architecture!r}'.")
+						ex.add_note(f"Add a library reference to the architecture or entity using a library clause like: 'library {libraryIdentifier};'.")
+						raise ex
+
+					try:
+						library = self._libraries[normalizedLibraryIdentifier]
+					except KeyError:
+						ex = Exception(f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in design.")
+						ex.add_note(f"No design units were parsed into library '{libraryIdentifier}'. Thus it doesn't exist in design.")
+						raise ex
+
+					try:
+						entity = library._entities[instance.Entity.NormalizedIdentifier]
+					except KeyError:
+						ex = Exception(f"Referenced entity '{instance.Entity.Identifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in {'working ' if instance.Entity.Prefix.NormalizedIdentifier == 'work' else ''}library '{libraryIdentifier}'.")
+						libs = [library.Identifier for library in self._libraries.values() for entityIdentifier in library._entities.keys() if entityIdentifier == instance.Entity.NormalizedIdentifier]
+						if libs:
+							ex.add_note(f"Found entity '{instance.Entity.Identifier}' in other libraries: {', '.join(libs)}")
+						raise ex
+
+					instance.Entity.Prefix.Library = library
+					instance.Entity.Entity = entity
+
+					dependency = architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex, edgeValue=instance)
+					dependency["kind"] = DependencyGraphEdgeKind.EntityInstantiation
+
+				elif isinstance(instance, ComponentInstantiation):
+					# pass
+					print(instance.Label, instance.Component)
+				elif isinstance(instance, ConfigurationInstantiation):
+					# pass
+					print(instance.Label, instance.Configuration)
+
+	def CreateHierarchyGraph(self) -> None:
+		pass
+
+	def IndexPackages(self) -> None:
+		for library in self._libraries.values():
+			library.IndexPackages()
+
+	def IndexArchitectures(self) -> None:
+		for library in self._libraries.values():
+			library.IndexArchitectures()
+
+	def ComputeHierarchy(self) -> None:
+		raise NotImplementedError()
+
+	def GetCompileOrder(self) -> Generator['Document', None, None]:
+		raise NotImplementedError()
+
+	def GetTopLevel(self) -> 'Entity':
+		raise NotImplementedError()
+
+	def GetUnusedDesignUnits(self) -> List[DesignUnit]:
+		raise NotImplementedError()
+
+
+@export
+class Library(ModelEntity, NamedEntityMixin):
+	"""A ``Library`` represents a VHDL library. It contains all *primary* and *secondary* design units."""
+
+	_contexts:       Dict[str, Context]                  #: Dictionary of all contexts defined in a library.
+	_configurations: Dict[str, Configuration]            #: Dictionary of all configurations defined in a library.
+	_entities:       Dict[str, Entity]                   #: Dictionary of all entities defined in a library.
+	_architectures:  Dict[str, Dict[str, Architecture]]  #: Dictionary of all architectures defined in a library.
+	_packages:       Dict[str, Package]                  #: Dictionary of all packages defined in a library.
+	_packageBodies:  Dict[str, PackageBody]              #: Dictionary of all package bodies defined in a library.
+
+	_dependencyVertex: Vertex[str, Union['Library', DesignUnit], None, None]
+
+	def __init__(self, identifier: str):
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)
-		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._library = None
-
-		self._contextItems = []
-		self._libraryReferences = []
-		self._packageReferences = []
-		self._contextReferences = []
-
-		if contextItems is not None:
-			for item in contextItems:
-				self._contextItems.append(item)
-				if isinstance(item, UseClause):
-					self._packageReferences.append(item)
-				elif isinstance(item, LibraryClause):
-					self._libraryReferences.append(item)
-				elif isinstance(item, ContextReference):
-					self._contextReferences.append(item)
-
-		self._referencedLibraries = {}
-		self._referencedPackages = {}
-		self._referencedContexts = {}
+		self._contexts =        {}
+		self._configurations =  {}
+		self._entities =        {}
+		self._architectures =   {}
+		self._packages =        {}
+		self._packageBodies =   {}
 
 		self._dependencyVertex = None
-		self._hierarchyVertex = None
 
 	@property
-	def Document(self) -> 'Document':
-		return self._parent
-
-	@Document.setter
-	def Document(self, document: 'Document') -> None:
-		self._parent = document
+	def Contexts(self) -> Dict[str, Context]:
+		"""Returns a list of all context declarations declared in this library."""
+		return self._contexts
 
 	@property
-	def Library(self) -> 'Library':
-		return self._library
-
-	@Library.setter
-	def Library(self, library: 'Library') -> None:
-		self._library = library
+	def Configurations(self) -> Dict[str, Configuration]:
+		"""Returns a list of all configuration declarations declared in this library."""
+		return self._configurations
 
 	@property
-	def ContextItems(self) -> List['ContextUnion']:
-		"""
-		Read-only property to access the sequence of all context items comprising library, use and context clauses
-		(:py:attr:`_contextItems`).
-
-		:returns: Sequence of context items.
-		"""
-		return self._contextItems
+	def Entities(self) -> Dict[str, Entity]:
+		"""Returns a list of all entity declarations declared in this library."""
+		return self._entities
 
 	@property
-	def ContextReferences(self) -> List['ContextReference']:
-		"""
-		Read-only property to access the sequence of context clauses (:py:attr:`_contextReferences`).
-
-		:returns: Sequence of context clauses.
-		"""
-		return self._contextReferences
+	def Architectures(self) -> Dict[str, Dict[str, Architecture]]:
+		"""Returns a list of all architectures declarations declared in this library."""
+		return self._architectures
 
 	@property
-	def LibraryReferences(self) -> List['LibraryClause']:
-		"""
-		Read-only property to access the sequence of library clauses (:py:attr:`_libraryReferences`).
-
-		:returns: Sequence of library clauses.
-		"""
-		return self._libraryReferences
+	def Packages(self) -> Dict[str, Package]:
+		"""Returns a list of all package declarations declared in this library."""
+		return self._packages
 
 	@property
-	def PackageReferences(self) -> List['UseClause']:
-		"""
-		Read-only property to access the sequence of use clauses (:py:attr:`_packageReferences`).
-
-		:returns: Sequence of use clauses.
-		"""
-		return self._packageReferences
-
-	@property
-	def ReferencedLibraries(self) -> Dict[str, 'Library']:
-		return self._referencedLibraries
-
-	@property
-	def ReferencedPackages(self) -> Dict[str, 'Package']:
-		return self._referencedPackages
-
-	@property
-	def ReferencedContexts(self) -> Dict[str, 'Context']:
-		return self._referencedContexts
+	def PackageBodies(self) -> Dict[str, PackageBody]:
+		"""Returns a list of all package body declarations declared in this library."""
+		return self._packageBodies
 
 	@property
 	def DependencyVertex(self) -> Vertex:
 		return self._dependencyVertex
 
+	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
+		if DesignUnitKind.Context in filter:
+			for context in self._contexts.values():
+				yield context
+
+		if DesignUnitKind.Package in filter:
+			for package in self._packages.values():
+				yield package
+
+		if DesignUnitKind.PackageBody in filter:
+			for packageBody in self._packageBodies.values():
+				yield packageBody
+
+		if DesignUnitKind.Entity in filter:
+			for entity in self._entities.values():
+				yield entity
+
+		if DesignUnitKind.Architecture in filter:
+			for architectures in self._architectures.values():
+				for architecture in architectures.values():
+					yield architecture
+
+		if DesignUnitKind.Configuration in filter:
+			for configuration in self._configurations.values():
+				yield configuration
+
+		# for verificationProperty in self._verificationUnits.values():
+		# 	yield verificationProperty
+		# for verificationUnit in self._verificationProperties.values():
+		# 	yield entity
+		# for verificationMode in self._verificationModes.values():
+		# 	yield verificationMode
+
+	def LinkArchitectures(self):
+		for entityName, architecturesPerEntity in self._architectures.items():
+			if entityName not in self._entities:
+				architectureNames = "', '".join(architecturesPerEntity.keys())
+				raise Exception(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{self.Identifier}'.")
+				# TODO: search in other libraries to find that entity.
+				# TODO: add code position
+
+			for architecture in architecturesPerEntity.values():
+				entity = self._entities[entityName]
+
+				if architecture.NormalizedIdentifier in entity._architectures:
+					raise Exception(f"Architecture '{architecture.Identifier}' already exists for entity '{entity.Identifier}'.")
+					# TODO: add code position of existing and current
+
+				entity._architectures[architecture.NormalizedIdentifier] = architecture
+				architecture._entity.Entity = entity
+
+				# add "architecture -> entity" relation in dependency graph
+				dependency = architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex)
+				dependency["kind"] = DependencyGraphEdgeKind.EntityImplementation
+
+	def LinkPackageBodies(self):
+		for packageBodyName, packageBody in self._packageBodies.items():
+			if packageBodyName not in self._packages:
+				raise Exception(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{self.Identifier}'.")
+
+			package = self._packages[packageBodyName]
+			packageBody._package.Package = package
+
+			# add "package body -> package" relation in dependency graph
+			dependency = packageBody._dependencyVertex.LinkToVertex(package._dependencyVertex)
+			dependency["kind"] = DependencyGraphEdgeKind.PackageImplementation
+
+	def IndexPackages(self):
+		for package in self._packages.values():
+			package.IndexPackage()
+
+	def IndexArchitectures(self):
+		for architectures in self._architectures.values():
+			for architecture in architectures.values():
+				architecture.Index()
+
+	def __str__(self):
+		return f"Library: '{self.Identifier}'"
+
+
+@export
+class Document(ModelEntity, DocumentedEntityMixin):
+	"""A ``Document`` represents a sourcefile. It contains *primary* and *secondary* design units."""
+
+	_path:                   Path                                  #: path to the document. ``None`` if virtual document.
+	_designUnits:            List[DesignUnit]                    #: List of all design units defined in a document.
+	_contexts:               Dict[str, Context]                  #: Dictionary of all contexts defined in a document.
+	_configurations:         Dict[str, Configuration]            #: Dictionary of all configurations defined in a document.
+	_entities:               Dict[str, Entity]                   #: Dictionary of all entities defined in a document.
+	_architectures:          Dict[str, Dict[str, Architecture]]  #: Dictionary of all architectures defined in a document.
+	_packages:               Dict[str, Package]                  #: Dictionary of all packages defined in a document.
+	_packageBodies:          Dict[str, PackageBody]              #: Dictionary of all package bodies defined in a document.
+	_verificationUnits:      Dict[str, VerificationUnit]         #: Dictionary of all PSL verification units defined in a document.
+	_verificationProperties: Dict[str, VerificationProperty]     #: Dictionary of all PSL verification properties defined in a document.
+	_verificationModes:      Dict[str, VerificationMode]         #: Dictionary of all PSL verification modes defined in a document.
+
+	_compileOrderVertex:     Vertex[None, 'Document', None, None]
+
+	def __init__(self, path: Path, documentation: str = None):
+		super().__init__()
+		DocumentedEntityMixin.__init__(self, documentation)
+
+		self._path =                   path
+		self._designUnits =            []
+		self._contexts =               {}
+		self._configurations =         {}
+		self._entities =               {}
+		self._architectures =          {}
+		self._packages =               {}
+		self._packageBodies =          {}
+		self._verificationUnits =      {}
+		self._verificationProperties = {}
+		self._verificationModes =      {}
+
+		self._compileOrderVertex = None
+
+	def _AddEntity(self, item: Entity) -> None:
+		if not isinstance(item, Entity):
+			raise TypeError(f"Parameter 'item' is not of type 'Entity'.")
+
+		identifier = item.NormalizedIdentifier
+		if identifier in self._entities:
+			raise ValueError(f"An entity '{item.Identifier}' already exists in this document.")
+
+		self._entities[identifier] = item
+		self._designUnits.append(item)
+		item._parent = self
+
+
+	def _AddArchitecture(self, item: Architecture) -> None:
+		if not isinstance(item, Architecture):
+			raise TypeError(f"Parameter 'item' is not of type 'Architecture'.")
+
+		entity = item.Entity
+		entityIdentifier = entity.NormalizedIdentifier
+		try:
+			architectures = self._architectures[entityIdentifier]
+			if item.Identifier in architectures:
+				raise ValueError(f"An architecture '{item.Identifier}' for entity '{entity.Identifier}' already exists in this document.")
+
+			architectures[item.Identifier] = item
+		except KeyError:
+			self._architectures[entityIdentifier] = {item.Identifier: item}
+
+		self._designUnits.append(item)
+		item._parent = self
+
+	def _AddPackage(self, item: Package) -> None:
+		if not isinstance(item, (Package, PackageInstantiation)):
+			raise TypeError(f"Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
+
+		identifier = item.NormalizedIdentifier
+		if identifier in self._packages:
+			raise ValueError(f"A package '{item.Identifier}' already exists in this document.")
+
+		self._packages[identifier] = item
+		self._designUnits.append(item)
+		item._parent = self
+
+	def _AddPackageBody(self, item: PackageBody) -> None:
+		if not isinstance(item, PackageBody):
+			raise TypeError(f"Parameter 'item' is not of type 'PackageBody'.")
+
+		identifier = item.NormalizedIdentifier
+		if identifier in self._packageBodies:
+			raise ValueError(f"A package body '{item.Identifier}' already exists in this document.")
+
+		self._packageBodies[identifier] = item
+		self._designUnits.append(item)
+		item._parent = self
+
+	def _AddContext(self, item: Context) -> None:
+		if not isinstance(item, Context):
+			raise TypeError(f"Parameter 'item' is not of type 'Context'.")
+
+		identifier = item.NormalizedIdentifier
+		if identifier in self._contexts:
+			raise ValueError(f"A context '{item.Identifier}' already exists in this document.")
+
+		self._contexts[identifier] = item
+		self._designUnits.append(item)
+		item._parent = self
+
+	def _AddConfiguration(self, item: Configuration) -> None:
+		if not isinstance(item, Configuration):
+			raise TypeError(f"Parameter 'item' is not of type 'Configuration'.")
+
+		identifier = item.NormalizedIdentifier
+		if identifier in self._configurations:
+			raise ValueError(f"A configuration '{item.Identifier}' already exists in this document.")
+
+		self._configurations[identifier] = item
+		self._designUnits.append(item)
+		item._parent = self
+
+	def _AddVerificationUnit(self, item: VerificationUnit) -> None:
+		if not isinstance(item, VerificationUnit):
+			raise TypeError(f"Parameter 'item' is not of type 'VerificationUnit'.")
+
+		identifier = item.NormalizedIdentifier
+		if identifier in self._verificationUnits:
+			raise ValueError(f"A verification unit '{item.Identifier}' already exists in this document.")
+
+		self._verificationUnits[identifier] = item
+		self._designUnits.append(item)
+		item._parent = self
+
+	def _AddVerificationProperty(self, item: VerificationProperty) -> None:
+		if not isinstance(item, VerificationProperty):
+			raise TypeError(f"Parameter 'item' is not of type 'VerificationProperty'.")
+
+		identifier = item.NormalizedIdentifier
+		if identifier in self._verificationProperties:
+			raise ValueError(f"A verification property '{item.Identifier}' already exists in this document.")
+
+		self._verificationProperties[identifier] = item
+		self._designUnits.append(item)
+		item._parent = self
+
+	def _AddVerificationMode(self, item: VerificationMode) -> None:
+		if not isinstance(item, VerificationMode):
+			raise TypeError(f"Parameter 'item' is not of type 'VerificationMode'.")
+
+		identifier = item.NormalizedIdentifier
+		if identifier in self._verificationModes:
+			raise ValueError(f"A verification mode '{item.Identifier}' already exists in this document.")
+
+		self._verificationModes[identifier] = item
+		self._designUnits.append(item)
+		item._parent = self
+
+	def _AddDesignUnit(self, item: DesignUnit) -> None:
+		identifier = item.NormalizedIdentifier
+		if isinstance(item, Entity):
+			self._entities[identifier] = item
+		elif isinstance(item, Architecture):
+			entityIdentifier = item.Entity.NormalizedIdentifier
+			try:
+				architectures = self._architectures[entityIdentifier]
+				if identifier in architectures:
+					raise ValueError(f"An architecture '{item.Identifier}' for entity '{item.Entity.Identifier}' already exists in this document.")
+
+				architectures[identifier] = item
+			except KeyError:
+				self._architectures[entityIdentifier] = {identifier: item}
+		elif isinstance(item, Package):
+			self._packages[identifier] = item
+		elif isinstance(item, PackageBody):
+			self._packageBodies[identifier] = item
+		elif isinstance(item, Context):
+			self._contexts[identifier] = item
+		elif isinstance(item, Configuration):
+			self._configurations[identifier] = item
+		elif isinstance(item, VerificationUnit):
+			self._verificationUnits[identifier] = item
+		elif isinstance(item, VerificationProperty):
+			self._verificationProperties[identifier] = item
+		elif isinstance(item, VerificationMode):
+			self._verificationModes[identifier] = item
+		elif isinstance(item, DesignUnit):
+			raise TypeError(f"Parameter 'item' is an unknown 'DesignUnit'.")
+		else:
+			raise TypeError(f"Parameter 'item' is not of type 'DesignUnit'.")
+
+		self._designUnits.append(item)
+		item._parent = self
+
 	@property
-	def HierarchyVertex(self) -> Vertex:
-		return self._hierarchyVertex
+	def Path(self) -> Path:
+		return self._path
 
+	@property
+	def DesignUnits(self) -> List[DesignUnit]:
+		"""Returns a list of all design units declarations found in this document."""
+		return self._designUnits
 
-@export
-class PrimaryUnit(DesignUnit):
-	"""A ``PrimaryUnit`` is a base-class for all primary units."""
+	@property
+	def Contexts(self) -> Dict[str, Context]:
+		"""Returns a list of all context declarations found in this document."""
+		return self._contexts
 
+	@property
+	def Configurations(self) -> Dict[str, Configuration]:
+		"""Returns a list of all configuration declarations found in this document."""
+		return self._configurations
 
-@export
-class SecondaryUnit(DesignUnit):
-	"""A ``SecondaryUnit`` is a base-class for all secondary units."""
+	@property
+	def Entities(self) -> Dict[str, Entity]:
+		"""Returns a list of all entity declarations found in this document."""
+		return self._entities
+
+	@property
+	def Architectures(self) -> Dict[str, Dict[str, Architecture]]:
+		"""Returns a list of all architecture declarations found in this document."""
+		return self._architectures
+
+	@property
+	def Packages(self) -> Dict[str, Package]:
+		"""Returns a list of all package declarations found in this document."""
+		return self._packages
+
+	@property
+	def PackageBodies(self) -> Dict[str, PackageBody]:
+		"""Returns a list of all package body declarations found in this document."""
+		return self._packageBodies
+
+	@property
+	def VerificationUnits(self) -> Dict[str, VerificationUnit]:
+		"""Returns a list of all verification unit declarations found in this document."""
+		return self._verificationUnits
+
+	@property
+	def VerificationProperties(self) -> Dict[str, VerificationProperty]:
+		"""Returns a list of all verification property declarations found in this document."""
+		return self._verificationProperties
+
+	@property
+	def VerificationModes(self) -> Dict[str, VerificationMode]:
+		"""Returns a list of all verification mode declarations found in this document."""
+		return self._verificationModes
+
+	@property
+	def CompileOrderVertex(self) -> Vertex[None, 'Document', None, None]:
+		return self._compileOrderVertex
+
+	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
+		if DesignUnitKind.Context in filter:
+			for context in self._contexts.values():
+				yield context
+
+		if DesignUnitKind.Package in filter:
+			for package in self._packages.values():
+				yield package
+
+		if DesignUnitKind.PackageBody in filter:
+			for packageBody in self._packageBodies.values():
+				yield packageBody
+
+		if DesignUnitKind.Entity in filter:
+			for entity in self._entities.values():
+				yield entity
+
+		if DesignUnitKind.Architecture in filter:
+			for architectures in self._architectures.values():
+				for architecture in architectures.values():
+					yield architecture
+
+		if DesignUnitKind.Configuration in filter:
+			for configuration in self._configurations.values():
+				yield configuration
+
+		# for verificationProperty in self._verificationUnits.values():
+		# 	yield verificationProperty
+		# for verificationUnit in self._verificationProperties.values():
+		# 	yield entity
+		# for verificationMode in self._verificationModes.values():
+		# 	yield verificationMode

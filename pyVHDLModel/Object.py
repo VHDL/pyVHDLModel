@@ -29,114 +29,95 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""This module contains library and package declarations for VHDL library ``STD``."""
-from typing                  import Iterable
+"""
+This module contains parts of an abstract document language model for VHDL.
 
-from pyTooling.Decorators    import export
+Objects are constants, variables, signals and files.
+"""
+from typing import Iterable, Optional as Nullable
 
-from pyVHDLModel import Library
-from pyVHDLModel.Symbol      import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, AllPackageMembersReferenceSymbol, PackageSymbol
-from pyVHDLModel.DesignUnit  import LibraryClause, UseClause, Package, PackageBody
+from pyTooling.Decorators import export
 
-
-@export
-class PredefinedLibrary(Library):
-	def __init__(self, packages):
-		super().__init__(self.__class__.__name__)
-
-		for packageType, packageBodyType in packages:
-			package: Package = packageType()
-			package.Library = self
-			self._packages[package.NormalizedIdentifier] = package
-
-			if packageBodyType is not None:
-				packageBody: PackageBody = packageBodyType()
-				packageBody.Library = self
-				self._packageBodies[packageBody.NormalizedIdentifier] = packageBody
+from pyVHDLModel.Symbol import Symbol
+from pyVHDLModel.Base import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
 
 
 @export
-class PredefinedMixin:
-	def _AddLibraryClause(self, libraries: Iterable[str]):
-		symbols = [LibraryReferenceSymbol(libName) for libName in libraries]
-		libraryClause = LibraryClause(symbols)
+class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
+	_subtype: Symbol
 
-		self._contextItems.append(libraryClause)
-		self._libraryReferences.append(libraryClause)
-
-	def _AddPackageClause(self, packages: Iterable[str]):
-		symbols = []
-		for qualifiedPackageName in packages:
-			libName, packName, members = qualifiedPackageName.split(".")
-			packageSymbol = PackageReferenceSymbol(packName, LibraryReferenceSymbol(libName))
-			if members.lower() == "all":
-				symbols.append(AllPackageMembersReferenceSymbol(packageSymbol))
-			else:
-				symbols.append(PackageMembersReferenceSymbol(members, packageSymbol))
-
-		useClause = UseClause(symbols)
-		self._contextItems.append(useClause)
-		self._packageReferences.append(useClause)
-
-
-@export
-class PredefinedPackage(Package, PredefinedMixin):
-	def __init__(self):
-		super().__init__(self.__class__.__name__)
-
-
-@export
-class PredefinedPackageBody(PackageBody, PredefinedMixin):
-	def __init__(self):
-		packageSymbol = PackageSymbol(self.__class__.__name__[:-5])
-		super().__init__(packageSymbol)
-
-
-@export
-class Std(PredefinedLibrary):
-	def __init__(self):
-		super().__init__(PACKAGES)
-
-
-@export
-class Standard(PredefinedPackage):
-	pass
-
-
-@export
-class Standard_Body(PredefinedPackageBody):
-	pass
-
-
-@export
-class TextIO(PredefinedPackage):
-	pass
-
-
-@export
-class TextIO_Body(PredefinedPackageBody):
-	pass
-
-
-@export
-class Env(PredefinedPackage):
-	def __init__(self):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
 		super().__init__()
+		MultipleNamedEntityMixin.__init__(self, identifiers)
+		DocumentedEntityMixin.__init__(self, documentation)
 
-		# Use clauses
-		useTextIOSymbols = (
-			AllPackageMembersReferenceSymbol(PackageReferenceSymbol("textio", LibraryReferenceSymbol("work"))),
-		)
-		self._packageReferences.append(UseClause(useTextIOSymbols))
+		self._subtype = subtype
+		subtype._parent = self
+
+	@property
+	def Subtype(self) -> Symbol:
+		return self._subtype
 
 
 @export
-class Env_Body(PredefinedPackageBody):
+class BaseConstant(Obj):
 	pass
 
 
-PACKAGES = (
-	(Standard, Standard_Body),
-	(TextIO, TextIO_Body),
-	(Env, Env_Body),
-)
+@export
+class WithDefaultExpressionMixin:
+	"""A ``WithDefaultExpression`` is a mixin class for all objects declarations accepting default expressions."""
+
+	_defaultExpression: Nullable[ExpressionUnion]
+
+	def __init__(self, defaultExpression: ExpressionUnion = None):
+		self._defaultExpression = defaultExpression
+		if defaultExpression is not None:
+			defaultExpression._parent = self
+
+	@property
+	def DefaultExpression(self) -> Nullable[ExpressionUnion]:
+		return self._defaultExpression
+
+
+@export
+class Constant(BaseConstant, WithDefaultExpressionMixin):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
+		WithDefaultExpressionMixin.__init__(self, defaultExpression)
+
+
+@export
+class DeferredConstant(BaseConstant):
+	_constantReference: Constant
+
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
+
+	@property
+	def ConstantReference(self) -> Constant:
+		return self._constantReference
+
+
+@export
+class Variable(Obj, WithDefaultExpressionMixin):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
+		WithDefaultExpressionMixin.__init__(self, defaultExpression)
+
+
+@export
+class SharedVariable(Obj):
+	pass
+
+
+@export
+class Signal(Obj, WithDefaultExpressionMixin):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
+		WithDefaultExpressionMixin.__init__(self, defaultExpression)
+
+
+@export
+class File(Obj):
+	pass

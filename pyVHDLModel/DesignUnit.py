@@ -1,15 +1,279 @@
+# ==================================================================================================================== #
+#             __     ___   _ ____  _     __  __           _      _                                                     #
+#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #
+#  | '_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #
+#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #
+#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #
+#  |_|    |___/                                                                                                        #
+# ==================================================================================================================== #
+# Authors:                                                                                                             #
+#   Patrick Lehmann                                                                                                    #
+#                                                                                                                      #
+# License:                                                                                                             #
+# ==================================================================================================================== #
+# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
+#                                                                                                                      #
+# Licensed under the Apache License, Version 2.0 (the "License");                                                      #
+# you may not use this file except in compliance with the License.                                                     #
+# You may obtain a copy of the License at                                                                              #
+#                                                                                                                      #
+#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #
+#                                                                                                                      #
+# Unless required by applicable law or agreed to in writing, software                                                  #
+# distributed under the License is distributed on an "AS IS" BASIS,                                                    #
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #
+# See the License for the specific language governing permissions and                                                  #
+# limitations under the License.                                                                                       #
+#                                                                                                                      #
+# SPDX-License-Identifier: Apache-2.0                                                                                  #
+# ==================================================================================================================== #
+#
+"""
+This module contains parts of an abstract document language model for VHDL.
+
+Design units are contexts, entities, architectures, packages and their bodies as well as configurations.
+"""
 from typing import List, Dict, Union, Iterable
 
 from pyTooling.Decorators import export
+from pyTooling.Graph import Vertex
 
-from pyVHDLModel import PrimaryUnit, DesignUnitWithContextMixin, SecondaryUnit, ContextUnion, LibraryClause, UseClause, ContextReference, ModelEntity, \
-	NamedEntityMixin, DocumentedEntityMixin
-from pyVHDLModel.Symbol import PackageSymbol, EntitySymbol
+from pyVHDLModel import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Symbol import NewSymbol, PackageSymbol, EntitySymbol
 from pyVHDLModel.Interface import GenericInterfaceItem, PortInterfaceItem
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Object import Constant, Variable, Signal
 from pyVHDLModel.Type import Type, Subtype
 from pyVHDLModel.Concurrent import ConcurrentStatement, ConcurrentStatements, ConcurrentDeclarations
+
+
+ContextUnion = Union[
+	'LibraryClause',
+	'UseClause',
+	'ContextReference'
+]
+
+
+@export
+class Reference(ModelEntity):
+	_symbols:       List[NewSymbol]
+
+	def __init__(self, symbols: Iterable[NewSymbol]):
+		super().__init__()
+
+		self._symbols = [s for s in symbols]
+
+	@property
+	def Symbols(self) -> List[NewSymbol]:
+		return self._symbols
+
+
+@export
+class LibraryClause(Reference):
+	pass
+
+
+@export
+class UseClause(Reference):
+	pass
+
+
+@export
+class ContextReference(Reference):
+	# TODO: rename to ContextClause?
+	pass
+
+
+@export
+class DesignUnitWithContextMixin:  # (metaclass=ExtendedType, useSlots=True):
+	pass
+
+
+@export
+class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
+	"""A ``DesignUnit`` is a base-class for all design units."""
+
+	_library:             'Library'                        #: The VHDL library, the design unit was analyzed into.
+
+	# Either written as statements before (e.g. entity, architecture, package, ...), or as statements inside (context)
+	_contextItems:        List['ContextUnion']             #: List of all context items (library, use and context clauses).
+	_libraryReferences:   List['LibraryClause']            #: List of library clauses.
+	_packageReferences:   List['UseClause']                #: List of use clauses.
+	_contextReferences:   List['ContextReference']         #: List of context clauses.
+
+	_referencedLibraries: Dict[str, 'Library']             #: Referenced libraries based on explicit library clauses or implicit inheritance
+	_referencedPackages:  Dict[str, Dict[str, 'Package']]  #: Referenced packages based on explicit use clauses or implicit inheritance
+	_referencedContexts:  Dict[str, 'Context']             #: Referenced contexts based on explicit context references or implicit inheritance
+
+	_dependencyVertex:    Vertex[str, 'DesignUnit', None, None]  #: The vertex in the dependency graph
+	_hierarchyVertex:     Vertex[str, 'DesignUnit', None, None]  #: The vertex in the hierarchy graph
+
+	def __init__(self, identifier: str, contextItems: Iterable['ContextUnion'] = None, documentation: str = None):
+		"""
+		Initializes a design unit.
+
+		:param identifier:    Identifier (name) of the design unit.
+		:param contextItems:  A sequence of library, use or context clauses.
+		:param documentation: Associated documentation of the design unit.
+		"""
+		super().__init__()
+		NamedEntityMixin.__init__(self, identifier)
+		DocumentedEntityMixin.__init__(self, documentation)
+
+		self._library = None
+
+		self._contextItems = []
+		self._libraryReferences = []
+		self._packageReferences = []
+		self._contextReferences = []
+
+		if contextItems is not None:
+			for item in contextItems:
+				self._contextItems.append(item)
+				if isinstance(item, UseClause):
+					self._packageReferences.append(item)
+				elif isinstance(item, LibraryClause):
+					self._libraryReferences.append(item)
+				elif isinstance(item, ContextReference):
+					self._contextReferences.append(item)
+
+		self._referencedLibraries = {}
+		self._referencedPackages = {}
+		self._referencedContexts = {}
+
+		self._dependencyVertex = None
+		self._hierarchyVertex = None
+
+	@property
+	def Document(self) -> 'Document':
+		return self._parent
+
+	@Document.setter
+	def Document(self, document: 'Document') -> None:
+		self._parent = document
+
+	@property
+	def Library(self) -> 'Library':
+		return self._library
+
+	@Library.setter
+	def Library(self, library: 'Library') -> None:
+		self._library = library
+
+	@property
+	def ContextItems(self) -> List['ContextUnion']:
+		"""
+		Read-only property to access the sequence of all context items comprising library, use and context clauses
+		(:py:attr:`_contextItems`).
+
+		:returns: Sequence of context items.
+		"""
+		return self._contextItems
+
+	@property
+	def ContextReferences(self) -> List['ContextReference']:
+		"""
+		Read-only property to access the sequence of context clauses (:py:attr:`_contextReferences`).
+
+		:returns: Sequence of context clauses.
+		"""
+		return self._contextReferences
+
+	@property
+	def LibraryReferences(self) -> List['LibraryClause']:
+		"""
+		Read-only property to access the sequence of library clauses (:py:attr:`_libraryReferences`).
+
+		:returns: Sequence of library clauses.
+		"""
+		return self._libraryReferences
+
+	@property
+	def PackageReferences(self) -> List['UseClause']:
+		"""
+		Read-only property to access the sequence of use clauses (:py:attr:`_packageReferences`).
+
+		:returns: Sequence of use clauses.
+		"""
+		return self._packageReferences
+
+	@property
+	def ReferencedLibraries(self) -> Dict[str, 'Library']:
+		return self._referencedLibraries
+
+	@property
+	def ReferencedPackages(self) -> Dict[str, 'Package']:
+		return self._referencedPackages
+
+	@property
+	def ReferencedContexts(self) -> Dict[str, 'Context']:
+		return self._referencedContexts
+
+	@property
+	def DependencyVertex(self) -> Vertex:
+		return self._dependencyVertex
+
+	@property
+	def HierarchyVertex(self) -> Vertex:
+		return self._hierarchyVertex
+
+
+@export
+class PrimaryUnit(DesignUnit):
+	"""A ``PrimaryUnit`` is a base-class for all primary units."""
+
+
+@export
+class SecondaryUnit(DesignUnit):
+	"""A ``SecondaryUnit`` is a base-class for all secondary units."""
+
+
+@export
+class Context(PrimaryUnit):
+	_references:        List[ContextUnion]
+	_libraryReferences: List[LibraryClause]
+	_packageReferences: List[UseClause]
+	_contextReferences: List[ContextReference]
+
+	def __init__(self, identifier: str, references: Iterable[ContextUnion] = None, documentation: str = None):
+		super().__init__(identifier, documentation)
+
+		self._references = []
+		self._libraryReferences = []
+		self._packageReferences = []
+		self._contextReferences = []
+
+		if references is not None:
+			for reference in references:
+				self._references.append(reference)
+				reference._parent = self
+
+				if isinstance(reference, LibraryClause):
+					self._libraryReferences.append(reference)
+				elif isinstance(reference, UseClause):
+					self._packageReferences.append(reference)
+				elif isinstance(reference, ContextReference):
+					self._contextReferences.append(reference)
+				else:
+					raise Exception()
+
+	@property
+	def LibraryReferences(self) -> List[LibraryClause]:
+		return self._libraryReferences
+
+	@property
+	def PackageReferences(self) -> List[UseClause]:
+		return self._packageReferences
+
+	@property
+	def ContextReferences(self) -> List[ContextReference]:
+		return self._contextReferences
+
+	def __str__(self):
+		lib = self._library.Identifier + "?" if self._library is not None else ""
+
+		return f"Context: {lib}.{self.Identifier}"
 
 
 @export
@@ -138,53 +402,6 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 		lib = self._library.Identifier + "?" if self._library is not None else ""
 
 		return f"{lib}.{self.Identifier}(body)"
-
-
-@export
-class Context(PrimaryUnit):
-	_references:        List[ContextUnion]
-	_libraryReferences: List[LibraryClause]
-	_packageReferences: List[UseClause]
-	_contextReferences: List[ContextReference]
-
-	def __init__(self, identifier: str, references: Iterable[ContextUnion] = None, documentation: str = None):
-		super().__init__(identifier, documentation)
-
-		self._references = []
-		self._libraryReferences = []
-		self._packageReferences = []
-		self._contextReferences = []
-
-		if references is not None:
-			for reference in references:
-				self._references.append(reference)
-				reference._parent = self
-
-				if isinstance(reference, LibraryClause):
-					self._libraryReferences.append(reference)
-				elif isinstance(reference, UseClause):
-					self._packageReferences.append(reference)
-				elif isinstance(reference, ContextReference):
-					self._contextReferences.append(reference)
-				else:
-					raise Exception()
-
-	@property
-	def LibraryReferences(self) -> List[LibraryClause]:
-		return self._libraryReferences
-
-	@property
-	def PackageReferences(self) -> List[UseClause]:
-		return self._packageReferences
-
-	@property
-	def ContextReferences(self) -> List[ContextReference]:
-		return self._contextReferences
-
-	def __str__(self):
-		lib = self._library.Identifier + "?" if self._library is not None else ""
-
-		return f"Context: {lib}.{self.Identifier}"
 
 
 @export

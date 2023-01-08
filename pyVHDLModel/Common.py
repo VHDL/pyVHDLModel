@@ -1,3 +1,39 @@
+# ==================================================================================================================== #
+#             __     ___   _ ____  _     __  __           _      _                                                     #
+#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #
+#  | '_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #
+#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #
+#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #
+#  |_|    |___/                                                                                                        #
+# ==================================================================================================================== #
+# Authors:                                                                                                             #
+#   Patrick Lehmann                                                                                                    #
+#                                                                                                                      #
+# License:                                                                                                             #
+# ==================================================================================================================== #
+# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
+#                                                                                                                      #
+# Licensed under the Apache License, Version 2.0 (the "License");                                                      #
+# you may not use this file except in compliance with the License.                                                     #
+# You may obtain a copy of the License at                                                                              #
+#                                                                                                                      #
+#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #
+#                                                                                                                      #
+# Unless required by applicable law or agreed to in writing, software                                                  #
+# distributed under the License is distributed on an "AS IS" BASIS,                                                    #
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #
+# See the License for the specific language governing permissions and                                                  #
+# limitations under the License.                                                                                       #
+#                                                                                                                      #
+# SPDX-License-Identifier: Apache-2.0                                                                                  #
+# ==================================================================================================================== #
+#
+"""
+This module contains parts of an abstract document language model for VHDL.
+
+Common definitions and MixIns are used by many classes in the model as base-classes.
+"""
 from typing import List, Iterable, Optional as Nullable
 
 from pyTooling.Decorators import export
@@ -8,35 +44,52 @@ from pyVHDLModel.Association import ParameterAssociationItem
 
 
 @export
-class Statement(ModelEntity, LabeledEntityMixin):
-	def __init__(self, label: str = None):
+class Range(ModelEntity):
+	_leftBound:  ExpressionUnion
+	_rightBound: ExpressionUnion
+	_direction:  Direction
+
+	def __init__(self, leftBound: ExpressionUnion, rightBound: ExpressionUnion, direction: Direction):
 		super().__init__()
-		LabeledEntityMixin.__init__(self, label)
+
+		self._leftBound = leftBound
+		leftBound._parent = self
+
+		self._rightBound = rightBound
+		rightBound._parent = self
+
+		self._direction = direction
+
+	@property
+	def LeftBound(self) -> ExpressionUnion:
+		return self._leftBound
+
+	@property
+	def RightBound(self) -> ExpressionUnion:
+		return self._rightBound
+
+	@property
+	def Direction(self) -> Direction:
+		return self._direction
+
+	def __str__(self) -> str:
+		return "{leftBound!s} {direction!s} {rightBound!s}".format(
+			leftBound=self._leftBound,
+			direction=self._direction,
+			rightBound=self._rightBound,
+		)
 
 
 @export
-class ProcedureCall:
-	_procedure: NewSymbol  # TODO: implement a ProcedureSymbol
-	_parameterMappings: List[ParameterAssociationItem]
+class BaseChoice(ModelEntity):
+	"""A ``Choice`` is a base-class for all choices."""
 
-	def __init__(self, procedureName: NewSymbol, parameterMappings: Iterable[ParameterAssociationItem] = None):
-		self._procedure = procedureName
-		procedureName._parent = self
 
-		# TODO: extract to mixin
-		self._parameterMappings = []
-		if parameterMappings is not None:
-			for parameterMapping in parameterMappings:
-				self._parameterMappings.append(parameterMapping)
-				parameterMapping._parent = self
-
-	@property
-	def Procedure(self) -> NewSymbol:
-		return self._procedure
-
-	@property
-	def ParameterMappings(self) -> List[ParameterAssociationItem]:
-		return self._parameterMappings
+@export
+class BaseCase(ModelEntity):
+	"""
+	A ``Case`` is a base-class for all cases.
+	"""
 
 
 @export
@@ -87,15 +140,38 @@ class MixinElseBranch(MixinBranch):
 
 
 @export
-class Choice(ModelEntity):
-	"""A ``Choice`` is a base-class for all choices."""
+class Statement(ModelEntity, LabeledEntityMixin):
+	"""
+	A ``Statement`` is a base-class for all statements.
+	"""
+	def __init__(self, label: str = None):
+		super().__init__()
+		LabeledEntityMixin.__init__(self, label)
 
 
 @export
-class BaseCase(ModelEntity):
-	"""
-	A ``Case`` is a base-class for all cases.
-	"""
+class ProcedureCall:
+	_procedure:         NewSymbol  # TODO: implement a ProcedureSymbol
+	_parameterMappings: List[ParameterAssociationItem]
+
+	def __init__(self, procedureName: NewSymbol, parameterMappings: Iterable[ParameterAssociationItem] = None):
+		self._procedure = procedureName
+		procedureName._parent = self
+
+		# TODO: extract to mixin
+		self._parameterMappings = []
+		if parameterMappings is not None:
+			for parameterMapping in parameterMappings:
+				self._parameterMappings.append(parameterMapping)
+				parameterMapping._parent = self
+
+	@property
+	def Procedure(self) -> NewSymbol:
+		return self._procedure
+
+	@property
+	def ParameterMappings(self) -> List[ParameterAssociationItem]:
+		return self._parameterMappings
 
 
 @export
@@ -161,27 +237,16 @@ class MixinReportStatement:
 
 
 @export
-class MixinAssertStatement(MixinReportStatement):
+class MixinAssertStatement(MixinReportStatement, MixinConditional):
 	"""A ``MixinAssertStatement`` is a mixin-class for all assert statements."""
-
-	_condition: ExpressionUnion
 
 	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion = None, severity: ExpressionUnion = None):
 		super().__init__(message, severity)
-
-		self._condition = condition
-		if condition is not None:
-			condition._parent = self
-
-	@property
-	def Condition(self) -> ExpressionUnion:
-		return self._condition
+		MixinConditional.__init__(self, condition)
 
 
-class BlockStatement:
+class BlockStatementMixin:
 	"""A ``BlockStatement`` is a mixin-class for all block statements."""
-
-	# TODO: could be unified with ProcessStatement if 'List[ConcurrentStatement]' becomes parametric to T
 
 	def __init__(self):
 		pass
@@ -209,40 +274,3 @@ class WaveformElement(ModelEntity):
 	@property
 	def After(self) -> Expression:
 		return self._after
-
-
-@export
-class Range(ModelEntity):
-	_leftBound:  ExpressionUnion
-	_rightBound: ExpressionUnion
-	_direction:  Direction
-
-	def __init__(self, leftBound: ExpressionUnion, rightBound: ExpressionUnion, direction: Direction):
-		super().__init__()
-
-		self._leftBound = leftBound
-		leftBound._parent = self
-
-		self._rightBound = rightBound
-		rightBound._parent = self
-
-		self._direction = direction
-
-	@property
-	def LeftBound(self) -> ExpressionUnion:
-		return self._leftBound
-
-	@property
-	def RightBound(self) -> ExpressionUnion:
-		return self._rightBound
-
-	@property
-	def Direction(self) -> Direction:
-		return self._direction
-
-	def __str__(self) -> str:
-		return "{leftBound!s} {direction!s} {rightBound!s}".format(
-			leftBound=self._leftBound,
-			direction=self._direction,
-			rightBound=self._rightBound,
-		)

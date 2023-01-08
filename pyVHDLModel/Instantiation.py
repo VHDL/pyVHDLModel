@@ -30,45 +30,64 @@
 # ==================================================================================================================== #
 #
 """
-This module contains an abstract document language model for PSL in VHDL.
+This module contains parts of an abstract document language model for VHDL.
+
+Instantiations of packages, procedures, functions and protected types.
 """
+from typing import List
+
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity, NamedEntityMixin
+from pyVHDLModel import ModelEntity
 from pyVHDLModel.DesignUnit import PrimaryUnit
+from pyVHDLModel.Association import GenericAssociationItem
+from pyVHDLModel.Subprogram import Procedure, Function
+from pyVHDLModel.Symbol import PackageReferenceSymbol
 
 
 @export
-class PSLEntity(ModelEntity):
-	pass
+class GenericEntityInstantiation:
+	def __init__(self):
+		pass
 
 
 @export
-class PSLPrimaryUnit(PrimaryUnit):
-	pass
-
-
-@export
-class VerificationUnit(PSLPrimaryUnit):
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-
-
-@export
-class VerificationProperty(PSLPrimaryUnit):
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-
-
-@export
-class VerificationMode(PSLPrimaryUnit):
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-
-
-@export
-class DefaultClock(PSLEntity, NamedEntityMixin):
-
-	def __init__(self, identifier: str):
+class SubprogramInstantiation(ModelEntity, GenericEntityInstantiation):
+	def __init__(self):
 		super().__init__()
-		NamedEntityMixin.__init__(self, identifier)
+		GenericEntityInstantiation.__init__(self)
+		self._subprogramReference = None
+
+
+@export
+class ProcedureInstantiation(Procedure, SubprogramInstantiation):
+	pass
+
+
+@export
+class FunctionInstantiation(Function, SubprogramInstantiation):
+	pass
+
+
+@export
+class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
+	_packageReference: PackageReferenceSymbol
+	_genericAssociations: List[GenericAssociationItem]
+
+	def __init__(self, identifier: str, uninstantiatedPackage: PackageReferenceSymbol, documentation: str = None):
+		super().__init__(identifier, documentation)
+		GenericEntityInstantiation.__init__(self)
+
+		self._packageReference = uninstantiatedPackage
+		# uninstantiatedPackage._parent = self    # FIXME: uninstantiatedPackage is provided as int
+
+		# TODO: extract to mixin
+		self._genericAssociations = []
+
+	@property
+	def PackageReference(self) -> PackageReferenceSymbol:
+		return self._packageReference
+
+	@property
+	def GenericAssociations(self) -> List[GenericAssociationItem]:
+		return self._genericAssociations

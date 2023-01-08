@@ -30,10 +30,19 @@
 # ==================================================================================================================== #
 #
 """
-An abstract VHDL language model.
+**An abstract VHDL language model.**
 
-:copyright: Copyright 2007-2023 Patrick Lehmann - Bötzingen, Germany
-:license: Apache License, Version 2.0
+This package provides a unified abstract language model for VHDL. Projects reading from source files can derive own
+classes and implement additional logic to create a concrete language model for their tools.
+
+Projects consuming pre-processed VHDL data (parsed, analyzed or elaborated) can build higher level features and services
+on such a model, while supporting multiple frontends.
+
+.. admonition:: Copyright Information
+
+   :copyright: Copyright 2017-2023 Patrick Lehmann - Bötzingen, Germany
+   :copyright: Copyright 2016-2017 Patrick Lehmann - Dresden, Germany
+   :license: Apache License, Version 2.0
 """
 __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
@@ -44,10 +53,9 @@ __version__ =   "0.22.0"
 
 from enum            import unique, Enum, Flag, auto
 
-from typing          import List, Iterable, Union, Optional as Nullable, Dict, cast, Tuple, Any, Type
+from typing          import Iterable, Union, Optional as Nullable, Dict, cast, Tuple, Type
 
 from pyTooling.Decorators import export
-from pyTooling.Graph import Vertex
 
 SubtypeOrSymbol = Union['Subtype',       'SubtypeSymbol']
 
@@ -65,12 +73,6 @@ ExpressionUnion = Union[
 	'TypeConversion',
 	# ConstantOrSymbol,     TODO: ObjectSymbol
 	'Literal',
-]
-
-ContextUnion = Union[
-	'LibraryClause',
-	'UseClause',
-	'ContextReference'
 ]
 
 
@@ -605,85 +607,6 @@ class DocumentedEntityMixin:
 
 
 @export
-class Symbol(ModelEntity):
-	_symbolName: 'Name'
-	_possibleReferences: PossibleReference
-	_reference: Any
-
-	def __init__(self, symbolName: 'Name', possibleReferences: PossibleReference):
-		super().__init__()
-
-		self._symbolName = symbolName
-		self._possibleReferences = possibleReferences
-		self._reference = None
-
-	@property
-	def SymbolName(self) -> 'Name':
-		return self._symbolName
-
-
-@export
-class NewSymbol:
-	_possibleReferences: PossibleReference
-	_reference: Any
-
-	def __init__(self, possibleReferences: PossibleReference):
-		self._possibleReferences = possibleReferences
-		self._reference = None
-
-	@property
-	def Reference(self) -> Any:
-		return self._reference
-
-	@property
-	def IsResolved(self) -> bool:
-		return self._reference is not None
-
-	def __bool__(self) -> bool:
-		return self._reference is not None
-
-	def __str__(self) -> str:
-		if self._reference is not None:
-			return str(self._reference)
-		return str(self._symbolName)
-
-
-@export
-class Reference(ModelEntity):
-	_symbols:       List[Symbol]
-
-	def __init__(self, symbols: Iterable[Symbol]):
-		super().__init__()
-
-		self._symbols = [s for s in symbols]
-
-	@property
-	def Symbols(self) -> List[Symbol]:
-		return self._symbols
-
-
-@export
-class LibraryClause(Reference):
-	pass
-
-
-@export
-class UseClause(Reference):
-	pass
-
-
-# TODO: rename to ContextClause?
-@export
-class ContextReference(Reference):
-	pass
-
-
-@export
-class DesignUnitWithContextMixin: #(metaclass=ExtendedType, useSlots=True):
-	pass
-
-
-@export
 @unique
 class DesignUnitKind(Flag):
 	Context = auto()
@@ -737,145 +660,6 @@ class DependencyGraphEdgeKind(Flag):
 	EntityInstantiation =        Entity | Instantiation
 	ComponentInstantiation =     Component | Instantiation
 	ConfigurationInstantiation = Configuration | Instantiation
-
-
-@export
-class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
-	"""A ``DesignUnit`` is a base-class for all design units."""
-
-	_library:             'Library'                        #: The VHDL library, the design unit was analyzed into.
-
-	# Either written as statements before (e.g. entity, architecture, package, ...), or as statements inside (context)
-	_contextItems:        List['ContextUnion']             #: List of all context items (library, use and context clauses).
-	_libraryReferences:   List['LibraryClause']            #: List of library clauses.
-	_packageReferences:   List['UseClause']                #: List of use clauses.
-	_contextReferences:   List['ContextReference']         #: List of context clauses.
-
-	_referencedLibraries: Dict[str, 'Library']             #: Referenced libraries based on explicit library clauses or implicit inheritance
-	_referencedPackages:  Dict[str, Dict[str, 'Package']]  #: Referenced packages based on explicit use clauses or implicit inheritance
-	_referencedContexts:  Dict[str, 'Context']             #: Referenced contexts based on explicit context references or implicit inheritance
-
-	_dependencyVertex:    Vertex[str, 'DesignUnit', None, None]  #: The vertex in the dependency graph
-	_hierarchyVertex:     Vertex[str, 'DesignUnit', None, None]  #: The vertex in the hierarchy graph
-
-	def __init__(self, identifier: str, contextItems: Iterable['ContextUnion'] = None, documentation: str = None):
-		"""
-		Initializes a design unit.
-
-		:param identifier:    Identifier (name) of the design unit.
-		:param contextItems:  A sequence of library, use or context clauses.
-		:param documentation: Associated documentation of the design unit.
-		"""
-		super().__init__()
-		NamedEntityMixin.__init__(self, identifier)
-		DocumentedEntityMixin.__init__(self, documentation)
-
-		self._library = None
-
-		self._contextItems = []
-		self._libraryReferences = []
-		self._packageReferences = []
-		self._contextReferences = []
-
-		if contextItems is not None:
-			for item in contextItems:
-				self._contextItems.append(item)
-				if isinstance(item, UseClause):
-					self._packageReferences.append(item)
-				elif isinstance(item, LibraryClause):
-					self._libraryReferences.append(item)
-				elif isinstance(item, ContextReference):
-					self._contextReferences.append(item)
-
-		self._referencedLibraries = {}
-		self._referencedPackages = {}
-		self._referencedContexts = {}
-
-		self._dependencyVertex = None
-		self._hierarchyVertex = None
-
-	@property
-	def Document(self) -> 'Document':
-		return self._parent
-
-	@Document.setter
-	def Document(self, document: 'Document') -> None:
-		self._parent = document
-
-	@property
-	def Library(self) -> 'Library':
-		return self._library
-
-	@Library.setter
-	def Library(self, library: 'Library') -> None:
-		self._library = library
-
-	@property
-	def ContextItems(self) -> List['ContextUnion']:
-		"""
-		Read-only property to access the sequence of all context items comprising library, use and context clauses
-		(:py:attr:`_contextItems`).
-
-		:returns: Sequence of context items.
-		"""
-		return self._contextItems
-
-	@property
-	def ContextReferences(self) -> List['ContextReference']:
-		"""
-		Read-only property to access the sequence of context clauses (:py:attr:`_contextReferences`).
-
-		:returns: Sequence of context clauses.
-		"""
-		return self._contextReferences
-
-	@property
-	def LibraryReferences(self) -> List['LibraryClause']:
-		"""
-		Read-only property to access the sequence of library clauses (:py:attr:`_libraryReferences`).
-
-		:returns: Sequence of library clauses.
-		"""
-		return self._libraryReferences
-
-	@property
-	def PackageReferences(self) -> List['UseClause']:
-		"""
-		Read-only property to access the sequence of use clauses (:py:attr:`_packageReferences`).
-
-		:returns: Sequence of use clauses.
-		"""
-		return self._packageReferences
-
-	@property
-	def ReferencedLibraries(self) -> Dict[str, 'Library']:
-		return self._referencedLibraries
-
-	@property
-	def ReferencedPackages(self) -> Dict[str, 'Package']:
-		return self._referencedPackages
-
-	@property
-	def ReferencedContexts(self) -> Dict[str, 'Context']:
-		return self._referencedContexts
-
-	@property
-	def DependencyVertex(self) -> Vertex:
-		return self._dependencyVertex
-
-	@property
-	def HierarchyVertex(self) -> Vertex:
-		return self._hierarchyVertex
-
-
-@export
-class PrimaryUnit(DesignUnit):
-	"""A ``PrimaryUnit`` is a base-class for all primary units."""
-
-
-@export
-class SecondaryUnit(DesignUnit):
-	"""A ``SecondaryUnit`` is a base-class for all secondary units."""
 
 
 @export

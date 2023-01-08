@@ -1,12 +1,49 @@
-from typing import List, Iterable, Optional as Nullable
+# ==================================================================================================================== #
+#             __     ___   _ ____  _     __  __           _      _                                                     #
+#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #
+#  | '_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #
+#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #
+#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #
+#  |_|    |___/                                                                                                        #
+# ==================================================================================================================== #
+# Authors:                                                                                                             #
+#   Patrick Lehmann                                                                                                    #
+#                                                                                                                      #
+# License:                                                                                                             #
+# ==================================================================================================================== #
+# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
+#                                                                                                                      #
+# Licensed under the Apache License, Version 2.0 (the "License");                                                      #
+# you may not use this file except in compliance with the License.                                                     #
+# You may obtain a copy of the License at                                                                              #
+#                                                                                                                      #
+#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #
+#                                                                                                                      #
+# Unless required by applicable law or agreed to in writing, software                                                  #
+# distributed under the License is distributed on an "AS IS" BASIS,                                                    #
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #
+# See the License for the specific language governing permissions and                                                  #
+# limitations under the License.                                                                                       #
+#                                                                                                                      #
+# SPDX-License-Identifier: Apache-2.0                                                                                  #
+# ==================================================================================================================== #
+#
+"""
+This module contains parts of an abstract document language model for VHDL.
 
-from pyTooling.Decorators import export
+Declarations for sequential statements.
+"""
+from typing                  import List, Iterable, Optional as Nullable
 
-from pyVHDLModel import ExpressionUnion, ModelEntity
+from pyTooling.Decorators    import export
+
+from pyVHDLModel             import ExpressionUnion, ModelEntity
+from pyVHDLModel.Symbol      import NewSymbol
+from pyVHDLModel.Common      import Range, Statement, ProcedureCall, BaseChoice, BaseCase, WaveformElement
+from pyVHDLModel.Common      import SignalAssignment, VariableAssignment, MixinReportStatement, MixinAssertStatement
+from pyVHDLModel.Common      import MixinConditional, MixinIfBranch, MixinElsifBranch, MixinElseBranch
 from pyVHDLModel.Association import ParameterAssociationItem
-from pyVHDLModel.Common import Statement, ProcedureCall, MixinConditional, Choice, BaseCase, SignalAssignment, VariableAssignment, MixinReportStatement, \
-	MixinAssertStatement, MixinIfBranch, MixinElsifBranch, MixinElseBranch, WaveformElement, Range
-from pyVHDLModel.Symbol import NewSymbol
 
 
 @export
@@ -36,26 +73,6 @@ class SequentialProcedureCall(SequentialStatement, ProcedureCall):
 	def __init__(self, procedureName: NewSymbol, parameterMappings: Iterable[ParameterAssociationItem] = None, label: str = None):
 		super().__init__(label)
 		ProcedureCall.__init__(self, procedureName, parameterMappings)
-
-
-@export
-class SequentialChoice(Choice):
-	"""A ``SequentialChoice`` is a base-class for all sequential choices (in case statements)."""
-
-
-@export
-class SequentialCase(BaseCase, SequentialStatements):
-	_choices: List
-
-	def __init__(self, statements: Iterable[SequentialStatement] = None):
-		super().__init__()
-		SequentialStatements.__init__(self, statements)
-
-		# TODO: what about choices?
-
-	@property
-	def Choices(self) -> List[Choice]:
-		return self._choices
 
 
 @export
@@ -178,6 +195,89 @@ class IfStatement(CompoundStatement):
 
 
 @export
+class SequentialChoice(BaseChoice):
+	"""A ``SequentialChoice`` is a base-class for all sequential choices (in case statements)."""
+
+
+@export
+class IndexedChoice(SequentialChoice):
+	_expression: ExpressionUnion
+
+	def __init__(self, expression: ExpressionUnion):
+		super().__init__()
+
+		self._expression = expression
+		# expression._parent = self    # FIXME: received None
+
+	@property
+	def Expression(self) -> ExpressionUnion:
+		return self._expression
+
+	def __str__(self) -> str:
+		return "{expression!s}".format(expression=self._expression)
+
+
+@export
+class RangedChoice(SequentialChoice):
+	_range: 'Range'
+
+	def __init__(self, rng: 'Range'):
+		super().__init__()
+
+		self._range = rng
+		rng._parent = self
+
+	@property
+	def Range(self) -> 'Range':
+		return self._range
+
+	def __str__(self) -> str:
+		return "{range!s}".format(range=self._range)
+
+
+@export
+class SequentialCase(BaseCase, SequentialStatements):
+	_choices: List
+
+	def __init__(self, statements: Iterable[SequentialStatement] = None):
+		super().__init__()
+		SequentialStatements.__init__(self, statements)
+
+		# TODO: what about choices?
+
+	@property
+	def Choices(self) -> List[BaseChoice]:
+		return self._choices
+
+
+@export
+class Case(SequentialCase):
+	_choices: List[SequentialChoice]
+
+	def __init__(self, choices: Iterable[SequentialChoice], statements: Iterable[SequentialStatement] = None):
+		super().__init__(statements)
+
+		self._choices = []
+		if choices is not None:
+			for choice in choices:
+				self._choices.append(choice)
+				choice._parent = self
+
+	@property
+	def Choices(self) -> List[SequentialChoice]:
+		return self._choices
+
+	def __str__(self) -> str:
+		return "when {choices} =>".format(choices=" | ".join([str(c) for c in self._choices]))
+
+
+@export
+class OthersCase(SequentialCase):
+	def __str__(self) -> str:
+		return "when others =>"
+
+
+@export
 class CaseStatement(CompoundStatement):
 	_expression: ExpressionUnion
 	_cases:      List[SequentialCase]
@@ -280,6 +380,21 @@ class NullStatement(SequentialStatement):
 
 
 @export
+class ReturnStatement(SequentialStatement, MixinConditional):
+	_returnValue: ExpressionUnion
+
+	def __init__(self, returnValue: ExpressionUnion = None):
+		super().__init__()
+		MixinConditional.__init__(self, returnValue)
+
+		# TODO: return value?
+
+	@property
+	def ReturnValue(self) -> ExpressionUnion:
+		return self._returnValue
+
+
+@export
 class WaitStatement(SequentialStatement, MixinConditional):
 	_sensitivityList: Nullable[List[NewSymbol]]
 	_timeout:         ExpressionUnion
@@ -310,78 +425,17 @@ class WaitStatement(SequentialStatement, MixinConditional):
 
 
 @export
-class ReturnStatement(SequentialStatement, MixinConditional):
-	_returnValue: ExpressionUnion
+class SequentialDeclarations:
+	_declaredItems: List
 
-	def __init__(self, returnValue: ExpressionUnion = None):
-		super().__init__()
-		MixinConditional.__init__(self, returnValue)
-
-		# TODO: return value?
-
-	@property
-	def ReturnValue(self) -> ExpressionUnion:
-		return self._returnValue
-
-
-@export
-class Case(SequentialCase):
-	_choices: List[SequentialChoice]
-
-	def __init__(self, choices: Iterable[SequentialChoice], statements: Iterable[SequentialStatement] = None):
-		super().__init__(statements)
-
-		self._choices = []
-		if choices is not None:
-			for choice in choices:
-				self._choices.append(choice)
-				choice._parent = self
+	def __init__(self, declaredItems: Iterable):
+		# TODO: extract to mixin
+		self._declaredItems = []  # TODO: convert to dict
+		if declaredItems is not None:
+			for item in declaredItems:
+				self._declaredItems.append(item)
+				item._parent = self
 
 	@property
-	def Choices(self) -> List[SequentialChoice]:
-		return self._choices
-
-	def __str__(self) -> str:
-		return "when {choices} =>".format(choices=" | ".join([str(c) for c in self._choices]))
-
-
-@export
-class OthersCase(SequentialCase):
-	def __str__(self) -> str:
-		return "when others =>"
-
-
-@export
-class IndexedChoice(SequentialChoice):
-	_expression: ExpressionUnion
-
-	def __init__(self, expression: ExpressionUnion):
-		super().__init__()
-
-		self._expression = expression
-		# expression._parent = self    # FIXME: received None
-
-	@property
-	def Expression(self) -> ExpressionUnion:
-		return self._expression
-
-	def __str__(self) -> str:
-		return "{expression!s}".format(expression=self._expression)
-
-
-@export
-class RangedChoice(SequentialChoice):
-	_range: 'Range'
-
-	def __init__(self, rng: 'Range'):
-		super().__init__()
-
-		self._range = rng
-		rng._parent = self
-
-	@property
-	def Range(self) -> 'Range':
-		return self._range
-
-	def __str__(self) -> str:
-		return "{range!s}".format(range=self._range)
+	def DeclaredItems(self) -> List:
+		return self._declaredItems

@@ -1,9 +1,71 @@
-from typing import cast
+# ==================================================================================================================== #
+#             __     ___   _ ____  _     __  __           _      _                                                     #
+#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #
+#  | '_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #
+#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #
+#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #
+#  |_|    |___/                                                                                                        #
+# ==================================================================================================================== #
+# Authors:                                                                                                             #
+#   Patrick Lehmann                                                                                                    #
+#                                                                                                                      #
+# License:                                                                                                             #
+# ==================================================================================================================== #
+# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
+#                                                                                                                      #
+# Licensed under the Apache License, Version 2.0 (the "License");                                                      #
+# you may not use this file except in compliance with the License.                                                     #
+# You may obtain a copy of the License at                                                                              #
+#                                                                                                                      #
+#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #
+#                                                                                                                      #
+# Unless required by applicable law or agreed to in writing, software                                                  #
+# distributed under the License is distributed on an "AS IS" BASIS,                                                    #
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #
+# See the License for the specific language governing permissions and                                                  #
+# limitations under the License.                                                                                       #
+#                                                                                                                      #
+# SPDX-License-Identifier: Apache-2.0                                                                                  #
+# ==================================================================================================================== #
+#
+"""
+This module contains parts of an abstract document language model for VHDL.
+
+Symbols derived from names.
+"""
+from typing import cast, Any
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import NewSymbol, PossibleReference
-from pyVHDLModel.Name import Name, SimpleName, SelectedName, AllName
+from pyVHDLModel import PossibleReference, ModelEntity
+from pyVHDLModel.Name     import Name, SimpleName, SelectedName, AllName
+
+
+@export
+class NewSymbol:
+	_possibleReferences: PossibleReference
+	_reference: Any
+
+	def __init__(self, possibleReferences: PossibleReference):
+		self._possibleReferences = possibleReferences
+		self._reference = None
+
+	@property
+	def Reference(self) -> Any:
+		return self._reference
+
+	@property
+	def IsResolved(self) -> bool:
+		return self._reference is not None
+
+	def __bool__(self) -> bool:
+		return self._reference is not None
+
+	def __str__(self) -> str:
+		if self._reference is not None:
+			return str(self._reference)
+		return str(self._symbolName)
 
 
 @export
@@ -215,3 +277,21 @@ class ConfigurationInstantiationSymbol(SimpleName, NewSymbol):
 	@Configuration.setter
 	def Configuration(self, value: 'Configuration') -> None:
 		self._reference = value
+
+
+# @export
+# class Symbol(ModelEntity):
+# 	_symbolName: 'Name'
+# 	_possibleReferences: PossibleReference
+# 	_reference: Any
+#
+# 	def __init__(self, symbolName: 'Name', possibleReferences: PossibleReference):
+# 		super().__init__()
+#
+# 		self._symbolName = symbolName
+# 		self._possibleReferences = possibleReferences
+# 		self._reference = None
+#
+# 	@property
+# 	def SymbolName(self) -> 'Name':
+# 		return self._symbolName

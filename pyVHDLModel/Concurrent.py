@@ -1,15 +1,50 @@
+# ==================================================================================================================== #
+#             __     ___   _ ____  _     __  __           _      _                                                     #
+#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #
+#  | '_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #
+#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #
+#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #
+#  |_|    |___/                                                                                                        #
+# ==================================================================================================================== #
+# Authors:                                                                                                             #
+#   Patrick Lehmann                                                                                                    #
+#                                                                                                                      #
+# License:                                                                                                             #
+# ==================================================================================================================== #
+# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
+#                                                                                                                      #
+# Licensed under the Apache License, Version 2.0 (the "License");                                                      #
+# you may not use this file except in compliance with the License.                                                     #
+# You may obtain a copy of the License at                                                                              #
+#                                                                                                                      #
+#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #
+#                                                                                                                      #
+# Unless required by applicable law or agreed to in writing, software                                                  #
+# distributed under the License is distributed on an "AS IS" BASIS,                                                    #
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #
+# See the License for the specific language governing permissions and                                                  #
+# limitations under the License.                                                                                       #
+#                                                                                                                      #
+# SPDX-License-Identifier: Apache-2.0                                                                                  #
+# ==================================================================================================================== #
+#
+"""
+This module contains parts of an abstract document language model for VHDL.
+
+Concurrent defines all concurrent statements used in entities, architectures, generates and block statements.
+"""
 from typing import List, Dict, Union, Iterable, Generator, Optional as Nullable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import DocumentedEntityMixin, Name, LabeledEntityMixin, ModelEntity, ExpressionUnion
+from pyVHDLModel import DocumentedEntityMixin, LabeledEntityMixin, ModelEntity, ExpressionUnion
 from pyVHDLModel.Symbol import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
-from pyVHDLModel.SyntaxModel import SequentialDeclarations
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
 from pyVHDLModel.Interface import PortInterfaceItem
-from pyVHDLModel.Common import Statement, ProcedureCall, MixinIfBranch, MixinElsifBranch, MixinElseBranch, Choice, BaseCase, SignalAssignment, \
-	MixinAssertStatement, BlockStatement, WaveformElement, Range
-from pyVHDLModel.Sequential import SequentialStatement, SequentialStatements
+from pyVHDLModel.Common import Statement, ProcedureCall, MixinIfBranch, MixinElsifBranch, MixinElseBranch, BaseChoice, BaseCase, SignalAssignment, \
+	MixinAssertStatement, BlockStatementMixin, WaveformElement, Range
+from pyVHDLModel.Sequential import SequentialStatement, SequentialStatements, SequentialDeclarations
 
 
 @export
@@ -217,7 +252,7 @@ class ConcurrentDeclarations:
 
 
 @export
-class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntityMixin, ConcurrentDeclarations, ConcurrentStatements, DocumentedEntityMixin):
+class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, LabeledEntityMixin, ConcurrentDeclarations, ConcurrentStatements, DocumentedEntityMixin):
 	_portItems:     List[PortInterfaceItem]
 
 	def __init__(
@@ -229,7 +264,7 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, LabeledEntit
 		documentation: str = None
 	):
 		super().__init__(label)
-		BlockStatement.__init__(self)
+		BlockStatementMixin.__init__(self)
 		LabeledEntityMixin.__init__(self, label)
 		ConcurrentDeclarations.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
@@ -360,7 +395,7 @@ class IfGenerateStatement(GenerateStatement):
 
 
 @export
-class ConcurrentChoice(Choice):
+class ConcurrentChoice(BaseChoice):
 	"""A ``ConcurrentChoice`` is a base-class for all concurrent choices (in case...generate statements)."""
 
 

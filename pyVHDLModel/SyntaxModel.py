@@ -36,14 +36,9 @@ This module contains an abstract document language model for VHDL.
 :license: Apache License, Version 2.0
 """
 
-from typing                import List, Union, Iterable
-
 from pyTooling.Decorators  import export
 
-from pyVHDLModel import EntityClass, ModelEntity, NamedEntityMixin, DocumentedEntityMixin, PrimaryUnit, ExpressionUnion, SubtypeOrSymbol
-from pyVHDLModel.Association import GenericAssociationItem
-from pyVHDLModel.Subprogram import Procedure, Function
-from pyVHDLModel.Symbol import PackageReferenceSymbol
+from pyVHDLModel import ModelEntity
 
 try:
 	from typing import Protocol
@@ -174,19 +169,6 @@ except ImportError:  # pragma: no cover
 # 		self._reference = value
 
 
-@export
-class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
-	def __init__(self, identifier: str, documentation: str = None):
-		"""
-		Initializes underlying ``BaseType``.
-
-		:param identifier: Name of the type.
-		"""
-		super().__init__()
-		NamedEntityMixin.__init__(self, identifier)
-		DocumentedEntityMixin.__init__(self, documentation)
-
-
 # TODO: add a reference to a basetype ?
 
 
@@ -205,129 +187,6 @@ class RangeAttribute(BaseConstraint):
 class RangeSubtype(BaseConstraint):
 	# FIXME: Is this used?
 	pass
-
-
-@export
-class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
-	_subtype: SubtypeOrSymbol
-
-	def __init__(self, identifier: str, subtype: SubtypeOrSymbol, documentation: str = None):
-		super().__init__()
-		NamedEntityMixin.__init__(self, identifier)
-		DocumentedEntityMixin.__init__(self, documentation)
-
-		self._subtype = subtype
-		subtype._parent = self
-
-	@property
-	def Subtype(self):
-		return self._subtype
-
-
-@export
-class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
-	_identifiers: List['Name']
-	_attribute: 'Name'
-	_entityClass: EntityClass
-	_expression: ExpressionUnion
-
-	def __init__(self, identifiers: Iterable['Name'], attribute: 'Name', entityClass: EntityClass, expression: ExpressionUnion, documentation: str = None):
-		super().__init__()
-		DocumentedEntityMixin.__init__(self, documentation)
-
-		self._identifiers = []  # TODO: convert to dict
-		for identifier in identifiers:
-			self._identifiers.append(identifier)
-			identifier._parent = self
-
-		self._attribute = attribute
-		attribute._parent = self
-
-		self._entityClass = entityClass
-
-		self._expression = expression
-		expression._parent = self
-
-	@property
-	def Identifiers(self) -> List['Name']:
-		return self._identifiers
-
-	@property
-	def Attribute(self) -> 'Name':
-		return self._attribute
-
-	@property
-	def EntityClass(self) -> EntityClass:
-		return self._entityClass
-
-	@property
-	def Expression(self) -> ExpressionUnion:
-		return self._expression
-
-
-@export
-class GenericEntityInstantiation:
-	def __init__(self):
-		pass
-
-
-@export
-class SubprogramInstantiation(ModelEntity, GenericEntityInstantiation):
-	def __init__(self):
-		super().__init__()
-		GenericEntityInstantiation.__init__(self)
-		self._subprogramReference = None
-
-
-@export
-class ProcedureInstantiation(Procedure, SubprogramInstantiation):
-	pass
-
-
-@export
-class FunctionInstantiation(Function, SubprogramInstantiation):
-	pass
-
-
-@export
-class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
-	_packageReference: PackageReferenceSymbol
-	_genericAssociations: List[GenericAssociationItem]
-
-	def __init__(self, identifier: str, uninstantiatedPackage: PackageReferenceSymbol, documentation: str = None):
-		super().__init__(identifier, documentation)
-		GenericEntityInstantiation.__init__(self)
-
-		self._packageReference = uninstantiatedPackage
-		# uninstantiatedPackage._parent = self    # FIXME: uninstantiatedPackage is provided as int
-
-		# TODO: extract to mixin
-		self._genericAssociations = []
-
-	@property
-	def PackageReference(self) -> PackageReferenceSymbol:
-		return self._packageReference
-
-	@property
-	def GenericAssociations(self) -> List[GenericAssociationItem]:
-		return self._genericAssociations
-
-
-@export
-class SequentialDeclarations:
-	_declaredItems: List
-
-	def __init__(self, declaredItems: Iterable):
-		# TODO: extract to mixin
-		self._declaredItems = []  # TODO: convert to dict
-		if declaredItems is not None:
-			for item in declaredItems:
-				self._declaredItems.append(item)
-				item._parent = self
-
-	@property
-	def DeclaredItems(self) -> List:
-		return self._declaredItems
 
 
 

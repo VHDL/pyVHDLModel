@@ -35,11 +35,12 @@ This module contains parts of an abstract document language model for VHDL.
 Symbols derived from names.
 """
 from enum import Flag, auto
-from typing import cast, Any
+from typing import cast, Any, Iterable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel.Name     import Name, SimpleName, SelectedName, AllName
+from pyVHDLModel.Base import ExpressionUnion
+from pyVHDLModel.Name import Name, SimpleName, SelectedName, AllName, IndexedName
 
 
 @export
@@ -324,3 +325,56 @@ class ConfigurationInstantiationSymbol(SimpleName, NewSymbol):
 	@Configuration.setter
 	def Configuration(self, value: 'Configuration') -> None:
 		self._reference = value
+
+
+@export
+class SimpleSubtypeSymbol(SimpleName, NewSymbol):
+	"""A configuration reference in a configuration instantiation."""
+
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+		NewSymbol.__init__(self, PossibleReference.Configuration)
+
+	@property
+	def Subtype(self) -> 'Subtype':
+		return self._reference
+
+	@Subtype.setter
+	def Subtype(self, value: 'Subtype') -> None:
+		self._reference = value
+
+
+@export
+class ConstrainedScalarSubtypeSymbol(SimpleName, NewSymbol):
+	"""A configuration reference in a configuration instantiation."""
+
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+		NewSymbol.__init__(self, PossibleReference.Configuration)
+
+
+@export
+class ConstrainedCompositeSubtypeSymbol(SimpleName, NewSymbol):
+	"""A configuration reference in a configuration instantiation."""
+
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+		NewSymbol.__init__(self, PossibleReference.Configuration)
+
+
+@export
+class SimpleObjectOrFunctionCallSymbol(SimpleName, NewSymbol):
+	"""A configuration reference in a configuration instantiation."""
+
+	def __init__(self, identifier: str):
+		super().__init__(identifier)
+		NewSymbol.__init__(self, PossibleReference.Configuration)
+
+
+@export
+class IndexedObjectOrFunctionCallSymbol(IndexedName, NewSymbol):
+	"""A configuration reference in a configuration instantiation."""
+
+	def __init__(self, prefix: Name, indices: Iterable[ExpressionUnion]):
+		super().__init__(prefix, indices)
+		NewSymbol.__init__(self, PossibleReference.Configuration)

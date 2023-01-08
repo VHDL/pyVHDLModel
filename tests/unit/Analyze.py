@@ -34,10 +34,12 @@ from pathlib  import Path
 from unittest import TestCase
 
 from pyVHDLModel import Design, Document
+from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, AllPackageMembersReferenceSymbol
+from pyVHDLModel.Symbol import ContextReferenceSymbol, EntitySymbol, PackageSymbol, EntityInstantiationSymbol
+from pyVHDLModel.DesignUnit import Package, PackageBody, Context, Entity, Architecture, Configuration
+from pyVHDLModel.DesignUnit import LibraryClause, UseClause, ContextReference
 from pyVHDLModel.Concurrent import EntityInstantiation
-from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
-	ContextReferenceSymbol, EntitySymbol, PackageSymbol, EntityInstantiationSymbol
-from pyVHDLModel.DesignUnit import Package, PackageBody, Context, Entity, Architecture, Configuration, LibraryClause, UseClause, ContextReference
+
 
 if __name__ == "__main__":  # pragma: no cover
 	print("ERROR: you called a testcase declaration file as an executable module.")

@@ -37,12 +37,14 @@ from pyTooling.Graph import Graph
 
 from pyVHDLModel import Design, Library, Document
 from pyVHDLModel.Base import Direction, Range
+from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol
+from pyVHDLModel.Symbol import AllPackageMembersReferenceSymbol, ContextReferenceSymbol, EntitySymbol
+from pyVHDLModel.Symbol import ArchitectureSymbol, PackageSymbol, EntityInstantiationSymbol
+from pyVHDLModel.Symbol import ComponentInstantiationSymbol, ConfigurationInstantiationSymbol
 from pyVHDLModel.Expression import IntegerLiteral, FloatingPointLiteral
 from pyVHDLModel.Type import Subtype, IntegerType, RealType, ArrayType, RecordType
-from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, AllPackageMembersReferenceSymbol, \
-	ContextReferenceSymbol, EntitySymbol, ArchitectureSymbol, PackageSymbol, EntityInstantiationSymbol, ComponentInstantiationSymbol, \
-	ConfigurationInstantiationSymbol
 from pyVHDLModel.DesignUnit import Package, PackageBody, Context, Entity, Architecture, Configuration
+
 
 if __name__ == "__main__":  # pragma: no cover
 	print("ERROR: you called a testcase declaration file as an executable module.")

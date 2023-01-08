@@ -40,7 +40,7 @@ from pyTooling.Decorators import export
 from pyTooling.Graph import Vertex
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
-from pyVHDLModel.Symbol     import NewSymbol, PackageSymbol, EntitySymbol
+from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol
 from pyVHDLModel.Interface  import GenericInterfaceItem, PortInterfaceItem
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Object     import Constant, Variable, Signal

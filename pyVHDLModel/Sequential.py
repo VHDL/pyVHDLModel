@@ -38,11 +38,11 @@ from typing                  import List, Iterable, Optional as Nullable
 
 from pyTooling.Decorators    import export
 
-from pyVHDLModel.Base import ModelEntity, ExpressionUnion
+from pyVHDLModel.Base import ModelEntity, ExpressionUnion, Range, BaseChoice, BaseCase, ConditionalMixin, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, \
+	ReportStatementMixin, AssertStatementMixin, WaveformElement
 from pyVHDLModel.Symbol      import NewSymbol
-from pyVHDLModel.Common      import Range, Statement, ProcedureCall, BaseChoice, BaseCase, WaveformElement
-from pyVHDLModel.Common      import SignalAssignment, VariableAssignment, MixinReportStatement, MixinAssertStatement
-from pyVHDLModel.Common      import MixinConditional, MixinIfBranch, MixinElsifBranch, MixinElseBranch
+from pyVHDLModel.Common      import Statement, ProcedureCall
+from pyVHDLModel.Common      import SignalAssignment, VariableAssignment
 from pyVHDLModel.Association import ParameterAssociationItem
 
 
@@ -109,17 +109,17 @@ class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
 
 
 @export
-class SequentialReportStatement(SequentialStatement, MixinReportStatement):
+class SequentialReportStatement(SequentialStatement, ReportStatementMixin):
 	def __init__(self, message: ExpressionUnion, severity: ExpressionUnion = None, label: str = None):
 		super().__init__(label)
-		MixinReportStatement.__init__(self, message, severity)
+		ReportStatementMixin.__init__(self, message, severity)
 
 
 @export
-class SequentialAssertStatement(SequentialStatement, MixinAssertStatement):
+class SequentialAssertStatement(SequentialStatement, AssertStatementMixin):
 	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion = None, severity: ExpressionUnion = None, label: str = None):
 		super().__init__(label)
-		MixinAssertStatement.__init__(self, condition, message, severity)
+		AssertStatementMixin.__init__(self, condition, message, severity)
 
 
 @export
@@ -137,24 +137,24 @@ class Branch(ModelEntity, SequentialStatements):
 
 
 @export
-class IfBranch(Branch, MixinIfBranch):
+class IfBranch(Branch, IfBranchMixin):
 	def __init__(self, condition: ExpressionUnion, statements: Iterable[SequentialStatement] = None):
 		super().__init__(statements)
-		MixinIfBranch.__init__(self, condition)
+		IfBranchMixin.__init__(self, condition)
 
 
 @export
-class ElsifBranch(Branch, MixinElsifBranch):
+class ElsifBranch(Branch, ElsifBranchMixin):
 	def __init__(self, condition: ExpressionUnion, statements: Iterable[SequentialStatement] = None):
 		super().__init__(statements)
-		MixinElsifBranch.__init__(self, condition)
+		ElsifBranchMixin.__init__(self, condition)
 
 
 @export
-class ElseBranch(Branch, MixinElseBranch):
+class ElseBranch(Branch, ElseBranchMixin):
 	def __init__(self, statements: Iterable[SequentialStatement] = None):
 		super().__init__(statements)
-		MixinElseBranch.__init__(self)
+		ElseBranchMixin.__init__(self)
 
 
 @export
@@ -340,21 +340,21 @@ class ForLoopStatement(LoopStatement):
 
 
 @export
-class WhileLoopStatement(LoopStatement, MixinConditional):
+class WhileLoopStatement(LoopStatement, ConditionalMixin):
 	def __init__(self, condition: ExpressionUnion, statements: Iterable[SequentialStatement] = None, label: str = None):
 		super().__init__(statements, label)
-		MixinConditional.__init__(self, condition)
+		ConditionalMixin.__init__(self, condition)
 
 
 @export
-class LoopControlStatement(SequentialStatement, MixinConditional):
+class LoopControlStatement(SequentialStatement, ConditionalMixin):
 	"""A ``LoopControlStatement`` is a base-class for all loop controlling statements."""
 
 	_loopReference: LoopStatement
 
 	def __init__(self, condition: ExpressionUnion = None, loopLabel: str = None): # TODO: is this label (currently str) a Name or a Label class?
 		super().__init__()
-		MixinConditional.__init__(self, condition)
+		ConditionalMixin.__init__(self, condition)
 
 		# TODO: loopLabel
 		# TODO: loop reference -> is it a symbol?
@@ -380,12 +380,12 @@ class NullStatement(SequentialStatement):
 
 
 @export
-class ReturnStatement(SequentialStatement, MixinConditional):
+class ReturnStatement(SequentialStatement, ConditionalMixin):
 	_returnValue: ExpressionUnion
 
 	def __init__(self, returnValue: ExpressionUnion = None):
 		super().__init__()
-		MixinConditional.__init__(self, returnValue)
+		ConditionalMixin.__init__(self, returnValue)
 
 		# TODO: return value?
 
@@ -395,13 +395,13 @@ class ReturnStatement(SequentialStatement, MixinConditional):
 
 
 @export
-class WaitStatement(SequentialStatement, MixinConditional):
+class WaitStatement(SequentialStatement, ConditionalMixin):
 	_sensitivityList: Nullable[List[NewSymbol]]
 	_timeout:         ExpressionUnion
 
 	def __init__(self, sensitivityList: Iterable[NewSymbol] = None, condition: ExpressionUnion = None, timeout: ExpressionUnion = None, label: str = None):
 		super().__init__(label)
-		MixinConditional.__init__(self, condition)
+		ConditionalMixin.__init__(self, condition)
 
 		if sensitivityList is None:
 			self._sensitivityList = None

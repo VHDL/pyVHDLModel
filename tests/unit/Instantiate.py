@@ -36,8 +36,7 @@ from unittest import TestCase
 from pyTooling.Graph import Graph
 
 from pyVHDLModel import Design, Library, Document
-from pyVHDLModel.Base import Direction
-from pyVHDLModel.Common import Range
+from pyVHDLModel.Base import Direction, Range
 from pyVHDLModel.Expression import IntegerLiteral, FloatingPointLiteral
 from pyVHDLModel.Type import Subtype, IntegerType, RealType, ArrayType, RecordType
 from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, AllPackageMembersReferenceSymbol, \

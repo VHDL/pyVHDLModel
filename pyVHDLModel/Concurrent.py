@@ -38,12 +38,12 @@ from typing                  import List, Dict, Union, Iterable, Generator, Opti
 
 from pyTooling.Decorators    import export
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, ExpressionUnion
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range, BaseChoice, BaseCase, IfBranchMixin, \
+	ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
 from pyVHDLModel.Interface   import PortInterfaceItem
-from pyVHDLModel.Common      import Statement, ProcedureCall, MixinIfBranch, MixinElsifBranch, MixinElseBranch, BaseChoice, BaseCase, SignalAssignment, \
-	MixinAssertStatement, BlockStatementMixin, WaveformElement, Range
+from pyVHDLModel.Common      import Statement, ProcedureCall, SignalAssignment
 from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatements, SequentialDeclarations
 
 
@@ -307,24 +307,24 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
 
 
 @export
-class IfGenerateBranch(GenerateBranch, MixinIfBranch):
+class IfGenerateBranch(GenerateBranch, IfBranchMixin):
 	def __init__(self, condition: ExpressionUnion, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
-		MixinIfBranch.__init__(self, condition)
+		IfBranchMixin.__init__(self, condition)
 
 
 @export
-class ElsifGenerateBranch(GenerateBranch, MixinElsifBranch):
+class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
 	def __init__(self, condition: ExpressionUnion, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
-		MixinElsifBranch.__init__(self, condition)
+		ElsifBranchMixin.__init__(self, condition)
 
 
 @export
-class ElseGenerateBranch(GenerateBranch, MixinElseBranch):
+class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
-		MixinElseBranch.__init__(self)
+		ElseBranchMixin.__init__(self)
 
 
 @export
@@ -545,10 +545,10 @@ class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment):
 
 
 @export
-class ConcurrentAssertStatement(ConcurrentStatement, MixinAssertStatement):
+class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
 	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion, severity: ExpressionUnion = None, label: str = None):
 		super().__init__(label)
-		MixinAssertStatement.__init__(self, condition, message, severity)
+		AssertStatementMixin.__init__(self, condition, message, severity)
 
 
 @export

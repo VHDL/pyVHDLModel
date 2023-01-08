@@ -38,10 +38,9 @@ from typing                 import Union, List, Iterator, Iterable, Tuple
 
 from pyTooling.Decorators   import export
 
-from pyVHDLModel.Base import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
+from pyVHDLModel.Base import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
 from pyVHDLModel.Symbol import NewSymbol
 from pyVHDLModel.Name       import Name
-from pyVHDLModel.Common     import Range
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 
 

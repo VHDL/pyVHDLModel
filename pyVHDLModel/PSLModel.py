@@ -34,7 +34,7 @@ This module contains an abstract document language model for PSL in VHDL.
 """
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity, NamedEntityMixin
+from pyVHDLModel.Base import ModelEntity, NamedEntityMixin
 from pyVHDLModel.DesignUnit import PrimaryUnit
 
 

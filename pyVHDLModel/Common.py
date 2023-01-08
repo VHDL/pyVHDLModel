@@ -38,7 +38,7 @@ from typing import List, Iterable, Optional as Nullable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity, LabeledEntityMixin, ExpressionUnion, Direction
+from pyVHDLModel.Base import ModelEntity, LabeledEntityMixin, ExpressionUnion, Direction
 from pyVHDLModel.Symbol import NewSymbol
 from pyVHDLModel.Association import ParameterAssociationItem
 

@@ -38,7 +38,7 @@ from typing import List
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity
+from pyVHDLModel.Base import ModelEntity
 from pyVHDLModel.DesignUnit import PrimaryUnit
 from pyVHDLModel.Association import GenericAssociationItem
 from pyVHDLModel.Subprogram import Procedure, Function

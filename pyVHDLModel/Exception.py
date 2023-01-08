@@ -32,12 +32,17 @@
 """
 This module contains parts of an abstract document language model for VHDL.
 
-Exceptions contains all structured errors.
+The module ``Exceptions`` contains all structured errors that are raised by pyVHDLModel. Besides a default error
+message in english, each exception object contains one or multiple references to the exception's context.
 """
 from pyTooling.Decorators import export
 
-from pyVHDLModel import VHDLModelException
 from pyVHDLModel.Symbol import NewSymbol
+
+
+@export
+class VHDLModelException(Exception):
+	"""Base-class for all exceptions (errors) raised by pyVHDLModel."""
 
 
 @export

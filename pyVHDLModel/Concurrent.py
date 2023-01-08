@@ -34,17 +34,17 @@ This module contains parts of an abstract document language model for VHDL.
 
 Concurrent defines all concurrent statements used in entities, architectures, generates and block statements.
 """
-from typing import List, Dict, Union, Iterable, Generator, Optional as Nullable
+from typing                  import List, Dict, Union, Iterable, Generator, Optional as Nullable
 
-from pyTooling.Decorators import export
+from pyTooling.Decorators    import export
 
-from pyVHDLModel import DocumentedEntityMixin, LabeledEntityMixin, ModelEntity, ExpressionUnion
-from pyVHDLModel.Symbol import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, ExpressionUnion
+from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
-from pyVHDLModel.Interface import PortInterfaceItem
-from pyVHDLModel.Common import Statement, ProcedureCall, MixinIfBranch, MixinElsifBranch, MixinElseBranch, BaseChoice, BaseCase, SignalAssignment, \
+from pyVHDLModel.Interface   import PortInterfaceItem
+from pyVHDLModel.Common      import Statement, ProcedureCall, MixinIfBranch, MixinElsifBranch, MixinElseBranch, BaseChoice, BaseCase, SignalAssignment, \
 	MixinAssertStatement, BlockStatementMixin, WaveformElement, Range
-from pyVHDLModel.Sequential import SequentialStatement, SequentialStatements, SequentialDeclarations
+from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatements, SequentialDeclarations
 
 
 @export

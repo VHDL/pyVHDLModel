@@ -34,12 +34,59 @@ This module contains parts of an abstract document language model for VHDL.
 
 Symbols derived from names.
 """
+from enum import Flag, auto
 from typing import cast, Any
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import PossibleReference, ModelEntity
 from pyVHDLModel.Name     import Name, SimpleName, SelectedName, AllName
+
+
+@export
+class PossibleReference(Flag):
+	"""
+	A ``PossibleReference`` is an enumeration. It represents possible targets for a reference in a :class:`~pyVHDLModel.Symbol`.
+	"""
+
+	Unknown =         0
+	Library =         auto()  #: Library
+	Entity =          auto()  #: Entity
+	Architecture =    auto()  #: Architecture
+	Component =       auto()  #: Component
+	Package =         auto()  #: Package
+	Configuration =   auto()  #: Configuration
+	Context =         auto()  #: Context
+	Type =            auto()  #: Type
+	Subtype =         auto()  #: Subtype
+	ScalarType =      auto()  #: ScalarType
+	ArrayType =       auto()  #: ArrayType
+	RecordType =      auto()  #: RecordType
+	AccessType =      auto()  #: AccessType
+	ProtectedType =   auto()  #: ProtectedType
+	FileType =        auto()  #: FileType
+#	Alias =           auto()   # TODO: Is this needed?
+	Attribute =       auto()  #: Attribute
+	TypeAttribute =   auto()  #: TypeAttribute
+	ValueAttribute =  auto()  #: ValueAttribute
+	SignalAttribute = auto()  #: SignalAttribute
+	RangeAttribute =  auto()  #: RangeAttribute
+	ViewAttribute =   auto()  #: ViewAttribute
+	Constant =        auto()  #: Constant
+	Variable =        auto()  #: Variable
+	Signal =          auto()  #: Signal
+	File =            auto()  #: File
+#	Object =          auto()   # TODO: Is this needed?
+	EnumLiteral =     auto()  #: EnumLiteral
+	Procedure =       auto()  #: Procedure
+	Function =        auto()  #: Function
+	Label =           auto()  #: Label
+	View =            auto()  #: View
+
+	AnyType = ScalarType | ArrayType | RecordType | ProtectedType | AccessType | FileType | Subtype  #: Any possible type incl. subtypes.
+	Object = Constant | Variable | Signal | File                                                     #: Any object
+	SubProgram = Procedure | Function                                                                #: Any subprogram
+	PackageMember = AnyType | Object | SubProgram | Component                                        #: Any member of a package
+	SimpleNameInExpression = Constant | Variable | Signal | ScalarType | EnumLiteral | Function      #: Any possible item in an expression.
 
 
 @export
@@ -277,21 +324,3 @@ class ConfigurationInstantiationSymbol(SimpleName, NewSymbol):
 	@Configuration.setter
 	def Configuration(self, value: 'Configuration') -> None:
 		self._reference = value
-
-
-# @export
-# class Symbol(ModelEntity):
-# 	_symbolName: 'Name'
-# 	_possibleReferences: PossibleReference
-# 	_reference: Any
-#
-# 	def __init__(self, symbolName: 'Name', possibleReferences: PossibleReference):
-# 		super().__init__()
-#
-# 		self._symbolName = symbolName
-# 		self._possibleReferences = possibleReferences
-# 		self._reference = None
-#
-# 	@property
-# 	def SymbolName(self) -> 'Name':
-# 		return self._symbolName

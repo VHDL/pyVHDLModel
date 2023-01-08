@@ -35,10 +35,10 @@ from unittest import TestCase
 
 from pyTooling.Graph import Graph
 
-from pyVHDLModel import Direction
+from pyVHDLModel import Design, Library, Document
+from pyVHDLModel.Base import Direction
 from pyVHDLModel.Common import Range
 from pyVHDLModel.Expression import IntegerLiteral, FloatingPointLiteral
-from pyVHDLModel.Root import Design, Library, Document
 from pyVHDLModel.Type import Subtype, IntegerType, RealType, ArrayType, RecordType
 from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, AllPackageMembersReferenceSymbol, \
 	ContextReferenceSymbol, EntitySymbol, ArchitectureSymbol, PackageSymbol, EntityInstantiationSymbol, ComponentInstantiationSymbol, \

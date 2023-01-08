@@ -34,24 +34,41 @@ This module contains parts of an abstract document language model for VHDL.
 
 
 """
+from enum import unique, Enum
 from typing import List, Iterable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, SubtypeOrSymbol, EntityClass, ExpressionUnion
+from pyVHDLModel import SubtypeOrSymbol
+from pyVHDLModel.Base import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
 
 
 @export
-class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
-	def __init__(self, identifier: str, documentation: str = None):
-		"""
-		Initializes underlying ``BaseType``.
+@unique
+class EntityClass(Enum):
+	"""An ``EntityClass`` is an enumeration. It represents a VHDL language entity class (``entity``, ``label``, ...)."""
 
-		:param identifier: Name of the type.
-		"""
-		super().__init__()
-		NamedEntityMixin.__init__(self, identifier)
-		DocumentedEntityMixin.__init__(self, documentation)
+	Entity =        0   #: Entity
+	Architecture =  1   #: Architecture
+	Configuration = 2   #: Configuration
+	Procedure =     3   #: Procedure
+	Function =      4   #: Function
+	Package =       5   #: Package
+	Type =          6   #: Type
+	Subtype =       7   #: Subtype
+	Constant =      8   #: Constant
+	Signal =        9   #: Signal
+	Variable =      10  #: Variable
+	Component =     11  #: Component
+	Label =         12  #: Label
+	Literal =       13  #: Literal
+	Units =         14  #: Units
+	Group =         15  #: Group
+	File =          16  #: File
+	Property =      17  #: Property
+	Sequence =      18  #: Sequence
+	View =          19  #: View
+	Others =        20  #: Others
 
 
 @export
@@ -110,3 +127,16 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 	@property
 	def Expression(self) -> ExpressionUnion:
 		return self._expression
+
+
+@export
+class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
+	def __init__(self, identifier: str, documentation: str = None):
+		"""
+		Initializes underlying ``BaseType``.
+
+		:param identifier: Name of the type.
+		"""
+		super().__init__()
+		NamedEntityMixin.__init__(self, identifier)
+		DocumentedEntityMixin.__init__(self, documentation)

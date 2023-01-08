@@ -38,7 +38,7 @@ from typing import Optional as Nullable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity, ExpressionUnion
+from pyVHDLModel.Base import ModelEntity, ExpressionUnion
 from pyVHDLModel.Symbol import NewSymbol
 
 

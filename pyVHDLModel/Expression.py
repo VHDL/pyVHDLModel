@@ -38,7 +38,7 @@ from typing import Tuple, List, Iterable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ModelEntity, ExpressionUnion, Direction, SubtypeOrSymbol
+from pyVHDLModel.Base import ModelEntity, ExpressionUnion, Direction
 from pyVHDLModel.Symbol import NewSymbol
 
 
@@ -524,9 +524,9 @@ class RotateLeftExpression(RotateExpression):
 @export
 class QualifiedExpression(BaseExpression, ParenthesisExpression):
 	_operand:  ExpressionUnion
-	_subtype:  SubtypeOrSymbol
+	_subtype:  NewSymbol
 
-	def __init__(self, subtype: SubtypeOrSymbol, operand: ExpressionUnion):
+	def __init__(self, subtype: NewSymbol, operand: ExpressionUnion):
 		super().__init__()
 
 		self._operand = operand

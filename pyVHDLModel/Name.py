@@ -38,7 +38,7 @@ from typing import List, Iterable, Optional as Nullable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel import ExpressionUnion, ModelEntity
+from pyVHDLModel.Base import ModelEntity, ExpressionUnion
 
 
 @export

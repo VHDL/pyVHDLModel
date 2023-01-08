@@ -38,7 +38,7 @@ from typing                 import List
 
 from pyTooling.Decorators   import export
 
-from pyVHDLModel            import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Base import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Type       import Subtype, ProtectedType
 from pyVHDLModel.Sequential import SequentialStatement
 

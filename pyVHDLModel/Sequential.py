@@ -38,7 +38,7 @@ from typing                  import List, Iterable, Optional as Nullable
 
 from pyTooling.Decorators    import export
 
-from pyVHDLModel             import ExpressionUnion, ModelEntity
+from pyVHDLModel.Base import ModelEntity, ExpressionUnion
 from pyVHDLModel.Symbol      import NewSymbol
 from pyVHDLModel.Common      import Range, Statement, ProcedureCall, BaseChoice, BaseCase, WaveformElement
 from pyVHDLModel.Common      import SignalAssignment, VariableAssignment, MixinReportStatement, MixinAssertStatement

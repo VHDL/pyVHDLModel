@@ -34,7 +34,7 @@ from typing                  import Iterable
 
 from pyTooling.Decorators    import export
 
-from pyVHDLModel.Root        import Library
+from pyVHDLModel import Library
 from pyVHDLModel.Symbol      import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, AllPackageMembersReferenceSymbol, PackageSymbol
 from pyVHDLModel.DesignUnit  import LibraryClause, UseClause, Package, PackageBody
 

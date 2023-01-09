@@ -32,7 +32,9 @@
 """
 This module contains parts of an abstract document language model for VHDL.
 
-Names and symbols referencing declared language entities.
+VHDL uses *names* to express cross-references from *usage locations* to *declarations*. Here, *names* are single or
+combined identifiers. :py:mod:`Symbols <pyVHDLModel.Symbol>` are structures representing a *name* and a reference
+(pointer) to the referenced vhdl language entity.
 """
 from typing import List, Iterable, Optional as Nullable
 
@@ -47,7 +49,7 @@ class Name(ModelEntity):
 
 	_identifier: str
 	_normalizedIdentifier: str
-	_root: Nullable['Name']     # TODO: seams to be unused. There is no reverse linking
+	_root: Nullable['Name']     # TODO: seams to be unused. There is no reverse linking, or?
 	_prefix: Nullable['Name']
 
 	def __init__(self, identifier: str, prefix: 'Name' = None):
@@ -65,27 +67,64 @@ class Name(ModelEntity):
 
 	@property
 	def Identifier(self) -> str:
+		"""
+		The identifier the name is referencing.
+
+		:returns: The referenced identifier.
+		"""
 		return self._identifier
 
 	@property
 	def NormalizedIdentifier(self) -> str:
+		"""
+		The normalized identifier the name is referencing.
+
+		:returns: The referenced identifier (normalized).
+		"""
 		return self._normalizedIdentifier
 
 	@property
 	def Root(self) -> 'Name':
+		"""
+		The root (left-most) element in a chain of names.
+
+		In case the name is a :py:class:`simple name <SimpleName>`, the root points to the name itself.
+
+		:returns: The name's root element.
+		"""
 		return self._root
 
 	@property
 	def Prefix(self) -> Nullable['Name']:
+		"""
+		The name's prefix in a chain of names.
+
+		:returns: The name left from current name, if not a simple name, otherwise ``None``.
+		"""
 		return self._prefix
 
 	@property
 	def HasPrefix(self) -> bool:
+		"""
+		Returns true, if the name has a prefix.
+
+		This is true for all names except :py:class:`simple names <SimpleName>`.
+
+		:returns: ``True``, if the name as a prefix.
+		"""
 		return self._prefix is not None
 
 
 @export
 class SimpleName(Name):
+	"""
+	A *simple name* is a name made from a single word.
+
+	For example, the entity name in an architecture declaration is a simple name, while the name of the architecture
+	itself is an identifier. The simple name references is again an identifier in the entity declaration, thus names
+	reference other (already) declared language entities.
+	"""
+
 	def __str__(self):
 		return self._identifier
 
@@ -134,6 +173,14 @@ class SlicedName(Name):
 
 @export
 class SelectedName(Name):
+	"""
+	A *selected name* is a name made from multiple words separated by a dot (``.``).
+
+	For example, the library and entity name in a direct entity instantiation is a selected name. Here the entity
+	identifier is a selected name. The library identifier is a :py:class:`simple name <SimpleName>`, which is
+	referenced by the selected name via the :py:attr:`~pyVDLModel.Name.Prefix` property.
+	"""
+
 	def __init__(self, identifier: str, prefix: Name):
 		super().__init__(identifier, prefix)
 
@@ -152,6 +199,11 @@ class AttributeName(Name):
 
 @export
 class AllName(Name):
+	"""
+	The *all name* represents the reserved word ``all`` used in names.
+
+	Most likely this name is used in use-statements.
+	"""
 	def __init__(self, prefix: Name):
 		super().__init__("all", prefix)
 
@@ -161,6 +213,11 @@ class AllName(Name):
 
 @export
 class OpenName(Name):
+	"""
+	The *open name* represents the reserved word ``open``.
+
+	Most likely this name is used in port assoziations.
+	"""
 	def __init__(self):
 		super().__init__("open")
 

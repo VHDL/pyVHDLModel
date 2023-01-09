@@ -59,6 +59,7 @@ from typing                    import Union, Dict, cast, List, Generator
 from pyTooling.Decorators      import export
 from pyTooling.Graph           import Graph, Vertex
 
+from pyVHDLModel.Exception     import VHDLModelException
 from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegisteredToForeignDesignError, LibraryNotRegisteredError, EntityExistsInLibraryError
 from pyVHDLModel.Exception     import ArchitectureExistsInLibraryError, PackageExistsInLibraryError, PackageBodyExistsError, ConfigurationExistsInLibraryError
 from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLibraryNotExistingError
@@ -367,6 +368,7 @@ class Design(ModelEntity):
 	_compileOrderGraph: Graph[None, None, None, None, None, 'Document', None, None, None, None, None, None, None]
 	_dependencyGraph:   Graph[None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None]
 	_hierarchyGraph:    Graph[None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None]
+	_toplevel:          Union[Entity, Configuration]
 
 	def __init__(self):
 		super().__init__()
@@ -377,6 +379,7 @@ class Design(ModelEntity):
 		self._compileOrderGraph = Graph()
 		self._dependencyGraph = Graph()
 		self._hierarchyGraph = Graph()
+		self._toplevel = None
 
 	@property
 	def Libraries(self) -> Dict[str, 'Library']:
@@ -526,6 +529,8 @@ class Design(ModelEntity):
 
 		self.LinkInstantiations()
 		self.CreateHierarchyGraph()
+
+		self.ComputeHierarchy()
 
 	def CreateCompilerOrderGraph(self) -> None:
 		for document in self._documents:
@@ -895,13 +900,37 @@ class Design(ModelEntity):
 			library.IndexArchitectures()
 
 	def ComputeHierarchy(self) -> None:
-		raise NotImplementedError()
+		# Copy all entity and architecture vertices from dependency graph to hierarchy graph and double-link them
+		entityArchitectureFilter = lambda v: v["kind"] in DependencyGraphVertexKind.Entity | DependencyGraphVertexKind.Architecture
+		for vertex in self._dependencyGraph.IterateVertices(predicate=entityArchitectureFilter):
+			newVertex = vertex.Copy(self._hierarchyGraph, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="hierarchyVertex")
+
+		# Copy implementation edges from
+		for architectureVertex in self._hierarchyGraph.IterateVertices(predicate=lambda v: v["kind"] is DependencyGraphVertexKind.Architecture):
+			for edge in architectureVertex["dependencyVertex"].IterateOutboundEdges():
+				kind: DependencyGraphEdgeKind = edge["kind"]
+				if DependencyGraphEdgeKind.Implementation in kind:
+					newEdge = architectureVertex.LinkFromVertex(edge.Destination["hierarchyVertex"])
+				elif DependencyGraphEdgeKind.Instantiation in kind:
+					newEdge = architectureVertex.LinkToVertex(edge.Destination["hierarchyVertex"])
+				else:
+					continue
+
+				newEdge["kind"] = kind
 
 	def GetCompileOrder(self) -> Generator['Document', None, None]:
 		raise NotImplementedError()
 
 	def GetTopLevel(self) -> 'Entity':
-		raise NotImplementedError()
+		if self._toplevel is not None:
+			return self._toplevel
+
+		roots = tuple(self._hierarchyGraph.IterateRoots())
+		if len(roots) == 1:
+			self._toplevel = roots[0]
+			return roots[0]
+		else:
+			raise VHDLModelException(f"Found more than one toplevel: {', '.join(roots)}")
 
 	def GetUnusedDesignUnits(self) -> List[DesignUnit]:
 		raise NotImplementedError()

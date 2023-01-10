@@ -57,7 +57,7 @@ from pathlib                   import Path
 from typing                    import Union, Dict, cast, List, Generator
 
 from pyTooling.Decorators      import export
-from pyTooling.Graph           import Graph, Vertex
+from pyTooling.Graph           import Graph, Vertex, Edge
 
 from pyVHDLModel.Exception     import VHDLModelException
 from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegisteredToForeignDesignError, LibraryNotRegisteredError, EntityExistsInLibraryError
@@ -419,7 +419,12 @@ class Design(ModelEntity):
 	def LoadStdLibrary(self) -> 'Library':
 		from pyVHDLModel.STD import Std
 
+		doc = Document(Path("std.vhdl"))
+
 		library = Std()
+		for designUnit in library.IterateDesignUnits():
+			doc._AddDesignUnit(designUnit)
+
 		self._LoadLibrary(library)
 
 		return library
@@ -427,7 +432,12 @@ class Design(ModelEntity):
 	def LoadIEEELibrary(self) -> 'Library':
 		from pyVHDLModel.IEEE import Ieee
 
+		doc = Document(Path("ieee.vhdl"))
+
 		library = Ieee()
+		for designUnit in library.IterateDesignUnits():
+			doc._AddDesignUnit(designUnit)
+
 		self._LoadLibrary(library)
 
 		return library
@@ -520,7 +530,6 @@ class Design(ModelEntity):
 
 	def AnalyzeDependencies(self) -> None:
 		self.CreateDependencyGraph()
-		self.CreateCompilerOrderGraph()
 
 		self.IndexPackages()
 		self.IndexArchitectures()
@@ -535,19 +544,7 @@ class Design(ModelEntity):
 		self.LinkComponents()
 		self.LinkInstantiations()
 		self.CreateHierarchyGraph()
-
-	def CreateCompilerOrderGraph(self) -> None:
-		for document in self._documents:
-			dependencyVertex = Vertex(vertexID=document.Path.name, value=document, graph=self._dependencyGraph)
-			dependencyVertex["kind"] = DependencyGraphVertexKind.Document
-			document._dependencyVertex = dependencyVertex
-
-			compilerOrderVertex = dependencyVertex.Copy(self._compileOrderGraph, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="compileOrderVertex")
-			document._compileOrderVertex = compilerOrderVertex
-
-			for designUnit in document._designUnits:
-				edge = dependencyVertex.LinkFromVertex(designUnit._dependencyVertex)
-				edge["kind"] = DependencyGraphEdgeKind.Document
+		self.ComputeCompileOrder()
 
 	def CreateDependencyGraph(self) -> None:
 		for libraryIdentifier, library in self._libraries.items():
@@ -945,6 +942,41 @@ class Design(ModelEntity):
 					continue
 
 				newEdge["kind"] = kind
+
+	def ComputeCompileOrder(self) -> None:
+		for document in self._documents:
+			compilerOrderVertex = Vertex(vertexID=document.Path.name, value=document, graph=self._compileOrderGraph)
+			compilerOrderVertex["kind"] = DependencyGraphVertexKind.Document
+			document._compileOrderVertex = compilerOrderVertex
+
+		def predicate(edge: Edge) -> bool:
+			if edge["kind"] == DependencyGraphEdgeKind.Document:
+				return False
+			elif DependencyGraphEdgeKind.Library in edge["kind"]:
+				return False
+			else:
+				destinationDesignUnit: DesignUnit = edge.Destination.Value
+				if destinationDesignUnit.Library.NormalizedIdentifier in ("std", "ieee"):
+					return False
+
+			return True
+
+		for edge in self._dependencyGraph.IterateEdges(predicate=predicate):
+			sourceDocument:      Document = edge.Source.Value.Document
+			destinationDocument: Document = edge.Destination.Value.Document
+
+			sourceVertex =      sourceDocument._compileOrderVertex
+			destinationVertex = destinationDocument._compileOrderVertex
+
+			# Don't add self-edges
+			if sourceVertex is destinationVertex:
+				continue
+			# Don't add parallel edges
+			elif sourceVertex.LinksToDestination(destinationVertex):
+				continue
+
+			e = sourceVertex.LinkToVertex(destinationVertex)
+			e["kind"] = DependencyGraphEdgeKind.Document
 
 	def GetCompileOrder(self) -> Generator['Document', None, None]:
 		raise NotImplementedError()

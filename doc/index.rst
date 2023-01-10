@@ -65,6 +65,24 @@ News
 
 .. only:: html
 
+   Jan. 2023 - Dependency, Hierarchy, Compile Order Analysis
+   =========================================================
+
+.. only:: latex
+
+   .. rubric:: Dependency, Hierarchy, Compile Order Analysis
+
+* Enhanced analysis of cross references.
+* Enhanced dependency graphs:
+
+  * Hierarchy graph and toplevel detection
+  * Compile order computation
+
+* Transformation from single module to >15 modules.
+* Improved code coverage and test cases.
+
+.. only:: html
+
    Dec. 2022 - Added Documentation Property
    ========================================
 

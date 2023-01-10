@@ -320,18 +320,23 @@ class DesignUnitKind(Flag):
 @export
 @unique
 class DependencyGraphVertexKind(Flag):
+	Document = auto()
 	Library = auto()
+
 	Context = auto()
 	Package = auto()
 	PackageBody = auto()
 	Entity = auto()
 	Architecture = auto()
+	Component = auto()
 	Configuration = auto()
 
 
 @export
 @unique
 class DependencyGraphEdgeKind(Flag):
+	Document = auto()
+
 	Library = auto()
 	Context = auto()
 	Package = auto()
@@ -514,8 +519,8 @@ class Design(ModelEntity):
 		self.AnalyzeDependencies()
 
 	def AnalyzeDependencies(self) -> None:
-		self.CreateCompilerOrderGraph()
 		self.CreateDependencyGraph()
+		self.CreateCompilerOrderGraph()
 
 		self.IndexPackages()
 		self.IndexArchitectures()
@@ -533,8 +538,16 @@ class Design(ModelEntity):
 
 	def CreateCompilerOrderGraph(self) -> None:
 		for document in self._documents:
-			compilerOrderVertex = Vertex(value=document, graph=self._compileOrderGraph)
+			dependencyVertex = Vertex(vertexID=document.Path.name, value=document, graph=self._dependencyGraph)
+			dependencyVertex["kind"] = DependencyGraphVertexKind.Document
+			document._dependencyVertex = dependencyVertex
+
+			compilerOrderVertex = dependencyVertex.Copy(self._compileOrderGraph, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="compileOrderVertex")
 			document._compileOrderVertex = compilerOrderVertex
+
+			for designUnit in document._designUnits:
+				edge = dependencyVertex.LinkFromVertex(designUnit._dependencyVertex)
+				edge["kind"] = DependencyGraphEdgeKind.Document
 
 	def CreateDependencyGraph(self) -> None:
 		for libraryIdentifier, library in self._libraries.items():
@@ -922,10 +935,11 @@ class Design(ModelEntity):
 		for hierarchyArchitectureVertex in self._hierarchyGraph.IterateVertices(predicate=lambda v: v["kind"] is DependencyGraphVertexKind.Architecture):
 			for dependencyEdge in hierarchyArchitectureVertex["dependencyVertex"].IterateOutboundEdges():
 				kind: DependencyGraphEdgeKind = dependencyEdge["kind"]
-				hierarchyDestinationVertex = dependencyEdge.Destination["hierarchyVertex"]
 				if DependencyGraphEdgeKind.Implementation in kind:
+					hierarchyDestinationVertex = dependencyEdge.Destination["hierarchyVertex"]
 					newEdge = hierarchyArchitectureVertex.LinkFromVertex(hierarchyDestinationVertex)
 				elif DependencyGraphEdgeKind.Instantiation in kind:
+					hierarchyDestinationVertex = dependencyEdge.Destination["hierarchyVertex"]
 					newEdge = hierarchyArchitectureVertex.LinkToVertex(hierarchyDestinationVertex)
 				else:
 					continue
@@ -1108,6 +1122,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	_verificationProperties: Dict[str, VerificationProperty]     #: Dictionary of all PSL verification properties defined in a document.
 	_verificationModes:      Dict[str, VerificationMode]         #: Dictionary of all PSL verification modes defined in a document.
 
+	_dependencyVertex:       Vertex[None, 'Document', None, None]
 	_compileOrderVertex:     Vertex[None, 'Document', None, None]
 
 	def __init__(self, path: Path, documentation: str = None):
@@ -1126,6 +1141,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._verificationProperties = {}
 		self._verificationModes =      {}
 
+		self._dependencyVertex = None
 		self._compileOrderVertex = None
 
 	def _AddEntity(self, item: Entity) -> None:

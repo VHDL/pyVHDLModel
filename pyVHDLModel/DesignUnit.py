@@ -34,11 +34,12 @@ This module contains parts of an abstract document language model for VHDL.
 
 Design units are contexts, entities, architectures, packages and their bodies as well as configurations.
 """
-from typing import List, Dict, Union, Iterable
+from typing import List, Dict, Union, Iterable, Optional as Nullable
 
 from pyTooling.Decorators import export
 from pyTooling.Graph import Vertex
 
+from pyVHDLModel.Exception  import VHDLModelException
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol
 from pyVHDLModel.Interface  import GenericInterfaceItem, PortInterfaceItem
@@ -256,7 +257,7 @@ class Context(PrimaryUnit):
 				elif isinstance(reference, ContextReference):
 					self._contextReferences.append(reference)
 				else:
-					raise Exception()
+					raise VHDLModelException()
 
 	@property
 	def LibraryReferences(self) -> List[LibraryClause]:

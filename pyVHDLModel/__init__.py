@@ -621,14 +621,14 @@ class Design(ModelEntity):
 						libraryIdentifier = library.NormalizedIdentifier
 					elif libraryIdentifier not in context._referencedLibraries:
 						# TODO: This check doesn't trigger if it's the working library.
-						raise Exception(f"Use clause references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
+						raise VHDLModelException(f"Use clause references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
 					else:
 						library = self._libraries[libraryIdentifier]
 
 					try:
 						package = library._packages[packageIdentifier]
 					except KeyError:
-						raise Exception(f"Package '{packageSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+						raise VHDLModelException(f"Package '{packageSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
 
 					librarySymbol.Library = library
 					packageSymbol.Package = package
@@ -646,7 +646,7 @@ class Design(ModelEntity):
 					elif isinstance(symbol, PackageMembersReferenceSymbol):
 						raise NotImplementedError()
 					else:
-						raise Exception()
+						raise VHDLModelException()
 
 	def LinkArchitectures(self) -> None:
 		for library in self._libraries.values():
@@ -692,7 +692,7 @@ class Design(ModelEntity):
 				elif isinstance(designUnit, PackageBody):
 					referencedLibraries = designUnit.Package.Package._referencedLibraries
 				else:
-					raise Exception()
+					raise VHDLModelException()
 
 				for libraryIdentifier, library in referencedLibraries.items():
 					designUnit._referencedLibraries[libraryIdentifier] = library
@@ -704,7 +704,7 @@ class Design(ModelEntity):
 					try:
 						library = self._libraries[libraryIdentifier]
 					except KeyError:
-						raise Exception(f"Library '{librarySymbol.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+						raise VHDLModelException(f"Library '{librarySymbol.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
 
 					librarySymbol.Library = library
 					designUnit._referencedLibraries[libraryIdentifier] = library
@@ -727,7 +727,7 @@ class Design(ModelEntity):
 					designUnit.NormalizedIdentifier != "standard":
 					for lib in DEFAULT_PACKAGES:
 						if lib[0] not in designUnit._referencedLibraries:
-							raise Exception()
+							raise VHDLModelException()
 						for pack in lib[1]:
 							referencedPackage = self._libraries[lib[0]]._packages[pack]
 							designUnit._referencedPackages[lib[0]][pack] = referencedPackage
@@ -745,7 +745,7 @@ class Design(ModelEntity):
 				elif isinstance(designUnit, PackageBody):
 					referencedPackages = designUnit.Package.Package._referencedPackages
 				else:
-					raise Exception()
+					raise VHDLModelException()
 
 				for packageIdentifier, package in referencedPackages.items():
 					designUnit._referencedPackages[packageIdentifier] = package
@@ -765,14 +765,14 @@ class Design(ModelEntity):
 						libraryIdentifier = library.NormalizedIdentifier
 					elif libraryIdentifier not in designUnit._referencedLibraries:
 						# TODO: This check doesn't trigger if it's the working library.
-						raise Exception(f"Use clause references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
+						raise VHDLModelException(f"Use clause references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
 					else:
 						library = self._libraries[libraryIdentifier]
 
 					try:
 						package = library._packages[packageIdentifier]
 					except KeyError:
-						raise Exception(f"Package '{packageSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+						raise VHDLModelException(f"Package '{packageSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
 
 					librarySymbol.Library = library
 					packageSymbol.Package = package
@@ -790,7 +790,7 @@ class Design(ModelEntity):
 					elif isinstance(symbol, PackageMembersReferenceSymbol):
 						raise NotImplementedError()
 					else:
-						raise Exception()
+						raise VHDLModelException()
 
 	def LinkContextReferences(self) -> None:
 		for designUnit in self.IterateDesignUnits():
@@ -808,14 +808,14 @@ class Design(ModelEntity):
 						libraryIdentifier = referencedLibrary.NormalizedIdentifier
 					elif libraryIdentifier not in designUnit._referencedLibraries:
 						# TODO: This check doesn't trigger if it's the working library.
-						raise Exception(f"Context reference references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
+						raise VHDLModelException(f"Context reference references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
 					else:
 						referencedLibrary = self._libraries[libraryIdentifier]
 
 					try:
 						referencedContext = referencedLibrary._contexts[contextIdentifier]
 					except KeyError:
-						raise Exception(f"Context '{contextSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{referencedLibrary.Identifier}'.")
+						raise VHDLModelException(f"Context '{contextSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{referencedLibrary.Identifier}'.")
 
 					librarySymbol.Library = referencedLibrary
 					contextSymbol.Package = referencedContext
@@ -833,7 +833,7 @@ class Design(ModelEntity):
 					designUnit: DesignUnit = designUnitVertex.Value
 					for libraryIdentifier, library in context._referencedLibraries.items():
 						# if libraryIdentifier in designUnit._referencedLibraries:
-						# 	raise Exception(f"Referenced library '{library.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
+						# 	raise VHDLModelException(f"Referenced library '{library.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
 
 						designUnit._referencedLibraries[libraryIdentifier] = library
 						designUnit._referencedPackages[libraryIdentifier] = {}
@@ -841,7 +841,7 @@ class Design(ModelEntity):
 					for libraryIdentifier, packages in context._referencedPackages.items():
 						for packageIdentifier, package in packages.items():
 							if packageIdentifier in designUnit._referencedPackages:
-								raise Exception(f"Referenced package '{package.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
+								raise VHDLModelException(f"Referenced package '{package.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
 
 							designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
@@ -1033,7 +1033,7 @@ class Library(ModelEntity, NamedEntityMixin):
 		for entityName, architecturesPerEntity in self._architectures.items():
 			if entityName not in self._entities:
 				architectureNames = "', '".join(architecturesPerEntity.keys())
-				raise Exception(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{self.Identifier}'.")
+				raise VHDLModelException(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{self.Identifier}'.")
 				# TODO: search in other libraries to find that entity.
 				# TODO: add code position
 
@@ -1041,7 +1041,7 @@ class Library(ModelEntity, NamedEntityMixin):
 				entity = self._entities[entityName]
 
 				if architecture.NormalizedIdentifier in entity._architectures:
-					raise Exception(f"Architecture '{architecture.Identifier}' already exists for entity '{entity.Identifier}'.")
+					raise VHDLModelException(f"Architecture '{architecture.Identifier}' already exists for entity '{entity.Identifier}'.")
 					# TODO: add code position of existing and current
 
 				entity._architectures[architecture.NormalizedIdentifier] = architecture
@@ -1054,7 +1054,7 @@ class Library(ModelEntity, NamedEntityMixin):
 	def LinkPackageBodies(self):
 		for packageBodyName, packageBody in self._packageBodies.items():
 			if packageBodyName not in self._packages:
-				raise Exception(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{self.Identifier}'.")
+				raise VHDLModelException(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{self.Identifier}'.")
 
 			package = self._packages[packageBodyName]
 			packageBody._package.Package = package

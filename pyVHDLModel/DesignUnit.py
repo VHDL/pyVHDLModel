@@ -41,6 +41,7 @@ from pyTooling.Graph import Vertex
 
 from pyVHDLModel.Exception  import VHDLModelException
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Scope      import Scope
 from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol
 from pyVHDLModel.Interface  import GenericInterfaceItem, PortInterfaceItem
 from pyVHDLModel.Subprogram import Procedure, Function
@@ -110,6 +111,8 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_dependencyVertex:    Vertex[str, 'DesignUnit', None, None]  #: The vertex in the dependency graph
 	_hierarchyVertex:     Vertex[str, 'DesignUnit', None, None]  #: The vertex in the hierarchy graph
 
+	_scope: 'Scope'
+
 	def __init__(self, identifier: str, contextItems: Iterable['ContextUnion'] = None, documentation: str = None):
 		"""
 		Initializes a design unit.
@@ -145,6 +148,8 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		self._dependencyVertex = None
 		self._hierarchyVertex = None
+
+		self._scope = Scope(self._normalizedIdentifier)
 
 	@property
 	def Document(self) -> 'Document':
@@ -511,6 +516,8 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
 
+	_entity:            Nullable[Entity]
+
 	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItem] = None, portItems: Iterable[PortInterfaceItem] = None, documentation: str = None):
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)
@@ -537,6 +544,14 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	@property
 	def PortItems(self) -> List[PortInterfaceItem]:
 		return self._portItems
+
+	@property
+	def Entity(self) -> Nullable[Entity]:
+		return self._entity
+
+	@Entity.setter
+	def Entity(self, value: Entity) -> None:
+		self._entity = value
 
 
 @export

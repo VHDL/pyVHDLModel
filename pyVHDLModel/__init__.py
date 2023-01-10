@@ -517,6 +517,9 @@ class Design(ModelEntity):
 		self.CreateCompilerOrderGraph()
 		self.CreateDependencyGraph()
 
+		self.IndexPackages()
+		self.IndexArchitectures()
+
 		self.LinkContexts()
 		self.LinkArchitectures()
 		self.LinkPackageBodies()
@@ -524,13 +527,9 @@ class Design(ModelEntity):
 		self.LinkPackageReferences()
 		self.LinkContextReferences()
 
-		self.IndexPackages()
-		self.IndexArchitectures()
-
+		self.LinkComponents()
 		self.LinkInstantiations()
 		self.CreateHierarchyGraph()
-
-		self.ComputeHierarchy()
 
 	def CreateCompilerOrderGraph(self) -> None:
 		for document in self._documents:
@@ -785,7 +784,8 @@ class Design(ModelEntity):
 
 					# TODO: update the namespace with visible members
 					if isinstance(symbol, AllPackageMembersReferenceSymbol):
-						pass
+						for componentIdentifier, component in package._components.items():
+							designUnit._scope._elements[componentIdentifier] = component
 
 					elif isinstance(symbol, PackageMembersReferenceSymbol):
 						raise NotImplementedError()
@@ -845,6 +845,17 @@ class Design(ModelEntity):
 
 							designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
+	def LinkComponents(self) -> None:
+		for package in self.IterateDesignUnits(DesignUnitKind.Package):
+			library = package._library
+			for component in package._components.values():
+				try:
+					entity = library._entities[component.NormalizedIdentifier]
+				except KeyError:
+					print(f"Entity '{component.Identifier}' not found for component '{component.Identifier}' in library '{library.Identifier}'.")
+
+				component.Entity = entity
+
 	def LinkInstantiations(self) -> None:
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):
 			for instance in architecture.IterateInstantiations():
@@ -882,14 +893,16 @@ class Design(ModelEntity):
 					dependency["kind"] = DependencyGraphEdgeKind.EntityInstantiation
 
 				elif isinstance(instance, ComponentInstantiation):
-					# pass
-					print(instance.Label, instance.Component)
+					component = architecture._scope.FindComponent(instance.Component)
+
+					instance.Component.Component = component
+
+					dependency = architecture._dependencyVertex.LinkToVertex(component.Entity._dependencyVertex, edgeValue=instance)
+					dependency["kind"] = DependencyGraphEdgeKind.ComponentInstantiation
+
 				elif isinstance(instance, ConfigurationInstantiation):
 					# pass
 					print(instance.Label, instance.Configuration)
-
-	def CreateHierarchyGraph(self) -> None:
-		pass
 
 	def IndexPackages(self) -> None:
 		for library in self._libraries.values():
@@ -899,20 +912,21 @@ class Design(ModelEntity):
 		for library in self._libraries.values():
 			library.IndexArchitectures()
 
-	def ComputeHierarchy(self) -> None:
+	def CreateHierarchyGraph(self) -> None:
 		# Copy all entity and architecture vertices from dependency graph to hierarchy graph and double-link them
 		entityArchitectureFilter = lambda v: v["kind"] in DependencyGraphVertexKind.Entity | DependencyGraphVertexKind.Architecture
 		for vertex in self._dependencyGraph.IterateVertices(predicate=entityArchitectureFilter):
 			newVertex = vertex.Copy(self._hierarchyGraph, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="hierarchyVertex")
 
 		# Copy implementation edges from
-		for architectureVertex in self._hierarchyGraph.IterateVertices(predicate=lambda v: v["kind"] is DependencyGraphVertexKind.Architecture):
-			for edge in architectureVertex["dependencyVertex"].IterateOutboundEdges():
-				kind: DependencyGraphEdgeKind = edge["kind"]
+		for hierarchyArchitectureVertex in self._hierarchyGraph.IterateVertices(predicate=lambda v: v["kind"] is DependencyGraphVertexKind.Architecture):
+			for dependencyEdge in hierarchyArchitectureVertex["dependencyVertex"].IterateOutboundEdges():
+				kind: DependencyGraphEdgeKind = dependencyEdge["kind"]
+				hierarchyDestinationVertex = dependencyEdge.Destination["hierarchyVertex"]
 				if DependencyGraphEdgeKind.Implementation in kind:
-					newEdge = architectureVertex.LinkFromVertex(edge.Destination["hierarchyVertex"])
+					newEdge = hierarchyArchitectureVertex.LinkFromVertex(hierarchyDestinationVertex)
 				elif DependencyGraphEdgeKind.Instantiation in kind:
-					newEdge = architectureVertex.LinkToVertex(edge.Destination["hierarchyVertex"])
+					newEdge = hierarchyArchitectureVertex.LinkToVertex(hierarchyDestinationVertex)
 				else:
 					continue
 
@@ -1046,6 +1060,7 @@ class Library(ModelEntity, NamedEntityMixin):
 
 				entity._architectures[architecture.NormalizedIdentifier] = architecture
 				architecture._entity.Entity = entity
+				architecture._scope.ParentScope = entity._scope
 
 				# add "architecture -> entity" relation in dependency graph
 				dependency = architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex)
@@ -1058,6 +1073,7 @@ class Library(ModelEntity, NamedEntityMixin):
 
 			package = self._packages[packageBodyName]
 			packageBody._package.Package = package
+			packageBody._scope.ParentScope = package._scope
 
 			# add "package body -> package" relation in dependency graph
 			dependency = packageBody._dependencyVertex.LinkToVertex(package._dependencyVertex)

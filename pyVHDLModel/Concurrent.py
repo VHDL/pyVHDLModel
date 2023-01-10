@@ -40,6 +40,7 @@ from pyTooling.Decorators    import export
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range, BaseChoice, BaseCase, IfBranchMixin, \
 	ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement
+from pyVHDLModel.Scope       import Scope
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
 from pyVHDLModel.Interface   import PortInterfaceItem
@@ -289,6 +290,8 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
 	_alternativeLabel:           Nullable[str]
 	_normalizedAlternativeLabel: Nullable[str]
 
+	_scope:                      Scope
+
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
 		ConcurrentDeclarations.__init__(self, declaredItems)
@@ -296,6 +299,8 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
 
 		self._alternativeLabel = alternativeLabel
 		self._normalizedAlternativeLabel = alternativeLabel.lower() if alternativeLabel is not None else None
+
+		self._scope = Scope(self._normalizedAlternativeLabel)
 
 	@property
 	def AlternativeLabel(self) -> Nullable[str]:
@@ -331,8 +336,12 @@ class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 class GenerateStatement(ConcurrentStatement):
 	"""A ``GenerateStatement`` is a base-class for all generate statements."""
 
+	_scope: Scope
+
 	def __init__(self, label: str = None):
 		super().__init__(label)
+
+		self._scope = Scope(self._normalizedLabel)
 
 	# @mustoverride
 	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:

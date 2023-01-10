@@ -979,7 +979,7 @@ class Design(ModelEntity):
 			e["kind"] = DependencyGraphEdgeKind.Document
 
 	def GetCompileOrder(self) -> Generator['Document', None, None]:
-		raise NotImplementedError()
+		return self._compileOrderGraph.IterateTopologically()
 
 	def GetTopLevel(self) -> 'Entity':
 		if self._toplevel is not None:

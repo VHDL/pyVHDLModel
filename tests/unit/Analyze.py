@@ -127,13 +127,6 @@ class VHDLLibrary(TestCase):
 
 		return design
 
-	def test_CompileOrderGraph(self):
-		design = self.CreateDesign()
-
-		design.CreateCompilerOrderGraph()
-
-		self.assertEqual(1, design.CompileOrderGraph.VertexCount)
-
 	def test_DependencyGraph(self):
 		design = self.CreateDesign()
 

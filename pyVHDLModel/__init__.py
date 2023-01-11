@@ -335,23 +335,27 @@ class DependencyGraphVertexKind(Flag):
 @export
 @unique
 class DependencyGraphEdgeKind(Flag):
-	Document = auto()
-
-	Library = auto()
-	Context = auto()
-	Package = auto()
-	Entity = auto()
+	Document =       auto()
+	Library =        auto()
+	Context =        auto()
+	Package =        auto()
+	Entity =         auto()
 	# Architecture = auto()
-	Configuration = auto()
-	Component = auto()
+	Configuration =  auto()
+	Component =      auto()
 
-	Reference = auto()
+	DeclaredIn =     auto()
+	Order =          auto()
+	Reference =      auto()
 	Implementation = auto()
-	Instantiation = auto()
+	Instantiation =  auto()
 
-	LibraryClause =    Library | Reference
-	UseClause =        Package | Reference
-	ContextReference = Context | Reference
+	SourceFile =                 Document | DeclaredIn
+	CompileOrder =               Document | Order
+
+	LibraryClause =              Library | Reference
+	UseClause =                  Package | Reference
+	ContextReference =           Context | Reference
 
 	EntityImplementation =       Entity | Implementation
 	PackageImplementation =      Package | Implementation
@@ -620,7 +624,7 @@ class Design(ModelEntity):
 
 			for designUnit in document._designUnits:
 				edge = dependencyVertex.LinkFromVertex(designUnit._dependencyVertex)
-				edge["kind"] = DependencyGraphEdgeKind.Document
+				edge["kind"] = DependencyGraphEdgeKind.SourceFile
 
 	def LinkContexts(self) -> None:
 		for context in self.IterateDesignUnits(DesignUnitKind.Context):
@@ -905,6 +909,9 @@ class Design(ModelEntity):
 
 				component.Entity = entity
 
+				# QUESTION: Add link in dependency graph as dashed line from component to entity?
+				#           Currently, component has no _dependencyVertex field
+
 	def LinkInstantiations(self) -> None:
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):
 			for instance in architecture.IterateInstantiations():
@@ -1006,7 +1013,10 @@ class Design(ModelEntity):
 				continue
 
 			e = sourceVertex.LinkToVertex(destinationVertex)
-			e["kind"] = DependencyGraphEdgeKind.Document
+			e["kind"] = DependencyGraphEdgeKind.CompileOrder
+
+			e = sourceVertex["dependencyVertex"].LinkToVertex(destinationVertex["dependencyVertex"])
+			e["kind"] = DependencyGraphEdgeKind.CompileOrder
 
 	def IterateDocumentsInCompileOrder(self) -> Generator['Document', None, None]:
 		if self._compileOrderGraph.EdgeCount == 0:

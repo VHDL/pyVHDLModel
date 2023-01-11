@@ -29,25 +29,87 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""Package installer for 'An abstract VHDL language model'."""
-from pathlib             import Path
-from pyTooling.Packaging import DescribePythonPackageHostedOnGitHub, DEFAULT_CLASSIFIERS
+"""
+This module contains parts of an abstract document language model for VHDL.
 
-gitHubNamespace =        "VHDL"
-packageName =            "pyVHDLModel"
-packageDirectory =       packageName
-packageInformationFile = Path(f"{packageDirectory}/__init__.py")
+Common definitions and MixIns are used by many classes in the model as base-classes.
+"""
+from typing                  import List, Iterable
 
-DescribePythonPackageHostedOnGitHub(
-	packageName=packageName,
-	description="An abstract VHDL language model.",
-	gitHubNamespace=gitHubNamespace,
-	keywords="Python3 VHDL Language Model Abstract",
-	sourceFileWithVersion=packageInformationFile,
-	developmentStatus="beta",
-	classifiers=list(DEFAULT_CLASSIFIERS) + [
-		"Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
-		"Topic :: Software Development :: Code Generators",
-		"Topic :: Software Development :: Compilers",
-	]
-)
+from pyTooling.Decorators    import export
+
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, ExpressionUnion
+from pyVHDLModel.Symbol      import Symbol
+from pyVHDLModel.Association import ParameterAssociationItem
+
+
+@export
+class Statement(ModelEntity, LabeledEntityMixin):
+	"""
+	A ``Statement`` is a base-class for all statements.
+	"""
+	def __init__(self, label: str = None):
+		super().__init__()
+		LabeledEntityMixin.__init__(self, label)
+
+
+@export
+class ProcedureCall:
+	_procedure:         Symbol  # TODO: implement a ProcedureSymbol
+	_parameterMappings: List[ParameterAssociationItem]
+
+	def __init__(self, procedureName: Symbol, parameterMappings: Iterable[ParameterAssociationItem] = None):
+		self._procedure = procedureName
+		procedureName._parent = self
+
+		# TODO: extract to mixin
+		self._parameterMappings = []
+		if parameterMappings is not None:
+			for parameterMapping in parameterMappings:
+				self._parameterMappings.append(parameterMapping)
+				parameterMapping._parent = self
+
+	@property
+	def Procedure(self) -> Symbol:
+		return self._procedure
+
+	@property
+	def ParameterMappings(self) -> List[ParameterAssociationItem]:
+		return self._parameterMappings
+
+
+@export
+class Assignment:
+	"""An ``Assignment`` is a base-class for all assignment statements."""
+
+	_target: Symbol
+
+	def __init__(self, target: Symbol):
+		self._target = target
+		target._parent = self
+
+	@property
+	def Target(self) -> Symbol:
+		return self._target
+
+
+@export
+class SignalAssignment(Assignment):
+	"""An ``SignalAssignment`` is a base-class for all signal assignment statements."""
+
+
+@export
+class VariableAssignment(Assignment):
+	"""An ``VariableAssignment`` is a base-class for all variable assignment statements."""
+	# FIXME: move to sequential?
+	_expression: ExpressionUnion
+
+	def __init__(self, target: Symbol, expression: ExpressionUnion):
+		super().__init__(target)
+
+		self._expression = expression
+		expression._parent = self
+
+	@property
+	def Expression(self) -> ExpressionUnion:
+		return self._expression

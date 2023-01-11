@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2022 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -33,14 +33,12 @@
 from pathlib  import Path
 from unittest import TestCase
 
-from pyTooling.Graph import Graph
-
-from pyVHDLModel import LibraryClause, UseClause, ContextReference
-from pyVHDLModel.SyntaxModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral, PackageSymbol, EntitySymbol, \
-	LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, ContextReferenceSymbol, EntityInstantiation, \
-	EntityInstantiationSymbol
-from pyVHDLModel.SyntaxModel import Entity, Architecture, PackageBody, Package, Configuration, Context
-from pyVHDLModel.SyntaxModel import IntegerType, RealType, ArrayType, RecordType
+from pyVHDLModel import Design, Document
+from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, AllPackageMembersReferenceSymbol
+from pyVHDLModel.Symbol import ContextReferenceSymbol, EntitySymbol, PackageSymbol, EntityInstantiationSymbol
+from pyVHDLModel.DesignUnit import Package, PackageBody, Context, Entity, Architecture, Configuration
+from pyVHDLModel.DesignUnit import LibraryClause, UseClause, ContextReference
+from pyVHDLModel.Concurrent import EntityInstantiation
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -128,13 +126,6 @@ class VHDLLibrary(TestCase):
 		design.LoadIEEELibrary()
 
 		return design
-
-	def test_CompileOrderGraph(self):
-		design = self.CreateDesign()
-
-		design.CreateCompilerOrderGraph()
-
-		self.assertEqual(1, design.CompileOrderGraph.VertexCount)
 
 	def test_DependencyGraph(self):
 		design = self.CreateDesign()

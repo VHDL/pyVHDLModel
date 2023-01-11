@@ -29,25 +29,65 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""Package installer for 'An abstract VHDL language model'."""
-from pathlib             import Path
-from pyTooling.Packaging import DescribePythonPackageHostedOnGitHub, DEFAULT_CLASSIFIERS
+"""
+This module contains parts of an abstract document language model for VHDL.
 
-gitHubNamespace =        "VHDL"
-packageName =            "pyVHDLModel"
-packageDirectory =       packageName
-packageInformationFile = Path(f"{packageDirectory}/__init__.py")
+Instantiations of packages, procedures, functions and protected types.
+"""
+from typing import List
 
-DescribePythonPackageHostedOnGitHub(
-	packageName=packageName,
-	description="An abstract VHDL language model.",
-	gitHubNamespace=gitHubNamespace,
-	keywords="Python3 VHDL Language Model Abstract",
-	sourceFileWithVersion=packageInformationFile,
-	developmentStatus="beta",
-	classifiers=list(DEFAULT_CLASSIFIERS) + [
-		"Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
-		"Topic :: Software Development :: Code Generators",
-		"Topic :: Software Development :: Compilers",
-	]
-)
+from pyTooling.Decorators import export
+
+from pyVHDLModel.Base import ModelEntity
+from pyVHDLModel.DesignUnit import PrimaryUnit
+from pyVHDLModel.Association import GenericAssociationItem
+from pyVHDLModel.Subprogram import Procedure, Function
+from pyVHDLModel.Symbol import PackageReferenceSymbol
+
+
+@export
+class GenericEntityInstantiation:
+	def __init__(self):
+		pass
+
+
+@export
+class SubprogramInstantiation(ModelEntity, GenericEntityInstantiation):
+	def __init__(self):
+		super().__init__()
+		GenericEntityInstantiation.__init__(self)
+		self._subprogramReference = None
+
+
+@export
+class ProcedureInstantiation(Procedure, SubprogramInstantiation):
+	pass
+
+
+@export
+class FunctionInstantiation(Function, SubprogramInstantiation):
+	pass
+
+
+@export
+class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
+	_packageReference: PackageReferenceSymbol
+	_genericAssociations: List[GenericAssociationItem]
+
+	def __init__(self, identifier: str, uninstantiatedPackage: PackageReferenceSymbol, documentation: str = None):
+		super().__init__(identifier, documentation)
+		GenericEntityInstantiation.__init__(self)
+
+		self._packageReference = uninstantiatedPackage
+		# uninstantiatedPackage._parent = self    # FIXME: uninstantiatedPackage is provided as int
+
+		# TODO: extract to mixin
+		self._genericAssociations = []
+
+	@property
+	def PackageReference(self) -> PackageReferenceSymbol:
+		return self._packageReference
+
+	@property
+	def GenericAssociations(self) -> List[GenericAssociationItem]:
+		return self._genericAssociations

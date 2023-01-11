@@ -29,25 +29,95 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""Package installer for 'An abstract VHDL language model'."""
-from pathlib             import Path
-from pyTooling.Packaging import DescribePythonPackageHostedOnGitHub, DEFAULT_CLASSIFIERS
+"""
+This module contains parts of an abstract document language model for VHDL.
 
-gitHubNamespace =        "VHDL"
-packageName =            "pyVHDLModel"
-packageDirectory =       packageName
-packageInformationFile = Path(f"{packageDirectory}/__init__.py")
+Objects are constants, variables, signals and files.
+"""
+from typing import Iterable, Optional as Nullable
 
-DescribePythonPackageHostedOnGitHub(
-	packageName=packageName,
-	description="An abstract VHDL language model.",
-	gitHubNamespace=gitHubNamespace,
-	keywords="Python3 VHDL Language Model Abstract",
-	sourceFileWithVersion=packageInformationFile,
-	developmentStatus="beta",
-	classifiers=list(DEFAULT_CLASSIFIERS) + [
-		"Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
-		"Topic :: Software Development :: Code Generators",
-		"Topic :: Software Development :: Compilers",
-	]
-)
+from pyTooling.Decorators import export
+
+from pyVHDLModel.Symbol import Symbol
+from pyVHDLModel.Base import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
+
+
+@export
+class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
+	_subtype: Symbol
+
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
+		super().__init__()
+		MultipleNamedEntityMixin.__init__(self, identifiers)
+		DocumentedEntityMixin.__init__(self, documentation)
+
+		self._subtype = subtype
+		subtype._parent = self
+
+	@property
+	def Subtype(self) -> Symbol:
+		return self._subtype
+
+
+@export
+class BaseConstant(Obj):
+	pass
+
+
+@export
+class WithDefaultExpressionMixin:
+	"""A ``WithDefaultExpression`` is a mixin class for all objects declarations accepting default expressions."""
+
+	_defaultExpression: Nullable[ExpressionUnion]
+
+	def __init__(self, defaultExpression: ExpressionUnion = None):
+		self._defaultExpression = defaultExpression
+		if defaultExpression is not None:
+			defaultExpression._parent = self
+
+	@property
+	def DefaultExpression(self) -> Nullable[ExpressionUnion]:
+		return self._defaultExpression
+
+
+@export
+class Constant(BaseConstant, WithDefaultExpressionMixin):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
+		WithDefaultExpressionMixin.__init__(self, defaultExpression)
+
+
+@export
+class DeferredConstant(BaseConstant):
+	_constantReference: Constant
+
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
+
+	@property
+	def ConstantReference(self) -> Constant:
+		return self._constantReference
+
+
+@export
+class Variable(Obj, WithDefaultExpressionMixin):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
+		WithDefaultExpressionMixin.__init__(self, defaultExpression)
+
+
+@export
+class SharedVariable(Obj):
+	pass
+
+
+@export
+class Signal(Obj, WithDefaultExpressionMixin):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+		super().__init__(identifiers, subtype, documentation)
+		WithDefaultExpressionMixin.__init__(self, defaultExpression)
+
+
+@export
+class File(Obj):
+	pass

@@ -29,25 +29,59 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""Package installer for 'An abstract VHDL language model'."""
-from pathlib             import Path
-from pyTooling.Packaging import DescribePythonPackageHostedOnGitHub, DEFAULT_CLASSIFIERS
+"""
+This module contains parts of an abstract document language model for VHDL.
 
-gitHubNamespace =        "VHDL"
-packageName =            "pyVHDLModel"
-packageDirectory =       packageName
-packageInformationFile = Path(f"{packageDirectory}/__init__.py")
+Associations are used in generic maps, port maps and parameter maps.
+"""
+from typing import Optional as Nullable
 
-DescribePythonPackageHostedOnGitHub(
-	packageName=packageName,
-	description="An abstract VHDL language model.",
-	gitHubNamespace=gitHubNamespace,
-	keywords="Python3 VHDL Language Model Abstract",
-	sourceFileWithVersion=packageInformationFile,
-	developmentStatus="beta",
-	classifiers=list(DEFAULT_CLASSIFIERS) + [
-		"Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
-		"Topic :: Software Development :: Code Generators",
-		"Topic :: Software Development :: Compilers",
-	]
-)
+from pyTooling.Decorators import export
+
+from pyVHDLModel.Base import ModelEntity, ExpressionUnion
+from pyVHDLModel.Symbol import Symbol
+
+
+@export
+class AssociationItem(ModelEntity):
+	_formal: Nullable[Symbol]
+	_actual: ExpressionUnion
+
+	def __init__(self, actual: ExpressionUnion, formal: Symbol = None):
+		super().__init__()
+
+		self._formal = formal
+		if formal is not None:
+			formal._parent = self
+
+		self._actual = actual
+		# actual._parent = self  # FIXME: actual is provided as None
+
+	@property
+	def Formal(self) -> Nullable[Symbol]:  # TODO: can also be a conversion function !!
+		return self._formal
+
+	@property
+	def Actual(self) -> ExpressionUnion:
+		return self._actual
+
+	def __str__(self):
+		if self._formal is None:
+			return str(self._actual)
+		else:
+			return "{formal!s} => {actual!s}".format(formal=self._formal, actual=self._actual)
+
+
+@export
+class GenericAssociationItem(AssociationItem):
+	pass
+
+
+@export
+class PortAssociationItem(AssociationItem):
+	pass
+
+
+@export
+class ParameterAssociationItem(AssociationItem):
+	pass

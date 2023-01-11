@@ -29,25 +29,63 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""Package installer for 'An abstract VHDL language model'."""
-from pathlib             import Path
-from pyTooling.Packaging import DescribePythonPackageHostedOnGitHub, DEFAULT_CLASSIFIERS
+"""
+This module contains parts of an abstract document language model for VHDL.
 
-gitHubNamespace =        "VHDL"
-packageName =            "pyVHDLModel"
-packageDirectory =       packageName
-packageInformationFile = Path(f"{packageDirectory}/__init__.py")
+A helper class to implement namespaces and scopes.
+"""
+from typing import TypeVar, Generic, Dict
 
-DescribePythonPackageHostedOnGitHub(
-	packageName=packageName,
-	description="An abstract VHDL language model.",
-	gitHubNamespace=gitHubNamespace,
-	keywords="Python3 VHDL Language Model Abstract",
-	sourceFileWithVersion=packageInformationFile,
-	developmentStatus="beta",
-	classifiers=list(DEFAULT_CLASSIFIERS) + [
-		"Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
-		"Topic :: Software Development :: Code Generators",
-		"Topic :: Software Development :: Compilers",
-	]
-)
+from pyVHDLModel.Symbol import ComponentInstantiationSymbol
+
+K = TypeVar("K")
+O = TypeVar("O")
+
+
+class Namespace(Generic[K, O]):
+	_name:            str
+	_parentNamespace: 'Namespace'
+	_subNamespaces:   Dict[str, 'Namespace']
+	_elements:        Dict[K, O]
+
+	def __init__(self, name: str, parentNamespace: 'Namespace' = None):
+		self._name = name
+		self._parentNamespace = parentNamespace
+		self._subNamespaces = {}
+		self._elements = {}
+
+	@property
+	def Name(self) -> str:
+		return self._name
+
+	@property
+	def ParentNamespace(self) -> 'Namespace':
+		return self._parentNamespace
+
+	@ParentNamespace.setter
+	def ParentNamespace(self, value: 'Namespace'):
+		self._parentNamespace = value
+		value._subNamespaces[self._name] = self
+
+	@property
+	def SubNamespaces(self) -> Dict[str, 'Namespace']:
+		return self._subNamespaces
+
+	def Elements(self) -> Dict[K, O]:
+		return self._elements
+
+	def FindComponent(self, componentSymbol: ComponentInstantiationSymbol):
+		from pyVHDLModel.DesignUnit import Component
+
+		try:
+			element = self._elements[componentSymbol.NormalizedIdentifier]
+			if isinstance(element, Component):
+				return element
+			else:
+				raise TypeError(f"Found element '{componentSymbol.Identifier}', but it is not a component.")
+		except KeyError:
+			parentNamespace = self._parentNamespace
+			if parentNamespace is None:
+				raise KeyError(f"Component '{componentSymbol.Identifier}' not found in '{self._name}'.")
+
+			return parentNamespace.FindComponent(componentSymbol)

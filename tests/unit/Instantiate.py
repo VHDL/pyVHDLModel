@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2022 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -35,9 +35,15 @@ from unittest import TestCase
 
 from pyTooling.Graph import Graph
 
-from pyVHDLModel.SyntaxModel import Design, Library, Document, Subtype, Range, IntegerLiteral, Direction, FloatingPointLiteral, PackageSymbol, EntitySymbol
-from pyVHDLModel.SyntaxModel import Entity, Architecture, PackageBody, Package, Configuration, Context
-from pyVHDLModel.SyntaxModel import IntegerType, RealType, ArrayType, RecordType
+from pyVHDLModel import Design, Library, Document
+from pyVHDLModel.Base import Direction, Range
+from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol
+from pyVHDLModel.Symbol import AllPackageMembersReferenceSymbol, ContextReferenceSymbol, EntitySymbol
+from pyVHDLModel.Symbol import ArchitectureSymbol, PackageSymbol, EntityInstantiationSymbol
+from pyVHDLModel.Symbol import ComponentInstantiationSymbol, ConfigurationInstantiationSymbol
+from pyVHDLModel.Expression import IntegerLiteral, FloatingPointLiteral
+from pyVHDLModel.Type import Subtype, IntegerType, RealType, ArrayType, RecordType
+from pyVHDLModel.DesignUnit import Package, PackageBody, Context, Entity, Architecture, Configuration
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -46,9 +52,96 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
+class Symbols(TestCase):
+	def test_LibraryReferenceSymbol(self):
+		symbol = LibraryReferenceSymbol("Lib")
+
+		self.assertEqual("Lib", symbol.Identifier)
+		self.assertEqual("lib", symbol.NormalizedIdentifier)
+		self.assertIs(symbol, symbol.Root)
+		self.assertIsNone(symbol.Prefix)
+		self.assertFalse(symbol.HasPrefix)
+		self.assertFalse(symbol.IsResolved)
+
+		library = Library("liB")
+		symbol.Library = library
+
+		self.assertTrue(symbol.IsResolved)
+		self.assertIs(library, symbol.Library)
+
+	def test_PackageReferenceSymbol(self):
+		symbol = PackageReferenceSymbol("pack", LibraryReferenceSymbol("Lib"))
+
+		self.assertEqual("pack", symbol.NormalizedIdentifier)
+		self.assertEqual("lib", symbol.Prefix.NormalizedIdentifier)
+		self.assertTrue(symbol.HasPrefix)
+
+		library = Library("liB")
+		package = Package("Pack")
+		symbol.Package = package
+		symbol.Prefix.Library = library
+
+		self.assertTrue(symbol.IsResolved)
+		self.assertTrue(symbol.Prefix.IsResolved)
+		self.assertIs(library, symbol.Prefix.Library)
+		self.assertIs(package, symbol.Package)
+
+	def test_PackageMembersReferenceSymbol(self):
+		symbol = PackageMembersReferenceSymbol("obj", PackageReferenceSymbol("pack", LibraryReferenceSymbol("Lib")))
+
+		self.assertEqual("obj", symbol.NormalizedIdentifier)
+		self.assertEqual("pack", symbol.Prefix.NormalizedIdentifier)
+		self.assertEqual("lib", symbol.Prefix.Prefix.NormalizedIdentifier)
+
+	def test_AllPackageMembersReferenceSymbol(self):
+		symbol = AllPackageMembersReferenceSymbol(PackageReferenceSymbol("pack", LibraryReferenceSymbol("Lib")))
+
+		self.assertEqual("all", symbol.NormalizedIdentifier)
+		self.assertEqual("pack", symbol.Prefix.NormalizedIdentifier)
+		self.assertEqual("lib", symbol.Prefix.Prefix.NormalizedIdentifier)
+
+	def test_ContextReferenceSymbol(self):
+		symbol = ContextReferenceSymbol("ctx", LibraryReferenceSymbol("Lib"))
+
+		self.assertEqual("ctx", symbol.NormalizedIdentifier)
+		self.assertEqual("lib", symbol.Prefix.NormalizedIdentifier)
+
+	def test_EntitySymbol(self):
+		symbol = EntitySymbol("ent")
+
+		self.assertEqual("ent", symbol.NormalizedIdentifier)
+
+	# def test_ArchitectureSymbol(self):
+	# 	symbol = ArchitectureSymbol("rtl")
+	#
+	# 	self.assertEqual("rtl", symbol.NormalizedIdentifier)
+
+	def test_PackageSymbol(self):
+		symbol = PackageSymbol("pack")
+
+		self.assertEqual("pack", symbol.NormalizedIdentifier)
+
+	def test_EntityInstantiationSymbol(self):
+		symbol = EntityInstantiationSymbol("ent", LibraryReferenceSymbol("Lib"))
+
+		self.assertEqual("ent", symbol.NormalizedIdentifier)
+		self.assertEqual("lib", symbol.Prefix.NormalizedIdentifier)
+
+	def test_ComponentInstantiationSymbol(self):
+		symbol = ComponentInstantiationSymbol("comp")
+
+		self.assertEqual("comp", symbol.NormalizedIdentifier)
+
+	def test_ConfigurationInstantiationSymbol(self):
+		symbol = ConfigurationInstantiationSymbol("cfg")
+
+		self.assertEqual("cfg", symbol.NormalizedIdentifier)
+
+
 class SimpleInstance(TestCase):
 	def test_Design(self):
 		design = Design()
+		# design.Analyze()
 
 		self.assertIsNotNone(design)
 		self.assertEqual(0, len(design.Documents))

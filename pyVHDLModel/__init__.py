@@ -547,40 +547,49 @@ class Design(ModelEntity):
 		self.ComputeCompileOrder()
 
 	def CreateDependencyGraph(self) -> None:
+		predefinedLibraries = ("std", "ieee")
+
 		for libraryIdentifier, library in self._libraries.items():
 			dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}", value=library, graph=self._dependencyGraph)
 			dependencyVertex["kind"] = DependencyGraphVertexKind.Library
+			dependencyVertex["predefined"] = libraryIdentifier in predefinedLibraries
 			library._dependencyVertex = dependencyVertex
 
 			for contextIdentifier, context in library._contexts.items():
 				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{contextIdentifier}", value=context, graph=self._dependencyGraph)
 				dependencyVertex["kind"] = DependencyGraphVertexKind.Context
+				dependencyVertex["predefined"] = context._library._normalizedIdentifier in predefinedLibraries
 				context._dependencyVertex = dependencyVertex
 
 			for packageIdentifier, package in library._packages.items():
 				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{packageIdentifier}", value=package, graph=self._dependencyGraph)
 				dependencyVertex["kind"] = DependencyGraphVertexKind.Package
+				dependencyVertex["predefined"] = package._library._normalizedIdentifier in predefinedLibraries
 				package._dependencyVertex = dependencyVertex
 
 			for packageBodyIdentifier, packageBody in library._packageBodies.items():
 				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{packageBodyIdentifier}(body)", value=packageBody, graph=self._dependencyGraph)
 				dependencyVertex["kind"] = DependencyGraphVertexKind.PackageBody
+				dependencyVertex["predefined"] = packageBody._library._normalizedIdentifier in predefinedLibraries
 				packageBody._dependencyVertex = dependencyVertex
 
 			for entityIdentifier, entity in library._entities.items():
 				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{entityIdentifier}", value=entity, graph=self._dependencyGraph)
 				dependencyVertex["kind"] = DependencyGraphVertexKind.Entity
+				dependencyVertex["predefined"] = entity._library._normalizedIdentifier in predefinedLibraries
 				entity._dependencyVertex = dependencyVertex
 
 			for entityIdentifier, architectures in library._architectures.items():
 				for architectureIdentifier, architecture in architectures.items():
 					dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{entityIdentifier}({architectureIdentifier})", value=architecture, graph=self._dependencyGraph)
 					dependencyVertex["kind"] = DependencyGraphVertexKind.Architecture
+					dependencyVertex["predefined"] = architecture._library._normalizedIdentifier in predefinedLibraries
 					architecture._dependencyVertex = dependencyVertex
 
 			for configurationIdentifier, configuration in library._configurations.items():
 				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{configurationIdentifier}", value=configuration, graph=self._dependencyGraph)
 				dependencyVertex["kind"] = DependencyGraphVertexKind.Configuration
+				dependencyVertex["predefined"] = configuration._library._normalizedIdentifier in predefinedLibraries
 				configuration._dependencyVertex = dependencyVertex
 
 	def LinkContexts(self) -> None:
@@ -950,16 +959,12 @@ class Design(ModelEntity):
 			document._compileOrderVertex = compilerOrderVertex
 
 		def predicate(edge: Edge) -> bool:
-			if edge["kind"] == DependencyGraphEdgeKind.Document:
-				return False
-			elif DependencyGraphEdgeKind.Library in edge["kind"]:
-				return False
-			else:
-				destinationDesignUnit: DesignUnit = edge.Destination.Value
-				if destinationDesignUnit.Library.NormalizedIdentifier in ("std", "ieee"):
-					return False
-
-			return True
+			return (
+				DependencyGraphEdgeKind.Implementation in edge["kind"] or
+				DependencyGraphEdgeKind.Instantiation in edge["kind"] or
+				DependencyGraphEdgeKind.UseClause in edge["kind"] or
+				DependencyGraphEdgeKind.ContextReference in edge["kind"]
+			) and edge.Destination["predefined"] is False
 
 		for edge in self._dependencyGraph.IterateEdges(predicate=predicate):
 			sourceDocument:      Document = edge.Source.Value.Document
@@ -972,7 +977,7 @@ class Design(ModelEntity):
 			if sourceVertex is destinationVertex:
 				continue
 			# Don't add parallel edges
-			elif sourceVertex.LinksToDestination(destinationVertex):
+			elif sourceVertex.HasLinkToDestination(destinationVertex):
 				continue
 
 			e = sourceVertex.LinkToVertex(destinationVertex)

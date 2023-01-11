@@ -224,6 +224,8 @@ License
    :hidden:
 
    LanguageModel/index
+   Analyze/index
+   DataStructure/index
 
 
 .. raw:: latex

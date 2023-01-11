@@ -41,7 +41,7 @@ from pyTooling.Graph import Vertex
 
 from pyVHDLModel.Exception  import VHDLModelException
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
-from pyVHDLModel.Scope      import Scope
+from pyVHDLModel.Namespace  import Namespace
 from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol
 from pyVHDLModel.Interface  import GenericInterfaceItem, PortInterfaceItem
 from pyVHDLModel.Subprogram import Procedure, Function
@@ -111,7 +111,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_dependencyVertex:    Vertex[str, 'DesignUnit', None, None]  #: The vertex in the dependency graph
 	_hierarchyVertex:     Vertex[str, 'DesignUnit', None, None]  #: The vertex in the hierarchy graph
 
-	_scope: 'Scope'
+	_namespace:           'Namespace'
 
 	def __init__(self, identifier: str, contextItems: Iterable['ContextUnion'] = None, documentation: str = None):
 		"""
@@ -149,7 +149,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self._dependencyVertex = None
 		self._hierarchyVertex = None
 
-		self._scope = Scope(self._normalizedIdentifier)
+		self._namespace = Namespace(self._normalizedIdentifier)
 
 	@property
 	def Document(self) -> 'Document':

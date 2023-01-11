@@ -408,6 +408,22 @@ class Design(ModelEntity):
 	def HierarchyGraph(self) -> Graph:
 		return self._hierarchyGraph
 
+	@property
+	def TopLevel(self) -> 'Entity':
+		# Check for cached result
+		if self._toplevel is not None:
+			return self._toplevel
+
+		if self._hierarchyGraph.EdgeCount == 0:
+			raise VHDLModelException(f"Hierarchy is not yet computed from dependency graph.")
+
+		roots = tuple(self._hierarchyGraph.IterateRoots())
+		if len(roots) == 1:
+			self._toplevel = roots[0]
+			return roots[0]
+		else:
+			raise VHDLModelException(f"Found more than one toplevel: {', '.join(roots)}")
+
 	def _LoadLibrary(self, library: 'Library') -> None:
 		libraryIdentifier = library.NormalizedIdentifier
 		if libraryIdentifier in self._libraries:
@@ -530,6 +546,7 @@ class Design(ModelEntity):
 
 	def AnalyzeDependencies(self) -> None:
 		self.CreateDependencyGraph()
+		self.CreateCompileOrderGraph()
 
 		self.IndexPackages()
 		self.IndexArchitectures()
@@ -591,6 +608,19 @@ class Design(ModelEntity):
 				dependencyVertex["kind"] = DependencyGraphVertexKind.Configuration
 				dependencyVertex["predefined"] = configuration._library._normalizedIdentifier in predefinedLibraries
 				configuration._dependencyVertex = dependencyVertex
+
+	def CreateCompileOrderGraph(self) -> None:
+		for document in self._documents:
+			dependencyVertex = Vertex(vertexID=document.Path.name, value=document, graph=self._dependencyGraph)
+			dependencyVertex["kind"] = DependencyGraphVertexKind.Document
+			document._dependencyVertex = dependencyVertex
+
+			compilerOrderVertex = dependencyVertex.Copy(self._compileOrderGraph, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="compileOrderVertex")
+			document._compileOrderVertex = compilerOrderVertex
+
+			for designUnit in document._designUnits:
+				edge = dependencyVertex.LinkFromVertex(designUnit._dependencyVertex)
+				edge["kind"] = DependencyGraphEdgeKind.Document
 
 	def LinkContexts(self) -> None:
 		for context in self.IterateDesignUnits(DesignUnitKind.Context):
@@ -804,7 +834,7 @@ class Design(ModelEntity):
 					# TODO: update the namespace with visible members
 					if isinstance(symbol, AllPackageMembersReferenceSymbol):
 						for componentIdentifier, component in package._components.items():
-							designUnit._scope._elements[componentIdentifier] = component
+							designUnit._namespace._elements[componentIdentifier] = component
 
 					elif isinstance(symbol, PackageMembersReferenceSymbol):
 						raise NotImplementedError()
@@ -912,7 +942,7 @@ class Design(ModelEntity):
 					dependency["kind"] = DependencyGraphEdgeKind.EntityInstantiation
 
 				elif isinstance(instance, ComponentInstantiation):
-					component = architecture._scope.FindComponent(instance.Component)
+					component = architecture._namespace.FindComponent(instance.Component)
 
 					instance.Component.Component = component
 
@@ -953,11 +983,6 @@ class Design(ModelEntity):
 				newEdge["kind"] = kind
 
 	def ComputeCompileOrder(self) -> None:
-		for document in self._documents:
-			compilerOrderVertex = Vertex(vertexID=document.Path.name, value=document, graph=self._compileOrderGraph)
-			compilerOrderVertex["kind"] = DependencyGraphVertexKind.Document
-			document._compileOrderVertex = compilerOrderVertex
-
 		def predicate(edge: Edge) -> bool:
 			return (
 				DependencyGraphEdgeKind.Implementation in edge["kind"] or
@@ -983,19 +1008,11 @@ class Design(ModelEntity):
 			e = sourceVertex.LinkToVertex(destinationVertex)
 			e["kind"] = DependencyGraphEdgeKind.Document
 
-	def GetCompileOrder(self) -> Generator['Document', None, None]:
+	def IterateDocumentsInCompileOrder(self) -> Generator['Document', None, None]:
+		if self._compileOrderGraph.EdgeCount == 0:
+			raise VHDLModelException(f"Compile order is not yet computed from dependency graph.")
+
 		return self._compileOrderGraph.IterateTopologically()
-
-	def GetTopLevel(self) -> 'Entity':
-		if self._toplevel is not None:
-			return self._toplevel
-
-		roots = tuple(self._hierarchyGraph.IterateRoots())
-		if len(roots) == 1:
-			self._toplevel = roots[0]
-			return roots[0]
-		else:
-			raise VHDLModelException(f"Found more than one toplevel: {', '.join(roots)}")
 
 	def GetUnusedDesignUnits(self) -> List[DesignUnit]:
 		raise NotImplementedError()
@@ -1111,7 +1128,7 @@ class Library(ModelEntity, NamedEntityMixin):
 
 				entity._architectures[architecture.NormalizedIdentifier] = architecture
 				architecture._entity.Entity = entity
-				architecture._scope.ParentScope = entity._scope
+				architecture._namespace.ParentNamespace = entity._namespace
 
 				# add "architecture -> entity" relation in dependency graph
 				dependency = architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex)
@@ -1124,7 +1141,7 @@ class Library(ModelEntity, NamedEntityMixin):
 
 			package = self._packages[packageBodyName]
 			packageBody._package.Package = package
-			packageBody._scope.ParentScope = package._scope
+			packageBody._namespace.ParentNamespace = package._namespace
 
 			# add "package body -> package" relation in dependency graph
 			dependency = packageBody._dependencyVertex.LinkToVertex(package._dependencyVertex)

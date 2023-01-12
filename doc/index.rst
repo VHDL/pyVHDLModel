@@ -211,6 +211,7 @@ License
    :caption: Introduction
    :hidden:
 
+   GettingStarted
    Installation
    Dependency
 

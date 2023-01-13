@@ -423,8 +423,10 @@ class Design(ModelEntity):
 
 		roots = tuple(self._hierarchyGraph.IterateRoots())
 		if len(roots) == 1:
-			self._toplevel = roots[0]
-			return roots[0]
+			toplevel = roots[0]
+			self._hierarchyGraph["toplevel"] = toplevel
+			self._toplevel = toplevel.Value
+			return toplevel.Value
 		else:
 			raise VHDLModelException(f"Found more than one toplevel: {', '.join(roots)}")
 

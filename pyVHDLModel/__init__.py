@@ -986,6 +986,11 @@ class Design(ModelEntity):
 					newEdge = hierarchyArchitectureVertex.LinkFromVertex(hierarchyDestinationVertex)
 				elif DependencyGraphEdgeKind.Instantiation in kind:
 					hierarchyDestinationVertex = dependencyEdge.Destination["hierarchyVertex"]
+
+					# FIXME: avoid parallel edges, to graph can be converted to a tree until "real" hierarchy is computed (unrole generics and blocks)
+					if hierarchyArchitectureVertex.HasLinkToDestination(hierarchyDestinationVertex):
+						continue
+
 					newEdge = hierarchyArchitectureVertex.LinkToVertex(hierarchyDestinationVertex)
 				else:
 					continue

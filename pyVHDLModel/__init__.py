@@ -974,7 +974,8 @@ class Design(ModelEntity):
 		# Copy all entity and architecture vertices from dependency graph to hierarchy graph and double-link them
 		entityArchitectureFilter = lambda v: v["kind"] in DependencyGraphVertexKind.Entity | DependencyGraphVertexKind.Architecture
 		for vertex in self._dependencyGraph.IterateVertices(predicate=entityArchitectureFilter):
-			newVertex = vertex.Copy(self._hierarchyGraph, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="hierarchyVertex")
+			hierarchyVertex = vertex.Copy(self._hierarchyGraph, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="hierarchyVertex")
+			vertex.Value._hierarchyVertex = hierarchyVertex
 
 		# Copy implementation edges from
 		for hierarchyArchitectureVertex in self._hierarchyGraph.IterateVertices(predicate=lambda v: v["kind"] is DependencyGraphVertexKind.Architecture):

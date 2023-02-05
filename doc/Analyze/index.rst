@@ -59,3 +59,45 @@ there is a double reference from graph's vertex via ``Value`` to the DOM object 
        dependencyVertex["kind"] = DependencyGraphVertexKind.Context
        dependencyVertex["predefined"] = context._library._normalizedIdentifier in predefinedLibraries
        context._dependencyVertex = dependencyVertex
+
+
+2. Create Compile Order Graph
+=============================
+
+3. Index Packages
+=================
+
+4. Index Architectures
+======================
+
+5. Link Contexts
+================
+
+6. Link Architectures
+=====================
+
+7. Link Package Bodies
+======================
+
+8. Link Library References
+==========================
+
+9. Link Package References
+==========================
+
+10. Link Context References
+===========================
+
+11. Link Components
+===================
+
+12. Link Instantiations
+=======================
+
+13. Create Hierarchy Graph
+==========================
+
+14. Compute Compile Order
+=========================
+
+

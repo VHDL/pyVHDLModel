@@ -60,3 +60,11 @@ The compile order can be derived from dependency graph by:
    2. resolved further to the documents these design units are declared in
    3. resolve further which vertices correspond in the compile order graph
    4. if edges does not yet exist, add an edge between two documents in the compile order graph
+
+
+.. toctree::
+   :hidden:
+
+   DependencyGraph
+   HierarchyGraph
+   CompileOrderGraph

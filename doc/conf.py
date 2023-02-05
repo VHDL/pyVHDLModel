@@ -213,7 +213,7 @@ intersphinx_mapping = {
 #	"inherited-members": True,
 #	"exclude-members": "__weakref__"
 #}
-#autodoc_class_signature = "separated"
+autodoc_class_signature = "separated"
 autodoc_member_order = "bysource"       # alphabetical, groupwise, bysource
 autodoc_typehints = "both"
 #autoclass_content = "both"

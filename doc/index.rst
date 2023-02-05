@@ -211,6 +211,7 @@ License
    :caption: Introduction
    :hidden:
 
+   GettingStarted
    Installation
    Dependency
 
@@ -224,6 +225,8 @@ License
    :hidden:
 
    LanguageModel/index
+   Analyze/index
+   DataStructure/index
 
 
 .. raw:: latex

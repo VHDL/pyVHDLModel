@@ -48,13 +48,13 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2023, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.22.1"
+__version__ =   "0.23.0"
 
 
 from enum                      import unique, Enum, Flag, auto
 from pathlib                   import Path
 
-from typing                    import Union, Dict, cast, List, Generator
+from typing                    import Union, Dict, cast, List, Generator, Optional as Nullable
 
 from pyTooling.Decorators      import export
 from pyTooling.Graph           import Graph, Vertex, Edge
@@ -371,17 +371,23 @@ class Design(ModelEntity):
 	A ``Design`` represents all loaded and analysed files (see :class:`~pyVHDLModel.Document`). It's the root of this
 	document-object-model (DOM). It contains at least one VHDL library (see :class:`~pyVHDLModel.Library`).
 	"""
-	_libraries:  Dict[str, 'Library']  #: List of all libraries defined for a design.
-	_documents:  List['Document']      #: List of all documents loaded for a design.
+	name:               Nullable[str]         #: Name of the design
+	_libraries:         Dict[str, 'Library']  #: List of all libraries defined for a design.
+	_documents:         List['Document']      #: List of all documents loaded for a design.
+	_dependencyGraph:   Graph[None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
+	_compileOrderGraph: Graph[None, None, None, None, None, 'Document', None, None, None, None, None, None, None]  #: A graph derived from dependency graph containing the order of documents for compilation.
+	_hierarchyGraph:    Graph[None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None]   #: A graph derived from dependency graph containing the design hierarchy.
+	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
 
-	_compileOrderGraph: Graph[None, None, None, None, None, 'Document', None, None, None, None, None, None, None]
-	_dependencyGraph:   Graph[None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None]
-	_hierarchyGraph:    Graph[None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None]
-	_toplevel:          Union[Entity, Configuration]
+	def __init__(self, name: str = None):
+		"""
+		Initializes a VHDL design.
 
-	def __init__(self):
+		:param name: Name of the design.
+		"""
 		super().__init__()
 
+		self.name =       name
 		self._libraries = {}
 		self._documents = []
 
@@ -423,8 +429,10 @@ class Design(ModelEntity):
 
 		roots = tuple(self._hierarchyGraph.IterateRoots())
 		if len(roots) == 1:
-			self._toplevel = roots[0]
-			return roots[0]
+			toplevel = roots[0]
+			self._hierarchyGraph["toplevel"] = toplevel
+			self._toplevel = toplevel.Value
+			return toplevel.Value
 		else:
 			raise VHDLModelException(f"Found more than one toplevel: {', '.join(roots)}")
 
@@ -972,7 +980,8 @@ class Design(ModelEntity):
 		# Copy all entity and architecture vertices from dependency graph to hierarchy graph and double-link them
 		entityArchitectureFilter = lambda v: v["kind"] in DependencyGraphVertexKind.Entity | DependencyGraphVertexKind.Architecture
 		for vertex in self._dependencyGraph.IterateVertices(predicate=entityArchitectureFilter):
-			newVertex = vertex.Copy(self._hierarchyGraph, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="hierarchyVertex")
+			hierarchyVertex = vertex.Copy(self._hierarchyGraph, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="hierarchyVertex")
+			vertex.Value._hierarchyVertex = hierarchyVertex
 
 		# Copy implementation edges from
 		for hierarchyArchitectureVertex in self._hierarchyGraph.IterateVertices(predicate=lambda v: v["kind"] is DependencyGraphVertexKind.Architecture):
@@ -983,6 +992,11 @@ class Design(ModelEntity):
 					newEdge = hierarchyArchitectureVertex.LinkFromVertex(hierarchyDestinationVertex)
 				elif DependencyGraphEdgeKind.Instantiation in kind:
 					hierarchyDestinationVertex = dependencyEdge.Destination["hierarchyVertex"]
+
+					# FIXME: avoid parallel edges, to graph can be converted to a tree until "real" hierarchy is computed (unrole generics and blocks)
+					if hierarchyArchitectureVertex.HasLinkToDestination(hierarchyDestinationVertex):
+						continue
+
 					newEdge = hierarchyArchitectureVertex.LinkToVertex(hierarchyDestinationVertex)
 				else:
 					continue

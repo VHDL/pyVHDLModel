@@ -128,6 +128,7 @@ following steps are explained for UCRT64, but can be applied to MinGW64 similarl
       # Install system dependencies
       pacman -S git
       pacman -S make
+      pacman -S diffutils
 
       # Install GHDL build dependencies (GCC with Ada support)
       pacman -S ucrt64/mingw-w64-ucrt-x86_64-gcc-ada
@@ -147,11 +148,11 @@ all needed result files into the installation directory.
       git clone https://github.com/ghdl/ghdl.git sources
 
       # Create build directory and configure GHDL
-      mkdir -p source/build
+      mkdir -p sources/build
       cd sources/build
-      ../configure PREFIX=/c/Tools/GHDL/3.0.0-dev
+      ../configure --prefix=/c/Tools/GHDL/3.0.0-dev
 
-      # Build GHDL, run testsuite and install to PREFIX
+      # Build GHDL, run testsuite and install to ``prefix``
       make
       make install
 

@@ -135,7 +135,7 @@ class VHDLVersion(Enum):
 	def __init__(self, *_) -> None:
 		"""Patch the embedded MAP dictionary"""
 		for k, v in self.__class__.__VERSION_MAPPINGS__.items():
-			if ((not isinstance(v, self.__class__)) and (v == self.value)):
+			if (not isinstance(v, self.__class__)) and (v == self.value):
 				self.__class__.__VERSION_MAPPINGS__[k] = self
 
 	@classmethod
@@ -226,7 +226,7 @@ class VHDLVersion(Enum):
 		:raises TypeError: If parameter ``other`` is not of type :class:`VHDLVersion`.
 		"""
 		if isinstance(other, VHDLVersion):
-			if ((self is self.__class__.Any) or (other is self.__class__.Any)):
+			if (self is self.__class__.Any) or (other is self.__class__.Any):
 				return True
 			else:
 				return (self.value == other.value)

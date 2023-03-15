@@ -374,9 +374,9 @@ class Design(ModelEntity):
 	name:               Nullable[str]         #: Name of the design
 	_libraries:         Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:         List['Document']      #: List of all documents loaded for a design.
-	_dependencyGraph:   Graph[None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
-	_compileOrderGraph: Graph[None, None, None, None, None, 'Document', None, None, None, None, None, None, None]  #: A graph derived from dependency graph containing the order of documents for compilation.
-	_hierarchyGraph:    Graph[None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None]   #: A graph derived from dependency graph containing the design hierarchy.
+	_dependencyGraph:   Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
+	_compileOrderGraph: Graph[None, None, None, None, None, None, None, None, None, 'Document', None, None, None, None, None, None, None, None]  #: A graph derived from dependency graph containing the order of documents for compilation.
+	_hierarchyGraph:    Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None]   #: A graph derived from dependency graph containing the design hierarchy.
 	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
 
 	def __init__(self, name: str = None):
@@ -627,11 +627,11 @@ class Design(ModelEntity):
 			dependencyVertex["kind"] = DependencyGraphVertexKind.Document
 			document._dependencyVertex = dependencyVertex
 
-			compilerOrderVertex = dependencyVertex.Copy(self._compileOrderGraph, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="compileOrderVertex")
+			compilerOrderVertex = dependencyVertex.Copy(self._compileOrderGraph, copyDict=True, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="compileOrderVertex")
 			document._compileOrderVertex = compilerOrderVertex
 
 			for designUnit in document._designUnits:
-				edge = dependencyVertex.LinkFromVertex(designUnit._dependencyVertex)
+				edge = dependencyVertex.EdgeFromVertex(designUnit._dependencyVertex)
 				edge["kind"] = DependencyGraphEdgeKind.SourceFile
 
 	def LinkContexts(self) -> None:
@@ -662,7 +662,7 @@ class Design(ModelEntity):
 					context._referencedContexts[libraryIdentifier] = {}
 					# TODO: warn duplicate library reference
 
-					dependency = context._dependencyVertex.LinkToVertex(library._dependencyVertex, edgeValue=libraryReference)
+					dependency = context._dependencyVertex.EdgeToVertex(library._dependencyVertex, edgeValue=libraryReference)
 					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 			# Process all use clauses
@@ -696,7 +696,7 @@ class Design(ModelEntity):
 					# TODO: warn duplicate package reference
 					context._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
-					dependency = context._dependencyVertex.LinkToVertex(package._dependencyVertex, edgeValue=packageReference)
+					dependency = context._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=packageReference)
 					dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 					# TODO: update the namespace with visible members
@@ -730,7 +730,7 @@ class Design(ModelEntity):
 					# TODO: catch KeyError on self._libraries[libName]
 					# TODO: warn duplicate library reference
 
-					dependency = designUnit._dependencyVertex.LinkToVertex(referencedLibrary._dependencyVertex)
+					dependency = designUnit._dependencyVertex.EdgeToVertex(referencedLibrary._dependencyVertex)
 					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 				workingLibrary: Library = designUnit.Library
@@ -742,7 +742,7 @@ class Design(ModelEntity):
 				designUnit._referencedPackages[libraryIdentifier] = {}
 				designUnit._referencedContexts[libraryIdentifier] = {}
 
-				dependency = designUnit._dependencyVertex.LinkToVertex(referencedLibrary._dependencyVertex)
+				dependency = designUnit._dependencyVertex.EdgeToVertex(referencedLibrary._dependencyVertex)
 				dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 			# All secondary units inherit referenced libraries from their primary units.
@@ -772,7 +772,7 @@ class Design(ModelEntity):
 					designUnit._referencedContexts[libraryIdentifier] = {}
 					# TODO: warn duplicate library reference
 
-					dependency = designUnit._dependencyVertex.LinkToVertex(library._dependencyVertex, edgeValue=libraryReference)
+					dependency = designUnit._dependencyVertex.EdgeToVertex(library._dependencyVertex, edgeValue=libraryReference)
 					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 	def LinkPackageReferences(self) -> None:
@@ -794,7 +794,7 @@ class Design(ModelEntity):
 							# TODO: catch KeyError on self._libraries[lib[0]]._packages[pack]
 							# TODO: warn duplicate package reference
 
-							dependency = designUnit._dependencyVertex.LinkToVertex(referencedPackage._dependencyVertex)
+							dependency = designUnit._dependencyVertex.EdgeToVertex(referencedPackage._dependencyVertex)
 							dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 
@@ -840,7 +840,7 @@ class Design(ModelEntity):
 					# TODO: warn duplicate package reference
 					designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
-					dependency = designUnit._dependencyVertex.LinkToVertex(package._dependencyVertex, edgeValue=packageReference)
+					dependency = designUnit._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=packageReference)
 					dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 					# TODO: update the namespace with visible members
@@ -884,7 +884,7 @@ class Design(ModelEntity):
 					# TODO: warn duplicate referencedContext reference
 					designUnit._referencedContexts[libraryIdentifier][contextIdentifier] = referencedContext
 
-					dependency = designUnit._dependencyVertex.LinkToVertex(referencedContext._dependencyVertex, edgeValue=contextReference)
+					dependency = designUnit._dependencyVertex.EdgeToVertex(referencedContext._dependencyVertex, edgeValue=contextReference)
 					dependency["kind"] = DependencyGraphEdgeKind.ContextReference
 
 		for vertex in self._dependencyGraph.IterateTopologically():
@@ -953,7 +953,7 @@ class Design(ModelEntity):
 					instance.Entity.Prefix.Library = library
 					instance.Entity.Entity = entity
 
-					dependency = architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex, edgeValue=instance)
+					dependency = architecture._dependencyVertex.EdgeToVertex(entity._dependencyVertex, edgeValue=instance)
 					dependency["kind"] = DependencyGraphEdgeKind.EntityInstantiation
 
 				elif isinstance(instance, ComponentInstantiation):
@@ -961,7 +961,7 @@ class Design(ModelEntity):
 
 					instance.Component.Component = component
 
-					dependency = architecture._dependencyVertex.LinkToVertex(component.Entity._dependencyVertex, edgeValue=instance)
+					dependency = architecture._dependencyVertex.EdgeToVertex(component.Entity._dependencyVertex, edgeValue=instance)
 					dependency["kind"] = DependencyGraphEdgeKind.ComponentInstantiation
 
 				elif isinstance(instance, ConfigurationInstantiation):
@@ -980,7 +980,7 @@ class Design(ModelEntity):
 		# Copy all entity and architecture vertices from dependency graph to hierarchy graph and double-link them
 		entityArchitectureFilter = lambda v: v["kind"] in DependencyGraphVertexKind.Entity | DependencyGraphVertexKind.Architecture
 		for vertex in self._dependencyGraph.IterateVertices(predicate=entityArchitectureFilter):
-			hierarchyVertex = vertex.Copy(self._hierarchyGraph, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="hierarchyVertex")
+			hierarchyVertex = vertex.Copy(self._hierarchyGraph, copyDict=True, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="hierarchyVertex")
 			vertex.Value._hierarchyVertex = hierarchyVertex
 
 		# Copy implementation edges from
@@ -989,15 +989,15 @@ class Design(ModelEntity):
 				kind: DependencyGraphEdgeKind = dependencyEdge["kind"]
 				if DependencyGraphEdgeKind.Implementation in kind:
 					hierarchyDestinationVertex = dependencyEdge.Destination["hierarchyVertex"]
-					newEdge = hierarchyArchitectureVertex.LinkFromVertex(hierarchyDestinationVertex)
+					newEdge = hierarchyArchitectureVertex.EdgeFromVertex(hierarchyDestinationVertex)
 				elif DependencyGraphEdgeKind.Instantiation in kind:
 					hierarchyDestinationVertex = dependencyEdge.Destination["hierarchyVertex"]
 
 					# FIXME: avoid parallel edges, to graph can be converted to a tree until "real" hierarchy is computed (unrole generics and blocks)
-					if hierarchyArchitectureVertex.HasLinkToDestination(hierarchyDestinationVertex):
+					if hierarchyArchitectureVertex.HasEdgeToDestination(hierarchyDestinationVertex):
 						continue
 
-					newEdge = hierarchyArchitectureVertex.LinkToVertex(hierarchyDestinationVertex)
+					newEdge = hierarchyArchitectureVertex.EdgeToVertex(hierarchyDestinationVertex)
 				else:
 					continue
 
@@ -1023,13 +1023,13 @@ class Design(ModelEntity):
 			if sourceVertex is destinationVertex:
 				continue
 			# Don't add parallel edges
-			elif sourceVertex.HasLinkToDestination(destinationVertex):
+			elif sourceVertex.HasEdgeToDestination(destinationVertex):
 				continue
 
-			e = sourceVertex.LinkToVertex(destinationVertex)
+			e = sourceVertex.EdgeToVertex(destinationVertex)
 			e["kind"] = DependencyGraphEdgeKind.CompileOrder
 
-			e = sourceVertex["dependencyVertex"].LinkToVertex(destinationVertex["dependencyVertex"])
+			e = sourceVertex["dependencyVertex"].EdgeToVertex(destinationVertex["dependencyVertex"])
 			e["kind"] = DependencyGraphEdgeKind.CompileOrder
 
 	def IterateDocumentsInCompileOrder(self) -> Generator['Document', None, None]:
@@ -1053,7 +1053,7 @@ class Library(ModelEntity, NamedEntityMixin):
 	_packages:       Dict[str, Package]                  #: Dictionary of all packages defined in a library.
 	_packageBodies:  Dict[str, PackageBody]              #: Dictionary of all package bodies defined in a library.
 
-	_dependencyVertex: Vertex[str, Union['Library', DesignUnit], None, None]
+	_dependencyVertex: Vertex[None, None, str, Union['Library', DesignUnit], None, None, None, None, None, None, None, None]
 
 	def __init__(self, identifier: str):
 		super().__init__()
@@ -1155,7 +1155,7 @@ class Library(ModelEntity, NamedEntityMixin):
 				architecture._namespace.ParentNamespace = entity._namespace
 
 				# add "architecture -> entity" relation in dependency graph
-				dependency = architecture._dependencyVertex.LinkToVertex(entity._dependencyVertex)
+				dependency = architecture._dependencyVertex.EdgeToVertex(entity._dependencyVertex)
 				dependency["kind"] = DependencyGraphEdgeKind.EntityImplementation
 
 	def LinkPackageBodies(self):
@@ -1168,7 +1168,7 @@ class Library(ModelEntity, NamedEntityMixin):
 			packageBody._namespace.ParentNamespace = package._namespace
 
 			# add "package body -> package" relation in dependency graph
-			dependency = packageBody._dependencyVertex.LinkToVertex(package._dependencyVertex)
+			dependency = packageBody._dependencyVertex.EdgeToVertex(package._dependencyVertex)
 			dependency["kind"] = DependencyGraphEdgeKind.PackageImplementation
 
 	def IndexPackages(self):
@@ -1200,8 +1200,8 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	_verificationProperties: Dict[str, VerificationProperty]     #: Dictionary of all PSL verification properties defined in a document.
 	_verificationModes:      Dict[str, VerificationMode]         #: Dictionary of all PSL verification modes defined in a document.
 
-	_dependencyVertex:       Vertex[None, 'Document', None, None]
-	_compileOrderVertex:     Vertex[None, 'Document', None, None]
+	_dependencyVertex:       Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None]
+	_compileOrderVertex:     Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None]
 
 	def __init__(self, path: Path, documentation: str = None):
 		super().__init__()
@@ -1428,7 +1428,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._verificationModes
 
 	@property
-	def CompileOrderVertex(self) -> Vertex[None, 'Document', None, None]:
+	def CompileOrderVertex(self) -> Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None]:
 		return self._compileOrderVertex
 
 	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:

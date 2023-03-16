@@ -44,8 +44,8 @@ from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEnti
 from pyVHDLModel.Namespace  import Namespace
 from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol
 from pyVHDLModel.Interface  import GenericInterfaceItem, PortInterfaceItem
-from pyVHDLModel.Subprogram import Procedure, Function
-from pyVHDLModel.Object     import Constant, Variable, Signal
+from pyVHDLModel.Subprogram import Procedure, Function, Subprogram
+from pyVHDLModel.Object     import Constant, Variable, SharedVariable, Signal, File
 from pyVHDLModel.Type       import Type, Subtype
 from pyVHDLModel.Concurrent import ConcurrentStatement, ConcurrentStatements, ConcurrentDeclarations
 
@@ -312,12 +312,15 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 				self._declaredItems.append(item)
 				item._parent = self
 
-		self._types = {}
-		self._objects = {}
-		self._constants = {}
-		self._functions = {}
-		self._procedures = {}
-		self._components = {}
+		self._types =       {}
+		self._objects =     {}
+		self._constants =   {}
+		self._sharedVariables = {}
+		self._signals =     {}
+		self._subprograms = {}
+		self._functions =   {}
+		self._procedures =  {}
+		self._components =  {}
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -326,6 +329,30 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 	@property
 	def DeclaredItems(self) -> List:
 		return self._declaredItems
+
+	@property
+	def Types(self) -> Dict[str, Union[Type, Subtype]]:
+		return self._types
+
+	@property
+	def Objects(self) -> Dict[str, Union[Constant, SharedVariable, Signal, File]]:
+		return self._objects
+
+	@property
+	def Constants(self) -> Dict[str, Constant]:
+		return self._constants
+
+	@property
+	def Subprograms(self) -> Dict[str, Subprogram]:
+		return self._subprograms
+
+	@property
+	def Functions(self) -> Dict[str, Dict[str, Function]]:
+		return self._functions
+
+	@property
+	def Procedures(self) -> Dict[str, Dict[str, Procedure]]:
+		return self._procedures
 
 	# TODO: move into __init__ ?
 	# TODO: share with architecture and block statement?
@@ -448,10 +475,12 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, Co
 
 		self._architectures = {}
 
+	# TODO: extract to mixin for generics
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
 		return self._genericItems
 
+	# TODO: extract to mixin for ports
 	@property
 	def PortItems(self) -> List[PortInterfaceItem]:
 		return self._portItems

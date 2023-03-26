@@ -53,7 +53,7 @@ a deferred constant. See :ref:`vhdlmodel-deferredconstant` in next section.
 
      # inherited from Object
      @property
-     def SubType(self) -> SubType:
+     def Subtype(self) -> Subtype:
 
      @property
      def DefaultExpression(self) -> BaseExpression:
@@ -84,7 +84,7 @@ a deferred constant has a reference to the *regular* constant of the same name.
 
      # inherited from Object
      @property
-     def SubType(self) -> SubType:
+     def Subtype(self) -> Subtype:
 
      # inherited from WithDefaultExpressionMixin
      @property
@@ -149,7 +149,7 @@ expression.
 
      # inherited from Object
      @property
-     def SubType(self) -> SubType:
+     def Subtype(self) -> Subtype:
 
      # inherited from WithDefaultExpressionMixin
      @property
@@ -211,7 +211,7 @@ assigned via a default expression.
 
      # inherited from Object
      @property
-     def SubType(self) -> SubType:
+     def Subtype(self) -> Subtype:
 
      # inherited from WithDefaultExpressionMixin
      @property

@@ -184,7 +184,7 @@ Array
      def Dimensions(self) -> List[Range]:
 
      @property
-     def ElementType(self) -> SubType:
+     def ElementType(self) -> Subtype:
 
 
 

@@ -44,7 +44,7 @@ from pyVHDLModel.Sequential import SequentialStatement
 
 
 @export
-class SubProgramm(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
+class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_genericItems:   List['GenericInterfaceItem']
 	_parameterItems: List['ParameterInterfaceItem']
 	_declaredItems:  List
@@ -83,12 +83,14 @@ class SubProgramm(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 
 @export
-class Procedure(SubProgramm):
-	_isPure: bool = False
+class Procedure(Subprogram):
+	def __init__(self, identifier: str, documentation: str = None):
+		super().__init__(identifier, documentation)
+		self._isPure = False
 
 
 @export
-class Function(SubProgramm):
+class Function(Subprogram):
 	_returnType: Subtype
 
 	def __init__(self, identifier: str, isPure: bool = True, documentation: str = None):

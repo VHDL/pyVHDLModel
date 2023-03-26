@@ -170,7 +170,7 @@ Function
 
      # from Function
      @property
-     def ReturnType(self) -> SubType:
+     def ReturnType(self) -> Subtype:
 
 
 
@@ -222,7 +222,7 @@ Function as Method
 
      # inherited from Function
      @property
-     def ReturnType(self) -> SubType:
+     def ReturnType(self) -> Subtype:
 
      # inherited from Method
      @property

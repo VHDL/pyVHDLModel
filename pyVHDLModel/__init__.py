@@ -374,9 +374,9 @@ class Design(ModelEntity):
 	name:               Nullable[str]         #: Name of the design
 	_libraries:         Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:         List['Document']      #: List of all documents loaded for a design.
-	_dependencyGraph:   Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
-	_compileOrderGraph: Graph[None, None, None, None, None, None, None, None, None, 'Document', None, None, None, None, None, None, None, None]  #: A graph derived from dependency graph containing the order of documents for compilation.
-	_hierarchyGraph:    Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None]   #: A graph derived from dependency graph containing the design hierarchy.
+	_dependencyGraph:   Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
+	_compileOrderGraph: Graph[None, None, None, None, None, None, None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: A graph derived from dependency graph containing the order of documents for compilation.
+	_hierarchyGraph:    Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: A graph derived from dependency graph containing the design hierarchy.
 	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
 
 	def __init__(self, name: str = None):
@@ -1053,7 +1053,7 @@ class Library(ModelEntity, NamedEntityMixin):
 	_packages:       Dict[str, Package]                  #: Dictionary of all packages defined in a library.
 	_packageBodies:  Dict[str, PackageBody]              #: Dictionary of all package bodies defined in a library.
 
-	_dependencyVertex: Vertex[None, None, str, Union['Library', DesignUnit], None, None, None, None, None, None, None, None]
+	_dependencyVertex: Vertex[None, None, str, Union['Library', DesignUnit], None, None, None, None, None, None, None, None, None, None, None, None, None]
 
 	def __init__(self, identifier: str):
 		super().__init__()
@@ -1200,8 +1200,8 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	_verificationProperties: Dict[str, VerificationProperty]     #: Dictionary of all PSL verification properties defined in a document.
 	_verificationModes:      Dict[str, VerificationMode]         #: Dictionary of all PSL verification modes defined in a document.
 
-	_dependencyVertex:       Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None]
-	_compileOrderVertex:     Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None]
+	_dependencyVertex:       Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]
+	_compileOrderVertex:     Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]
 
 	def __init__(self, path: Path, documentation: str = None):
 		super().__init__()
@@ -1428,7 +1428,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._verificationModes
 
 	@property
-	def CompileOrderVertex(self) -> Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None]:
+	def CompileOrderVertex(self) -> Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]:
 		return self._compileOrderVertex
 
 	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:

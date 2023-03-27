@@ -49,5 +49,8 @@ DescribePythonPackageHostedOnGitHub(
 		"Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
 		"Topic :: Software Development :: Code Generators",
 		"Topic :: Software Development :: Compilers",
-	]
+	],
+	dataFiles={
+		packageName: ["py.typed"]
+	}
 )

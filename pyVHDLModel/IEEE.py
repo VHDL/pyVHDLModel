@@ -84,6 +84,18 @@ class std_logic_textio(PredefinedPackage):
 		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
 
 
+class Std_logic_misc(PredefinedPackage):
+	def __init__(self):
+		super().__init__()
+
+		self._AddLibraryClause(("IEEE", ))
+		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
+
+
+class Std_logic_misc_Body(PredefinedPackageBody):
+	pass
+
+
 class Numeric_Bit(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -118,7 +130,6 @@ class Numeric_Std(PredefinedPackage):
 
 class Numeric_Std_Body(PredefinedPackageBody):
 	pass
-
 
 class Numeric_Std_Unsigned(PredefinedPackage):
 	def __init__(self):
@@ -193,6 +204,7 @@ PACKAGES = (
 	(Math_Complex, Math_Complex_Body),
 	(Std_logic_1164, Std_logic_1164_Body),
 	(std_logic_textio, None),
+	(Std_logic_misc, Std_logic_misc_Body),
 	(Numeric_Bit, Numeric_Bit_Body),
 	(Numeric_Bit_Unsigned, Numeric_Bit_Unsigned_Body),
 	(Numeric_Std, Numeric_Std_Body),

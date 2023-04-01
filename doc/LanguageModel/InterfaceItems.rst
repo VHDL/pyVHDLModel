@@ -44,7 +44,7 @@ GenericConstantInterfaceItem
 
      # inherited from Object
      @property
-     def SubType(self) -> SubType:
+     def Subtype(self) -> Subtype:
 
      # inherited from WithDefaultExpressionMixin
      @property
@@ -156,7 +156,7 @@ PortSignalInterfaceItem
 
      # inherited from Object
      @property
-     def SubType(self) -> SubType:
+     def Subtype(self) -> Subtype:
 
      # inherited from WithDefaultExpressionMixin
      @property
@@ -198,7 +198,7 @@ ParameterConstantInterfaceItem
 
      # inherited from Object
      @property
-     def SubType(self) -> SubType:
+     def Subtype(self) -> Subtype:
 
      # inherited from WithDefaultExpressionMixin
      @property
@@ -235,7 +235,7 @@ ParameterVariableInterfaceItem
 
      # inherited from Object
      @property
-     def SubType(self) -> SubType:
+     def Subtype(self) -> Subtype:
 
      # inherited from WithDefaultExpressionMixin
      @property
@@ -272,7 +272,7 @@ ParameterSignalInterfaceItem
 
      # inherited from Object
      @property
-     def SubType(self) -> SubType:
+     def Subtype(self) -> Subtype:
 
      # inherited from WithDefaultExpressionMixin
      @property

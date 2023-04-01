@@ -40,6 +40,10 @@ class Ieee(PredefinedLibrary):
 	def __init__(self):
 		super().__init__(PACKAGES)
 
+	def LoadSynopsysPackages(self):
+		self.AddPackages(PACKAGES_SYNOPSYS)
+
+
 
 @export
 class Math_Real(PredefinedPackage):
@@ -204,7 +208,6 @@ PACKAGES = (
 	(Math_Complex, Math_Complex_Body),
 	(Std_logic_1164, Std_logic_1164_Body),
 	(std_logic_textio, None),
-	(Std_logic_misc, Std_logic_misc_Body),
 	(Numeric_Bit, Numeric_Bit_Body),
 	(Numeric_Bit_Unsigned, Numeric_Bit_Unsigned_Body),
 	(Numeric_Std, Numeric_Std_Body),
@@ -214,4 +217,8 @@ PACKAGES = (
 	(Fixed_Pkg, None),
 	(Float_Generic_Pkg, Float_Generic_Pkg_Body),
 	(Float_Pkg, None),
+)
+
+PACKAGES_SYNOPSYS = (
+	(Std_logic_misc, Std_logic_misc_Body),
 )

@@ -40,6 +40,10 @@ class Ieee(PredefinedLibrary):
 	def __init__(self):
 		super().__init__(PACKAGES)
 
+	def LoadSynopsysPackages(self):
+		self.AddPackages(PACKAGES_SYNOPSYS)
+
+
 
 @export
 class Math_Real(PredefinedPackage):
@@ -84,6 +88,18 @@ class std_logic_textio(PredefinedPackage):
 		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
 
 
+class Std_logic_misc(PredefinedPackage):
+	def __init__(self):
+		super().__init__()
+
+		self._AddLibraryClause(("IEEE", ))
+		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
+
+
+class Std_logic_misc_Body(PredefinedPackageBody):
+	pass
+
+
 class Numeric_Bit(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -118,7 +134,6 @@ class Numeric_Std(PredefinedPackage):
 
 class Numeric_Std_Body(PredefinedPackageBody):
 	pass
-
 
 class Numeric_Std_Unsigned(PredefinedPackage):
 	def __init__(self):
@@ -202,4 +217,8 @@ PACKAGES = (
 	(Fixed_Pkg, None),
 	(Float_Generic_Pkg, Float_Generic_Pkg_Body),
 	(Float_Pkg, None),
+)
+
+PACKAGES_SYNOPSYS = (
+	(Std_logic_misc, Std_logic_misc_Body),
 )

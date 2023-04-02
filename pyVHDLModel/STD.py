@@ -44,6 +44,9 @@ class PredefinedLibrary(Library):
 	def __init__(self, packages):
 		super().__init__(self.__class__.__name__)
 
+		self.AddPackages(packages)
+
+	def AddPackages(self, packages):
 		for packageType, packageBodyType in packages:
 			package: Package = packageType()
 			package.Library = self

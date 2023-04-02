@@ -432,3 +432,15 @@ class VHDLLibrary(TestCase):
 		self.assertEqual(9, len(ieeeLibrary.PackageBodies))
 
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
+
+	def test_IeeeSynopsysLibrary(self):
+		design = Design()
+		ieeeLibrary = design.LoadIEEELibrary()
+		ieeeLibrary.LoadSynopsysPackages()
+
+		self.assertEqual(1, len(design.Libraries))
+		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
+		self.assertEqual(14, len(ieeeLibrary.Packages))
+		self.assertEqual(10, len(ieeeLibrary.PackageBodies))
+
+		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))

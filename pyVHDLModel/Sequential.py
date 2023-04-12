@@ -214,7 +214,7 @@ class IndexedChoice(SequentialChoice):
 		return self._expression
 
 	def __str__(self) -> str:
-		return "{expression!s}".format(expression=self._expression)
+		return str(self._expression)
 
 
 @export
@@ -232,7 +232,7 @@ class RangedChoice(SequentialChoice):
 		return self._range
 
 	def __str__(self) -> str:
-		return "{range!s}".format(range=self._range)
+		return str(self._range)
 
 
 @export
@@ -268,7 +268,7 @@ class Case(SequentialCase):
 		return self._choices
 
 	def __str__(self) -> str:
-		return "when {choices} =>".format(choices=" | ".join([str(c) for c in self._choices]))
+		return "when {choices} =>".format(choices=" | ".join(str(c) for c in self._choices))
 
 
 @export

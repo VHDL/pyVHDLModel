@@ -615,7 +615,7 @@ class SubtypeAllocation(Allocation):
 		return self._subtype
 
 	def __str__(self) -> str:
-		return "new {subtype!s}".format(subtype=self._subtype)
+		return f"new {self._subtype!s}"
 
 
 @export
@@ -633,7 +633,7 @@ class QualifiedExpressionAllocation(Allocation):
 		return self._qualifiedExpression
 
 	def __str__(self) -> str:
-		return "new {expr!s}".format(expr=self._qualifiedExpression)
+		return f"new {self._qualifiedExpression!s}"
 
 
 @export
@@ -673,10 +673,7 @@ class IndexedAggregateElement(AggregateElement):
 		return self._index
 
 	def __str__(self) -> str:
-		return "{index!s} => {value!s}".format(
-			index=self._index,
-			value=self._expression,
-		)
+		return f"{self._index!s} => {self._expression!s}"
 
 
 @export
@@ -694,10 +691,7 @@ class RangedAggregateElement(AggregateElement):
 		return self._range
 
 	def __str__(self) -> str:
-		return "{range!s} => {value!s}".format(
-			range=self._range,
-			value=self._expression,
-		)
+		return f"{self._range!s} => {self._expression!s}"
 
 
 @export

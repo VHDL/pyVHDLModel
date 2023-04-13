@@ -399,7 +399,7 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 	_declaredItems:     List
 
 	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable['Context'] = None, declaredItems: Iterable = None, documentation: str = None):
-		super().__init__(packageSymbol.Identifier, contextItems, documentation)
+		super().__init__(packageSymbol.Name.Identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)
 
 		self._package = packageSymbol

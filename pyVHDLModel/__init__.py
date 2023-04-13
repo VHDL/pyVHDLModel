@@ -1239,7 +1239,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		if not isinstance(item, Architecture):
 			raise TypeError(f"Parameter 'item' is not of type 'Architecture'.")
 
-		entity = item.Entity
+		entity = item.Entity.Name
 		entityIdentifier = entity.NormalizedIdentifier
 		try:
 			architectures = self._architectures[entityIdentifier]

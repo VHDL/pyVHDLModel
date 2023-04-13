@@ -84,7 +84,7 @@ class PossibleReference(Flag):
 	View =            auto()  #: View
 
 	AnyType = ScalarType | ArrayType | RecordType | ProtectedType | AccessType | FileType | Subtype  #: Any possible type incl. subtypes.
-	Object = Constant | Variable | Signal | File                                                     #: Any object
+	Object = Constant | Variable | Signal  # | File                                                     #: Any object
 	SubProgram = Procedure | Function                                                                #: Any subprogram
 	PackageMember = AnyType | Object | SubProgram | Component                                        #: Any member of a package
 	SimpleNameInExpression = Constant | Variable | Signal | ScalarType | EnumLiteral | Function      #: Any possible item in an expression.
@@ -319,33 +319,25 @@ class SimpleSubtypeSymbol(Symbol):
 class ConstrainedScalarSubtypeSymbol(Symbol):
 	"""A configuration reference in a configuration instantiation."""
 
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-		Symbol.__init__(self, PossibleReference.Configuration)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Subtype)
 
 
 @export
 class ConstrainedCompositeSubtypeSymbol(Symbol):
 	"""A configuration reference in a configuration instantiation."""
 
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-		Symbol.__init__(self, PossibleReference.Configuration)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Subtype)
 
 
 @export
 class SimpleObjectOrFunctionCallSymbol(Symbol):
-	"""A configuration reference in a configuration instantiation."""
-
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-		Symbol.__init__(self, PossibleReference.Configuration)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.SimpleNameInExpression)
 
 
 @export
 class IndexedObjectOrFunctionCallSymbol(Symbol):
-	"""A configuration reference in a configuration instantiation."""
-
-	def __init__(self, prefix: Name, indices: Iterable[ExpressionUnion]):
-		super().__init__(prefix, indices)
-		Symbol.__init__(self, PossibleReference.Configuration)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Object | PossibleReference.Function)

@@ -35,6 +35,7 @@ from typing                  import Iterable
 from pyTooling.Decorators    import export
 
 from pyVHDLModel import Library
+from pyVHDLModel.Name import SimpleName, SelectedName, AllName
 from pyVHDLModel.Symbol      import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, AllPackageMembersReferenceSymbol, PackageSymbol
 from pyVHDLModel.DesignUnit  import LibraryClause, UseClause, Package, PackageBody
 
@@ -61,7 +62,7 @@ class PredefinedLibrary(Library):
 @export
 class PredefinedMixin:
 	def _AddLibraryClause(self, libraries: Iterable[str]):
-		symbols = [LibraryReferenceSymbol(libName) for libName in libraries]
+		symbols = [LibraryReferenceSymbol(SimpleName(libName)) for libName in libraries]
 		libraryClause = LibraryClause(symbols)
 
 		self._contextItems.append(libraryClause)
@@ -71,11 +72,12 @@ class PredefinedMixin:
 		symbols = []
 		for qualifiedPackageName in packages:
 			libName, packName, members = qualifiedPackageName.split(".")
-			packageSymbol = PackageReferenceSymbol(packName, LibraryReferenceSymbol(libName))
+
+			packageName = SelectedName(packName, SimpleName(libName))
 			if members.lower() == "all":
-				symbols.append(AllPackageMembersReferenceSymbol(packageSymbol))
+				symbols.append(AllPackageMembersReferenceSymbol(AllName(packageName)))
 			else:
-				symbols.append(PackageMembersReferenceSymbol(members, packageSymbol))
+				symbols.append(PackageMembersReferenceSymbol(SelectedName(members, packageName)))
 
 		useClause = UseClause(symbols)
 		self._contextItems.append(useClause)
@@ -91,7 +93,7 @@ class PredefinedPackage(Package, PredefinedMixin):
 @export
 class PredefinedPackageBody(PackageBody, PredefinedMixin):
 	def __init__(self):
-		packageSymbol = PackageSymbol(self.__class__.__name__[:-5])
+		packageSymbol = PackageSymbol(SimpleName(self.__class__.__name__[:-5]))
 		super().__init__(packageSymbol)
 
 
@@ -128,7 +130,7 @@ class Env(PredefinedPackage):
 
 		# Use clauses
 		useTextIOSymbols = (
-			AllPackageMembersReferenceSymbol(PackageReferenceSymbol("textio", LibraryReferenceSymbol("work"))),
+			AllPackageMembersReferenceSymbol(AllName(SelectedName("textio", SimpleName("work")))),
 		)
 		self._packageReferences.append(UseClause(useTextIOSymbols))
 

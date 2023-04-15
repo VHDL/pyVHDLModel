@@ -37,6 +37,7 @@ from pyTooling.Graph import Graph
 
 from pyVHDLModel import Design, Library, Document
 from pyVHDLModel.Base import Direction, Range
+from pyVHDLModel.Name import SelectedName, SimpleName, AllName
 from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol
 from pyVHDLModel.Symbol import AllPackageMembersReferenceSymbol, ContextReferenceSymbol, EntitySymbol
 from pyVHDLModel.Symbol import ArchitectureSymbol, PackageSymbol, EntityInstantiationSymbol
@@ -54,7 +55,7 @@ if __name__ == "__main__":  # pragma: no cover
 
 class Symbols(TestCase):
 	def test_LibraryReferenceSymbol(self):
-		symbol = LibraryReferenceSymbol("Lib")
+		symbol = LibraryReferenceSymbol(SimpleName("Lib"))
 
 		self.assertEqual("Lib", symbol.Identifier)
 		self.assertEqual("lib", symbol.NormalizedIdentifier)
@@ -70,7 +71,7 @@ class Symbols(TestCase):
 		self.assertIs(library, symbol.Library)
 
 	def test_PackageReferenceSymbol(self):
-		symbol = PackageReferenceSymbol("pack", LibraryReferenceSymbol("Lib"))
+		symbol = PackageReferenceSymbol(SelectedName("pack", SimpleName("Lib")))
 
 		self.assertEqual("pack", symbol.NormalizedIdentifier)
 		self.assertEqual("lib", symbol.Prefix.NormalizedIdentifier)
@@ -87,27 +88,27 @@ class Symbols(TestCase):
 		self.assertIs(package, symbol.Package)
 
 	def test_PackageMembersReferenceSymbol(self):
-		symbol = PackageMembersReferenceSymbol("obj", PackageReferenceSymbol("pack", LibraryReferenceSymbol("Lib")))
+		symbol = PackageMembersReferenceSymbol(SelectedName("obj", SelectedName("pack", SimpleName("Lib"))))
 
 		self.assertEqual("obj", symbol.NormalizedIdentifier)
 		self.assertEqual("pack", symbol.Prefix.NormalizedIdentifier)
 		self.assertEqual("lib", symbol.Prefix.Prefix.NormalizedIdentifier)
 
 	def test_AllPackageMembersReferenceSymbol(self):
-		symbol = AllPackageMembersReferenceSymbol(PackageReferenceSymbol("pack", LibraryReferenceSymbol("Lib")))
+		symbol = AllPackageMembersReferenceSymbol(AllName(SelectedName("pack", SimpleName("Lib"))))
 
 		self.assertEqual("all", symbol.NormalizedIdentifier)
 		self.assertEqual("pack", symbol.Prefix.NormalizedIdentifier)
 		self.assertEqual("lib", symbol.Prefix.Prefix.NormalizedIdentifier)
 
 	def test_ContextReferenceSymbol(self):
-		symbol = ContextReferenceSymbol("ctx", LibraryReferenceSymbol("Lib"))
+		symbol = ContextReferenceSymbol(SelectedName("ctx", SimpleName("Lib")))
 
 		self.assertEqual("ctx", symbol.NormalizedIdentifier)
 		self.assertEqual("lib", symbol.Prefix.NormalizedIdentifier)
 
 	def test_EntitySymbol(self):
-		symbol = EntitySymbol("ent")
+		symbol = EntitySymbol(SimpleName("ent"))
 
 		self.assertEqual("ent", symbol.NormalizedIdentifier)
 
@@ -117,23 +118,23 @@ class Symbols(TestCase):
 	# 	self.assertEqual("rtl", symbol.NormalizedIdentifier)
 
 	def test_PackageSymbol(self):
-		symbol = PackageSymbol("pack")
+		symbol = PackageSymbol(SimpleName("pack"))
 
 		self.assertEqual("pack", symbol.NormalizedIdentifier)
 
 	def test_EntityInstantiationSymbol(self):
-		symbol = EntityInstantiationSymbol("ent", LibraryReferenceSymbol("Lib"))
+		symbol = EntityInstantiationSymbol(SelectedName("ent", SimpleName("Lib")))
 
 		self.assertEqual("ent", symbol.NormalizedIdentifier)
 		self.assertEqual("lib", symbol.Prefix.NormalizedIdentifier)
 
 	def test_ComponentInstantiationSymbol(self):
-		symbol = ComponentInstantiationSymbol("comp")
+		symbol = ComponentInstantiationSymbol(SimpleName("comp"))
 
 		self.assertEqual("comp", symbol.NormalizedIdentifier)
 
 	def test_ConfigurationInstantiationSymbol(self):
-		symbol = ConfigurationInstantiationSymbol("cfg")
+		symbol = ConfigurationInstantiationSymbol(SimpleName("cfg"))
 
 		self.assertEqual("cfg", symbol.NormalizedIdentifier)
 

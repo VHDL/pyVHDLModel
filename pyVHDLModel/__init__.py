@@ -471,13 +471,14 @@ class Design(ModelEntity):
 		return library
 
 	def AddLibrary(self, library: 'Library') -> None:
-		if library.NormalizedIdentifier in self._libraries:
+		libraryIdentifier = library.NormalizedIdentifier
+		if libraryIdentifier in self._libraries:
 			raise LibraryExistsInDesignError(library)
 
 		if library._parent is not None:
 			raise LibraryRegisteredToForeignDesignError(library)
 
-		self._libraries[library.NormalizedIdentifier] = library
+		self._libraries[libraryIdentifier] = library
 		library._parent = self
 
 	def GetLibrary(self, libraryName: str) -> 'Library':
@@ -648,7 +649,7 @@ class Design(ModelEntity):
 			for libraryReference in context._libraryReferences:
 				# A library clause can have multiple comma-separated references
 				for librarySymbol in libraryReference.Symbols:
-					libraryIdentifier = librarySymbol.NormalizedIdentifier
+					libraryIdentifier = librarySymbol.Name.NormalizedIdentifier
 					try:
 						library = self._libraries[libraryIdentifier]
 					except KeyError:
@@ -669,7 +670,7 @@ class Design(ModelEntity):
 			for packageReference in context.PackageReferences:
 				# A use clause can have multiple comma-separated references
 				for symbol in packageReference.Symbols:
-					packageSymbol = symbol.Prefix
+					packageSymbol = symbol.Name.Prefix
 					librarySymbol = packageSymbol.Prefix
 
 					libraryIdentifier = librarySymbol.NormalizedIdentifier

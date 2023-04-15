@@ -383,12 +383,12 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 				print(item)
 
 	def __str__(self) -> str:
-		lib = self._library.Identifier + "?" if self._library is not None else ""
+		lib = self._library.Identifier if self._library is not None else "%"
 
-		return f"Package: {lib}.{self.Identifier}"
+		return f"Package: '{lib}.{self.Identifier}'"
 
 	def __repr__(self) -> str:
-		lib = self._library.Identifier + "?" if self._library is not None else ""
+		lib = self._library.Identifier if self._library is not None else "%"
 
 		return f"{lib}.{self.Identifier}"
 

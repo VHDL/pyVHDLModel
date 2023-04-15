@@ -150,18 +150,25 @@ class Symbols(TestCase):
 		self.assertEqual("Library: 'liB'", str(symbol))
 
 	def test_PackageReferenceSymbol(self):
-		symbol = PackageReferenceSymbol(SelectedName("pack", SimpleName("Lib")))
+		name = SelectedName("Pack", SimpleName("Lib"))
+		symbol = PackageReferenceSymbol(name)
 
-		self.assertEqual("pack", symbol.Name.NormalizedIdentifier)
-		self.assertEqual("lib", symbol.Name.Prefix.NormalizedIdentifier)
-		self.assertTrue(symbol.Name.HasPrefix)
+		self.assertIs(name, symbol.Name)
+		self.assertFalse(symbol.IsResolved)
+		self.assertIsNone(symbol.Reference)
+		self.assertIsNone(symbol.Package)
+		self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> unresolved", repr(symbol))
+		self.assertEqual("Lib.Pack?", str(symbol))
 
-		# library = Library("liB")
-		package = Package("Pack")
+		library = Library("liB")
+		package = Package("pacK")
+		package.Library = library
 		symbol.Package = package
 
 		self.assertTrue(symbol.IsResolved)
 		self.assertIs(package, symbol.Package)
+		self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
+		self.assertEqual("Package: 'liB.pacK'", str(symbol))
 
 	def test_PackageMembersReferenceSymbol(self):
 		symbol = PackageMembersReferenceSymbol(SelectedName("obj", SelectedName("pack", SimpleName("Lib"))))

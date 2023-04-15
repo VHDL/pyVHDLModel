@@ -1042,6 +1042,11 @@ class Design(ModelEntity):
 	def GetUnusedDesignUnits(self) -> List[DesignUnit]:
 		raise NotImplementedError()
 
+	def __repr__(self) -> str:
+		return f"Design: {self._nane}"
+
+	__str__ = __repr__
+
 
 @export
 class Library(ModelEntity, NamedEntityMixin):
@@ -1181,8 +1186,10 @@ class Library(ModelEntity, NamedEntityMixin):
 			for architecture in architectures.values():
 				architecture.Index()
 
-	def __str__(self):
+	def __repr__(self) -> str:
 		return f"Library: '{self.Identifier}'"
+
+	__str__ = __repr__
 
 
 @export
@@ -1464,3 +1471,8 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		# 	yield entity
 		# for verificationMode in self._verificationModes.values():
 		# 	yield verificationMode
+
+	def __repr__(self) -> str:
+		return f"Document: '{self._path}'"
+
+	__str__ = __repr__

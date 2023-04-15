@@ -34,9 +34,9 @@ from typing                  import Iterable
 
 from pyTooling.Decorators    import export
 
-from pyVHDLModel import Library
-from pyVHDLModel.Name import SimpleName, SelectedName, AllName
-from pyVHDLModel.Symbol      import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, AllPackageMembersReferenceSymbol, PackageSymbol
+from pyVHDLModel             import Library
+from pyVHDLModel.Name        import SimpleName, SelectedName, AllName
+from pyVHDLModel.Symbol      import LibraryReferenceSymbol, PackageMembersReferenceSymbol, AllPackageMembersReferenceSymbol, PackageSymbol
 from pyVHDLModel.DesignUnit  import LibraryClause, UseClause, Package, PackageBody
 
 
@@ -128,11 +128,7 @@ class Env(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
 
-		# Use clauses
-		useTextIOSymbols = (
-			AllPackageMembersReferenceSymbol(AllName(SelectedName("textio", SimpleName("work")))),
-		)
-		self._packageReferences.append(UseClause(useTextIOSymbols))
+		self._AddPackageClause(("work.textio.all",))
 
 
 @export

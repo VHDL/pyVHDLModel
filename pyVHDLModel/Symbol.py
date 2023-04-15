@@ -117,13 +117,16 @@ class Symbol:
 		return self._reference is not None
 
 	def __repr__(self) -> str:
-		return f"{self.__class__.__name__}: {self._innerName!s}"
+		if self._reference is not None:
+			return f"{self.__class__.__name__}: '{self._innerName!s}' -> {self._reference!s}"
+
+		return f"{self.__class__.__name__}: '{self._innerName!s}' -> unresolved"
 
 	def __str__(self) -> str:
 		if self._reference is not None:
 			return str(self._reference)
 
-		return f"{self._innerName!s} (unresolved)"
+		return f"{self._innerName!s}?"
 
 
 @export

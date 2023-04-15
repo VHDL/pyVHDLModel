@@ -37,7 +37,7 @@ from pyTooling.Graph import Graph
 
 from pyVHDLModel import Design, Library, Document
 from pyVHDLModel.Base import Direction, Range
-from pyVHDLModel.Name import SelectedName, SimpleName, AllName
+from pyVHDLModel.Name import SelectedName, SimpleName, AllName, AttributeName
 from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol
 from pyVHDLModel.Symbol import AllPackageMembersReferenceSymbol, ContextReferenceSymbol, EntitySymbol
 from pyVHDLModel.Symbol import ArchitectureSymbol, PackageSymbol, EntityInstantiationSymbol
@@ -53,22 +53,101 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
+class Names(TestCase):
+	def test_SimpleName(self):
+		name = SimpleName("Lib")
+
+		self.assertEqual("Lib", name.Identifier)
+		self.assertEqual("lib", name.NormalizedIdentifier)
+		self.assertIs(name, name.Root)
+		self.assertIsNone(name.Prefix)
+		self.assertFalse(name.HasPrefix)
+
+		self.assertEqual("Name: 'Lib'", repr(name))
+		self.assertEqual("Lib", str(name))
+
+	def test_SelectedName_1(self):
+		simpleName = SimpleName("Lib")
+		name = SelectedName("Pack", simpleName)
+
+		self.assertEqual("Pack", name.Identifier)
+		self.assertEqual("pack", name.NormalizedIdentifier)
+		self.assertIs(simpleName, name.Root)
+		self.assertIs(simpleName, name.Prefix)
+		self.assertTrue(name.HasPrefix)
+		self.assertFalse(simpleName.HasPrefix)
+
+		self.assertEqual("Name: 'Lib.Pack'", repr(name))
+		self.assertEqual("Lib.Pack", str(name))
+
+	def test_SelectedName_2(self):
+		simpleName = SimpleName("Lib")
+		selectedName = SelectedName("Pack", simpleName)
+		name = SelectedName("Func", selectedName)
+
+		self.assertEqual("Func", name.Identifier)
+		self.assertEqual("func", name.NormalizedIdentifier)
+		self.assertIs(simpleName, name.Root)
+		self.assertIs(selectedName, name.Prefix)
+		self.assertIs(simpleName, name.Prefix.Prefix)
+		self.assertTrue(name.HasPrefix)
+		self.assertTrue(selectedName.HasPrefix)
+		self.assertFalse(simpleName.HasPrefix)
+
+		self.assertEqual("Name: 'Lib.Pack.Func'", repr(name))
+		self.assertEqual("Lib.Pack.Func", str(name))
+
+	def test_AllName(self):
+		simpleName = SimpleName("Lib")
+		selectedName = SelectedName("Pack", simpleName)
+		name = AllName(selectedName)
+
+		# self.assertEqual("All", name.Identifier)
+		self.assertEqual("all", name.NormalizedIdentifier)
+		self.assertIs(simpleName, name.Root)
+		self.assertIs(selectedName, name.Prefix)
+		self.assertIs(simpleName, name.Prefix.Prefix)
+		self.assertTrue(name.HasPrefix)
+		self.assertTrue(selectedName.HasPrefix)
+		self.assertFalse(simpleName.HasPrefix)
+
+		self.assertEqual("Name: 'Lib.Pack.all'", repr(name))
+		self.assertEqual("Lib.Pack.all", str(name))
+
+	def test_AttributeName(self):
+		simpleName = SimpleName("Sig")
+		name = AttributeName("Length", simpleName)
+
+		self.assertEqual("Length", name.Identifier)
+		self.assertEqual("length", name.NormalizedIdentifier)
+		self.assertIs(simpleName, name.Root)
+		self.assertIs(simpleName, name.Prefix)
+		self.assertTrue(name.HasPrefix)
+		self.assertFalse(simpleName.HasPrefix)
+
+		self.assertEqual("Name: 'Sig'Length'", repr(name))
+		self.assertEqual("Sig'Length", str(name))
+
+
 class Symbols(TestCase):
 	def test_LibraryReferenceSymbol(self):
-		symbol = LibraryReferenceSymbol(SimpleName("Lib"))
+		name = SimpleName("Lib")
+		symbol = LibraryReferenceSymbol(name)
 
-		self.assertEqual("Lib", symbol.Name.Identifier)
-		self.assertEqual("lib", symbol.Name.NormalizedIdentifier)
-		self.assertIs(symbol.Name, symbol.Name.Root)
-		self.assertIsNone(symbol.Name.Prefix)
-		self.assertFalse(symbol.Name.HasPrefix)
+		self.assertIs(name, symbol.Name)
 		self.assertFalse(symbol.IsResolved)
+		self.assertIsNone(symbol.Reference)
+		self.assertIsNone(symbol.Library)
+		self.assertEqual("LibraryReferenceSymbol: 'Lib' -> unresolved", repr(symbol))
+		self.assertEqual("Lib?", str(symbol))
 
 		library = Library("liB")
 		symbol.Library = library
 
 		self.assertTrue(symbol.IsResolved)
 		self.assertIs(library, symbol.Library)
+		self.assertEqual("LibraryReferenceSymbol: 'Lib' -> Library: 'liB'", repr(symbol))
+		self.assertEqual("Library: 'liB'", str(symbol))
 
 	def test_PackageReferenceSymbol(self):
 		symbol = PackageReferenceSymbol(SelectedName("pack", SimpleName("Lib")))

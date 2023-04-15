@@ -84,7 +84,7 @@ class PossibleReference(Flag):
 	View =            auto()  #: View
 
 	AnyType = ScalarType | ArrayType | RecordType | ProtectedType | AccessType | FileType | Subtype  #: Any possible type incl. subtypes.
-	Object = Constant | Variable | Signal | File                                                     #: Any object
+	Object = Constant | Variable | Signal  # | File                                                     #: Any object
 	SubProgram = Procedure | Function                                                                #: Any subprogram
 	PackageMember = AnyType | Object | SubProgram | Component                                        #: Any member of a package
 	SimpleNameInExpression = Constant | Variable | Signal | ScalarType | EnumLiteral | Function      #: Any possible item in an expression.
@@ -92,12 +92,18 @@ class PossibleReference(Flag):
 
 @export
 class Symbol:
+	_innerName:          Name
 	_possibleReferences: PossibleReference
-	_reference: Any
+	_reference:          Any
 
-	def __init__(self, possibleReferences: PossibleReference):
+	def __init__(self, name: Name, possibleReferences: PossibleReference):
+		self._innerName = name
 		self._possibleReferences = possibleReferences
 		self._reference = None
+
+	@property
+	def Name(self) -> Name:
+		return self._innerName
 
 	@property
 	def Reference(self) -> Any:
@@ -110,19 +116,25 @@ class Symbol:
 	def __bool__(self) -> bool:
 		return self._reference is not None
 
+	def __repr__(self) -> str:
+		if self._reference is not None:
+			return f"{self.__class__.__name__}: '{self._innerName!s}' -> {self._reference!s}"
+
+		return f"{self.__class__.__name__}: '{self._innerName!s}' -> unresolved"
+
 	def __str__(self) -> str:
 		if self._reference is not None:
 			return str(self._reference)
-		return str(self._symbolName)
+
+		return f"{self._innerName!s}?"
 
 
 @export
-class LibraryReferenceSymbol(SimpleName, Symbol):
+class LibraryReferenceSymbol(Symbol):
 	"""A library reference in a library clause."""
 
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-		Symbol.__init__(self, PossibleReference.Library)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Library)
 
 	@property
 	def Library(self) -> 'Library':
@@ -134,16 +146,11 @@ class LibraryReferenceSymbol(SimpleName, Symbol):
 
 
 @export
-class PackageReferenceSymbol(SelectedName, Symbol):
+class PackageReferenceSymbol(Symbol):
 	"""A package reference in a use clause."""
 
-	def __init__(self, identifier: str, prefix: LibraryReferenceSymbol):
-		super().__init__(identifier, prefix)
-		Symbol.__init__(self, PossibleReference.Package)
-
-	@property
-	def Prefix(self) -> LibraryReferenceSymbol:
-		return cast(LibraryReferenceSymbol, self._prefix)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Package)
 
 	@property
 	def Package(self) -> 'Package':
@@ -155,58 +162,43 @@ class PackageReferenceSymbol(SelectedName, Symbol):
 
 
 @export
-class PackageMembersReferenceSymbol(SelectedName, Symbol):
+class PackageMembersReferenceSymbol(Symbol):
 	"""A package member reference in a use clause."""
 
-	def __init__(self, identifier: str, prefix: PackageReferenceSymbol):
-		super().__init__(identifier, prefix)
-		Symbol.__init__(self, PossibleReference.PackageMember)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.PackageMember)
 
 	@property
-	def Prefix(self) -> PackageReferenceSymbol:
-		return cast(PackageReferenceSymbol, self._prefix)
-
-	@property
-	def Member(self) -> 'Package':
+	def Member(self) -> 'Package':  # TODO: typehint
 		return self._reference
 
 	@Member.setter
-	def Member(self, value: 'Package') -> None:
+	def Member(self, value: 'Package') -> None:  # TODO: typehint
 		self._reference = value
 
 
 @export
-class AllPackageMembersReferenceSymbol(AllName, Symbol):
+class AllPackageMembersReferenceSymbol(Symbol):
 	"""A package reference in a use clause."""
 
-	def __init__(self, prefix: PackageReferenceSymbol):
-		super().__init__(prefix)
-		Symbol.__init__(self, PossibleReference.PackageMember)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.PackageMember)
 
 	@property
-	def Prefix(self) -> PackageReferenceSymbol:
-		return cast(PackageReferenceSymbol, self._prefix)
-
-	@property
-	def Members(self) -> 'Package':
+	def Members(self) -> 'Package':  # TODO: typehint
 		return self._reference
 
 	@Members.setter
-	def Members(self, value: 'Package') -> None:
+	def Members(self, value: 'Package') -> None:  # TODO: typehint
 		self._reference = value
 
 
 @export
-class ContextReferenceSymbol(SelectedName, Symbol):
+class ContextReferenceSymbol(Symbol):
 	"""A context reference in a context clause."""
 
-	def __init__(self, identifier: str, prefix: LibraryReferenceSymbol):
-		super().__init__(identifier, prefix)
-		Symbol.__init__(self, PossibleReference.Context)
-
-	@property
-	def Prefix(self) -> LibraryReferenceSymbol:
-		return cast(LibraryReferenceSymbol, self._prefix)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Context)
 
 	@property
 	def Context(self) -> 'Context':
@@ -218,12 +210,11 @@ class ContextReferenceSymbol(SelectedName, Symbol):
 
 
 @export
-class EntitySymbol(SimpleName, Symbol):
+class EntitySymbol(Symbol):
 	"""An entity reference in an architecture declaration."""
 
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-		Symbol.__init__(self, PossibleReference.Entity)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Entity)
 
 	@property
 	def Entity(self) -> 'Entity':
@@ -235,16 +226,11 @@ class EntitySymbol(SimpleName, Symbol):
 
 
 @export
-class ArchitectureSymbol(Name, Symbol):
+class ArchitectureSymbol(Symbol):
 	"""An entity reference in an entity instantiation with architecture name."""
 
-	def __init__(self, identifier: str, prefix: EntitySymbol):
-		super().__init__(identifier, prefix)
-		Symbol.__init__(self, PossibleReference.Architecture)
-
-	@property
-	def Prefix(self) -> EntitySymbol:
-		return cast(EntitySymbol, self._prefix)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Architecture)
 
 	@property
 	def Architecture(self) -> 'Architecture':
@@ -256,12 +242,11 @@ class ArchitectureSymbol(Name, Symbol):
 
 
 @export
-class PackageSymbol(SimpleName, Symbol):
+class PackageSymbol(Symbol):
 	"""A package reference in a package body declaration."""
 
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-		Symbol.__init__(self, PossibleReference.Package)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Package)
 
 	@property
 	def Package(self) -> 'Package':
@@ -273,16 +258,11 @@ class PackageSymbol(SimpleName, Symbol):
 
 
 @export
-class EntityInstantiationSymbol(SelectedName, Symbol):
+class EntityInstantiationSymbol(Symbol):
 	"""An entity reference in a direct entity instantiation."""
 
-	def __init__(self, identifier: str, prefix: LibraryReferenceSymbol):
-		super().__init__(identifier, prefix)
-		Symbol.__init__(self, PossibleReference.Entity)
-
-	@property
-	def Prefix(self) -> LibraryReferenceSymbol:
-		return cast(LibraryReferenceSymbol, self._prefix)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Entity)
 
 	@property
 	def Entity(self) -> 'Entity':
@@ -294,12 +274,11 @@ class EntityInstantiationSymbol(SelectedName, Symbol):
 
 
 @export
-class ComponentInstantiationSymbol(SimpleName, Symbol):
+class ComponentInstantiationSymbol(Symbol):
 	"""A component reference in a component instantiation."""
 
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-		Symbol.__init__(self, PossibleReference.Component)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Component)
 
 	@property
 	def Component(self) -> 'Component':
@@ -311,12 +290,11 @@ class ComponentInstantiationSymbol(SimpleName, Symbol):
 
 
 @export
-class ConfigurationInstantiationSymbol(SimpleName, Symbol):
+class ConfigurationInstantiationSymbol(Symbol):
 	"""A configuration reference in a configuration instantiation."""
 
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-		Symbol.__init__(self, PossibleReference.Configuration)
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Configuration)
 
 	@property
 	def Configuration(self) -> 'Configuration':
@@ -328,12 +306,14 @@ class ConfigurationInstantiationSymbol(SimpleName, Symbol):
 
 
 @export
-class SimpleSubtypeSymbol(SimpleName, Symbol):
-	"""A configuration reference in a configuration instantiation."""
+class SubtypeSymbol(Symbol):
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Subtype)
 
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-		Symbol.__init__(self, PossibleReference.Configuration)
+
+@export
+class SimpleSubtypeSymbol(SubtypeSymbol):
+	"""A configuration reference in a configuration instantiation."""
 
 	@property
 	def Subtype(self) -> 'Subtype':
@@ -345,36 +325,22 @@ class SimpleSubtypeSymbol(SimpleName, Symbol):
 
 
 @export
-class ConstrainedScalarSubtypeSymbol(SimpleName, Symbol):
+class ConstrainedScalarSubtypeSymbol(SubtypeSymbol):
 	"""A configuration reference in a configuration instantiation."""
-
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-		Symbol.__init__(self, PossibleReference.Configuration)
 
 
 @export
-class ConstrainedCompositeSubtypeSymbol(SimpleName, Symbol):
+class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 	"""A configuration reference in a configuration instantiation."""
-
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-		Symbol.__init__(self, PossibleReference.Configuration)
 
 
 @export
-class SimpleObjectOrFunctionCallSymbol(SimpleName, Symbol):
-	"""A configuration reference in a configuration instantiation."""
-
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
-		Symbol.__init__(self, PossibleReference.Configuration)
+class SimpleObjectOrFunctionCallSymbol(Symbol):
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.SimpleNameInExpression)
 
 
 @export
-class IndexedObjectOrFunctionCallSymbol(IndexedName, Symbol):
-	"""A configuration reference in a configuration instantiation."""
-
-	def __init__(self, prefix: Name, indices: Iterable[ExpressionUnion]):
-		super().__init__(prefix, indices)
-		Symbol.__init__(self, PossibleReference.Configuration)
+class IndexedObjectOrFunctionCallSymbol(Symbol):
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Object | PossibleReference.Function)

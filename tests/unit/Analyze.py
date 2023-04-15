@@ -34,6 +34,7 @@ from pathlib  import Path
 from unittest import TestCase
 
 from pyVHDLModel import Design, Document
+from pyVHDLModel.Name import SimpleName, SelectedName, AllName
 from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, AllPackageMembersReferenceSymbol
 from pyVHDLModel.Symbol import ContextReferenceSymbol, EntitySymbol, PackageSymbol, EntityInstantiationSymbol
 from pyVHDLModel.DesignUnit import Package, PackageBody, Context, Entity, Architecture, Configuration
@@ -57,10 +58,10 @@ class VHDLLibrary(TestCase):
 
 		contextReferences = [
 			LibraryClause([
-				LibraryReferenceSymbol("ieee"),
+				LibraryReferenceSymbol(SimpleName("ieee")),
 			]),
 			UseClause([
-				AllPackageMembersReferenceSymbol(PackageReferenceSymbol("std_logic_1164", LibraryReferenceSymbol("ieee"))),
+				AllPackageMembersReferenceSymbol(AllName(SelectedName("std_logic_1164", SimpleName("ieee")))),
 			])
 		]
 		context = Context("ctx_1", contextReferences, documentation="My first context.")
@@ -71,13 +72,13 @@ class VHDLLibrary(TestCase):
 			# 	PackageMembersReferenceSymbol("Stop", PackageReferenceSymbol("env", LibraryReferenceSymbol("std"))),
 			# ]),
 			LibraryClause([
-				LibraryReferenceSymbol("ieee"),
+				LibraryReferenceSymbol(SimpleName("ieee")),
 			]),
 			UseClause([
-				AllPackageMembersReferenceSymbol(PackageReferenceSymbol("numeric_std", LibraryReferenceSymbol("ieee"))),
+				AllPackageMembersReferenceSymbol(AllName(SelectedName("numeric_std", SimpleName("ieee")))),
 			]),
 			UseClause([
-				AllPackageMembersReferenceSymbol(PackageReferenceSymbol("pack_1", LibraryReferenceSymbol("work"))),
+				AllPackageMembersReferenceSymbol(AllName(SelectedName("pack_1", SimpleName("work")))),
 			])
 		]
 		entityA = Entity("entity_A", entityAReferences, documentation="My first entity.")
@@ -85,36 +86,36 @@ class VHDLLibrary(TestCase):
 
 		architectureAReferences = [
 			UseClause([
-				AllPackageMembersReferenceSymbol(PackageReferenceSymbol("textio", LibraryReferenceSymbol("std"))),
+				AllPackageMembersReferenceSymbol(AllName(SelectedName("textio", SimpleName("std")))),
 			]),
 		]
-		architectureA = Architecture("arch_A", EntitySymbol("entity_A"), architectureAReferences, documentation="My first entity implementation.")
+		architectureA = Architecture("arch_A", EntitySymbol(SimpleName("entity_A")), architectureAReferences, documentation="My first entity implementation.")
 		document._AddDesignUnit(architectureA)
 
 		entityBReferences = [
 			ContextReference([
-				ContextReferenceSymbol("ctx_1", LibraryReferenceSymbol("work")),
+				ContextReferenceSymbol(SelectedName("ctx_1", SimpleName("work"))),
 			]),
 		]
 		entityB = Entity("entity_B", entityBReferences, documentation="My second entity.")
 		document._AddDesignUnit(entityB)
 
 		architectureBStatements = [
-			EntityInstantiation("instWork", EntityInstantiationSymbol("entity_A", LibraryReferenceSymbol("work"))),
-			EntityInstantiation("instLib", EntityInstantiationSymbol("entity_A", LibraryReferenceSymbol("lib_1"))),
+			EntityInstantiation("instWork", EntityInstantiationSymbol(SelectedName("entity_A", SimpleName("work")))),
+			EntityInstantiation("instLib", EntityInstantiationSymbol(SelectedName("entity_A", SimpleName("lib_1")))),
 		]
-		architectureB = Architecture("arch_B", EntitySymbol("entity_B"), None, None, architectureBStatements, documentation="My second entity implementation.")
+		architectureB = Architecture("arch_B", EntitySymbol(SimpleName("entity_B")), None, None, architectureBStatements, documentation="My second entity implementation.")
 		document._AddDesignUnit(architectureB)
 
 		packageReferences = [
 			ContextReference([
-				ContextReferenceSymbol("ctx_1", LibraryReferenceSymbol("work")),
+				ContextReferenceSymbol(SelectedName("ctx_1", SimpleName("work"))),
 			]),
 		]
 		package = Package("pack_1", packageReferences, documentation="My first utility package.")
 		document._AddDesignUnit(package)
 
-		packageBody = PackageBody(PackageSymbol("pack_1"))
+		packageBody = PackageBody(PackageSymbol(SimpleName("pack_1")))
 		document._AddDesignUnit(packageBody)
 
 		configuration = Configuration("cfg_1")

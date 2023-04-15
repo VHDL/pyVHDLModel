@@ -69,7 +69,7 @@ class AssociationItem(ModelEntity):
 		if self._formal is None:
 			return str(self._actual)
 		else:
-			return "{formal!s} => {actual!s}".format(formal=self._formal, actual=self._actual)
+			return f"{self._formal!s} => {self._actual!s}"
 
 
 @export

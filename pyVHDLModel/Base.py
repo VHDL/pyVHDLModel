@@ -410,11 +410,7 @@ class Range(ModelEntity):
 		return self._direction
 
 	def __str__(self) -> str:
-		return "{leftBound!s} {direction!s} {rightBound!s}".format(
-			leftBound=self._leftBound,
-			direction=self._direction,
-			rightBound=self._rightBound,
-		)
+		return f"{self._leftBound!s} {self._direction!s} {self._rightBound!s}"
 
 
 @export

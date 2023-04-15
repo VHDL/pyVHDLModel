@@ -37,7 +37,9 @@ from pyTooling.Graph import Graph
 
 from pyVHDLModel import Design, Library, Document
 from pyVHDLModel.Base import Direction, Range
-from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol
+from pyVHDLModel.Name import SelectedName, SimpleName, AllName, AttributeName
+from pyVHDLModel.Object import Constant, Signal
+from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Symbol import AllPackageMembersReferenceSymbol, ContextReferenceSymbol, EntitySymbol
 from pyVHDLModel.Symbol import ArchitectureSymbol, PackageSymbol, EntityInstantiationSymbol
 from pyVHDLModel.Symbol import ComponentInstantiationSymbol, ConfigurationInstantiationSymbol
@@ -52,90 +54,299 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
+class Names(TestCase):
+	def test_SimpleName(self):
+		name = SimpleName("Lib")
+
+		self.assertEqual("Lib", name.Identifier)
+		self.assertEqual("lib", name.NormalizedIdentifier)
+		self.assertIs(name, name.Root)
+		self.assertIsNone(name.Prefix)
+		self.assertFalse(name.HasPrefix)
+
+		self.assertEqual("Name: 'Lib'", repr(name))
+		self.assertEqual("Lib", str(name))
+
+	def test_SelectedName_1(self):
+		simpleName = SimpleName("Lib")
+		name = SelectedName("Pack", simpleName)
+
+		self.assertEqual("Pack", name.Identifier)
+		self.assertEqual("pack", name.NormalizedIdentifier)
+		self.assertIs(simpleName, name.Root)
+		self.assertIs(simpleName, name.Prefix)
+		self.assertTrue(name.HasPrefix)
+		self.assertFalse(simpleName.HasPrefix)
+
+		self.assertEqual("Name: 'Lib.Pack'", repr(name))
+		self.assertEqual("Lib.Pack", str(name))
+
+	def test_SelectedName_2(self):
+		simpleName = SimpleName("Lib")
+		selectedName = SelectedName("Pack", simpleName)
+		name = SelectedName("Func", selectedName)
+
+		self.assertEqual("Func", name.Identifier)
+		self.assertEqual("func", name.NormalizedIdentifier)
+		self.assertIs(simpleName, name.Root)
+		self.assertIs(selectedName, name.Prefix)
+		self.assertIs(simpleName, name.Prefix.Prefix)
+		self.assertTrue(name.HasPrefix)
+		self.assertTrue(selectedName.HasPrefix)
+		self.assertFalse(simpleName.HasPrefix)
+
+		self.assertEqual("Name: 'Lib.Pack.Func'", repr(name))
+		self.assertEqual("Lib.Pack.Func", str(name))
+
+	def test_AllName(self):
+		simpleName = SimpleName("Lib")
+		selectedName = SelectedName("Pack", simpleName)
+		name = AllName(selectedName)
+
+		# self.assertEqual("All", name.Identifier)
+		self.assertEqual("all", name.NormalizedIdentifier)
+		self.assertIs(simpleName, name.Root)
+		self.assertIs(selectedName, name.Prefix)
+		self.assertIs(simpleName, name.Prefix.Prefix)
+		self.assertTrue(name.HasPrefix)
+		self.assertTrue(selectedName.HasPrefix)
+		self.assertFalse(simpleName.HasPrefix)
+
+		self.assertEqual("Name: 'Lib.Pack.all'", repr(name))
+		self.assertEqual("Lib.Pack.all", str(name))
+
+	def test_AttributeName(self):
+		simpleName = SimpleName("Sig")
+		name = AttributeName("Length", simpleName)
+
+		self.assertEqual("Length", name.Identifier)
+		self.assertEqual("length", name.NormalizedIdentifier)
+		self.assertIs(simpleName, name.Root)
+		self.assertIs(simpleName, name.Prefix)
+		self.assertTrue(name.HasPrefix)
+		self.assertFalse(simpleName.HasPrefix)
+
+		self.assertEqual("Name: 'Sig'Length'", repr(name))
+		self.assertEqual("Sig'Length", str(name))
+
+
 class Symbols(TestCase):
 	def test_LibraryReferenceSymbol(self):
-		symbol = LibraryReferenceSymbol("Lib")
+		name = SimpleName("Lib")
+		symbol = LibraryReferenceSymbol(name)
 
-		self.assertEqual("Lib", symbol.Identifier)
-		self.assertEqual("lib", symbol.NormalizedIdentifier)
-		self.assertIs(symbol, symbol.Root)
-		self.assertIsNone(symbol.Prefix)
-		self.assertFalse(symbol.HasPrefix)
+		self.assertIs(name, symbol.Name)
 		self.assertFalse(symbol.IsResolved)
+		self.assertIsNone(symbol.Reference)
+		self.assertIsNone(symbol.Library)
+		self.assertEqual("LibraryReferenceSymbol: 'Lib' -> unresolved", repr(symbol))
+		self.assertEqual("Lib?", str(symbol))
 
 		library = Library("liB")
 		symbol.Library = library
 
 		self.assertTrue(symbol.IsResolved)
 		self.assertIs(library, symbol.Library)
+		self.assertEqual("LibraryReferenceSymbol: 'Lib' -> Library: 'liB'", repr(symbol))
+		self.assertEqual("Library: 'liB'", str(symbol))
 
 	def test_PackageReferenceSymbol(self):
-		symbol = PackageReferenceSymbol("pack", LibraryReferenceSymbol("Lib"))
+		name = SelectedName("Pack", SimpleName("Lib"))
+		symbol = PackageReferenceSymbol(name)
 
-		self.assertEqual("pack", symbol.NormalizedIdentifier)
-		self.assertEqual("lib", symbol.Prefix.NormalizedIdentifier)
-		self.assertTrue(symbol.HasPrefix)
+		self.assertIs(name, symbol.Name)
+		self.assertFalse(symbol.IsResolved)
+		self.assertIsNone(symbol.Reference)
+		self.assertIsNone(symbol.Package)
+		self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> unresolved", repr(symbol))
+		self.assertEqual("Lib.Pack?", str(symbol))
 
 		library = Library("liB")
-		package = Package("Pack")
+		package = Package("pacK")
+		package.Library = library
 		symbol.Package = package
-		symbol.Prefix.Library = library
 
 		self.assertTrue(symbol.IsResolved)
-		self.assertTrue(symbol.Prefix.IsResolved)
-		self.assertIs(library, symbol.Prefix.Library)
 		self.assertIs(package, symbol.Package)
+		self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
+		self.assertEqual("Package: 'liB.pacK'", str(symbol))
 
 	def test_PackageMembersReferenceSymbol(self):
-		symbol = PackageMembersReferenceSymbol("obj", PackageReferenceSymbol("pack", LibraryReferenceSymbol("Lib")))
+		name = SelectedName("Obj", SelectedName("Pack", SimpleName("Lib")))
+		symbol = PackageMembersReferenceSymbol(name)
 
-		self.assertEqual("obj", symbol.NormalizedIdentifier)
-		self.assertEqual("pack", symbol.Prefix.NormalizedIdentifier)
-		self.assertEqual("lib", symbol.Prefix.Prefix.NormalizedIdentifier)
+		self.assertIs(name, symbol.Name)
+		self.assertFalse(symbol.IsResolved)
+		self.assertIsNone(symbol.Reference)
+		self.assertIsNone(symbol.Member)
+		self.assertEqual("PackageMembersReferenceSymbol: 'Lib.Pack.Obj' -> unresolved", repr(symbol))
+		self.assertEqual("Lib.Pack.Obj?", str(symbol))
+
+		library = Library("liB")
+		package = Package("pacK")
+		package.Library = library
+		constant = Constant(("obJ", ), SimpleSubtypeSymbol(SimpleName("Bool")))
+		for id in constant.Identifiers:
+			package.DeclaredItems.append(constant)
+			package.Constants[id] = constant
+
+		symbol.Member = constant
+
+		self.assertTrue(symbol.IsResolved)
+		self.assertIs(constant, symbol.Member)
+		# self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
+		# self.assertEqual("Constant: 'liB.pacK.obJ'", str(symbol))
 
 	def test_AllPackageMembersReferenceSymbol(self):
-		symbol = AllPackageMembersReferenceSymbol(PackageReferenceSymbol("pack", LibraryReferenceSymbol("Lib")))
+		name = AllName(SelectedName("Pack", SimpleName("Lib")))
+		symbol = AllPackageMembersReferenceSymbol(name)
 
-		self.assertEqual("all", symbol.NormalizedIdentifier)
-		self.assertEqual("pack", symbol.Prefix.NormalizedIdentifier)
-		self.assertEqual("lib", symbol.Prefix.Prefix.NormalizedIdentifier)
+		self.assertIs(name, symbol.Name)
+		self.assertFalse(symbol.IsResolved)
+		self.assertIsNone(symbol.Reference)
+		self.assertIsNone(symbol.Members)
+		self.assertEqual("AllPackageMembersReferenceSymbol: 'Lib.Pack.all' -> unresolved", repr(symbol))
+		self.assertEqual("Lib.Pack.all?", str(symbol))
+
+		library = Library("liB")
+		package = Package("pacK")
+		package.Library = library
+		constant = Constant(("obJ", ), SimpleSubtypeSymbol(SimpleName("Bool")))
+		signal = Signal(("siG", ), SimpleSubtypeSymbol(SimpleName("Bit")))
+		for id in constant.Identifiers:
+			package.DeclaredItems.append(constant)
+			package.Constants[id] = constant
+		for id in signal.Identifiers:
+			package.DeclaredItems.append(signal)
+			package.Objects[id] = signal
+
+		symbol.Members = (constant, signal)
+
+		self.assertTrue(symbol.IsResolved)
+		self.assertTupleEqual((constant, signal), symbol.Members)
+		# self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
+		# self.assertEqual("Constant: 'liB.pacK.obJ'", str(symbol))
 
 	def test_ContextReferenceSymbol(self):
-		symbol = ContextReferenceSymbol("ctx", LibraryReferenceSymbol("Lib"))
+		name = SelectedName("Ctx", SimpleName("Lib"))
+		symbol = ContextReferenceSymbol(name)
 
-		self.assertEqual("ctx", symbol.NormalizedIdentifier)
-		self.assertEqual("lib", symbol.Prefix.NormalizedIdentifier)
+		self.assertIs(name, symbol.Name)
+		self.assertFalse(symbol.IsResolved)
+		self.assertIsNone(symbol.Reference)
+		self.assertIsNone(symbol.Context)
+		self.assertEqual("ContextReferenceSymbol: 'Lib.Ctx' -> unresolved", repr(symbol))
+		self.assertEqual("Lib.Ctx?", str(symbol))
 
-	def test_EntitySymbol(self):
-		symbol = EntitySymbol("ent")
+		library = Library("liB")
+		context = Context("ctX")
+		context.Library = library
+		symbol.Context = context
 
-		self.assertEqual("ent", symbol.NormalizedIdentifier)
+		self.assertTrue(symbol.IsResolved)
+		self.assertIs(context, symbol.Context)
+		# self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
+		# self.assertEqual("Package: 'liB.pacK'", str(symbol))
+
+	def test_SimpleEntitySymbol(self):
+		name = SimpleName("Ent")
+		symbol = EntitySymbol(name)
+
+		self.assertIs(name, symbol.Name)
+		self.assertFalse(symbol.IsResolved)
+		self.assertIsNone(symbol.Reference)
+		self.assertIsNone(symbol.Entity)
+		self.assertEqual("EntitySymbol: 'Ent' -> unresolved", repr(symbol))
+		self.assertEqual("Ent?", str(symbol))
+
+		library = Library("liB")
+		entity = Entity("enT")
+		entity.Library = library
+		symbol.Entity = entity
+
+		self.assertTrue(symbol.IsResolved)
+		self.assertIs(entity, symbol.Entity)
+		# self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
+		# self.assertEqual("Package: 'liB.pacK'", str(symbol))
+
+	def test_SelectedEntitySymbol(self):
+		name = SelectedName("Ent", SimpleName("Work"))
+		symbol = EntitySymbol(name)
+
+		self.assertIs(name, symbol.Name)
+		self.assertFalse(symbol.IsResolved)
+		self.assertIsNone(symbol.Reference)
+		self.assertIsNone(symbol.Entity)
+		self.assertEqual("EntitySymbol: 'Work.Ent' -> unresolved", repr(symbol))
+		self.assertEqual("Work.Ent?", str(symbol))
+
+		library = Library("liB")
+		entity = Entity("enT")
+		entity.Library = library
+		symbol.Entity = entity
+
+		self.assertTrue(symbol.IsResolved)
+		self.assertIs(entity, symbol.Entity)
+		# self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
+		# self.assertEqual("Package: 'liB.pacK'", str(symbol))
 
 	# def test_ArchitectureSymbol(self):
 	# 	symbol = ArchitectureSymbol("rtl")
 	#
 	# 	self.assertEqual("rtl", symbol.NormalizedIdentifier)
 
+	# TODO: doe packages also support simple and selected names.
 	def test_PackageSymbol(self):
-		symbol = PackageSymbol("pack")
+		name = SimpleName("Pack")
+		symbol = PackageSymbol(name)
 
-		self.assertEqual("pack", symbol.NormalizedIdentifier)
+		self.assertIs(name, symbol.Name)
+		self.assertFalse(symbol.IsResolved)
+		self.assertIsNone(symbol.Reference)
+		self.assertIsNone(symbol.Package)
+		self.assertEqual("PackageSymbol: 'Pack' -> unresolved", repr(symbol))
+		self.assertEqual("Pack?", str(symbol))
+
+		library = Library("liB")
+		package = Package("pacK")
+		package.Library = library
+		symbol.Package = package
+
+		self.assertTrue(symbol.IsResolved)
+		self.assertIs(package, symbol.Package)
+		self.assertEqual("PackageSymbol: 'Pack' -> Package: 'liB.pacK'", repr(symbol))
+		self.assertEqual("Package: 'liB.pacK'", str(symbol))
 
 	def test_EntityInstantiationSymbol(self):
-		symbol = EntityInstantiationSymbol("ent", LibraryReferenceSymbol("Lib"))
+		name = SelectedName("Ent", SimpleName("Lib"))
+		symbol = EntityInstantiationSymbol(name)
 
-		self.assertEqual("ent", symbol.NormalizedIdentifier)
-		self.assertEqual("lib", symbol.Prefix.NormalizedIdentifier)
+		self.assertIs(name, symbol.Name)
+		self.assertFalse(symbol.IsResolved)
+		self.assertIsNone(symbol.Reference)
+		self.assertIsNone(symbol.Entity)
+		self.assertEqual("EntityInstantiationSymbol: 'Lib.Ent' -> unresolved", repr(symbol))
+		self.assertEqual("Lib.Ent?", str(symbol))
+
+		library = Library("liB")
+		entity = Entity("enT")
+		entity.Library = library
+		symbol.Entity = entity
+
+		self.assertTrue(symbol.IsResolved)
+		self.assertIs(entity, symbol.Entity)
+		self.assertEqual("EntityInstantiationSymbol: 'Lib.Ent' -> Entity: 'liB.enT(%)'", repr(symbol))
+		self.assertEqual("Entity: 'liB.enT(%)'", str(symbol))
 
 	def test_ComponentInstantiationSymbol(self):
-		symbol = ComponentInstantiationSymbol("comp")
+		symbol = ComponentInstantiationSymbol(SimpleName("comp"))
 
-		self.assertEqual("comp", symbol.NormalizedIdentifier)
+		self.assertEqual("comp", symbol.Name.NormalizedIdentifier)
 
 	def test_ConfigurationInstantiationSymbol(self):
-		symbol = ConfigurationInstantiationSymbol("cfg")
+		symbol = ConfigurationInstantiationSymbol(SimpleName("cfg"))
 
-		self.assertEqual("cfg", symbol.NormalizedIdentifier)
+		self.assertEqual("cfg", symbol.Name.NormalizedIdentifier)
 
 
 class SimpleInstance(TestCase):
@@ -187,8 +398,8 @@ class SimpleInstance(TestCase):
 		self.assertEqual(0, len(entity.Statements))
 
 	def test_Architecture(self):
-		entity = EntitySymbol("entity_1")
-		architecture = Architecture("arch_1", entity)
+		entitySymbol = EntitySymbol(SimpleName("entity_1"))
+		architecture = Architecture("arch_1", entitySymbol)
 
 		self.assertIsNotNone(architecture)
 		self.assertEqual("arch_1", architecture.Identifier)
@@ -203,7 +414,7 @@ class SimpleInstance(TestCase):
 		self.assertEqual(0, len(package.DeclaredItems))
 
 	def test_PackageBody(self):
-		packageSymbol = PackageSymbol("pack_1")
+		packageSymbol = PackageSymbol(SimpleName("pack_1"))
 		packageBody = PackageBody(packageSymbol)
 
 		self.assertIsNotNone(packageBody)
@@ -274,8 +485,8 @@ class VHDLDocument(TestCase):
 		path = Path("tests.vhdl")
 		document = Document(path)
 
-		entity = EntitySymbol("entity_1")
-		architecture = Architecture("arch_1", entity)
+		entitySymbol = EntitySymbol(SimpleName("entity_1"))
+		architecture = Architecture("arch_1", entitySymbol)
 		document._AddArchitecture(architecture)
 
 		self.assertEqual(1, len(document.Architectures))
@@ -295,7 +506,7 @@ class VHDLDocument(TestCase):
 		path = Path("tests.vhdl")
 		document = Document(path)
 
-		packageSymbol = PackageSymbol("pack_1")
+		packageSymbol = PackageSymbol(SimpleName("pack_1"))
 		packageBody = PackageBody(packageSymbol)
 		document._AddPackageBody(packageBody)
 
@@ -326,17 +537,17 @@ class VHDLDocument(TestCase):
 		path = Path("tests.vhdl")
 		document = Document(path, documentation="Testing 'Document' class.")
 
-		entity = Entity("entity_1")
-		document._AddDesignUnit(entity)
+		entitySymbol = Entity("entity_1")
+		document._AddDesignUnit(entitySymbol)
 
-		entity = EntitySymbol("entity_1")
-		architecture = Architecture("arch_1", entity)
+		entitySymbol = EntitySymbol(SimpleName("entity_1"))
+		architecture = Architecture("arch_1", entitySymbol)
 		document._AddDesignUnit(architecture)
 
 		package = Package("pack_1")
 		document._AddDesignUnit(package)
 
-		packageSymbol = PackageSymbol("pack_1")
+		packageSymbol = PackageSymbol(SimpleName("pack_1"))
 		packageBody = PackageBody(packageSymbol)
 		document._AddDesignUnit(packageBody)
 
@@ -388,9 +599,9 @@ class VHDLLibrary(TestCase):
 		document = Document(path, documentation="Testing 'Library' class.")
 
 		document._AddDesignUnit(Entity("entity_1"))
-		document._AddDesignUnit(Architecture("arch_1", EntitySymbol("entity_1")))
+		document._AddDesignUnit(Architecture("arch_1", EntitySymbol(SimpleName("entity_1"))))
 		document._AddDesignUnit(Package("pack_1"))
-		document._AddDesignUnit(PackageBody(PackageSymbol("pack_1")))
+		document._AddDesignUnit(PackageBody(PackageSymbol(SimpleName("pack_1"))))
 		document._AddDesignUnit(Context("ctx_1"))
 		document._AddDesignUnit(Configuration("cfg_1"))
 

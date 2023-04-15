@@ -114,6 +114,12 @@ class Name(ModelEntity):
 		"""
 		return self._prefix is not None
 
+	def __repr__(self) -> str:
+		return f"Name: '{self.__str__()}'"
+
+	def __str__(self) -> str:
+		return self._identifier
+
 
 @export
 class SimpleName(Name):
@@ -124,9 +130,6 @@ class SimpleName(Name):
 	itself is an identifier. The simple name references is again an identifier in the entity declaration, thus names
 	reference other (already) declared language entities.
 	"""
-
-	def __str__(self):
-		return self._identifier
 
 
 @export
@@ -145,8 +148,8 @@ class ParenthesisName(Name):
 	def Associations(self) -> List:
 		return self._associations
 
-	def __str__(self):
-		return str(self._prefix) + "(" + ", ".join([str(a) for a in self._associations]) + ")"
+	def __str__(self) -> str:
+		return f"{self._prefix!s}({', '.join(str(a) for a in self._associations)})"
 
 
 @export
@@ -164,6 +167,9 @@ class IndexedName(Name):
 	@property
 	def Indices(self) -> List[ExpressionUnion]:
 		return self._indices
+
+	def __str__(self) -> str:
+		return f"{self._prefix!s}({', '.join(str(i) for i in self._indices)})"
 
 
 @export
@@ -184,8 +190,8 @@ class SelectedName(Name):
 	def __init__(self, identifier: str, prefix: Name):
 		super().__init__(identifier, prefix)
 
-	def __str__(self):
-		return str(self._prefix) + "." + self._identifier
+	def __str__(self) -> str:
+		return f"{self._prefix!s}.{self._identifier}"
 
 
 @export
@@ -193,22 +199,19 @@ class AttributeName(Name):
 	def __init__(self, identifier: str, prefix: Name):
 		super().__init__(identifier, prefix)
 
-	def __str__(self):
-		return str(self._prefix) + "'" + self._identifier
+	def __str__(self) -> str:
+		return f"{self._prefix!s}'{self._identifier}"
 
 
 @export
-class AllName(Name):
+class AllName(SelectedName):
 	"""
 	The *all name* represents the reserved word ``all`` used in names.
 
 	Most likely this name is used in use-statements.
 	"""
 	def __init__(self, prefix: Name):
-		super().__init__("all", prefix)
-
-	def __str__(self):
-		return str(self._prefix) + "." + "all"
+		super().__init__("all", prefix)  # TODO: the case of 'ALL' is not preserved
 
 
 @export
@@ -216,10 +219,10 @@ class OpenName(Name):
 	"""
 	The *open name* represents the reserved word ``open``.
 
-	Most likely this name is used in port assoziations.
+	Most likely this name is used in port associations.
 	"""
 	def __init__(self):
-		super().__init__("open")
+		super().__init__("open")  # TODO: the case of 'ALL' is not preserved
 
-	def __str__(self):
+	def __str__(self) -> str:
 		return "open"

@@ -306,11 +306,14 @@ class ConfigurationInstantiationSymbol(Symbol):
 
 
 @export
-class SimpleSubtypeSymbol(Symbol):
-	"""A configuration reference in a configuration instantiation."""
-
+class SubtypeSymbol(Symbol):
 	def __init__(self, name: Name):
 		super().__init__(name, PossibleReference.Subtype)
+
+
+@export
+class SimpleSubtypeSymbol(SubtypeSymbol):
+	"""A configuration reference in a configuration instantiation."""
 
 	@property
 	def Subtype(self) -> 'Subtype':
@@ -322,19 +325,13 @@ class SimpleSubtypeSymbol(Symbol):
 
 
 @export
-class ConstrainedScalarSubtypeSymbol(Symbol):
+class ConstrainedScalarSubtypeSymbol(SubtypeSymbol):
 	"""A configuration reference in a configuration instantiation."""
-
-	def __init__(self, name: Name):
-		super().__init__(name, PossibleReference.Subtype)
 
 
 @export
-class ConstrainedCompositeSubtypeSymbol(Symbol):
+class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 	"""A configuration reference in a configuration instantiation."""
-
-	def __init__(self, name: Name):
-		super().__init__(name, PossibleReference.Subtype)
 
 
 @export

@@ -57,11 +57,11 @@ class Symbols(TestCase):
 	def test_LibraryReferenceSymbol(self):
 		symbol = LibraryReferenceSymbol(SimpleName("Lib"))
 
-		self.assertEqual("Lib", symbol.Identifier)
-		self.assertEqual("lib", symbol.NormalizedIdentifier)
-		self.assertIs(symbol, symbol.Root)
-		self.assertIsNone(symbol.Prefix)
-		self.assertFalse(symbol.HasPrefix)
+		self.assertEqual("Lib", symbol.Name.Identifier)
+		self.assertEqual("lib", symbol.Name.NormalizedIdentifier)
+		self.assertIs(symbol.Name, symbol.Name.Root)
+		self.assertIsNone(symbol.Name.Prefix)
+		self.assertFalse(symbol.Name.HasPrefix)
 		self.assertFalse(symbol.IsResolved)
 
 		library = Library("liB")
@@ -73,44 +73,41 @@ class Symbols(TestCase):
 	def test_PackageReferenceSymbol(self):
 		symbol = PackageReferenceSymbol(SelectedName("pack", SimpleName("Lib")))
 
-		self.assertEqual("pack", symbol.NormalizedIdentifier)
-		self.assertEqual("lib", symbol.Prefix.NormalizedIdentifier)
-		self.assertTrue(symbol.HasPrefix)
+		self.assertEqual("pack", symbol.Name.NormalizedIdentifier)
+		self.assertEqual("lib", symbol.Name.Prefix.NormalizedIdentifier)
+		self.assertTrue(symbol.Name.HasPrefix)
 
-		library = Library("liB")
+		# library = Library("liB")
 		package = Package("Pack")
 		symbol.Package = package
-		symbol.Prefix.Library = library
 
 		self.assertTrue(symbol.IsResolved)
-		self.assertTrue(symbol.Prefix.IsResolved)
-		self.assertIs(library, symbol.Prefix.Library)
 		self.assertIs(package, symbol.Package)
 
 	def test_PackageMembersReferenceSymbol(self):
 		symbol = PackageMembersReferenceSymbol(SelectedName("obj", SelectedName("pack", SimpleName("Lib"))))
 
-		self.assertEqual("obj", symbol.NormalizedIdentifier)
-		self.assertEqual("pack", symbol.Prefix.NormalizedIdentifier)
-		self.assertEqual("lib", symbol.Prefix.Prefix.NormalizedIdentifier)
+		self.assertEqual("obj", symbol.Name.NormalizedIdentifier)
+		self.assertEqual("pack", symbol.Name.Prefix.NormalizedIdentifier)
+		self.assertEqual("lib", symbol.Name.Prefix.Prefix.NormalizedIdentifier)
 
 	def test_AllPackageMembersReferenceSymbol(self):
 		symbol = AllPackageMembersReferenceSymbol(AllName(SelectedName("pack", SimpleName("Lib"))))
 
-		self.assertEqual("all", symbol.NormalizedIdentifier)
-		self.assertEqual("pack", symbol.Prefix.NormalizedIdentifier)
-		self.assertEqual("lib", symbol.Prefix.Prefix.NormalizedIdentifier)
+		self.assertEqual("all", symbol.Name.NormalizedIdentifier)
+		self.assertEqual("pack", symbol.Name.Prefix.NormalizedIdentifier)
+		self.assertEqual("lib", symbol.Name.Prefix.Prefix.NormalizedIdentifier)
 
 	def test_ContextReferenceSymbol(self):
 		symbol = ContextReferenceSymbol(SelectedName("ctx", SimpleName("Lib")))
 
-		self.assertEqual("ctx", symbol.NormalizedIdentifier)
-		self.assertEqual("lib", symbol.Prefix.NormalizedIdentifier)
+		self.assertEqual("ctx", symbol.Name.NormalizedIdentifier)
+		self.assertEqual("lib", symbol.Name.Prefix.NormalizedIdentifier)
 
 	def test_EntitySymbol(self):
 		symbol = EntitySymbol(SimpleName("ent"))
 
-		self.assertEqual("ent", symbol.NormalizedIdentifier)
+		self.assertEqual("ent", symbol.Name.NormalizedIdentifier)
 
 	# def test_ArchitectureSymbol(self):
 	# 	symbol = ArchitectureSymbol("rtl")
@@ -120,23 +117,23 @@ class Symbols(TestCase):
 	def test_PackageSymbol(self):
 		symbol = PackageSymbol(SimpleName("pack"))
 
-		self.assertEqual("pack", symbol.NormalizedIdentifier)
+		self.assertEqual("pack", symbol.Name.NormalizedIdentifier)
 
 	def test_EntityInstantiationSymbol(self):
 		symbol = EntityInstantiationSymbol(SelectedName("ent", SimpleName("Lib")))
 
-		self.assertEqual("ent", symbol.NormalizedIdentifier)
-		self.assertEqual("lib", symbol.Prefix.NormalizedIdentifier)
+		self.assertEqual("ent", symbol.Name.NormalizedIdentifier)
+		self.assertEqual("lib", symbol.Name.Prefix.NormalizedIdentifier)
 
 	def test_ComponentInstantiationSymbol(self):
 		symbol = ComponentInstantiationSymbol(SimpleName("comp"))
 
-		self.assertEqual("comp", symbol.NormalizedIdentifier)
+		self.assertEqual("comp", symbol.Name.NormalizedIdentifier)
 
 	def test_ConfigurationInstantiationSymbol(self):
 		symbol = ConfigurationInstantiationSymbol(SimpleName("cfg"))
 
-		self.assertEqual("cfg", symbol.NormalizedIdentifier)
+		self.assertEqual("cfg", symbol.Name.NormalizedIdentifier)
 
 
 class SimpleInstance(TestCase):
@@ -188,8 +185,8 @@ class SimpleInstance(TestCase):
 		self.assertEqual(0, len(entity.Statements))
 
 	def test_Architecture(self):
-		entity = EntitySymbol("entity_1")
-		architecture = Architecture("arch_1", entity)
+		entitySymbol = EntitySymbol(SimpleName("entity_1"))
+		architecture = Architecture("arch_1", entitySymbol)
 
 		self.assertIsNotNone(architecture)
 		self.assertEqual("arch_1", architecture.Identifier)
@@ -204,7 +201,7 @@ class SimpleInstance(TestCase):
 		self.assertEqual(0, len(package.DeclaredItems))
 
 	def test_PackageBody(self):
-		packageSymbol = PackageSymbol("pack_1")
+		packageSymbol = PackageSymbol(SimpleName("pack_1"))
 		packageBody = PackageBody(packageSymbol)
 
 		self.assertIsNotNone(packageBody)
@@ -275,8 +272,8 @@ class VHDLDocument(TestCase):
 		path = Path("tests.vhdl")
 		document = Document(path)
 
-		entity = EntitySymbol("entity_1")
-		architecture = Architecture("arch_1", entity)
+		entitySymbol = EntitySymbol(SimpleName("entity_1"))
+		architecture = Architecture("arch_1", entitySymbol)
 		document._AddArchitecture(architecture)
 
 		self.assertEqual(1, len(document.Architectures))
@@ -296,7 +293,7 @@ class VHDLDocument(TestCase):
 		path = Path("tests.vhdl")
 		document = Document(path)
 
-		packageSymbol = PackageSymbol("pack_1")
+		packageSymbol = PackageSymbol(SimpleName("pack_1"))
 		packageBody = PackageBody(packageSymbol)
 		document._AddPackageBody(packageBody)
 
@@ -327,17 +324,17 @@ class VHDLDocument(TestCase):
 		path = Path("tests.vhdl")
 		document = Document(path, documentation="Testing 'Document' class.")
 
-		entity = Entity("entity_1")
-		document._AddDesignUnit(entity)
+		entitySymbol = Entity("entity_1")
+		document._AddDesignUnit(entitySymbol)
 
-		entity = EntitySymbol("entity_1")
-		architecture = Architecture("arch_1", entity)
+		entitySymbol = EntitySymbol(SimpleName("entity_1"))
+		architecture = Architecture("arch_1", entitySymbol)
 		document._AddDesignUnit(architecture)
 
 		package = Package("pack_1")
 		document._AddDesignUnit(package)
 
-		packageSymbol = PackageSymbol("pack_1")
+		packageSymbol = PackageSymbol(SimpleName("pack_1"))
 		packageBody = PackageBody(packageSymbol)
 		document._AddDesignUnit(packageBody)
 
@@ -389,9 +386,9 @@ class VHDLLibrary(TestCase):
 		document = Document(path, documentation="Testing 'Library' class.")
 
 		document._AddDesignUnit(Entity("entity_1"))
-		document._AddDesignUnit(Architecture("arch_1", EntitySymbol("entity_1")))
+		document._AddDesignUnit(Architecture("arch_1", EntitySymbol(SimpleName("entity_1"))))
 		document._AddDesignUnit(Package("pack_1"))
-		document._AddDesignUnit(PackageBody(PackageSymbol("pack_1")))
+		document._AddDesignUnit(PackageBody(PackageSymbol(SimpleName("pack_1"))))
 		document._AddDesignUnit(Context("ctx_1"))
 		document._AddDesignUnit(Configuration("cfg_1"))
 

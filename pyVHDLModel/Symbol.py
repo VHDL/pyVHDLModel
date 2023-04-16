@@ -162,7 +162,7 @@ class PackageReferenceSymbol(Symbol):
 
 
 @export
-class PackageMembersReferenceSymbol(Symbol):
+class PackageMemberReferenceSymbol(Symbol):
 	"""A package member reference in a use clause."""
 
 	def __init__(self, name: Name):
@@ -181,7 +181,7 @@ class PackageMembersReferenceSymbol(Symbol):
 class AllPackageMembersReferenceSymbol(Symbol):
 	"""A package reference in a use clause."""
 
-	def __init__(self, name: Name):
+	def __init__(self, name: AllName):
 		super().__init__(name, PossibleReference.PackageMember)
 
 	@property

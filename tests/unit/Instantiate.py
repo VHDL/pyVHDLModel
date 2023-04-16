@@ -39,7 +39,7 @@ from pyVHDLModel import Design, Library, Document
 from pyVHDLModel.Base import Direction, Range
 from pyVHDLModel.Name import SelectedName, SimpleName, AllName, AttributeName
 from pyVHDLModel.Object import Constant, Signal
-from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMembersReferenceSymbol, SimpleSubtypeSymbol
+from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMemberReferenceSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Symbol import AllPackageMembersReferenceSymbol, ContextReferenceSymbol, EntitySymbol
 from pyVHDLModel.Symbol import ArchitectureSymbol, PackageSymbol, EntityInstantiationSymbol
 from pyVHDLModel.Symbol import ComponentInstantiationSymbol, ConfigurationInstantiationSymbol
@@ -171,15 +171,15 @@ class Symbols(TestCase):
 		self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
 		self.assertEqual("Package: 'liB.pacK'", str(symbol))
 
-	def test_PackageMembersReferenceSymbol(self):
+	def test_PackageMemberReferenceSymbol(self):
 		name = SelectedName("Obj", SelectedName("Pack", SimpleName("Lib")))
-		symbol = PackageMembersReferenceSymbol(name)
+		symbol = PackageMemberReferenceSymbol(name)
 
 		self.assertIs(name, symbol.Name)
 		self.assertFalse(symbol.IsResolved)
 		self.assertIsNone(symbol.Reference)
 		self.assertIsNone(symbol.Member)
-		self.assertEqual("PackageMembersReferenceSymbol: 'Lib.Pack.Obj' -> unresolved", repr(symbol))
+		self.assertEqual("PackageMemberReferenceSymbol: 'Lib.Pack.Obj' -> unresolved", repr(symbol))
 		self.assertEqual("Lib.Pack.Obj?", str(symbol))
 
 		library = Library("liB")

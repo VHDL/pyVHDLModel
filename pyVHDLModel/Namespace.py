@@ -78,7 +78,7 @@ class Namespace(Generic[K, O]):
 		from pyVHDLModel.DesignUnit import Component
 
 		try:
-			element = self._elements[componentSymbol.NormalizedIdentifier]
+			element = self._elements[componentSymbol.Name.NormalizedIdentifier]
 			if isinstance(element, Component):
 				return element
 			else:

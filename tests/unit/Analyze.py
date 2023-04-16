@@ -69,7 +69,7 @@ class VHDLLibrary(TestCase):
 
 		entityAReferences = [
 			# UseClause([
-			# 	PackageMembersReferenceSymbol("Stop", PackageReferenceSymbol("env", LibraryReferenceSymbol("std"))),
+			# 	PackageMemberReferenceSymbol("Stop", PackageReferenceSymbol("env", LibraryReferenceSymbol("std"))),
 			# ]),
 			LibraryClause([
 				LibraryReferenceSymbol(SimpleName("ieee")),

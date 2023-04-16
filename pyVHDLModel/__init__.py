@@ -64,7 +64,7 @@ from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegiste
 from pyVHDLModel.Exception     import ArchitectureExistsInLibraryError, PackageExistsInLibraryError, PackageBodyExistsError, ConfigurationExistsInLibraryError
 from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLibraryNotExistingError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
-from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, PackageMembersReferenceSymbol
+from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation
 from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, Configuration, Package
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode
@@ -704,7 +704,7 @@ class Design(ModelEntity):
 					if isinstance(symbol, AllPackageMembersReferenceSymbol):
 						pass
 
-					elif isinstance(symbol, PackageMembersReferenceSymbol):
+					elif isinstance(symbol, PackageMemberReferenceSymbol):
 						raise NotImplementedError()
 					else:
 						raise VHDLModelException()
@@ -848,7 +848,7 @@ class Design(ModelEntity):
 						for componentIdentifier, component in package._components.items():
 							designUnit._namespace._elements[componentIdentifier] = component
 
-					elif isinstance(packageMemeberSymbol, PackageMembersReferenceSymbol):
+					elif isinstance(packageMemeberSymbol, PackageMemberReferenceSymbol):
 						raise NotImplementedError()
 					else:
 						raise VHDLModelException()

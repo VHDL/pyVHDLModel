@@ -36,7 +36,7 @@ from pyTooling.Decorators    import export
 
 from pyVHDLModel             import Library
 from pyVHDLModel.Name        import SimpleName, SelectedName, AllName
-from pyVHDLModel.Symbol      import LibraryReferenceSymbol, PackageMembersReferenceSymbol, AllPackageMembersReferenceSymbol, PackageSymbol
+from pyVHDLModel.Symbol      import LibraryReferenceSymbol, PackageMemberReferenceSymbol, AllPackageMembersReferenceSymbol, PackageSymbol
 from pyVHDLModel.DesignUnit  import LibraryClause, UseClause, Package, PackageBody
 
 
@@ -77,7 +77,7 @@ class PredefinedMixin:
 			if members.lower() == "all":
 				symbols.append(AllPackageMembersReferenceSymbol(AllName(packageName)))
 			else:
-				symbols.append(PackageMembersReferenceSymbol(SelectedName(members, packageName)))
+				symbols.append(PackageMemberReferenceSymbol(SelectedName(members, packageName)))
 
 		useClause = UseClause(symbols)
 		self._contextItems.append(useClause)

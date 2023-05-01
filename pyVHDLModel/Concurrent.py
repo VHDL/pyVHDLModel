@@ -38,9 +38,10 @@ from typing                  import List, Dict, Union, Iterable, Generator, Opti
 
 from pyTooling.Decorators    import export
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range, BaseChoice, BaseCase, IfBranchMixin, \
-	ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement
-from pyVHDLModel.Namespace       import Namespace
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range, BaseChoice, BaseCase, IfBranchMixin
+from pyVHDLModel.Base        import ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement
+from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin
+from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
 from pyVHDLModel.Interface   import PortInterfaceItem
@@ -90,26 +91,26 @@ class ConcurrentStatements:
 			yield from generate.IterateInstantiations()
 
 	# TODO: move into _init__
-	def Index(self):
+	def IndexStatements(self):
 		for statement in self._statements:
-			if isinstance(statement, EntityInstantiation):
+			if isinstance(statement, (EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation)):
 				self._instantiations[statement.NormalizedLabel] = statement
-			elif isinstance(statement, ComponentInstantiation):
-				self._instantiations[statement.NormalizedLabel] = statement
-			elif isinstance(statement, ConfigurationInstantiation):
-				self._instantiations[statement.NormalizedLabel] = statement
-			elif isinstance(statement, ForGenerateStatement):
+			# elif isinstance(statement, ComponentInstantiation):
+			# 	self._instantiations[statement.NormalizedLabel] = statement
+			# elif isinstance(statement, ConfigurationInstantiation):
+			# 	self._instantiations[statement.NormalizedLabel] = statement
+			elif isinstance(statement, (ForGenerateStatement, IfGenerateStatement, CaseGenerateStatement)):
 				self._generates[statement.NormalizedLabel] = statement
-				statement.Index()
-			elif isinstance(statement, IfGenerateStatement):
-				self._generates[statement.NormalizedLabel] = statement
-				statement.Index()
-			elif isinstance(statement, CaseGenerateStatement):
-				self._generates[statement.NormalizedLabel] = statement
-				statement.Index()
+				statement.IndexStatement()
+			# elif isinstance(statement, IfGenerateStatement):
+			# 	self._generates[statement.NormalizedLabel] = statement
+			# 	statement.IndexStatement()
+			# elif isinstance(statement, CaseGenerateStatement):
+			# 	self._generates[statement.NormalizedLabel] = statement
+			# 	statement.IndexStatement()
 			elif isinstance(statement, ConcurrentBlockStatement):
 				self._hierarchy[statement.NormalizedLabel] = statement
-				statement.Index()
+				statement.IndexStatement()
 
 
 @export
@@ -234,26 +235,8 @@ class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCall):
 		ProcedureCall.__init__(self, procedureName, parameterMappings)
 
 
-# FIXME: Why not used in package, package body
 @export
-class ConcurrentDeclarations:
-	_declaredItems: List  # FIXME: define list prefix type e.g. via Union
-
-	def __init__(self, declaredItems: Iterable = None):
-		# TODO: extract to mixin
-		self._declaredItems = []  # TODO: convert to dict
-		if declaredItems is not None:
-			for item in declaredItems:
-				self._declaredItems.append(item)
-				item._parent = self
-
-	@property
-	def DeclaredItems(self) -> List:
-		return self._declaredItems
-
-
-@export
-class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, LabeledEntityMixin, ConcurrentDeclarations, ConcurrentStatements, DocumentedEntityMixin):
+class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatements, DocumentedEntityMixin):
 	_portItems:     List[PortInterfaceItem]
 
 	def __init__(
@@ -267,7 +250,7 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, Labeled
 		super().__init__(label)
 		BlockStatementMixin.__init__(self)
 		LabeledEntityMixin.__init__(self, label)
-		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 
@@ -284,7 +267,7 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, Labeled
 
 
 @export
-class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
+class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
 	"""A ``GenerateBranch`` is a base-class for all branches in a generate statements."""
 
 	_alternativeLabel:           Nullable[str]
@@ -294,7 +277,7 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarations, ConcurrentStatements):
 
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
-		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
 		self._alternativeLabel = alternativeLabel
@@ -348,7 +331,7 @@ class GenerateStatement(ConcurrentStatement):
 		raise NotImplementedError()
 
 	# @mustoverride
-	def Index(self) -> None:
+	def IndexStatement(self) -> None:
 		raise NotImplementedError()
 
 
@@ -395,7 +378,7 @@ class IfGenerateStatement(GenerateStatement):
 		if self._elseBranch is not None:
 			yield from self._ifBranch.IterateInstantiations()
 
-	def Index(self) -> None:
+	def IndexStatement(self) -> None:
 		self._ifBranch.Index()
 		for branch in self._elsifBranches:
 			branch.Index()
@@ -409,11 +392,11 @@ class ConcurrentChoice(BaseChoice):
 
 
 @export
-class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarations, ConcurrentStatements):
+class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
 		LabeledEntityMixin.__init__(self, alternativeLabel)
-		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
 
@@ -476,19 +459,19 @@ class CaseGenerateStatement(GenerateStatement):
 		for case in self._cases:
 			yield from case.IterateInstantiations()
 
-	def Index(self):
+	def IndexStatement(self):
 		for case in self._cases:
 			case.Index()
 
 
 @export
-class ForGenerateStatement(GenerateStatement, ConcurrentDeclarations, ConcurrentStatements):
+class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
 	_loopIndex: str
 	_range:     Range
 
 	def __init__(self, label: str, loopIndex: str, rng: Range, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
 		super().__init__(label)
-		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
 		self._loopIndex = loopIndex
@@ -506,13 +489,11 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarations, Concurrent
 
 	IterateInstantiations = ConcurrentStatements.IterateInstantiations
 
-	Index = ConcurrentStatements.Index
+	# IndexDeclaredItems = ConcurrentStatements.IndexDeclaredItems
+	IndexStatements = ConcurrentStatements.IndexStatements
 
 	# def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
 	# 	return ConcurrentStatements.IterateInstantiations(self)
-	#
-	# def Index(self) -> None:
-	# 	return ConcurrentStatements.Index(self)
 
 
 @export

@@ -42,12 +42,11 @@ from pyTooling.Graph import Vertex
 from pyVHDLModel.Exception  import VHDLModelException
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Namespace  import Namespace
+from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin
 from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol
 from pyVHDLModel.Interface  import GenericInterfaceItem, PortInterfaceItem
-from pyVHDLModel.Subprogram import Procedure, Function, Subprogram
-from pyVHDLModel.Object     import Constant, Variable, SharedVariable, Signal, File
-from pyVHDLModel.Type       import Type, Subtype
-from pyVHDLModel.Concurrent import ConcurrentStatement, ConcurrentStatements, ConcurrentDeclarations
+from pyVHDLModel.Object     import DeferredConstant
+from pyVHDLModel.Concurrent import ConcurrentStatement, ConcurrentStatements
 
 
 ContextUnion = Union[
@@ -283,20 +282,17 @@ class Context(PrimaryUnit):
 
 
 @export
-class Package(PrimaryUnit, DesignUnitWithContextMixin):
+class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin):
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
-	_types:      Dict[str, Union[Type, Subtype]]
-	_objects:    Dict[str, Union[Constant, Variable, Signal]]
-	_constants:  Dict[str, Constant]
-	_functions:  Dict[str, Dict[str, Function]]
-	_procedures: Dict[str, Dict[str, Procedure]]
-	_components: Dict[str, 'Component']
+	_deferredConstants: Dict[str, DeferredConstant]
+	_components:        Dict[str, 'Component']
 
 	def __init__(self, identifier: str, contextItems: Iterable['Context'] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)
+		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 
 		# TODO: extract to mixin
 		self._genericItems = []  # TODO: convert to dict
@@ -305,22 +301,8 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 				self._genericItems.append(generic)
 				generic._parent = self
 
-		# TODO: extract to mixin
-		self._declaredItems = []  # TODO: convert to dict
-		if declaredItems is not None:
-			for item in declaredItems:
-				self._declaredItems.append(item)
-				item._parent = self
-
-		self._types =       {}
-		self._objects =     {}
-		self._constants =   {}
-		self._sharedVariables = {}
-		self._signals =     {}
-		self._subprograms = {}
-		self._functions =   {}
-		self._procedures =  {}
-		self._components =  {}
+		self._deferredConstants = {}
+		self._components = {}
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItem]:
@@ -331,56 +313,21 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 		return self._declaredItems
 
 	@property
-	def Types(self) -> Dict[str, Union[Type, Subtype]]:
-		return self._types
+	def DeferredConstants(self):
+		return self._deferredConstants
 
 	@property
-	def Objects(self) -> Dict[str, Union[Constant, SharedVariable, Signal, File]]:
-		return self._objects
+	def Components(self):
+		return self._components
 
-	@property
-	def Constants(self) -> Dict[str, Constant]:
-		return self._constants
-
-	@property
-	def Subprograms(self) -> Dict[str, Subprogram]:
-		return self._subprograms
-
-	@property
-	def Functions(self) -> Dict[str, Dict[str, Function]]:
-		return self._functions
-
-	@property
-	def Procedures(self) -> Dict[str, Dict[str, Procedure]]:
-		return self._procedures
-
-	# TODO: move into __init__ ?
-	# TODO: share with architecture and block statement?
-	def IndexPackage(self):
-		for item in self._declaredItems:
-			if isinstance(item, Type):
-				print(item)
-			elif isinstance(item, Subtype):
-				print(item)
-			elif isinstance(item, Function):
-				print(item)
-			elif isinstance(item, Procedure):
-				print(item)
-			elif isinstance(item, Constant):
-				for identifier in item.Identifiers:
-					normalizedIdentifier = identifier.lower()
-					self._constants[normalizedIdentifier] = item
-					self._objects[normalizedIdentifier] = item
-			elif isinstance(item, Variable):
-				for identifier in item.Identifiers:
-					self._objects[identifier.lower()] = item
-			elif isinstance(item, Signal):
-				for identifier in item.Identifiers:
-					self._objects[identifier.lower()] = item
-			elif isinstance(item, Component):
-				self._components[item.NormalizedIdentifier] = item
-			else:
-				print(item)
+	def _IndexOtherDeclaredItem(self, item):
+		if isinstance(item, DeferredConstant):
+			for normalizedIdentifier in item.NormalizedIdentifiers:
+				self._deferredConstants[normalizedIdentifier] = item
+		elif isinstance(item, Component):
+			self._components[item.NormalizedIdentifier] = item
+		else:
+			super()._IndexOtherDeclaredItem(item)
 
 	def __str__(self) -> str:
 		lib = self._library.Identifier if self._library is not None else "%"
@@ -394,23 +341,17 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin):
 
 
 @export
-class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
+class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin):
 	_package: PackageSymbol
 	_declaredItems:     List
 
 	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable['Context'] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(packageSymbol.Name.Identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)
+		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 
 		self._package = packageSymbol
 		packageSymbol._parent = self
-
-		# TODO: extract to mixin
-		self._declaredItems = []  # TODO: convert to dict
-		if declaredItems is not None:
-			for item in declaredItems:
-				self._declaredItems.append(item)
-				item._parent = self
 
 	@property
 	def Package(self) -> PackageSymbol:
@@ -419,9 +360,6 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 	@property
 	def DeclaredItems(self) -> List:
 		return self._declaredItems
-
-	def IndexPackageBody(self):
-		pass
 
 	def LinkDeclaredItemsToPackage(self):
 		pass
@@ -438,7 +376,7 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin):
 
 
 @export
-class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, ConcurrentStatements):
+class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
 	_genericItems:  List[GenericInterfaceItem]
 	_portItems:     List[PortInterfaceItem]
 
@@ -456,7 +394,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, Co
 	):
 		super().__init__(identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)
-		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
 		# TODO: extract to mixin
@@ -503,14 +441,14 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, Co
 
 
 @export
-class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarations, ConcurrentStatements):
+class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
 	_library:       'Library' = None
 	_entity: EntitySymbol
 
 	def __init__(self, identifier: str, entity: EntitySymbol, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None, documentation: str = None):
 		super().__init__(identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)
-		ConcurrentDeclarations.__init__(self, declaredItems)
+		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatements.__init__(self, statements)
 
 		self._entity = entity
@@ -537,7 +475,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 
 	def __repr__(self) -> str:
 		lib = self._library.Identifier if self._library is not None else "%"
-		ent = self._entity.Identifier if self._entity is not None else "%"
+		ent = self._entity.Name.Identifier if self._entity is not None else "%"
 
 		return f"{lib}.{ent}({self.Identifier})"
 

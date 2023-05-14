@@ -387,7 +387,7 @@ class Design(ModelEntity):
 	A ``Design`` represents all loaded and analysed files (see :class:`~pyVHDLModel.Document`). It's the root of this
 	document-object-model (DOM). It contains at least one VHDL library (see :class:`~pyVHDLModel.Library`).
 	"""
-	name:               Nullable[str]         #: Name of the design
+	_name:              Nullable[str]         #: Name of the design
 	_libraries:         Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:         List['Document']      #: List of all documents loaded for a design.
 	_dependencyGraph:   Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
@@ -404,7 +404,7 @@ class Design(ModelEntity):
 		"""
 		super().__init__()
 
-		self.name =       name
+		self._name =      name
 		self._libraries = {}
 		self._documents = []
 
@@ -1076,7 +1076,7 @@ class Design(ModelEntity):
 		raise NotImplementedError()
 
 	def __repr__(self) -> str:
-		return f"Design: {self._nane}"
+		return f"Design: {self._name}"
 
 	__str__ = __repr__
 

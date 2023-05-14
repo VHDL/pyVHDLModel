@@ -1163,7 +1163,7 @@ class Design(ModelEntity):
 			e["kind"] = DependencyGraphEdgeKind.CompileOrder
 
 	def IterateDocumentsInCompileOrder(self) -> Generator['Document', None, None]:
-		if self._compileOrderGraph.EdgeCount == 0:
+		if self._compileOrderGraph.EdgeCount < self._compileOrderGraph.VertexCount - 1:
 			raise VHDLModelException(f"Compile order is not yet computed from dependency graph.")
 
 		for compileOrderNode in self._compileOrderGraph.IterateTopologically():

@@ -701,14 +701,14 @@ class Design(ModelEntity):
 						libraryIdentifier = library.NormalizedIdentifier
 					elif libraryIdentifier not in context._referencedLibraries:
 						# TODO: This check doesn't trigger if it's the working library.
-						raise VHDLModelException(f"Use clause references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
+						raise VHDLModelException(f"Use clause references library '{librarySymbol.Name.Identifier}', which was not referenced by a library clause.")
 					else:
 						library = self._libraries[libraryIdentifier]
 
 					try:
 						package = library._packages[packageIdentifier]
 					except KeyError:
-						raise VHDLModelException(f"Package '{packageSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+						raise VHDLModelException(f"Package '{packageSymbol.Name.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
 
 					librarySymbol.Library = library
 					packageSymbol.Package = package
@@ -784,7 +784,7 @@ class Design(ModelEntity):
 					try:
 						library = self._libraries[libraryIdentifier]
 					except KeyError:
-						raise VHDLModelException(f"Library '{librarySymbol.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+						raise VHDLModelException(f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
 
 					librarySymbol.Library = library
 					designUnit._referencedLibraries[libraryIdentifier] = library
@@ -832,8 +832,8 @@ class Design(ModelEntity):
 
 			for packageReference in designUnit.PackageReferences:
 				# A use clause can have multiple comma-separated references
-				for packageMemeberSymbol in packageReference.Symbols:
-					packageName = packageMemeberSymbol.Name.Prefix
+				for packageMemberSymbol in packageReference.Symbols:
+					packageName = packageMemberSymbol.Name.Prefix
 					libraryName = packageName.Prefix
 
 					libraryIdentifier = libraryName.NormalizedIdentifier
@@ -852,9 +852,11 @@ class Design(ModelEntity):
 					try:
 						package = library._packages[packageIdentifier]
 					except KeyError:
-						raise VHDLModelException(f"Package '{packageName.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+						ex = VHDLModelException(f"Package '{packageName.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+						ex.add_note(f"Caused in design unit '{designUnit}' in file '{designUnit.Document}'.")
+						raise ex
 
-					packageMemeberSymbol.Package = package
+					packageMemberSymbol.Package = package
 
 					# TODO: warn duplicate package reference
 					designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
@@ -863,11 +865,11 @@ class Design(ModelEntity):
 					dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 					# TODO: update the namespace with visible members
-					if isinstance(packageMemeberSymbol, AllPackageMembersReferenceSymbol):
+					if isinstance(packageMemberSymbol, AllPackageMembersReferenceSymbol):
 						for componentIdentifier, component in package._components.items():
 							designUnit._namespace._elements[componentIdentifier] = component
 
-					elif isinstance(packageMemeberSymbol, PackageMemberReferenceSymbol):
+					elif isinstance(packageMemberSymbol, PackageMemberReferenceSymbol):
 						raise NotImplementedError()
 					else:
 						raise VHDLModelException()
@@ -895,7 +897,7 @@ class Design(ModelEntity):
 					try:
 						referencedContext = referencedLibrary._contexts[contextIdentifier]
 					except KeyError:
-						raise VHDLModelException(f"Context '{contextSymbol.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{referencedLibrary.Identifier}'.")
+						raise VHDLModelException(f"Context '{contextSymbol.Name.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{referencedLibrary.Identifier}'.")
 
 					contextSymbol.Package = referencedContext
 
@@ -963,8 +965,8 @@ class Design(ModelEntity):
 					try:
 						entity = library._entities[instance.Entity.Name.NormalizedIdentifier]
 					except KeyError:
-						ex = VHDLModelException(f"Referenced entity '{instance.Entity.Identifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in {'working ' if instance.Entity.Prefix.NormalizedIdentifier == 'work' else ''}library '{libraryIdentifier}'.")
-						libs = [library.Identifier for library in self._libraries.values() for entityIdentifier in library._entities.keys() if entityIdentifier == instance.Entity.NormalizedIdentifier]
+						ex = VHDLModelException(f"Referenced entity '{instance.Entity.Name.Identifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Name.Prefix.Identifier}.{instance.Entity.Name.Identifier}' not found in {'working ' if instance.Entity.Name.Prefix.NormalizedIdentifier == 'work' else ''}library '{libraryIdentifier}'.")
+						libs = [library.Identifier for library in self._libraries.values() for entityIdentifier in library._entities.keys() if entityIdentifier == instance.Entity.Name.NormalizedIdentifier]
 						if libs:
 							ex.add_note(f"Found entity '{instance.Entity!s}' in other libraries: {', '.join(libs)}")
 						raise ex

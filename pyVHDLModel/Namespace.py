@@ -82,10 +82,10 @@ class Namespace(Generic[K, O]):
 			if isinstance(element, Component):
 				return element
 			else:
-				raise TypeError(f"Found element '{componentSymbol.Identifier}', but it is not a component.")
+				raise TypeError(f"Found element '{componentSymbol.Name.Identifier}', but it is not a component.")
 		except KeyError:
 			parentNamespace = self._parentNamespace
 			if parentNamespace is None:
-				raise KeyError(f"Component '{componentSymbol.Identifier}' not found in '{self._name}'.")
+				raise KeyError(f"Component '{componentSymbol.Name.Identifier}' not found in '{self._name}'.")
 
 			return parentNamespace.FindComponent(componentSymbol)

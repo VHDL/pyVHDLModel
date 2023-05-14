@@ -95,19 +95,9 @@ class ConcurrentStatements:
 		for statement in self._statements:
 			if isinstance(statement, (EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation)):
 				self._instantiations[statement.NormalizedLabel] = statement
-			# elif isinstance(statement, ComponentInstantiation):
-			# 	self._instantiations[statement.NormalizedLabel] = statement
-			# elif isinstance(statement, ConfigurationInstantiation):
-			# 	self._instantiations[statement.NormalizedLabel] = statement
 			elif isinstance(statement, (ForGenerateStatement, IfGenerateStatement, CaseGenerateStatement)):
 				self._generates[statement.NormalizedLabel] = statement
 				statement.IndexStatement()
-			# elif isinstance(statement, IfGenerateStatement):
-			# 	self._generates[statement.NormalizedLabel] = statement
-			# 	statement.IndexStatement()
-			# elif isinstance(statement, CaseGenerateStatement):
-			# 	self._generates[statement.NormalizedLabel] = statement
-			# 	statement.IndexStatement()
 			elif isinstance(statement, ConcurrentBlockStatement):
 				self._hierarchy[statement.NormalizedLabel] = statement
 				statement.IndexStatement()

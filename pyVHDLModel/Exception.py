@@ -315,7 +315,7 @@ class ReferencedLibraryNotExistingError(VHDLModelException):
 	"""
 	This exception is raised, when a library is referenced by a `library clause`, but doesn't exist in the design.
 
-	Message: :pycode:`f"Library '{librarySymbol.Identifier}' referenced by library clause of context '{context.Identifier}' doesn't exist in design."`
+	Message: :pycode:`f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of context '{context.Identifier}' doesn't exist in design."`
 	"""
 
 	_librarySymbol: Symbol
@@ -328,7 +328,7 @@ class ReferencedLibraryNotExistingError(VHDLModelException):
 		:param context:       The context that already exists in the library.
 		:param librarySymbol: The library that already contains the context.
 		"""
-		super().__init__(f"Library '{librarySymbol.Identifier}' referenced by library clause of context '{context.Identifier}' doesn't exist in design.")
+		super().__init__(f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of context '{context.Identifier}' doesn't exist in design.")
 		self._librarySymbol = librarySymbol
 		self._context = context
 

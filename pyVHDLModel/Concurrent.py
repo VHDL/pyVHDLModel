@@ -100,7 +100,7 @@ class ConcurrentStatements:
 				statement.IndexStatement()
 			elif isinstance(statement, ConcurrentBlockStatement):
 				self._hierarchy[statement.NormalizedLabel] = statement
-				statement.IndexStatement()
+				statement.IndexStatements()
 
 
 @export
@@ -369,11 +369,11 @@ class IfGenerateStatement(GenerateStatement):
 			yield from self._ifBranch.IterateInstantiations()
 
 	def IndexStatement(self) -> None:
-		self._ifBranch.Index()
+		self._ifBranch.IndexStatements()
 		for branch in self._elsifBranches:
-			branch.Index()
+			branch.IndexStatements()
 		if self._elseBranch is not None:
-			self._elseBranch.Index()
+			self._elseBranch.IndexStatements()
 
 
 @export
@@ -451,7 +451,7 @@ class CaseGenerateStatement(GenerateStatement):
 
 	def IndexStatement(self):
 		for case in self._cases:
-			case.Index()
+			case.IndexStatements()
 
 
 @export
@@ -480,6 +480,10 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 	IterateInstantiations = ConcurrentStatements.IterateInstantiations
 
 	# IndexDeclaredItems = ConcurrentStatements.IndexDeclaredItems
+
+	def IndexStatement(self) -> None:
+		self.IndexStatements()
+
 	IndexStatements = ConcurrentStatements.IndexStatements
 
 	# def IterateInstantiations(self) -> Generator[Instantiation, None, None]:

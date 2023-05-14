@@ -41,7 +41,7 @@ from pyTooling.Decorators import export
 from pyVHDLModel import Signal
 from pyVHDLModel.Object import Constant, SharedVariable, File, Variable
 from pyVHDLModel.Subprogram import Subprogram, Function, Procedure
-from pyVHDLModel.Type import Type, Subtype
+from pyVHDLModel.Type import Type, Subtype, FullType
 
 
 @export
@@ -50,7 +50,8 @@ class ConcurrentDeclarationRegionMixin:
 
 	# _attributes:     Dict[str, Attribute]
 	# _aliases:        Dict[str, Alias]
-	_types:           Dict[str, Union[Type, Subtype]]
+	_types:           Dict[str, FullType]
+	_subtypes:        Dict[str, Subtype]
 	# _objects:        Dict[str, Union[Constant, Variable, Signal]]
 	_constants:       Dict[str, Constant]
 	_signals:         Dict[str, Signal]
@@ -69,6 +70,7 @@ class ConcurrentDeclarationRegionMixin:
 				item._parent = self
 
 		self._types =       {}
+		self._subtypes =    {}
 		# self._objects =     {}
 		self._constants =   {}
 		self._signals =     {}
@@ -83,8 +85,12 @@ class ConcurrentDeclarationRegionMixin:
 		return self._declaredItems
 
 	@property
-	def Types(self) -> Dict[str, Union[Type, Subtype]]:
+	def Types(self) -> Dict[str, FullType]:
 		return self._types
+
+	@property
+	def Subtypes(self) -> Dict[str, Subtype]:
+		return self._subtypes
 
 	# @property
 	# def Objects(self) -> Dict[str, Union[Constant, SharedVariable, Signal, File]]:
@@ -120,14 +126,14 @@ class ConcurrentDeclarationRegionMixin:
 
 	def IndexDeclaredItems(self):
 		for item in self._declaredItems:
-			if isinstance(item, Type):
-				print(item)
+			if isinstance(item, FullType):
+				self._types[item.NormalizedIdentifier] = item
 			elif isinstance(item, Subtype):
-				print(item)
+				self._subtypes[item.NormalizedIdentifier] = item
 			elif isinstance(item, Function):
-				print(item)
+				self._functions[item.NormalizedIdentifier] = item
 			elif isinstance(item, Procedure):
-				print(item)
+				self._procedures[item.NormalizedIdentifier] = item
 			elif isinstance(item, Constant):
 				for normalizedIdentifier in item.NormalizedIdentifiers:
 					self._constants[normalizedIdentifier] = item
@@ -136,7 +142,7 @@ class ConcurrentDeclarationRegionMixin:
 				for normalizedIdentifier in item.NormalizedIdentifiers:
 					self._signals[normalizedIdentifier] = item
 			elif isinstance(item, Variable):
-				print(item.Identifiers)
+				print(f"IndexDeclaredItems - {item.Identifiers}")
 			elif isinstance(item, SharedVariable):
 				for normalizedIdentifier in item.NormalizedIdentifiers:
 					self._sharedVariables[normalizedIdentifier] = item
@@ -147,4 +153,4 @@ class ConcurrentDeclarationRegionMixin:
 				self._IndexOtherDeclaredItem(item)
 
 	def _IndexOtherDeclaredItem(self, item):
-		print(item)
+		print(f"_IndexOtherDeclaredItem - {item}\n  ({' -> '.join(t.__name__ for t in type(item).mro())})")

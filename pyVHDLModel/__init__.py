@@ -369,16 +369,26 @@ class DependencyGraphEdgeKind(Flag):
 
 @export
 @unique
-class ObjectGraphKind(Flag):
+class ObjectGraphVertexKind(Flag):
 	Type = auto()
 	Subtype = auto()
 
 	Constant = auto()
+	DeferredConstant = auto()
 	Variable = auto()
 	Signal = auto()
 	File = auto()
 
 	Alias = auto()
+
+
+@export
+@unique
+class ObjectGraphEdgeKind(Flag):
+	BaseType = auto()
+	Subtype = auto()
+
+	ReferenceInExpression = auto()
 
 
 @export
@@ -435,6 +445,10 @@ class Design(ModelEntity):
 	@property
 	def HierarchyGraph(self) -> Graph:
 		return self._hierarchyGraph
+
+	@property
+	def ObjectGraph(self) -> Graph:
+		return self._objectGraph
 
 	@property
 	def TopLevel(self) -> 'Entity':
@@ -574,7 +588,7 @@ class Design(ModelEntity):
 
 	def Analyze(self) -> None:
 		self.AnalyzeDependencies()
-		self.AnalyzeTypesAndObjects()
+		self.AnalyzeObjects()
 
 	def AnalyzeDependencies(self) -> None:
 		self.CreateDependencyGraph()
@@ -594,6 +608,12 @@ class Design(ModelEntity):
 		self.LinkInstantiations()
 		self.CreateHierarchyGraph()
 		self.ComputeCompileOrder()
+
+	def AnalyzeObjects(self) -> None:
+		self.IndexEntities()
+		self.IndexPackageBodies()
+
+		self.CreateTypeAndObjectGraph()
 
 	def CreateDependencyGraph(self) -> None:
 		predefinedLibraries = ("std", "ieee")
@@ -653,6 +673,88 @@ class Design(ModelEntity):
 			for designUnit in document._designUnits:
 				edge = dependencyVertex.EdgeFromVertex(designUnit._dependencyVertex)
 				edge["kind"] = DependencyGraphEdgeKind.SourceFile
+
+	def CreateTypeAndObjectGraph(self) -> None:
+		def _HandlePackage(package):
+			packagePrefix = f"{package.Library.NormalizedIdentifier}.{package.NormalizedIdentifier}"
+
+			for deferredConstant in package._deferredConstants.values():
+				print(f"Deferred Constant: {deferredConstant}")
+				deferredConstantVertex = Vertex(
+					vertexID=f"{packagePrefix}.{deferredConstant.NormalizedIdentifiers[0]}",
+					value=deferredConstant,
+					graph=self._objectGraph
+				)
+				deferredConstantVertex["kind"] = ObjectGraphVertexKind.DeferredConstant
+				deferredConstant._objectVertex = deferredConstantVertex
+
+			for constant in package._constants.values():
+				print(f"Constant: {constant}")
+				constantVertex = Vertex(
+					vertexID=f"{packagePrefix}.{constant.NormalizedIdentifiers[0]}",
+					value=constant,
+					graph=self._objectGraph
+				)
+				constantVertex["kind"] = ObjectGraphVertexKind.Constant
+				constant._objectVertex = constantVertex
+
+			for type in package._types.values():
+				print(f"Type: {type}")
+				typeVertex = Vertex(
+					vertexID=f"{packagePrefix}.{type.NormalizedIdentifier}",
+					value=type,
+					graph=self._objectGraph
+				)
+				typeVertex["kind"] = ObjectGraphVertexKind.Type
+				type._objectVertex = typeVertex
+
+			for subtype in package._subtypes.values():
+				print(f"Subtype: {subtype}")
+				subtypeVertex = Vertex(
+					vertexID=f"{packagePrefix}.{subtype.NormalizedIdentifier}",
+					value=subtype,
+					graph=self._objectGraph
+				)
+				subtypeVertex["kind"] = ObjectGraphVertexKind.Subtype
+				subtype._objectVertex = subtypeVertex
+
+			for function in package._functions.values():
+				print(f"Function: {function}")
+				functionVertex = Vertex(
+					vertexID=f"{packagePrefix}.{function.NormalizedIdentifier}",
+					value=function,
+					graph=self._objectGraph
+				)
+				functionVertex["kind"] = ObjectGraphVertexKind.Function
+				function._objectVertex = functionVertex
+
+			for procedure in package._procedures.values():
+				print(f"Procedure: {procedure}")
+				procedureVertex = Vertex(
+					vertexID=f"{packagePrefix}.{procedure.NormalizedIdentifier}",
+					value=procedure,
+					graph=self._objectGraph
+				)
+				procedureVertex["kind"] = ObjectGraphVertexKind.Function
+				procedure._objectVertex = procedureVertex
+
+			for signal in package._signals.values():
+				print(f"Signal: {signal}")
+				signalVertex = Vertex(
+					vertexID=f"{packagePrefix}.{signal.NormalizedIdentifiers[0]}",
+					value=signal,
+					graph=self._objectGraph
+				)
+				signalVertex["kind"] = ObjectGraphVertexKind.Signal
+				signal._objectVertex = signalVertex
+
+		for libraryName in ("std", "ieee"):
+			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
+				_HandlePackage(package)
+
+		for document in self.IterateDocumentsInCompileOrder():
+			for package in document.IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
+				_HandlePackage(package)
 
 	def LinkContexts(self) -> None:
 		for context in self.IterateDesignUnits(DesignUnitKind.Context):  # type: Context
@@ -992,6 +1094,14 @@ class Design(ModelEntity):
 		for library in self._libraries.values():
 			library.IndexPackages()
 
+	def IndexPackageBodies(self) -> None:
+		for library in self._libraries.values():
+			library.IndexPackageBodies()
+
+	def IndexEntities(self) -> None:
+		for library in self._libraries.values():
+			library.IndexEntities()
+
 	def IndexArchitectures(self) -> None:
 		for library in self._libraries.values():
 			library.IndexArchitectures()
@@ -1051,21 +1161,6 @@ class Design(ModelEntity):
 
 			e = sourceVertex["dependencyVertex"].EdgeToVertex(destinationVertex["dependencyVertex"])
 			e["kind"] = DependencyGraphEdgeKind.CompileOrder
-
-	def AnalyzeTypesAndObjects(self):
-		for document in self.IterateDocumentsInCompileOrder():
-			for package in document.IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				for constant in package._constants.values():
-					print(f"Constant: {constant}")
-					constantVertex = Vertex(value=constant, graph=self._objectGraph)
-					constantVertex["kind"] = ObjectGraphKind.Constant
-					constant._objectVertex = constantVertex
-
-				for signal in package._signals.values():
-					print(f"Signal: {signal}")
-					signalVertex = Vertex(value=signal, graph=self._objectGraph)
-					signalVertex["kind"] = ObjectGraphKind.Signal
-					signal._objectVertex = signalVertex
 
 	def IterateDocumentsInCompileOrder(self) -> Generator['Document', None, None]:
 		if self._compileOrderGraph.EdgeCount == 0:

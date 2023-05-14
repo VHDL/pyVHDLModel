@@ -35,9 +35,12 @@ from typing                  import Iterable
 from pyTooling.Decorators    import export
 
 from pyVHDLModel             import Library
+from pyVHDLModel.Base        import Range, Direction
+from pyVHDLModel.Expression  import EnumerationLiteral, IntegerLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Name        import SimpleName, SelectedName, AllName
-from pyVHDLModel.Symbol      import LibraryReferenceSymbol, PackageMemberReferenceSymbol, AllPackageMembersReferenceSymbol, PackageSymbol
+from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageMemberReferenceSymbol, AllPackageMembersReferenceSymbol, PackageSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.DesignUnit  import LibraryClause, UseClause, Package, PackageBody
+from pyVHDLModel.Type import EnumeratedType, IntegerType, Subtype, PhysicalType, ArrayType
 
 
 @export
@@ -105,7 +108,97 @@ class Std(PredefinedLibrary):
 
 @export
 class Standard(PredefinedPackage):
-	pass
+	def __init__(self):
+		super().__init__()
+
+		boolean = EnumeratedType("boolean", (EnumerationLiteral("false"), EnumerationLiteral("true")))
+		self._types[boolean.NormalizedIdentifier] = boolean
+
+		bit = EnumeratedType("bit", (EnumerationLiteral("'0'"), EnumerationLiteral("'1'")))
+		self._types[bit.NormalizedIdentifier] = bit
+
+		chars = \
+			"nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel", "bs", "ht", "lf", "vt", "ff", "cr", "so", "si", "dle", "dc1", "dc2", "dc3",\
+			"dc4", "nak", "syn", "etb", "can", "em", "sub", "esc", "fsp", "gsp", "rsp", "usp", "' '", "'!'", "'\"'", "'#'", "'$'", "'%'", "'&'", "'''",\
+			"'('", "')'", "'*'", "'+'", "','", "'-'", "'.'", "'/'", "'0'", "'1'", "'2'", "'3'", "'4'", "'5'", "'6'", "'7'", "'8'", "'9'", "':'", "';'",\
+			"'<'", "'='", "'>'", "'?'", "'@'", "'A'", "'B'", "'C'", "'D'", "'E'", "'F'", "'G'", "'H'", "'I'", "'J'", "'K'", "'L'", "'M'", "'N'", "'O'",\
+			"'P'", "'Q'", "'R'", "'S'", "'T'", "'U'", "'V'", "'W'", "'X'", "'Y'", "'Z'", "'['", "'\'", "']'", "'^'", "'_'", "'`'", "'a'", "'b'", "'c'",\
+			"'d'", "'e'", "'f'", "'g'", "'h'", "'i'", "'j'", "'k'", "'l'", "'m'", "'n'", "'o'", "'p'", "'q'", "'r'", "'s'", "'t'", "'u'", "'v'", "'w'",\
+			"'x'", "'y'", "'z'", "'{'", "'|'", "'}'", "'~'", "del", "c128", "c129", "c130", "c131", "c132", "c133", "c134", "c135", "c136", "c137", "c138", "c139",\
+			"c140", "c141", "c142", "c143", "c144", "c145", "c146", "c147", "c148", "c149", "c150", "c151", "c152", "c153", "c154", "c155", "c156", "c157", "c158", "c159",\
+			"' '", "'¡'", "'¢'", "'£'", "'¤'", "'¥'", "'¦'", "'§'", "'¨'", "'©'", "'ª'", "'«'", "'¬'", "'­'", "'®'", "'¯'", "'°'", "'±'", "'²'", "'³'",\
+			"'´'", "'µ'", "'¶'", "'·'", "'¸'", "'¹'", "'º'", "'»'", "'¼'", "'½'", "'¾'", "'¿'", "'À'", "'Á'", "'Â'", "'Ã'", "'Ä'", "'Å'", "'Æ'", "'Ç'",\
+			"'È'", "'É'", "'Ê'", "'Ë'", "'Ì'", "'Í'", "'Î'", "'Ï'", "'Ð'", "'Ñ'", "'Ò'", "'Ó'", "'Ô'", "'Õ'", "'Ö'", "'×'", "'Ø'", "'Ù'", "'Ú'", "'Û'",\
+			"'Ü'", "'Ý'", "'Þ'", "'ß'", "'à'", "'á'", "'â'", "'ã'", "'ä'", "'å'", "'æ'", "'ç'", "'è'", "'é'", "'ê'", "'ë'", "'ì'", "'í'", "'î'", "'ï'",\
+			"'ð'", "'ñ'", "'ò'", "'ó'", "'ô'", "'õ'", "'ö'", "'÷'", "'ø'", "'ù'", "'ú'", "'û'", "'ü'", "'ý'", "'þ'", "'ÿ'"
+		character = EnumeratedType("character", [EnumerationLiteral(char) for char in chars])
+		self._types[character.NormalizedIdentifier] = character
+
+		levels = "note", "warning", "error", "failure"
+		severityLevel = EnumeratedType("severityLevel", [EnumerationLiteral(level) for level in levels])
+		self._types[severityLevel.NormalizedIdentifier] = severityLevel
+
+		integer = IntegerType("integer", Range(IntegerLiteral(-2**31), IntegerLiteral(2**31-1), Direction.To))
+		self._types[integer.NormalizedIdentifier] = integer
+
+		# real
+
+		time = PhysicalType(
+			"time",
+			Range(IntegerLiteral(-2**63), IntegerLiteral(2**63-1), Direction.To),
+			primaryUnit="fs",
+			units=(
+				("ps",  PhysicalIntegerLiteral(1000, "fs")),
+				("ns",  PhysicalIntegerLiteral(1000, "ps")),
+				("us",  PhysicalIntegerLiteral(1000, "ns")),
+				("ms",  PhysicalIntegerLiteral(1000, "us")),
+				("sec", PhysicalIntegerLiteral(1000, "ms")),
+				("min", PhysicalIntegerLiteral(60, "sec")),
+				("hr",  PhysicalIntegerLiteral(60, "min")),
+			)
+		)
+		self._types[time.NormalizedIdentifier] = time
+
+		# delay_length
+
+		# now
+
+		natural = Subtype("natural")
+		natural._baseType = integer
+		natural._range = Range(IntegerLiteral(0), IntegerLiteral(2**31-1), Direction.To)
+		self._subtypes[natural.NormalizedIdentifier] = natural
+
+		positive = Subtype("positive")
+		positive._baseType = integer
+		positive._range = Range(IntegerLiteral(1), IntegerLiteral(2**31-1), Direction.To)
+		self._subtypes[positive.NormalizedIdentifier] = positive
+
+		string = ArrayType("string", (SimpleSubtypeSymbol(SimpleName("positive")), ), SimpleSubtypeSymbol(SimpleName("character")))
+		self._types[string.NormalizedIdentifier] = string
+
+		booleanVector = ArrayType("boolean_vector", (SimpleSubtypeSymbol(SimpleName("natural")), ), SimpleSubtypeSymbol(SimpleName("boolean")))
+		self._types[booleanVector.NormalizedIdentifier] = booleanVector
+
+		bitVector = ArrayType("bit_vector", (SimpleSubtypeSymbol(SimpleName("natural")), ), SimpleSubtypeSymbol(SimpleName("bit")))
+		self._types[bitVector.NormalizedIdentifier] = bitVector
+
+		integerVector = ArrayType("integer_vector", (SimpleSubtypeSymbol(SimpleName("natural")), ), SimpleSubtypeSymbol(SimpleName("integer")))
+		self._types[integerVector.NormalizedIdentifier] = integerVector
+
+		# real_vector
+
+		timeVector = ArrayType("time_vector", (SimpleSubtypeSymbol(SimpleName("natural")), ), SimpleSubtypeSymbol(SimpleName("time")))
+		self._types[timeVector.NormalizedIdentifier] = timeVector
+
+		fileOpenKinds = "read_mode", "write_mode", "append_mode"
+		openFileKind = EnumeratedType("open_file_kind", [EnumerationLiteral(kind) for kind in fileOpenKinds])
+		self._types[openFileKind.NormalizedIdentifier] = openFileKind
+
+		fileOpenStati = "open_ok", "status_error", "name_error", "mode_error"
+		fileOpenStatus = EnumeratedType("open_file_status", [EnumerationLiteral(status) for status in fileOpenStati])
+		self._types[fileOpenStatus.NormalizedIdentifier] = fileOpenStatus
+
+		# attribute foreign
 
 
 @export

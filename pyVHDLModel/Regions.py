@@ -32,98 +32,125 @@
 """
 This module contains parts of an abstract document language model for VHDL.
 
-Objects are constants, variables, signals and files.
+tbd.
 """
-from typing import Iterable, Optional as Nullable
+from typing import List, Dict, Union, Iterable
 
 from pyTooling.Decorators import export
-from pyTooling.Graph import Vertex
 
-from pyVHDLModel.Symbol import Symbol
-from pyVHDLModel.Base import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
+from pyVHDLModel import Signal
+from pyVHDLModel.Object import Constant, SharedVariable, File, Variable
+from pyVHDLModel.Subprogram import Subprogram, Function, Procedure
+from pyVHDLModel.Type import Type, Subtype, FullType
 
 
 @export
-class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
-	_subtype:      Symbol
-	_objectVertex: Vertex
+class ConcurrentDeclarationRegionMixin:
+	_declaredItems:   List  # FIXME: define list prefix type e.g. via Union
 
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
-		super().__init__()
-		MultipleNamedEntityMixin.__init__(self, identifiers)
-		DocumentedEntityMixin.__init__(self, documentation)
+	# _attributes:     Dict[str, Attribute]
+	# _aliases:        Dict[str, Alias]
+	_types:           Dict[str, FullType]
+	_subtypes:        Dict[str, Subtype]
+	# _objects:        Dict[str, Union[Constant, Variable, Signal]]
+	_constants:       Dict[str, Constant]
+	_signals:         Dict[str, Signal]
+	_sharedVariables: Dict[str, SharedVariable]
+	_files:           Dict[str, File]
+	_subprogram:      Dict[str, Dict[str, Subprogram]]
+	_functions:       Dict[str, Dict[str, Function]]
+	_procedures:      Dict[str, Dict[str, Procedure]]
 
-		self._subtype = subtype
-		subtype._parent = self
+	def __init__(self, declaredItems: Iterable = None):
+		# TODO: extract to mixin
+		self._declaredItems = []  # TODO: convert to dict
+		if declaredItems is not None:
+			for item in declaredItems:
+				self._declaredItems.append(item)
+				item._parent = self
 
-		self._objectVertex = None
+		self._types =       {}
+		self._subtypes =    {}
+		# self._objects =     {}
+		self._constants =   {}
+		self._signals =     {}
+		self._sharedVariables = {}
+		self._files =       {}
+		self._subprograms = {}
+		self._functions =   {}
+		self._procedures =  {}
 
 	@property
-	def Subtype(self) -> Symbol:
-		return self._subtype
-
-
-@export
-class BaseConstant(Obj):
-	pass
-
-
-@export
-class WithDefaultExpressionMixin:
-	"""A ``WithDefaultExpression`` is a mixin class for all objects declarations accepting default expressions."""
-
-	_defaultExpression: Nullable[ExpressionUnion]
-
-	def __init__(self, defaultExpression: ExpressionUnion = None):
-		self._defaultExpression = defaultExpression
-		if defaultExpression is not None:
-			defaultExpression._parent = self
+	def DeclaredItems(self) -> List:
+		return self._declaredItems
 
 	@property
-	def DefaultExpression(self) -> Nullable[ExpressionUnion]:
-		return self._defaultExpression
-
-
-@export
-class Constant(BaseConstant, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
-		super().__init__(identifiers, subtype, documentation)
-		WithDefaultExpressionMixin.__init__(self, defaultExpression)
-
-
-@export
-class DeferredConstant(BaseConstant):
-	_constantReference: Constant
-
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
-		super().__init__(identifiers, subtype, documentation)
+	def Types(self) -> Dict[str, FullType]:
+		return self._types
 
 	@property
-	def ConstantReference(self) -> Constant:
-		return self._constantReference
+	def Subtypes(self) -> Dict[str, Subtype]:
+		return self._subtypes
 
-	def __str__(self) -> str:
-		return f"constant {', '.join(self.Identifiers)} : {self._subtype}"
+	# @property
+	# def Objects(self) -> Dict[str, Union[Constant, SharedVariable, Signal, File]]:
+	# 	return self._objects
 
-@export
-class Variable(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
-		super().__init__(identifiers, subtype, documentation)
-		WithDefaultExpressionMixin.__init__(self, defaultExpression)
+	@property
+	def Constants(self) -> Dict[str, Constant]:
+		return self._constants
 
+	@property
+	def Signals(self) -> Dict[str, Signal]:
+		return self._signals
 
-@export
-class SharedVariable(Obj):
-	pass
+	@property
+	def SharedVariables(self) -> Dict[str, SharedVariable]:
+		return self._sharedVariables
 
+	@property
+	def Files(self) -> Dict[str, File]:
+		return self._files
 
-@export
-class Signal(Obj, WithDefaultExpressionMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
-		super().__init__(identifiers, subtype, documentation)
-		WithDefaultExpressionMixin.__init__(self, defaultExpression)
+	@property
+	def Subprograms(self) -> Dict[str, Subprogram]:
+		return self._subprograms
 
+	@property
+	def Functions(self) -> Dict[str, Dict[str, Function]]:
+		return self._functions
 
-@export
-class File(Obj):
-	pass
+	@property
+	def Procedures(self) -> Dict[str, Dict[str, Procedure]]:
+		return self._procedures
+
+	def IndexDeclaredItems(self):
+		for item in self._declaredItems:
+			if isinstance(item, FullType):
+				self._types[item.NormalizedIdentifier] = item
+			elif isinstance(item, Subtype):
+				self._subtypes[item.NormalizedIdentifier] = item
+			elif isinstance(item, Function):
+				self._functions[item.NormalizedIdentifier] = item
+			elif isinstance(item, Procedure):
+				self._procedures[item.NormalizedIdentifier] = item
+			elif isinstance(item, Constant):
+				for normalizedIdentifier in item.NormalizedIdentifiers:
+					self._constants[normalizedIdentifier] = item
+					# self._objects[normalizedIdentifier] = item
+			elif isinstance(item, Signal):
+				for normalizedIdentifier in item.NormalizedIdentifiers:
+					self._signals[normalizedIdentifier] = item
+			elif isinstance(item, Variable):
+				print(f"IndexDeclaredItems - {item.Identifiers}")
+			elif isinstance(item, SharedVariable):
+				for normalizedIdentifier in item.NormalizedIdentifiers:
+					self._sharedVariables[normalizedIdentifier] = item
+			elif isinstance(item, File):
+				for normalizedIdentifier in item.NormalizedIdentifiers:
+					self._files[normalizedIdentifier] = item
+			else:
+				self._IndexOtherDeclaredItem(item)
+
+	def _IndexOtherDeclaredItem(self, item):
+		print(f"_IndexOtherDeclaredItem - {item}\n  ({' -> '.join(t.__name__ for t in type(item).mro())})")

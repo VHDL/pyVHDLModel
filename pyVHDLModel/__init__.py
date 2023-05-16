@@ -48,7 +48,7 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2023, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.25.1"
+__version__ =   "0.26.0"
 
 
 from enum                      import unique, Enum, Flag, auto
@@ -64,6 +64,7 @@ from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegiste
 from pyVHDLModel.Exception     import ArchitectureExistsInLibraryError, PackageExistsInLibraryError, PackageBodyExistsError, ConfigurationExistsInLibraryError
 from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLibraryNotExistingError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Object        import Obj, Signal
 from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation
 from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, Configuration, Package
@@ -311,8 +312,9 @@ class DesignUnitKind(Flag):
 	Configuration = auto()
 
 	Primary = Context | Configuration | Entity | Package
-	Secondary = Architecture | PackageBody
-	WithContext = Configuration | Entity | Package | Architecture | PackageBody
+	Secondary = PackageBody | Architecture
+	WithContext = Configuration | Package | Entity | PackageBody | Architecture
+	WithDeclaredItems = Package | Entity | PackageBody | Architecture
 
 	All = Primary | Secondary
 
@@ -366,17 +368,42 @@ class DependencyGraphEdgeKind(Flag):
 
 
 @export
+@unique
+class ObjectGraphVertexKind(Flag):
+	Type = auto()
+	Subtype = auto()
+
+	Constant = auto()
+	DeferredConstant = auto()
+	Variable = auto()
+	Signal = auto()
+	File = auto()
+
+	Alias = auto()
+
+
+@export
+@unique
+class ObjectGraphEdgeKind(Flag):
+	BaseType = auto()
+	Subtype = auto()
+
+	ReferenceInExpression = auto()
+
+
+@export
 class Design(ModelEntity):
 	"""
 	A ``Design`` represents all loaded and analysed files (see :class:`~pyVHDLModel.Document`). It's the root of this
 	document-object-model (DOM). It contains at least one VHDL library (see :class:`~pyVHDLModel.Library`).
 	"""
-	name:               Nullable[str]         #: Name of the design
+	_name:              Nullable[str]         #: Name of the design
 	_libraries:         Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:         List['Document']      #: List of all documents loaded for a design.
 	_dependencyGraph:   Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
 	_compileOrderGraph: Graph[None, None, None, None, None, None, None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: A graph derived from dependency graph containing the order of documents for compilation.
 	_hierarchyGraph:    Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: A graph derived from dependency graph containing the design hierarchy.
+	_objectGraph:       Graph[None, None, None, None, None, None, None, None, str, Obj, None, None, None, None, None, None, None, None, None, None, None, None, None]       #: The graph of all types and objects in the design.
 	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
 
 	def __init__(self, name: str = None):
@@ -387,13 +414,14 @@ class Design(ModelEntity):
 		"""
 		super().__init__()
 
-		self.name =       name
+		self._name =      name
 		self._libraries = {}
 		self._documents = []
 
 		self._compileOrderGraph = Graph()
 		self._dependencyGraph = Graph()
 		self._hierarchyGraph = Graph()
+		self._objectGraph = Graph()
 		self._toplevel = None
 
 	@property
@@ -417,6 +445,10 @@ class Design(ModelEntity):
 	@property
 	def HierarchyGraph(self) -> Graph:
 		return self._hierarchyGraph
+
+	@property
+	def ObjectGraph(self) -> Graph:
+		return self._objectGraph
 
 	@property
 	def TopLevel(self) -> 'Entity':
@@ -556,6 +588,7 @@ class Design(ModelEntity):
 
 	def Analyze(self) -> None:
 		self.AnalyzeDependencies()
+		self.AnalyzeObjects()
 
 	def AnalyzeDependencies(self) -> None:
 		self.CreateDependencyGraph()
@@ -575,6 +608,12 @@ class Design(ModelEntity):
 		self.LinkInstantiations()
 		self.CreateHierarchyGraph()
 		self.ComputeCompileOrder()
+
+	def AnalyzeObjects(self) -> None:
+		self.IndexEntities()
+		self.IndexPackageBodies()
+
+		self.CreateTypeAndObjectGraph()
 
 	def CreateDependencyGraph(self) -> None:
 		predefinedLibraries = ("std", "ieee")
@@ -635,8 +674,90 @@ class Design(ModelEntity):
 				edge = dependencyVertex.EdgeFromVertex(designUnit._dependencyVertex)
 				edge["kind"] = DependencyGraphEdgeKind.SourceFile
 
+	def CreateTypeAndObjectGraph(self) -> None:
+		def _HandlePackage(package):
+			packagePrefix = f"{package.Library.NormalizedIdentifier}.{package.NormalizedIdentifier}"
+
+			for deferredConstant in package._deferredConstants.values():
+				print(f"Deferred Constant: {deferredConstant}")
+				deferredConstantVertex = Vertex(
+					vertexID=f"{packagePrefix}.{deferredConstant.NormalizedIdentifiers[0]}",
+					value=deferredConstant,
+					graph=self._objectGraph
+				)
+				deferredConstantVertex["kind"] = ObjectGraphVertexKind.DeferredConstant
+				deferredConstant._objectVertex = deferredConstantVertex
+
+			for constant in package._constants.values():
+				print(f"Constant: {constant}")
+				constantVertex = Vertex(
+					vertexID=f"{packagePrefix}.{constant.NormalizedIdentifiers[0]}",
+					value=constant,
+					graph=self._objectGraph
+				)
+				constantVertex["kind"] = ObjectGraphVertexKind.Constant
+				constant._objectVertex = constantVertex
+
+			for type in package._types.values():
+				print(f"Type: {type}")
+				typeVertex = Vertex(
+					vertexID=f"{packagePrefix}.{type.NormalizedIdentifier}",
+					value=type,
+					graph=self._objectGraph
+				)
+				typeVertex["kind"] = ObjectGraphVertexKind.Type
+				type._objectVertex = typeVertex
+
+			for subtype in package._subtypes.values():
+				print(f"Subtype: {subtype}")
+				subtypeVertex = Vertex(
+					vertexID=f"{packagePrefix}.{subtype.NormalizedIdentifier}",
+					value=subtype,
+					graph=self._objectGraph
+				)
+				subtypeVertex["kind"] = ObjectGraphVertexKind.Subtype
+				subtype._objectVertex = subtypeVertex
+
+			for function in package._functions.values():
+				print(f"Function: {function}")
+				functionVertex = Vertex(
+					vertexID=f"{packagePrefix}.{function.NormalizedIdentifier}",
+					value=function,
+					graph=self._objectGraph
+				)
+				functionVertex["kind"] = ObjectGraphVertexKind.Function
+				function._objectVertex = functionVertex
+
+			for procedure in package._procedures.values():
+				print(f"Procedure: {procedure}")
+				procedureVertex = Vertex(
+					vertexID=f"{packagePrefix}.{procedure.NormalizedIdentifier}",
+					value=procedure,
+					graph=self._objectGraph
+				)
+				procedureVertex["kind"] = ObjectGraphVertexKind.Function
+				procedure._objectVertex = procedureVertex
+
+			for signal in package._signals.values():
+				print(f"Signal: {signal}")
+				signalVertex = Vertex(
+					vertexID=f"{packagePrefix}.{signal.NormalizedIdentifiers[0]}",
+					value=signal,
+					graph=self._objectGraph
+				)
+				signalVertex["kind"] = ObjectGraphVertexKind.Signal
+				signal._objectVertex = signalVertex
+
+		for libraryName in ("std", "ieee"):
+			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
+				_HandlePackage(package)
+
+		for document in self.IterateDocumentsInCompileOrder():
+			for package in document.IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
+				_HandlePackage(package)
+
 	def LinkContexts(self) -> None:
-		for context in self.IterateDesignUnits(DesignUnitKind.Context):
+		for context in self.IterateDesignUnits(DesignUnitKind.Context):  # type: Context
 			# Create entries in _referenced*** for the current working library under its real name.
 			workingLibrary: Library = context.Library
 			libraryIdentifier = workingLibrary.NormalizedIdentifier
@@ -682,14 +803,14 @@ class Design(ModelEntity):
 						libraryIdentifier = library.NormalizedIdentifier
 					elif libraryIdentifier not in context._referencedLibraries:
 						# TODO: This check doesn't trigger if it's the working library.
-						raise VHDLModelException(f"Use clause references library '{librarySymbol.Identifier}', which was not referenced by a library clause.")
+						raise VHDLModelException(f"Use clause references library '{librarySymbol.Name.Identifier}', which was not referenced by a library clause.")
 					else:
 						library = self._libraries[libraryIdentifier]
 
 					try:
 						package = library._packages[packageIdentifier]
 					except KeyError:
-						raise VHDLModelException(f"Package '{packageSymbol.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+						raise VHDLModelException(f"Package '{packageSymbol.Name.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
 
 					librarySymbol.Library = library
 					packageSymbol.Package = package
@@ -765,7 +886,7 @@ class Design(ModelEntity):
 					try:
 						library = self._libraries[libraryIdentifier]
 					except KeyError:
-						raise VHDLModelException(f"Library '{librarySymbol.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+						raise VHDLModelException(f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
 
 					librarySymbol.Library = library
 					designUnit._referencedLibraries[libraryIdentifier] = library
@@ -813,8 +934,8 @@ class Design(ModelEntity):
 
 			for packageReference in designUnit.PackageReferences:
 				# A use clause can have multiple comma-separated references
-				for packageMemeberSymbol in packageReference.Symbols:
-					packageName = packageMemeberSymbol.Name.Prefix
+				for packageMemberSymbol in packageReference.Symbols:
+					packageName = packageMemberSymbol.Name.Prefix
 					libraryName = packageName.Prefix
 
 					libraryIdentifier = libraryName.NormalizedIdentifier
@@ -833,9 +954,11 @@ class Design(ModelEntity):
 					try:
 						package = library._packages[packageIdentifier]
 					except KeyError:
-						raise VHDLModelException(f"Package '{packageName.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+						ex = VHDLModelException(f"Package '{packageName.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+						ex.add_note(f"Caused in design unit '{designUnit}' in file '{designUnit.Document}'.")
+						raise ex
 
-					packageMemeberSymbol.Package = package
+					packageMemberSymbol.Package = package
 
 					# TODO: warn duplicate package reference
 					designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
@@ -844,11 +967,11 @@ class Design(ModelEntity):
 					dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 					# TODO: update the namespace with visible members
-					if isinstance(packageMemeberSymbol, AllPackageMembersReferenceSymbol):
+					if isinstance(packageMemberSymbol, AllPackageMembersReferenceSymbol):
 						for componentIdentifier, component in package._components.items():
 							designUnit._namespace._elements[componentIdentifier] = component
 
-					elif isinstance(packageMemeberSymbol, PackageMemberReferenceSymbol):
+					elif isinstance(packageMemberSymbol, PackageMemberReferenceSymbol):
 						raise NotImplementedError()
 					else:
 						raise VHDLModelException()
@@ -876,7 +999,7 @@ class Design(ModelEntity):
 					try:
 						referencedContext = referencedLibrary._contexts[contextIdentifier]
 					except KeyError:
-						raise VHDLModelException(f"Context '{contextSymbol.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{referencedLibrary.Identifier}'.")
+						raise VHDLModelException(f"Context '{contextSymbol.Name.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{referencedLibrary.Identifier}'.")
 
 					contextSymbol.Package = referencedContext
 
@@ -906,7 +1029,7 @@ class Design(ModelEntity):
 							designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
 	def LinkComponents(self) -> None:
-		for package in self.IterateDesignUnits(DesignUnitKind.Package):
+		for package in self.IterateDesignUnits(DesignUnitKind.Package):  # type: Package
 			library = package._library
 			for component in package._components.values():
 				try:
@@ -920,7 +1043,7 @@ class Design(ModelEntity):
 				#           Currently, component has no _dependencyVertex field
 
 	def LinkInstantiations(self) -> None:
-		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):
+		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):  # type: Architecture
 			for instance in architecture.IterateInstantiations():
 				if isinstance(instance, EntityInstantiation):
 					libraryName = instance.Entity.Name.Prefix
@@ -944,8 +1067,8 @@ class Design(ModelEntity):
 					try:
 						entity = library._entities[instance.Entity.Name.NormalizedIdentifier]
 					except KeyError:
-						ex = VHDLModelException(f"Referenced entity '{instance.Entity.Identifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in {'working ' if instance.Entity.Prefix.NormalizedIdentifier == 'work' else ''}library '{libraryIdentifier}'.")
-						libs = [library.Identifier for library in self._libraries.values() for entityIdentifier in library._entities.keys() if entityIdentifier == instance.Entity.NormalizedIdentifier]
+						ex = VHDLModelException(f"Referenced entity '{instance.Entity.Name.Identifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Name.Prefix.Identifier}.{instance.Entity.Name.Identifier}' not found in {'working ' if instance.Entity.Name.Prefix.NormalizedIdentifier == 'work' else ''}library '{libraryIdentifier}'.")
+						libs = [library.Identifier for library in self._libraries.values() for entityIdentifier in library._entities.keys() if entityIdentifier == instance.Entity.Name.NormalizedIdentifier]
 						if libs:
 							ex.add_note(f"Found entity '{instance.Entity!s}' in other libraries: {', '.join(libs)}")
 						raise ex
@@ -970,6 +1093,14 @@ class Design(ModelEntity):
 	def IndexPackages(self) -> None:
 		for library in self._libraries.values():
 			library.IndexPackages()
+
+	def IndexPackageBodies(self) -> None:
+		for library in self._libraries.values():
+			library.IndexPackageBodies()
+
+	def IndexEntities(self) -> None:
+		for library in self._libraries.values():
+			library.IndexEntities()
 
 	def IndexArchitectures(self) -> None:
 		for library in self._libraries.values():
@@ -1032,16 +1163,17 @@ class Design(ModelEntity):
 			e["kind"] = DependencyGraphEdgeKind.CompileOrder
 
 	def IterateDocumentsInCompileOrder(self) -> Generator['Document', None, None]:
-		if self._compileOrderGraph.EdgeCount == 0:
+		if self._compileOrderGraph.EdgeCount < self._compileOrderGraph.VertexCount - 1:
 			raise VHDLModelException(f"Compile order is not yet computed from dependency graph.")
 
-		return self._compileOrderGraph.IterateTopologically()
+		for compileOrderNode in self._compileOrderGraph.IterateTopologically():
+			yield compileOrderNode.Value
 
 	def GetUnusedDesignUnits(self) -> List[DesignUnit]:
 		raise NotImplementedError()
 
 	def __repr__(self) -> str:
-		return f"Design: {self._nane}"
+		return f"Design: {self._name}"
 
 	__str__ = __repr__
 
@@ -1177,12 +1309,21 @@ class Library(ModelEntity, NamedEntityMixin):
 
 	def IndexPackages(self):
 		for package in self._packages.values():
-			package.IndexPackage()
+			package.IndexDeclaredItems()
+
+	def IndexPackageBodies(self):
+		for packageBody in self._packageBodies.values():
+			packageBody.IndexDeclaredItems()
+
+	def IndexEntities(self):
+		for entity in self._entities.values():
+			entity.IndexDeclaredItems()
 
 	def IndexArchitectures(self):
 		for architectures in self._architectures.values():
 			for architecture in architectures.values():
-				architecture.Index()
+				architecture.IndexDeclaredItems()
+				architecture.IndexStatements()
 
 	def __repr__(self) -> str:
 		return f"Library: '{self.Identifier}'"

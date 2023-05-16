@@ -50,7 +50,7 @@ if __name__ == "__main__":  # pragma: no cover
 
 class VHDLLibrary(TestCase):
 	def CreateDesign(self) -> Design:
-		design = Design()
+		design = Design("example")
 		library = design.GetLibrary("lib_1")
 
 		path = Path("tests.vhdl")

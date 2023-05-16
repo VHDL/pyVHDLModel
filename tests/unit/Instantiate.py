@@ -218,7 +218,7 @@ class Symbols(TestCase):
 			package.Constants[id] = constant
 		for id in signal.Identifiers:
 			package.DeclaredItems.append(signal)
-			package.Objects[id] = signal
+			package.Signals[id] = signal
 
 		symbol.Members = (constant, signal)
 

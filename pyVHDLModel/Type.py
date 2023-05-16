@@ -84,6 +84,11 @@ class Subtype(BaseType):
 	def __init__(self, identifier: str):
 		super().__init__(identifier)
 
+		self._type = None
+		self._baseType = None
+		self._range = None
+		self._resolutionFunction = None
+
 	@property
 	def Type(self) -> 'Subtype':
 		return self._type
@@ -99,6 +104,9 @@ class Subtype(BaseType):
 	@property
 	def ResolutionFunction(self) -> 'Function':
 		return self._resolutionFunction
+
+	def __str__(self) -> str:
+		return f"subtype {self.Identifier} is {self._baseType}"
 
 
 @export
@@ -203,7 +211,7 @@ class ArrayType(CompositeType):
 	_dimensions:  List[Range]
 	_elementType: Symbol
 
-	def __init__(self, identifier: str, indices: List, elementSubtype: Symbol):
+	def __init__(self, identifier: str, indices: Iterable, elementSubtype: Symbol):
 		super().__init__(identifier)
 
 		self._dimensions = []

@@ -34,9 +34,10 @@ This module contains parts of an abstract document language model for VHDL.
 
 A helper class to implement namespaces and scopes.
 """
-from typing import TypeVar, Generic, Dict
+from typing             import TypeVar, Generic, Dict
 
-from pyVHDLModel.Symbol import ComponentInstantiationSymbol
+from pyVHDLModel.Symbol import ComponentInstantiationSymbol, Symbol, PossibleReference
+from pyVHDLModel.Type   import Subtype, FullType
 
 K = TypeVar("K")
 O = TypeVar("O")
@@ -78,14 +79,36 @@ class Namespace(Generic[K, O]):
 		from pyVHDLModel.DesignUnit import Component
 
 		try:
-			element = self._elements[componentSymbol.Name.NormalizedIdentifier]
+			element = self._elements[componentSymbol._innerName._normalizedIdentifier]
 			if isinstance(element, Component):
 				return element
 			else:
-				raise TypeError(f"Found element '{componentSymbol.Name.Identifier}', but it is not a component.")
+				raise TypeError(f"Found element '{componentSymbol._innerName._identifier}', but it is not a component.")
 		except KeyError:
 			parentNamespace = self._parentNamespace
 			if parentNamespace is None:
-				raise KeyError(f"Component '{componentSymbol.Name.Identifier}' not found in '{self._name}'.")
+				raise KeyError(f"Component '{componentSymbol._innerName._identifier}' not found in '{self._name}'.")
 
 			return parentNamespace.FindComponent(componentSymbol)
+
+	def FindSubtype(self, subtypeSymbol: Symbol):
+		try:
+			element = self._elements[subtypeSymbol._innerName._normalizedIdentifier]
+			if isinstance(element, Subtype):
+				if PossibleReference.Subtype in subtypeSymbol._possibleReferences:
+					return element
+				else:
+					raise TypeError(f"Found subtype '{subtypeSymbol._innerName._identifier}', but it was not expected.")
+			elif isinstance(element, FullType):
+				if PossibleReference.Type in subtypeSymbol._possibleReferences:
+					return element
+				else:
+					raise TypeError(f"Found type '{subtypeSymbol._innerName._identifier}', but it was not expected.")
+			else:
+				raise TypeError(f"Found element '{subtypeSymbol._innerName._identifier}', but it is not a type or subtype.")
+		except KeyError:
+			parentNamespace = self._parentNamespace
+			if parentNamespace is None:
+				raise KeyError(f"Subtype '{subtypeSymbol._innerName._identifier}' not found in '{self._name}'.")
+
+			return parentNamespace.FindSubtype(subtypeSymbol)

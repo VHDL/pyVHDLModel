@@ -64,12 +64,13 @@ from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegiste
 from pyVHDLModel.Exception     import ArchitectureExistsInLibraryError, PackageExistsInLibraryError, PackageBodyExistsError, ConfigurationExistsInLibraryError
 from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLibraryNotExistingError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
-from pyVHDLModel.Object        import Obj, Signal
+from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant
 from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation
 from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, Configuration, Package
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode
 from pyVHDLModel.Instantiation import PackageInstantiation
+from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType
 
 
 @export
@@ -748,13 +749,54 @@ class Design(ModelEntity):
 				signalVertex["kind"] = ObjectGraphVertexKind.Signal
 				signal._objectVertex = signalVertex
 
+		def _LinkItems(package: Package):
+			for item in package._declaredItems:
+				if isinstance(item, Constant):
+					print(f"constant: {item}")
+				elif isinstance(item, DeferredConstant):
+					print(f"deferred constant: {item}")
+				elif isinstance(item, Signal):
+					print(f"signal: {item}")
+				elif isinstance(item, IntegerType):
+					typeNode = item._objectVertex
+
+					print(f"integer: {item} - {typeNode}")
+				# elif isinstance(item, FloatingType):
+				# 	print(f"signal: {item}")
+				elif isinstance(item, PhysicalType):
+					print(f"physical: {item}")
+				elif isinstance(item, ArrayType):
+					# Resolve dimensions
+					for dimension in item._dimensions:
+						subtype = package._namespace.FindSubtype(dimension)
+						dimension._reference = subtype
+
+						edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
+						edge["kind"] = ObjectGraphEdgeKind.Subtype
+
+					# Resolve element subtype
+					subtype = package._namespace.FindSubtype(item._elementType)
+					item._elementType._reference = subtype
+
+					edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
+					edge["kind"] = ObjectGraphEdgeKind.Subtype
+
+					print(f"array: {item} - {subtype}")
+				elif isinstance(item, RecordType):
+					print(f"record: {item}")
+				else:
+					print(f"not handled: {item}")
+
+
 		for libraryName in ("std", "ieee"):
 			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
 				_HandlePackage(package)
+				_LinkItems(package)
 
 		for document in self.IterateDocumentsInCompileOrder():
 			for package in document.IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
 				_HandlePackage(package)
+				_LinkItems(package)
 
 	def LinkContexts(self) -> None:
 		for context in self.IterateDesignUnits(DesignUnitKind.Context):  # type: Context

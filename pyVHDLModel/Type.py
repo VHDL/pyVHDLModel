@@ -164,17 +164,26 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 	def Literals(self) -> List[EnumerationLiteral]:
 		return self._literals
 
+	def __str__(self) -> str:
+		return f"{self._identifier} is ({', '.join(str(l) for l in self._literals)})"
+
 
 @export
 class IntegerType(RangedScalarType, NumericTypeMixin, DiscreteTypeMixin):
 	def __init__(self, identifier: str, rng: Union[Range, Name]):
 		super().__init__(identifier, rng)
 
+	def __str__(self) -> str:
+		return f"{self._identifier} is range {self._range}"
+
 
 @export
 class RealType(RangedScalarType, NumericTypeMixin):
 	def __init__(self, identifier: str, rng: Union[Range, Name]):
 		super().__init__(identifier, rng)
+
+	def __str__(self) -> str:
+		return f"{self._identifier} is range {self._range}"
 
 
 @export
@@ -200,6 +209,9 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 	def SecondaryUnits(self) -> List[Tuple[str, PhysicalIntegerLiteral]]:
 		return self._secondaryUnits
 
+	def __str__(self) -> str:
+		return f"{self._identifier} is range {self._range} units {self._primaryUnit}; {'; '.join(su + ' = ' + str(pu) for su, pu in self._secondaryUnits)};"
+
 
 @export
 class CompositeType(FullType):
@@ -215,6 +227,9 @@ class ArrayType(CompositeType):
 		super().__init__(identifier)
 
 		self._dimensions = []
+		for index in indices:
+			self._dimensions.append(index)
+			# index._parent = self  # FIXME: indices are provided as empty list
 
 		self._elementType = elementSubtype
 		# elementSubtype._parent = self   # FIXME: subtype is provided as None
@@ -226,6 +241,9 @@ class ArrayType(CompositeType):
 	@property
 	def ElementType(self) -> Symbol:
 		return self._elementType
+
+	def __str__(self) -> str:
+		return f"{self._identifier} is array({'; '.join(str(r) for r in self._dimensions)}) of {self._elementType}"
 
 
 @export
@@ -242,6 +260,9 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin):
 	@property
 	def Subtype(self) -> Symbol:
 		return self._subtype
+
+	def __str__(self) -> str:
+		return f"{', '.join(self._identifiers)} : {self._subtype}"
 
 
 @export
@@ -260,6 +281,9 @@ class RecordType(CompositeType):
 	@property
 	def Elements(self) -> List[RecordTypeElement]:
 		return self._elements
+
+	def __str__(self) -> str:
+		return f"{self._identifier} is record {'; '.join(str(re) for re in self._elements)};"
 
 
 @export
@@ -313,6 +337,9 @@ class AccessType(FullType):
 	def DesignatedSubtype(self):
 		return self._designatedSubtype
 
+	def __str__(self) -> str:
+		return f"{self._identifier} is access {self._designatedSubtype}"
+
 
 @export
 class FileType(FullType):
@@ -327,3 +354,6 @@ class FileType(FullType):
 	@property
 	def DesignatedSubtype(self):
 		return self._designatedSubtype
+
+	def __str__(self) -> str:
+		return f"{self._identifier} is access {self._designatedSubtype}"

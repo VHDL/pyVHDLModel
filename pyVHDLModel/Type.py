@@ -106,7 +106,7 @@ class Subtype(BaseType):
 		return self._resolutionFunction
 
 	def __str__(self) -> str:
-		return f"subtype {self.Identifier} is {self._baseType}"
+		return f"subtype {self._identifier} is {self._baseType}"
 
 
 @export

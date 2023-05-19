@@ -1275,7 +1275,7 @@ class Library(ModelEntity, NamedEntityMixin):
 		for entityName, architecturesPerEntity in self._architectures.items():
 			if entityName not in self._entities:
 				architectureNames = "', '".join(architecturesPerEntity.keys())
-				raise VHDLModelException(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{self.Identifier}'.")
+				raise VHDLModelException(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{self._identifier}'.")
 				# TODO: search in other libraries to find that entity.
 				# TODO: add code position
 
@@ -1283,7 +1283,7 @@ class Library(ModelEntity, NamedEntityMixin):
 				entity = self._entities[entityName]
 
 				if architecture.NormalizedIdentifier in entity._architectures:
-					raise VHDLModelException(f"Architecture '{architecture.Identifier}' already exists for entity '{entity.Identifier}'.")
+					raise VHDLModelException(f"Architecture '{architecture._identifier}' already exists for entity '{entity._identifier}'.")
 					# TODO: add code position of existing and current
 
 				entity._architectures[architecture.NormalizedIdentifier] = architecture
@@ -1297,7 +1297,7 @@ class Library(ModelEntity, NamedEntityMixin):
 	def LinkPackageBodies(self):
 		for packageBodyName, packageBody in self._packageBodies.items():
 			if packageBodyName not in self._packages:
-				raise VHDLModelException(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{self.Identifier}'.")
+				raise VHDLModelException(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{self._identifier}'.")
 
 			package = self._packages[packageBodyName]
 			packageBody._package.Package = package
@@ -1326,7 +1326,7 @@ class Library(ModelEntity, NamedEntityMixin):
 				architecture.IndexStatements()
 
 	def __repr__(self) -> str:
-		return f"Library: '{self.Identifier}'"
+		return f"Library: '{self._identifier}'"
 
 	__str__ = __repr__
 

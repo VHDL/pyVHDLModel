@@ -278,7 +278,7 @@ class Context(PrimaryUnit):
 	def __str__(self):
 		lib = self._library.Identifier + "?" if self._library is not None else ""
 
-		return f"Context: {lib}.{self.Identifier}"
+		return f"Context: {lib}.{self._identifier}"
 
 
 @export
@@ -332,12 +332,12 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 	def __str__(self) -> str:
 		lib = self._library.Identifier if self._library is not None else "%"
 
-		return f"Package: '{lib}.{self.Identifier}'"
+		return f"Package: '{lib}.{self._identifier}'"
 
 	def __repr__(self) -> str:
 		lib = self._library.Identifier if self._library is not None else "%"
 
-		return f"{lib}.{self.Identifier}"
+		return f"{lib}.{self._identifier}"
 
 
 @export
@@ -365,14 +365,14 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		pass
 
 	def __str__(self) -> str:
-		lib = self._library.Identifier + "?" if self._library is not None else ""
+		lib = self._library._identifier + "?" if self._library is not None else ""
 
-		return f"Package Body: {lib}.{self.Identifier}(body)"
+		return f"Package Body: {lib}.{self._identifier}(body)"
 
 	def __repr__(self) -> str:
-		lib = self._library.Identifier + "?" if self._library is not None else ""
+		lib = self._library._identifier + "?" if self._library is not None else ""
 
-		return f"{lib}.{self.Identifier}(body)"
+		return f"{lib}.{self._identifier}(body)"
 
 
 @export
@@ -428,16 +428,16 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 		return self._architectures
 
 	def __str__(self) -> str:
-		lib = self._library.Identifier if self._library is not None else "%"
+		lib = self._library._identifier if self._library is not None else "%"
 		archs = ', '.join(self._architectures.keys()) if self._architectures else "%"
 
-		return f"Entity: '{lib}.{self.Identifier}({archs})'"
+		return f"Entity: '{lib}.{self._identifier}({archs})'"
 
 	def __repr__(self) -> str:
-		lib = self._library.Identifier if self._library is not None else "%"
+		lib = self._library._identifier if self._library is not None else "%"
 		archs = ', '.join(self._architectures.keys()) if self._architectures else "%"
 
-		return f"{lib}.{self.Identifier}({archs})"
+		return f"{lib}.{self._identifier}({archs})"
 
 
 @export
@@ -468,16 +468,16 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		self._library = library
 
 	def __str__(self) -> str:
-		lib = self._library.Identifier if self._library is not None else "%"
-		ent = self._entity.Identifier if self._entity is not None else "%"
+		lib = self._library._identifier if self._library is not None else "%"
+		ent = self._entity._identifier if self._entity is not None else "%"
 
-		return f"Architecture: {lib}.{ent}({self.Identifier})"
+		return f"Architecture: {lib}.{ent}({self._identifier})"
 
 	def __repr__(self) -> str:
-		lib = self._library.Identifier if self._library is not None else "%"
-		ent = self._entity.Name.Identifier if self._entity is not None else "%"
+		lib = self._library._identifier if self._library is not None else "%"
+		ent = self._entity.Name._identifier if self._entity is not None else "%"
 
-		return f"{lib}.{ent}({self.Identifier})"
+		return f"{lib}.{ent}({self._identifier})"
 
 
 @export
@@ -530,11 +530,11 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 		DesignUnitWithContextMixin.__init__(self)
 
 	def __str__(self) -> str:
-		lib = self._library.Identifier if self._library is not None else "%"
+		lib = self._library._identifier if self._library is not None else "%"
 
-		return f"Configuration: {lib}.{self.Identifier}"
+		return f"Configuration: {lib}.{self._identifier}"
 
 	def __repr__(self) -> str:
-		lib = self._library.Identifier if self._library is not None else "%"
+		lib = self._library._identifier if self._library is not None else "%"
 
-		return f"{lib}.{self.Identifier}"
+		return f"{lib}.{self._identifier}"

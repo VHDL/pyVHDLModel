@@ -103,7 +103,7 @@ class DeferredConstant(BaseConstant):
 		return self._constantReference
 
 	def __str__(self) -> str:
-		return f"constant {', '.join(self.Identifiers)} : {self._subtype}"
+		return f"constant {', '.join(self._identifiers)} : {self._subtype}"
 
 @export
 class Variable(Obj, WithDefaultExpressionMixin):

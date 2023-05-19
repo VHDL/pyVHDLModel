@@ -37,9 +37,10 @@ Types.
 from typing                 import Union, List, Iterator, Iterable, Tuple
 
 from pyTooling.Decorators   import export
+from pyTooling.Graph        import Vertex
 
-from pyVHDLModel.Base import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
-from pyVHDLModel.Symbol import Symbol
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
+from pyVHDLModel.Symbol     import Symbol
 from pyVHDLModel.Name       import Name
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 
@@ -47,6 +48,8 @@ from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 @export
 class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""``BaseType`` is the base-class of all type entities in this model."""
+
+	_objectVertex: Vertex
 
 	def __init__(self, identifier: str, documentation: str = None):
 		"""
@@ -57,6 +60,8 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
+
+		_objectVertex = None
 
 
 @export
@@ -76,21 +81,21 @@ class FullType(BaseType):
 
 @export
 class Subtype(BaseType):
-	_type:               'Subtype'
+	_type:               Symbol
 	_baseType:           BaseType
 	_range:              Range
 	_resolutionFunction: 'Function'
 
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str, symbol: Symbol):
 		super().__init__(identifier)
 
-		self._type = None
+		self._type = symbol
 		self._baseType = None
 		self._range = None
 		self._resolutionFunction = None
 
 	@property
-	def Type(self) -> 'Subtype':
+	def Type(self) -> Symbol:
 		return self._type
 
 	@property

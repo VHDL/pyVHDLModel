@@ -163,12 +163,12 @@ class Standard(PredefinedPackage):
 
 		# now
 
-		natural = Subtype("natural")
+		natural = Subtype("natural", SimpleSubtypeSymbol(SimpleName("integer")))
 		natural._baseType = integer
 		natural._range = Range(IntegerLiteral(0), IntegerLiteral(2**31-1), Direction.To)
 		self._subtypes[natural.NormalizedIdentifier] = natural
 
-		positive = Subtype("positive")
+		positive = Subtype("positive", SimpleSubtypeSymbol(SimpleName("integer")))
 		positive._baseType = integer
 		positive._range = Range(IntegerLiteral(1), IntegerLiteral(2**31-1), Direction.To)
 		self._subtypes[positive.NormalizedIdentifier] = positive

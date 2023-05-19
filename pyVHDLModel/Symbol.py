@@ -34,13 +34,12 @@ This module contains parts of an abstract document language model for VHDL.
 
 Symbols derived from names.
 """
-from enum import Flag, auto
-from typing import cast, Any, Iterable
+from enum                 import Flag, auto
+from typing               import Any
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel.Base import ExpressionUnion
-from pyVHDLModel.Name import Name, SimpleName, SelectedName, AllName, IndexedName
+from pyVHDLModel.Name     import Name, AllName
 
 
 @export
@@ -308,12 +307,7 @@ class ConfigurationInstantiationSymbol(Symbol):
 @export
 class SubtypeSymbol(Symbol):
 	def __init__(self, name: Name):
-		super().__init__(name, PossibleReference.Subtype)
-
-
-@export
-class SimpleSubtypeSymbol(SubtypeSymbol):
-	"""A configuration reference in a configuration instantiation."""
+		super().__init__(name, PossibleReference.Type | PossibleReference.Subtype)
 
 	@property
 	def Subtype(self) -> 'Subtype':
@@ -322,6 +316,11 @@ class SimpleSubtypeSymbol(SubtypeSymbol):
 	@Subtype.setter
 	def Subtype(self, value: 'Subtype') -> None:
 		self._reference = value
+
+
+@export
+class SimpleSubtypeSymbol(SubtypeSymbol):
+	"""A configuration reference in a configuration instantiation."""
 
 
 @export

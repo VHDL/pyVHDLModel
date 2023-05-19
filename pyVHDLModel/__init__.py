@@ -1309,7 +1309,8 @@ class Library(ModelEntity, NamedEntityMixin):
 
 	def IndexPackages(self):
 		for package in self._packages.values():
-			package.IndexDeclaredItems()
+			if isinstance(package, Package):
+				package.IndexDeclaredItems()
 
 	def IndexPackageBodies(self):
 		for packageBody in self._packageBodies.values():

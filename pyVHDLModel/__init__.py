@@ -614,6 +614,7 @@ class Design(ModelEntity):
 		self.IndexEntities()
 		self.IndexPackageBodies()
 
+		self.ImportObjects()
 		self.CreateTypeAndObjectGraph()
 
 	def CreateDependencyGraph(self) -> None:
@@ -674,6 +675,21 @@ class Design(ModelEntity):
 			for designUnit in document._designUnits:
 				edge = dependencyVertex.EdgeFromVertex(designUnit._dependencyVertex)
 				edge["kind"] = DependencyGraphEdgeKind.SourceFile
+
+	def ImportObjects(self):
+		def _ImportObjects(package: Package):
+			for referencedLibrary in package._referencedPackages.values():
+				for referencedPackage in referencedLibrary.values():
+					for declaredItem in referencedPackage._declaredItems:
+						package._namespace._elements[declaredItem._identifier] = declaredItem
+
+		for libraryName in ("std", "ieee"):
+			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
+				_ImportObjects(package)
+
+		for document in self.IterateDocumentsInCompileOrder():
+			for package in document.IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
+				_ImportObjects(package)
 
 	def CreateTypeAndObjectGraph(self) -> None:
 		def _HandlePackage(package):

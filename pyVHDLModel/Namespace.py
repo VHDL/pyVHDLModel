@@ -36,8 +36,10 @@ A helper class to implement namespaces and scopes.
 """
 from typing             import TypeVar, Generic, Dict
 
+from pyVHDLModel.Object import Obj, Signal, Constant, Variable
+
 from pyVHDLModel.Symbol import ComponentInstantiationSymbol, Symbol, PossibleReference
-from pyVHDLModel.Type   import Subtype, FullType
+from pyVHDLModel.Type   import Subtype, FullType, BaseType
 
 K = TypeVar("K")
 O = TypeVar("O")
@@ -75,7 +77,7 @@ class Namespace(Generic[K, O]):
 	def Elements(self) -> Dict[K, O]:
 		return self._elements
 
-	def FindComponent(self, componentSymbol: ComponentInstantiationSymbol):
+	def FindComponent(self, componentSymbol: ComponentInstantiationSymbol) -> 'Component':
 		from pyVHDLModel.DesignUnit import Component
 
 		try:
@@ -91,7 +93,7 @@ class Namespace(Generic[K, O]):
 
 			return parentNamespace.FindComponent(componentSymbol)
 
-	def FindSubtype(self, subtypeSymbol: Symbol):
+	def FindSubtype(self, subtypeSymbol: Symbol) -> BaseType:
 		try:
 			element = self._elements[subtypeSymbol._innerName._normalizedIdentifier]
 			if isinstance(element, Subtype):
@@ -112,3 +114,32 @@ class Namespace(Generic[K, O]):
 				raise KeyError(f"Subtype '{subtypeSymbol._innerName._identifier}' not found in '{self._name}'.")
 
 			return parentNamespace.FindSubtype(subtypeSymbol)
+
+	def FindObject(self, objectSymbol: Symbol) -> Obj:
+		try:
+			element = self._elements[objectSymbol._innerName._normalizedIdentifier]
+			if isinstance(element, Signal):
+				if PossibleReference.Signal in objectSymbol._possibleReferences:
+					return element
+				elif PossibleReference.SignalAttribute in objectSymbol._possibleReferences:
+					return element
+				else:
+					raise TypeError(f"Found signal '{objectSymbol._innerName._identifier}', but it was not expected.")
+			elif isinstance(element, Constant):
+				if PossibleReference.Constant in objectSymbol._possibleReferences:
+					return element
+				else:
+					raise TypeError(f"Found constant '{objectSymbol._innerName._identifier}', but it was not expected.")
+			elif isinstance(element, Variable):
+				if PossibleReference.Variable in objectSymbol._possibleReferences:
+					return element
+				else:
+					raise TypeError(f"Found variable '{objectSymbol._innerName._identifier}', but it was not expected.")
+			else:
+				raise TypeError(f"Found element '{objectSymbol._innerName._identifier}', but it is not a type or subtype.")
+		except KeyError:
+			parentNamespace = self._parentNamespace
+			if parentNamespace is None:
+				raise KeyError(f"Subtype '{objectSymbol._innerName._identifier}' not found in '{self._name}'.")
+
+			return parentNamespace.FindObject(objectSymbol)

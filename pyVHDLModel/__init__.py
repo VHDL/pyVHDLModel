@@ -64,8 +64,10 @@ from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegiste
 from pyVHDLModel.Exception     import ArchitectureExistsInLibraryError, PackageExistsInLibraryError, PackageBodyExistsError, ConfigurationExistsInLibraryError
 from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLibraryNotExistingError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
+from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant
-from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol
+from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation
 from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, Configuration, Package
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode
@@ -765,6 +767,23 @@ class Design(ModelEntity):
 				signalVertex["kind"] = ObjectGraphVertexKind.Signal
 				signal._objectVertex = signalVertex
 
+		def _LinkSymbolsInExpression(expression, namespace: Namespace, typeVertex: Vertex):
+			if isinstance(expression, UnaryExpression):
+				_LinkSymbolsInExpression(expression.Operand, namespace, typeVertex)
+			elif isinstance(expression, BinaryExpression):
+				_LinkSymbolsInExpression(expression.LeftOperand, namespace, typeVertex)
+				_LinkSymbolsInExpression(expression.RightOperand, namespace, typeVertex)
+			elif isinstance(expression, TernaryExpression):
+				pass
+			elif isinstance(expression, SimpleObjectOrFunctionCallSymbol):
+				obj = namespace.FindObject(expression)
+				expression._reference = obj
+
+				edge = obj._objectVertex.EdgeToVertex(typeVertex)
+				edge["kind"] = ObjectGraphEdgeKind.ReferenceInExpression
+			else:
+				pass
+
 		def _LinkItems(package: Package):
 			for item in package._declaredItems:
 				if isinstance(item, Constant):
@@ -776,7 +795,8 @@ class Design(ModelEntity):
 				elif isinstance(item, IntegerType):
 					typeNode = item._objectVertex
 
-					print(f"integer: {item} - {typeNode}")
+					_LinkSymbolsInExpression(item.Range.LeftBound, package._namespace, typeNode)
+					_LinkSymbolsInExpression(item.Range.RightBound, package._namespace, typeNode)
 				# elif isinstance(item, FloatingType):
 				# 	print(f"signal: {item}")
 				elif isinstance(item, PhysicalType):
@@ -796,8 +816,6 @@ class Design(ModelEntity):
 
 					edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
 					edge["kind"] = ObjectGraphEdgeKind.Subtype
-
-					print(f"array: {item} - {subtype}")
 				elif isinstance(item, RecordType):
 					print(f"record: {item}")
 				else:

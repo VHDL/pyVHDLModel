@@ -800,7 +800,10 @@ class Design(ModelEntity):
 				# elif isinstance(item, FloatingType):
 				# 	print(f"signal: {item}")
 				elif isinstance(item, PhysicalType):
-					print(f"physical: {item}")
+					typeNode = item._objectVertex
+
+					_LinkSymbolsInExpression(item.Range.LeftBound, package._namespace, typeNode)
+					_LinkSymbolsInExpression(item.Range.RightBound, package._namespace, typeNode)
 				elif isinstance(item, ArrayType):
 					# Resolve dimensions
 					for dimension in item._dimensions:

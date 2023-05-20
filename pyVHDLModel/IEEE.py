@@ -98,13 +98,11 @@ class Std_logic_1164(PredefinedPackage):
 
 		stdLogic = Subtype("std_logic", SimpleSubtypeSymbol(SimpleName("std_ulogic")))
 		stdLogic._baseType = stdULogic
-		# stdLogic._range = Range(IntegerLiteral(0), IntegerLiteral(2**31-1), Direction.To)
 		self._subtypes[stdLogic._normalizedIdentifier] = stdLogic
 		self._declaredItems.append(stdLogic)
 
 		stdLogicVector = Subtype("std_logic_vector", SimpleSubtypeSymbol(SimpleName("std_ulogic_vector")))
 		stdLogicVector._baseType = stdULogicVector
-		# stdLogic._range = Range(IntegerLiteral(0), IntegerLiteral(2**31-1), Direction.To)
 		self._subtypes[stdLogicVector._normalizedIdentifier] = stdLogicVector
 		self._declaredItems.append(stdLogicVector)
 
@@ -164,6 +162,24 @@ class Numeric_Std(PredefinedPackage):
 		self._AddPackageClause(("STD.TEXTIO.all", ))
 		self._AddLibraryClause(("IEEE", ))
 		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
+
+		unresolvedUnsigned = ArrayType("unresolved_unsigned", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		self._types[unresolvedUnsigned._normalizedIdentifier] = unresolvedUnsigned
+		self._declaredItems.append(unresolvedUnsigned)
+
+		unsigned = Subtype("unsigned", SimpleSubtypeSymbol(SimpleName("unresolved_unsigned")))
+		unsigned._baseType = unresolvedUnsigned
+		self._subtypes[unsigned._normalizedIdentifier] = unsigned
+		self._declaredItems.append(unsigned)
+
+		unresolvedSigned = ArrayType("unresolved_signed", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		self._types[unresolvedSigned._normalizedIdentifier] = unresolvedSigned
+		self._declaredItems.append(unresolvedSigned)
+
+		signed = Subtype("signed", SimpleSubtypeSymbol(SimpleName("unresolved_signed")))
+		signed._baseType = unresolvedSigned
+		self._subtypes[signed._normalizedIdentifier] = signed
+		self._declaredItems.append(signed)
 
 
 class Numeric_Std_Body(PredefinedPackageBody):

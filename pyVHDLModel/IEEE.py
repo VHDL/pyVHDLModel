@@ -30,9 +30,13 @@
 # ==================================================================================================================== #
 #
 """This module contains library and package declarations for VHDL library ``IEEE``."""
-from pyTooling.Decorators import export
+from pyTooling.Decorators   import export
 
-from pyVHDLModel.STD import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
+from pyVHDLModel.Expression import EnumerationLiteral
+from pyVHDLModel.Name       import SimpleName
+from pyVHDLModel.STD        import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
+from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
+from pyVHDLModel.Type       import EnumeratedType, ArrayType, Subtype
 
 
 @export
@@ -73,6 +77,32 @@ class Std_logic_1164(PredefinedPackage):
 		super().__init__()
 
 		self._AddPackageClause(("STD.TEXTIO.all", ))
+
+		stdULogic = EnumeratedType("boolean", (
+			EnumerationLiteral("U"),
+			EnumerationLiteral("X"),
+			EnumerationLiteral("0"),
+			EnumerationLiteral("1"),
+			EnumerationLiteral("Z"),
+			EnumerationLiteral("W"),
+			EnumerationLiteral("L"),
+			EnumerationLiteral("H"),
+			EnumerationLiteral("-"),
+		))
+		self._types[stdULogic._normalizedIdentifier] = stdULogic
+
+		stdULogicVector = ArrayType("std_ulogic_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		self._types[stdULogicVector._normalizedIdentifier] = stdULogicVector
+
+		stdLogic = Subtype("std_logic", SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		stdLogic._baseType = stdULogic
+		# stdLogic._range = Range(IntegerLiteral(0), IntegerLiteral(2**31-1), Direction.To)
+		self._subtypes[stdLogic._normalizedIdentifier] = stdLogic
+
+		stdLogicVector = Subtype("std_logic_vector", SimpleSubtypeSymbol(SimpleName("std_ulogic_vector")))
+		stdLogicVector._baseType = stdULogicVector
+		# stdLogic._range = Range(IntegerLiteral(0), IntegerLiteral(2**31-1), Direction.To)
+		self._subtypes[stdLogicVector._normalizedIdentifier] = stdLogicVector
 
 
 class Std_logic_1164_Body(PredefinedPackageBody):

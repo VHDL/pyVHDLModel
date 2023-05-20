@@ -112,10 +112,12 @@ class Standard(PredefinedPackage):
 		super().__init__()
 
 		boolean = EnumeratedType("boolean", (EnumerationLiteral("false"), EnumerationLiteral("true")))
-		self._types[boolean.NormalizedIdentifier] = boolean
+		self._types[boolean._normalizedIdentifier] = boolean
+		self._declaredItems.append(boolean)
 
 		bit = EnumeratedType("bit", (EnumerationLiteral("'0'"), EnumerationLiteral("'1'")))
-		self._types[bit.NormalizedIdentifier] = bit
+		self._types[bit._normalizedIdentifier] = bit
+		self._declaredItems.append(bit)
 
 		chars = \
 			"nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel", "bs", "ht", "lf", "vt", "ff", "cr", "so", "si", "dle", "dc1", "dc2", "dc3",\
@@ -132,14 +134,17 @@ class Standard(PredefinedPackage):
 			"'Ü'", "'Ý'", "'Þ'", "'ß'", "'à'", "'á'", "'â'", "'ã'", "'ä'", "'å'", "'æ'", "'ç'", "'è'", "'é'", "'ê'", "'ë'", "'ì'", "'í'", "'î'", "'ï'",\
 			"'ð'", "'ñ'", "'ò'", "'ó'", "'ô'", "'õ'", "'ö'", "'÷'", "'ø'", "'ù'", "'ú'", "'û'", "'ü'", "'ý'", "'þ'", "'ÿ'"
 		character = EnumeratedType("character", [EnumerationLiteral(char) for char in chars])
-		self._types[character.NormalizedIdentifier] = character
+		self._types[character._normalizedIdentifier] = character
+		self._declaredItems.append(character)
 
 		levels = "note", "warning", "error", "failure"
 		severityLevel = EnumeratedType("severityLevel", [EnumerationLiteral(level) for level in levels])
-		self._types[severityLevel.NormalizedIdentifier] = severityLevel
+		self._types[severityLevel._normalizedIdentifier] = severityLevel
+		self._declaredItems.append(severityLevel)
 
 		integer = IntegerType("integer", Range(IntegerLiteral(-2**31), IntegerLiteral(2**31-1), Direction.To))
-		self._types[integer.NormalizedIdentifier] = integer
+		self._types[integer._normalizedIdentifier] = integer
+		self._declaredItems.append(integer)
 
 		# real
 
@@ -157,7 +162,8 @@ class Standard(PredefinedPackage):
 				("hr",  PhysicalIntegerLiteral(60, "min")),
 			)
 		)
-		self._types[time.NormalizedIdentifier] = time
+		self._types[time._normalizedIdentifier] = time
+		self._declaredItems.append(time)
 
 		# delay_length
 
@@ -166,37 +172,46 @@ class Standard(PredefinedPackage):
 		natural = Subtype("natural", SimpleSubtypeSymbol(SimpleName("integer")))
 		natural._baseType = integer
 		natural._range = Range(IntegerLiteral(0), IntegerLiteral(2**31-1), Direction.To)
-		self._subtypes[natural.NormalizedIdentifier] = natural
+		self._subtypes[natural._normalizedIdentifier] = natural
+		self._declaredItems.append(natural)
 
 		positive = Subtype("positive", SimpleSubtypeSymbol(SimpleName("integer")))
 		positive._baseType = integer
 		positive._range = Range(IntegerLiteral(1), IntegerLiteral(2**31-1), Direction.To)
-		self._subtypes[positive.NormalizedIdentifier] = positive
+		self._subtypes[positive._normalizedIdentifier] = positive
+		self._declaredItems.append(positive)
 
 		string = ArrayType("string", (SimpleSubtypeSymbol(SimpleName("positive")), ), SimpleSubtypeSymbol(SimpleName("character")))
-		self._types[string.NormalizedIdentifier] = string
+		self._types[string._normalizedIdentifier] = string
+		self._declaredItems.append(string)
 
 		booleanVector = ArrayType("boolean_vector", (SimpleSubtypeSymbol(SimpleName("natural")), ), SimpleSubtypeSymbol(SimpleName("boolean")))
-		self._types[booleanVector.NormalizedIdentifier] = booleanVector
+		self._types[booleanVector._normalizedIdentifier] = booleanVector
+		self._declaredItems.append(booleanVector)
 
 		bitVector = ArrayType("bit_vector", (SimpleSubtypeSymbol(SimpleName("natural")), ), SimpleSubtypeSymbol(SimpleName("bit")))
-		self._types[bitVector.NormalizedIdentifier] = bitVector
+		self._types[bitVector._normalizedIdentifier] = bitVector
+		self._declaredItems.append(bitVector)
 
 		integerVector = ArrayType("integer_vector", (SimpleSubtypeSymbol(SimpleName("natural")), ), SimpleSubtypeSymbol(SimpleName("integer")))
-		self._types[integerVector.NormalizedIdentifier] = integerVector
+		self._types[integerVector._normalizedIdentifier] = integerVector
+		self._declaredItems.append(integerVector)
 
 		# real_vector
 
 		timeVector = ArrayType("time_vector", (SimpleSubtypeSymbol(SimpleName("natural")), ), SimpleSubtypeSymbol(SimpleName("time")))
-		self._types[timeVector.NormalizedIdentifier] = timeVector
+		self._types[timeVector._normalizedIdentifier] = timeVector
+		self._declaredItems.append(timeVector)
 
 		fileOpenKinds = "read_mode", "write_mode", "append_mode"
 		openFileKind = EnumeratedType("open_file_kind", [EnumerationLiteral(kind) for kind in fileOpenKinds])
-		self._types[openFileKind.NormalizedIdentifier] = openFileKind
+		self._types[openFileKind._normalizedIdentifier] = openFileKind
+		self._declaredItems.append(openFileKind)
 
 		fileOpenStati = "open_ok", "status_error", "name_error", "mode_error"
 		fileOpenStatus = EnumeratedType("open_file_status", [EnumerationLiteral(status) for status in fileOpenStati])
-		self._types[fileOpenStatus.NormalizedIdentifier] = fileOpenStatus
+		self._types[fileOpenStatus._normalizedIdentifier] = fileOpenStatus
+		self._declaredItems.append(fileOpenStatus)
 
 		# attribute foreign
 

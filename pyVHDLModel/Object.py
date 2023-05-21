@@ -34,19 +34,32 @@ This module contains parts of an abstract document language model for VHDL.
 
 Objects are constants, variables, signals and files.
 """
-from typing import Iterable, Optional as Nullable
+from typing               import Iterable, Optional as Nullable
 
 from pyTooling.Decorators import export
-from pyTooling.Graph import Vertex
+from pyTooling.Graph      import Vertex
 
-from pyVHDLModel.Symbol import Symbol
-from pyVHDLModel.Base import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
+from pyVHDLModel.Base     import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
+from pyVHDLModel.Symbol   import Symbol
 
 
 @export
 class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
+	"""
+	Base-class for all objects (constants, signals, variables and files) in VHDL.
+
+	An object (syntax element) can define multiple objects (semantic elements) in a single declaration, thus
+	:class:`~pyVHDLModel.Base.MultipleNamedEntityMixin` is inherited. All objects can be documented, thus
+	:class:`~pyVHDLModel.Base.DocumentedEntityMixin` is inherited too.
+
+	Each object references a subtype via :data:`_subtype`.
+
+	Objects are elements in the type and object graph, thus a reference to a vertex in that graph is stored in
+	:data:`__objectVertex`.
+	"""
+
 	_subtype:      Symbol
-	_objectVertex: Vertex
+	_objectVertex: Nullable[Vertex]
 
 	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
 		super().__init__()
@@ -62,15 +75,19 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	def Subtype(self) -> Symbol:
 		return self._subtype
 
-
-@export
-class BaseConstant(Obj):
-	pass
+	@property
+	def ObjectVertex(self) -> Nullable[Vertex]:
+		return self._objectVertex
 
 
 @export
 class WithDefaultExpressionMixin:
-	"""A ``WithDefaultExpression`` is a mixin class for all objects declarations accepting default expressions."""
+	"""
+	A ``WithDefaultExpression`` is a mixin-class for all objects declarations accepting default expressions.
+
+	The default expression is referenced by :data:`__defaultExpression`. If no default expression is present, this field
+	is ``None``.
+	"""
 
 	_defaultExpression: Nullable[ExpressionUnion]
 
@@ -85,7 +102,26 @@ class WithDefaultExpressionMixin:
 
 
 @export
+class BaseConstant(Obj):
+	"""
+	Base-class for all constants (normal and deferred constants) in VHDL.
+	"""
+
+
+@export
 class Constant(BaseConstant, WithDefaultExpressionMixin):
+	"""
+	Represents a constant.
+
+	As constants (always) have a default expression, the class :class:`~pyVHDLModel.Object.WithDefaultExpressionMixin` is inherited.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      constant BITS : positive := 8;
+	"""
+
 	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
 		super().__init__(identifiers, subtype, documentation)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
@@ -93,20 +129,45 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 
 @export
 class DeferredConstant(BaseConstant):
-	_constantReference: Constant
+	"""
+	Represents a deferred constant.
+
+	Deferred constants are forward declarations for a (complete) constant declaration, thus it contains a
+	field :data:`__constantReference` to the complete constant declaration.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      constant BITS : positive;
+	"""
+	_constantReference: Nullable[Constant]
 
 	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
 		super().__init__(identifiers, subtype, documentation)
 
 	@property
-	def ConstantReference(self) -> Constant:
+	def ConstantReference(self) -> Nullable[Constant]:
 		return self._constantReference
 
 	def __str__(self) -> str:
 		return f"constant {', '.join(self._identifiers)} : {self._subtype}"
 
+
 @export
 class Variable(Obj, WithDefaultExpressionMixin):
+	"""
+	Represents a variable.
+
+	As variables might have a default expression, the class :class:`~pyVHDLModel.Object.WithDefaultExpressionMixin` is inherited.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      variable result : natural := 0;
+	"""
+
 	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
 		super().__init__(identifiers, subtype, documentation)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
@@ -114,11 +175,28 @@ class Variable(Obj, WithDefaultExpressionMixin):
 
 @export
 class SharedVariable(Obj):
-	pass
+	"""
+	Represents a shared variable.
+
+	.. todo:: Shared variable object not implemented.
+	"""
+
 
 
 @export
 class Signal(Obj, WithDefaultExpressionMixin):
+	"""
+	Represents a signal.
+
+	As signals might have a default expression, the class :class:`~pyVHDLModel.Object.WithDefaultExpressionMixin` is inherited.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      signal counter : unsigned(7 downto 0) := '0';
+	"""
+
 	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
 		super().__init__(identifiers, subtype, documentation)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
@@ -126,4 +204,8 @@ class Signal(Obj, WithDefaultExpressionMixin):
 
 @export
 class File(Obj):
-	pass
+	"""
+	Represents a file.
+
+	.. todo:: File object not implemented.
+	"""

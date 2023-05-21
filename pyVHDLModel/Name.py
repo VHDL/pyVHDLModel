@@ -33,7 +33,7 @@
 This module contains parts of an abstract document language model for VHDL.
 
 VHDL uses *names* to express cross-references from *usage locations* to *declarations*. Here, *names* are single or
-combined identifiers. :py:mod:`Symbols <pyVHDLModel.Symbol>` are structures representing a *name* and a reference
+combined identifiers. :mod:`Symbols <pyVHDLModel.Symbol>` are structures representing a *name* and a reference
 (pointer) to the referenced vhdl language entity.
 """
 from typing import List, Iterable, Optional as Nullable
@@ -88,7 +88,7 @@ class Name(ModelEntity):
 		"""
 		The root (left-most) element in a chain of names.
 
-		In case the name is a :py:class:`simple name <SimpleName>`, the root points to the name itself.
+		In case the name is a :class:`simple name <SimpleName>`, the root points to the name itself.
 
 		:returns: The name's root element.
 		"""
@@ -108,7 +108,7 @@ class Name(ModelEntity):
 		"""
 		Returns true, if the name has a prefix.
 
-		This is true for all names except :py:class:`simple names <SimpleName>`.
+		This is true for all names except :class:`simple names <SimpleName>`.
 
 		:returns: ``True``, if the name as a prefix.
 		"""
@@ -183,8 +183,8 @@ class SelectedName(Name):
 	A *selected name* is a name made from multiple words separated by a dot (``.``).
 
 	For example, the library and entity name in a direct entity instantiation is a selected name. Here the entity
-	identifier is a selected name. The library identifier is a :py:class:`simple name <SimpleName>`, which is
-	referenced by the selected name via the :py:attr:`~pyVDLModel.Name.Prefix` property.
+	identifier is a selected name. The library identifier is a :class:`simple name <SimpleName>`, which is
+	referenced by the selected name via the :attr:`~pyVHDLModel.Name.Prefix` property.
 	"""
 
 	def __init__(self, identifier: str, prefix: Name):

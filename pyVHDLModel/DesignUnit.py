@@ -170,7 +170,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	def ContextItems(self) -> List['ContextUnion']:
 		"""
 		Read-only property to access the sequence of all context items comprising library, use and context clauses
-		(:py:attr:`_contextItems`).
+		(:attr:`_contextItems`).
 
 		:returns: Sequence of context items.
 		"""
@@ -179,7 +179,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	@property
 	def ContextReferences(self) -> List['ContextReference']:
 		"""
-		Read-only property to access the sequence of context clauses (:py:attr:`_contextReferences`).
+		Read-only property to access the sequence of context clauses (:attr:`_contextReferences`).
 
 		:returns: Sequence of context clauses.
 		"""
@@ -188,7 +188,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	@property
 	def LibraryReferences(self) -> List['LibraryClause']:
 		"""
-		Read-only property to access the sequence of library clauses (:py:attr:`_libraryReferences`).
+		Read-only property to access the sequence of library clauses (:attr:`_libraryReferences`).
 
 		:returns: Sequence of library clauses.
 		"""
@@ -197,7 +197,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	@property
 	def PackageReferences(self) -> List['UseClause']:
 		"""
-		Read-only property to access the sequence of use clauses (:py:attr:`_packageReferences`).
+		Read-only property to access the sequence of use clauses (:attr:`_packageReferences`).
 
 		:returns: Sequence of use clauses.
 		"""

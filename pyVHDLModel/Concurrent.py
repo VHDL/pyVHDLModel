@@ -55,7 +55,7 @@ class ConcurrentStatement(Statement):
 
 
 @export
-class ConcurrentStatements:
+class ConcurrentStatementsMixin:
 	_statements:     List[ConcurrentStatement]
 
 	_instantiations: Dict[str, 'Instantiation']  # TODO: add another instantiation class level for entity/configuration/component inst.
@@ -226,7 +226,7 @@ class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCall):
 
 
 @export
-class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatements, DocumentedEntityMixin):
+class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin, DocumentedEntityMixin):
 	_portItems:     List[PortInterfaceItem]
 
 	def __init__(
@@ -241,7 +241,7 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, Labeled
 		BlockStatementMixin.__init__(self)
 		LabeledEntityMixin.__init__(self, label)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
-		ConcurrentStatements.__init__(self, statements)
+		ConcurrentStatementsMixin.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		# TODO: extract to mixin
@@ -257,7 +257,7 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, Labeled
 
 
 @export
-class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
+class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
 	"""A ``GenerateBranch`` is a base-class for all branches in a generate statements."""
 
 	_alternativeLabel:           Nullable[str]
@@ -268,7 +268,7 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentSt
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
-		ConcurrentStatements.__init__(self, statements)
+		ConcurrentStatementsMixin.__init__(self, statements)
 
 		self._alternativeLabel = alternativeLabel
 		self._normalizedAlternativeLabel = alternativeLabel.lower() if alternativeLabel is not None else None
@@ -382,12 +382,12 @@ class ConcurrentChoice(BaseChoice):
 
 
 @export
-class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
+class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
 		LabeledEntityMixin.__init__(self, alternativeLabel)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
-		ConcurrentStatements.__init__(self, statements)
+		ConcurrentStatementsMixin.__init__(self, statements)
 
 
 @export
@@ -455,14 +455,14 @@ class CaseGenerateStatement(GenerateStatement):
 
 
 @export
-class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
+class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
 	_loopIndex: str
 	_range:     Range
 
 	def __init__(self, label: str, loopIndex: str, rng: Range, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
 		super().__init__(label)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
-		ConcurrentStatements.__init__(self, statements)
+		ConcurrentStatementsMixin.__init__(self, statements)
 
 		self._loopIndex = loopIndex
 
@@ -477,14 +477,14 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 	def Range(self) -> Range:
 		return self._range
 
-	IterateInstantiations = ConcurrentStatements.IterateInstantiations
+	IterateInstantiations = ConcurrentStatementsMixin.IterateInstantiations
 
 	# IndexDeclaredItems = ConcurrentStatements.IndexDeclaredItems
 
 	def IndexStatement(self) -> None:
 		self.IndexStatements()
 
-	IndexStatements = ConcurrentStatements.IndexStatements
+	IndexStatements = ConcurrentStatementsMixin.IndexStatements
 
 	# def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
 	# 	return ConcurrentStatements.IterateInstantiations(self)

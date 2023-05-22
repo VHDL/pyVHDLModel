@@ -46,7 +46,7 @@ from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin
 from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol
 from pyVHDLModel.Interface  import GenericInterfaceItem, PortInterfaceItem
 from pyVHDLModel.Object     import DeferredConstant
-from pyVHDLModel.Concurrent import ConcurrentStatement, ConcurrentStatements
+from pyVHDLModel.Concurrent import ConcurrentStatement, ConcurrentStatementsMixin
 
 
 ContextUnion = Union[
@@ -376,7 +376,7 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 
 
 @export
-class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
+class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
 	_genericItems:  List[GenericInterfaceItem]
 	_portItems:     List[PortInterfaceItem]
 
@@ -395,7 +395,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 		super().__init__(identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
-		ConcurrentStatements.__init__(self, statements)
+		ConcurrentStatementsMixin.__init__(self, statements)
 
 		# TODO: extract to mixin
 		self._genericItems = []
@@ -441,7 +441,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 
 
 @export
-class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
+class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
 	_library:       'Library' = None
 	_entity: EntitySymbol
 
@@ -449,7 +449,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		super().__init__(identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
-		ConcurrentStatements.__init__(self, statements)
+		ConcurrentStatementsMixin.__init__(self, statements)
 
 		self._entity = entity
 		entity._parent = self

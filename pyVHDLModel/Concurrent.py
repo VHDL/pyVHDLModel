@@ -51,11 +51,19 @@ from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatements, S
 
 @export
 class ConcurrentStatement(Statement):
-	"""A ``ConcurrentStatement`` is a base-class for all concurrent statements."""
+	"""A base-class for all concurrent statements."""
 
 
 @export
 class ConcurrentStatementsMixin:
+	"""
+	A mixin-class for all language constructs supporting concurrent statements.
+
+	.. seealso::
+
+	   .. todo:: concurrent declaration region
+	"""
+
 	_statements:     List[ConcurrentStatement]
 
 	_instantiations: Dict[str, 'Instantiation']  # TODO: add another instantiation class level for entity/configuration/component inst.
@@ -105,6 +113,10 @@ class ConcurrentStatementsMixin:
 
 @export
 class Instantiation(ConcurrentStatement):
+	"""
+	A base-class for all (component) instantiations.
+	"""
+
 	_genericAssociations: List[AssociationItem]
 	_portAssociations: List[AssociationItem]
 
@@ -136,6 +148,16 @@ class Instantiation(ConcurrentStatement):
 
 @export
 class ComponentInstantiation(Instantiation):
+	"""
+	Represents a component instantiation by referring to a component name.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       inst : component Counter;
+	"""
+
 	_component: ComponentInstantiationSymbol
 
 	def __init__(self, label: str, componentSymbol: ComponentInstantiationSymbol, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
@@ -151,6 +173,16 @@ class ComponentInstantiation(Instantiation):
 
 @export
 class EntityInstantiation(Instantiation):
+	"""
+	Represents an entity instantiation by referring to an entity name with optional architecture name.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       inst : entity work. Counter;
+	"""
+
 	_entity: EntityInstantiationSymbol
 	_architecture: ArchitectureSymbol
 
@@ -175,6 +207,16 @@ class EntityInstantiation(Instantiation):
 
 @export
 class ConfigurationInstantiation(Instantiation):
+	"""
+	Represents a configuration instantiation by referring to a configuration name.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       inst : configuration Counter;
+	"""
+
 	_configuration: ConfigurationInstantiationSymbol
 
 	def __init__(self, label: str, configurationSymbol: ConfigurationInstantiationSymbol, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
@@ -190,6 +232,20 @@ class ConfigurationInstantiation(Instantiation):
 
 @export
 class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements, DocumentedEntityMixin):
+	"""
+	Represents a process statement with sensitivity list, sequential declaration region and sequential statements.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       proc: process(Clock)
+	         -- sequential declarations
+	       begin
+	         -- sequential statements
+	       end process;
+	"""
+
 	_sensitivityList: List['Name']  # TODO: implement a SignalSymbol
 
 	def __init__(
@@ -258,7 +314,15 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, Labeled
 
 @export
 class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
-	"""A ``GenerateBranch`` is a base-class for all branches in a generate statements."""
+	"""
+	A base-class for all branches in a generate statements.
+
+	.. seealso::
+
+	   * :class:`If-generate branch <pyVHDLModel.Concurrent.IfGenerateBranch>`
+	   * :class:`Elsif-generate branch <pyVHDLModel.Concurrent.ElsifGenerateBranch>`
+	   * :class:`Else-generate branch <pyVHDLModel.Concurrent.ElseGenerateBranch>`
+	"""
 
 	_alternativeLabel:           Nullable[str]
 	_normalizedAlternativeLabel: Nullable[str]
@@ -286,6 +350,24 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentSt
 
 @export
 class IfGenerateBranch(GenerateBranch, IfBranchMixin):
+	"""
+	Represents if-generate branch in a generate statement with a concurrent declaration region and concurrent statements.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       gen: if condition generate
+	         -- concurrent declarations
+	       begin
+	         -- concurrent statements
+	       elsif condition generate
+	         -- ...
+	       else generate
+	         -- ...
+	       end generate;
+	"""
+
 	def __init__(self, condition: ExpressionUnion, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
 		IfBranchMixin.__init__(self, condition)
@@ -293,6 +375,24 @@ class IfGenerateBranch(GenerateBranch, IfBranchMixin):
 
 @export
 class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
+	"""
+	Represents elsif-generate branch in a generate statement with a concurrent declaration region and concurrent statements.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       gen: if condition generate
+	         -- ...
+	       elsif condition generate
+	         -- concurrent declarations
+	       begin
+	         -- concurrent statements
+	       else generate
+	         -- ...
+	       end generate;
+	"""
+
 	def __init__(self, condition: ExpressionUnion, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
 		ElsifBranchMixin.__init__(self, condition)
@@ -300,6 +400,24 @@ class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
 
 @export
 class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
+	"""
+	Represents else-generate branch in a generate statement with a concurrent declaration region and concurrent statements.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       gen: if condition generate
+	         -- ...
+	       elsif condition generate
+	         -- ...
+	       else generate
+	         -- concurrent declarations
+	       begin
+	         -- concurrent statements
+	       end generate;
+	"""
+
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
 		ElseBranchMixin.__init__(self)
@@ -307,7 +425,15 @@ class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 
 @export
 class GenerateStatement(ConcurrentStatement):
-	"""A ``GenerateStatement`` is a base-class for all generate statements."""
+	"""
+	A base-class for all generate statements.
+
+	.. seealso::
+
+	   * :class:`If...generate statement <pyVHDLModel.Concurrent.IfGenerateStatement>`
+	   * :class:`Case...generate statement <pyVHDLModel.Concurrent.CaseGenerateStatement>`
+	   * :class:`For...generate statement <pyVHDLModel.Concurrent.ForGenerateStatement>`
+	"""
 
 	_namespace: Namespace
 
@@ -327,6 +453,22 @@ class GenerateStatement(ConcurrentStatement):
 
 @export
 class IfGenerateStatement(GenerateStatement):
+	"""
+	Represents an if...generate statement.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       gen: if condition generate
+	         -- ...
+	       elsif condition generate
+	         -- ...
+	       else generate
+	         -- ...
+	       end generate;
+	"""
+
 	_ifBranch:      IfGenerateBranch
 	_elsifBranches: List[ElsifGenerateBranch]
 	_elseBranch:    Nullable[ElseGenerateBranch]
@@ -378,7 +520,7 @@ class IfGenerateStatement(GenerateStatement):
 
 @export
 class ConcurrentChoice(BaseChoice):
-	"""A ``ConcurrentChoice`` is a base-class for all concurrent choices (in case...generate statements)."""
+	"""A base-class for all concurrent choices (in case...generate statements)."""
 
 
 @export
@@ -421,6 +563,23 @@ class OthersGenerateCase(ConcurrentCase):
 
 @export
 class CaseGenerateStatement(GenerateStatement):
+	"""
+	Represents a case...generate statement.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       gen: case selector generate
+	         case choice1 =>
+	           -- ...
+	         case choice2 =>
+	           -- ...
+	         case others =>
+	           -- ...
+	       end generate;
+	"""
+
 	_expression: ExpressionUnion
 	_cases:      List[GenerateCase]
 
@@ -456,6 +615,18 @@ class CaseGenerateStatement(GenerateStatement):
 
 @export
 class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
+	"""
+	Represents a for...generate statement.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       gen: for i in 0 to 3 generate
+	         -- ...
+	       end generate;
+	"""
+
 	_loopIndex: str
 	_range:     Range
 

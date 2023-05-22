@@ -81,65 +81,65 @@ class Namespace(Generic[K, O]):
 		from pyVHDLModel.DesignUnit import Component
 
 		try:
-			element = self._elements[componentSymbol._innerName._normalizedIdentifier]
+			element = self._elements[componentSymbol._name._normalizedIdentifier]
 			if isinstance(element, Component):
 				return element
 			else:
-				raise TypeError(f"Found element '{componentSymbol._innerName._identifier}', but it is not a component.")
+				raise TypeError(f"Found element '{componentSymbol._name._identifier}', but it is not a component.")
 		except KeyError:
 			parentNamespace = self._parentNamespace
 			if parentNamespace is None:
-				raise KeyError(f"Component '{componentSymbol._innerName._identifier}' not found in '{self._name}'.")
+				raise KeyError(f"Component '{componentSymbol._name._identifier}' not found in '{self._name}'.")
 
 			return parentNamespace.FindComponent(componentSymbol)
 
 	def FindSubtype(self, subtypeSymbol: Symbol) -> BaseType:
 		try:
-			element = self._elements[subtypeSymbol._innerName._normalizedIdentifier]
+			element = self._elements[subtypeSymbol._name._normalizedIdentifier]
 			if isinstance(element, Subtype):
 				if PossibleReference.Subtype in subtypeSymbol._possibleReferences:
 					return element
 				else:
-					raise TypeError(f"Found subtype '{subtypeSymbol._innerName._identifier}', but it was not expected.")
+					raise TypeError(f"Found subtype '{subtypeSymbol._name._identifier}', but it was not expected.")
 			elif isinstance(element, FullType):
 				if PossibleReference.Type in subtypeSymbol._possibleReferences:
 					return element
 				else:
-					raise TypeError(f"Found type '{subtypeSymbol._innerName._identifier}', but it was not expected.")
+					raise TypeError(f"Found type '{subtypeSymbol._name._identifier}', but it was not expected.")
 			else:
-				raise TypeError(f"Found element '{subtypeSymbol._innerName._identifier}', but it is not a type or subtype.")
+				raise TypeError(f"Found element '{subtypeSymbol._name._identifier}', but it is not a type or subtype.")
 		except KeyError:
 			parentNamespace = self._parentNamespace
 			if parentNamespace is None:
-				raise KeyError(f"Subtype '{subtypeSymbol._innerName._identifier}' not found in '{self._name}'.")
+				raise KeyError(f"Subtype '{subtypeSymbol._name._identifier}' not found in '{self._name}'.")
 
 			return parentNamespace.FindSubtype(subtypeSymbol)
 
 	def FindObject(self, objectSymbol: Symbol) -> Obj:
 		try:
-			element = self._elements[objectSymbol._innerName._normalizedIdentifier]
+			element = self._elements[objectSymbol._name._normalizedIdentifier]
 			if isinstance(element, Signal):
 				if PossibleReference.Signal in objectSymbol._possibleReferences:
 					return element
 				elif PossibleReference.SignalAttribute in objectSymbol._possibleReferences:
 					return element
 				else:
-					raise TypeError(f"Found signal '{objectSymbol._innerName._identifier}', but it was not expected.")
+					raise TypeError(f"Found signal '{objectSymbol._name._identifier}', but it was not expected.")
 			elif isinstance(element, Constant):
 				if PossibleReference.Constant in objectSymbol._possibleReferences:
 					return element
 				else:
-					raise TypeError(f"Found constant '{objectSymbol._innerName._identifier}', but it was not expected.")
+					raise TypeError(f"Found constant '{objectSymbol._name._identifier}', but it was not expected.")
 			elif isinstance(element, Variable):
 				if PossibleReference.Variable in objectSymbol._possibleReferences:
 					return element
 				else:
-					raise TypeError(f"Found variable '{objectSymbol._innerName._identifier}', but it was not expected.")
+					raise TypeError(f"Found variable '{objectSymbol._name._identifier}', but it was not expected.")
 			else:
-				raise TypeError(f"Found element '{objectSymbol._innerName._identifier}', but it is not a type or subtype.")
+				raise TypeError(f"Found element '{objectSymbol._name._identifier}', but it is not a type or subtype.")
 		except KeyError:
 			parentNamespace = self._parentNamespace
 			if parentNamespace is None:
-				raise KeyError(f"Subtype '{objectSymbol._innerName._identifier}' not found in '{self._name}'.")
+				raise KeyError(f"Subtype '{objectSymbol._name._identifier}' not found in '{self._name}'.")
 
 			return parentNamespace.FindObject(objectSymbol)

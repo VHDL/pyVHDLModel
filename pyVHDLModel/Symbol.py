@@ -91,21 +91,21 @@ class PossibleReference(Flag):
 
 @export
 class Symbol:
-	_innerName:          Name
+	_name:               Name
 	_possibleReferences: PossibleReference
 	_reference:          Any
 
 	def __init__(self, name: Name, possibleReferences: PossibleReference):
-		self._innerName = name
+		self._name = name
 		self._possibleReferences = possibleReferences
 		self._reference = None
 
 	@property
 	def Name(self) -> Name:
-		return self._innerName
+		return self._name
 
 	@property
-	def Reference(self) -> Any:
+	def Reference(self) -> Nullable[Any]:
 		return self._reference
 
 	@property
@@ -117,15 +117,15 @@ class Symbol:
 
 	def __repr__(self) -> str:
 		if self._reference is not None:
-			return f"{self.__class__.__name__}: '{self._innerName!s}' -> {self._reference!s}"
+			return f"{self.__class__.__name__}: '{self._name!s}' -> {self._reference!s}"
 
-		return f"{self.__class__.__name__}: '{self._innerName!s}' -> unresolved"
+		return f"{self.__class__.__name__}: '{self._name!s}' -> unresolved"
 
 	def __str__(self) -> str:
 		if self._reference is not None:
 			return str(self._reference)
 
-		return f"{self._innerName!s}?"
+		return f"{self._name!s}?"
 
 
 @export
@@ -136,7 +136,7 @@ class LibraryReferenceSymbol(Symbol):
 		super().__init__(name, PossibleReference.Library)
 
 	@property
-	def Library(self) -> 'Library':
+	def Library(self) -> Nullable['Library']:
 		return self._reference
 
 	@Library.setter
@@ -152,7 +152,7 @@ class PackageReferenceSymbol(Symbol):
 		super().__init__(name, PossibleReference.Package)
 
 	@property
-	def Package(self) -> 'Package':
+	def Package(self) -> Nullable['Package']:
 		return self._reference
 
 	@Package.setter
@@ -168,7 +168,7 @@ class PackageMemberReferenceSymbol(Symbol):
 		super().__init__(name, PossibleReference.PackageMember)
 
 	@property
-	def Member(self) -> 'Package':  # TODO: typehint
+	def Member(self) -> Nullable['Package']:  # TODO: typehint
 		return self._reference
 
 	@Member.setter

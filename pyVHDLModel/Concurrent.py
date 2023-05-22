@@ -38,15 +38,27 @@ from typing                  import List, Dict, Union, Iterable, Generator, Opti
 
 from pyTooling.Decorators    import export
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range, BaseChoice, BaseCase, IfBranchMixin
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, BaseCase, IfBranchMixin
 from pyVHDLModel.Base        import ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement
 from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin
 from pyVHDLModel.Namespace   import Namespace
+from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
+from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
 from pyVHDLModel.Interface   import PortInterfaceItem
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin
 from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatements, SequentialDeclarations
+
+
+ExpressionUnion = Union[
+	BaseExpression,
+	QualifiedExpression,
+	FunctionCall,
+	TypeConversion,
+	# ConstantOrSymbol,     TODO: ObjectSymbol
+	Literal,
+]
 
 
 @export
@@ -246,14 +258,14 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 	       end process;
 	"""
 
-	_sensitivityList: List['Name']  # TODO: implement a SignalSymbol
+	_sensitivityList: List[Name]  # TODO: implement a SignalSymbol
 
 	def __init__(
 		self,
 		label: str = None,
 		declaredItems: Iterable = None,
 		statements: Iterable[SequentialStatement] = None,
-		sensitivityList: Iterable['Name'] = None,
+		sensitivityList: Iterable[Name] = None,
 		documentation: str = None
 	):
 		super().__init__(label)
@@ -270,13 +282,13 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 				# signalSymbol._parent = self  # FIXME: currently str are provided
 
 	@property
-	def SensitivityList(self) -> List['Name']:
+	def SensitivityList(self) -> List[Name]:
 		return self._sensitivityList
 
 
 @export
 class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
-	def __init__(self, label: str, procedureName: 'Name', parameterMappings: Iterable[ParameterAssociationItem] = None):
+	def __init__(self, label: str, procedureName: Name, parameterMappings: Iterable[ParameterAssociationItem] = None):
 		super().__init__(label)
 		ProcedureCallMixin.__init__(self, procedureName, parameterMappings)
 
@@ -715,7 +727,7 @@ class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignmentMixin):
 	   * :class:`~pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment`
 	   * :class:`~pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment`
 	"""
-	def __init__(self, label: str, target: 'Name'):
+	def __init__(self, label: str, target: Name):
 		super().__init__(label)
 		SignalAssignmentMixin.__init__(self, target)
 
@@ -724,7 +736,7 @@ class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignmentMixin):
 class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
 	_waveform: List[WaveformElement]
 
-	def __init__(self, label: str, target: 'Name', waveform: Iterable[WaveformElement]):
+	def __init__(self, label: str, target: Name, waveform: Iterable[WaveformElement]):
 		super().__init__(label, target)
 
 		# TODO: extract to mixin
@@ -741,13 +753,13 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
 
 @export
 class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment):
-	def __init__(self, label: str, target: 'Name', expression: ExpressionUnion):
+	def __init__(self, label: str, target: Name, expression: ExpressionUnion):
 		super().__init__(label, target)
 
 
 @export
 class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment):
-	def __init__(self, label: str, target: 'Name', expression: ExpressionUnion):
+	def __init__(self, label: str, target: Name, expression: ExpressionUnion):
 		super().__init__(label, target)
 
 

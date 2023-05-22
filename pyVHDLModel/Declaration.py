@@ -34,14 +34,26 @@ This module contains parts of an abstract document language model for VHDL.
 
 
 """
-from enum                 import unique, Enum
-from typing               import List, Iterable
+from enum                   import unique, Enum
+from typing                 import List, Iterable, Union
 
-from pyTooling.Decorators import export
+from pyTooling.Decorators   import export
 
-from pyVHDLModel.Base     import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
-from pyVHDLModel.Name     import Name
-from pyVHDLModel.Symbol   import Symbol
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
+from pyVHDLModel.Name       import Name
+from pyVHDLModel.Symbol     import Symbol
+
+
+
+ExpressionUnion = Union[
+	BaseExpression,
+	QualifiedExpression,
+	FunctionCall,
+	TypeConversion,
+	# ConstantOrSymbol,     TODO: ObjectSymbol
+	Literal,
+]
 
 
 @export

@@ -34,12 +34,23 @@ This module contains parts of an abstract document language model for VHDL.
 
 Associations are used in generic maps, port maps and parameter maps.
 """
-from typing               import Optional as Nullable
+from typing               import Optional as Nullable, Union
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel.Base     import ModelEntity, ExpressionUnion
-from pyVHDLModel.Symbol   import Symbol
+from pyVHDLModel.Base       import ModelEntity
+from pyVHDLModel.Symbol     import Symbol
+from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
+
+
+ExpressionUnion = Union[
+	BaseExpression,
+	QualifiedExpression,
+	FunctionCall,
+	TypeConversion,
+	# ConstantOrSymbol,     TODO: ObjectSymbol
+	Literal,
+]
 
 
 @export

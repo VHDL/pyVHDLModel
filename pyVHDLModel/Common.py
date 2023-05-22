@@ -34,13 +34,24 @@ This module contains parts of an abstract document language model for VHDL.
 
 Common definitions and Mixins are used by many classes in the model as base-classes.
 """
-from typing                  import List, Iterable
+from typing                  import List, Iterable, Union
 
 from pyTooling.Decorators    import export
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, ExpressionUnion
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin
+from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Symbol      import Symbol
 from pyVHDLModel.Association import ParameterAssociationItem
+
+
+ExpressionUnion = Union[
+	BaseExpression,
+	QualifiedExpression,
+	FunctionCall,
+	TypeConversion,
+	# ConstantOrSymbol,     TODO: ObjectSymbol
+	Literal,
+]
 
 
 @export

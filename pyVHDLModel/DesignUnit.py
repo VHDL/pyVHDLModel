@@ -43,7 +43,7 @@ from pyVHDLModel.Exception  import VHDLModelException
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Namespace  import Namespace
 from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin
-from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol
+from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface  import GenericInterfaceItem, PortInterfaceItem
 from pyVHDLModel.Object     import DeferredConstant
 from pyVHDLModel.Concurrent import ConcurrentStatement, ConcurrentStatementsMixin

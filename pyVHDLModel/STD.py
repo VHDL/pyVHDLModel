@@ -43,12 +43,46 @@ from pyVHDLModel.Predefined  import PredefinedLibrary, PredefinedPackage, Predef
 
 @export
 class Std(PredefinedLibrary):
+	"""
+	Predefined VHDL library ``std``.
+
+	The following predefined packages are in this library:
+
+	* :class:`~pyVHDLModel.STD.Standard`
+	* :class:`~pyVHDLModel.STD.Env`
+	* :class:`~pyVHDLModel.STD.TextIO`
+
+	.. seealso::
+
+	   Other predefined libraries:
+	     * Library :class:`~pyVHDLModel.IEEE.Ieee`
+	"""
+
 	def __init__(self):
 		super().__init__(PACKAGES)
 
 
 @export
 class Standard(PredefinedPackage):
+	"""
+	Predefined package ``std.standard``.
+
+	Predefined types:
+
+	* ``boolean``, ``boolean_vector``
+	* ``bit``, ``bit_vector``
+	* ``character``, ``string``
+	* ``integer``, ``integer_vector``
+	* ``natural``, ``positive``
+	* ``real``, ``real_vector``
+	* ``time``, ``time_vector``
+	* ``open_file_kind``, ``open_file_status``
+
+	.. seealso::
+
+	   Matching :class:`Package Body <pyVHDLModel.STD.Standard_Body>` declaration.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -159,21 +193,47 @@ class Standard(PredefinedPackage):
 
 @export
 class Standard_Body(PredefinedPackageBody):
-	pass
+	"""
+	Predefined package body of package ``std.standard``.
+
+	.. seealso::
+
+	   Matching :class:`Package <pyVHDLModel.STD.Standard>` declaration.
+	"""
 
 
 @export
 class TextIO(PredefinedPackage):
-	pass
+	"""
+	Predefined package ``std.textio``.
+
+	.. seealso::
+
+	   Matching :class:`Package Body <pyVHDLModel.STD.TextIO_Body>` declaration.
+	"""
 
 
 @export
 class TextIO_Body(PredefinedPackageBody):
-	pass
+	"""
+	Predefined package body of package ``std.textio``.
+
+	.. seealso::
+
+	   Matching :class:`Package <pyVHDLModel.STD.TextIO>` declaration.
+	"""
 
 
 @export
 class Env(PredefinedPackage):
+	"""
+	Predefined package ``std.env``.
+
+	.. seealso::
+
+	   Matching :class:`Package Body <pyVHDLModel.STD.Env_Body>` declaration.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -182,7 +242,13 @@ class Env(PredefinedPackage):
 
 @export
 class Env_Body(PredefinedPackageBody):
-	pass
+	"""
+	Predefined package body of package ``std.env``.
+
+	.. seealso::
+
+	   Matching :class:`Package <pyVHDLModel.STD.Env>` declaration.
+	"""
 
 
 PACKAGES = (

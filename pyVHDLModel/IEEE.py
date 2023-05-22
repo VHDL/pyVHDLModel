@@ -41,6 +41,43 @@ from pyVHDLModel.Type       import EnumeratedType, ArrayType, Subtype
 
 @export
 class Ieee(PredefinedLibrary):
+	"""
+	Predefined VHDL library ``ieee``.
+
+	The following predefined packages are in this library:
+
+	* Math
+
+	  * :class:`~pyVHDLModel.IEEE.Math_Real`
+	  * :class:`~pyVHDLModel.IEEE.Math_Complex`
+
+	* Std_logic
+
+	  * :class:`~pyVHDLModel.IEEE.Std_Logic_1164`
+	  * :class:`~pyVHDLModel.IEEE.Std_Logic_TextIO`
+	  * :class:`~pyVHDLModel.IEEE.Std_Logic_Misc`
+
+	* Numeric
+
+	  * :class:`~pyVHDLModel.IEEE.Numeric_Bit`
+	  * :class:`~pyVHDLModel.IEEE.Numeric_Bit_Unsigned`
+	  * :class:`~pyVHDLModel.IEEE.Numeric_Std`
+	  * :class:`~pyVHDLModel.IEEE.Numeric_Std_Unsigned`
+
+	* Fixed/floating point
+
+	  * :class:`~pyVHDLModel.IEEE.Fixed_Float_Types`
+	  * :class:`~pyVHDLModel.IEEE.Fixed_Generic_Pkg`
+	  * :class:`~pyVHDLModel.IEEE.Fixed_Pkg`
+	  * :class:`~pyVHDLModel.IEEE.Float_Generic_Pkg`
+	  * :class:`~pyVHDLModel.IEEE.Float_Pkg`
+
+	.. seealso::
+
+	   Other predefined libraries:
+	     * Library :class:`~pyVHDLModel.STD.Std`
+	"""
+
 	def __init__(self):
 		super().__init__(PACKAGES)
 

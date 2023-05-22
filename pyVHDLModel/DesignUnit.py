@@ -58,6 +58,16 @@ ContextUnion = Union[
 
 @export
 class Reference(ModelEntity):
+	"""
+	A base-class for all references.
+
+	.. seealso::
+
+	   * :class:`~pyVHDLModel.DesignUnit.LibraryClause`
+	   * :class:`~pyVHDLModel.DesignUnit.UseClause`
+	   * :class:`~pyVHDLModel.DesignUnit.ContextReference`
+	"""
+
 	_symbols:       List[Symbol]
 
 	def __init__(self, symbols: Iterable[Symbol]):
@@ -72,18 +82,48 @@ class Reference(ModelEntity):
 
 @export
 class LibraryClause(Reference):
-	pass
+	"""
+	Represents a library clause.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       library ieee;
+	"""
+
+	@property
+	def Symbols(self) -> List[LibraryReferenceSymbol]:
+		return self._symbols
 
 
 @export
 class UseClause(Reference):
-	pass
+	"""
+	Represents a use clause.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       use ieee.numeric_std.all;
+	"""
 
 
 @export
 class ContextReference(Reference):
 	# TODO: rename to ContextClause?
-	pass
+	"""
+	Represents a context reference.
+
+	.. hint:: It's called *context reference* not *context clause* by the LRM.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       context ieee.ieee_std_context;
+	"""
 
 
 @export
@@ -93,7 +133,23 @@ class DesignUnitWithContextMixin:  # (metaclass=ExtendedType, useSlots=True):
 
 @export
 class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
-	"""A ``DesignUnit`` is a base-class for all design units."""
+	"""
+	A base-class for all design units.
+
+	.. seealso::
+
+	   * :class:`Primary design units <pyVHDLModel.DesignUnit.PrimaryUnit>`
+
+	     * :class:`~pyVHDLModel.DesignUnit.Context`
+	     * :class:`~pyVHDLModel.DesignUnit.Entity`
+	     * :class:`~pyVHDLModel.DesignUnit.Package`
+	     * :class:`~pyVHDLModel.DesignUnit.Configuration`
+
+	   * :class:`Secondary design units <pyVHDLModel.DesignUnit.SecondaryUnit>`
+
+	     * :class:`~pyVHDLModel.DesignUnit.Architecture`
+	     * :class:`~pyVHDLModel.DesignUnit.PackageBody`
+	"""
 
 	_library:             'Library'                        #: The VHDL library, the design unit was analyzed into.
 
@@ -226,12 +282,28 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 @export
 class PrimaryUnit(DesignUnit):
-	"""A ``PrimaryUnit`` is a base-class for all primary units."""
+	"""
+	A base-class for all primary design units.
+
+	.. seealso::
+
+	   * :class:`~pyVHDLModel.DesignUnit.Context`
+	   * :class:`~pyVHDLModel.DesignUnit.Entity`
+	   * :class:`~pyVHDLModel.DesignUnit.Package`
+	   * :class:`~pyVHDLModel.DesignUnit.Configuration`
+	"""
 
 
 @export
 class SecondaryUnit(DesignUnit):
-	"""A ``SecondaryUnit`` is a base-class for all secondary units."""
+	"""
+	A base-class for all secondary design units.
+
+	.. seealso::
+
+	   * :class:`~pyVHDLModel.DesignUnit.Architecture`
+	   * :class:`~pyVHDLModel.DesignUnit.PackageBody`
+	"""
 
 
 @export

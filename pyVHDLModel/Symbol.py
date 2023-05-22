@@ -188,6 +188,33 @@ class PackageReferenceSymbol(Symbol):
 
 
 @export
+class ContextReferenceSymbol(Symbol):
+	"""
+	Represents a reference (name) to a context.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      context ieee.ieee_std_context;
+	      --      ^^^^^^^^^^^^^^^^^^^^^
+	"""
+
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Context)
+
+	@property
+	def Context(self) -> 'Context':
+		return self._reference
+
+	@Context.setter
+	def Context(self, value: 'Context') -> None:
+		self._reference = value
+
+
+@export
 class PackageMemberReferenceSymbol(Symbol):
 	"""
 	Represents a reference (name) to a package member.
@@ -242,24 +269,102 @@ class AllPackageMembersReferenceSymbol(Symbol):
 
 
 @export
-class ContextReferenceSymbol(Symbol):
-	"""A context reference in a context clause."""
+class EntityInstantiationSymbol(Symbol):
+	"""
+	Represents a reference (name) to an entity in a direct entity instantiation.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       inst : entity work.Counter;
+	       --            ^^^^^^^^^^^^
+	"""
 
 	def __init__(self, name: Name):
-		super().__init__(name, PossibleReference.Context)
+		super().__init__(name, PossibleReference.Entity)
 
 	@property
-	def Context(self) -> 'Context':
+	def Entity(self) -> 'Entity':
 		return self._reference
 
-	@Context.setter
-	def Context(self, value: 'Context') -> None:
+	@Entity.setter
+	def Entity(self, value: 'Entity') -> None:
+		self._reference = value
+
+
+@export
+class ComponentInstantiationSymbol(Symbol):
+	"""
+	Represents a reference (name) to an entity in a component instantiation.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       inst : component Counter;
+	       --               ^^^^^^^
+	"""
+
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Component)
+
+	@property
+	def Component(self) -> 'Component':
+		return self._reference
+
+	@Component.setter
+	def Component(self, value: 'Component') -> None:
+		self._reference = value
+
+
+@export
+class ConfigurationInstantiationSymbol(Symbol):
+	"""
+	Represents a reference (name) to an entity in a configuration instantiation.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       inst : configuration Counter;
+	       --                   ^^^^^^^
+	"""
+
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Configuration)
+
+	@property
+	def Configuration(self) -> 'Configuration':
+		return self._reference
+
+	@Configuration.setter
+	def Configuration(self, value: 'Configuration') -> None:
 		self._reference = value
 
 
 @export
 class EntitySymbol(Symbol):
-	"""An entity reference in an architecture declaration."""
+	"""
+	Represents a reference (name) to an entity in an architecture declaration.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      architecture rtl of Counter is
+	      --                  ^^^^^^^
+	      begin
+	      end architecture;
+	"""
 
 	def __init__(self, name: Name):
 		super().__init__(name, PossibleReference.Entity)
@@ -291,7 +396,19 @@ class ArchitectureSymbol(Symbol):
 
 @export
 class PackageSymbol(Symbol):
-	"""A package reference in a package body declaration."""
+	"""
+	Represents a reference (name) to a package in a package body declaration.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      package body Utilities is
+	      --           ^^^^^^^^^
+	      end package body;
+	"""
 
 	def __init__(self, name: Name):
 		super().__init__(name, PossibleReference.Package)
@@ -302,54 +419,6 @@ class PackageSymbol(Symbol):
 
 	@Package.setter
 	def Package(self, value: 'Package') -> None:
-		self._reference = value
-
-
-@export
-class EntityInstantiationSymbol(Symbol):
-	"""An entity reference in a direct entity instantiation."""
-
-	def __init__(self, name: Name):
-		super().__init__(name, PossibleReference.Entity)
-
-	@property
-	def Entity(self) -> 'Entity':
-		return self._reference
-
-	@Entity.setter
-	def Entity(self, value: 'Entity') -> None:
-		self._reference = value
-
-
-@export
-class ComponentInstantiationSymbol(Symbol):
-	"""A component reference in a component instantiation."""
-
-	def __init__(self, name: Name):
-		super().__init__(name, PossibleReference.Component)
-
-	@property
-	def Component(self) -> 'Component':
-		return self._reference
-
-	@Component.setter
-	def Component(self, value: 'Component') -> None:
-		self._reference = value
-
-
-@export
-class ConfigurationInstantiationSymbol(Symbol):
-	"""A configuration reference in a configuration instantiation."""
-
-	def __init__(self, name: Name):
-		super().__init__(name, PossibleReference.Configuration)
-
-	@property
-	def Configuration(self) -> 'Configuration':
-		return self._reference
-
-	@Configuration.setter
-	def Configuration(self, value: 'Configuration') -> None:
 		self._reference = value
 
 

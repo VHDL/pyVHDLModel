@@ -88,16 +88,24 @@ class Ieee(PredefinedLibrary):
 
 @export
 class Math_Real(PredefinedPackage):
-	pass
+	"""
+	Predefined package ``ieee.math_real``.
+	"""
 
 
 @export
 class Math_Real_Body(PredefinedPackageBody):
-	pass
+	"""
+	Predefined package body of package ``ieee.math_real``.
+	"""
 
 
 @export
 class Math_Complex(PredefinedPackage):
+	"""
+	Predefined package ``ieee.math_complex``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -106,6 +114,10 @@ class Math_Complex(PredefinedPackage):
 
 @export
 class Math_Complex_Body(PredefinedPackageBody):
+	"""
+	Predefined package body of package ``ieee.math_complex``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -114,6 +126,10 @@ class Math_Complex_Body(PredefinedPackageBody):
 
 @export
 class Std_logic_1164(PredefinedPackage):
+	"""
+	Predefined package ``ieee.std_logic_1164``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -150,11 +166,17 @@ class Std_logic_1164(PredefinedPackage):
 
 @export
 class Std_logic_1164_Body(PredefinedPackageBody):
-	pass
+	"""
+	Predefined package body of package ``ieee.std_logic_1164``.
+	"""
 
 
 @export
 class std_logic_textio(PredefinedPackage):
+	"""
+	Predefined package ``ieee.std_logic_textio``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -165,6 +187,10 @@ class std_logic_textio(PredefinedPackage):
 
 @export
 class Std_logic_misc(PredefinedPackage):
+	"""
+	Predefined package ``ieee.std_logic_misc``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -174,11 +200,17 @@ class Std_logic_misc(PredefinedPackage):
 
 @export
 class Std_logic_misc_Body(PredefinedPackageBody):
-	pass
+	"""
+	Predefined package body of package ``ieee.std_logic_misc``.
+	"""
 
 
 @export
 class Numeric_Bit(PredefinedPackage):
+	"""
+	Predefined package ``ieee.numeric_bit``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -187,16 +219,24 @@ class Numeric_Bit(PredefinedPackage):
 
 @export
 class Numeric_Bit_Body(PredefinedPackageBody):
-	pass
+	"""
+	Predefined package body of package ``ieee.numeric_bit``.
+	"""
 
 
 @export
 class Numeric_Bit_Unsigned(PredefinedPackage):
-	pass
+	"""
+	Predefined package ``ieee.numeric_bit_unsigned``.
+	"""
 
 
 @export
 class Numeric_Bit_Unsigned_Body(PredefinedPackageBody):
+	"""
+	Predefined package body of package ``ieee.numeric_bit_unsigned``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -206,6 +246,10 @@ class Numeric_Bit_Unsigned_Body(PredefinedPackageBody):
 
 @export
 class Numeric_Std(PredefinedPackage):
+	"""
+	Predefined package ``ieee.numeric_std``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -234,11 +278,17 @@ class Numeric_Std(PredefinedPackage):
 
 @export
 class Numeric_Std_Body(PredefinedPackageBody):
-	pass
+	"""
+	Predefined package body of package ``ieee.numeric_std``.
+	"""
 
 
 @export
 class Numeric_Std_Unsigned(PredefinedPackage):
+	"""
+	Predefined package ``ieee.numeric_std_unsigned``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -248,6 +298,10 @@ class Numeric_Std_Unsigned(PredefinedPackage):
 
 @export
 class Numeric_Std_Unsigned_Body(PredefinedPackageBody):
+	"""
+	Predefined package body of package ``ieee.numeric_std_unsigned``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -257,11 +311,17 @@ class Numeric_Std_Unsigned_Body(PredefinedPackageBody):
 
 @export
 class Fixed_Float_Types(PredefinedPackage):
-	pass
+	"""
+	Predefined package ``ieee.fixed_float_types``.
+	"""
 
 
 @export
 class Fixed_Generic_Pkg(PredefinedPackage):
+	"""
+	Predefined package ``ieee.fixed_generic_pkg``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -274,6 +334,10 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 
 @export
 class Fixed_Generic_Pkg_Body(PredefinedPackageBody):
+	"""
+	Predefined package body of package ``ieee.fixed_generic_pkg``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -283,6 +347,9 @@ class Fixed_Generic_Pkg_Body(PredefinedPackageBody):
 
 @export
 class Fixed_Pkg(PredefinedPackage):
+	"""
+	Predefined package ``ieee.fixed_pkg``.
+	"""
 	def __init__(self):
 		super().__init__()
 
@@ -291,6 +358,10 @@ class Fixed_Pkg(PredefinedPackage):
 
 @export
 class Float_Generic_Pkg(PredefinedPackage):
+	"""
+	Predefined package ``ieee.float_generic_pkg``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 
@@ -303,11 +374,17 @@ class Float_Generic_Pkg(PredefinedPackage):
 
 @export
 class Float_Generic_Pkg_Body(PredefinedPackageBody):
-	pass
+	"""
+	Predefined package body of package ``ieee.float_generic_pkg``.
+	"""
 
 
 @export
 class Float_Pkg(PredefinedPackage):
+	"""
+	Predefined package ``ieee.float_pkg``.
+	"""
+
 	def __init__(self):
 		super().__init__()
 

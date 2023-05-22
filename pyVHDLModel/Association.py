@@ -34,16 +34,20 @@ This module contains parts of an abstract document language model for VHDL.
 
 Associations are used in generic maps, port maps and parameter maps.
 """
-from typing import Optional as Nullable
+from typing               import Optional as Nullable
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel.Base import ModelEntity, ExpressionUnion
-from pyVHDLModel.Symbol import Symbol
+from pyVHDLModel.Base     import ModelEntity, ExpressionUnion
+from pyVHDLModel.Symbol   import Symbol
 
 
 @export
 class AssociationItem(ModelEntity):
+	"""
+	A base-class for all association items.
+	"""
+
 	_formal: Nullable[Symbol]
 	_actual: ExpressionUnion
 
@@ -74,14 +78,20 @@ class AssociationItem(ModelEntity):
 
 @export
 class GenericAssociationItem(AssociationItem):
-	pass
+	"""
+	A base-class for all generic association items used in generic map aspects.
+	"""
 
 
 @export
 class PortAssociationItem(AssociationItem):
-	pass
+	"""
+	A base-class for all port association items used in port map aspects.
+	"""
 
 
 @export
 class ParameterAssociationItem(AssociationItem):
-	pass
+	"""
+	A base-class for all parameter association items used in parameter map aspects.
+	"""

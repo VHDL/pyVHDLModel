@@ -57,7 +57,7 @@ ExpressionUnion = Union[
 @export
 @unique
 class Direction(Enum):
-	"""A ``Direction`` is an enumeration and represents a direction in a range	(``to`` or ``downto``)."""
+	"""An enumeration representing a direction in a range	(``to`` or ``downto``)."""
 
 	To =      0  #: Ascending direction
 	DownTo =  1  #: Descending direction
@@ -66,7 +66,7 @@ class Direction(Enum):
 		"""
 		Formats the direction to ``to`` or ``downto``.
 
-		:return: Formatted direction.
+		:returns: Formatted direction.
 		"""
 		return ("to", "downto")[cast(int, self.value)]       # TODO: check performance
 
@@ -92,7 +92,7 @@ class Mode(Enum):
 		"""
 		Formats the direction.
 
-		:return: Formatted direction.
+		:returns: Formatted direction.
 		"""
 		return ("", "in", "out", "inout", "buffer", "linkage")[cast(int, self.value)]       # TODO: check performance
 
@@ -111,7 +111,6 @@ class ModelEntity(metaclass=ExtendedType, useSlots=True):
 
 	def __init__(self):
 		"""Initializes a VHDL model entity."""
-
 		self._parent = None
 
 	@property

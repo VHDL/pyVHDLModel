@@ -467,6 +467,13 @@ class IfGenerateStatement(GenerateStatement):
 	       else generate
 	         -- ...
 	       end generate;
+
+	.. seealso::
+
+	   * :class:`Generate branch <pyVHDLModel.Concurrent.GenerateBranch>` base-class
+	   * :class:`If-generate branch <pyVHDLModel.Concurrent.IfGenerateBranch>`
+	   * :class:`Elsif-generate branch <pyVHDLModel.Concurrent.ElsifGenerateBranch>`
+	   * :class:`Else-generate branch <pyVHDLModel.Concurrent.ElseGenerateBranch>`
 	"""
 
 	_ifBranch:      IfGenerateBranch
@@ -521,6 +528,42 @@ class IfGenerateStatement(GenerateStatement):
 @export
 class ConcurrentChoice(BaseChoice):
 	"""A base-class for all concurrent choices (in case...generate statements)."""
+
+
+@export
+class IndexedGenerateChoice(ConcurrentChoice):
+	_expression: ExpressionUnion
+
+	def __init__(self, expression: ExpressionUnion):
+		super().__init__()
+
+		self._expression = expression
+		expression._parent = self
+
+	@property
+	def Expression(self) -> ExpressionUnion:
+		return self._expression
+
+	def __str__(self) -> str:
+		return str(self._expression)
+
+
+@export
+class RangedGenerateChoice(ConcurrentChoice):
+	_range: 'Range'
+
+	def __init__(self, rng: 'Range'):
+		super().__init__()
+
+		self._range = rng
+		rng._parent = self
+
+	@property
+	def Range(self) -> 'Range':
+		return self._range
+
+	def __str__(self) -> str:
+		return str(self._range)
 
 
 @export
@@ -669,6 +712,8 @@ class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignmentMixin):
 	.. seealso::
 
 	   * :class:`~pyVHDLModel.Concurrent.ConcurrentSimpleSignalAssignment`
+	   * :class:`~pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment`
+	   * :class:`~pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment`
 	"""
 	def __init__(self, label: str, target: 'Name'):
 		super().__init__(label)
@@ -711,39 +756,3 @@ class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
 	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion, severity: ExpressionUnion = None, label: str = None):
 		super().__init__(label)
 		AssertStatementMixin.__init__(self, condition, message, severity)
-
-
-@export
-class IndexedGenerateChoice(ConcurrentChoice):
-	_expression: ExpressionUnion
-
-	def __init__(self, expression: ExpressionUnion):
-		super().__init__()
-
-		self._expression = expression
-		expression._parent = self
-
-	@property
-	def Expression(self) -> ExpressionUnion:
-		return self._expression
-
-	def __str__(self) -> str:
-		return str(self._expression)
-
-
-@export
-class RangedGenerateChoice(ConcurrentChoice):
-	_range: 'Range'
-
-	def __init__(self, rng: 'Range'):
-		super().__init__()
-
-		self._range = rng
-		rng._parent = self
-
-	@property
-	def Range(self) -> 'Range':
-		return self._range
-
-	def __str__(self) -> str:
-		return str(self._range)

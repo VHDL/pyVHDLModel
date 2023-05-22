@@ -30,74 +30,15 @@
 # ==================================================================================================================== #
 #
 """This module contains library and package declarations for VHDL library ``STD``."""
-from typing                  import Iterable
 
 from pyTooling.Decorators    import export
 
-from pyVHDLModel             import Library
 from pyVHDLModel.Base        import Range, Direction
+from pyVHDLModel.Name        import SimpleName
+from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
 from pyVHDLModel.Expression  import EnumerationLiteral, IntegerLiteral, PhysicalIntegerLiteral
-from pyVHDLModel.Name        import SimpleName, SelectedName, AllName
-from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageMemberReferenceSymbol, AllPackageMembersReferenceSymbol, PackageSymbol, SimpleSubtypeSymbol
-from pyVHDLModel.DesignUnit  import LibraryClause, UseClause, Package, PackageBody
-from pyVHDLModel.Type import EnumeratedType, IntegerType, Subtype, PhysicalType, ArrayType
-
-
-@export
-class PredefinedLibrary(Library):
-	def __init__(self, packages):
-		super().__init__(self.__class__.__name__)
-
-		self.AddPackages(packages)
-
-	def AddPackages(self, packages):
-		for packageType, packageBodyType in packages:
-			package: Package = packageType()
-			package.Library = self
-			self._packages[package.NormalizedIdentifier] = package
-
-			if packageBodyType is not None:
-				packageBody: PackageBody = packageBodyType()
-				packageBody.Library = self
-				self._packageBodies[packageBody.NormalizedIdentifier] = packageBody
-
-
-@export
-class PredefinedMixin:
-	def _AddLibraryClause(self, libraries: Iterable[str]):
-		symbols = [LibraryReferenceSymbol(SimpleName(libName)) for libName in libraries]
-		libraryClause = LibraryClause(symbols)
-
-		self._contextItems.append(libraryClause)
-		self._libraryReferences.append(libraryClause)
-
-	def _AddPackageClause(self, packages: Iterable[str]):
-		symbols = []
-		for qualifiedPackageName in packages:
-			libName, packName, members = qualifiedPackageName.split(".")
-
-			packageName = SelectedName(packName, SimpleName(libName))
-			if members.lower() == "all":
-				symbols.append(AllPackageMembersReferenceSymbol(AllName(packageName)))
-			else:
-				symbols.append(PackageMemberReferenceSymbol(SelectedName(members, packageName)))
-
-		useClause = UseClause(symbols)
-		self._contextItems.append(useClause)
-		self._packageReferences.append(useClause)
-
-
-@export
-class PredefinedPackage(Package, PredefinedMixin):
-	def __init__(self):
-		super().__init__(self.__class__.__name__)
-
-
-@export
-class PredefinedPackageBody(PackageBody, PredefinedMixin):
-	def __init__(self):
-		packageSymbol = PackageSymbol(SimpleName(self.__class__.__name__[:-5]))
-		super().__init__(packageSymbol)
+from pyVHDLModel.Type        import EnumeratedType, IntegerType, Subtype, PhysicalType, ArrayType
+from pyVHDLModel.Predefined  import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 
 
 @export

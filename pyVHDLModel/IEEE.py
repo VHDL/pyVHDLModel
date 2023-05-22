@@ -34,7 +34,7 @@ from pyTooling.Decorators   import export
 
 from pyVHDLModel.Expression import EnumerationLiteral
 from pyVHDLModel.Name       import SimpleName
-from pyVHDLModel.STD        import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
+from pyVHDLModel.Predefined import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
 from pyVHDLModel.Type       import EnumeratedType, ArrayType, Subtype
 

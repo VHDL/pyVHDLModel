@@ -32,20 +32,21 @@
 """
 This module contains parts of an abstract document language model for VHDL.
 
-Symbols derived from names.
+Symbols are entity specific wrappers for names that reference VHDL language entities.
 """
-from enum                 import Flag, auto
-from typing               import Any
+from enum                  import Flag, auto
+from typing                import Any, Optional as Nullable
 
-from pyTooling.Decorators import export
+from pyTooling.Decorators  import export
+from pyTooling.MetaClasses import ExtendedType
 
-from pyVHDLModel.Name     import Name, AllName
+from pyVHDLModel.Name      import Name, AllName
 
 
 @export
 class PossibleReference(Flag):
 	"""
-	A ``PossibleReference`` is an enumeration. It represents possible targets for a reference in a :class:`~pyVHDLModel.Symbol`.
+	Is an enumeration, representing possible targets for a reference in a :class:`~pyVHDLModel.Symbol`.
 	"""
 
 	Unknown =         0
@@ -90,10 +91,14 @@ class PossibleReference(Flag):
 
 
 @export
-class Symbol:
-	_name:               Name
-	_possibleReferences: PossibleReference
-	_reference:          Any
+class Symbol(metaclass=ExtendedType):
+	"""
+	Base-class for all symbol classes.
+	"""
+
+	_name:               Name               #: The name to reference the langauge entity.
+	_possibleReferences: PossibleReference  #: An enumeration to filter possible references.
+	_reference:          Nullable[Any]      #: The resolved language entity, otherwise ``None``.
 
 	def __init__(self, name: Name, possibleReferences: PossibleReference):
 		self._name = name
@@ -130,7 +135,18 @@ class Symbol:
 
 @export
 class LibraryReferenceSymbol(Symbol):
-	"""A library reference in a library clause."""
+	"""
+	Represents a reference (name) to a library.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      library ieee;
+	      --      ^^^^
+	"""
 
 	def __init__(self, name: Name):
 		super().__init__(name, PossibleReference.Library)
@@ -146,7 +162,18 @@ class LibraryReferenceSymbol(Symbol):
 
 @export
 class PackageReferenceSymbol(Symbol):
-	"""A package reference in a use clause."""
+	"""
+	Represents a reference (name) to a package.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      use ieee.numeric_std;
+	      --  ^^^^^^^^^^^^^^^^
+	"""
 
 	def __init__(self, name: Name):
 		super().__init__(name, PossibleReference.Package)
@@ -162,7 +189,18 @@ class PackageReferenceSymbol(Symbol):
 
 @export
 class PackageMemberReferenceSymbol(Symbol):
-	"""A package member reference in a use clause."""
+	"""
+	Represents a reference (name) to a package member.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      use ieee.numeric_std.unsigned;
+	      --  ^^^^^^^^^^^^^^^^^^^^^^^^^
+	"""
 
 	def __init__(self, name: Name):
 		super().__init__(name, PossibleReference.PackageMember)
@@ -178,7 +216,18 @@ class PackageMemberReferenceSymbol(Symbol):
 
 @export
 class AllPackageMembersReferenceSymbol(Symbol):
-	"""A package reference in a use clause."""
+	"""
+	Represents a reference (name) to all package members.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.AllName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      use ieee.numeric_std.all;
+	      --  ^^^^^^^^^^^^^^^^^^^^
+	"""
 
 	def __init__(self, name: AllName):
 		super().__init__(name, PossibleReference.PackageMember)

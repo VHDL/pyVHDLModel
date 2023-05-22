@@ -45,7 +45,7 @@ from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
 from pyVHDLModel.Interface   import PortInterfaceItem
-from pyVHDLModel.Common      import Statement, ProcedureCall, SignalAssignment
+from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin
 from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatements, SequentialDeclarations
 
 
@@ -219,10 +219,10 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 
 
 @export
-class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCall):
+class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
 	def __init__(self, label: str, procedureName: 'Name', parameterMappings: Iterable[ParameterAssociationItem] = None):
 		super().__init__(label)
-		ProcedureCall.__init__(self, procedureName, parameterMappings)
+		ProcedureCallMixin.__init__(self, procedureName, parameterMappings)
 
 
 @export
@@ -491,10 +491,17 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 
 
 @export
-class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignment):
+class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignmentMixin):
+	"""
+	A base-class for concurrent signal assignments.
+
+	.. seealso::
+
+	   * :class:`~pyVHDLModel.Concurrent.ConcurrentSimpleSignalAssignment`
+	"""
 	def __init__(self, label: str, target: 'Name'):
 		super().__init__(label)
-		SignalAssignment.__init__(self, target)
+		SignalAssignmentMixin.__init__(self, target)
 
 
 @export

@@ -128,6 +128,11 @@ class Math_Complex_Body(PredefinedPackageBody):
 class Std_logic_1164(PredefinedPackage):
 	"""
 	Predefined package ``ieee.std_logic_1164``.
+
+	Predefined types:
+
+	* ``std_ulogic``, ``std_ulogic_vector``
+	* ``std_logic``, ``std_logic_vector``
 	"""
 
 	def __init__(self):
@@ -248,6 +253,11 @@ class Numeric_Bit_Unsigned_Body(PredefinedPackageBody):
 class Numeric_Std(PredefinedPackage):
 	"""
 	Predefined package ``ieee.numeric_std``.
+
+	Predefined types:
+
+	* ``unresolved_unsigned``, ``unsigned``
+	* ``unresolved_signed``, ``signed``
 	"""
 
 	def __init__(self):

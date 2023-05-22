@@ -54,10 +54,12 @@ class Math_Real(PredefinedPackage):
 	pass
 
 
+@export
 class Math_Real_Body(PredefinedPackageBody):
 	pass
 
 
+@export
 class Math_Complex(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -65,6 +67,7 @@ class Math_Complex(PredefinedPackage):
 		self._AddPackageClause(("work.math_real.all",))
 
 
+@export
 class Math_Complex_Body(PredefinedPackageBody):
 	def __init__(self):
 		super().__init__()
@@ -72,6 +75,7 @@ class Math_Complex_Body(PredefinedPackageBody):
 		self._AddPackageClause(("work.math_real.all",))
 
 
+@export
 class Std_logic_1164(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -107,10 +111,12 @@ class Std_logic_1164(PredefinedPackage):
 		self._declaredItems.append(stdLogicVector)
 
 
+@export
 class Std_logic_1164_Body(PredefinedPackageBody):
 	pass
 
 
+@export
 class std_logic_textio(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -120,6 +126,7 @@ class std_logic_textio(PredefinedPackage):
 		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
 
 
+@export
 class Std_logic_misc(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -128,10 +135,12 @@ class Std_logic_misc(PredefinedPackage):
 		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
 
 
+@export
 class Std_logic_misc_Body(PredefinedPackageBody):
 	pass
 
 
+@export
 class Numeric_Bit(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -139,14 +148,17 @@ class Numeric_Bit(PredefinedPackage):
 		self._AddPackageClause(("STD.TEXTIO.all", ))
 
 
+@export
 class Numeric_Bit_Body(PredefinedPackageBody):
 	pass
 
 
+@export
 class Numeric_Bit_Unsigned(PredefinedPackage):
 	pass
 
 
+@export
 class Numeric_Bit_Unsigned_Body(PredefinedPackageBody):
 	def __init__(self):
 		super().__init__()
@@ -155,6 +167,7 @@ class Numeric_Bit_Unsigned_Body(PredefinedPackageBody):
 		self._AddPackageClause(("IEEE.numeric_bit.all", ))
 
 
+@export
 class Numeric_Std(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -182,9 +195,12 @@ class Numeric_Std(PredefinedPackage):
 		self._declaredItems.append(signed)
 
 
+@export
 class Numeric_Std_Body(PredefinedPackageBody):
 	pass
 
+
+@export
 class Numeric_Std_Unsigned(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -193,6 +209,7 @@ class Numeric_Std_Unsigned(PredefinedPackage):
 		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
 
 
+@export
 class Numeric_Std_Unsigned_Body(PredefinedPackageBody):
 	def __init__(self):
 		super().__init__()
@@ -201,10 +218,12 @@ class Numeric_Std_Unsigned_Body(PredefinedPackageBody):
 		self._AddPackageClause(("IEEE.numeric_std.all", ))
 
 
+@export
 class Fixed_Float_Types(PredefinedPackage):
 	pass
 
 
+@export
 class Fixed_Generic_Pkg(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -216,6 +235,7 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 		self._AddPackageClause(("IEEE.fixed_float_types.all", ))
 
 
+@export
 class Fixed_Generic_Pkg_Body(PredefinedPackageBody):
 	def __init__(self):
 		super().__init__()
@@ -224,6 +244,7 @@ class Fixed_Generic_Pkg_Body(PredefinedPackageBody):
 		self._AddPackageClause(("IEEE.MATH_REAL.all", ))
 
 
+@export
 class Fixed_Pkg(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -231,6 +252,7 @@ class Fixed_Pkg(PredefinedPackage):
 		self._AddLibraryClause(("IEEE", ))
 
 
+@export
 class Float_Generic_Pkg(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -242,10 +264,12 @@ class Float_Generic_Pkg(PredefinedPackage):
 		self._AddPackageClause(("IEEE.fixed_float_types.all", ))
 
 
+@export
 class Float_Generic_Pkg_Body(PredefinedPackageBody):
 	pass
 
 
+@export
 class Float_Pkg(PredefinedPackage):
 	def __init__(self):
 		super().__init__()
@@ -254,21 +278,21 @@ class Float_Pkg(PredefinedPackage):
 
 
 PACKAGES = (
-	(Math_Real, Math_Real_Body),
-	(Math_Complex, Math_Complex_Body),
-	(Std_logic_1164, Std_logic_1164_Body),
-	(std_logic_textio, None),
-	(Numeric_Bit, Numeric_Bit_Body),
+	(Math_Real,            Math_Real_Body),
+	(Math_Complex,         Math_Complex_Body),
+	(Std_logic_1164,       Std_logic_1164_Body),
+	(std_logic_textio,     None),
+	(Numeric_Bit,          Numeric_Bit_Body),
 	(Numeric_Bit_Unsigned, Numeric_Bit_Unsigned_Body),
-	(Numeric_Std, Numeric_Std_Body),
+	(Numeric_Std,          Numeric_Std_Body),
 	(Numeric_Std_Unsigned, Numeric_Std_Unsigned_Body),
-	(Fixed_Float_Types, None),
-	(Fixed_Generic_Pkg, Fixed_Generic_Pkg_Body),
-	(Fixed_Pkg, None),
-	(Float_Generic_Pkg, Float_Generic_Pkg_Body),
-	(Float_Pkg, None),
+	(Fixed_Float_Types,    None),
+	(Fixed_Generic_Pkg,    Fixed_Generic_Pkg_Body),
+	(Fixed_Pkg,            None),
+	(Float_Generic_Pkg,    Float_Generic_Pkg_Body),
+	(Float_Pkg,            None),
 )
 
 PACKAGES_SYNOPSYS = (
-	(Std_logic_misc, Std_logic_misc_Body),
+	(Std_logic_misc,       Std_logic_misc_Body),
 )

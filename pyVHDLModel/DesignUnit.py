@@ -168,7 +168,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	_namespace:           'Namespace'
 
-	def __init__(self, identifier: str, contextItems: Iterable['ContextUnion'] = None, documentation: str = None):
+	def __init__(self, identifier: str, contextItems: Iterable[ContextUnion] = None, documentation: str = None):
 		"""
 		Initializes a design unit.
 
@@ -308,6 +308,18 @@ class SecondaryUnit(DesignUnit):
 
 @export
 class Context(PrimaryUnit):
+	"""
+	Represents a context declaration.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       context ctx is
+	         -- ...
+	       end context;
+	"""
+
 	_references:        List[ContextUnion]
 	_libraryReferences: List[LibraryClause]
 	_packageReferences: List[UseClause]
@@ -333,7 +345,7 @@ class Context(PrimaryUnit):
 				elif isinstance(reference, ContextReference):
 					self._contextReferences.append(reference)
 				else:
-					raise VHDLModelException()
+					raise VHDLModelException()  # FIXME: needs exception message
 
 	@property
 	def LibraryReferences(self) -> List[LibraryClause]:
@@ -355,6 +367,18 @@ class Context(PrimaryUnit):
 
 @export
 class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin):
+	"""
+	Represents a package declaration.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       package pkg is
+	         -- ...
+	       end package;
+	"""
+
 	_genericItems:      List[GenericInterfaceItem]
 	_declaredItems:     List
 
@@ -414,8 +438,20 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 
 @export
 class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin):
-	_package: PackageSymbol
-	_declaredItems:     List
+	"""
+	Represents a package body declaration.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       package body pkg is
+	         -- ...
+	       end package body;
+	"""
+
+	_package:       PackageSymbol
+	_declaredItems: List
 
 	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable['Context'] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(packageSymbol.Name.Identifier, contextItems, documentation)
@@ -449,6 +485,18 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 
 @export
 class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
+	"""
+	Represents an entity declaration.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       entity ent is
+	         -- ...
+	       end entity;
+	"""
+
 	_genericItems:  List[GenericInterfaceItem]
 	_portItems:     List[PortInterfaceItem]
 
@@ -514,6 +562,20 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 
 @export
 class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
+	"""
+	Represents an architecture declaration.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       architecture rtl of ent is
+	         -- ...
+	       begin
+	         -- ...
+	       end architecture;
+	"""
+
 	_library:       'Library' = None
 	_entity: EntitySymbol
 
@@ -554,6 +616,18 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 
 @export
 class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
+	"""
+	Represents a configuration declaration.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       component ent is
+	         -- ...
+	       end component;
+	"""
+
 	_genericItems:      List[GenericInterfaceItem]
 	_portItems:         List[PortInterfaceItem]
 
@@ -597,6 +671,20 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 @export
 class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
+	"""
+	Represents a configuration declaration.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       configuration cfg of ent is
+	         for rtl
+	           -- ...
+	         end for;
+	       end configuration;
+	"""
+
 	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, documentation: str = None):
 		super().__init__(identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)

@@ -49,13 +49,6 @@ from pyVHDLModel.Object     import DeferredConstant
 from pyVHDLModel.Concurrent import ConcurrentStatement, ConcurrentStatementsMixin
 
 
-ContextUnion = Union[
-	'LibraryClause',
-	'UseClause',
-	'ContextReference'
-]
-
-
 @export
 class Reference(ModelEntity):
 	"""
@@ -124,6 +117,13 @@ class ContextReference(Reference):
 
 	       context ieee.ieee_std_context;
 	"""
+
+
+ContextUnion = Union[
+	LibraryClause,
+	UseClause,
+	ContextReference
+]
 
 
 @export
@@ -385,7 +385,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 	_deferredConstants: Dict[str, DeferredConstant]
 	_components:        Dict[str, 'Component']
 
-	def __init__(self, identifier: str, contextItems: Iterable['Context'] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None, documentation: str = None):
+	def __init__(self, identifier: str, contextItems: Iterable[ContextUnion] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
@@ -453,7 +453,7 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 	_package:       PackageSymbol
 	_declaredItems: List
 
-	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable['Context'] = None, declaredItems: Iterable = None, documentation: str = None):
+	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable[ContextUnion] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(packageSymbol.Name.Identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)

@@ -836,6 +836,21 @@ class Design(ModelEntity):
 				_LinkItems(package)
 
 	def LinkContexts(self) -> None:
+		"""
+		Resolves and links all items (library clauses, use clauses and nested context references) in contexts.
+
+		It iterates all contexts in the design. Therefore, the library of the context is used as the working library. By
+		default, the working library is implicitly referenced in :data:`_referencedLibraries`. In addition, a new empty
+		dictionary is created in :data:`_referencedPackages` and :data:`_referencedContexts` for that working library.
+
+		At first, all library clauses are resolved (a library clause my have multiple library reference symbols). For each
+		referenced library an entry in :data:`_referencedLibraries` is generated and new empty dictionaries in
+		:data:`_referencedPackages` and :data:`_referencedContexts` for that working library. In addition, a vertex in the
+		dependency graph is added for that relationship.
+
+		At second, all use clauses are resolved (a use clause my have multiple package member reference symbols). For each
+		references package,
+		"""
 		for context in self.IterateDesignUnits(DesignUnitKind.Context):  # type: Context
 			# Create entries in _referenced*** for the current working library under its real name.
 			workingLibrary: Library = context.Library

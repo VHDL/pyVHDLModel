@@ -311,6 +311,23 @@ class Context(PrimaryUnit):
 	"""
 	Represents a context declaration.
 
+	A context contains a generic list of all its items (library clauses, use clauses and context references) in
+	:data:`_references`.
+
+	Furthermore, when a context gets initialized, the item kinds get separated into individual lists:
+
+	* :class:`~pyVHDLModel.DesignUnit.LibraryClause` |rarr| :data:`_libraryReferences`
+	* :class:`~pyVHDLModel.DesignUnit.UseClause` |rarr| :data:`_packageReferences`
+	* :class:`~pyVHDLModel.DesignUnit.ContextReference` |rarr| :data:`_contextReferences`
+
+	When :meth:`pyVHDLModel.Design.LinkContexts` got called, these lists were processed and the fields:
+
+	* :data:`_referencedLibraries` (:pycode:`Dict[libName, Library]`)
+	* :data:`_referencedPackages` (:pycode:`Dict[libName, [pkgName, Package]]`)
+	* :data:`_referencedContexts` (:pycode:`Dict[libName, [ctxName, Context]]`)
+
+	are populated.
+
 	.. admonition:: Example
 
 	    .. code-block:: VHDL

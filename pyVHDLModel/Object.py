@@ -34,13 +34,14 @@ This module contains parts of an abstract document language model for VHDL.
 
 Objects are constants, variables, signals and files.
 """
-from typing               import Iterable, Optional as Nullable
+from typing                import Iterable, Optional as Nullable
 
-from pyTooling.Decorators import export
-from pyTooling.Graph      import Vertex
+from pyTooling.Decorators  import export
+from pyTooling.MetaClasses import ExtendedType
+from pyTooling.Graph       import Vertex
 
-from pyVHDLModel.Base     import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
-from pyVHDLModel.Symbol   import Symbol
+from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
+from pyVHDLModel.Symbol    import Symbol
 
 
 @export
@@ -81,7 +82,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 
 
 @export
-class WithDefaultExpressionMixin:
+class WithDefaultExpressionMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A ``WithDefaultExpression`` is a mixin-class for all objects declarations accepting default expressions.
 

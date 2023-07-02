@@ -37,6 +37,7 @@ Concurrent defines all concurrent statements used in entities, architectures, ge
 from typing                  import List, Dict, Union, Iterable, Generator, Optional as Nullable
 
 from pyTooling.Decorators    import export
+from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, BaseCase, IfBranchMixin
 from pyVHDLModel.Base        import ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement
@@ -46,9 +47,9 @@ from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
-from pyVHDLModel.Interface   import PortInterfaceItem
+from pyVHDLModel.Interface   import PortInterfaceItemMixin
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin
-from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatements, SequentialDeclarations
+from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatementsMixin, SequentialDeclarationsMixin
 
 
 ExpressionUnion = Union[
@@ -67,7 +68,7 @@ class ConcurrentStatement(Statement):
 
 
 @export
-class ConcurrentStatementsMixin:
+class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A mixin-class for all language constructs supporting concurrent statements.
 
@@ -243,7 +244,7 @@ class ConfigurationInstantiation(Instantiation):
 
 
 @export
-class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements, DocumentedEntityMixin):
+class ProcessStatement(ConcurrentStatement, SequentialDeclarationsMixin, SequentialStatementsMixin, DocumentedEntityMixin):
 	"""
 	Represents a process statement with sensitivity list, sequential declaration region and sequential statements.
 
@@ -269,8 +270,8 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 		documentation: str = None
 	):
 		super().__init__(label)
-		SequentialDeclarations.__init__(self, declaredItems)
-		SequentialStatements.__init__(self, statements)
+		SequentialDeclarationsMixin.__init__(self, declaredItems)
+		SequentialStatementsMixin.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		if sensitivityList is None:
@@ -295,12 +296,12 @@ class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
 
 @export
 class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin, DocumentedEntityMixin):
-	_portItems:     List[PortInterfaceItem]
+	_portItems:     List[PortInterfaceItemMixin]
 
 	def __init__(
 		self,
 		label: str,
-		portItems: Iterable[PortInterfaceItem] = None,
+		portItems: Iterable[PortInterfaceItemMixin] = None,
 		declaredItems: Iterable = None,
 		statements: Iterable['ConcurrentStatement'] = None,
 		documentation: str = None
@@ -320,7 +321,7 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, Labeled
 				item._parent = self
 
 	@property
-	def PortItems(self) -> List[PortInterfaceItem]:
+	def PortItems(self) -> List[PortInterfaceItemMixin]:
 		return self._portItems
 
 

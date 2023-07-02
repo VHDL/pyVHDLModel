@@ -37,6 +37,7 @@ Common definitions and Mixins are used by many classes in the model as base-clas
 from typing                  import List, Iterable, Union
 
 from pyTooling.Decorators    import export
+from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
@@ -65,7 +66,7 @@ class Statement(ModelEntity, LabeledEntityMixin):
 
 
 @export
-class ProcedureCallMixin:
+class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 	_procedure:         Symbol  # TODO: implement a ProcedureSymbol
 	_parameterMappings: List[ParameterAssociationItem]
 
@@ -90,7 +91,7 @@ class ProcedureCallMixin:
 
 
 @export
-class AssignmentMixin:
+class AssignmentMixin(metaclass=ExtendedType, mixin=True):
 	"""A mixin-class for all assignment statements."""
 
 	_target: Symbol
@@ -105,12 +106,12 @@ class AssignmentMixin:
 
 
 @export
-class SignalAssignmentMixin(AssignmentMixin):
+class SignalAssignmentMixin(AssignmentMixin, mixin=True):
 	"""A mixin-class for all signal assignment statements."""
 
 
 @export
-class VariableAssignmentMixin(AssignmentMixin):
+class VariableAssignmentMixin(AssignmentMixin, mixin=True):
 	"""A mixin-class for all variable assignment statements."""
 
 	# FIXME: move to sequential?

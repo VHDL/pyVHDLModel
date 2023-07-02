@@ -37,6 +37,7 @@ tbd.
 from typing                 import List, Dict, Iterable
 
 from pyTooling.Decorators   import export
+from pyTooling.MetaClasses  import ExtendedType
 
 from pyVHDLModel.Object     import Constant, SharedVariable, File, Variable, Signal
 from pyVHDLModel.Subprogram import Subprogram, Function, Procedure
@@ -44,7 +45,7 @@ from pyVHDLModel.Type       import Subtype, FullType
 
 
 @export
-class ConcurrentDeclarationRegionMixin:
+class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	_declaredItems:   List  # FIXME: define list prefix type e.g. via Union
 
 	# _attributes:     Dict[str, Attribute]
@@ -56,7 +57,7 @@ class ConcurrentDeclarationRegionMixin:
 	_signals:         Dict[str, Signal]
 	_sharedVariables: Dict[str, SharedVariable]
 	_files:           Dict[str, File]
-	_subprogram:      Dict[str, Dict[str, Subprogram]]
+	_subprograms:     Dict[str, Dict[str, Subprogram]]
 	_functions:       Dict[str, Dict[str, Function]]
 	_procedures:      Dict[str, Dict[str, Procedure]]
 

@@ -214,6 +214,8 @@ class BitStringLiteral(Literal):
 
 @export
 class ParenthesisExpression: #(Protocol):
+	__slots__ = ()  # FIXME: use ExtendedType?
+
 	@property
 	def Operand(self) -> ExpressionUnion:
 		return None

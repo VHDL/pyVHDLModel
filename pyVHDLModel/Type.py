@@ -37,6 +37,7 @@ Types.
 from typing                 import Union, List, Iterator, Iterable, Tuple
 
 from pyTooling.Decorators   import export
+from pyTooling.MetaClasses  import ExtendedType
 from pyTooling.Graph        import Vertex
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
@@ -137,7 +138,7 @@ class RangedScalarType(ScalarType):
 
 
 @export
-class NumericTypeMixin:
+class NumericTypeMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``NumericType`` is a mixin class for all numeric types."""
 
 	def __init__(self):
@@ -145,7 +146,7 @@ class NumericTypeMixin:
 
 
 @export
-class DiscreteTypeMixin:
+class DiscreteTypeMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``DiscreteType`` is a mixin class for all discrete types."""
 
 	def __init__(self):

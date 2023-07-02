@@ -33,6 +33,7 @@
 from typing                 import Iterable
 
 from pyTooling.Decorators   import export
+from pyTooling.MetaClasses  import ExtendedType
 
 from pyVHDLModel            import Library, Package, PackageBody, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol
 from pyVHDLModel.Name       import SimpleName, SelectedName, AllName
@@ -69,7 +70,7 @@ class PredefinedLibrary(Library):
 
 
 @export
-class PredefinedPackageMixin:
+class PredefinedPackageMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A mixin-class for predefined VHDL packages and package bodies.
 	"""

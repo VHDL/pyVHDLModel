@@ -36,15 +36,16 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from typing import List, Dict, Union, Iterable, Optional as Nullable
 
-from pyTooling.Decorators import export
-from pyTooling.Graph import Vertex
+from pyTooling.Decorators   import export
+from pyTooling.MetaClasses  import ExtendedType
+from pyTooling.Graph        import Vertex
 
 from pyVHDLModel.Exception  import VHDLModelException
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Namespace  import Namespace
 from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin
 from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
-from pyVHDLModel.Interface  import GenericInterfaceItem, PortInterfaceItem
+from pyVHDLModel.Interface  import GenericInterfaceItemMixin, PortInterfaceItemMixin
 from pyVHDLModel.Object     import DeferredConstant
 from pyVHDLModel.Concurrent import ConcurrentStatement, ConcurrentStatementsMixin
 
@@ -127,7 +128,7 @@ ContextUnion = Union[
 
 
 @export
-class DesignUnitWithContextMixin:  # (metaclass=ExtendedType, useSlots=True):
+class DesignUnitWithContextMixin(metaclass=ExtendedType, mixin=True):
 	pass
 
 
@@ -338,9 +339,6 @@ class Context(PrimaryUnit):
 	"""
 
 	_references:        List[ContextUnion]
-	_libraryReferences: List[LibraryClause]
-	_packageReferences: List[UseClause]
-	_contextReferences: List[ContextReference]
 
 	def __init__(self, identifier: str, references: Iterable[ContextUnion] = None, documentation: str = None):
 		super().__init__(identifier, None, documentation)
@@ -396,13 +394,12 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 	       end package;
 	"""
 
-	_genericItems:      List[GenericInterfaceItem]
-	_declaredItems:     List
+	_genericItems:      List[GenericInterfaceItemMixin]
 
 	_deferredConstants: Dict[str, DeferredConstant]
 	_components:        Dict[str, 'Component']
 
-	def __init__(self, identifier: str, contextItems: Iterable[ContextUnion] = None, genericItems: Iterable[GenericInterfaceItem] = None, declaredItems: Iterable = None, documentation: str = None):
+	def __init__(self, identifier: str, contextItems: Iterable[ContextUnion] = None, genericItems: Iterable[GenericInterfaceItemMixin] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(identifier, contextItems, documentation)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
@@ -418,7 +415,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 		self._components = {}
 
 	@property
-	def GenericItems(self) -> List[GenericInterfaceItem]:
+	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
 		return self._genericItems
 
 	@property
@@ -468,7 +465,6 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 	"""
 
 	_package:       PackageSymbol
-	_declaredItems: List
 
 	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable[ContextUnion] = None, declaredItems: Iterable = None, documentation: str = None):
 		super().__init__(packageSymbol.Name.Identifier, contextItems, documentation)
@@ -514,8 +510,8 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 	       end entity;
 	"""
 
-	_genericItems:  List[GenericInterfaceItem]
-	_portItems:     List[PortInterfaceItem]
+	_genericItems:  List[GenericInterfaceItemMixin]
+	_portItems:     List[PortInterfaceItemMixin]
 
 	_architectures: Dict[str, 'Architecture']
 
@@ -523,8 +519,8 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 		self,
 		identifier: str,
 		contextItems: Iterable[ContextUnion] = None,
-		genericItems: Iterable[GenericInterfaceItem] = None,
-		portItems: Iterable[PortInterfaceItem] = None,
+		genericItems: Iterable[GenericInterfaceItemMixin] = None,
+		portItems: Iterable[PortInterfaceItemMixin] = None,
 		declaredItems: Iterable = None,
 		statements: Iterable[ConcurrentStatement] = None,
 		documentation: str = None
@@ -552,12 +548,12 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 
 	# TODO: extract to mixin for generics
 	@property
-	def GenericItems(self) -> List[GenericInterfaceItem]:
+	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
 		return self._genericItems
 
 	# TODO: extract to mixin for ports
 	@property
-	def PortItems(self) -> List[PortInterfaceItem]:
+	def PortItems(self) -> List[PortInterfaceItemMixin]:
 		return self._portItems
 
 	@property
@@ -593,7 +589,6 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 	       end architecture;
 	"""
 
-	_library:       'Library' = None
 	_entity: EntitySymbol
 
 	def __init__(self, identifier: str, entity: EntitySymbol, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None, documentation: str = None):
@@ -645,12 +640,12 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	       end component;
 	"""
 
-	_genericItems:      List[GenericInterfaceItem]
-	_portItems:         List[PortInterfaceItem]
+	_genericItems:      List[GenericInterfaceItemMixin]
+	_portItems:         List[PortInterfaceItemMixin]
 
 	_entity:            Nullable[Entity]
 
-	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItem] = None, portItems: Iterable[PortInterfaceItem] = None, documentation: str = None):
+	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItemMixin] = None, portItems: Iterable[PortInterfaceItemMixin] = None, documentation: str = None):
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
@@ -670,11 +665,11 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 				item._parent = self
 
 	@property
-	def GenericItems(self) -> List[GenericInterfaceItem]:
+	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
 		return self._genericItems
 
 	@property
-	def PortItems(self) -> List[PortInterfaceItem]:
+	def PortItems(self) -> List[PortInterfaceItemMixin]:
 		return self._portItems
 
 	@property

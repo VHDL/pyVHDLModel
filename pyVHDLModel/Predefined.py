@@ -29,80 +29,91 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""
-This module contains parts of an abstract document language model for VHDL.
+"""This module contains base-classes for predefined library and package declarations."""
+from typing                 import Iterable
 
-Associations are used in generic maps, port maps and parameter maps.
-"""
-from typing               import Optional as Nullable, Union
+from pyTooling.Decorators   import export
+from pyTooling.MetaClasses  import ExtendedType
 
-from pyTooling.Decorators import export
-
-from pyVHDLModel.Base       import ModelEntity
-from pyVHDLModel.Symbol     import Symbol
-from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
-
-
-ExpressionUnion = Union[
-	BaseExpression,
-	QualifiedExpression,
-	FunctionCall,
-	TypeConversion,
-	# ConstantOrSymbol,     TODO: ObjectSymbol
-	Literal,
-]
+from pyVHDLModel            import Library, Package, PackageBody, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol
+from pyVHDLModel.Name       import SimpleName, SelectedName, AllName
+from pyVHDLModel.Symbol     import LibraryReferenceSymbol, PackageSymbol
+from pyVHDLModel.DesignUnit import LibraryClause, UseClause
 
 
 @export
-class AssociationItem(ModelEntity):
+class PredefinedLibrary(Library):
 	"""
-	A base-class for all association items.
+	A base-class for predefined VHDL libraries.
+
+	VHDL defines 2 predefined libraries:
+
+	* :class:`~pyVHDLModel.STD.Std`
+	* :class:`~pyVHDLModel.IEEE.Ieee`
 	"""
 
-	_formal: Nullable[Symbol]
-	_actual: ExpressionUnion
+	def __init__(self, packages):
+		super().__init__(self.__class__.__name__)
 
-	def __init__(self, actual: ExpressionUnion, formal: Symbol = None):
-		super().__init__()
+		self.AddPackages(packages)
 
-		self._formal = formal
-		if formal is not None:
-			formal._parent = self
+	def AddPackages(self, packages):
+		for packageType, packageBodyType in packages:
+			package: Package = packageType()
+			package.Library = self
+			self._packages[package.NormalizedIdentifier] = package
 
-		self._actual = actual
-		# actual._parent = self  # FIXME: actual is provided as None
-
-	@property
-	def Formal(self) -> Nullable[Symbol]:  # TODO: can also be a conversion function !!
-		return self._formal
-
-	@property
-	def Actual(self) -> ExpressionUnion:
-		return self._actual
-
-	def __str__(self):
-		if self._formal is None:
-			return str(self._actual)
-		else:
-			return f"{self._formal!s} => {self._actual!s}"
+			if packageBodyType is not None:
+				packageBody: PackageBody = packageBodyType()
+				packageBody.Library = self
+				self._packageBodies[packageBody.NormalizedIdentifier] = packageBody
 
 
 @export
-class GenericAssociationItem(AssociationItem):
+class PredefinedPackageMixin(metaclass=ExtendedType, mixin=True):
 	"""
-	A base-class for all generic association items used in generic map aspects.
+	A mixin-class for predefined VHDL packages and package bodies.
 	"""
+
+	def _AddLibraryClause(self, libraries: Iterable[str]):
+		symbols = [LibraryReferenceSymbol(SimpleName(libName)) for libName in libraries]
+		libraryClause = LibraryClause(symbols)
+
+		self._contextItems.append(libraryClause)
+		self._libraryReferences.append(libraryClause)
+
+	def _AddPackageClause(self, packages: Iterable[str]):
+		symbols = []
+		for qualifiedPackageName in packages:
+			libName, packName, members = qualifiedPackageName.split(".")
+
+			packageName = SelectedName(packName, SimpleName(libName))
+			if members.lower() == "all":
+				symbols.append(AllPackageMembersReferenceSymbol(AllName(packageName)))
+			else:
+				symbols.append(PackageMemberReferenceSymbol(SelectedName(members, packageName)))
+
+		useClause = UseClause(symbols)
+		self._contextItems.append(useClause)
+		self._packageReferences.append(useClause)
 
 
 @export
-class PortAssociationItem(AssociationItem):
+class PredefinedPackage(Package, PredefinedPackageMixin):
 	"""
-	A base-class for all port association items used in port map aspects.
+	A base-class for predefined VHDL packages.
 	"""
+
+	def __init__(self):
+		super().__init__(self.__class__.__name__)
 
 
 @export
-class ParameterAssociationItem(AssociationItem):
+class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 	"""
-	A base-class for all parameter association items used in parameter map aspects.
+	A base-class for predefined VHDL package bodies.
 	"""
+
+	def __init__(self):
+		packageSymbol = PackageSymbol(SimpleName(self.__class__.__name__[:-5]))
+		super().__init__(packageSymbol)

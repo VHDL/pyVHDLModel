@@ -37,25 +37,46 @@ Concurrent defines all concurrent statements used in entities, architectures, ge
 from typing                  import List, Dict, Union, Iterable, Generator, Optional as Nullable
 
 from pyTooling.Decorators    import export
+from pyTooling.MetaClasses   import ExtendedType
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range, BaseChoice, BaseCase, IfBranchMixin
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, BaseCase, IfBranchMixin
 from pyVHDLModel.Base        import ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement
 from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin
 from pyVHDLModel.Namespace   import Namespace
+from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
+from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
-from pyVHDLModel.Interface   import PortInterfaceItem
-from pyVHDLModel.Common      import Statement, ProcedureCall, SignalAssignment
-from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatements, SequentialDeclarations
+from pyVHDLModel.Interface   import PortInterfaceItemMixin
+from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin
+from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatementsMixin, SequentialDeclarationsMixin
+
+
+ExpressionUnion = Union[
+	BaseExpression,
+	QualifiedExpression,
+	FunctionCall,
+	TypeConversion,
+	# ConstantOrSymbol,     TODO: ObjectSymbol
+	Literal,
+]
 
 
 @export
 class ConcurrentStatement(Statement):
-	"""A ``ConcurrentStatement`` is a base-class for all concurrent statements."""
+	"""A base-class for all concurrent statements."""
 
 
 @export
-class ConcurrentStatements:
+class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
+	"""
+	A mixin-class for all language constructs supporting concurrent statements.
+
+	.. seealso::
+
+	   .. todo:: concurrent declaration region
+	"""
+
 	_statements:     List[ConcurrentStatement]
 
 	_instantiations: Dict[str, 'Instantiation']  # TODO: add another instantiation class level for entity/configuration/component inst.
@@ -105,6 +126,10 @@ class ConcurrentStatements:
 
 @export
 class Instantiation(ConcurrentStatement):
+	"""
+	A base-class for all (component) instantiations.
+	"""
+
 	_genericAssociations: List[AssociationItem]
 	_portAssociations: List[AssociationItem]
 
@@ -136,6 +161,16 @@ class Instantiation(ConcurrentStatement):
 
 @export
 class ComponentInstantiation(Instantiation):
+	"""
+	Represents a component instantiation by referring to a component name.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       inst : component Counter;
+	"""
+
 	_component: ComponentInstantiationSymbol
 
 	def __init__(self, label: str, componentSymbol: ComponentInstantiationSymbol, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
@@ -151,6 +186,16 @@ class ComponentInstantiation(Instantiation):
 
 @export
 class EntityInstantiation(Instantiation):
+	"""
+	Represents an entity instantiation by referring to an entity name with optional architecture name.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       inst : entity work. Counter;
+	"""
+
 	_entity: EntityInstantiationSymbol
 	_architecture: ArchitectureSymbol
 
@@ -175,6 +220,16 @@ class EntityInstantiation(Instantiation):
 
 @export
 class ConfigurationInstantiation(Instantiation):
+	"""
+	Represents a configuration instantiation by referring to a configuration name.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       inst : configuration Counter;
+	"""
+
 	_configuration: ConfigurationInstantiationSymbol
 
 	def __init__(self, label: str, configurationSymbol: ConfigurationInstantiationSymbol, genericAssociations: Iterable[AssociationItem] = None, portAssociations: Iterable[AssociationItem] = None):
@@ -189,20 +244,34 @@ class ConfigurationInstantiation(Instantiation):
 
 
 @export
-class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements, DocumentedEntityMixin):
-	_sensitivityList: List['Name']  # TODO: implement a SignalSymbol
+class ProcessStatement(ConcurrentStatement, SequentialDeclarationsMixin, SequentialStatementsMixin, DocumentedEntityMixin):
+	"""
+	Represents a process statement with sensitivity list, sequential declaration region and sequential statements.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       proc: process(Clock)
+	         -- sequential declarations
+	       begin
+	         -- sequential statements
+	       end process;
+	"""
+
+	_sensitivityList: List[Name]  # TODO: implement a SignalSymbol
 
 	def __init__(
 		self,
 		label: str = None,
 		declaredItems: Iterable = None,
 		statements: Iterable[SequentialStatement] = None,
-		sensitivityList: Iterable['Name'] = None,
+		sensitivityList: Iterable[Name] = None,
 		documentation: str = None
 	):
 		super().__init__(label)
-		SequentialDeclarations.__init__(self, declaredItems)
-		SequentialStatements.__init__(self, statements)
+		SequentialDeclarationsMixin.__init__(self, declaredItems)
+		SequentialStatementsMixin.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		if sensitivityList is None:
@@ -214,25 +283,25 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialSt
 				# signalSymbol._parent = self  # FIXME: currently str are provided
 
 	@property
-	def SensitivityList(self) -> List['Name']:
+	def SensitivityList(self) -> List[Name]:
 		return self._sensitivityList
 
 
 @export
-class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCall):
-	def __init__(self, label: str, procedureName: 'Name', parameterMappings: Iterable[ParameterAssociationItem] = None):
+class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
+	def __init__(self, label: str, procedureName: Name, parameterMappings: Iterable[ParameterAssociationItem] = None):
 		super().__init__(label)
-		ProcedureCall.__init__(self, procedureName, parameterMappings)
+		ProcedureCallMixin.__init__(self, procedureName, parameterMappings)
 
 
 @export
-class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatements, DocumentedEntityMixin):
-	_portItems:     List[PortInterfaceItem]
+class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin, DocumentedEntityMixin):
+	_portItems:     List[PortInterfaceItemMixin]
 
 	def __init__(
 		self,
 		label: str,
-		portItems: Iterable[PortInterfaceItem] = None,
+		portItems: Iterable[PortInterfaceItemMixin] = None,
 		declaredItems: Iterable = None,
 		statements: Iterable['ConcurrentStatement'] = None,
 		documentation: str = None
@@ -241,7 +310,7 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, Labeled
 		BlockStatementMixin.__init__(self)
 		LabeledEntityMixin.__init__(self, label)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
-		ConcurrentStatements.__init__(self, statements)
+		ConcurrentStatementsMixin.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		# TODO: extract to mixin
@@ -252,13 +321,21 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, Labeled
 				item._parent = self
 
 	@property
-	def PortItems(self) -> List[PortInterfaceItem]:
+	def PortItems(self) -> List[PortInterfaceItemMixin]:
 		return self._portItems
 
 
 @export
-class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
-	"""A ``GenerateBranch`` is a base-class for all branches in a generate statements."""
+class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
+	"""
+	A base-class for all branches in a generate statements.
+
+	.. seealso::
+
+	   * :class:`If-generate branch <pyVHDLModel.Concurrent.IfGenerateBranch>`
+	   * :class:`Elsif-generate branch <pyVHDLModel.Concurrent.ElsifGenerateBranch>`
+	   * :class:`Else-generate branch <pyVHDLModel.Concurrent.ElseGenerateBranch>`
+	"""
 
 	_alternativeLabel:           Nullable[str]
 	_normalizedAlternativeLabel: Nullable[str]
@@ -268,7 +345,7 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentSt
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__()
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
-		ConcurrentStatements.__init__(self, statements)
+		ConcurrentStatementsMixin.__init__(self, statements)
 
 		self._alternativeLabel = alternativeLabel
 		self._normalizedAlternativeLabel = alternativeLabel.lower() if alternativeLabel is not None else None
@@ -286,6 +363,24 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentSt
 
 @export
 class IfGenerateBranch(GenerateBranch, IfBranchMixin):
+	"""
+	Represents if-generate branch in a generate statement with a concurrent declaration region and concurrent statements.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       gen: if condition generate
+	         -- concurrent declarations
+	       begin
+	         -- concurrent statements
+	       elsif condition generate
+	         -- ...
+	       else generate
+	         -- ...
+	       end generate;
+	"""
+
 	def __init__(self, condition: ExpressionUnion, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
 		IfBranchMixin.__init__(self, condition)
@@ -293,6 +388,24 @@ class IfGenerateBranch(GenerateBranch, IfBranchMixin):
 
 @export
 class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
+	"""
+	Represents elsif-generate branch in a generate statement with a concurrent declaration region and concurrent statements.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       gen: if condition generate
+	         -- ...
+	       elsif condition generate
+	         -- concurrent declarations
+	       begin
+	         -- concurrent statements
+	       else generate
+	         -- ...
+	       end generate;
+	"""
+
 	def __init__(self, condition: ExpressionUnion, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
 		ElsifBranchMixin.__init__(self, condition)
@@ -300,6 +413,24 @@ class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
 
 @export
 class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
+	"""
+	Represents else-generate branch in a generate statement with a concurrent declaration region and concurrent statements.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       gen: if condition generate
+	         -- ...
+	       elsif condition generate
+	         -- ...
+	       else generate
+	         -- concurrent declarations
+	       begin
+	         -- concurrent statements
+	       end generate;
+	"""
+
 	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
 		super().__init__(declaredItems, statements, alternativeLabel)
 		ElseBranchMixin.__init__(self)
@@ -307,7 +438,15 @@ class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 
 @export
 class GenerateStatement(ConcurrentStatement):
-	"""A ``GenerateStatement`` is a base-class for all generate statements."""
+	"""
+	A base-class for all generate statements.
+
+	.. seealso::
+
+	   * :class:`If...generate statement <pyVHDLModel.Concurrent.IfGenerateStatement>`
+	   * :class:`Case...generate statement <pyVHDLModel.Concurrent.CaseGenerateStatement>`
+	   * :class:`For...generate statement <pyVHDLModel.Concurrent.ForGenerateStatement>`
+	"""
 
 	_namespace: Namespace
 
@@ -327,6 +466,29 @@ class GenerateStatement(ConcurrentStatement):
 
 @export
 class IfGenerateStatement(GenerateStatement):
+	"""
+	Represents an if...generate statement.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       gen: if condition generate
+	         -- ...
+	       elsif condition generate
+	         -- ...
+	       else generate
+	         -- ...
+	       end generate;
+
+	.. seealso::
+
+	   * :class:`Generate branch <pyVHDLModel.Concurrent.GenerateBranch>` base-class
+	   * :class:`If-generate branch <pyVHDLModel.Concurrent.IfGenerateBranch>`
+	   * :class:`Elsif-generate branch <pyVHDLModel.Concurrent.ElsifGenerateBranch>`
+	   * :class:`Else-generate branch <pyVHDLModel.Concurrent.ElseGenerateBranch>`
+	"""
+
 	_ifBranch:      IfGenerateBranch
 	_elsifBranches: List[ElsifGenerateBranch]
 	_elseBranch:    Nullable[ElseGenerateBranch]
@@ -378,161 +540,7 @@ class IfGenerateStatement(GenerateStatement):
 
 @export
 class ConcurrentChoice(BaseChoice):
-	"""A ``ConcurrentChoice`` is a base-class for all concurrent choices (in case...generate statements)."""
-
-
-@export
-class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
-	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
-		super().__init__()
-		LabeledEntityMixin.__init__(self, alternativeLabel)
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
-		ConcurrentStatements.__init__(self, statements)
-
-
-@export
-class GenerateCase(ConcurrentCase):
-	_choices: List[ConcurrentChoice]
-
-	def __init__(self, choices: Iterable[ConcurrentChoice], declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
-		super().__init__(declaredItems, statements, alternativeLabel)
-
-		# TODO: move to parent or grandparent
-		self._choices = []
-		if choices is not None:
-			for choice in choices:
-				self._choices.append(choice)
-				choice._parent = self
-
-	# TODO: move to parent or grandparent
-	@property
-	def Choices(self) -> List[ConcurrentChoice]:
-		return self._choices
-
-	def __str__(self) -> str:
-		return "when {choices} =>".format(choices=" | ".join(str(c) for c in self._choices))
-
-
-@export
-class OthersGenerateCase(ConcurrentCase):
-	def __str__(self) -> str:
-		return "when others =>"
-
-
-@export
-class CaseGenerateStatement(GenerateStatement):
-	_expression: ExpressionUnion
-	_cases:      List[GenerateCase]
-
-	def __init__(self, label: str, expression: ExpressionUnion, cases: Iterable[ConcurrentCase]):
-		super().__init__(label)
-
-		self._expression = expression
-		expression._parent = self
-
-		# TODO: create a mixin for things with cases
-		self._cases = []
-		if cases is not None:
-			for case in cases:
-				self._cases.append(case)
-				case._parent = self
-
-	@property
-	def SelectExpression(self) -> ExpressionUnion:
-		return self._expression
-
-	@property
-	def Cases(self) -> List[GenerateCase]:
-		return self._cases
-
-	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
-		for case in self._cases:
-			yield from case.IterateInstantiations()
-
-	def IndexStatement(self):
-		for case in self._cases:
-			case.IndexStatements()
-
-
-@export
-class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, ConcurrentStatements):
-	_loopIndex: str
-	_range:     Range
-
-	def __init__(self, label: str, loopIndex: str, rng: Range, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
-		super().__init__(label)
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
-		ConcurrentStatements.__init__(self, statements)
-
-		self._loopIndex = loopIndex
-
-		self._range = rng
-		rng._parent = self
-
-	@property
-	def LoopIndex(self) -> str:
-		return self._loopIndex
-
-	@property
-	def Range(self) -> Range:
-		return self._range
-
-	IterateInstantiations = ConcurrentStatements.IterateInstantiations
-
-	# IndexDeclaredItems = ConcurrentStatements.IndexDeclaredItems
-
-	def IndexStatement(self) -> None:
-		self.IndexStatements()
-
-	IndexStatements = ConcurrentStatements.IndexStatements
-
-	# def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
-	# 	return ConcurrentStatements.IterateInstantiations(self)
-
-
-@export
-class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignment):
-	def __init__(self, label: str, target: 'Name'):
-		super().__init__(label)
-		SignalAssignment.__init__(self, target)
-
-
-@export
-class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
-	_waveform: List[WaveformElement]
-
-	def __init__(self, label: str, target: 'Name', waveform: Iterable[WaveformElement]):
-		super().__init__(label, target)
-
-		# TODO: extract to mixin
-		self._waveform = []
-		if waveform is not None:
-			for waveformElement in waveform:
-				self._waveform.append(waveformElement)
-				waveformElement._parent = self
-
-	@property
-	def Waveform(self) -> List[WaveformElement]:
-		return self._waveform
-
-
-@export
-class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment):
-	def __init__(self, label: str, target: 'Name', expression: ExpressionUnion):
-		super().__init__(label, target)
-
-
-@export
-class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment):
-	def __init__(self, label: str, target: 'Name', expression: ExpressionUnion):
-		super().__init__(label, target)
-
-
-@export
-class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
-	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion, severity: ExpressionUnion = None, label: str = None):
-		super().__init__(label)
-		AssertStatementMixin.__init__(self, condition, message, severity)
+	"""A base-class for all concurrent choices (in case...generate statements)."""
 
 
 @export
@@ -569,3 +577,195 @@ class RangedGenerateChoice(ConcurrentChoice):
 
 	def __str__(self) -> str:
 		return str(self._range)
+
+
+@export
+class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
+	def __init__(self, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
+		super().__init__()
+		LabeledEntityMixin.__init__(self, alternativeLabel)
+		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
+		ConcurrentStatementsMixin.__init__(self, statements)
+
+
+@export
+class GenerateCase(ConcurrentCase):
+	_choices: List[ConcurrentChoice]
+
+	def __init__(self, choices: Iterable[ConcurrentChoice], declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None, alternativeLabel: str = None):
+		super().__init__(declaredItems, statements, alternativeLabel)
+
+		# TODO: move to parent or grandparent
+		self._choices = []
+		if choices is not None:
+			for choice in choices:
+				self._choices.append(choice)
+				choice._parent = self
+
+	# TODO: move to parent or grandparent
+	@property
+	def Choices(self) -> List[ConcurrentChoice]:
+		return self._choices
+
+	def __str__(self) -> str:
+		return "when {choices} =>".format(choices=" | ".join(str(c) for c in self._choices))
+
+
+@export
+class OthersGenerateCase(ConcurrentCase):
+	def __str__(self) -> str:
+		return "when others =>"
+
+
+@export
+class CaseGenerateStatement(GenerateStatement):
+	"""
+	Represents a case...generate statement.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       gen: case selector generate
+	         case choice1 =>
+	           -- ...
+	         case choice2 =>
+	           -- ...
+	         case others =>
+	           -- ...
+	       end generate;
+	"""
+
+	_expression: ExpressionUnion
+	_cases:      List[GenerateCase]
+
+	def __init__(self, label: str, expression: ExpressionUnion, cases: Iterable[ConcurrentCase]):
+		super().__init__(label)
+
+		self._expression = expression
+		expression._parent = self
+
+		# TODO: create a mixin for things with cases
+		self._cases = []
+		if cases is not None:
+			for case in cases:
+				self._cases.append(case)
+				case._parent = self
+
+	@property
+	def SelectExpression(self) -> ExpressionUnion:
+		return self._expression
+
+	@property
+	def Cases(self) -> List[GenerateCase]:
+		return self._cases
+
+	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+		for case in self._cases:
+			yield from case.IterateInstantiations()
+
+	def IndexStatement(self):
+		for case in self._cases:
+			case.IndexStatements()
+
+
+@export
+class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
+	"""
+	Represents a for...generate statement.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       gen: for i in 0 to 3 generate
+	         -- ...
+	       end generate;
+	"""
+
+	_loopIndex: str
+	_range:     Range
+
+	def __init__(self, label: str, loopIndex: str, rng: Range, declaredItems: Iterable = None, statements: Iterable[ConcurrentStatement] = None):
+		super().__init__(label)
+		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
+		ConcurrentStatementsMixin.__init__(self, statements)
+
+		self._loopIndex = loopIndex
+
+		self._range = rng
+		rng._parent = self
+
+	@property
+	def LoopIndex(self) -> str:
+		return self._loopIndex
+
+	@property
+	def Range(self) -> Range:
+		return self._range
+
+	IterateInstantiations = ConcurrentStatementsMixin.IterateInstantiations
+
+	# IndexDeclaredItems = ConcurrentStatements.IndexDeclaredItems
+
+	def IndexStatement(self) -> None:
+		self.IndexStatements()
+
+	IndexStatements = ConcurrentStatementsMixin.IndexStatements
+
+	# def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+	# 	return ConcurrentStatements.IterateInstantiations(self)
+
+
+@export
+class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignmentMixin):
+	"""
+	A base-class for concurrent signal assignments.
+
+	.. seealso::
+
+	   * :class:`~pyVHDLModel.Concurrent.ConcurrentSimpleSignalAssignment`
+	   * :class:`~pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment`
+	   * :class:`~pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment`
+	"""
+	def __init__(self, label: str, target: Name):
+		super().__init__(label)
+		SignalAssignmentMixin.__init__(self, target)
+
+
+@export
+class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
+	_waveform: List[WaveformElement]
+
+	def __init__(self, label: str, target: Name, waveform: Iterable[WaveformElement]):
+		super().__init__(label, target)
+
+		# TODO: extract to mixin
+		self._waveform = []
+		if waveform is not None:
+			for waveformElement in waveform:
+				self._waveform.append(waveformElement)
+				waveformElement._parent = self
+
+	@property
+	def Waveform(self) -> List[WaveformElement]:
+		return self._waveform
+
+
+@export
+class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment):
+	def __init__(self, label: str, target: Name, expression: ExpressionUnion):
+		super().__init__(label, target)
+
+
+@export
+class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment):
+	def __init__(self, label: str, target: Name, expression: ExpressionUnion):
+		super().__init__(label, target)
+
+
+@export
+class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
+	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion, severity: ExpressionUnion = None, label: str = None):
+		super().__init__(label)
+		AssertStatementMixin.__init__(self, condition, message, severity)

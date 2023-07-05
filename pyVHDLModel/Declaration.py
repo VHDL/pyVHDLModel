@@ -34,13 +34,26 @@ This module contains parts of an abstract document language model for VHDL.
 
 
 """
-from enum import unique, Enum
-from typing import List, Iterable
+from enum                   import unique, Enum
+from typing                 import List, Iterable, Union
 
-from pyTooling.Decorators import export
+from pyTooling.Decorators   import export
 
-from pyVHDLModel.Base import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
-from pyVHDLModel.Symbol import Symbol
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
+from pyVHDLModel.Name       import Name
+from pyVHDLModel.Symbol     import Symbol
+
+
+
+ExpressionUnion = Union[
+	BaseExpression,
+	QualifiedExpression,
+	FunctionCall,
+	TypeConversion,
+	# ConstantOrSymbol,     TODO: ObjectSymbol
+	Literal,
+]
 
 
 @export
@@ -73,6 +86,16 @@ class EntityClass(Enum):
 
 @export
 class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
+	"""
+	Represents an attribute declaration.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       attribute TotalBits : natural;
+	"""
+
 	_subtype: Symbol
 
 	def __init__(self, identifier: str, subtype: Symbol, documentation: str = None):
@@ -90,12 +113,22 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 @export
 class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
-	_identifiers: List['Name']
-	_attribute: 'Name'
+	"""
+	Represents an attribute specification.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       attribute TotalBits of BusType : subtype is 32;
+	"""
+
+	_identifiers: List[Name]
+	_attribute: Name
 	_entityClass: EntityClass
 	_expression: ExpressionUnion
 
-	def __init__(self, identifiers: Iterable['Name'], attribute: 'Name', entityClass: EntityClass, expression: ExpressionUnion, documentation: str = None):
+	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: ExpressionUnion, documentation: str = None):
 		super().__init__()
 		DocumentedEntityMixin.__init__(self, documentation)
 
@@ -113,11 +146,11 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		expression._parent = self
 
 	@property
-	def Identifiers(self) -> List['Name']:
+	def Identifiers(self) -> List[Name]:
 		return self._identifiers
 
 	@property
-	def Attribute(self) -> 'Name':
+	def Attribute(self) -> Name:
 		return self._attribute
 
 	@property
@@ -129,6 +162,7 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		return self._expression
 
 
+# TODO: move somewhere else
 @export
 class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	def __init__(self, identifier: str, documentation: str = None):

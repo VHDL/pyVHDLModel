@@ -32,15 +32,27 @@
 """
 This module contains parts of an abstract document language model for VHDL.
 
-Common definitions and MixIns are used by many classes in the model as base-classes.
+Common definitions and Mixins are used by many classes in the model as base-classes.
 """
-from typing                  import List, Iterable
+from typing                  import List, Iterable, Union
 
 from pyTooling.Decorators    import export
+from pyTooling.MetaClasses   import ExtendedType
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, ExpressionUnion
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin
+from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Symbol      import Symbol
 from pyVHDLModel.Association import ParameterAssociationItem
+
+
+ExpressionUnion = Union[
+	BaseExpression,
+	QualifiedExpression,
+	FunctionCall,
+	TypeConversion,
+	# ConstantOrSymbol,     TODO: ObjectSymbol
+	Literal,
+]
 
 
 @export
@@ -54,7 +66,7 @@ class Statement(ModelEntity, LabeledEntityMixin):
 
 
 @export
-class ProcedureCall:
+class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 	_procedure:         Symbol  # TODO: implement a ProcedureSymbol
 	_parameterMappings: List[ParameterAssociationItem]
 
@@ -79,8 +91,8 @@ class ProcedureCall:
 
 
 @export
-class Assignment:
-	"""An ``Assignment`` is a base-class for all assignment statements."""
+class AssignmentMixin(metaclass=ExtendedType, mixin=True):
+	"""A mixin-class for all assignment statements."""
 
 	_target: Symbol
 
@@ -94,13 +106,14 @@ class Assignment:
 
 
 @export
-class SignalAssignment(Assignment):
-	"""An ``SignalAssignment`` is a base-class for all signal assignment statements."""
+class SignalAssignmentMixin(AssignmentMixin, mixin=True):
+	"""A mixin-class for all signal assignment statements."""
 
 
 @export
-class VariableAssignment(Assignment):
-	"""An ``VariableAssignment`` is a base-class for all variable assignment statements."""
+class VariableAssignmentMixin(AssignmentMixin, mixin=True):
+	"""A mixin-class for all variable assignment statements."""
+
 	# FIXME: move to sequential?
 	_expression: ExpressionUnion
 

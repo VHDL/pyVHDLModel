@@ -37,8 +37,9 @@ Subprograms are procedures, functions and methods.
 from typing                 import List
 
 from pyTooling.Decorators   import export
+from pyTooling.MetaClasses  import ExtendedType
 
-from pyVHDLModel.Base import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Type       import Subtype, ProtectedType
 from pyVHDLModel.Sequential import SequentialStatement
 
@@ -105,7 +106,7 @@ class Function(Subprogram):
 
 
 @export
-class Method:
+class MethodMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``Method`` is a mixin class for all subprograms in a protected type."""
 
 	_protectedType: ProtectedType
@@ -120,14 +121,14 @@ class Method:
 
 
 @export
-class ProcedureMethod(Procedure, Method):
+class ProcedureMethod(Procedure, MethodMixin):
 	def __init__(self, identifier: str, protectedType: ProtectedType):
 		super().__init__(identifier)
-		Method.__init__(self, protectedType)
+		MethodMixin.__init__(self, protectedType)
 
 
 @export
-class FunctionMethod(Function, Method):
+class FunctionMethod(Function, MethodMixin):
 	def __init__(self, identifier: str, protectedType: ProtectedType):
 		super().__init__(identifier)
-		Method.__init__(self, protectedType)
+		MethodMixin.__init__(self, protectedType)

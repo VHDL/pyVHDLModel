@@ -34,12 +34,22 @@ This module contains parts of an abstract document language model for VHDL.
 
 All declarations for literals, aggregates, operators forming an expressions.
 """
-from typing import Tuple, List, Iterable
+from typing               import Tuple, List, Iterable, Union
 
 from pyTooling.Decorators import export
 
-from pyVHDLModel.Base import ModelEntity, ExpressionUnion, Direction
-from pyVHDLModel.Symbol import Symbol
+from pyVHDLModel.Base     import ModelEntity, Direction, Range
+from pyVHDLModel.Symbol   import Symbol
+
+
+ExpressionUnion = Union[
+	'BaseExpression',
+	'QualifiedExpression',
+	'FunctionCall',
+	'TypeConversion',
+	# ConstantOrSymbol,     TODO: ObjectSymbol
+	'Literal',
+]
 
 
 @export
@@ -204,6 +214,8 @@ class BitStringLiteral(Literal):
 
 @export
 class ParenthesisExpression: #(Protocol):
+	__slots__ = ()  # FIXME: use ExtendedType?
+
 	@property
 	def Operand(self) -> ExpressionUnion:
 		return None
@@ -678,16 +690,16 @@ class IndexedAggregateElement(AggregateElement):
 
 @export
 class RangedAggregateElement(AggregateElement):
-	_range: 'Range'
+	_range: Range
 
-	def __init__(self, rng: 'Range', expression: ExpressionUnion):
+	def __init__(self, rng: Range, expression: ExpressionUnion):
 		super().__init__(expression)
 
 		self._range = rng
 		rng._parent = self
 
 	@property
-	def Range(self) -> 'Range':
+	def Range(self) -> Range:
 		return self._range
 
 	def __str__(self) -> str:

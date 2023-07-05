@@ -32,21 +32,21 @@
 """
 This module contains parts of an abstract document language model for VHDL.
 
-Symbols derived from names.
+Symbols are entity specific wrappers for names that reference VHDL language entities.
 """
-from enum import Flag, auto
-from typing import cast, Any, Iterable
+from enum                  import Flag, auto
+from typing                import Any, Optional as Nullable
 
-from pyTooling.Decorators import export
+from pyTooling.Decorators  import export
+from pyTooling.MetaClasses import ExtendedType
 
-from pyVHDLModel.Base import ExpressionUnion
-from pyVHDLModel.Name import Name, SimpleName, SelectedName, AllName, IndexedName
+from pyVHDLModel.Name      import Name, AllName
 
 
 @export
 class PossibleReference(Flag):
 	"""
-	A ``PossibleReference`` is an enumeration. It represents possible targets for a reference in a :class:`~pyVHDLModel.Symbol`.
+	Is an enumeration, representing possible targets for a reference in a :class:`~pyVHDLModel.Symbol`.
 	"""
 
 	Unknown =         0
@@ -91,22 +91,26 @@ class PossibleReference(Flag):
 
 
 @export
-class Symbol:
-	_innerName:          Name
-	_possibleReferences: PossibleReference
-	_reference:          Any
+class Symbol(metaclass=ExtendedType):
+	"""
+	Base-class for all symbol classes.
+	"""
+
+	_name:               Name               #: The name to reference the langauge entity.
+	_possibleReferences: PossibleReference  #: An enumeration to filter possible references.
+	_reference:          Nullable[Any]      #: The resolved language entity, otherwise ``None``.
 
 	def __init__(self, name: Name, possibleReferences: PossibleReference):
-		self._innerName = name
+		self._name = name
 		self._possibleReferences = possibleReferences
 		self._reference = None
 
 	@property
 	def Name(self) -> Name:
-		return self._innerName
+		return self._name
 
 	@property
-	def Reference(self) -> Any:
+	def Reference(self) -> Nullable[Any]:
 		return self._reference
 
 	@property
@@ -118,26 +122,37 @@ class Symbol:
 
 	def __repr__(self) -> str:
 		if self._reference is not None:
-			return f"{self.__class__.__name__}: '{self._innerName!s}' -> {self._reference!s}"
+			return f"{self.__class__.__name__}: '{self._name!s}' -> {self._reference!s}"
 
-		return f"{self.__class__.__name__}: '{self._innerName!s}' -> unresolved"
+		return f"{self.__class__.__name__}: '{self._name!s}' -> unresolved"
 
 	def __str__(self) -> str:
 		if self._reference is not None:
 			return str(self._reference)
 
-		return f"{self._innerName!s}?"
+		return f"{self._name!s}?"
 
 
 @export
 class LibraryReferenceSymbol(Symbol):
-	"""A library reference in a library clause."""
+	"""
+	Represents a reference (name) to a library.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      library ieee;
+	      --      ^^^^
+	"""
 
 	def __init__(self, name: Name):
 		super().__init__(name, PossibleReference.Library)
 
 	@property
-	def Library(self) -> 'Library':
+	def Library(self) -> Nullable['Library']:
 		return self._reference
 
 	@Library.setter
@@ -147,13 +162,24 @@ class LibraryReferenceSymbol(Symbol):
 
 @export
 class PackageReferenceSymbol(Symbol):
-	"""A package reference in a use clause."""
+	"""
+	Represents a reference (name) to a package.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      use ieee.numeric_std;
+	      --  ^^^^^^^^^^^^^^^^
+	"""
 
 	def __init__(self, name: Name):
 		super().__init__(name, PossibleReference.Package)
 
 	@property
-	def Package(self) -> 'Package':
+	def Package(self) -> Nullable['Package']:
 		return self._reference
 
 	@Package.setter
@@ -162,40 +188,19 @@ class PackageReferenceSymbol(Symbol):
 
 
 @export
-class PackageMemberReferenceSymbol(Symbol):
-	"""A package member reference in a use clause."""
-
-	def __init__(self, name: Name):
-		super().__init__(name, PossibleReference.PackageMember)
-
-	@property
-	def Member(self) -> 'Package':  # TODO: typehint
-		return self._reference
-
-	@Member.setter
-	def Member(self, value: 'Package') -> None:  # TODO: typehint
-		self._reference = value
-
-
-@export
-class AllPackageMembersReferenceSymbol(Symbol):
-	"""A package reference in a use clause."""
-
-	def __init__(self, name: AllName):
-		super().__init__(name, PossibleReference.PackageMember)
-
-	@property
-	def Members(self) -> 'Package':  # TODO: typehint
-		return self._reference
-
-	@Members.setter
-	def Members(self, value: 'Package') -> None:  # TODO: typehint
-		self._reference = value
-
-
-@export
 class ContextReferenceSymbol(Symbol):
-	"""A context reference in a context clause."""
+	"""
+	Represents a reference (name) to a context.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      context ieee.ieee_std_context;
+	      --      ^^^^^^^^^^^^^^^^^^^^^
+	"""
 
 	def __init__(self, name: Name):
 		super().__init__(name, PossibleReference.Context)
@@ -210,8 +215,156 @@ class ContextReferenceSymbol(Symbol):
 
 
 @export
+class PackageMemberReferenceSymbol(Symbol):
+	"""
+	Represents a reference (name) to a package member.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      use ieee.numeric_std.unsigned;
+	      --  ^^^^^^^^^^^^^^^^^^^^^^^^^
+	"""
+
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.PackageMember)
+
+	@property
+	def Member(self) -> Nullable['Package']:  # TODO: typehint
+		return self._reference
+
+	@Member.setter
+	def Member(self, value: 'Package') -> None:  # TODO: typehint
+		self._reference = value
+
+
+@export
+class AllPackageMembersReferenceSymbol(Symbol):
+	"""
+	Represents a reference (name) to all package members.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.AllName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      use ieee.numeric_std.all;
+	      --  ^^^^^^^^^^^^^^^^^^^^
+	"""
+
+	def __init__(self, name: AllName):
+		super().__init__(name, PossibleReference.PackageMember)
+
+	@property
+	def Members(self) -> 'Package':  # TODO: typehint
+		return self._reference
+
+	@Members.setter
+	def Members(self, value: 'Package') -> None:  # TODO: typehint
+		self._reference = value
+
+
+@export
+class EntityInstantiationSymbol(Symbol):
+	"""
+	Represents a reference (name) to an entity in a direct entity instantiation.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       inst : entity work.Counter;
+	       --            ^^^^^^^^^^^^
+	"""
+
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Entity)
+
+	@property
+	def Entity(self) -> 'Entity':
+		return self._reference
+
+	@Entity.setter
+	def Entity(self, value: 'Entity') -> None:
+		self._reference = value
+
+
+@export
+class ComponentInstantiationSymbol(Symbol):
+	"""
+	Represents a reference (name) to an entity in a component instantiation.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       inst : component Counter;
+	       --               ^^^^^^^
+	"""
+
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Component)
+
+	@property
+	def Component(self) -> 'Component':
+		return self._reference
+
+	@Component.setter
+	def Component(self, value: 'Component') -> None:
+		self._reference = value
+
+
+@export
+class ConfigurationInstantiationSymbol(Symbol):
+	"""
+	Represents a reference (name) to an entity in a configuration instantiation.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	    .. code-block:: VHDL
+
+	       inst : configuration Counter;
+	       --                   ^^^^^^^
+	"""
+
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.Configuration)
+
+	@property
+	def Configuration(self) -> 'Configuration':
+		return self._reference
+
+	@Configuration.setter
+	def Configuration(self, value: 'Configuration') -> None:
+		self._reference = value
+
+
+@export
 class EntitySymbol(Symbol):
-	"""An entity reference in an architecture declaration."""
+	"""
+	Represents a reference (name) to an entity in an architecture declaration.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      architecture rtl of Counter is
+	      --                  ^^^^^^^
+	      begin
+	      end architecture;
+	"""
 
 	def __init__(self, name: Name):
 		super().__init__(name, PossibleReference.Entity)
@@ -243,7 +396,19 @@ class ArchitectureSymbol(Symbol):
 
 @export
 class PackageSymbol(Symbol):
-	"""A package reference in a package body declaration."""
+	"""
+	Represents a reference (name) to a package in a package body declaration.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      package body Utilities is
+	      --           ^^^^^^^^^
+	      end package body;
+	"""
 
 	def __init__(self, name: Name):
 		super().__init__(name, PossibleReference.Package)
@@ -258,62 +423,9 @@ class PackageSymbol(Symbol):
 
 
 @export
-class EntityInstantiationSymbol(Symbol):
-	"""An entity reference in a direct entity instantiation."""
-
-	def __init__(self, name: Name):
-		super().__init__(name, PossibleReference.Entity)
-
-	@property
-	def Entity(self) -> 'Entity':
-		return self._reference
-
-	@Entity.setter
-	def Entity(self, value: 'Entity') -> None:
-		self._reference = value
-
-
-@export
-class ComponentInstantiationSymbol(Symbol):
-	"""A component reference in a component instantiation."""
-
-	def __init__(self, name: Name):
-		super().__init__(name, PossibleReference.Component)
-
-	@property
-	def Component(self) -> 'Component':
-		return self._reference
-
-	@Component.setter
-	def Component(self, value: 'Component') -> None:
-		self._reference = value
-
-
-@export
-class ConfigurationInstantiationSymbol(Symbol):
-	"""A configuration reference in a configuration instantiation."""
-
-	def __init__(self, name: Name):
-		super().__init__(name, PossibleReference.Configuration)
-
-	@property
-	def Configuration(self) -> 'Configuration':
-		return self._reference
-
-	@Configuration.setter
-	def Configuration(self, value: 'Configuration') -> None:
-		self._reference = value
-
-
-@export
 class SubtypeSymbol(Symbol):
 	def __init__(self, name: Name):
-		super().__init__(name, PossibleReference.Subtype)
-
-
-@export
-class SimpleSubtypeSymbol(SubtypeSymbol):
-	"""A configuration reference in a configuration instantiation."""
+		super().__init__(name, PossibleReference.Type | PossibleReference.Subtype)
 
 	@property
 	def Subtype(self) -> 'Subtype':
@@ -322,6 +434,11 @@ class SimpleSubtypeSymbol(SubtypeSymbol):
 	@Subtype.setter
 	def Subtype(self, value: 'Subtype') -> None:
 		self._reference = value
+
+
+@export
+class SimpleSubtypeSymbol(SubtypeSymbol):
+	"""A configuration reference in a configuration instantiation."""
 
 
 @export

@@ -57,7 +57,7 @@ ExpressionUnion = Union[
 @export
 @unique
 class Direction(Enum):
-	"""A ``Direction`` is an enumeration and represents a direction in a range	(``to`` or ``downto``)."""
+	"""An enumeration representing a direction in a range	(``to`` or ``downto``)."""
 
 	To =      0  #: Ascending direction
 	DownTo =  1  #: Descending direction
@@ -66,7 +66,7 @@ class Direction(Enum):
 		"""
 		Formats the direction to ``to`` or ``downto``.
 
-		:return: Formatted direction.
+		:returns: Formatted direction.
 		"""
 		return ("to", "downto")[cast(int, self.value)]       # TODO: check performance
 
@@ -92,13 +92,13 @@ class Mode(Enum):
 		"""
 		Formats the direction.
 
-		:return: Formatted direction.
+		:returns: Formatted direction.
 		"""
 		return ("", "in", "out", "inout", "buffer", "linkage")[cast(int, self.value)]       # TODO: check performance
 
 
 @export
-class ModelEntity(metaclass=ExtendedType, useSlots=True):
+class ModelEntity(metaclass=ExtendedType, slots=True):
 	"""
 	``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
 	inheritance) and enumerations.
@@ -111,7 +111,6 @@ class ModelEntity(metaclass=ExtendedType, useSlots=True):
 
 	def __init__(self):
 		"""Initializes a VHDL model entity."""
-
 		self._parent = None
 
 	@property
@@ -132,7 +131,7 @@ class ModelEntity(metaclass=ExtendedType, useSlots=True):
 
 
 @export
-class NamedEntityMixin:
+class NamedEntityMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have identifiers.
 
@@ -172,7 +171,7 @@ class NamedEntityMixin:
 
 
 @export
-class MultipleNamedEntityMixin:
+class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A ``MultipleNamedEntityMixin`` is a mixin class for all VHDL entities that declare multiple instances at once by
 	defining multiple identifiers.
@@ -213,7 +212,7 @@ class MultipleNamedEntityMixin:
 
 
 @export
-class LabeledEntityMixin:
+class LabeledEntityMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A ``LabeledEntityMixin`` is a mixin class for all VHDL entities that can have labels.
 
@@ -252,7 +251,7 @@ class LabeledEntityMixin:
 
 
 @export
-class DocumentedEntityMixin:
+class DocumentedEntityMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation.
 
@@ -281,7 +280,7 @@ class DocumentedEntityMixin:
 
 
 @export
-class ConditionalMixin:
+class ConditionalMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``BaseConditional`` is a mixin-class for all statements with a condition."""
 
 	_condition: ExpressionUnion
@@ -297,7 +296,7 @@ class ConditionalMixin:
 
 
 @export
-class BranchMixin:
+class BranchMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``BaseBranch`` is a mixin-class for all statements with branches."""
 
 	def __init__(self):
@@ -305,7 +304,7 @@ class BranchMixin:
 
 
 @export
-class ConditionalBranchMixin(BranchMixin, ConditionalMixin):
+class ConditionalBranchMixin(BranchMixin, ConditionalMixin, mixin=True):
 	"""A ``BaseBranch`` is a mixin-class for all branch statements with a condition."""
 	def __init__(self, condition: ExpressionUnion):
 		super().__init__()
@@ -313,22 +312,22 @@ class ConditionalBranchMixin(BranchMixin, ConditionalMixin):
 
 
 @export
-class IfBranchMixin(ConditionalBranchMixin):
+class IfBranchMixin(ConditionalBranchMixin, mixin=True):
 	"""A ``BaseIfBranch`` is a mixin-class for all if-branches."""
 
 
 @export
-class ElsifBranchMixin(ConditionalBranchMixin):
+class ElsifBranchMixin(ConditionalBranchMixin, mixin=True):
 	"""A ``BaseElsifBranch`` is a mixin-class for all elsif-branches."""
 
 
 @export
-class ElseBranchMixin(BranchMixin):
+class ElseBranchMixin(BranchMixin, mixin=True):
 	"""A ``BaseElseBranch`` is a mixin-class for all else-branches."""
 
 
 @export
-class ReportStatementMixin:
+class ReportStatementMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``MixinReportStatement`` is a mixin-class for all report and assert statements."""
 
 	_message:  Nullable[ExpressionUnion]
@@ -353,7 +352,7 @@ class ReportStatementMixin:
 
 
 @export
-class AssertStatementMixin(ReportStatementMixin, ConditionalMixin):
+class AssertStatementMixin(ReportStatementMixin, ConditionalMixin, mixin=True):
 	"""A ``MixinAssertStatement`` is a mixin-class for all assert statements."""
 
 	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion = None, severity: ExpressionUnion = None):
@@ -361,7 +360,7 @@ class AssertStatementMixin(ReportStatementMixin, ConditionalMixin):
 		ConditionalMixin.__init__(self, condition)
 
 
-class BlockStatementMixin:
+class BlockStatementMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``BlockStatement`` is a mixin-class for all block statements."""
 
 	def __init__(self):

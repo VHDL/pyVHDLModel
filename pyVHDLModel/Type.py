@@ -37,9 +37,11 @@ Types.
 from typing                 import Union, List, Iterator, Iterable, Tuple
 
 from pyTooling.Decorators   import export
+from pyTooling.MetaClasses  import ExtendedType
+from pyTooling.Graph        import Vertex
 
-from pyVHDLModel.Base import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
-from pyVHDLModel.Symbol import Symbol
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
+from pyVHDLModel.Symbol     import Symbol
 from pyVHDLModel.Name       import Name
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 
@@ -47,6 +49,8 @@ from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 @export
 class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""``BaseType`` is the base-class of all type entities in this model."""
+
+	_objectVertex: Vertex
 
 	def __init__(self, identifier: str, documentation: str = None):
 		"""
@@ -57,6 +61,8 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
+
+		_objectVertex = None
 
 
 @export
@@ -76,21 +82,21 @@ class FullType(BaseType):
 
 @export
 class Subtype(BaseType):
-	_type:               'Subtype'
+	_type:               Symbol
 	_baseType:           BaseType
 	_range:              Range
 	_resolutionFunction: 'Function'
 
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str, symbol: Symbol):
 		super().__init__(identifier)
 
-		self._type = None
+		self._type = symbol
 		self._baseType = None
 		self._range = None
 		self._resolutionFunction = None
 
 	@property
-	def Type(self) -> 'Subtype':
+	def Type(self) -> Symbol:
 		return self._type
 
 	@property
@@ -106,7 +112,7 @@ class Subtype(BaseType):
 		return self._resolutionFunction
 
 	def __str__(self) -> str:
-		return f"subtype {self.Identifier} is {self._baseType}"
+		return f"subtype {self._identifier} is {self._baseType}"
 
 
 @export
@@ -132,7 +138,7 @@ class RangedScalarType(ScalarType):
 
 
 @export
-class NumericTypeMixin:
+class NumericTypeMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``NumericType`` is a mixin class for all numeric types."""
 
 	def __init__(self):
@@ -140,7 +146,7 @@ class NumericTypeMixin:
 
 
 @export
-class DiscreteTypeMixin:
+class DiscreteTypeMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``DiscreteType`` is a mixin class for all discrete types."""
 
 	def __init__(self):
@@ -164,17 +170,26 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 	def Literals(self) -> List[EnumerationLiteral]:
 		return self._literals
 
+	def __str__(self) -> str:
+		return f"{self._identifier} is ({', '.join(str(l) for l in self._literals)})"
+
 
 @export
 class IntegerType(RangedScalarType, NumericTypeMixin, DiscreteTypeMixin):
 	def __init__(self, identifier: str, rng: Union[Range, Name]):
 		super().__init__(identifier, rng)
 
+	def __str__(self) -> str:
+		return f"{self._identifier} is range {self._range}"
+
 
 @export
 class RealType(RangedScalarType, NumericTypeMixin):
 	def __init__(self, identifier: str, rng: Union[Range, Name]):
 		super().__init__(identifier, rng)
+
+	def __str__(self) -> str:
+		return f"{self._identifier} is range {self._range}"
 
 
 @export
@@ -200,6 +215,9 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 	def SecondaryUnits(self) -> List[Tuple[str, PhysicalIntegerLiteral]]:
 		return self._secondaryUnits
 
+	def __str__(self) -> str:
+		return f"{self._identifier} is range {self._range} units {self._primaryUnit}; {'; '.join(su + ' = ' + str(pu) for su, pu in self._secondaryUnits)};"
+
 
 @export
 class CompositeType(FullType):
@@ -215,6 +233,9 @@ class ArrayType(CompositeType):
 		super().__init__(identifier)
 
 		self._dimensions = []
+		for index in indices:
+			self._dimensions.append(index)
+			# index._parent = self  # FIXME: indices are provided as empty list
 
 		self._elementType = elementSubtype
 		# elementSubtype._parent = self   # FIXME: subtype is provided as None
@@ -226,6 +247,9 @@ class ArrayType(CompositeType):
 	@property
 	def ElementType(self) -> Symbol:
 		return self._elementType
+
+	def __str__(self) -> str:
+		return f"{self._identifier} is array({'; '.join(str(r) for r in self._dimensions)}) of {self._elementType}"
 
 
 @export
@@ -242,6 +266,9 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin):
 	@property
 	def Subtype(self) -> Symbol:
 		return self._subtype
+
+	def __str__(self) -> str:
+		return f"{', '.join(self._identifiers)} : {self._subtype}"
 
 
 @export
@@ -260,6 +287,9 @@ class RecordType(CompositeType):
 	@property
 	def Elements(self) -> List[RecordTypeElement]:
 		return self._elements
+
+	def __str__(self) -> str:
+		return f"{self._identifier} is record {'; '.join(str(re) for re in self._elements)};"
 
 
 @export
@@ -313,6 +343,9 @@ class AccessType(FullType):
 	def DesignatedSubtype(self):
 		return self._designatedSubtype
 
+	def __str__(self) -> str:
+		return f"{self._identifier} is access {self._designatedSubtype}"
+
 
 @export
 class FileType(FullType):
@@ -327,3 +360,6 @@ class FileType(FullType):
 	@property
 	def DesignatedSubtype(self):
 		return self._designatedSubtype
+
+	def __str__(self) -> str:
+		return f"{self._identifier} is access {self._designatedSubtype}"

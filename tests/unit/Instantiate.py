@@ -434,7 +434,7 @@ class SimpleInstance(TestCase):
 		self.assertEqual("conf_1", configuration.Identifier)
 
 	def test_Subtype(self):
-		subtype = Subtype("bit")
+		subtype = Subtype("bit", SimpleSubtypeSymbol(SimpleName("bi")))
 
 		self.assertIsNotNone(subtype)
 		self.assertEqual("bit", subtype.Identifier)

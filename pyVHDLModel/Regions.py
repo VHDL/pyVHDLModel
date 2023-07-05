@@ -34,18 +34,18 @@ This module contains parts of an abstract document language model for VHDL.
 
 tbd.
 """
-from typing import List, Dict, Union, Iterable
+from typing                 import List, Dict, Iterable
 
-from pyTooling.Decorators import export
+from pyTooling.Decorators   import export
+from pyTooling.MetaClasses  import ExtendedType
 
-from pyVHDLModel import Signal
-from pyVHDLModel.Object import Constant, SharedVariable, File, Variable
+from pyVHDLModel.Object     import Constant, SharedVariable, File, Variable, Signal
 from pyVHDLModel.Subprogram import Subprogram, Function, Procedure
-from pyVHDLModel.Type import Type, Subtype, FullType
+from pyVHDLModel.Type       import Subtype, FullType
 
 
 @export
-class ConcurrentDeclarationRegionMixin:
+class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	_declaredItems:   List  # FIXME: define list prefix type e.g. via Union
 
 	# _attributes:     Dict[str, Attribute]
@@ -57,7 +57,7 @@ class ConcurrentDeclarationRegionMixin:
 	_signals:         Dict[str, Signal]
 	_sharedVariables: Dict[str, SharedVariable]
 	_files:           Dict[str, File]
-	_subprogram:      Dict[str, Dict[str, Subprogram]]
+	_subprograms:     Dict[str, Dict[str, Subprogram]]
 	_functions:       Dict[str, Dict[str, Function]]
 	_procedures:      Dict[str, Dict[str, Procedure]]
 
@@ -127,28 +127,36 @@ class ConcurrentDeclarationRegionMixin:
 	def IndexDeclaredItems(self):
 		for item in self._declaredItems:
 			if isinstance(item, FullType):
-				self._types[item.NormalizedIdentifier] = item
+				self._types[item._normalizedIdentifier] = item
+				self._namespace._elements[item._normalizedIdentifier] = item
 			elif isinstance(item, Subtype):
-				self._subtypes[item.NormalizedIdentifier] = item
+				self._subtypes[item._normalizedIdentifier] = item
+				self._namespace._elements[item._normalizedIdentifier] = item
 			elif isinstance(item, Function):
-				self._functions[item.NormalizedIdentifier] = item
+				self._functions[item._normalizedIdentifier] = item
+				self._namespace._elements[item._normalizedIdentifier] = item
 			elif isinstance(item, Procedure):
-				self._procedures[item.NormalizedIdentifier] = item
+				self._procedures[item._normalizedIdentifier] = item
+				self._namespace._elements[item._normalizedIdentifier] = item
 			elif isinstance(item, Constant):
-				for normalizedIdentifier in item.NormalizedIdentifiers:
+				for normalizedIdentifier in item._normalizedIdentifiers:
 					self._constants[normalizedIdentifier] = item
+					self._namespace._elements[normalizedIdentifier] = item
 					# self._objects[normalizedIdentifier] = item
 			elif isinstance(item, Signal):
-				for normalizedIdentifier in item.NormalizedIdentifiers:
+				for normalizedIdentifier in item._normalizedIdentifiers:
 					self._signals[normalizedIdentifier] = item
+					self._namespace._elements[normalizedIdentifier] = item
 			elif isinstance(item, Variable):
-				print(f"IndexDeclaredItems - {item.Identifiers}")
+				print(f"IndexDeclaredItems - {item._identifiers}")
 			elif isinstance(item, SharedVariable):
-				for normalizedIdentifier in item.NormalizedIdentifiers:
+				for normalizedIdentifier in item._normalizedIdentifiers:
 					self._sharedVariables[normalizedIdentifier] = item
+					self._namespace._elements[normalizedIdentifier] = item
 			elif isinstance(item, File):
-				for normalizedIdentifier in item.NormalizedIdentifiers:
+				for normalizedIdentifier in item._normalizedIdentifiers:
 					self._files[normalizedIdentifier] = item
+					self._namespace._elements[normalizedIdentifier] = item
 			else:
 				self._IndexOtherDeclaredItem(item)
 

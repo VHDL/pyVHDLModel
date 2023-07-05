@@ -37,12 +37,13 @@ Declarations for sequential statements.
 from typing                  import List, Iterable, Optional as Nullable
 
 from pyTooling.Decorators    import export
+from pyTooling.MetaClasses   import ExtendedType
 
-from pyVHDLModel.Base import ModelEntity, ExpressionUnion, Range, BaseChoice, BaseCase, ConditionalMixin, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, \
+from pyVHDLModel.Base        import ModelEntity, ExpressionUnion, Range, BaseChoice, BaseCase, ConditionalMixin, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, \
 	ReportStatementMixin, AssertStatementMixin, WaveformElement
 from pyVHDLModel.Symbol      import Symbol
-from pyVHDLModel.Common      import Statement, ProcedureCall
-from pyVHDLModel.Common      import SignalAssignment, VariableAssignment
+from pyVHDLModel.Common      import Statement, ProcedureCallMixin
+from pyVHDLModel.Common      import SignalAssignmentMixin, VariableAssignmentMixin
 from pyVHDLModel.Association import ParameterAssociationItem
 
 
@@ -52,7 +53,7 @@ class SequentialStatement(Statement):
 
 
 @export
-class SequentialStatements:
+class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True):
 	_statements: List[SequentialStatement]
 
 	def __init__(self, statements: Iterable[SequentialStatement] = None):
@@ -69,17 +70,17 @@ class SequentialStatements:
 
 
 @export
-class SequentialProcedureCall(SequentialStatement, ProcedureCall):
+class SequentialProcedureCall(SequentialStatement, ProcedureCallMixin):
 	def __init__(self, procedureName: Symbol, parameterMappings: Iterable[ParameterAssociationItem] = None, label: str = None):
 		super().__init__(label)
-		ProcedureCall.__init__(self, procedureName, parameterMappings)
+		ProcedureCallMixin.__init__(self, procedureName, parameterMappings)
 
 
 @export
-class SequentialSignalAssignment(SequentialStatement, SignalAssignment):
+class SequentialSignalAssignment(SequentialStatement, SignalAssignmentMixin):
 	def __init__(self, target: Symbol, label: str = None):
 		super().__init__(label)
-		SignalAssignment.__init__(self, target)
+		SignalAssignmentMixin.__init__(self, target)
 
 
 @export
@@ -102,10 +103,10 @@ class SequentialSimpleSignalAssignment(SequentialSignalAssignment):
 
 
 @export
-class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
+class SequentialVariableAssignment(SequentialStatement, VariableAssignmentMixin):
 	def __init__(self, target: Symbol, expression: ExpressionUnion, label: str = None):
 		super().__init__(label)
-		VariableAssignment.__init__(self, target, expression)
+		VariableAssignmentMixin.__init__(self, target, expression)
 
 
 @export
@@ -128,12 +129,12 @@ class CompoundStatement(SequentialStatement):
 
 
 @export
-class Branch(ModelEntity, SequentialStatements):
+class Branch(ModelEntity, SequentialStatementsMixin):
 	"""A ``Branch`` is a base-class for all branches in a if statement."""
 
 	def __init__(self, statements: Iterable[SequentialStatement] = None):
 		super().__init__()
-		SequentialStatements.__init__(self, statements)
+		SequentialStatementsMixin.__init__(self, statements)
 
 
 @export
@@ -236,12 +237,12 @@ class RangedChoice(SequentialChoice):
 
 
 @export
-class SequentialCase(BaseCase, SequentialStatements):
+class SequentialCase(BaseCase, SequentialStatementsMixin):
 	_choices: List
 
 	def __init__(self, statements: Iterable[SequentialStatement] = None):
 		super().__init__()
-		SequentialStatements.__init__(self, statements)
+		SequentialStatementsMixin.__init__(self, statements)
 
 		# TODO: what about choices?
 
@@ -252,8 +253,6 @@ class SequentialCase(BaseCase, SequentialStatements):
 
 @export
 class Case(SequentialCase):
-	_choices: List[SequentialChoice]
-
 	def __init__(self, choices: Iterable[SequentialChoice], statements: Iterable[SequentialStatement] = None):
 		super().__init__(statements)
 
@@ -304,12 +303,12 @@ class CaseStatement(CompoundStatement):
 
 
 @export
-class LoopStatement(CompoundStatement, SequentialStatements):
+class LoopStatement(CompoundStatement, SequentialStatementsMixin):
 	"""A ``LoopStatement`` is a base-class for all loop statements."""
 
 	def __init__(self, statements: Iterable[SequentialStatement] = None, label: str = None):
 		super().__init__(label)
-		SequentialStatements.__init__(self, statements)
+		SequentialStatementsMixin.__init__(self, statements)
 
 
 @export
@@ -425,7 +424,7 @@ class WaitStatement(SequentialStatement, ConditionalMixin):
 
 
 @export
-class SequentialDeclarations:
+class SequentialDeclarationsMixin(metaclass=ExtendedType, mixin=True):
 	_declaredItems: List
 
 	def __init__(self, declaredItems: Iterable):

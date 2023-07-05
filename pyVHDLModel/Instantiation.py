@@ -36,47 +36,55 @@ Instantiations of packages, procedures, functions and protected types.
 """
 from typing import List
 
-from pyTooling.Decorators import export
+from pyTooling.Decorators    import export
+from pyTooling.MetaClasses   import ExtendedType
 
-from pyVHDLModel.Base import ModelEntity
-from pyVHDLModel.DesignUnit import PrimaryUnit
+from pyVHDLModel.Base        import ModelEntity
+from pyVHDLModel.DesignUnit  import PrimaryUnit
 from pyVHDLModel.Association import GenericAssociationItem
-from pyVHDLModel.Subprogram import Procedure, Function
-from pyVHDLModel.Symbol import PackageReferenceSymbol
+from pyVHDLModel.Subprogram  import Procedure, Function, Subprogram
+from pyVHDLModel.Symbol      import PackageReferenceSymbol
 
 
 @export
-class GenericEntityInstantiation:
+class GenericInstantiationMixin(metaclass=ExtendedType, mixin=True):
 	def __init__(self):
 		pass
 
 
 @export
-class SubprogramInstantiation(ModelEntity, GenericEntityInstantiation):
+class GenericEntityInstantiationMixin(GenericInstantiationMixin, mixin=True):
+	def __init__(self):
+		pass
+
+
+@export
+class SubprogramInstantiationMixin(GenericInstantiationMixin, mixin=True):
+	_subprogramReference: Subprogram  # FIXME: is this a subprogram symbol?
+
 	def __init__(self):
 		super().__init__()
-		GenericEntityInstantiation.__init__(self)
 		self._subprogramReference = None
 
 
 @export
-class ProcedureInstantiation(Procedure, SubprogramInstantiation):
+class ProcedureInstantiation(Procedure, SubprogramInstantiationMixin):
 	pass
 
 
 @export
-class FunctionInstantiation(Function, SubprogramInstantiation):
+class FunctionInstantiation(Function, SubprogramInstantiationMixin):
 	pass
 
 
 @export
-class PackageInstantiation(PrimaryUnit, GenericEntityInstantiation):
+class PackageInstantiation(PrimaryUnit, GenericInstantiationMixin):
 	_packageReference: PackageReferenceSymbol
 	_genericAssociations: List[GenericAssociationItem]
 
 	def __init__(self, identifier: str, uninstantiatedPackage: PackageReferenceSymbol, documentation: str = None):
 		super().__init__(identifier, documentation)
-		GenericEntityInstantiation.__init__(self)
+		GenericEntityInstantiationMixin.__init__(self)
 
 		self._packageReference = uninstantiatedPackage
 		# uninstantiatedPackage._parent = self    # FIXME: uninstantiatedPackage is provided as int

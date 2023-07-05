@@ -907,7 +907,6 @@ class Design(ModelEntity):
 						raise VHDLModelException(f"Package '{packageName._identifier}' not found in {'working ' if libraryName._normalizedIdentifier == 'work' else ''}library '{library._identifier}'.")
 
 					symbol.Package = package
-					assert package.Library == library
 
 					# TODO: warn duplicate package reference
 					context._referencedPackages[libraryNormalizedIdentifier][packageNormalizedIdentifier] = package

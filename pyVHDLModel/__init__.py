@@ -67,7 +67,7 @@ from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedE
 from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant
-from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation
 from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, Configuration, Package
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode
@@ -854,28 +854,28 @@ class Design(ModelEntity):
 		for context in self.IterateDesignUnits(DesignUnitKind.Context):  # type: Context
 			# Create entries in _referenced*** for the current working library under its real name.
 			workingLibrary: Library = context.Library
-			libraryIdentifier = workingLibrary.NormalizedIdentifier
+			libraryNormalizedIdentifier = workingLibrary._normalizedIdentifier
 
-			context._referencedLibraries[libraryIdentifier] = self._libraries[libraryIdentifier]
-			context._referencedPackages[libraryIdentifier] = {}
-			context._referencedContexts[libraryIdentifier] = {}
+			context._referencedLibraries[libraryNormalizedIdentifier] = self._libraries[libraryNormalizedIdentifier]
+			context._referencedPackages[libraryNormalizedIdentifier] = {}
+			context._referencedContexts[libraryNormalizedIdentifier] = {}
 
 			# Process all library clauses
 			for libraryReference in context._libraryReferences:
 				# A library clause can have multiple comma-separated references
-				for librarySymbol in libraryReference.Symbols:
-					libraryIdentifier = librarySymbol.Name.NormalizedIdentifier
+				for libraryName in libraryReference.Symbols:
+					libraryNormalizedIdentifier = libraryName.Name._normalizedIdentifier
 					try:
-						library = self._libraries[libraryIdentifier]
+						library = self._libraries[libraryNormalizedIdentifier]
 					except KeyError:
-						raise ReferencedLibraryNotExistingError(context, librarySymbol)
+						raise ReferencedLibraryNotExistingError(context, libraryName)
 						# TODO: add position to these messages
 
-					librarySymbol.Library = library
+					libraryName.Library = library
 
-					context._referencedLibraries[libraryIdentifier] = library
-					context._referencedPackages[libraryIdentifier] = {}
-					context._referencedContexts[libraryIdentifier] = {}
+					context._referencedLibraries[libraryNormalizedIdentifier] = library
+					context._referencedPackages[libraryNormalizedIdentifier] = {}
+					context._referencedContexts[libraryNormalizedIdentifier] = {}
 					# TODO: warn duplicate library reference
 
 					dependency = context._dependencyVertex.EdgeToVertex(library._dependencyVertex, edgeValue=libraryReference)
@@ -884,33 +884,33 @@ class Design(ModelEntity):
 			# Process all use clauses
 			for packageReference in context.PackageReferences:
 				# A use clause can have multiple comma-separated references
-				for symbol in packageReference.Symbols:
-					packageSymbol = symbol.Name.Prefix
-					librarySymbol = packageSymbol.Prefix
+				for symbol in packageReference.Symbols:  # type: PackageReferenceSymbol
+					packageName = symbol.Name.Prefix
+					libraryName = packageName.Prefix
 
-					libraryIdentifier = librarySymbol.NormalizedIdentifier
-					packageIdentifier = packageSymbol.NormalizedIdentifier
+					libraryNormalizedIdentifier = libraryName._normalizedIdentifier
+					packageNormalizedIdentifier = packageName._normalizedIdentifier
 
 					# In case work is used, resolve to the real library name.
-					if libraryIdentifier == "work":
-						library: Library = context.Library
-						libraryIdentifier = library.NormalizedIdentifier
-					elif libraryIdentifier not in context._referencedLibraries:
+					if libraryNormalizedIdentifier == "work":
+						library: Library = context._library
+						libraryNormalizedIdentifier = library._normalizedIdentifier
+					elif libraryNormalizedIdentifier not in context._referencedLibraries:
 						# TODO: This check doesn't trigger if it's the working library.
-						raise VHDLModelException(f"Use clause references library '{librarySymbol.Name.Identifier}', which was not referenced by a library clause.")
+						raise VHDLModelException(f"Use clause references library '{libraryName._identifier}', which was not referenced by a library clause.")
 					else:
-						library = self._libraries[libraryIdentifier]
+						library = self._libraries[libraryNormalizedIdentifier]
 
 					try:
-						package = library._packages[packageIdentifier]
+						package = library._packages[packageNormalizedIdentifier]
 					except KeyError:
-						raise VHDLModelException(f"Package '{packageSymbol.Name.Identifier}' not found in {'working ' if librarySymbol.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+						raise VHDLModelException(f"Package '{packageName._identifier}' not found in {'working ' if libraryName._normalizedIdentifier == 'work' else ''}library '{library._identifier}'.")
 
-					librarySymbol.Library = library
-					packageSymbol.Package = package
+					symbol.Package = package
+					assert package.Library == library
 
 					# TODO: warn duplicate package reference
-					context._referencedPackages[libraryIdentifier][packageIdentifier] = package
+					context._referencedPackages[libraryNormalizedIdentifier][packageNormalizedIdentifier] = package
 
 					dependency = context._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=packageReference)
 					dependency["kind"] = DependencyGraphEdgeKind.UseClause

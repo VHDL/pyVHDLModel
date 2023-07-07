@@ -979,7 +979,9 @@ class Design(ModelEntity):
 					try:
 						library = self._libraries[libraryIdentifier]
 					except KeyError:
-						raise VHDLModelException(f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+						ex = VHDLModelException(f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+						ex.add_note(f"""Known libraries: '{"', '".join(library for library in self._libraries)}'""")
+						raise ex
 
 					librarySymbol.Library = library
 					designUnit._referencedLibraries[libraryIdentifier] = library

@@ -615,13 +615,13 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 
 	def __str__(self) -> str:
 		lib = self._library._identifier if self._library is not None else "%"
-		ent = self._entity._identifier if self._entity is not None else "%"
+		ent = self._entity._name._identifier if self._entity is not None else "%"
 
 		return f"Architecture: {lib}.{ent}({self._identifier})"
 
 	def __repr__(self) -> str:
 		lib = self._library._identifier if self._library is not None else "%"
-		ent = self._entity.Name._identifier if self._entity is not None else "%"
+		ent = self._entity._name._identifier if self._entity is not None else "%"
 
 		return f"{lib}.{ent}({self._identifier})"
 

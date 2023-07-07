@@ -48,7 +48,7 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2023, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.27.0"
+__version__ =   "0.27.1"
 
 
 from enum                      import unique, Enum, Flag, auto
@@ -979,7 +979,9 @@ class Design(ModelEntity):
 					try:
 						library = self._libraries[libraryIdentifier]
 					except KeyError:
-						raise VHDLModelException(f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+						ex = VHDLModelException(f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+						ex.add_note(f"""Known libraries: '{"', '".join(library for library in self._libraries)}'""")
+						raise ex
 
 					librarySymbol.Library = library
 					designUnit._referencedLibraries[libraryIdentifier] = library

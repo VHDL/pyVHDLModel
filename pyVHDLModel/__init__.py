@@ -90,8 +90,8 @@ class VHDLVersion(Enum):
 	Any =                -1  #: Any
 	VHDL87 =             87  #: VHDL-1987
 	VHDL93 =             93  #: VHDL-1993
-#	AMS93 =              93  #:
-	AMS99 =              99  #: VHDL-AMS-1999
+	AMS93 =            1993  #: VHDL-AMS-1993
+	AMS99 =            1999  #: VHDL-AMS-1999
 	VHDL2000 =         2000  #: VHDL-2000
 	VHDL2002 =         2002  #: VHDL-2002
 	VHDL2008 =         2008  #: VHDL-2008
@@ -100,40 +100,46 @@ class VHDLVersion(Enum):
 	Latest =          10000  #: Latest VHDL (2019)
 
 	__VERSION_MAPPINGS__: Dict[Union[int, str], Enum] = {
-		87:     VHDL87,
-		93:     VHDL93,
-		99:     AMS99,
-		0:      VHDL2000,
-		2:      VHDL2002,
-		8:      VHDL2008,
-		17:     AMS2017,
-		19:     VHDL2019,
-		1987:   VHDL87,
-		1993:   VHDL93,
-		1999:   AMS99,
-		2000:   VHDL2000,
-		2002:   VHDL2002,
-		2008:   VHDL2008,
-		2017:   AMS2017,
-		2019:   VHDL2019,
-		"Any":  Any,
+		-1:       Any,
+		87:       VHDL87,
+		93:       VHDL93,
+		# 93:       AMS93,
+		99:       AMS99,
+		0:        VHDL2000,
+		2:        VHDL2002,
+		8:        VHDL2008,
+		17:       AMS2017,
+		19:       VHDL2019,
+		1987:     VHDL87,
+		# 1993:     VHDL93,
+		1993:     AMS93,
+		1999:     AMS99,
+		2000:     VHDL2000,
+		2002:     VHDL2002,
+		2008:     VHDL2008,
+		2017:     AMS2017,
+		2019:     VHDL2019,
+		10000:    Latest,
+		"Any":    Any,
+		"87":     VHDL87,
+		"93":     VHDL93,
+		# "93":     AMS93,
+		"99":     AMS99,
+		"00":     VHDL2000,
+		"02":     VHDL2002,
+		"08":     VHDL2008,
+		"17":     AMS2017,
+		"19":     VHDL2019,
+		"1987":   VHDL87,
+		# "1993":   VHDL93,
+		"1993":   AMS93,
+		"1999":   AMS99,
+		"2000":   VHDL2000,
+		"2002":   VHDL2002,
+		"2008":   VHDL2008,
+		"2017":   AMS2017,
+		"2019":   VHDL2019,
 		"Latest": Latest,
-		"87":   VHDL87,
-		"93":   VHDL93,
-		"99":   AMS99,
-		"00":   VHDL2000,
-		"02":   VHDL2002,
-		"08":   VHDL2008,
-		"17":   AMS2017,
-		"19":   VHDL2019,
-		"1987": VHDL87,
-		"1993": VHDL93,
-		"1999": AMS99,
-		"2000": VHDL2000,
-		"2002": VHDL2002,
-		"2008": VHDL2008,
-		"2017": AMS2017,
-		"2019": VHDL2019
 	}  #: Dictionary of VHDL and VHDL-AMS year codes variants as integer and strings for mapping to unique enum values.
 
 	def __init__(self, *_) -> None:
@@ -143,7 +149,7 @@ class VHDLVersion(Enum):
 				self.__class__.__VERSION_MAPPINGS__[k] = self
 
 	@classmethod
-	def Parse(cls, value: Union[int, str]) -> 'Enum':
+	def Parse(cls, value: Union[int, str]) -> "VHDLVersion":
 		"""
 		Parses a VHDL or VHDL-AMS year code as integer or string to an enum value.
 
@@ -233,7 +239,7 @@ class VHDLVersion(Enum):
 			if (self is self.__class__.Any) or (other is self.__class__.Any):
 				return True
 			else:
-				return (self.value == other.value)
+				return self.value == other.value
 		else:
 			raise TypeError("Second operand is not of type 'VHDLVersion'.")
 
@@ -253,7 +259,7 @@ class VHDLVersion(Enum):
 
 		:returns:          True if version is a VHDL-AMS version.
 		"""
-		return self in (self.AMS99, self.AMS2017)
+		return self in (self.AMS93, self.AMS99, self.AMS2017)
 
 	def __str__(self) -> str:
 		"""
@@ -261,6 +267,11 @@ class VHDLVersion(Enum):
 
 		:return: Formatted VHDL/VHDL-AMS version.
 		"""
+		if self.value == self.Any.value:
+			return "VHDL'Any"
+		elif self.value == self.Latest.value:
+			return "VHDL'Latest"
+
 		year = str(self.value)[-2:]
 		if self.IsVHDL:
 			return f"VHDL'{year}"
@@ -273,7 +284,12 @@ class VHDLVersion(Enum):
 
 		:return: Formatted VHDL/VHDL-AMS version.
 		"""
-		return str(self.value)
+		if self.value == self.Any.value:
+			return "Any"
+		elif self.value == self.Latest.value:
+			return "Latest"
+		else:
+			return str(self.value)
 
 
 @export

@@ -160,7 +160,7 @@ class VHDLVersion(Enum):
 		try:
 			return cls.__VERSION_MAPPINGS__[value]
 		except KeyError:
-			ValueError(f"Value '{value!s}' cannot be parsed to member of {cls.__name__}.")
+			raise ValueError(f"Value '{value!s}' cannot be parsed to member of {cls.__name__}.")
 
 	def __lt__(self, other: Any) -> bool:
 		"""

@@ -225,7 +225,7 @@ autodoc_typehints = "both"
 extlinks = {
 	"ghissue": ('https://GitHub.com/vhdl/pyVHDLModel/issues/%s', 'issue #'),
 	"ghpull":  ('https://GitHub.com/vhdl/pyVHDLModel/pull/%s', 'pull request #'),
-	"ghsrc":   ('https://GitHub.com/vhdl/pyVHDLModel/blob/main/%s?ts=2', ""),
+	"ghsrc":   ('https://GitHub.com/vhdl/pyVHDLModel/blob/main/%s?ts=2', None),
 }
 
 

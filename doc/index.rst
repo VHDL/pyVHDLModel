@@ -192,9 +192,6 @@ License
    This Python package (source code) is licensed under **Apache License 2.0**. |br|
    The accompanying documentation is licensed under **Creative Commons - Attribution 4.0 (CC-BY 4.0)**.
 
-------------------------------------
-
-.. |docdate| date:: %d.%b %Y - %H:%M
 
 .. only:: html
 
@@ -237,9 +234,10 @@ License
    :caption: References and Reports
    :hidden:
 
-   pyVHDLModel/pyVHDLModel
-   Unittest Report ➚ <unittests/index>
-   Coverage Report ➚ <coverage/index>
+   Python Class Reference <pyVHDLModel/pyVHDLModel>
+   unittests/index
+   coverage/index
+   Doc. Coverage Report <DocCoverage>
    Static Type Check Report ➚ <typing/index>
 
 
@@ -257,3 +255,4 @@ License
    Glossary
    genindex
    Python Module Index <modindex>
+   TODO

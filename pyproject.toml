@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-  "setuptools >= 68.0.0",
+  "setuptools >= 69.0.0",
   "wheel >= 0.40.0",
   "pyTooling ~= 6.0"
 ]
@@ -10,12 +10,14 @@ build-backend = "setuptools.build_meta"
 line-length = 120
 
 [tool.mypy]
-python_version = "3.11"
-namespace_packages = true
-
+files = ["pyVHDLModel"]
+python_version = "3.12"
+#ignore_missing_imports = true
+strict = true
 pretty = true
 show_error_context = true
-
+show_error_codes = true
+namespace_packages = true
 html_report = "report/typing"
 
 [tool.pytest.ini_options]
@@ -27,13 +29,26 @@ filterwarnings = [
 	"error::DeprecationWarning",
 	"error::PendingDeprecationWarning"
 ]
+junit_logging = "all"
+
+[tool.interrogate]
+color = true
+verbose = 1             # possible values: 0 (minimal output), 1 (-v), 2 (-vv)
+fail-under = 80
+#generate-badge = "."
+#badge-format = "png"
+ignore-setters = true
 
 [tool.coverage.run]
 branch = true
+relative_files = true
 omit = [
 	"*site-packages*",
 	"setup.py",
-	"tests/*"
+	"tests/benchmark/*",
+	"tests/performance/*",
+	"tests/platform/*",
+	"tests/unit/*"
 ]
 
 [tool.coverage.report]
@@ -47,9 +62,12 @@ omit = [
 	"tests/*"
 ]
 
+[tool.coverage.xml]
+output = "report/coverage/coverage.xml"
+
+[tool.coverage.json]
+output = "report/coverage/coverage.json"
+
 [tool.coverage.html]
 directory = "report/coverage/html"
 title="Code Coverage of pyVHDLModel"
-
-[tool.coverage.xml]
-output = "report/coverage/coverage.xml"

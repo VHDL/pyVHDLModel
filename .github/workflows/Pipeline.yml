@@ -9,12 +9,12 @@ on:
 jobs:
 
   Params:
-    uses: pyTooling/Actions/.github/workflows/Parameters.yml@dev
+    uses: pyTooling/Actions/.github/workflows/Parameters.yml@r1
     with:
       name: pyVHDLModel
 
   UnitTesting:
-    uses: pyTooling/Actions/.github/workflows/UnitTesting.yml@dev
+    uses: pyTooling/Actions/.github/workflows/UnitTesting.yml@r1
     needs:
       - Params
     with:
@@ -22,7 +22,7 @@ jobs:
       artifact: ${{ fromJson(needs.Params.outputs.artifact_names).unittesting_xml }}
 
   Coverage:
-    uses: pyTooling/Actions/.github/workflows/CoverageCollection.yml@dev
+    uses: pyTooling/Actions/.github/workflows/CoverageCollection.yml@r1
     needs:
       - Params
     with:
@@ -32,7 +32,7 @@ jobs:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
   StaticTypeCheck:
-    uses: pyTooling/Actions/.github/workflows/StaticTypeCheck.yml@dev
+    uses: pyTooling/Actions/.github/workflows/StaticTypeCheck.yml@r1
     needs:
       - Params
     with:
@@ -42,12 +42,12 @@ jobs:
       html_artifact: ${{ fromJson(needs.Params.outputs.artifact_names).statictyping_html }}
 
   PublishTestResults:
-    uses: pyTooling/Actions/.github/workflows/PublishTestResults.yml@dev
+    uses: pyTooling/Actions/.github/workflows/PublishTestResults.yml@r1
     needs:
       - UnitTesting
 
   Package:
-    uses: pyTooling/Actions/.github/workflows/Package.yml@dev
+    uses: pyTooling/Actions/.github/workflows/Package.yml@r1
     needs:
       - Params
       - Coverage
@@ -56,7 +56,7 @@ jobs:
       artifact: ${{ fromJson(needs.Params.outputs.artifact_names).package_all }}
 
   Release:
-    uses: pyTooling/Actions/.github/workflows/Release.yml@dev
+    uses: pyTooling/Actions/.github/workflows/Release.yml@r1
     if: startsWith(github.ref, 'refs/tags')
     needs:
       - UnitTesting
@@ -65,7 +65,7 @@ jobs:
       - Package
 
   PublishOnPyPI:
-    uses: pyTooling/Actions/.github/workflows/PublishOnPyPI.yml@dev
+    uses: pyTooling/Actions/.github/workflows/PublishOnPyPI.yml@r1
     if: startsWith(github.ref, 'refs/tags')
     needs:
       - Params
@@ -129,7 +129,7 @@ jobs:
           python3 example.py
 
   BuildTheDocs:
-    uses: pyTooling/Actions/.github/workflows/BuildTheDocs.yml@dev
+    uses: pyTooling/Actions/.github/workflows/BuildTheDocs.yml@r1
     needs:
       - Params
       - VerifyDocs
@@ -137,7 +137,7 @@ jobs:
       artifact: ${{ fromJson(needs.Params.outputs.artifact_names).documentation_html }}
 
   PublishToGitHubPages:
-    uses: pyTooling/Actions/.github/workflows/PublishToGitHubPages.yml@dev
+    uses: pyTooling/Actions/.github/workflows/PublishToGitHubPages.yml@r1
     needs:
       - Params
       - BuildTheDocs
@@ -149,7 +149,7 @@ jobs:
       typing: ${{ fromJson(needs.Params.outputs.artifact_names).statictyping_html }}
 
   ArtifactCleanUp:
-    uses: pyTooling/Actions/.github/workflows/ArtifactCleanUp.yml@dev
+    uses: pyTooling/Actions/.github/workflows/ArtifactCleanUp.yml@r1
     needs:
       - Params
       - UnitTesting

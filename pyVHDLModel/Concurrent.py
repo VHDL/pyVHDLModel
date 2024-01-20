@@ -704,17 +704,16 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 	def Range(self) -> Range:
 		return self._range
 
-	IterateInstantiations = ConcurrentStatementsMixin.IterateInstantiations
-
 	# IndexDeclaredItems = ConcurrentStatements.IndexDeclaredItems
 
 	def IndexStatement(self) -> None:
 		self.IndexStatements()
 
-	IndexStatements = ConcurrentStatementsMixin.IndexStatements
+	def IndexStatements(self) -> None:
+		super().IndexStatements()
 
-	# def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
-	# 	return ConcurrentStatements.IterateInstantiations(self)
+	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+		return ConcurrentStatementsMixin.IterateInstantiations(self)
 
 
 @export

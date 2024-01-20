@@ -223,8 +223,8 @@ autodoc_typehints = "both"
 # Sphinx.Ext.ExtLinks
 # ==============================================================================
 extlinks = {
-	"ghissue": ('https://GitHub.com/vhdl/pyVHDLModel/issues/%s', 'issue #'),
-	"ghpull":  ('https://GitHub.com/vhdl/pyVHDLModel/pull/%s', 'pull request #'),
+	"ghissue": ('https://GitHub.com/vhdl/pyVHDLModel/issues/%s', 'issue #%s'),
+	"ghpull":  ('https://GitHub.com/vhdl/pyVHDLModel/pull/%s', 'pull request #%s'),
 	"ghsrc":   ('https://GitHub.com/vhdl/pyVHDLModel/blob/main/%s?ts=2', None),
 }
 

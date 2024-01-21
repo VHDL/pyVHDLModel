@@ -1,4 +1,7 @@
-UnitTest Report
-###############
+Unittest Summary Report
+#######################
 
-*Placeholder for the unittest report generated with* ``pytest``.
+Unittest report generated with `pytest <https://github.com/pytest-dev/pytest>`__.
+
+.. report:unittest-summary::
+   :reportid: src

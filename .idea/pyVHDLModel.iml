@@ -13,7 +13,7 @@
       <excludeFolder url="file://$MODULE_DIR$/build/bdist.win-amd64" />
       <excludeFolder url="file://$MODULE_DIR$/build/lib" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.11" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.12" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">

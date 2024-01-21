@@ -30,6 +30,8 @@
 # ==================================================================================================================== #
 #
 """Package installer for 'An abstract VHDL language model'."""
+from setuptools          import setup
+
 from pathlib             import Path
 from pyTooling.Packaging import DescribePythonPackageHostedOnGitHub, DEFAULT_CLASSIFIERS
 
@@ -38,7 +40,7 @@ packageName =            "pyVHDLModel"
 packageDirectory =       packageName
 packageInformationFile = Path(f"{packageDirectory}/__init__.py")
 
-DescribePythonPackageHostedOnGitHub(
+setup(**DescribePythonPackageHostedOnGitHub(
 	packageName=packageName,
 	description="An abstract VHDL language model.",
 	gitHubNamespace=gitHubNamespace,
@@ -53,4 +55,4 @@ DescribePythonPackageHostedOnGitHub(
 	dataFiles={
 		packageName: ["py.typed"]
 	}
-)
+))

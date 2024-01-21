@@ -3,7 +3,7 @@
 .. image:: _static/logo.svg
    :height: 90 px
    :align: center
-   :target: https://GitHub.com/vhdl/pyVHDLModel
+   :target: https://GitHub.com/VHDL/pyVHDLModel
 
 .. raw:: html
 

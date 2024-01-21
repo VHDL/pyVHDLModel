@@ -282,7 +282,7 @@ _coverageLevels = {
 }
 
 report_unittest_testsuites = {
-	"src":                    {"xml_report": "../report/unit/TestReportSummary.xml"},
+	"src":   {"xml_report": "../report/unit/TestReportSummary.xml"},
 }
 report_codecov_packages = {
 	"src": {

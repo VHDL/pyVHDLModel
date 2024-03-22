@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Code Coverage Report &mdash; pyVHDLModel 0.28.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=77553476" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=eafc0fe6" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-reports.e44b1595f1e09d5e109d001839ba3f42.css?v=0b41afa8" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/override.css?v=d48d1b8b" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=8d643f27"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script src="../_static/design-tabs.js?v=36754332"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Documentation Coverage" href="../DocCoverage.html" />
+    <link rel="prev" title="Unittest Summary Report" href="../unittests/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.28
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../pyVHDLModel/pyVHDLModel.html">Python Class Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Code Coverage Report</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/coverage/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="code-coverage-report">
+<h1>Code Coverage Report<a class="headerlink" href="#code-coverage-report" title="Link to this heading"></a></h1>
+<p>Code coverage report generated with <a class="reference external" href="https://github.com/pytest-dev/pytest">pytest</a> and <a class="reference external" href="https://github.com/nedbat/coveragepy/tree/master">Coverage.py</a>.</p>
+<div class="docutils container">
+<table class="report-codecov-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head" colspan="1"><p>Package</p></th>
+<th class="head" colspan="4"><p>Statments</p></th>
+<th class="head" colspan="4"><p>Branches</p></th>
+<th class="head" colspan="1"><p>Coverage</p></th>
+</tr>
+<tr class="row-even"><th class="head"><p> Module</p></th>
+<th class="head"><p>Total</p></th>
+<th class="head"><p>Excluded</p></th>
+<th class="head"><p>Covered</p></th>
+<th class="head"><p>Missing</p></th>
+<th class="head"><p>Total</p></th>
+<th class="head"><p>Covered</p></th>
+<th class="head"><p>Partial</p></th>
+<th class="head"><p>Missing</p></th>
+<th class="head"><p>in %</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="report-doccov-table-row report-cov-below80 row-odd"><td><p>📦pyVHDLModel</p></td>
+<td><p>1069</p></td>
+<td><p>3</p></td>
+<td><p>851</p></td>
+<td><p>218</p></td>
+<td><p>459</p></td>
+<td><p>335</p></td>
+<td><p>52</p></td>
+<td><p>124</p></td>
+<td><p>77.6%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below80 row-even"><td><p>   Association</p></td>
+<td><p>33</p></td>
+<td><p>0</p></td>
+<td><p>23</p></td>
+<td><p>10</p></td>
+<td><p>12</p></td>
+<td><p>8</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>68.9%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below90 row-odd"><td><p>   Base</p></td>
+<td><p>179</p></td>
+<td><p>0</p></td>
+<td><p>145</p></td>
+<td><p>34</p></td>
+<td><p>50</p></td>
+<td><p>40</p></td>
+<td><p>0</p></td>
+<td><p>10</p></td>
+<td><p>80.8%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below80 row-even"><td><p>   Common</p></td>
+<td><p>53</p></td>
+<td><p>0</p></td>
+<td><p>37</p></td>
+<td><p>16</p></td>
+<td><p>14</p></td>
+<td><p>10</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>70.1%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below80 row-odd"><td><p>   Concurrent</p></td>
+<td><p>364</p></td>
+<td><p>2</p></td>
+<td><p>212</p></td>
+<td><p>152</p></td>
+<td><p>124</p></td>
+<td><p>70</p></td>
+<td><p>6</p></td>
+<td><p>54</p></td>
+<td><p>57.8%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below80 row-even"><td><p>   DesignUnit</p></td>
+<td><p>318</p></td>
+<td><p>0</p></td>
+<td><p>246</p></td>
+<td><p>72</p></td>
+<td><p>78</p></td>
+<td><p>51</p></td>
+<td><p>5</p></td>
+<td><p>27</p></td>
+<td><p>75.0%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below80 row-odd"><td><p>   Exception</p></td>
+<td><p>138</p></td>
+<td><p>6</p></td>
+<td><p>96</p></td>
+<td><p>42</p></td>
+<td><p>22</p></td>
+<td><p>22</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>73.8%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below90 row-even"><td><p>   Expression</p></td>
+<td><p>436</p></td>
+<td><p>0</p></td>
+<td><p>349</p></td>
+<td><p>87</p></td>
+<td><p>164</p></td>
+<td><p>160</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>84.8%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below100 row-odd"><td><p>   IEEE</p></td>
+<td><p>153</p></td>
+<td><p>0</p></td>
+<td><p>153</p></td>
+<td><p>0</p></td>
+<td><p>50</p></td>
+<td><p>50</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>100.0%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below90 row-even"><td><p>   Instantiation</p></td>
+<td><p>44</p></td>
+<td><p>0</p></td>
+<td><p>34</p></td>
+<td><p>10</p></td>
+<td><p>12</p></td>
+<td><p>12</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>82.1%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below80 row-odd"><td><p>   Interface</p></td>
+<td><p>86</p></td>
+<td><p>0</p></td>
+<td><p>58</p></td>
+<td><p>28</p></td>
+<td><p>32</p></td>
+<td><p>32</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>76.3%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below90 row-even"><td><p>   Name</p></td>
+<td><p>93</p></td>
+<td><p>0</p></td>
+<td><p>77</p></td>
+<td><p>16</p></td>
+<td><p>28</p></td>
+<td><p>20</p></td>
+<td><p>0</p></td>
+<td><p>8</p></td>
+<td><p>80.2%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below50 row-odd"><td><p>   Namespace</p></td>
+<td><p>84</p></td>
+<td><p>0</p></td>
+<td><p>39</p></td>
+<td><p>45</p></td>
+<td><p>30</p></td>
+<td><p>5</p></td>
+<td><p>3</p></td>
+<td><p>25</p></td>
+<td><p>38.6%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below90 row-even"><td><p>   Object</p></td>
+<td><p>65</p></td>
+<td><p>0</p></td>
+<td><p>56</p></td>
+<td><p>9</p></td>
+<td><p>20</p></td>
+<td><p>19</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>88.2%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below90 row-odd"><td><p>   PSLModel</p></td>
+<td><p>27</p></td>
+<td><p>0</p></td>
+<td><p>22</p></td>
+<td><p>5</p></td>
+<td><p>12</p></td>
+<td><p>12</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>87.2%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below100 row-even"><td><p>   Predefined</p></td>
+<td><p>49</p></td>
+<td><p>0</p></td>
+<td><p>48</p></td>
+<td><p>1</p></td>
+<td><p>18</p></td>
+<td><p>17</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>97.0%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below80 row-odd"><td><p>   Regions</p></td>
+<td><p>99</p></td>
+<td><p>0</p></td>
+<td><p>63</p></td>
+<td><p>36</p></td>
+<td><p>36</p></td>
+<td><p>8</p></td>
+<td><p>2</p></td>
+<td><p>28</p></td>
+<td><p>52.6%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below100 row-even"><td><p>   STD</p></td>
+<td><p>83</p></td>
+<td><p>0</p></td>
+<td><p>83</p></td>
+<td><p>0</p></td>
+<td><p>22</p></td>
+<td><p>22</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>100.0%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below80 row-odd"><td><p>   Sequential</p></td>
+<td><p>270</p></td>
+<td><p>0</p></td>
+<td><p>158</p></td>
+<td><p>112</p></td>
+<td><p>98</p></td>
+<td><p>64</p></td>
+<td><p>0</p></td>
+<td><p>34</p></td>
+<td><p>60.3%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below80 row-even"><td><p>   Subprogram</p></td>
+<td><p>70</p></td>
+<td><p>0</p></td>
+<td><p>46</p></td>
+<td><p>24</p></td>
+<td><p>12</p></td>
+<td><p>12</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>70.7%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below100 row-odd"><td><p>   Symbol</p></td>
+<td><p>206</p></td>
+<td><p>0</p></td>
+<td><p>194</p></td>
+<td><p>12</p></td>
+<td><p>42</p></td>
+<td><p>42</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>95.2%</p></td>
+</tr>
+<tr class="report-doccov-table-row report-cov-below80 row-even"><td><p>   Type</p></td>
+<td><p>217</p></td>
+<td><p>0</p></td>
+<td><p>171</p></td>
+<td><p>46</p></td>
+<td><p>70</p></td>
+<td><p>57</p></td>
+<td><p>3</p></td>
+<td><p>13</p></td>
+<td><p>79.4%</p></td>
+</tr>
+<tr class="report-doccov-summary-row report-cov-below80 row-odd"><td><p>Overall (1 files):</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Legend</p>
+<table class="report-doccov-legend docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>%</p></th>
+<th class="head"><p>Coverage Level</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="report-doccov-legend-row report-cov-below30 row-even"><td><p>≤30%</p></td>
+<td><p>almost undocumented</p></td>
+</tr>
+<tr class="report-doccov-legend-row report-cov-below50 row-odd"><td><p>≤50%</p></td>
+<td><p>poorly documented</p></td>
+</tr>
+<tr class="report-doccov-legend-row report-cov-below80 row-even"><td><p>≤80%</p></td>
+<td><p>roughly documented</p></td>
+</tr>
+<tr class="report-doccov-legend-row report-cov-below90 row-odd"><td><p>≤90%</p></td>
+<td><p>well documented</p></td>
+</tr>
+<tr class="report-doccov-legend-row report-cov-below100 row-even"><td><p>≤100%</p></td>
+<td><p>excellent documented</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../unittests/index.html" class="btn btn-neutral float-left" title="Unittest Summary Report" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../DocCoverage.html" class="btn btn-neutral float-right" title="Documentation Coverage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2023, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 22.03.2024.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

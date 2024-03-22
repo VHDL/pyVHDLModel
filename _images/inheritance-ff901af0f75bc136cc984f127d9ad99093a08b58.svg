@@ -1,0 +1,59 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="502pt" height="64pt" viewBox="0.00 0.00 502.00 64.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 60)">
+<ns0:title>inheritance85c96b3ccc</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>DocumentedEntityMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.DocumentedEntityMixin" ns1:title="A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="134,-56 0,-56 0,-37 134,-37 134,-56" />
+<ns0:text text-anchor="middle" x="67" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DocumentedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>InterfaceItemMixin</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.InterfaceItemMixin" ns1:title="An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="304.5,-56 194.5,-56 194.5,-37 304.5,-37 304.5,-56" />
+<ns0:text text-anchor="middle" x="249.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">InterfaceItemMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>DocumentedEntityMixin-&gt;InterfaceItemMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M134.19,-46.5C152.15,-46.5 171.48,-46.5 189.05,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="189.44,-48.25 194.44,-46.5 189.44,-44.75 189.44,-48.25" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>PortInterfaceItemMixin</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.PortInterfaceItemMixin" ns1:title="A ``PortInterfaceItem`` is a mixin class for all port interface items." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="494,-37 365,-37 365,-18 494,-18 494,-37" />
+<ns0:text text-anchor="middle" x="429.5" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">PortInterfaceItemMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>InterfaceItemMixin-&gt;PortInterfaceItemMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M304.87,-40.7C322.16,-38.85 341.52,-36.78 359.69,-34.85" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="359.99,-36.57 364.78,-34.3 359.62,-33.09 359.99,-36.57" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>InterfaceItemWithModeMixin</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.InterfaceItemWithModeMixin" ns1:title="An ``InterfaceItemWithMode`` is a mixin-class to provide a ``Mode`` to interface items." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="329,-19 170,-19 170,0 329,0 329,-19" />
+<ns0:text text-anchor="middle" x="249.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">InterfaceItemWithModeMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>InterfaceItemWithModeMixin-&gt;PortInterfaceItemMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M329.09,-17.45C339.24,-18.47 349.58,-19.52 359.56,-20.53" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="359.59,-22.29 364.74,-21.05 359.94,-18.81 359.59,-22.29" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

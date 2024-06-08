@@ -57,7 +57,7 @@ class PredefinedLibrary(Library):
 
 		self.AddPackages(packages)
 
-	def AddPackages(self, packages):
+	def AddPackages(self, packages) -> None:
 		for packageType, packageBodyType in packages:
 			package: Package = packageType()
 			package.Library = self
@@ -104,7 +104,7 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 	A base-class for predefined VHDL packages.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__(self.__class__.__name__)
 
 
@@ -114,6 +114,6 @@ class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 	A base-class for predefined VHDL package bodies.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		packageSymbol = PackageSymbol(SimpleName(self.__class__.__name__[:-5]))
 		super().__init__(packageSymbol)

@@ -61,7 +61,7 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	_functions:       Dict[str, Dict[str, Function]]
 	_procedures:      Dict[str, Dict[str, Procedure]]
 
-	def __init__(self, declaredItems: Iterable = None):
+	def __init__(self, declaredItems: Iterable = None) -> None:
 		# TODO: extract to mixin
 		self._declaredItems = []  # TODO: convert to dict
 		if declaredItems is not None:
@@ -124,7 +124,7 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	def Procedures(self) -> Dict[str, Dict[str, Procedure]]:
 		return self._procedures
 
-	def IndexDeclaredItems(self):
+	def IndexDeclaredItems(self) -> None:
 		for item in self._declaredItems:
 			if isinstance(item, FullType):
 				self._types[item._normalizedIdentifier] = item
@@ -160,5 +160,5 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			else:
 				self._IndexOtherDeclaredItem(item)
 
-	def _IndexOtherDeclaredItem(self, item):
+	def _IndexOtherDeclaredItem(self, item) -> None:
 		print(f"_IndexOtherDeclaredItem - {item}\n  ({' -> '.join(t.__name__ for t in type(item).mro())})")

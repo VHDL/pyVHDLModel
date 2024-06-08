@@ -60,7 +60,7 @@ class Statement(ModelEntity, LabeledEntityMixin):
 	"""
 	A ``Statement`` is a base-class for all statements.
 	"""
-	def __init__(self, label: str = None):
+	def __init__(self, label: str = None) -> None:
 		super().__init__()
 		LabeledEntityMixin.__init__(self, label)
 

@@ -112,7 +112,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 			yield from generate.IterateInstantiations()
 
 	# TODO: move into _init__
-	def IndexStatements(self):
+	def IndexStatements(self) -> None:
 		for statement in self._statements:
 			if isinstance(statement, (EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation)):
 				self._instantiations[statement.NormalizedLabel] = statement
@@ -450,7 +450,7 @@ class GenerateStatement(ConcurrentStatement):
 
 	_namespace: Namespace
 
-	def __init__(self, label: str = None):
+	def __init__(self, label: str = None) -> None:
 		super().__init__(label)
 
 		self._namespace = Namespace(self._normalizedLabel)
@@ -664,7 +664,7 @@ class CaseGenerateStatement(GenerateStatement):
 		for case in self._cases:
 			yield from case.IterateInstantiations()
 
-	def IndexStatement(self):
+	def IndexStatement(self) -> None:
 		for case in self._cases:
 			case.IndexStatements()
 

@@ -50,7 +50,7 @@ from pyVHDLModel.Type       import Type
 class InterfaceItemMixin(DocumentedEntityMixin, mixin=True):
 	"""An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items."""
 
-	def __init__(self, documentation: str = None):
+	def __init__(self, documentation: str = None) -> None:
 		super().__init__(documentation)
 
 

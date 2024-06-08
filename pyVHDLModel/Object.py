@@ -92,7 +92,7 @@ class WithDefaultExpressionMixin(metaclass=ExtendedType, mixin=True):
 
 	_defaultExpression: Nullable[ExpressionUnion]
 
-	def __init__(self, defaultExpression: ExpressionUnion = None):
+	def __init__(self, defaultExpression: ExpressionUnion = None) -> None:
 		self._defaultExpression = defaultExpression
 		if defaultExpression is not None:
 			defaultExpression._parent = self

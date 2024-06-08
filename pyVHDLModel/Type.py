@@ -141,7 +141,7 @@ class RangedScalarType(ScalarType):
 class NumericTypeMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``NumericType`` is a mixin class for all numeric types."""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		pass
 
 
@@ -149,7 +149,7 @@ class NumericTypeMixin(metaclass=ExtendedType, mixin=True):
 class DiscreteTypeMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``DiscreteType`` is a mixin class for all discrete types."""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		pass
 
 

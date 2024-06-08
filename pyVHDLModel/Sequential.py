@@ -351,7 +351,7 @@ class LoopControlStatement(SequentialStatement, ConditionalMixin):
 
 	_loopReference: LoopStatement
 
-	def __init__(self, condition: ExpressionUnion = None, loopLabel: str = None): # TODO: is this label (currently str) a Name or a Label class?
+	def __init__(self, condition: ExpressionUnion = None, loopLabel: str = None) -> None:  # TODO: is this label (currently str) a Name or a Label class?
 		super().__init__()
 		ConditionalMixin.__init__(self, condition)
 
@@ -382,7 +382,7 @@ class NullStatement(SequentialStatement):
 class ReturnStatement(SequentialStatement, ConditionalMixin):
 	_returnValue: ExpressionUnion
 
-	def __init__(self, returnValue: ExpressionUnion = None):
+	def __init__(self, returnValue: ExpressionUnion = None) -> None:
 		super().__init__()
 		ConditionalMixin.__init__(self, returnValue)
 

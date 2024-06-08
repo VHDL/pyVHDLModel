@@ -62,7 +62,7 @@ class Direction(Enum):
 	To =      0  #: Ascending direction
 	DownTo =  1  #: Descending direction
 
-	def __str__(self):
+	def __str__(self) -> str:
 		"""
 		Formats the direction to ``to`` or ``downto``.
 
@@ -88,7 +88,7 @@ class Mode(Enum):
 	Buffer =  4  #: Buffered output
 	Linkage = 5  #: undocumented
 
-	def __str__(self):
+	def __str__(self) -> str:
 		"""
 		Formats the direction.
 
@@ -109,7 +109,7 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 
 	_parent: 'ModelEntity'      #: Reference to a parent entity in the model.
 
-	def __init__(self):
+	def __init__(self) -> None:
 		"""Initializes a VHDL model entity."""
 		self._parent = None
 
@@ -285,7 +285,7 @@ class ConditionalMixin(metaclass=ExtendedType, mixin=True):
 
 	_condition: ExpressionUnion
 
-	def __init__(self, condition: ExpressionUnion = None):
+	def __init__(self, condition: ExpressionUnion = None) -> None:
 		self._condition = condition
 		if condition is not None:
 			condition._parent = self
@@ -299,7 +299,7 @@ class ConditionalMixin(metaclass=ExtendedType, mixin=True):
 class BranchMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``BaseBranch`` is a mixin-class for all statements with branches."""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		pass
 
 
@@ -333,7 +333,7 @@ class ReportStatementMixin(metaclass=ExtendedType, mixin=True):
 	_message:  Nullable[ExpressionUnion]
 	_severity: Nullable[ExpressionUnion]
 
-	def __init__(self, message: ExpressionUnion = None, severity: ExpressionUnion = None):
+	def __init__(self, message: ExpressionUnion = None, severity: ExpressionUnion = None) -> None:
 		self._message = message
 		if message is not None:
 			message._parent = self
@@ -363,7 +363,7 @@ class AssertStatementMixin(ReportStatementMixin, ConditionalMixin, mixin=True):
 class BlockStatementMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``BlockStatement`` is a mixin-class for all block statements."""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		pass
 
 

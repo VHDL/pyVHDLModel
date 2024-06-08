@@ -221,7 +221,7 @@ class OpenName(Name):
 
 	Most likely this name is used in port associations.
 	"""
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__("open")  # TODO: the case of 'ALL' is not preserved
 
 	def __str__(self) -> str:

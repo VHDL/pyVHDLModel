@@ -374,7 +374,7 @@ class Context(PrimaryUnit):
 	def ContextReferences(self) -> List[ContextReference]:
 		return self._contextReferences
 
-	def __str__(self):
+	def __str__(self) -> str:
 		lib = self._library.Identifier + "?" if self._library is not None else ""
 
 		return f"Context: {lib}.{self._identifier}"
@@ -482,7 +482,7 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 	def DeclaredItems(self) -> List:
 		return self._declaredItems
 
-	def LinkDeclaredItemsToPackage(self):
+	def LinkDeclaredItemsToPackage(self) -> None:
 		pass
 
 	def __str__(self) -> str:

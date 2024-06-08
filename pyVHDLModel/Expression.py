@@ -568,7 +568,7 @@ class TernaryExpression(BaseExpression):
 	_secondOperand: ExpressionUnion
 	_thirdOperand:  ExpressionUnion
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		# FIXME: parameters and initializers are missing !!

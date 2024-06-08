@@ -311,7 +311,7 @@ class ObjectClass(Enum):
 	Procedure =  6  #: Procedure
 	Function =   7  #: Function
 
-	def __str__(self):
+	def __str__(self) -> str:
 		"""
 		Formats the object class.
 
@@ -425,7 +425,7 @@ class Design(ModelEntity):
 	_objectGraph:       Graph[None, None, None, None, None, None, None, None, str, Obj, None, None, None, None, None, None, None, None, None, None, None, None, None]       #: The graph of all types and objects in the design.
 	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
 
-	def __init__(self, name: str = None):
+	def __init__(self, name: str = None) -> None:
 		"""
 		Initializes a VHDL design.
 
@@ -694,8 +694,8 @@ class Design(ModelEntity):
 				edge = dependencyVertex.EdgeFromVertex(designUnit._dependencyVertex)
 				edge["kind"] = DependencyGraphEdgeKind.SourceFile
 
-	def ImportObjects(self):
-		def _ImportObjects(package: Package):
+	def ImportObjects(self) -> None:
+		def _ImportObjects(package: Package) -> None:
 			for referencedLibrary in package._referencedPackages.values():
 				for referencedPackage in referencedLibrary.values():
 					for declaredItem in referencedPackage._declaredItems:
@@ -710,7 +710,7 @@ class Design(ModelEntity):
 				_ImportObjects(package)
 
 	def CreateTypeAndObjectGraph(self) -> None:
-		def _HandlePackage(package):
+		def _HandlePackage(package) -> None:
 			packagePrefix = f"{package.Library.NormalizedIdentifier}.{package.NormalizedIdentifier}"
 
 			for deferredConstant in package._deferredConstants.values():
@@ -1382,7 +1382,7 @@ class Library(ModelEntity, NamedEntityMixin):
 		# for verificationMode in self._verificationModes.values():
 		# 	yield verificationMode
 
-	def LinkArchitectures(self):
+	def LinkArchitectures(self) -> None:
 		for entityName, architecturesPerEntity in self._architectures.items():
 			if entityName not in self._entities:
 				architectureNames = "', '".join(architecturesPerEntity.keys())
@@ -1405,7 +1405,7 @@ class Library(ModelEntity, NamedEntityMixin):
 				dependency = architecture._dependencyVertex.EdgeToVertex(entity._dependencyVertex)
 				dependency["kind"] = DependencyGraphEdgeKind.EntityImplementation
 
-	def LinkPackageBodies(self):
+	def LinkPackageBodies(self) -> None:
 		for packageBodyName, packageBody in self._packageBodies.items():
 			if packageBodyName not in self._packages:
 				raise VHDLModelException(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{self._identifier}'.")
@@ -1418,20 +1418,20 @@ class Library(ModelEntity, NamedEntityMixin):
 			dependency = packageBody._dependencyVertex.EdgeToVertex(package._dependencyVertex)
 			dependency["kind"] = DependencyGraphEdgeKind.PackageImplementation
 
-	def IndexPackages(self):
+	def IndexPackages(self) -> None:
 		for package in self._packages.values():
 			if isinstance(package, Package):
 				package.IndexDeclaredItems()
 
-	def IndexPackageBodies(self):
+	def IndexPackageBodies(self) -> None:
 		for packageBody in self._packageBodies.values():
 			packageBody.IndexDeclaredItems()
 
-	def IndexEntities(self):
+	def IndexEntities(self) -> None:
 		for entity in self._entities.values():
 			entity.IndexDeclaredItems()
 
-	def IndexArchitectures(self):
+	def IndexArchitectures(self) -> None:
 		for architectures in self._architectures.values():
 			for architecture in architectures.values():
 				architecture.IndexDeclaredItems()

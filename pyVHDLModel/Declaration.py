@@ -107,7 +107,7 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		subtype._parent = self
 
 	@property
-	def Subtype(self):
+	def Subtype(self) -> None:
 		return self._subtype
 
 

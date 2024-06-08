@@ -55,7 +55,7 @@ if __name__ == "__main__":  # pragma: no cover
 
 
 class Names(TestCase):
-	def test_SimpleName(self):
+	def test_SimpleName(self) -> None:
 		name = SimpleName("Lib")
 
 		self.assertEqual("Lib", name.Identifier)
@@ -67,7 +67,7 @@ class Names(TestCase):
 		self.assertEqual("Name: 'Lib'", repr(name))
 		self.assertEqual("Lib", str(name))
 
-	def test_SelectedName_1(self):
+	def test_SelectedName_1(self) -> None:
 		simpleName = SimpleName("Lib")
 		name = SelectedName("Pack", simpleName)
 
@@ -81,7 +81,7 @@ class Names(TestCase):
 		self.assertEqual("Name: 'Lib.Pack'", repr(name))
 		self.assertEqual("Lib.Pack", str(name))
 
-	def test_SelectedName_2(self):
+	def test_SelectedName_2(self) -> None:
 		simpleName = SimpleName("Lib")
 		selectedName = SelectedName("Pack", simpleName)
 		name = SelectedName("Func", selectedName)
@@ -98,7 +98,7 @@ class Names(TestCase):
 		self.assertEqual("Name: 'Lib.Pack.Func'", repr(name))
 		self.assertEqual("Lib.Pack.Func", str(name))
 
-	def test_AllName(self):
+	def test_AllName(self) -> None:
 		simpleName = SimpleName("Lib")
 		selectedName = SelectedName("Pack", simpleName)
 		name = AllName(selectedName)
@@ -115,7 +115,7 @@ class Names(TestCase):
 		self.assertEqual("Name: 'Lib.Pack.all'", repr(name))
 		self.assertEqual("Lib.Pack.all", str(name))
 
-	def test_AttributeName(self):
+	def test_AttributeName(self) -> None:
 		simpleName = SimpleName("Sig")
 		name = AttributeName("Length", simpleName)
 
@@ -131,7 +131,7 @@ class Names(TestCase):
 
 
 class Symbols(TestCase):
-	def test_LibraryReferenceSymbol(self):
+	def test_LibraryReferenceSymbol(self) -> None:
 		name = SimpleName("Lib")
 		symbol = LibraryReferenceSymbol(name)
 
@@ -150,7 +150,7 @@ class Symbols(TestCase):
 		self.assertEqual("LibraryReferenceSymbol: 'Lib' -> Library: 'liB'", repr(symbol))
 		self.assertEqual("Library: 'liB'", str(symbol))
 
-	def test_PackageReferenceSymbol(self):
+	def test_PackageReferenceSymbol(self) -> None:
 		name = SelectedName("Pack", SimpleName("Lib"))
 		symbol = PackageReferenceSymbol(name)
 
@@ -171,7 +171,7 @@ class Symbols(TestCase):
 		self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
 		self.assertEqual("Package: 'liB.pacK'", str(symbol))
 
-	def test_PackageMemberReferenceSymbol(self):
+	def test_PackageMemberReferenceSymbol(self) -> None:
 		name = SelectedName("Obj", SelectedName("Pack", SimpleName("Lib")))
 		symbol = PackageMemberReferenceSymbol(name)
 
@@ -197,7 +197,7 @@ class Symbols(TestCase):
 		# self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
 		# self.assertEqual("Constant: 'liB.pacK.obJ'", str(symbol))
 
-	def test_AllPackageMembersReferenceSymbol(self):
+	def test_AllPackageMembersReferenceSymbol(self) -> None:
 		name = AllName(SelectedName("Pack", SimpleName("Lib")))
 		symbol = AllPackageMembersReferenceSymbol(name)
 
@@ -227,7 +227,7 @@ class Symbols(TestCase):
 		# self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
 		# self.assertEqual("Constant: 'liB.pacK.obJ'", str(symbol))
 
-	def test_ContextReferenceSymbol(self):
+	def test_ContextReferenceSymbol(self) -> None:
 		name = SelectedName("Ctx", SimpleName("Lib"))
 		symbol = ContextReferenceSymbol(name)
 
@@ -248,7 +248,7 @@ class Symbols(TestCase):
 		# self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
 		# self.assertEqual("Package: 'liB.pacK'", str(symbol))
 
-	def test_SimpleEntitySymbol(self):
+	def test_SimpleEntitySymbol(self) -> None:
 		name = SimpleName("Ent")
 		symbol = EntitySymbol(name)
 
@@ -269,7 +269,7 @@ class Symbols(TestCase):
 		# self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
 		# self.assertEqual("Package: 'liB.pacK'", str(symbol))
 
-	def test_SelectedEntitySymbol(self):
+	def test_SelectedEntitySymbol(self) -> None:
 		name = SelectedName("Ent", SimpleName("Work"))
 		symbol = EntitySymbol(name)
 
@@ -290,13 +290,13 @@ class Symbols(TestCase):
 		# self.assertEqual("PackageReferenceSymbol: 'Lib.Pack' -> Package: 'liB.pacK'", repr(symbol))
 		# self.assertEqual("Package: 'liB.pacK'", str(symbol))
 
-	# def test_ArchitectureSymbol(self):
+	# def test_ArchitectureSymbol(self) -> None:
 	# 	symbol = ArchitectureSymbol("rtl")
 	#
 	# 	self.assertEqual("rtl", symbol.NormalizedIdentifier)
 
 	# TODO: doe packages also support simple and selected names.
-	def test_PackageSymbol(self):
+	def test_PackageSymbol(self) -> None:
 		name = SimpleName("Pack")
 		symbol = PackageSymbol(name)
 
@@ -317,7 +317,7 @@ class Symbols(TestCase):
 		self.assertEqual("PackageSymbol: 'Pack' -> Package: 'liB.pacK'", repr(symbol))
 		self.assertEqual("Package: 'liB.pacK'", str(symbol))
 
-	def test_EntityInstantiationSymbol(self):
+	def test_EntityInstantiationSymbol(self) -> None:
 		name = SelectedName("Ent", SimpleName("Lib"))
 		symbol = EntityInstantiationSymbol(name)
 
@@ -338,19 +338,19 @@ class Symbols(TestCase):
 		self.assertEqual("EntityInstantiationSymbol: 'Lib.Ent' -> Entity: 'liB.enT(%)'", repr(symbol))
 		self.assertEqual("Entity: 'liB.enT(%)'", str(symbol))
 
-	def test_ComponentInstantiationSymbol(self):
+	def test_ComponentInstantiationSymbol(self) -> None:
 		symbol = ComponentInstantiationSymbol(SimpleName("comp"))
 
 		self.assertEqual("comp", symbol.Name.NormalizedIdentifier)
 
-	def test_ConfigurationInstantiationSymbol(self):
+	def test_ConfigurationInstantiationSymbol(self) -> None:
 		symbol = ConfigurationInstantiationSymbol(SimpleName("cfg"))
 
 		self.assertEqual("cfg", symbol.Name.NormalizedIdentifier)
 
 
 class SimpleInstance(TestCase):
-	def test_Design(self):
+	def test_Design(self) -> None:
 		design = Design()
 		# design.Analyze()
 
@@ -364,7 +364,7 @@ class SimpleInstance(TestCase):
 		self.assertIsInstance(design.CompileOrderGraph, Graph)
 		self.assertEqual(0, design.CompileOrderGraph.VertexCount)
 
-	def test_Library(self):
+	def test_Library(self) -> None:
 		library = Library("lib_1")
 
 		self.assertIsNotNone(library)
@@ -374,7 +374,7 @@ class SimpleInstance(TestCase):
 		self.assertEqual(0, len(library.Packages))
 		self.assertEqual(0, len(library.Configurations))
 
-	def test_Document(self):
+	def test_Document(self) -> None:
 		path = Path("tests.vhdl")
 		document = Document(path)
 
@@ -387,7 +387,7 @@ class SimpleInstance(TestCase):
 		self.assertEqual(0, len(document.Contexts))
 		self.assertEqual(0, len(document.Configurations))
 
-	def test_Entity(self):
+	def test_Entity(self) -> None:
 		entity = Entity("entity_1")
 
 		self.assertIsNotNone(entity)
@@ -397,7 +397,7 @@ class SimpleInstance(TestCase):
 		self.assertEqual(0, len(entity.DeclaredItems))
 		self.assertEqual(0, len(entity.Statements))
 
-	def test_Architecture(self):
+	def test_Architecture(self) -> None:
 		entitySymbol = EntitySymbol(SimpleName("entity_1"))
 		architecture = Architecture("arch_1", entitySymbol)
 
@@ -406,14 +406,14 @@ class SimpleInstance(TestCase):
 		self.assertEqual(0, len(architecture.DeclaredItems))
 		self.assertEqual(0, len(architecture.Statements))
 
-	def test_Package(self):
+	def test_Package(self) -> None:
 		package = Package("pack_1")
 
 		self.assertIsNotNone(package)
 		self.assertEqual("pack_1", package.Identifier)
 		self.assertEqual(0, len(package.DeclaredItems))
 
-	def test_PackageBody(self):
+	def test_PackageBody(self) -> None:
 		packageSymbol = PackageSymbol(SimpleName("pack_1"))
 		packageBody = PackageBody(packageSymbol)
 
@@ -421,43 +421,43 @@ class SimpleInstance(TestCase):
 		self.assertEqual("pack_1", packageBody.Identifier)
 		self.assertEqual(0, len(packageBody.DeclaredItems))
 
-	def test_Context(self):
+	def test_Context(self) -> None:
 		context = Context("ctx_1")
 
 		self.assertIsNotNone(context)
 		self.assertEqual("ctx_1", context.Identifier)
 
-	def test_Configuration(self):
+	def test_Configuration(self) -> None:
 		configuration = Configuration("conf_1")
 
 		self.assertIsNotNone(configuration)
 		self.assertEqual("conf_1", configuration.Identifier)
 
-	def test_Subtype(self):
+	def test_Subtype(self) -> None:
 		subtype = Subtype("bit", SimpleSubtypeSymbol(SimpleName("bi")))
 
 		self.assertIsNotNone(subtype)
 		self.assertEqual("bit", subtype.Identifier)
 
-	def test_Integer(self):
+	def test_Integer(self) -> None:
 		integer = IntegerType("integer", Range(IntegerLiteral(0), IntegerLiteral(7), Direction.To))
 
 		self.assertIsNotNone(integer)
 		self.assertEqual("integer", integer.Identifier)
 
-	def test_Real(self):
+	def test_Real(self) -> None:
 		real =    RealType("real", Range(FloatingPointLiteral(0.0), FloatingPointLiteral(1.0), Direction.To))
 
 		self.assertIsNotNone(real)
 		self.assertEqual("real", real.Identifier)
 
-	def test_Array(self):
+	def test_Array(self) -> None:
 		array =   ArrayType("bit_vector", [], None)
 
 		self.assertIsNotNone(array)
 		self.assertEqual("bit_vector", array.Identifier)
 
-	def test_Record(self):
+	def test_Record(self) -> None:
 		record =  RecordType("rec", [])
 
 		self.assertIsNotNone(record)
@@ -465,13 +465,13 @@ class SimpleInstance(TestCase):
 
 
 class VHDLDocument(TestCase):
-	def test_Documentation(self):
+	def test_Documentation(self) -> None:
 		path = Path("tests.vhdl")
 		document = Document(path, documentation="Testing 'Document' class.")
 
 		self.assertEqual("Testing 'Document' class.", document.Documentation)
 
-	def test_Entity(self):
+	def test_Entity(self) -> None:
 		path = Path("tests.vhdl")
 		document = Document(path, documentation="Testing 'Document' class.")
 
@@ -481,7 +481,7 @@ class VHDLDocument(TestCase):
 		self.assertEqual(1, len(document.Entities))
 		self.assertEqual(1, len(document.DesignUnits))
 
-	def test_Architecture(self):
+	def test_Architecture(self) -> None:
 		path = Path("tests.vhdl")
 		document = Document(path)
 
@@ -492,7 +492,7 @@ class VHDLDocument(TestCase):
 		self.assertEqual(1, len(document.Architectures))
 		self.assertEqual(1, len(document.DesignUnits))
 
-	def test_Package(self):
+	def test_Package(self) -> None:
 		path = Path("tests.vhdl")
 		document = Document(path)
 
@@ -502,7 +502,7 @@ class VHDLDocument(TestCase):
 		self.assertEqual(1, len(document.Packages))
 		self.assertEqual(1, len(document.DesignUnits))
 
-	def test_PackageBody(self):
+	def test_PackageBody(self) -> None:
 		path = Path("tests.vhdl")
 		document = Document(path)
 
@@ -513,7 +513,7 @@ class VHDLDocument(TestCase):
 		self.assertEqual(1, len(document.PackageBodies))
 		self.assertEqual(1, len(document.DesignUnits))
 
-	def test_Context(self):
+	def test_Context(self) -> None:
 		path = Path("tests.vhdl")
 		document = Document(path)
 
@@ -523,7 +523,7 @@ class VHDLDocument(TestCase):
 		self.assertEqual(1, len(document.Contexts))
 		self.assertEqual(1, len(document.DesignUnits))
 
-	def test_Configuration(self):
+	def test_Configuration(self) -> None:
 		path = Path("tests.vhdl")
 		document = Document(path)
 
@@ -533,7 +533,7 @@ class VHDLDocument(TestCase):
 		self.assertEqual(1, len(document.Configurations))
 		self.assertEqual(1, len(document.DesignUnits))
 
-	def test_DesignUnits(self):
+	def test_DesignUnits(self) -> None:
 		path = Path("tests.vhdl")
 		document = Document(path, documentation="Testing 'Document' class.")
 
@@ -567,7 +567,7 @@ class VHDLDocument(TestCase):
 
 
 class VHDLLibrary(TestCase):
-	def test_AddLibrary(self):
+	def test_AddLibrary(self) -> None:
 		design = Design()
 
 		library1 = Library("lib_1")
@@ -584,14 +584,14 @@ class VHDLLibrary(TestCase):
 			library2._parent = True
 			design.AddLibrary(library2)
 
-	def test_GetLibrary(self):
+	def test_GetLibrary(self) -> None:
 		design = Design()
 		library = design.GetLibrary("lib_1")
 
 		self.assertEqual(1, len(design.Libraries))
 		self.assertEqual("lib_1", library.Identifier)
 
-	def test_AddDocument(self):
+	def test_AddDocument(self) -> None:
 		design = Design()
 		library = design.GetLibrary("lib_1")
 
@@ -619,7 +619,7 @@ class VHDLLibrary(TestCase):
 
 		self.assertSetEqual(set(document.IterateDesignUnits()), set(library.IterateDesignUnits()))
 
-	def test_StdLibrary(self):
+	def test_StdLibrary(self) -> None:
 		design = Design()
 		stdLibrary = design.LoadStdLibrary()
 
@@ -633,7 +633,7 @@ class VHDLLibrary(TestCase):
 		with self.assertRaises(Exception):
 			design.LoadStdLibrary()
 
-	def test_IeeeLibrary(self):
+	def test_IeeeLibrary(self) -> None:
 		design = Design()
 		ieeeLibrary = design.LoadIEEELibrary()
 
@@ -644,7 +644,7 @@ class VHDLLibrary(TestCase):
 
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
 
-	def test_IeeeSynopsysLibrary(self):
+	def test_IeeeSynopsysLibrary(self) -> None:
 		design = Design()
 		ieeeLibrary = design.LoadIEEELibrary()
 		ieeeLibrary.LoadSynopsysPackages()

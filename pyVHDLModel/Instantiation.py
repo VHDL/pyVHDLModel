@@ -48,13 +48,13 @@ from pyVHDLModel.Symbol      import PackageReferenceSymbol
 
 @export
 class GenericInstantiationMixin(metaclass=ExtendedType, mixin=True):
-	def __init__(self):
+	def __init__(self) -> None:
 		pass
 
 
 @export
 class GenericEntityInstantiationMixin(GenericInstantiationMixin, mixin=True):
-	def __init__(self):
+	def __init__(self) -> None:
 		pass
 
 
@@ -62,7 +62,7 @@ class GenericEntityInstantiationMixin(GenericInstantiationMixin, mixin=True):
 class SubprogramInstantiationMixin(GenericInstantiationMixin, mixin=True):
 	_subprogramReference: Subprogram  # FIXME: is this a subprogram symbol?
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 		self._subprogramReference = None
 

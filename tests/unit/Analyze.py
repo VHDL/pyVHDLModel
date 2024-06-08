@@ -128,32 +128,32 @@ class VHDLLibrary(TestCase):
 
 		return design
 
-	def test_DependencyGraph(self):
+	def test_DependencyGraph(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
 
 		self.assertEqual(39, design.DependencyGraph.VertexCount)
 
-	def test_LinkContexts(self):
+	def test_LinkContexts(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
 		design.LinkContexts()
 
-	def test_LinkArchitectures(self):
+	def test_LinkArchitectures(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
 		design.LinkArchitectures()
 
-	def test_LinkPackageBodies(self):
+	def test_LinkPackageBodies(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
 		design.LinkPackageBodies()
 
-	def test_LinkLibraryReferences(self):
+	def test_LinkLibraryReferences(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
@@ -161,7 +161,7 @@ class VHDLLibrary(TestCase):
 		design.LinkPackageBodies()
 		design.LinkLibraryReferences()
 
-	def test_LinkPackageReferences(self):
+	def test_LinkPackageReferences(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
@@ -170,7 +170,7 @@ class VHDLLibrary(TestCase):
 		design.LinkLibraryReferences()
 		design.LinkPackageReferences()
 
-	def test_LinkContextReferences(self):
+	def test_LinkContextReferences(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
@@ -180,27 +180,27 @@ class VHDLLibrary(TestCase):
 		design.LinkPackageReferences()
 		design.LinkContextReferences()
 
-	def test_IndexPackages(self):
+	def test_IndexPackages(self) -> None:
 		design = self.CreateDesign()
 
 		design.IndexPackages()
 
-	def test_IndexArchitectures(self):
+	def test_IndexArchitectures(self) -> None:
 		design = self.CreateDesign()
 
 		design.IndexArchitectures()
 
-	def test_LinkInstantiations(self):
+	def test_LinkInstantiations(self) -> None:
 		design = self.CreateDesign()
 
 		design.LinkInstantiations()
 
-	def test_CreateHierarchyGraph(self):
+	def test_CreateHierarchyGraph(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateHierarchyGraph()
 
-	def test_Analyze(self):
+	def test_Analyze(self) -> None:
 		design = self.CreateDesign()
 
 		design.Analyze()

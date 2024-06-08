@@ -58,7 +58,7 @@ class Std(PredefinedLibrary):
 	     * Library :class:`~pyVHDLModel.IEEE.Ieee`
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__(PACKAGES)
 
 
@@ -83,7 +83,7 @@ class Standard(PredefinedPackage):
 	   Matching :class:`Package Body <pyVHDLModel.STD.Standard_Body>` declaration.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		boolean = EnumeratedType("boolean", (EnumerationLiteral("false"), EnumerationLiteral("true")))
@@ -234,7 +234,7 @@ class Env(PredefinedPackage):
 	   Matching :class:`Package Body <pyVHDLModel.STD.Env_Body>` declaration.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddPackageClause(("work.textio.all",))

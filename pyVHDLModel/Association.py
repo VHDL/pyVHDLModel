@@ -80,7 +80,7 @@ class AssociationItem(ModelEntity):
 	def Actual(self) -> ExpressionUnion:
 		return self._actual
 
-	def __str__(self):
+	def __str__(self) -> str:
 		if self._formal is None:
 			return str(self._actual)
 		else:

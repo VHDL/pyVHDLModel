@@ -438,17 +438,17 @@ class SubtypeSymbol(Symbol):
 
 @export
 class SimpleSubtypeSymbol(SubtypeSymbol):
-	"""A configuration reference in a configuration instantiation."""
+	pass
 
 
 @export
 class ConstrainedScalarSubtypeSymbol(SubtypeSymbol):
-	"""A configuration reference in a configuration instantiation."""
+	pass
 
 
 @export
 class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
-	"""A configuration reference in a configuration instantiation."""
+	pass
 
 
 @export

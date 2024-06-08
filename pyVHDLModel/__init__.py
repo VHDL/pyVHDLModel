@@ -53,9 +53,11 @@ __version__ =   "0.29.0"
 
 from enum                      import unique, Enum, Flag, auto
 from pathlib                   import Path
+from sys                       import version_info
 
 from typing                    import Union, Dict, cast, List, Generator, Optional as Nullable
 
+from pyTooling.Common          import getFullyQualifiedName
 from pyTooling.Decorators      import export
 from pyTooling.Graph           import Graph, Vertex, Edge
 
@@ -1483,7 +1485,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddEntity(self, item: Entity) -> None:
 		if not isinstance(item, Entity):
-			raise TypeError(f"Parameter 'item' is not of type 'Entity'.")
+			ex = TypeError(f"Parameter 'item' is not of type 'Entity'.")
+			if version_info >= (3, 11):  # pragma: no cover
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+			raise ex
 
 		identifier = item.NormalizedIdentifier
 		if identifier in self._entities:
@@ -1496,7 +1501,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddArchitecture(self, item: Architecture) -> None:
 		if not isinstance(item, Architecture):
-			raise TypeError(f"Parameter 'item' is not of type 'Architecture'.")
+			ex = TypeError(f"Parameter 'item' is not of type 'Architecture'.")
+			if version_info >= (3, 11):  # pragma: no cover
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+			raise ex
 
 		entity = item.Entity.Name
 		entityIdentifier = entity.NormalizedIdentifier
@@ -1514,7 +1522,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddPackage(self, item: Package) -> None:
 		if not isinstance(item, (Package, PackageInstantiation)):
-			raise TypeError(f"Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
+			ex = TypeError(f"Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
+			if version_info >= (3, 11):  # pragma: no cover
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+			raise ex
 
 		identifier = item.NormalizedIdentifier
 		if identifier in self._packages:
@@ -1526,7 +1537,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddPackageBody(self, item: PackageBody) -> None:
 		if not isinstance(item, PackageBody):
-			raise TypeError(f"Parameter 'item' is not of type 'PackageBody'.")
+			ex = TypeError(f"Parameter 'item' is not of type 'PackageBody'.")
+			if version_info >= (3, 11):  # pragma: no cover
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+			raise ex
 
 		identifier = item.NormalizedIdentifier
 		if identifier in self._packageBodies:
@@ -1538,7 +1552,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddContext(self, item: Context) -> None:
 		if not isinstance(item, Context):
-			raise TypeError(f"Parameter 'item' is not of type 'Context'.")
+			ex = TypeError(f"Parameter 'item' is not of type 'Context'.")
+			if version_info >= (3, 11):  # pragma: no cover
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+			raise ex
 
 		identifier = item.NormalizedIdentifier
 		if identifier in self._contexts:
@@ -1550,7 +1567,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddConfiguration(self, item: Configuration) -> None:
 		if not isinstance(item, Configuration):
-			raise TypeError(f"Parameter 'item' is not of type 'Configuration'.")
+			ex = TypeError(f"Parameter 'item' is not of type 'Configuration'.")
+			if version_info >= (3, 11):  # pragma: no cover
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+			raise ex
 
 		identifier = item.NormalizedIdentifier
 		if identifier in self._configurations:
@@ -1562,7 +1582,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddVerificationUnit(self, item: VerificationUnit) -> None:
 		if not isinstance(item, VerificationUnit):
-			raise TypeError(f"Parameter 'item' is not of type 'VerificationUnit'.")
+			ex = TypeError(f"Parameter 'item' is not of type 'VerificationUnit'.")
+			if version_info >= (3, 11):  # pragma: no cover
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+			raise ex
 
 		identifier = item.NormalizedIdentifier
 		if identifier in self._verificationUnits:
@@ -1574,7 +1597,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddVerificationProperty(self, item: VerificationProperty) -> None:
 		if not isinstance(item, VerificationProperty):
-			raise TypeError(f"Parameter 'item' is not of type 'VerificationProperty'.")
+			ex = TypeError(f"Parameter 'item' is not of type 'VerificationProperty'.")
+			if version_info >= (3, 11):  # pragma: no cover
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+			raise ex
 
 		identifier = item.NormalizedIdentifier
 		if identifier in self._verificationProperties:
@@ -1586,7 +1612,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddVerificationMode(self, item: VerificationMode) -> None:
 		if not isinstance(item, VerificationMode):
-			raise TypeError(f"Parameter 'item' is not of type 'VerificationMode'.")
+			ex = TypeError(f"Parameter 'item' is not of type 'VerificationMode'.")
+			if version_info >= (3, 11):  # pragma: no cover
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+			raise ex
 
 		identifier = item.NormalizedIdentifier
 		if identifier in self._verificationModes:
@@ -1625,9 +1654,15 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		elif isinstance(item, VerificationMode):
 			self._verificationModes[identifier] = item
 		elif isinstance(item, DesignUnit):
-			raise TypeError(f"Parameter 'item' is an unknown 'DesignUnit'.")
+			ex = TypeError(f"Parameter 'item' is an unknown 'DesignUnit'.")
+			if version_info >= (3, 11):  # pragma: no cover
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+			raise ex
 		else:
-			raise TypeError(f"Parameter 'item' is not of type 'DesignUnit'.")
+			ex = TypeError(f"Parameter 'item' is not of type 'DesignUnit'.")
+			if version_info >= (3, 11):  # pragma: no cover
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+			raise ex
 
 		self._designUnits.append(item)
 		item._parent = self

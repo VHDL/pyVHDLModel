@@ -62,6 +62,7 @@ class PossibleReference(Flag):
 	ScalarType =      auto()  #: ScalarType
 	ArrayType =       auto()  #: ArrayType
 	RecordType =      auto()  #: RecordType
+	RecordElement =   auto()  #: RecordElement
 	AccessType =      auto()  #: AccessType
 	ProtectedType =   auto()  #: ProtectedType
 	FileType =        auto()  #: FileType
@@ -449,6 +450,22 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol):
 @export
 class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 	pass
+
+
+@export
+class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol):
+	pass
+
+
+@export
+class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol):
+	pass
+
+
+@export
+class RecordElementSymbol(Symbol):
+	def __init__(self, name: Name):
+		super().__init__(name, PossibleReference.RecordElement)
 
 
 @export

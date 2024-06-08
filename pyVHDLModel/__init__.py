@@ -838,7 +838,13 @@ class Design(ModelEntity):
 					edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
 					edge["kind"] = ObjectGraphEdgeKind.Subtype
 				elif isinstance(item, RecordType):
-					print(f"record: {item}")
+					# Resolve each elements subtype
+					for element in item._elements:
+						subtype = package._namespace.FindSubtype(element._subtype)
+						element._subtype._reference = subtype
+
+						edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
+						edge["kind"] = ObjectGraphEdgeKind.Subtype
 				else:
 					print(f"not handled: {item}")
 

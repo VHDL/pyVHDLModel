@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 Interface items are used in generic, port and parameter declarations.
 """
-from typing                 import Iterable
+from typing                 import Iterable, Optional as Nullable
 
 from pyTooling.Decorators   import export
 from pyTooling.MetaClasses  import ExtendedType
@@ -50,7 +50,7 @@ from pyVHDLModel.Type       import Type
 class InterfaceItemMixin(DocumentedEntityMixin, mixin=True):
 	"""An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items."""
 
-	def __init__(self, documentation: str = None) -> None:
+	def __init__(self, documentation: Nullable[str] = None) -> None:
 		super().__init__(documentation)
 
 
@@ -89,7 +89,7 @@ class ParameterInterfaceItemMixin(InterfaceItemMixin, mixin=True):
 
 @export
 class GenericConstantInterfaceItem(Constant, GenericInterfaceItemMixin, InterfaceItemWithModeMixin):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: Nullable[ExpressionUnion] = None, documentation: Nullable[str] = None):
 		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		GenericInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
@@ -97,7 +97,7 @@ class GenericConstantInterfaceItem(Constant, GenericInterfaceItemMixin, Interfac
 
 @export
 class GenericTypeInterfaceItem(Type, GenericInterfaceItemMixin):
-	def __init__(self, identifier: str, documentation: str = None):
+	def __init__(self, identifier: str, documentation: Nullable[str] = None):
 		super().__init__(identifier, documentation)
 		GenericInterfaceItemMixin.__init__(self)
 
@@ -109,35 +109,35 @@ class GenericSubprogramInterfaceItem(GenericInterfaceItemMixin):
 
 @export
 class GenericProcedureInterfaceItem(Procedure, GenericInterfaceItemMixin):
-	def __init__(self, identifier: str, documentation: str = None):
+	def __init__(self, identifier: str, documentation: Nullable[str] = None):
 		super().__init__(identifier, documentation)
 		GenericInterfaceItemMixin.__init__(self)
 
 
 @export
 class GenericFunctionInterfaceItem(Function, GenericInterfaceItemMixin):
-	def __init__(self, identifier: str, documentation: str = None):
+	def __init__(self, identifier: str, documentation: Nullable[str] = None):
 		super().__init__(identifier, documentation)
 		GenericInterfaceItemMixin.__init__(self)
 
 
 @export
 class GenericPackageInterfaceItem(GenericInterfaceItemMixin):
-	def __init__(self, identifier: str, documentation: str = None):
+	def __init__(self, identifier: str, documentation: Nullable[str] = None):
 		#	super().__init__(identifier, documentation)
 		GenericInterfaceItemMixin.__init__(self)
 
 
 @export
 class PortSignalInterfaceItem(Signal, PortInterfaceItemMixin):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: Nullable[ExpressionUnion] = None, documentation: Nullable[str] = None):
 		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		PortInterfaceItemMixin.__init__(self, mode)
 
 
 @export
 class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItemMixin, InterfaceItemWithModeMixin):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: Nullable[ExpressionUnion] = None, documentation: Nullable[str] = None):
 		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
@@ -145,7 +145,7 @@ class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItemMixin, Inte
 
 @export
 class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItemMixin, InterfaceItemWithModeMixin):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: Nullable[ExpressionUnion] = None, documentation: Nullable[str] = None):
 		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
@@ -153,7 +153,7 @@ class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItemMixin, Inte
 
 @export
 class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItemMixin, InterfaceItemWithModeMixin):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: Nullable[ExpressionUnion] = None, documentation: Nullable[str] = None):
 		super().__init__(identifiers, subtype, defaultExpression, documentation)
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
@@ -161,6 +161,6 @@ class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItemMixin, Interfac
 
 @export
 class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: Nullable[str] = None):
 		super().__init__(identifiers, subtype, documentation)
 		ParameterInterfaceItemMixin.__init__(self)

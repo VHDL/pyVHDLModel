@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 A helper class to implement namespaces and scopes.
 """
-from typing             import TypeVar, Generic, Dict
+from typing             import TypeVar, Generic, Dict, Optional as Nullable
 
 from pyVHDLModel.Object import Obj, Signal, Constant, Variable
 
@@ -51,7 +51,7 @@ class Namespace(Generic[K, O]):
 	_subNamespaces:   Dict[str, 'Namespace']
 	_elements:        Dict[K, O]
 
-	def __init__(self, name: str, parentNamespace: 'Namespace' = None):
+	def __init__(self, name: str, parentNamespace: Nullable["Namespace"] = None):
 		self._name = name
 		self._parentNamespace = parentNamespace
 		self._subNamespaces = {}

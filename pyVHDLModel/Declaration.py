@@ -35,7 +35,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 """
 from enum                   import unique, Enum
-from typing                 import List, Iterable, Union
+from typing                 import List, Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators   import export
 
@@ -98,7 +98,7 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	_subtype: Symbol
 
-	def __init__(self, identifier: str, subtype: Symbol, documentation: str = None):
+	def __init__(self, identifier: str, subtype: Symbol, documentation: Nullable[str] = None):
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
@@ -128,7 +128,7 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 	_entityClass: EntityClass
 	_expression: ExpressionUnion
 
-	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: ExpressionUnion, documentation: str = None):
+	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: ExpressionUnion, documentation: Nullable[str] = None):
 		super().__init__()
 		DocumentedEntityMixin.__init__(self, documentation)
 
@@ -165,7 +165,7 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 # TODO: move somewhere else
 @export
 class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
-	def __init__(self, identifier: str, documentation: str = None):
+	def __init__(self, identifier: str, documentation: Nullable[str] = None):
 		"""
 		Initializes underlying ``BaseType``.
 

@@ -285,7 +285,7 @@ class ConditionalMixin(metaclass=ExtendedType, mixin=True):
 
 	_condition: ExpressionUnion
 
-	def __init__(self, condition: ExpressionUnion = None) -> None:
+	def __init__(self, condition: Nullable[ExpressionUnion] = None) -> None:
 		self._condition = condition
 		if condition is not None:
 			condition._parent = self
@@ -333,7 +333,7 @@ class ReportStatementMixin(metaclass=ExtendedType, mixin=True):
 	_message:  Nullable[ExpressionUnion]
 	_severity: Nullable[ExpressionUnion]
 
-	def __init__(self, message: ExpressionUnion = None, severity: ExpressionUnion = None) -> None:
+	def __init__(self, message: Nullable[ExpressionUnion] = None, severity: Nullable[ExpressionUnion] = None) -> None:
 		self._message = message
 		if message is not None:
 			message._parent = self
@@ -355,7 +355,7 @@ class ReportStatementMixin(metaclass=ExtendedType, mixin=True):
 class AssertStatementMixin(ReportStatementMixin, ConditionalMixin, mixin=True):
 	"""A ``MixinAssertStatement`` is a mixin-class for all assert statements."""
 
-	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion = None, severity: ExpressionUnion = None):
+	def __init__(self, condition: ExpressionUnion, message: Nullable[ExpressionUnion] = None, severity: Nullable[ExpressionUnion] = None):
 		super().__init__(message, severity)
 		ConditionalMixin.__init__(self, condition)
 
@@ -417,7 +417,7 @@ class WaveformElement(ModelEntity):
 	_expression: ExpressionUnion
 	_after: ExpressionUnion
 
-	def __init__(self, expression: ExpressionUnion, after: ExpressionUnion = None):
+	def __init__(self, expression: ExpressionUnion, after: Nullable[ExpressionUnion] = None):
 		super().__init__()
 
 		self._expression = expression

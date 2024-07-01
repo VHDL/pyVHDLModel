@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 Types.
 """
-from typing                 import Union, List, Iterator, Iterable, Tuple
+from typing                 import Union, List, Iterator, Iterable, Tuple, Optional as Nullable
 
 from pyTooling.Decorators   import export
 from pyTooling.MetaClasses  import ExtendedType
@@ -52,7 +52,7 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	_objectVertex: Vertex
 
-	def __init__(self, identifier: str, documentation: str = None):
+	def __init__(self, identifier: str, documentation: Nullable[str] = None):
 		"""
 		Initializes underlying ``BaseType``.
 
@@ -275,7 +275,7 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin):
 class RecordType(CompositeType):
 	_elements: List[RecordTypeElement]
 
-	def __init__(self, identifier: str, elements: Iterable[RecordTypeElement] = None):
+	def __init__(self, identifier: str, elements: Nullable[Iterable[RecordTypeElement]] = None):
 		super().__init__(identifier)
 
 		self._elements = []  # TODO: convert to dict

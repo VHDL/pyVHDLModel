@@ -62,7 +62,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	_subtype:      Symbol
 	_objectVertex: Nullable[Vertex]
 
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: Nullable[str] = None):
 		super().__init__()
 		MultipleNamedEntityMixin.__init__(self, identifiers)
 		DocumentedEntityMixin.__init__(self, documentation)
@@ -92,7 +92,7 @@ class WithDefaultExpressionMixin(metaclass=ExtendedType, mixin=True):
 
 	_defaultExpression: Nullable[ExpressionUnion]
 
-	def __init__(self, defaultExpression: ExpressionUnion = None) -> None:
+	def __init__(self, defaultExpression: Nullable[ExpressionUnion] = None) -> None:
 		self._defaultExpression = defaultExpression
 		if defaultExpression is not None:
 			defaultExpression._parent = self
@@ -123,7 +123,7 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 	      constant BITS : positive := 8;
 	"""
 
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: Nullable[ExpressionUnion] = None, documentation: Nullable[str] = None):
 		super().__init__(identifiers, subtype, documentation)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
@@ -144,7 +144,7 @@ class DeferredConstant(BaseConstant):
 	"""
 	_constantReference: Nullable[Constant]
 
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: Nullable[str] = None):
 		super().__init__(identifiers, subtype, documentation)
 
 	@property
@@ -169,7 +169,7 @@ class Variable(Obj, WithDefaultExpressionMixin):
 	      variable result : natural := 0;
 	"""
 
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: Nullable[ExpressionUnion] = None, documentation: Nullable[str] = None):
 		super().__init__(identifiers, subtype, documentation)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
@@ -198,7 +198,7 @@ class Signal(Obj, WithDefaultExpressionMixin):
 	      signal counter : unsigned(7 downto 0) := '0';
 	"""
 
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: Nullable[ExpressionUnion] = None, documentation: Nullable[str] = None):
 		super().__init__(identifiers, subtype, documentation)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 

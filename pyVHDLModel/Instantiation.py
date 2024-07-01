@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 Instantiations of packages, procedures, functions and protected types.
 """
-from typing import List
+from typing import List, Optional as Nullable
 
 from pyTooling.Decorators    import export
 from pyTooling.MetaClasses   import ExtendedType
@@ -82,7 +82,7 @@ class PackageInstantiation(PrimaryUnit, GenericInstantiationMixin):
 	_packageReference: PackageReferenceSymbol
 	_genericAssociations: List[GenericAssociationItem]
 
-	def __init__(self, identifier: str, uninstantiatedPackage: PackageReferenceSymbol, documentation: str = None):
+	def __init__(self, identifier: str, uninstantiatedPackage: PackageReferenceSymbol, documentation: Nullable[str] = None):
 		super().__init__(identifier, documentation)
 		GenericEntityInstantiationMixin.__init__(self)
 

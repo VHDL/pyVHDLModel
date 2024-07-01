@@ -52,7 +52,7 @@ class Name(ModelEntity):
 	_root: Nullable['Name']     # TODO: seams to be unused. There is no reverse linking, or?
 	_prefix: Nullable['Name']
 
-	def __init__(self, identifier: str, prefix: 'Name' = None):
+	def __init__(self, identifier: str, prefix: Nullable["Name"] = None):
 		super().__init__()
 
 		self._identifier = identifier

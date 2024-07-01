@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 Common definitions and Mixins are used by many classes in the model as base-classes.
 """
-from typing                  import List, Iterable, Union
+from typing                  import List, Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators    import export
 from pyTooling.MetaClasses   import ExtendedType
@@ -60,7 +60,7 @@ class Statement(ModelEntity, LabeledEntityMixin):
 	"""
 	A ``Statement`` is a base-class for all statements.
 	"""
-	def __init__(self, label: str = None) -> None:
+	def __init__(self, label: Nullable[str] = None) -> None:
 		super().__init__()
 		LabeledEntityMixin.__init__(self, label)
 
@@ -70,7 +70,7 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 	_procedure:         Symbol  # TODO: implement a ProcedureSymbol
 	_parameterMappings: List[ParameterAssociationItem]
 
-	def __init__(self, procedureName: Symbol, parameterMappings: Iterable[ParameterAssociationItem] = None):
+	def __init__(self, procedureName: Symbol, parameterMappings: Nullable[Iterable[ParameterAssociationItem]] = None):
 		self._procedure = procedureName
 		procedureName._parent = self
 

@@ -427,7 +427,7 @@ class Design(ModelEntity):
 	_objectGraph:       Graph[None, None, None, None, None, None, None, None, str, Obj, None, None, None, None, None, None, None, None, None, None, None, None, None]       #: The graph of all types and objects in the design.
 	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
 
-	def __init__(self, name: str = None) -> None:
+	def __init__(self, name: Nullable[str] = None) -> None:
 		"""
 		Initializes a VHDL design.
 
@@ -1470,7 +1470,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	_dependencyVertex:       Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]
 	_compileOrderVertex:     Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]
 
-	def __init__(self, path: Path, documentation: str = None):
+	def __init__(self, path: Path, documentation: Nullable[str] = None):
 		super().__init__()
 		DocumentedEntityMixin.__init__(self, documentation)
 

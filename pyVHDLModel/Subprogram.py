@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 Subprograms are procedures, functions and methods.
 """
-from typing                 import List
+from typing                 import List, Optional as Nullable
 
 from pyTooling.Decorators   import export
 from pyTooling.MetaClasses  import ExtendedType
@@ -52,7 +52,7 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_statements:     List['SequentialStatement']
 	_isPure:         bool
 
-	def __init__(self, identifier: str, documentation: str = None):
+	def __init__(self, identifier: str, documentation: Nullable[str] = None):
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
@@ -85,7 +85,7 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 @export
 class Procedure(Subprogram):
-	def __init__(self, identifier: str, documentation: str = None):
+	def __init__(self, identifier: str, documentation: Nullable[str] = None):
 		super().__init__(identifier, documentation)
 		self._isPure = False
 
@@ -94,7 +94,7 @@ class Procedure(Subprogram):
 class Function(Subprogram):
 	_returnType: Subtype
 
-	def __init__(self, identifier: str, isPure: bool = True, documentation: str = None):
+	def __init__(self, identifier: str, isPure: bool = True, documentation: Nullable[str] = None):
 		super().__init__(identifier, documentation)
 
 		self._isPure = isPure

@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 tbd.
 """
-from typing                 import List, Dict, Iterable
+from typing                 import List, Dict, Iterable, Optional as Nullable
 
 from pyTooling.Decorators   import export
 from pyTooling.MetaClasses  import ExtendedType
@@ -61,7 +61,7 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	_functions:       Dict[str, Dict[str, Function]]
 	_procedures:      Dict[str, Dict[str, Procedure]]
 
-	def __init__(self, declaredItems: Iterable = None) -> None:
+	def __init__(self, declaredItems: Nullable[Iterable] = None) -> None:
 		# TODO: extract to mixin
 		self._declaredItems = []  # TODO: convert to dict
 		if declaredItems is not None:

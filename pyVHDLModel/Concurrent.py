@@ -166,9 +166,9 @@ class ComponentInstantiation(Instantiation):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       inst : component Counter;
+	      inst : component Counter;
 	"""
 
 	_component: ComponentInstantiationSymbol
@@ -191,9 +191,9 @@ class EntityInstantiation(Instantiation):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       inst : entity work. Counter;
+	      inst : entity work. Counter;
 	"""
 
 	_entity: EntityInstantiationSymbol
@@ -225,9 +225,9 @@ class ConfigurationInstantiation(Instantiation):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       inst : configuration Counter;
+	      inst : configuration Counter;
 	"""
 
 	_configuration: ConfigurationInstantiationSymbol
@@ -250,13 +250,13 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationsMixin, Sequent
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       proc: process(Clock)
-	         -- sequential declarations
-	       begin
-	         -- sequential statements
-	       end process;
+	      proc: process(Clock)
+	        -- sequential declarations
+	      begin
+	        -- sequential statements
+	      end process;
 	"""
 
 	_sensitivityList: List[Name]  # TODO: implement a SignalSymbol
@@ -368,17 +368,17 @@ class IfGenerateBranch(GenerateBranch, IfBranchMixin):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       gen: if condition generate
-	         -- concurrent declarations
-	       begin
-	         -- concurrent statements
-	       elsif condition generate
-	         -- ...
-	       else generate
-	         -- ...
-	       end generate;
+	      gen: if condition generate
+	        -- concurrent declarations
+	      begin
+	        -- concurrent statements
+	      elsif condition generate
+	        -- ...
+	      else generate
+	        -- ...
+	      end generate;
 	"""
 
 	def __init__(self, condition: ExpressionUnion, declaredItems: Nullable[Iterable] = None, statements: Nullable[Iterable[ConcurrentStatement]] = None, alternativeLabel: Nullable[str] = None):
@@ -393,17 +393,17 @@ class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       gen: if condition generate
-	         -- ...
-	       elsif condition generate
-	         -- concurrent declarations
-	       begin
-	         -- concurrent statements
-	       else generate
-	         -- ...
-	       end generate;
+	      gen: if condition generate
+	        -- ...
+	      elsif condition generate
+	        -- concurrent declarations
+	      begin
+	        -- concurrent statements
+	      else generate
+	        -- ...
+	      end generate;
 	"""
 
 	def __init__(self, condition: ExpressionUnion, declaredItems: Nullable[Iterable] = None, statements: Nullable[Iterable[ConcurrentStatement]] = None, alternativeLabel: Nullable[str] = None):
@@ -418,17 +418,17 @@ class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       gen: if condition generate
-	         -- ...
-	       elsif condition generate
-	         -- ...
-	       else generate
-	         -- concurrent declarations
-	       begin
-	         -- concurrent statements
-	       end generate;
+	      gen: if condition generate
+	        -- ...
+	      elsif condition generate
+	        -- ...
+	      else generate
+	        -- concurrent declarations
+	      begin
+	        -- concurrent statements
+	      end generate;
 	"""
 
 	def __init__(self, declaredItems: Nullable[Iterable] = None, statements: Nullable[Iterable[ConcurrentStatement]] = None, alternativeLabel: Nullable[str] = None):
@@ -471,15 +471,15 @@ class IfGenerateStatement(GenerateStatement):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       gen: if condition generate
-	         -- ...
-	       elsif condition generate
-	         -- ...
-	       else generate
-	         -- ...
-	       end generate;
+	      gen: if condition generate
+	        -- ...
+	      elsif condition generate
+	        -- ...
+	      else generate
+	        -- ...
+	      end generate;
 
 	.. seealso::
 
@@ -624,16 +624,16 @@ class CaseGenerateStatement(GenerateStatement):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       gen: case selector generate
-	         case choice1 =>
-	           -- ...
-	         case choice2 =>
-	           -- ...
-	         case others =>
-	           -- ...
-	       end generate;
+	      gen: case selector generate
+	        case choice1 =>
+	          -- ...
+	        case choice2 =>
+	          -- ...
+	        case others =>
+	          -- ...
+	      end generate;
 	"""
 
 	_expression: ExpressionUnion
@@ -676,11 +676,11 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       gen: for i in 0 to 3 generate
-	         -- ...
-	       end generate;
+	      gen: for i in 0 to 3 generate
+	        -- ...
+	      end generate;
 	"""
 
 	_loopIndex: str

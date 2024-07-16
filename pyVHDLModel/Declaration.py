@@ -91,9 +91,9 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       attribute TotalBits : natural;
+	      attribute TotalBits : natural;
 	"""
 
 	_subtype: Symbol
@@ -118,9 +118,9 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       attribute TotalBits of BusType : subtype is 32;
+	      attribute TotalBits of BusType : subtype is 32;
 	"""
 
 	_identifiers: List[Name]

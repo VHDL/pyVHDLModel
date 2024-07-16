@@ -81,9 +81,9 @@ class LibraryClause(Reference):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       library ieee;
+	      library ieee;
 	"""
 
 	@property
@@ -98,9 +98,9 @@ class UseClause(Reference):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       use ieee.numeric_std.all;
+	      use ieee.numeric_std.all;
 	"""
 
 
@@ -114,9 +114,9 @@ class ContextReference(Reference):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       context ieee.ieee_std_context;
+	      context ieee.ieee_std_context;
 	"""
 
 
@@ -331,11 +331,11 @@ class Context(PrimaryUnit):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       context ctx is
-	         -- ...
-	       end context;
+	      context ctx is
+	        -- ...
+	      end context;
 	"""
 
 	_references:        List[ContextUnion]
@@ -387,11 +387,11 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       package pkg is
-	         -- ...
-	       end package;
+	      package pkg is
+	        -- ...
+	      end package;
 	"""
 
 	_genericItems:      List[GenericInterfaceItemMixin]
@@ -457,11 +457,11 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       package body pkg is
-	         -- ...
-	       end package body;
+	      package body pkg is
+	        -- ...
+	      end package body;
 	"""
 
 	_package:       PackageSymbol
@@ -503,11 +503,11 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       entity ent is
-	         -- ...
-	       end entity;
+	      entity ent is
+	        -- ...
+	      end entity;
 	"""
 
 	_genericItems:  List[GenericInterfaceItemMixin]
@@ -580,13 +580,13 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       architecture rtl of ent is
-	         -- ...
-	       begin
-	         -- ...
-	       end architecture;
+	      architecture rtl of ent is
+	        -- ...
+	      begin
+	        -- ...
+	      end architecture;
 	"""
 
 	_entity: EntitySymbol
@@ -633,11 +633,11 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       component ent is
-	         -- ...
-	       end component;
+	      component ent is
+	        -- ...
+	      end component;
 	"""
 
 	_genericItems:      List[GenericInterfaceItemMixin]
@@ -688,13 +688,13 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       configuration cfg of ent is
-	         for rtl
-	           -- ...
-	         end for;
-	       end configuration;
+	      configuration cfg of ent is
+	        for rtl
+	          -- ...
+	        end for;
+	      end configuration;
 	"""
 
 	def __init__(self, identifier: str, contextItems: Nullable[Iterable[Context]] = None, documentation: Nullable[str] = None):

@@ -1504,7 +1504,6 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._designUnits.append(item)
 		item._parent = self
 
-
 	def _AddArchitecture(self, item: Architecture) -> None:
 		if not isinstance(item, Architecture):
 			ex = TypeError(f"Parameter 'item' is not of type 'Architecture'.")

@@ -39,6 +39,10 @@ section > p,
 	text-align: justify
 }
 
+p.rubric {
+	text-decoration: underline
+}
+
 /* wyrm overrides */
 .wy-menu-vertical header,
 .wy-menu-vertical p.caption {

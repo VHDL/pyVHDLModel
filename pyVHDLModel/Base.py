@@ -37,7 +37,7 @@ Base-classes for the VHDL language model.
 from enum                  import unique, Enum
 from typing                import Type, Tuple, Iterable, Optional as Nullable, Union, cast
 
-from pyTooling.Decorators  import export
+from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType
 
 
@@ -109,11 +109,15 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 
 	_parent: 'ModelEntity'      #: Reference to a parent entity in the model.
 
-	def __init__(self) -> None:
-		"""Initializes a VHDL model entity."""
-		self._parent = None
+	def __init__(self, parent: Nullable["ModelEntity"] = None) -> None:
+		"""
+		Initializes a VHDL model entity.
 
-	@property
+		:param parent: The parent model entity of this entity.
+		"""
+		self._parent = parent
+
+	@readonly
 	def Parent(self) -> 'ModelEntity':
 		"""
 		Returns a reference to the parent entity.
@@ -142,7 +146,7 @@ class NamedEntityMixin(metaclass=ExtendedType, mixin=True):
 	_identifier: str            #: The identifier of a model entity.
 	_normalizedIdentifier: str  #: The normalized (lower case) identifier of a model entity.
 
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str) -> None:
 		"""
 		Initializes a named entity.
 
@@ -151,7 +155,7 @@ class NamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		self._identifier = identifier
 		self._normalizedIdentifier = identifier.lower()
 
-	@property
+	@readonly
 	def Identifier(self) -> str:
 		"""
 		Returns a model entity's identifier (name).
@@ -160,7 +164,7 @@ class NamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return self._identifier
 
-	@property
+	@readonly
 	def NormalizedIdentifier(self) -> str:
 		"""
 		Returns a model entity's normalized identifier (lower case name).
@@ -183,7 +187,7 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 	_identifiers:           Tuple[str]  #: A list of identifiers.
 	_normalizedIdentifiers: Tuple[str]  #: A list of normalized (lower case) identifiers.
 
-	def __init__(self, identifiers: Iterable[str]):
+	def __init__(self, identifiers: Iterable[str]) -> None:
 		"""
 		Initializes a multiple-named entity.
 
@@ -192,7 +196,7 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		self._identifiers = tuple(identifiers)
 		self._normalizedIdentifiers = tuple([identifier.lower() for identifier in identifiers])
 
-	@property
+	@readonly
 	def Identifiers(self) -> Tuple[str]:
 		"""
 		Returns a model entity's tuple of identifiers (names).
@@ -201,7 +205,7 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return self._identifiers
 
-	@property
+	@readonly
 	def NormalizedIdentifiers(self) -> Tuple[str]:
 		"""
 		Returns a model entity's tuple of normalized identifiers (lower case names).
@@ -222,7 +226,7 @@ class LabeledEntityMixin(metaclass=ExtendedType, mixin=True):
 	_label:           Nullable[str]  #: The label of a model entity.
 	_normalizedLabel: Nullable[str]  #: The normalized (lower case) label of a model entity.
 
-	def __init__(self, label: Nullable[str]):
+	def __init__(self, label: Nullable[str]) -> None:
 		"""
 		Initializes a labeled entity.
 
@@ -231,7 +235,7 @@ class LabeledEntityMixin(metaclass=ExtendedType, mixin=True):
 		self._label = label
 		self._normalizedLabel = label.lower() if label is not None else None
 
-	@property
+	@readonly
 	def Label(self) -> Nullable[str]:
 		"""
 		Returns a model entity's label.
@@ -240,7 +244,7 @@ class LabeledEntityMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return self._label
 
-	@property
+	@readonly
 	def NormalizedLabel(self) -> Nullable[str]:
 		"""
 		Returns a model entity's normalized (lower case) label.
@@ -261,7 +265,7 @@ class DocumentedEntityMixin(metaclass=ExtendedType, mixin=True):
 
 	_documentation: Nullable[str]  #: The associated documentation of a model entity.
 
-	def __init__(self, documentation: Nullable[str]):
+	def __init__(self, documentation: Nullable[str]) -> None:
 		"""
 		Initializes a documented entity.
 
@@ -269,7 +273,7 @@ class DocumentedEntityMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		self._documentation = documentation
 
-	@property
+	@readonly
 	def Documentation(self) -> Nullable[str]:
 		"""
 		Returns a model entity's associated documentation.
@@ -306,7 +310,7 @@ class BranchMixin(metaclass=ExtendedType, mixin=True):
 @export
 class ConditionalBranchMixin(BranchMixin, ConditionalMixin, mixin=True):
 	"""A ``BaseBranch`` is a mixin-class for all branch statements with a condition."""
-	def __init__(self, condition: ExpressionUnion):
+	def __init__(self, condition: ExpressionUnion) -> None:
 		super().__init__()
 		ConditionalMixin.__init__(self, condition)
 
@@ -355,7 +359,7 @@ class ReportStatementMixin(metaclass=ExtendedType, mixin=True):
 class AssertStatementMixin(ReportStatementMixin, ConditionalMixin, mixin=True):
 	"""A ``MixinAssertStatement`` is a mixin-class for all assert statements."""
 
-	def __init__(self, condition: ExpressionUnion, message: Nullable[ExpressionUnion] = None, severity: Nullable[ExpressionUnion] = None):
+	def __init__(self, condition: ExpressionUnion, message: Nullable[ExpressionUnion] = None, severity: Nullable[ExpressionUnion] = None) -> None:
 		super().__init__(message, severity)
 		ConditionalMixin.__init__(self, condition)
 
@@ -385,8 +389,8 @@ class Range(ModelEntity):
 	_rightBound: ExpressionUnion
 	_direction:  Direction
 
-	def __init__(self, leftBound: ExpressionUnion, rightBound: ExpressionUnion, direction: Direction):
-		super().__init__()
+	def __init__(self, leftBound: ExpressionUnion, rightBound: ExpressionUnion, direction: Direction, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._leftBound = leftBound
 		leftBound._parent = self
@@ -417,8 +421,8 @@ class WaveformElement(ModelEntity):
 	_expression: ExpressionUnion
 	_after: ExpressionUnion
 
-	def __init__(self, expression: ExpressionUnion, after: Nullable[ExpressionUnion] = None):
-		super().__init__()
+	def __init__(self, expression: ExpressionUnion, after: Nullable[ExpressionUnion] = None, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._expression = expression
 		expression._parent = self

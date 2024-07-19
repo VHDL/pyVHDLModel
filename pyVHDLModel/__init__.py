@@ -58,7 +58,7 @@ from sys                       import version_info
 from typing                    import Union, Dict, cast, List, Generator, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName
-from pyTooling.Decorators      import export
+from pyTooling.Decorators      import export, readonly
 from pyTooling.Graph           import Graph, Vertex, Edge
 
 from pyVHDLModel.Exception     import VHDLModelException
@@ -245,7 +245,7 @@ class VHDLVersion(Enum):
 		else:
 			raise TypeError("Second operand is not of type 'VHDLVersion'.")
 
-	@property
+	@readonly
 	def IsVHDL(self) -> bool:
 		"""
 		Checks if the version is a VHDL (not VHDL-AMS) version.
@@ -254,7 +254,7 @@ class VHDLVersion(Enum):
 		"""
 		return self in (self.VHDL87, self.VHDL93, self.VHDL2002, self.VHDL2008, self.VHDL2019)
 
-	@property
+	@readonly
 	def IsAMS(self) -> bool:
 		"""
 		Checks if the version is a VHDL-AMS (not VHDL) version.
@@ -298,7 +298,7 @@ class VHDLVersion(Enum):
 @unique
 class ObjectClass(Enum):
 	"""
-	An ``ObjectClass`` is an enumeration. It represents an object's class (``constant``, ``signal``, ...).
+	An ``ObjectClass`` is an enumeration and represents an object's class (``constant``, ``signal``, ...).
 
 	In case no *object class* is defined, ``Default`` is used, so the *object class* is inferred from context.
 	"""
@@ -325,39 +325,49 @@ class ObjectClass(Enum):
 @export
 @unique
 class DesignUnitKind(Flag):
-	Context = auto()
-	Package = auto()
-	PackageBody = auto()
-	Entity = auto()
-	Architecture = auto()
-	Configuration = auto()
+	"""
+	A ``DesignUnitKind`` is an enumeration and represents the kind of design unit (``Entity``, ``Architecture``, ...).
 
-	Primary = Context | Configuration | Entity | Package
-	Secondary = PackageBody | Architecture
-	WithContext = Configuration | Package | Entity | PackageBody | Architecture
-	WithDeclaredItems = Package | Entity | PackageBody | Architecture
+	"""
+	Context = auto()                                                             #: Context
+	Package = auto()                                                             #: Package
+	PackageBody = auto()                                                         #: Package Body
+	Entity = auto()                                                              #: Entity
+	Architecture = auto()                                                        #: Architecture
+	Configuration = auto()                                                       #: Configuration
 
-	All = Primary | Secondary
+	Primary = Context | Configuration | Entity | Package                         #: List of primary design units.
+	Secondary = PackageBody | Architecture                                       #: List of secondary design units.
+	WithContext = Configuration | Package | Entity | PackageBody | Architecture  #: List of design units with a context.
+	WithDeclaredItems = Package | Entity | PackageBody | Architecture            #: List of design units having a declaration region.
+
+	All = Primary | Secondary                                                    #: List of all design units.
 
 
 @export
 @unique
 class DependencyGraphVertexKind(Flag):
-	Document = auto()
-	Library = auto()
+	"""
+	A ``DependencyGraphVertexKind`` is an enumeration and represents the kind of vertex in the dependency graph.
+	"""
+	Document = auto()       #: A document (VHDL source file).
+	Library = auto()        #: A VHDL library.
 
-	Context = auto()
-	Package = auto()
-	PackageBody = auto()
-	Entity = auto()
-	Architecture = auto()
-	Component = auto()
-	Configuration = auto()
+	Context = auto()        #: A context design unit.
+	Package = auto()        #: A package design unit.
+	PackageBody = auto()    #: A package body design unit.
+	Entity = auto()         #: A entity design unit.
+	Architecture = auto()   #: A architecture design unit.
+	Component = auto()      #: A VHDL component.
+	Configuration = auto()  #: A configuration design unit.
 
 
 @export
 @unique
 class DependencyGraphEdgeKind(Flag):
+	"""
+	A ``DependencyGraphEdgeKind`` is an enumeration and represents the kind of edge in the dependency graph.
+	"""
 	Document =       auto()
 	Library =        auto()
 	Context =        auto()
@@ -391,6 +401,9 @@ class DependencyGraphEdgeKind(Flag):
 @export
 @unique
 class ObjectGraphVertexKind(Flag):
+	"""
+	A ``ObjectGraphVertexKind`` is an enumeration and represents the kind of vertex in the object graph.
+	"""
 	Type = auto()
 	Subtype = auto()
 
@@ -406,6 +419,9 @@ class ObjectGraphVertexKind(Flag):
 @export
 @unique
 class ObjectGraphEdgeKind(Flag):
+	"""
+	A ``ObjectGraphEdgeKind`` is an enumeration and represents the kind of edge in the object graph.
+	"""
 	BaseType = auto()
 	Subtype = auto()
 
@@ -415,8 +431,18 @@ class ObjectGraphEdgeKind(Flag):
 @export
 class Design(ModelEntity):
 	"""
-	A ``Design`` represents all loaded and analysed files (see :class:`~pyVHDLModel.Document`). It's the root of this
-	document-object-model (DOM). It contains at least one VHDL library (see :class:`~pyVHDLModel.Library`).
+	A ``Design`` represents set of VHDL libraries as well as all loaded and analysed source files (see :class:`~pyVHDLModel.Document`).
+
+	It's the root of this code document-object-model (CodeDOM). It contains at least one VHDL library (see :class:`~pyVHDLModel.Library`). When the design is
+	analysed (see :meth:`Analyze`), multiple graph data structures will be created and populated with vertices and edges. As a first result, the design's compile
+	order and hierarchy can be iterated. As a second result, the design's *top-level* is identified and referenced from the design (see :attr:`TopLevel`).
+
+	The *design* contains references to the following graphs:
+
+	* :attr:`DependencyGraph`
+	* :attr:`CompileOrderGraph`
+	* :attr:`HierarchyGraph`
+	* :attr:`ObjectGraph`
 	"""
 	_name:              Nullable[str]         #: Name of the design
 	_libraries:         Dict[str, 'Library']  #: List of all libraries defined for a design.
@@ -424,7 +450,7 @@ class Design(ModelEntity):
 	_dependencyGraph:   Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
 	_compileOrderGraph: Graph[None, None, None, None, None, None, None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: A graph derived from dependency graph containing the order of documents for compilation.
 	_hierarchyGraph:    Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: A graph derived from dependency graph containing the design hierarchy.
-	_objectGraph:       Graph[None, None, None, None, None, None, None, None, str, Obj, None, None, None, None, None, None, None, None, None, None, None, None, None]       #: The graph of all types and objects in the design.
+	_objectGraph:       Graph[None, None, None, None, None, None, None, None, str, Obj, None, None, None, None, None, None, None, None, None, None, None, None, None]          #: The graph of all types and objects in the design.
 	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
 
 	def __init__(self, name: Nullable[str] = None) -> None:
@@ -445,34 +471,72 @@ class Design(ModelEntity):
 		self._objectGraph = Graph()
 		self._toplevel = None
 
-	@property
+	@readonly
 	def Libraries(self) -> Dict[str, 'Library']:
-		"""Returns a list of all libraries specified for this design."""
+		"""
+		Read-only property to access the dictionary of library names and VHDL libraries (:attr:`_libraries`).
+
+		:returns: A dictionary of library names and VHDL libraries.
+		"""
 		return self._libraries
 
-	@property
+	@readonly
 	def Documents(self) -> List['Document']:
-		"""Returns a list of all documents (files) loaded for this design."""
+		"""
+		Read-only property to access the list of all documents (VHDL source files) loaded for this design (:attr:`_documents`).
+
+		:returns: A list of all documents.
+		"""
 		return self._documents
 
-	@property
+	@readonly
 	def CompileOrderGraph(self) -> Graph:
+		"""
+		Read-only property to access the compile-order graph (:attr:`_compileOrderGraph`).
+
+		:returns: Reference to the compile-order graph.
+		"""
 		return self._compileOrderGraph
 
-	@property
+	@readonly
 	def DependencyGraph(self) -> Graph:
+		"""
+		Read-only property to access the dependency graph (:attr:`_dependencyGraph`).
+
+		:returns: Reference to the dependency graph.
+		"""
 		return self._dependencyGraph
 
-	@property
+	@readonly
 	def HierarchyGraph(self) -> Graph:
+		"""
+		Read-only property to access the hierarchy graph (:attr:`_hierarchyGraph`).
+
+		:returns: Reference to the hierarchy graph.
+		"""
 		return self._hierarchyGraph
 
-	@property
+	@readonly
 	def ObjectGraph(self) -> Graph:
+		"""
+		Read-only property to access the object graph (:attr:`_objectGraph`).
+
+		:returns: Reference to the object graph.
+		"""
 		return self._objectGraph
 
-	@property
-	def TopLevel(self) -> 'Entity':
+	@readonly
+	def TopLevel(self) -> Union[Entity, Configuration]:
+		"""
+		Read-only property to access the design's *top-level* (:attr:`_toplevel`).
+
+		When called the first time, the hierarchy graph is checked for its root elements. When there is only one root element in the graph, a new field ``toplevel``
+		is added to :attr:`_hierarchyGraph` referencing that single element. In addition, the result is cached in :attr:`_toplevel`.
+
+		:returns:                   Reference to the design's *top-level*.
+		:raises VHDLModelException: If the hierarchy graph is not yet computed from dependency graph.
+		:raises VHDLModelException: If there is more than one *top-level*.
+		"""
 		# Check for cached result
 		if self._toplevel is not None:
 			return self._toplevel
@@ -485,45 +549,62 @@ class Design(ModelEntity):
 			toplevel = roots[0]
 			self._hierarchyGraph["toplevel"] = toplevel
 			self._toplevel = toplevel.Value
+
 			return toplevel.Value
 		else:
 			raise VHDLModelException(f"Found more than one toplevel: {', '.join(roots)}")
 
-	def _LoadLibrary(self, library: 'Library') -> None:
-		libraryIdentifier = library.NormalizedIdentifier
-		if libraryIdentifier in self._libraries:
-			raise LibraryExistsInDesignError(library)
-
-		self._libraries[libraryIdentifier] = library
-		library._parent = self
-
 	def LoadStdLibrary(self) -> 'Library':
+		"""
+		Load the predefined VHDL library ``std`` into the design.
+
+		This will create a virtual source code file ``std.vhdl`` and register VHDL design units of library ``std`` to that file.
+
+		:returns: The library object of library ``std``.
+		"""
 		from pyVHDLModel.STD import Std
 
-		doc = Document(Path("std.vhdl"))
+		doc = Document(Path("std.vhdl"), parent=self)
 
 		library = Std()
 		for designUnit in library.IterateDesignUnits():
 			doc._AddDesignUnit(designUnit)
 
-		self._LoadLibrary(library)
+		self.AddLibrary(library)
 
 		return library
 
 	def LoadIEEELibrary(self) -> 'Library':
+		"""
+		Load the predefined VHDL library ``ieee`` into the design.
+
+		This will create a virtual source code file ``ieee.vhdl`` and register VHDL design units of library ``ieee`` to that file.
+
+		:returns: The library object of library ``ieee``.
+		"""
 		from pyVHDLModel.IEEE import Ieee
 
-		doc = Document(Path("ieee.vhdl"))
+		doc = Document(Path("ieee.vhdl"), parent=self)
 
 		library = Ieee()
 		for designUnit in library.IterateDesignUnits():
 			doc._AddDesignUnit(designUnit)
 
-		self._LoadLibrary(library)
+		self.AddLibrary(library)
 
 		return library
 
 	def AddLibrary(self, library: 'Library') -> None:
+		"""
+		Add a VHDL library to the design.
+
+		Ensure the libraries name doesn't collide with existing libraries in the design. |br|
+		If ok, set the libraries parent reference to the design.
+
+		:param library:                                Library object to loaded.
+		:raises LibraryExistsInDesignError:            If the library already exists in the design.
+		:raises LibraryRegisteredToForeignDesignError: If library is already used by a different design.
+		"""
 		libraryIdentifier = library.NormalizedIdentifier
 		if libraryIdentifier in self._libraries:
 			raise LibraryExistsInDesignError(library)
@@ -535,18 +616,73 @@ class Design(ModelEntity):
 		library._parent = self
 
 	def GetLibrary(self, libraryName: str) -> 'Library':
+		"""
+		Return an (existing) VHDL library object of name ``libraryName``.
+
+		If the requested VHDL library doesn't exist, a new VHDL library with that name will be created.
+
+		:param libraryName: Name of the requested VHDL library.
+		:returns:           The VHDL library object.
+		"""
 		libraryIdentifier = libraryName.lower()
 		try:
 			return self._libraries[libraryIdentifier]
 		except KeyError:
-			lib = Library(libraryName)
+			lib = Library(libraryName, parent=self)
 			self._libraries[libraryIdentifier] = lib
 			lib._parent = self
 			return lib
 
 	# TODO: allow overloaded parameter library to be str?
 	def AddDocument(self, document: 'Document', library: 'Library') -> None:
-		if library.NormalizedIdentifier not in self._libraries:
+		"""
+		Add a document (VHDL source file) to the design and register all embedded design units to the given VHDL library.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all entities in the document
+
+		   1. Check if entity name might exist in target library.
+		   2. Add entity to library and update library membership.
+
+		2. Iterate all architectures in the document
+
+		   1. Check if architecture name might exist in target library.
+		   2. Add architecture to library and update library membership.
+
+		3. Iterate all packages in the document
+
+		   1. Check if package name might exist in target library.
+		   2. Add package to library and update library membership.
+
+		4. Iterate all package bodies in the document
+
+		   1. Check if package body name might exist in target library.
+		   2. Add package body to library and update library membership.
+
+		5. Iterate all configurations in the document
+
+		   1. Check if configuration name might exist in target library.
+		   2. Add configuration to library and update library membership.
+
+		6. Iterate all contexts in the document
+
+		   1. Check if context name might exist in target library.
+		   2. Add context to library and update library membership.
+
+		:param document:                           The VHDL source code file.
+		:param library:                            The VHDL library used to register the embedded design units to.
+		:raises LibraryNotRegisteredError:         If the given VHDL library is not a library in the design.
+		:raises EntityExistsInLibraryError:        If the processed entity's name is already existing in the VHDL library.
+		:raises ArchitectureExistsInLibraryError:  If the processed architecture's name is already existing in the VHDL library.
+		:raises PackageExistsInLibraryError:       If the processed package's name is already existing in the VHDL library.
+		:raises PackageBodyExistsError:            If the processed package body's name is already existing in the VHDL library.
+		:raises ConfigurationExistsInLibraryError: If the processed configuration's name is already existing in the VHDL library.
+		:raises ContextExistsInLibraryError:       If the processed context's name is already existing in the VHDL library.
+		"""
+		# FIXME: this checks for the library name, but not the object
+		# should the libraries parent be checked too?
+		if library._normalizedIdentifier not in self._libraries:
 			raise LibraryNotRegisteredError(library)
 
 		self._documents.append(document)
@@ -604,14 +740,89 @@ class Design(ModelEntity):
 			context.Library = library
 
 	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
+		"""
+		Iterate all design units in the design.
+
+		A union of :class:`DesignUnitKind` values can be given to filter the returned result for suitable design units.
+
+		.. rubric:: Algorithm
+
+		* Iterate all VHDL libraries.
+
+		  1. Iterate all contexts in that library.
+		  2. Iterate all packages in that library.
+		  3. Iterate all package bodies in that library.
+		  4. Iterate all entites in that library.
+		  5. Iterate all architectures in that library.
+		  6. Iterate all configurations in that library.
+
+		:param filter: An enumeration with possibly multiple flags to filter the returned design units.
+		:returns:      A generator to iterate all matched design units in the design.
+
+		.. seealso::
+
+		   :meth:`pyVHDLModel.Library.IterateDesignUnits`
+		     Iterate all design units in the library.
+		"""
 		for library in self._libraries.values():
 			yield from library.IterateDesignUnits(filter)
 
 	def Analyze(self) -> None:
+		"""
+		Analyze the whole design.
+
+		.. rubric:: Algorithm
+
+		1. Analyze dependencies of design units. |br|
+		   This will also yield the design hierarchy and the compiler order.
+		2. Analyze dependencies of types and objects.
+
+		.. seealso::
+
+		   :meth:`AnalyzeDependencies`
+		     Analyze the dependencies of design units.
+
+		   :meth:`AnalyzeObjects`
+		     Analyze the dependencies of types and objects.
+		"""
 		self.AnalyzeDependencies()
 		self.AnalyzeObjects()
 
 	def AnalyzeDependencies(self) -> None:
+		"""
+		Analyze the dependencies of design units.
+
+		.. rubric:: Algorithm
+
+		1. Create all vertices of the dependency graph by iterating all design units in all libraries. |br|
+		   |rarr| :meth:`CreateDependencyGraph`
+		2. Create the compile order graph. |br|
+		   |rarr| :meth:`CreateCompileOrderGraph`
+		3. Index all packages. |br|
+		   |rarr| :meth:`IndexPackages`
+		4. Index all architectures. |br|
+		   |rarr| :meth:`IndexArchitectures`
+		5. Link all contexts |br|
+		   |rarr| :meth:`LinkContexts`
+		6. Link all architectures. |br|
+		   |rarr| :meth:`LinkArchitectures`
+		7. Link all package bodies. |br|
+		   |rarr| :meth:`LinkPackageBodies`
+		8. Link all library references. |br|
+		   |rarr| :meth:`LinkLibraryReferences`
+		9. Link all package references. |br|
+		   |rarr| :meth:`LinkPackageReferences`
+		10. Link all context references. |br|
+		    |rarr| :meth:`LinkContextReferences`
+		11. Link all components. |br|
+		    |rarr| :meth:`LinkComponents`
+		12. Link all instantiations. |br|
+		    |rarr| :meth:`LinkInstantiations`
+		13. Create the hierarchy graph. |br|
+		    |rarr| :meth:`CreateHierarchyGraph`
+		14. Compute the compile order. |br|
+		    |rarr| :meth:`ComputeCompileOrder`
+		"""
 		self.CreateDependencyGraph()
 		self.CreateCompileOrderGraph()
 
@@ -631,6 +842,20 @@ class Design(ModelEntity):
 		self.ComputeCompileOrder()
 
 	def AnalyzeObjects(self) -> None:
+		"""
+		Analyze the dependencies of types and objects.
+
+		.. rubric:: Algorithm
+
+		1. Index all entities. |br|
+		   |rarr| :meth:`IndexEntities`
+		2. Index all package bodies. |br|
+		   |rarr| :meth:`IndexPackageBodies`
+		3. Import objects. |br|
+		   |rarr| :meth:`ImportObjects`
+		4. Create the type and object graph. |br|
+		   |rarr| :meth:`CreateTypeAndObjectGraph`
+		"""
 		self.IndexEntities()
 		self.IndexPackageBodies()
 
@@ -638,6 +863,55 @@ class Design(ModelEntity):
 		self.CreateTypeAndObjectGraph()
 
 	def CreateDependencyGraph(self) -> None:
+		"""
+		Create all vertices of the dependency graph by iterating all design units in all libraries.
+
+		This method will purely create a sea of vertices without any linking between vertices. The edges will be created later by other methods. |br|
+		See :meth:`AnalyzeDependencies` for these methods and their algorithmic order.
+
+		Each vertex has the following properties:
+
+		* The vertex' ID is the design unit's identifier.
+		* The vertex' value references the design unit.
+		* A key-value-pair called ``kind`` denotes the vertex's kind as an enumeration value of type :class:`DependencyGraphVertexKind`.
+		* A key-value-pair called ``predefined`` denotes if the referenced design unit is a predefined language entity.
+
+		.. rubric:: Algorithm
+
+		* Iterate all libraries in the design.
+
+		  1. Create a vertex for that library and reference the library by the vertex' value field. |br|
+		     In return, set the library's :attr:`~pyVHDLModel.Library._dependencyVertex` field to reference the created vertex.
+		  2. Iterate all contexts in that library.
+
+		     * Create a vertex for that context and reference the context by the vertex' value field. |br|
+		       In return, set the context's :attr:`~pyVHDLModel.DesignUnit.Context._dependencyVertex` field to reference the created vertex.
+
+		  3. Iterate all packages in that library.
+
+		     * Create a vertex for that package and reference the package by the vertex' value field. |br|
+		       In return, set the package's :attr:`~pyVHDLModel.DesignUnit.Package._dependencyVertex` field to reference the created vertex.
+
+		  4. Iterate all package bodies in that library.
+
+		     * Create a vertex for that package body and reference the package body by the vertex' value field. |br|
+		       In return, set the package body's :attr:`~pyVHDLModel.DesignUnit.PackageBody._dependencyVertex` field to reference the created vertex.
+
+		  5. Iterate all entities in that library.
+
+		     * Create a vertex for that entity and reference the entity by the vertex' value field. |br|
+		       In return, set the entity's :attr:`~pyVHDLModel.DesignUnit.Entity._dependencyVertex` field to reference the created vertex.
+
+		  6. Iterate all architectures in that library.
+
+		     * Create a vertex for that architecture and reference the architecture by the vertex' value field. |br|
+		       In return, set the architecture's :attr:`~pyVHDLModel.DesignUnit.Architecture._dependencyVertex` field to reference the created vertex.
+
+		  7. Iterate all configurations in that library.
+
+		     * Create a vertex for that configuration and reference the configuration by the vertex' value field. |br|
+		       In return, set the configuration's :attr:`~pyVHDLModel.DesignUnit.Configuration._dependencyVertex` field to reference the created vertex.
+		"""
 		predefinedLibraries = ("std", "ieee")
 
 		for libraryIdentifier, library in self._libraries.items():
@@ -684,12 +958,44 @@ class Design(ModelEntity):
 				configuration._dependencyVertex = dependencyVertex
 
 	def CreateCompileOrderGraph(self) -> None:
+		"""
+		Create a compile-order graph with bidirectional references to the dependency graph.
+
+		Add vertices representing a document (VHDL source file) to the dependency graph. Each "document" vertex in dependency graph is copied into the compile-order
+		graph and bidirectionally referenced.
+
+		In addition, each vertex of a corresponding design unit in a document is linked to the vertex representing that document to express the design unit in
+		document relationship.
+
+		Each added vertex has the following properties:
+
+		* The vertex' ID is the document's filename.
+		* The vertex' value references the document.
+		* A key-value-pair called ``kind`` denotes the vertex's kind as an enumeration value of type :class:`DependencyGraphVertexKind`.
+		* A key-value-pair called ``predefined`` does not exist.
+
+		.. rubric:: Algorithm
+
+		* Iterate all documents in the design.
+
+		  1. Create a vertex for that document and reference the document by the vertex' value field. |br|
+		     In return, set the documents's :attr:`~pyVHDLModel.Document._dependencyVertex` field to reference the created vertex.
+		  2. Copy ...
+
+		     1. Iterate
+
+		"""
 		for document in self._documents:
 			dependencyVertex = Vertex(vertexID=document.Path.name, value=document, graph=self._dependencyGraph)
 			dependencyVertex["kind"] = DependencyGraphVertexKind.Document
 			document._dependencyVertex = dependencyVertex
 
-			compilerOrderVertex = dependencyVertex.Copy(self._compileOrderGraph, copyDict=True, linkingKeyToOriginalVertex="dependencyVertex", linkingKeyFromOriginalVertex="compileOrderVertex")
+			compilerOrderVertex = dependencyVertex.Copy(
+				self._compileOrderGraph,
+				copyDict=True,
+				linkingKeyToOriginalVertex="dependencyVertex",
+				linkingKeyFromOriginalVertex="compileOrderVertex"
+			)
 			document._compileOrderVertex = compilerOrderVertex
 
 			for designUnit in document._designUnits:
@@ -848,7 +1154,6 @@ class Design(ModelEntity):
 				else:
 					print(f"not handled: {item}")
 
-
 		for libraryName in ("std", "ieee"):
 			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
 				_HandlePackage(package)
@@ -873,7 +1178,7 @@ class Design(ModelEntity):
 		dependency graph is added for that relationship.
 
 		At second, all use clauses are resolved (a use clause my have multiple package member reference symbols). For each
-		references package,
+		referenced package,
 		"""
 		for context in self.IterateDesignUnits(DesignUnitKind.Context):  # type: Context
 			# Create entries in _referenced*** for the current working library under its real name.
@@ -1037,7 +1342,6 @@ class Design(ModelEntity):
 
 							dependency = designUnit._dependencyVertex.EdgeToVertex(referencedPackage._dependencyVertex)
 							dependency["kind"] = DependencyGraphEdgeKind.UseClause
-
 
 			# All secondary units inherit referenced packages from their primary units.
 			else:
@@ -1308,10 +1612,10 @@ class Library(ModelEntity, NamedEntityMixin):
 	_packages:       Dict[str, Package]                  #: Dictionary of all packages defined in a library.
 	_packageBodies:  Dict[str, PackageBody]              #: Dictionary of all package bodies defined in a library.
 
-	_dependencyVertex: Vertex[None, None, str, Union['Library', DesignUnit], None, None, None, None, None, None, None, None, None, None, None, None, None]
+	_dependencyVertex: Vertex[None, None, str, Union['Library', DesignUnit], None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the library. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
 
-	def __init__(self, identifier: str):
-		super().__init__()
+	def __init__(self, identifier: str, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 
 		self._contexts =        {}
@@ -1323,41 +1627,63 @@ class Library(ModelEntity, NamedEntityMixin):
 
 		self._dependencyVertex = None
 
-	@property
+	@readonly
 	def Contexts(self) -> Dict[str, Context]:
 		"""Returns a list of all context declarations declared in this library."""
 		return self._contexts
 
-	@property
+	@readonly
 	def Configurations(self) -> Dict[str, Configuration]:
 		"""Returns a list of all configuration declarations declared in this library."""
 		return self._configurations
 
-	@property
+	@readonly
 	def Entities(self) -> Dict[str, Entity]:
 		"""Returns a list of all entity declarations declared in this library."""
 		return self._entities
 
-	@property
+	@readonly
 	def Architectures(self) -> Dict[str, Dict[str, Architecture]]:
 		"""Returns a list of all architectures declarations declared in this library."""
 		return self._architectures
 
-	@property
+	@readonly
 	def Packages(self) -> Dict[str, Package]:
 		"""Returns a list of all package declarations declared in this library."""
 		return self._packages
 
-	@property
+	@readonly
 	def PackageBodies(self) -> Dict[str, PackageBody]:
 		"""Returns a list of all package body declarations declared in this library."""
 		return self._packageBodies
 
-	@property
+	@readonly
 	def DependencyVertex(self) -> Vertex:
 		return self._dependencyVertex
 
 	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
+		"""
+		Iterate all design units in the library.
+
+		A union of :class:`DesignUnitKind` values can be given to filter the returned result for suitable design units.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all contexts in that library.
+		2. Iterate all packages in that library.
+		3. Iterate all package bodies in that library.
+		4. Iterate all entites in that library.
+		5. Iterate all architectures in that library.
+		6. Iterate all configurations in that library.
+
+		:param filter: An enumeration with possibly multiple flags to filter the returned design units.
+		:returns:      A generator to iterate all matched design units in the design.
+
+		.. seealso::
+
+		   :meth:`pyVHDLModel.Design.IterateDesignUnits`
+		     Iterate all design units in the design.
+		"""
 		if DesignUnitKind.Context in filter:
 			for context in self._contexts.values():
 				yield context
@@ -1455,7 +1781,7 @@ class Library(ModelEntity, NamedEntityMixin):
 class Document(ModelEntity, DocumentedEntityMixin):
 	"""A ``Document`` represents a sourcefile. It contains *primary* and *secondary* design units."""
 
-	_path:                   Path                                  #: path to the document. ``None`` if virtual document.
+	_path:                   Path                                #: path to the document. ``None`` if virtual document.
 	_designUnits:            List[DesignUnit]                    #: List of all design units defined in a document.
 	_contexts:               Dict[str, Context]                  #: Dictionary of all contexts defined in a document.
 	_configurations:         Dict[str, Configuration]            #: Dictionary of all configurations defined in a document.
@@ -1467,11 +1793,11 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	_verificationProperties: Dict[str, VerificationProperty]     #: Dictionary of all PSL verification properties defined in a document.
 	_verificationModes:      Dict[str, VerificationMode]         #: Dictionary of all PSL verification modes defined in a document.
 
-	_dependencyVertex:       Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]
+	_dependencyVertex:       Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
 	_compileOrderVertex:     Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]
 
-	def __init__(self, path: Path, documentation: Nullable[str] = None):
-		super().__init__()
+	def __init__(self, path: Path, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._path =                   path
@@ -1672,61 +1998,61 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._designUnits.append(item)
 		item._parent = self
 
-	@property
+	@readonly
 	def Path(self) -> Path:
 		return self._path
 
-	@property
+	@readonly
 	def DesignUnits(self) -> List[DesignUnit]:
 		"""Returns a list of all design units declarations found in this document."""
 		return self._designUnits
 
-	@property
+	@readonly
 	def Contexts(self) -> Dict[str, Context]:
 		"""Returns a list of all context declarations found in this document."""
 		return self._contexts
 
-	@property
+	@readonly
 	def Configurations(self) -> Dict[str, Configuration]:
 		"""Returns a list of all configuration declarations found in this document."""
 		return self._configurations
 
-	@property
+	@readonly
 	def Entities(self) -> Dict[str, Entity]:
 		"""Returns a list of all entity declarations found in this document."""
 		return self._entities
 
-	@property
+	@readonly
 	def Architectures(self) -> Dict[str, Dict[str, Architecture]]:
 		"""Returns a list of all architecture declarations found in this document."""
 		return self._architectures
 
-	@property
+	@readonly
 	def Packages(self) -> Dict[str, Package]:
 		"""Returns a list of all package declarations found in this document."""
 		return self._packages
 
-	@property
+	@readonly
 	def PackageBodies(self) -> Dict[str, PackageBody]:
 		"""Returns a list of all package body declarations found in this document."""
 		return self._packageBodies
 
-	@property
+	@readonly
 	def VerificationUnits(self) -> Dict[str, VerificationUnit]:
 		"""Returns a list of all verification unit declarations found in this document."""
 		return self._verificationUnits
 
-	@property
+	@readonly
 	def VerificationProperties(self) -> Dict[str, VerificationProperty]:
 		"""Returns a list of all verification property declarations found in this document."""
 		return self._verificationProperties
 
-	@property
+	@readonly
 	def VerificationModes(self) -> Dict[str, VerificationMode]:
 		"""Returns a list of all verification mode declarations found in this document."""
 		return self._verificationModes
 
-	@property
+	@readonly
 	def CompileOrderVertex(self) -> Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]:
 		return self._compileOrderVertex
 

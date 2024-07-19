@@ -36,7 +36,7 @@ Instantiations of packages, procedures, functions and protected types.
 """
 from typing import List, Optional as Nullable
 
-from pyTooling.Decorators    import export
+from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Base        import ModelEntity
@@ -82,8 +82,8 @@ class PackageInstantiation(PrimaryUnit, GenericInstantiationMixin):
 	_packageReference: PackageReferenceSymbol
 	_genericAssociations: List[GenericAssociationItem]
 
-	def __init__(self, identifier: str, uninstantiatedPackage: PackageReferenceSymbol, documentation: Nullable[str] = None):
-		super().__init__(identifier, documentation)
+	def __init__(self, identifier: str, uninstantiatedPackage: PackageReferenceSymbol, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, documentation, parent)
 		GenericEntityInstantiationMixin.__init__(self)
 
 		self._packageReference = uninstantiatedPackage
@@ -92,10 +92,10 @@ class PackageInstantiation(PrimaryUnit, GenericInstantiationMixin):
 		# TODO: extract to mixin
 		self._genericAssociations = []
 
-	@property
+	@readonly
 	def PackageReference(self) -> PackageReferenceSymbol:
 		return self._packageReference
 
-	@property
+	@readonly
 	def GenericAssociations(self) -> List[GenericAssociationItem]:
 		return self._genericAssociations

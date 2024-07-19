@@ -36,7 +36,7 @@ tbd.
 """
 from typing                 import List, Dict, Iterable, Optional as Nullable
 
-from pyTooling.Decorators   import export
+from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
 
 from pyVHDLModel.Object     import Constant, SharedVariable, File, Variable, Signal
@@ -80,47 +80,47 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		self._functions =   {}
 		self._procedures =  {}
 
-	@property
+	@readonly
 	def DeclaredItems(self) -> List:
 		return self._declaredItems
 
-	@property
+	@readonly
 	def Types(self) -> Dict[str, FullType]:
 		return self._types
 
-	@property
+	@readonly
 	def Subtypes(self) -> Dict[str, Subtype]:
 		return self._subtypes
 
-	# @property
+	# @readonly
 	# def Objects(self) -> Dict[str, Union[Constant, SharedVariable, Signal, File]]:
 	# 	return self._objects
 
-	@property
+	@readonly
 	def Constants(self) -> Dict[str, Constant]:
 		return self._constants
 
-	@property
+	@readonly
 	def Signals(self) -> Dict[str, Signal]:
 		return self._signals
 
-	@property
+	@readonly
 	def SharedVariables(self) -> Dict[str, SharedVariable]:
 		return self._sharedVariables
 
-	@property
+	@readonly
 	def Files(self) -> Dict[str, File]:
 		return self._files
 
-	@property
+	@readonly
 	def Subprograms(self) -> Dict[str, Subprogram]:
 		return self._subprograms
 
-	@property
+	@readonly
 	def Functions(self) -> Dict[str, Dict[str, Function]]:
 		return self._functions
 
-	@property
+	@readonly
 	def Procedures(self) -> Dict[str, Dict[str, Procedure]]:
 		return self._procedures
 

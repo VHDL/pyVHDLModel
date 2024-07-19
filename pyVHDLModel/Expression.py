@@ -36,7 +36,7 @@ All declarations for literals, aggregates, operators forming an expressions.
 """
 from typing               import Tuple, List, Iterable, Union
 
-from pyTooling.Decorators import export
+from pyTooling.Decorators import export, readonly
 
 from pyVHDLModel.Base     import ModelEntity, Direction, Range
 from pyVHDLModel.Symbol   import Symbol
@@ -72,12 +72,12 @@ class NullLiteral(Literal):
 class EnumerationLiteral(Literal):
 	_value: str
 
-	def __init__(self, value: str):
-		super().__init__()
+	def __init__(self, value: str, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._value = value
 
-	@property
+	@readonly
 	def Value(self) -> str:
 		return self._value
 
@@ -94,11 +94,11 @@ class NumericLiteral(Literal):
 class IntegerLiteral(NumericLiteral):
 	_value: int
 
-	def __init__(self, value: int):
+	def __init__(self, value: int) -> None:
 		super().__init__()
 		self._value = value
 
-	@property
+	@readonly
 	def Value(self) -> int:
 		return self._value
 
@@ -110,11 +110,11 @@ class IntegerLiteral(NumericLiteral):
 class FloatingPointLiteral(NumericLiteral):
 	_value: float
 
-	def __init__(self, value: float):
+	def __init__(self, value: float) -> None:
 		super().__init__()
 		self._value = value
 
-	@property
+	@readonly
 	def Value(self) -> float:
 		return self._value
 
@@ -126,11 +126,11 @@ class FloatingPointLiteral(NumericLiteral):
 class PhysicalLiteral(NumericLiteral):
 	_unitName: str
 
-	def __init__(self, unitName: str):
+	def __init__(self, unitName: str) -> None:
 		super().__init__()
 		self._unitName = unitName
 
-	@property
+	@readonly
 	def UnitName(self) -> str:
 		return self._unitName
 
@@ -142,11 +142,11 @@ class PhysicalLiteral(NumericLiteral):
 class PhysicalIntegerLiteral(PhysicalLiteral):
 	_value: int
 
-	def __init__(self, value: int, unitName: str):
+	def __init__(self, value: int, unitName: str) -> None:
 		super().__init__(unitName)
 		self._value = value
 
-	@property
+	@readonly
 	def Value(self) -> int:
 		return self._value
 
@@ -155,11 +155,11 @@ class PhysicalIntegerLiteral(PhysicalLiteral):
 class PhysicalFloatingLiteral(PhysicalLiteral):
 	_value: float
 
-	def __init__(self, value: float, unitName: str):
+	def __init__(self, value: float, unitName: str) -> None:
 		super().__init__(unitName)
 		self._value = value
 
-	@property
+	@readonly
 	def Value(self) -> float:
 		return self._value
 
@@ -168,11 +168,11 @@ class PhysicalFloatingLiteral(PhysicalLiteral):
 class CharacterLiteral(Literal):
 	_value: str
 
-	def __init__(self, value: str):
+	def __init__(self, value: str) -> None:
 		super().__init__()
 		self._value = value
 
-	@property
+	@readonly
 	def Value(self) -> str:
 		return self._value
 
@@ -184,11 +184,11 @@ class CharacterLiteral(Literal):
 class StringLiteral(Literal):
 	_value: str
 
-	def __init__(self, value: str):
+	def __init__(self, value: str) -> None:
 		super().__init__()
 		self._value = value
 
-	@property
+	@readonly
 	def Value(self) -> str:
 		return self._value
 
@@ -200,11 +200,11 @@ class StringLiteral(Literal):
 class BitStringLiteral(Literal):
 	_value: str
 
-	def __init__(self, value: str):
+	def __init__(self, value: str) -> None:
 		super().__init__()
 		self._value = value
 
-	@property
+	@readonly
 	def Value(self) -> str:
 		return self._value
 
@@ -216,7 +216,7 @@ class BitStringLiteral(Literal):
 class ParenthesisExpression: #(Protocol):
 	__slots__ = ()  # FIXME: use ExtendedType?
 
-	@property
+	@readonly
 	def Operand(self) -> ExpressionUnion:
 		return None
 
@@ -228,13 +228,13 @@ class UnaryExpression(BaseExpression):
 	_FORMAT:  Tuple[str, str]
 	_operand: ExpressionUnion
 
-	def __init__(self, operand: ExpressionUnion):
-		super().__init__()
+	def __init__(self, operand: ExpressionUnion, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._operand = operand
 		# operand._parent = self  # FIXME: operand is provided as None
 
-	@property
+	@readonly
 	def Operand(self):
 		return self._operand
 
@@ -280,8 +280,8 @@ class BinaryExpression(BaseExpression):
 	_leftOperand:  ExpressionUnion
 	_rightOperand: ExpressionUnion
 
-	def __init__(self, leftOperand: ExpressionUnion, rightOperand: ExpressionUnion):
-		super().__init__()
+	def __init__(self, leftOperand: ExpressionUnion, rightOperand: ExpressionUnion, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._leftOperand = leftOperand
 		leftOperand._parent = self
@@ -538,8 +538,8 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 	_operand:  ExpressionUnion
 	_subtype:  Symbol
 
-	def __init__(self, subtype: Symbol, operand: ExpressionUnion):
-		super().__init__()
+	def __init__(self, subtype: Symbol, operand: ExpressionUnion, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._operand = operand
 		operand._parent = self
@@ -568,8 +568,8 @@ class TernaryExpression(BaseExpression):
 	_secondOperand: ExpressionUnion
 	_thirdOperand:  ExpressionUnion
 
-	def __init__(self) -> None:
-		super().__init__()
+	def __init__(self, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		# FIXME: parameters and initializers are missing !!
 
@@ -616,8 +616,8 @@ class Allocation(BaseExpression):
 class SubtypeAllocation(Allocation):
 	_subtype: Symbol
 
-	def __init__(self, subtype: Symbol):
-		super().__init__()
+	def __init__(self, subtype: Symbol, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._subtype = subtype
 		subtype._parent = self
@@ -634,8 +634,8 @@ class SubtypeAllocation(Allocation):
 class QualifiedExpressionAllocation(Allocation):
 	_qualifiedExpression: QualifiedExpression
 
-	def __init__(self, qualifiedExpression: QualifiedExpression):
-		super().__init__()
+	def __init__(self, qualifiedExpression: QualifiedExpression, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._qualifiedExpression = qualifiedExpression
 		qualifiedExpression._parent = self
@@ -654,8 +654,8 @@ class AggregateElement(ModelEntity):
 
 	_expression: ExpressionUnion
 
-	def __init__(self, expression: ExpressionUnion):
-		super().__init__()
+	def __init__(self, expression: ExpressionUnion, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._expression = expression
 		expression._parent = self
@@ -675,8 +675,8 @@ class SimpleAggregateElement(AggregateElement):
 class IndexedAggregateElement(AggregateElement):
 	_index: int
 
-	def __init__(self, index: ExpressionUnion, expression: ExpressionUnion):
-		super().__init__(expression)
+	def __init__(self, index: ExpressionUnion, expression: ExpressionUnion, parent: ModelEntity = None) -> None:
+		super().__init__(expression, parent)
 
 		self._index = index
 
@@ -692,8 +692,8 @@ class IndexedAggregateElement(AggregateElement):
 class RangedAggregateElement(AggregateElement):
 	_range: Range
 
-	def __init__(self, rng: Range, expression: ExpressionUnion):
-		super().__init__(expression)
+	def __init__(self, rng: Range, expression: ExpressionUnion, parent: ModelEntity = None) -> None:
+		super().__init__(expression, parent)
 
 		self._range = rng
 		rng._parent = self
@@ -710,8 +710,8 @@ class RangedAggregateElement(AggregateElement):
 class NamedAggregateElement(AggregateElement):
 	_name: Symbol
 
-	def __init__(self, name: Symbol, expression: ExpressionUnion):
-		super().__init__(expression)
+	def __init__(self, name: Symbol, expression: ExpressionUnion, parent: ModelEntity = None) -> None:
+		super().__init__(expression, parent)
 
 		self._name = name
 		name._parent = self
@@ -739,8 +739,8 @@ class OthersAggregateElement(AggregateElement):
 class Aggregate(BaseExpression):
 	_elements: List[AggregateElement]
 
-	def __init__(self, elements: Iterable[AggregateElement]):
-		super().__init__()
+	def __init__(self, elements: Iterable[AggregateElement], parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._elements = []
 		for element in elements:

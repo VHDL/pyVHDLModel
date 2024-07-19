@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from typing import List, Dict, Union, Iterable, Optional as Nullable
 
-from pyTooling.Decorators   import export
+from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
 from pyTooling.Graph        import Vertex
 
@@ -64,12 +64,12 @@ class Reference(ModelEntity):
 
 	_symbols:       List[Symbol]
 
-	def __init__(self, symbols: Iterable[Symbol]):
-		super().__init__()
+	def __init__(self, symbols: Iterable[Symbol], parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._symbols = [s for s in symbols]
 
-	@property
+	@readonly
 	def Symbols(self) -> List[Symbol]:
 		return self._symbols
 
@@ -86,7 +86,7 @@ class LibraryClause(Reference):
 	      library ieee;
 	"""
 
-	@property
+	@readonly
 	def Symbols(self) -> List[LibraryReferenceSymbol]:
 		return self._symbols
 
@@ -164,12 +164,12 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_referencedPackages:  Dict[str, Dict[str, 'Package']]  #: Referenced packages based on explicit use clauses or implicit inheritance
 	_referencedContexts:  Dict[str, 'Context']             #: Referenced contexts based on explicit context references or implicit inheritance
 
-	_dependencyVertex:    Vertex[None, None, str, 'DesignUnit', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: The vertex in the dependency graph
+	_dependencyVertex:    Vertex[None, None, str, 'DesignUnit', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the design unit. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
 	_hierarchyVertex:     Vertex[None, None, str, 'DesignUnit', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: The vertex in the hierarchy graph
 
 	_namespace:           'Namespace'
 
-	def __init__(self, identifier: str, contextItems: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None):
+	def __init__(self, identifier: str, contextItems: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
 		"""
 		Initializes a design unit.
 
@@ -177,7 +177,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:param contextItems:  A sequence of library, use or context clauses.
 		:param documentation: Associated documentation of the design unit.
 		"""
-		super().__init__()
+		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
@@ -207,7 +207,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		self._namespace = Namespace(self._normalizedIdentifier)
 
-	@property
+	@readonly
 	def Document(self) -> 'Document':
 		return self._parent
 
@@ -340,8 +340,8 @@ class Context(PrimaryUnit):
 
 	_references:        List[ContextUnion]
 
-	def __init__(self, identifier: str, references: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None):
-		super().__init__(identifier, None, documentation)
+	def __init__(self, identifier: str, references: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, None, documentation, parent)
 
 		self._references = []
 		self._libraryReferences = []
@@ -399,8 +399,16 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 	_deferredConstants: Dict[str, DeferredConstant]
 	_components:        Dict[str, 'Component']
 
-	def __init__(self, identifier: str, contextItems: Nullable[Iterable[ContextUnion]] = None, genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None, declaredItems: Nullable[Iterable] = None, documentation: Nullable[str] = None):
-		super().__init__(identifier, contextItems, documentation)
+	def __init__(
+		self,
+		identifier: str,
+		contextItems: Nullable[Iterable[ContextUnion]] = None,
+		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
+		declaredItems: Nullable[Iterable] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 
@@ -466,8 +474,15 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 
 	_package:       PackageSymbol
 
-	def __init__(self, packageSymbol: PackageSymbol, contextItems: Nullable[Iterable[ContextUnion]] = None, declaredItems: Nullable[Iterable] = None, documentation: Nullable[str] = None):
-		super().__init__(packageSymbol.Name.Identifier, contextItems, documentation)
+	def __init__(
+		self,
+		packageSymbol: PackageSymbol,
+		contextItems: Nullable[Iterable[ContextUnion]] = None,
+		declaredItems: Nullable[Iterable] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(packageSymbol.Name.Identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 
@@ -523,9 +538,10 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
 		declaredItems: Nullable[Iterable] = None,
 		statements: Nullable[Iterable[ConcurrentStatement]] = None,
-		documentation: Nullable[str] = None
-	):
-		super().__init__(identifier, contextItems, documentation)
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
@@ -591,8 +607,17 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 
 	_entity: EntitySymbol
 
-	def __init__(self, identifier: str, entity: EntitySymbol, contextItems: Nullable[Iterable[Context]] = None, declaredItems: Nullable[Iterable] = None, statements: Iterable['ConcurrentStatement'] = None, documentation: Nullable[str] = None):
-		super().__init__(identifier, contextItems, documentation)
+	def __init__(
+		self,
+		identifier: str,
+		entity: EntitySymbol,
+		contextItems: Nullable[Iterable[Context]] = None,
+		declaredItems: Nullable[Iterable] = None,
+		statements: Iterable['ConcurrentStatement'] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
@@ -645,8 +670,15 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	_entity:            Nullable[Entity]
 
-	def __init__(self, identifier: str, genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None, portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None, documentation: Nullable[str] = None):
-		super().__init__()
+	def __init__(
+		self,
+		identifier: str,
+		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
+		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
@@ -697,8 +729,14 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 	      end configuration;
 	"""
 
-	def __init__(self, identifier: str, contextItems: Nullable[Iterable[Context]] = None, documentation: Nullable[str] = None):
-		super().__init__(identifier, contextItems, documentation)
+	def __init__(
+		self,
+		identifier: str,
+		contextItems: Nullable[Iterable[Context]] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 
 	def __str__(self) -> str:

@@ -36,7 +36,7 @@ Concurrent defines all concurrent statements used in entities, architectures, ge
 """
 from typing                  import List, Dict, Union, Iterable, Generator, Optional as Nullable
 
-from pyTooling.Decorators    import export
+from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, BaseCase, IfBranchMixin
@@ -84,7 +84,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 	_generates:      Dict[str, 'GenerateStatement']
 	_hierarchy:      Dict[str, Union['ConcurrentBlockStatement', 'GenerateStatement']]
 
-	def __init__(self, statements: Nullable[Iterable[ConcurrentStatement]] = None):
+	def __init__(self, statements: Nullable[Iterable[ConcurrentStatement]] = None) -> None:
 		self._statements = []
 
 		self._instantiations = {}
@@ -97,7 +97,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 				self._statements.append(statement)
 				statement._parent = self
 
-	@property
+	@readonly
 	def Statements(self) -> List[ConcurrentStatement]:
 		return self._statements
 
@@ -133,8 +133,14 @@ class Instantiation(ConcurrentStatement):
 	_genericAssociations: List[AssociationItem]
 	_portAssociations: List[AssociationItem]
 
-	def __init__(self, label: str, genericAssociations: Nullable[Iterable[AssociationItem]] = None, portAssociations: Nullable[Iterable[AssociationItem]] = None):
-		super().__init__(label)
+	def __init__(
+		self,
+		label: str,
+		genericAssociations: Nullable[Iterable[AssociationItem]] = None,
+		portAssociations: Nullable[Iterable[AssociationItem]] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(label, parent)
 
 		# TODO: extract to mixin
 		self._genericAssociations = []
@@ -150,7 +156,7 @@ class Instantiation(ConcurrentStatement):
 				self._portAssociations.append(association)
 				association._parent = self
 
-	@property
+	@readonly
 	def GenericAssociations(self) -> List[AssociationItem]:
 		return self._genericAssociations
 
@@ -173,8 +179,15 @@ class ComponentInstantiation(Instantiation):
 
 	_component: ComponentInstantiationSymbol
 
-	def __init__(self, label: str, componentSymbol: ComponentInstantiationSymbol, genericAssociations: Nullable[Iterable[AssociationItem]] = None, portAssociations: Nullable[Iterable[AssociationItem]] = None):
-		super().__init__(label, genericAssociations, portAssociations)
+	def __init__(
+		self,
+		label: str,
+		componentSymbol: ComponentInstantiationSymbol,
+		genericAssociations: Nullable[Iterable[AssociationItem]] = None,
+		portAssociations: Nullable[Iterable[AssociationItem]] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(label, genericAssociations, portAssociations, parent)
 
 		self._component = componentSymbol
 		componentSymbol._parent = self
@@ -199,8 +212,16 @@ class EntityInstantiation(Instantiation):
 	_entity: EntityInstantiationSymbol
 	_architecture: ArchitectureSymbol
 
-	def __init__(self, label: str, entitySymbol: EntityInstantiationSymbol, architectureSymbol: Nullable[ArchitectureSymbol] = None, genericAssociations: Nullable[Iterable[AssociationItem]] = None, portAssociations: Nullable[Iterable[AssociationItem]] = None):
-		super().__init__(label, genericAssociations, portAssociations)
+	def __init__(
+		self,
+		label: str,
+		entitySymbol: EntityInstantiationSymbol,
+		architectureSymbol: Nullable[ArchitectureSymbol] = None,
+		genericAssociations: Nullable[Iterable[AssociationItem]] = None,
+		portAssociations: Nullable[Iterable[AssociationItem]] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(label, genericAssociations, portAssociations, parent)
 
 		self._entity = entitySymbol
 		entitySymbol._parent = self
@@ -232,8 +253,15 @@ class ConfigurationInstantiation(Instantiation):
 
 	_configuration: ConfigurationInstantiationSymbol
 
-	def __init__(self, label: str, configurationSymbol: ConfigurationInstantiationSymbol, genericAssociations: Nullable[Iterable[AssociationItem]] = None, portAssociations: Nullable[Iterable[AssociationItem]] = None):
-		super().__init__(label, genericAssociations, portAssociations)
+	def __init__(
+		self,
+		label: str,
+		configurationSymbol: ConfigurationInstantiationSymbol,
+		genericAssociations: Nullable[Iterable[AssociationItem]] = None,
+		portAssociations: Nullable[Iterable[AssociationItem]] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(label, genericAssociations, portAssociations, parent)
 
 		self._configuration = configurationSymbol
 		configurationSymbol._parent = self
@@ -267,9 +295,10 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationsMixin, Sequent
 		declaredItems: Nullable[Iterable] = None,
 		statements: Nullable[Iterable[SequentialStatement]] = None,
 		sensitivityList: Nullable[Iterable[Name]] = None,
-		documentation: Nullable[str] = None
-	):
-		super().__init__(label)
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(label, parent)
 		SequentialDeclarationsMixin.__init__(self, declaredItems)
 		SequentialStatementsMixin.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
@@ -289,8 +318,14 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationsMixin, Sequent
 
 @export
 class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
-	def __init__(self, label: str, procedureName: Name, parameterMappings: Nullable[Iterable[ParameterAssociationItem]] = None):
-		super().__init__(label)
+	def __init__(
+		self,
+		label: str,
+		procedureName: Name,
+		parameterMappings: Nullable[Iterable[ParameterAssociationItem]] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(label, parent)
 		ProcedureCallMixin.__init__(self, procedureName, parameterMappings)
 
 
@@ -304,9 +339,10 @@ class ConcurrentBlockStatement(ConcurrentStatement, BlockStatementMixin, Labeled
 		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
 		declaredItems: Nullable[Iterable] = None,
 		statements: Iterable['ConcurrentStatement'] = None,
-		documentation: Nullable[str] = None
-	):
-		super().__init__(label)
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(label, parent)
 		BlockStatementMixin.__init__(self)
 		LabeledEntityMixin.__init__(self, label)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
@@ -342,8 +378,14 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentSt
 
 	_namespace:                  Namespace
 
-	def __init__(self, declaredItems: Nullable[Iterable] = None, statements: Nullable[Iterable[ConcurrentStatement]] = None, alternativeLabel: Nullable[str] = None):
-		super().__init__()
+	def __init__(
+		self,
+		declaredItems: Nullable[Iterable] = None,
+		statements: Nullable[Iterable[ConcurrentStatement]] = None,
+		alternativeLabel: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(parent)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
 
@@ -381,8 +423,15 @@ class IfGenerateBranch(GenerateBranch, IfBranchMixin):
 	      end generate;
 	"""
 
-	def __init__(self, condition: ExpressionUnion, declaredItems: Nullable[Iterable] = None, statements: Nullable[Iterable[ConcurrentStatement]] = None, alternativeLabel: Nullable[str] = None):
-		super().__init__(declaredItems, statements, alternativeLabel)
+	def __init__(
+		self,
+		condition: ExpressionUnion,
+		declaredItems: Nullable[Iterable] = None,
+		statements: Nullable[Iterable[ConcurrentStatement]] = None,
+		alternativeLabel: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(declaredItems, statements, alternativeLabel, parent)
 		IfBranchMixin.__init__(self, condition)
 
 
@@ -406,8 +455,15 @@ class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
 	      end generate;
 	"""
 
-	def __init__(self, condition: ExpressionUnion, declaredItems: Nullable[Iterable] = None, statements: Nullable[Iterable[ConcurrentStatement]] = None, alternativeLabel: Nullable[str] = None):
-		super().__init__(declaredItems, statements, alternativeLabel)
+	def __init__(
+		self,
+		condition: ExpressionUnion,
+		declaredItems: Nullable[Iterable] = None,
+		statements: Nullable[Iterable[ConcurrentStatement]] = None,
+		alternativeLabel: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(declaredItems, statements, alternativeLabel, parent)
 		ElsifBranchMixin.__init__(self, condition)
 
 
@@ -431,8 +487,14 @@ class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 	      end generate;
 	"""
 
-	def __init__(self, declaredItems: Nullable[Iterable] = None, statements: Nullable[Iterable[ConcurrentStatement]] = None, alternativeLabel: Nullable[str] = None):
-		super().__init__(declaredItems, statements, alternativeLabel)
+	def __init__(
+		self,
+		declaredItems: Nullable[Iterable] = None,
+		statements: Nullable[Iterable[ConcurrentStatement]] = None,
+		alternativeLabel: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(declaredItems, statements, alternativeLabel, parent)
 		ElseBranchMixin.__init__(self)
 
 
@@ -450,8 +512,12 @@ class GenerateStatement(ConcurrentStatement):
 
 	_namespace: Namespace
 
-	def __init__(self, label: Nullable[str] = None) -> None:
-		super().__init__(label)
+	def __init__(
+		self,
+		label: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(label, parent)
 
 		self._namespace = Namespace(self._normalizedLabel)
 
@@ -493,8 +559,15 @@ class IfGenerateStatement(GenerateStatement):
 	_elsifBranches: List[ElsifGenerateBranch]
 	_elseBranch:    Nullable[ElseGenerateBranch]
 
-	def __init__(self, label: str, ifBranch: IfGenerateBranch, elsifBranches: Nullable[Iterable[ElsifGenerateBranch]] = None, elseBranch: Nullable[ElseGenerateBranch] = None):
-		super().__init__(label)
+	def __init__(
+		self,
+		label: str,
+		ifBranch: IfGenerateBranch,
+		elsifBranches: Nullable[Iterable[ElsifGenerateBranch]] = None,
+		elseBranch: Nullable[ElseGenerateBranch] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(label, parent)
 
 		self._ifBranch = ifBranch
 		ifBranch._parent = self
@@ -547,8 +620,8 @@ class ConcurrentChoice(BaseChoice):
 class IndexedGenerateChoice(ConcurrentChoice):
 	_expression: ExpressionUnion
 
-	def __init__(self, expression: ExpressionUnion):
-		super().__init__()
+	def __init__(self, expression: ExpressionUnion, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._expression = expression
 		expression._parent = self
@@ -565,8 +638,8 @@ class IndexedGenerateChoice(ConcurrentChoice):
 class RangedGenerateChoice(ConcurrentChoice):
 	_range: 'Range'
 
-	def __init__(self, rng: 'Range'):
-		super().__init__()
+	def __init__(self, rng: 'Range', parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._range = rng
 		rng._parent = self
@@ -581,8 +654,14 @@ class RangedGenerateChoice(ConcurrentChoice):
 
 @export
 class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
-	def __init__(self, declaredItems: Nullable[Iterable] = None, statements: Nullable[Iterable[ConcurrentStatement]] = None, alternativeLabel: Nullable[str] = None):
-		super().__init__()
+	def __init__(
+		self,
+		declaredItems: Nullable[Iterable] = None,
+		statements: Nullable[Iterable[ConcurrentStatement]] = None,
+		alternativeLabel: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(parent)
 		LabeledEntityMixin.__init__(self, alternativeLabel)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
@@ -592,8 +671,15 @@ class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMi
 class GenerateCase(ConcurrentCase):
 	_choices: List[ConcurrentChoice]
 
-	def __init__(self, choices: Iterable[ConcurrentChoice], declaredItems: Nullable[Iterable] = None, statements: Nullable[Iterable[ConcurrentStatement]] = None, alternativeLabel: Nullable[str] = None):
-		super().__init__(declaredItems, statements, alternativeLabel)
+	def __init__(
+		self,
+		choices: Iterable[ConcurrentChoice],
+		declaredItems: Nullable[Iterable] = None,
+		statements: Nullable[Iterable[ConcurrentStatement]] = None,
+		alternativeLabel: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(declaredItems, statements, alternativeLabel, parent)
 
 		# TODO: move to parent or grandparent
 		self._choices = []
@@ -639,8 +725,14 @@ class CaseGenerateStatement(GenerateStatement):
 	_expression: ExpressionUnion
 	_cases:      List[GenerateCase]
 
-	def __init__(self, label: str, expression: ExpressionUnion, cases: Iterable[ConcurrentCase]):
-		super().__init__(label)
+	def __init__(
+		self,
+		label: str,
+		expression: ExpressionUnion,
+		cases: Iterable[ConcurrentCase],
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(label, parent)
 
 		self._expression = expression
 		expression._parent = self
@@ -686,8 +778,16 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 	_loopIndex: str
 	_range:     Range
 
-	def __init__(self, label: str, loopIndex: str, rng: Range, declaredItems: Nullable[Iterable] = None, statements: Nullable[Iterable[ConcurrentStatement]] = None):
-		super().__init__(label)
+	def __init__(
+		self,
+		label: str,
+		loopIndex: str,
+		rng: Range,
+		declaredItems: Nullable[Iterable] = None,
+		statements: Nullable[Iterable[ConcurrentStatement]] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(label, parent)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
 
@@ -727,8 +827,8 @@ class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignmentMixin):
 	   * :class:`~pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment`
 	   * :class:`~pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment`
 	"""
-	def __init__(self, label: str, target: Name):
-		super().__init__(label)
+	def __init__(self, label: str, target: Name, parent: ModelEntity = None) -> None:
+		super().__init__(label, parent)
 		SignalAssignmentMixin.__init__(self, target)
 
 
@@ -736,8 +836,8 @@ class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignmentMixin):
 class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
 	_waveform: List[WaveformElement]
 
-	def __init__(self, label: str, target: Name, waveform: Iterable[WaveformElement]):
-		super().__init__(label, target)
+	def __init__(self, label: str, target: Name, waveform: Iterable[WaveformElement], parent: ModelEntity = None) -> None:
+		super().__init__(label, target, parent)
 
 		# TODO: extract to mixin
 		self._waveform = []
@@ -753,18 +853,25 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment):
 
 @export
 class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment):
-	def __init__(self, label: str, target: Name, expression: ExpressionUnion):
-		super().__init__(label, target)
+	def __init__(self, label: str, target: Name, expression: ExpressionUnion, parent: ModelEntity = None) -> None:
+		super().__init__(label, target, parent)
 
 
 @export
 class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment):
-	def __init__(self, label: str, target: Name, expression: ExpressionUnion):
-		super().__init__(label, target)
+	def __init__(self, label: str, target: Name, expression: ExpressionUnion, parent: ModelEntity = None) -> None:
+		super().__init__(label, target, parent)
 
 
 @export
 class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
-	def __init__(self, condition: ExpressionUnion, message: ExpressionUnion, severity: Nullable[ExpressionUnion] = None, label: Nullable[str] = None):
-		super().__init__(label)
+	def __init__(
+		self,
+		condition: ExpressionUnion,
+		message: ExpressionUnion,
+		severity: Nullable[ExpressionUnion] = None,
+		label: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(label, parent)
 		AssertStatementMixin.__init__(self, condition, message, severity)

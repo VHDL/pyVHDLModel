@@ -1,4 +1,4 @@
-.. _datastruct:dependgraph:
+.. _datastruct:hierarchygraph:
 
 Hierarchy Graph
 ###############

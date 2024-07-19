@@ -37,7 +37,7 @@ This module contains parts of an abstract document language model for VHDL.
 from enum                   import unique, Enum
 from typing                 import List, Iterable, Union, Optional as Nullable
 
-from pyTooling.Decorators   import export
+from pyTooling.Decorators   import export, readonly
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
@@ -98,15 +98,21 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	_subtype: Symbol
 
-	def __init__(self, identifier: str, subtype: Symbol, documentation: Nullable[str] = None):
-		super().__init__()
+	def __init__(
+		self,
+		identifier: str,
+		subtype: Symbol,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._subtype = subtype
 		subtype._parent = self
 
-	@property
+	@readonly
 	def Subtype(self) -> None:
 		return self._subtype
 
@@ -128,8 +134,16 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 	_entityClass: EntityClass
 	_expression: ExpressionUnion
 
-	def __init__(self, identifiers: Iterable[Name], attribute: Name, entityClass: EntityClass, expression: ExpressionUnion, documentation: Nullable[str] = None):
-		super().__init__()
+	def __init__(
+		self,
+		identifiers: Iterable[Name],
+		attribute: Name,
+		entityClass: EntityClass,
+		expression: ExpressionUnion,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(parent)
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._identifiers = []  # TODO: convert to dict
@@ -145,19 +159,19 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		self._expression = expression
 		expression._parent = self
 
-	@property
+	@readonly
 	def Identifiers(self) -> List[Name]:
 		return self._identifiers
 
-	@property
+	@readonly
 	def Attribute(self) -> Name:
 		return self._attribute
 
-	@property
+	@readonly
 	def EntityClass(self) -> EntityClass:
 		return self._entityClass
 
-	@property
+	@readonly
 	def Expression(self) -> ExpressionUnion:
 		return self._expression
 
@@ -165,12 +179,12 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 # TODO: move somewhere else
 @export
 class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
-	def __init__(self, identifier: str, documentation: Nullable[str] = None):
+	def __init__(self, identifier: str, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
 		"""
 		Initializes underlying ``BaseType``.
 
 		:param identifier: Name of the type.
 		"""
-		super().__init__()
+		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)

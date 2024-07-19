@@ -38,7 +38,7 @@ message in english, each exception object contains one or multiple references to
 from sys    import version_info
 from typing import List
 
-from pyTooling.Decorators import export
+from pyTooling.Decorators import export, readonly
 
 from pyVHDLModel.Symbol import Symbol
 
@@ -68,7 +68,7 @@ class LibraryExistsInDesignError(VHDLModelException):
 
 	_library: 'Library'
 
-	def __init__(self, library: 'Library'):
+	def __init__(self, library: 'Library') -> None:
 		"""
 		Initializes the exception message based on given library object.
 
@@ -77,7 +77,7 @@ class LibraryExistsInDesignError(VHDLModelException):
 		super().__init__(f"Library '{library.Identifier}' already exists in design.")
 		self._library = library
 
-	@property
+	@readonly
 	def Library(self) -> 'Library':
 		return self._library
 
@@ -92,7 +92,7 @@ class LibraryRegisteredToForeignDesignError(VHDLModelException):
 
 	_library: 'Library'
 
-	def __init__(self, library: 'Library'):
+	def __init__(self, library: 'Library') -> None:
 		"""
 		Initializes the exception message based on given library object.
 
@@ -101,7 +101,7 @@ class LibraryRegisteredToForeignDesignError(VHDLModelException):
 		super().__init__(f"Library '{library.Identifier}' already registered in design '{library.Parent}'.")
 		self._library = library
 
-	@property
+	@readonly
 	def Library(self) -> 'Library':
 		return self._library
 
@@ -116,7 +116,7 @@ class LibraryNotRegisteredError(VHDLModelException):
 
 	_library: 'Library'
 
-	def __init__(self, library: 'Library'):
+	def __init__(self, library: 'Library') -> None:
 		"""
 		Initializes the exception message based on given library object.
 
@@ -125,7 +125,7 @@ class LibraryNotRegisteredError(VHDLModelException):
 		super().__init__(f"Library '{library.Identifier}' is not registered in the design.")
 		self._library = library
 
-	@property
+	@readonly
 	def Library(self) -> 'Library':
 		return self._library
 
@@ -141,7 +141,7 @@ class EntityExistsInLibraryError(VHDLModelException):
 	_library: 'Library'
 	_entity: 'Entity'
 
-	def __init__(self, entity: 'Entity', library: 'Library'):
+	def __init__(self, entity: 'Entity', library: 'Library') -> None:
 		"""
 		Initializes the exception message based on given entity and library objects.
 
@@ -152,11 +152,11 @@ class EntityExistsInLibraryError(VHDLModelException):
 		self._library = library
 		self._entity = entity
 
-	@property
+	@readonly
 	def Library(self) -> 'Library':
 		return self._library
 
-	@property
+	@readonly
 	def Entity(self) -> 'Entity':
 		return self._entity
 
@@ -173,7 +173,7 @@ class ArchitectureExistsInLibraryError(VHDLModelException):
 	_entity: 'Entity'
 	_architecture: 'Architecture'
 
-	def __init__(self, architecture: 'Architecture', entity: 'Entity', library: 'Library'):
+	def __init__(self, architecture: 'Architecture', entity: 'Entity', library: 'Library') -> None:
 		"""
 		Initializes the exception message based on given architecture, entity and library objects.
 
@@ -186,15 +186,15 @@ class ArchitectureExistsInLibraryError(VHDLModelException):
 		self._entity = entity
 		self._architecture = architecture
 
-	@property
+	@readonly
 	def Library(self) -> 'Library':
 		return self._library
 
-	@property
+	@readonly
 	def Entity(self) -> 'Entity':
 		return self._entity
 
-	@property
+	@readonly
 	def Architecture(self) -> 'Architecture':
 		return self._architecture
 
@@ -210,7 +210,7 @@ class PackageExistsInLibraryError(VHDLModelException):
 	_library: 'Library'
 	_package: 'Package'
 
-	def __init__(self, package: 'Package', library: 'Library'):
+	def __init__(self, package: 'Package', library: 'Library') -> None:
 		"""
 		Initializes the exception message based on given package and library objects.
 
@@ -221,11 +221,11 @@ class PackageExistsInLibraryError(VHDLModelException):
 		self._library = library
 		self._package = package
 
-	@property
+	@readonly
 	def Library(self) -> 'Library':
 		return self._library
 
-	@property
+	@readonly
 	def Package(self) -> 'Package':
 		return self._package
 
@@ -241,7 +241,7 @@ class PackageBodyExistsError(VHDLModelException):
 	_library: 'Library'
 	_packageBody: 'PackageBody'
 
-	def __init__(self, packageBody: 'PackageBody', library: 'Library'):
+	def __init__(self, packageBody: 'PackageBody', library: 'Library') -> None:
 		"""
 		Initializes the exception message based on given package body and library objects.
 
@@ -252,7 +252,7 @@ class PackageBodyExistsError(VHDLModelException):
 		self._library = library
 		self._packageBody = packageBody
 
-	@property
+	@readonly
 	def Library(self) -> 'Library':
 		return self._library
 
@@ -272,7 +272,7 @@ class ConfigurationExistsInLibraryError(VHDLModelException):
 	_library: 'Library'
 	_configuration: 'Configuration'
 
-	def __init__(self, configuration: 'Configuration', library: 'Library'):
+	def __init__(self, configuration: 'Configuration', library: 'Library') -> None:
 		"""
 		Initializes the exception message based on given configuration and library objects.
 
@@ -303,7 +303,7 @@ class ContextExistsInLibraryError(VHDLModelException):
 	_library: 'Library'
 	_context: 'Context'
 
-	def __init__(self, context: 'Context', library: 'Library'):
+	def __init__(self, context: 'Context', library: 'Library') -> None:
 		"""
 		Initializes the exception message based on given context and library objects.
 
@@ -334,7 +334,7 @@ class ReferencedLibraryNotExistingError(VHDLModelException):
 	_librarySymbol: Symbol
 	_context: 'Context'
 
-	def __init__(self, context: 'Context', librarySymbol: Symbol):
+	def __init__(self, context: 'Context', librarySymbol: Symbol) -> None:
 		"""
 		Initializes the exception message based on given context and library objects.
 

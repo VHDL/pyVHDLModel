@@ -1,4 +1,4 @@
-.. _datastruct:compileorder:
+.. _datastruct:compileordergraph:
 
 Compile Order Graph
 ###################

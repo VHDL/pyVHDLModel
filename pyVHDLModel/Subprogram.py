@@ -36,7 +36,7 @@ Subprograms are procedures, functions and methods.
 """
 from typing                 import List, Optional as Nullable
 
-from pyTooling.Decorators   import export
+from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
@@ -52,8 +52,8 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_statements:     List['SequentialStatement']
 	_isPure:         bool
 
-	def __init__(self, identifier: str, documentation: Nullable[str] = None):
-		super().__init__()
+	def __init__(self, identifier: str, isPure: bool, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
@@ -61,46 +61,45 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self._parameterItems =  []  # TODO: convert to dict
 		self._declaredItems =   []  # TODO: use mixin class
 		self._statements =      []  # TODO: use mixin class
+		self._isPure =          isPure
 
-	@property
+	@readonly
 	def GenericItems(self) -> List['GenericInterfaceItem']:
 		return self._genericItems
 
-	@property
+	@readonly
 	def ParameterItems(self) -> List['ParameterInterfaceItem']:
 		return self._parameterItems
 
-	@property
+	@readonly
 	def DeclaredItems(self) -> List:
 		return self._declaredItems
 
-	@property
+	@readonly
 	def Statements(self) -> List['SequentialStatement']:
 		return self._statements
 
-	@property
+	@readonly
 	def IsPure(self) -> bool:
 		return self._isPure
 
 
 @export
 class Procedure(Subprogram):
-	def __init__(self, identifier: str, documentation: Nullable[str] = None):
-		super().__init__(identifier, documentation)
-		self._isPure = False
+	def __init__(self, identifier: str, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, False, documentation, parent)
 
 
 @export
 class Function(Subprogram):
 	_returnType: Subtype
 
-	def __init__(self, identifier: str, isPure: bool = True, documentation: Nullable[str] = None):
-		super().__init__(identifier, documentation)
+	def __init__(self, identifier: str, isPure: bool = True, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, isPure, documentation, parent)
 
-		self._isPure = isPure
 		# FIXME: return type is missing
 
-	@property
+	@readonly
 	def ReturnType(self) -> Subtype:
 		return self._returnType
 
@@ -111,24 +110,24 @@ class MethodMixin(metaclass=ExtendedType, mixin=True):
 
 	_protectedType: ProtectedType
 
-	def __init__(self, protectedType: ProtectedType):
+	def __init__(self, protectedType: ProtectedType) -> None:
 		self._protectedType = protectedType
 		protectedType._parent = self
 
-	@property
+	@readonly
 	def ProtectedType(self) -> ProtectedType:
 		return self._protectedType
 
 
 @export
 class ProcedureMethod(Procedure, MethodMixin):
-	def __init__(self, identifier: str, protectedType: ProtectedType):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, documentation: Nullable[str] = None, protectedType: Nullable[ProtectedType] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, documentation, parent)
 		MethodMixin.__init__(self, protectedType)
 
 
 @export
 class FunctionMethod(Function, MethodMixin):
-	def __init__(self, identifier: str, protectedType: ProtectedType):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, isPure: bool = True, documentation: Nullable[str] = None, protectedType: Nullable[ProtectedType] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, isPure, documentation, parent)
 		MethodMixin.__init__(self, protectedType)

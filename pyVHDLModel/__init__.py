@@ -878,39 +878,40 @@ class Design(ModelEntity):
 
 		.. rubric:: Algorithm
 
-		* Iterate all libraries in the design.
+		1. Iterate all libraries in the design.
 
-		  1. Create a vertex for that library and reference the library by the vertex' value field. |br|
+		   * Create a vertex for that library and reference the library by the vertex' value field. |br|
 		     In return, set the library's :attr:`~pyVHDLModel.Library._dependencyVertex` field to reference the created vertex.
-		  2. Iterate all contexts in that library.
 
-		     * Create a vertex for that context and reference the context by the vertex' value field. |br|
-		       In return, set the context's :attr:`~pyVHDLModel.DesignUnit.Context._dependencyVertex` field to reference the created vertex.
+		   1. Iterate all contexts in that library.
 
-		  3. Iterate all packages in that library.
+		      * Create a vertex for that context and reference the context by the vertex' value field. |br|
+		        In return, set the context's :attr:`~pyVHDLModel.DesignUnit.Context._dependencyVertex` field to reference the created vertex.
 
-		     * Create a vertex for that package and reference the package by the vertex' value field. |br|
-		       In return, set the package's :attr:`~pyVHDLModel.DesignUnit.Package._dependencyVertex` field to reference the created vertex.
+		   2. Iterate all packages in that library.
 
-		  4. Iterate all package bodies in that library.
+		      * Create a vertex for that package and reference the package by the vertex' value field. |br|
+		        In return, set the package's :attr:`~pyVHDLModel.DesignUnit.Package._dependencyVertex` field to reference the created vertex.
 
-		     * Create a vertex for that package body and reference the package body by the vertex' value field. |br|
-		       In return, set the package body's :attr:`~pyVHDLModel.DesignUnit.PackageBody._dependencyVertex` field to reference the created vertex.
+		   3. Iterate all package bodies in that library.
 
-		  5. Iterate all entities in that library.
+		      * Create a vertex for that package body and reference the package body by the vertex' value field. |br|
+		        In return, set the package body's :attr:`~pyVHDLModel.DesignUnit.PackageBody._dependencyVertex` field to reference the created vertex.
 
-		     * Create a vertex for that entity and reference the entity by the vertex' value field. |br|
-		       In return, set the entity's :attr:`~pyVHDLModel.DesignUnit.Entity._dependencyVertex` field to reference the created vertex.
+		   4. Iterate all entities in that library.
 
-		  6. Iterate all architectures in that library.
+		      * Create a vertex for that entity and reference the entity by the vertex' value field. |br|
+		        In return, set the entity's :attr:`~pyVHDLModel.DesignUnit.Entity._dependencyVertex` field to reference the created vertex.
 
-		     * Create a vertex for that architecture and reference the architecture by the vertex' value field. |br|
-		       In return, set the architecture's :attr:`~pyVHDLModel.DesignUnit.Architecture._dependencyVertex` field to reference the created vertex.
+		   5. Iterate all architectures in that library.
 
-		  7. Iterate all configurations in that library.
+		      * Create a vertex for that architecture and reference the architecture by the vertex' value field. |br|
+		        In return, set the architecture's :attr:`~pyVHDLModel.DesignUnit.Architecture._dependencyVertex` field to reference the created vertex.
 
-		     * Create a vertex for that configuration and reference the configuration by the vertex' value field. |br|
-		       In return, set the configuration's :attr:`~pyVHDLModel.DesignUnit.Configuration._dependencyVertex` field to reference the created vertex.
+		   6. Iterate all configurations in that library.
+
+		      * Create a vertex for that configuration and reference the configuration by the vertex' value field. |br|
+		        In return, set the configuration's :attr:`~pyVHDLModel.DesignUnit.Configuration._dependencyVertex` field to reference the created vertex.
 		"""
 		predefinedLibraries = ("std", "ieee")
 
@@ -976,14 +977,20 @@ class Design(ModelEntity):
 
 		.. rubric:: Algorithm
 
-		* Iterate all documents in the design.
+		1. Iterate all documents in the design.
 
-		  1. Create a vertex for that document and reference the document by the vertex' value field. |br|
+		   * Create a vertex for that document and reference the document by the vertex' value field. |br|
 		     In return, set the documents's :attr:`~pyVHDLModel.Document._dependencyVertex` field to reference the created vertex.
-		  2. Copy ...
+		   * Copy the vertex from dependency graph to compile-order graph and link both vertices bidirectionally. |br|
+		     In addition, set the documents's :attr:`~pyVHDLModel.Document._dependencyVertex` field to reference the copied vertex.
 
-		     1. Iterate
+		     * Add a key-value-pair called ``compileOrderVertex`` to the dependency graph's vertex.
+		     * Add a key-value-pair called ``dependencyVertex`` to the compiler-order graph's vertex.
 
+		   1. Iterate the documents design units and create an edge from the design unit's corresponding dependency vertex to the documents corresponding
+		      dependency vertex. This expresses a "design unit is located in document" relation.
+
+		      * Add a key-value-pair called `kind`` denoting the edge's kind as an enumeration value of type :class:`DependencyGraphEdgeKind`.
 		"""
 		for document in self._documents:
 			dependencyVertex = Vertex(vertexID=document.Path.name, value=document, graph=self._dependencyGraph)

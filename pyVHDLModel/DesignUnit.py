@@ -65,12 +65,23 @@ class Reference(ModelEntity):
 	_symbols:       List[Symbol]
 
 	def __init__(self, symbols: Iterable[Symbol], parent: ModelEntity = None) -> None:
+		"""
+		Initializes a reference by taking a list of symbols and a parent reference.
+
+		:param symbols: A list of symbols this reference references to.
+		:param parent:  Reference to the logical parent in the model hierarchy.
+		"""
 		super().__init__(parent)
 
 		self._symbols = [s for s in symbols]
 
 	@readonly
 	def Symbols(self) -> List[Symbol]:
+		"""
+		Read-only property to access the symbols this reference references to (:attr:`_symbols`).
+
+		:returns: A list of symbols.
+		"""
 		return self._symbols
 
 
@@ -83,11 +94,16 @@ class LibraryClause(Reference):
 
 	   .. code-block:: VHDL
 
-	      library ieee;
+	      library std, ieee;
 	"""
 
 	@readonly
 	def Symbols(self) -> List[LibraryReferenceSymbol]:
+		"""
+		Read-only property to access the symbols this library clause references to (:attr:`_symbols`).
+
+		:returns: A list of library reference symbols.
+		"""
 		return self._symbols
 
 
@@ -100,13 +116,12 @@ class UseClause(Reference):
 
 	   .. code-block:: VHDL
 
-	      use ieee.numeric_std.all;
+	      use std.text_io.all, ieee.numeric_std.all;
 	"""
 
 
 @export
 class ContextReference(Reference):
-	# TODO: rename to ContextClause?
 	"""
 	Represents a context reference.
 
@@ -129,7 +144,9 @@ ContextUnion = Union[
 
 @export
 class DesignUnitWithContextMixin(metaclass=ExtendedType, mixin=True):
-	pass
+	"""
+	A mixin-class for all design units with a context.
+	"""
 
 
 @export
@@ -176,6 +193,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:param identifier:    Identifier (name) of the design unit.
 		:param contextItems:  A sequence of library, use or context clauses.
 		:param documentation: Associated documentation of the design unit.
+		:param parent:        Reference to the logical parent in the model hierarchy.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)

@@ -57,6 +57,7 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		Initializes underlying ``BaseType``.
 
 		:param identifier: Name of the type.
+		:param parent:     Reference to the logical parent in the model hierarchy.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)

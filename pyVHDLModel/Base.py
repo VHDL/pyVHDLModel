@@ -107,7 +107,7 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 	available and a readonly property :attr:`Parent`.
 	"""
 
-	_parent: 'ModelEntity'      #: Reference to a parent entity in the model.
+	_parent: 'ModelEntity'      #: Reference to a parent entity in the logical model hierarchy.
 
 	def __init__(self, parent: Nullable["ModelEntity"] = None) -> None:
 		"""
@@ -120,9 +120,9 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 	@readonly
 	def Parent(self) -> 'ModelEntity':
 		"""
-		Returns a reference to the parent entity.
+		Read-only property to access the model entity's parent element reference in a logical hierarchy (:attr:`_parent`).
 
-		:returns: Parent entity.
+		:returns: Reference to the parent entity.
 		"""
 		return self._parent
 
@@ -285,23 +285,35 @@ class DocumentedEntityMixin(metaclass=ExtendedType, mixin=True):
 
 @export
 class ConditionalMixin(metaclass=ExtendedType, mixin=True):
-	"""A ``BaseConditional`` is a mixin-class for all statements with a condition."""
+	"""A ``ConditionalMixin`` is a mixin-class for all statements with a condition."""
 
 	_condition: ExpressionUnion
 
 	def __init__(self, condition: Nullable[ExpressionUnion] = None) -> None:
+		"""
+		Initializes a statement with a condition.
+
+		When the condition is not None, the condition's parent reference is set to this statement.
+
+		:param condition: The expression representing the condition.
+		"""
 		self._condition = condition
 		if condition is not None:
 			condition._parent = self
 
-	@property
+	@readonly
 	def Condition(self) -> ExpressionUnion:
+		"""
+		Read-only property to access the condition of a statement (:attr:`_condition`).
+
+		:returns: The expression representing the condition of a statement.
+		"""
 		return self._condition
 
 
 @export
 class BranchMixin(metaclass=ExtendedType, mixin=True):
-	"""A ``BaseBranch`` is a mixin-class for all statements with branches."""
+	"""A ``BranchMixin`` is a mixin-class for all statements with branches."""
 
 	def __init__(self) -> None:
 		pass

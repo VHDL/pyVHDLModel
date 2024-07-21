@@ -274,10 +274,24 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	@property
 	def DependencyVertex(self) -> Vertex:
+		"""
+		Read-only property to access the corresponding dependency vertex (:attr:`_dependencyVertex`).
+
+		The dependency vertex references this design unit by its value field.
+
+		:returns: The corresponding dependency vertex.
+		"""
 		return self._dependencyVertex
 
 	@property
 	def HierarchyVertex(self) -> Vertex:
+		"""
+		Read-only property to access the corresponding hierarchy vertex (:attr:`_hierarchyVertex`).
+
+		The hierarchy vertex references this design unit by its value field.
+
+		:returns: The corresponding hierarchy vertex.
+		"""
 		return self._hierarchyVertex
 
 
@@ -394,6 +408,8 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 	      end package;
 	"""
 
+	_packageBody:       Nullable["PackageBody"]
+
 	_genericItems:      List[GenericInterfaceItemMixin]
 
 	_deferredConstants: Dict[str, DeferredConstant]
@@ -412,6 +428,8 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 
+		self._packageBody = None
+
 		# TODO: extract to mixin
 		self._genericItems = []  # TODO: convert to dict
 		if genericItems is not None:
@@ -421,6 +439,10 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 
 		self._deferredConstants = {}
 		self._components = {}
+
+	@property
+	def PackageBody(self) -> Nullable["PackageBody"]:
+		return self._packageBody
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItemMixin]:

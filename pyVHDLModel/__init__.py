@@ -747,14 +747,14 @@ class Design(ModelEntity):
 
 		.. rubric:: Algorithm
 
-		* Iterate all VHDL libraries.
+		1. Iterate all VHDL libraries.
 
-		  1. Iterate all contexts in that library.
-		  2. Iterate all packages in that library.
-		  3. Iterate all package bodies in that library.
-		  4. Iterate all entites in that library.
-		  5. Iterate all architectures in that library.
-		  6. Iterate all configurations in that library.
+		   1. Iterate all contexts in that library.
+		   2. Iterate all packages in that library.
+		   3. Iterate all package bodies in that library.
+		   4. Iterate all entites in that library.
+		   5. Iterate all architectures in that library.
+		   6. Iterate all configurations in that library.
 
 		:param filter: An enumeration with possibly multiple flags to filter the returned design units.
 		:returns:      A generator to iterate all matched design units in the design.
@@ -763,6 +763,8 @@ class Design(ModelEntity):
 
 		   :meth:`pyVHDLModel.Library.IterateDesignUnits`
 		     Iterate all design units in the library.
+		   :meth:`pyVHDLModel.Document.IterateDesignUnits`
+		     Iterate all design units in the document.
 		"""
 		for library in self._libraries.values():
 			yield from library.IterateDesignUnits(filter)
@@ -1260,10 +1262,55 @@ class Design(ModelEntity):
 						raise VHDLModelException()
 
 	def LinkArchitectures(self) -> None:
+		"""
+		Link all architectures to corresponding entities in all libraries.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all libraries:
+
+		   1. Iterate all architecture groups (grouped per entity symbol's name).
+		      |rarr| :meth:`pyVHDLModel.Library.LinkArchitectures`
+
+		      * Check if entity symbol's name exists as an entity in this library.
+
+		      1. For each architecture in the same architecture group:
+
+		         * Add architecture to entities architecture dictionary :attr:`pyVHDLModel.DesignUnit.Entity._architectures`.
+		         * Assign found entity to architecture's entity symbol :attr:`pyVHDLModel.DesignUnit.Architecture._entity`
+		         * Set parent namespace of architecture's namespace to the entitie's namespace.
+		         * Add an edge in the dependency graph from the architecture's corresponding dependency vertex to the entity's corresponding dependency vertex.
+
+		.. seealso::
+
+		   :meth:`LinkPackageBodies`
+		     Link all package bodies to corresponding packages in all libraries.
+		"""
 		for library in self._libraries.values():
 			library.LinkArchitectures()
 
 	def LinkPackageBodies(self) -> None:
+		"""
+		Link all package bodies to corresponding packages in all libraries.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all libraries:
+
+		   1. Iterate all package bodies.
+		      |rarr| :meth:`pyVHDLModel.Library.LinkPackageBodies`
+
+		      * Check if package body symbol's name exists as a package in this library.
+		      * Add package body to package :attr:`pyVHDLModel.DesignUnit.Package._packageBody`.
+		      * Assign found package to package body's package symbol :attr:`pyVHDLModel.DesignUnit.PackageBody._package`
+		      * Set parent namespace of package body's namespace to the package's namespace.
+		      * Add an edge in the dependency graph from the package body's corresponding dependency vertex to the package's corresponding dependency vertex.
+
+		.. seealso::
+
+		   :meth:`LinkArchitectures`
+		     Link all architectures to corresponding entities in all libraries.
+		"""
 		for library in self._libraries.values():
 			library.LinkPackageBodies()
 
@@ -1521,22 +1568,131 @@ class Design(ModelEntity):
 					print(instance.Label, instance.Configuration)
 
 	def IndexPackages(self) -> None:
+		"""
+		Index all declared items in all packages in all libraries.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all libraries:
+
+		   1. Iterate all packages |br|
+		      |rarr| :meth:`pyVHDLModel.Library.IndexPackages`
+
+		      * Index all declared items in that package. |br|
+		        |rarr| :meth:`pyVHDLModel.DesignUnit.Package.IndexDeclaredItems`
+
+		.. seealso::
+
+		   :meth:`IndexPackageBodies`
+		     Index all declared items in all package bodies in all libraries.
+		   :meth:`IndexEntities`
+		     Index all declared items in all entities in all libraries.
+		   :meth:`IndexArchitectures`
+		     Index all declared items in all architectures in all libraries.
+		"""
 		for library in self._libraries.values():
 			library.IndexPackages()
 
 	def IndexPackageBodies(self) -> None:
+		"""
+		Index all declared items in all packages in all libraries.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all libraries:
+
+		   1. Iterate all packages |br|
+		      |rarr| :meth:`pyVHDLModel.Library.IndexPackageBodies`
+
+		      * Index all declared items in that package body. |br|
+		        |rarr| :meth:`pyVHDLModel.DesignUnit.PackageBody.IndexDeclaredItems`
+
+		.. seealso::
+
+		   :meth:`IndexPackages`
+		     Index all declared items in all packages in all libraries.
+		   :meth:`IndexEntities`
+		     Index all declared items in all entities in all libraries.
+		   :meth:`IndexArchitectures`
+		     Index all declared items in all architectures in all libraries.
+		"""
 		for library in self._libraries.values():
 			library.IndexPackageBodies()
 
 	def IndexEntities(self) -> None:
+		"""
+		Index all declared items in all packages in all libraries.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all libraries:
+
+		   1. Iterate all packages |br|
+		      |rarr| :meth:`pyVHDLModel.Library.IndexEntities`
+
+		      * Index all declared items in that entity. |br|
+		        |rarr| :meth:`pyVHDLModel.DesignUnit.Entity.IndexDeclaredItems`
+
+		.. seealso::
+
+		   :meth:`IndexPackages`
+		     Index all declared items in all packages in all libraries.
+		   :meth:`IndexPackageBodies`
+		     Index all declared items in all package bodies in all libraries.
+		   :meth:`IndexArchitectures`
+		     Index all declared items in all architectures in all libraries.
+		"""
 		for library in self._libraries.values():
 			library.IndexEntities()
 
 	def IndexArchitectures(self) -> None:
+		"""
+		Index all declared items in all packages in all libraries.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all libraries:
+
+		   1. Iterate all packages |br|
+		      |rarr| :meth:`pyVHDLModel.Library.IndexArchitectures`
+
+		      * Index all declared items in that architecture. |br|
+		        |rarr| :meth:`pyVHDLModel.DesignUnit.Architecture.IndexDeclaredItems`
+
+		.. seealso::
+
+		   :meth:`IndexPackages`
+		     Index all declared items in all packages in all libraries.
+		   :meth:`IndexPackageBodies`
+		     Index all declared items in all package bodies in all libraries.
+		   :meth:`IndexEntities`
+		     Index all declared items in all entities in all libraries.
+		"""
 		for library in self._libraries.values():
 			library.IndexArchitectures()
 
 	def CreateHierarchyGraph(self) -> None:
+		"""
+		Create the hierarchy graph from dependency graph.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all vertices corresponding to entities and architectures in the dependency graph:
+
+		   * Copy these vertices to the hierarchy graph and create a bidirectional linking. |br|
+		     In addition, set the referenced design unit's :attr:`~pyVHDLModel.Document._hierarchyVertex` field to reference the copied vertex.
+
+		     * Add a key-value-pair called ``hierarchyVertex`` to the dependency graph's vertex.
+		     * Add a key-value-pair called ``dependencyVertex`` to the hierarchy graph's vertex.
+
+		2. Iterate all architectures ...
+
+		   .. todo:: Design::CreateHierarchyGraph describe algorithm
+
+		   1. Iterate all outbound edges
+
+		      .. todo:: Design::CreateHierarchyGraph describe algorithm
+		"""
 		# Copy all entity and architecture vertices from dependency graph to hierarchy graph and double-link them
 		entityArchitectureFilter = lambda v: v["kind"] in DependencyGraphVertexKind.Entity | DependencyGraphVertexKind.Architecture
 		for vertex in self._dependencyGraph.IterateVertices(predicate=entityArchitectureFilter):
@@ -1593,6 +1749,28 @@ class Design(ModelEntity):
 			e["kind"] = DependencyGraphEdgeKind.CompileOrder
 
 	def IterateDocumentsInCompileOrder(self) -> Generator['Document', None, None]:
+		"""
+		Iterate all document in compile-order.
+
+		.. rubric:: Algorithm
+
+		* Check if compile-order graph was populated with vertices and its vertices are linked by edges.
+
+		1. Iterate compile-order graph in topological order. |br|
+		   :meth:`pyTooling.Graph.Graph.IterateTopologically`
+
+		   * yield the compiler-order vertex' referenced document.
+
+		:returns:                   A generator to iterate all documents in compile-order in the design.
+		:raises VHDLModelException: If compile-order was not computed.
+
+		.. seealso::
+
+		   .. todo:: missing text
+
+		      :meth:`pyVHDLModel.Design.ComputeCompileOrder`
+
+		"""
 		if self._compileOrderGraph.EdgeCount < self._compileOrderGraph.VertexCount - 1:
 			raise VHDLModelException(f"Compile order is not yet computed from dependency graph.")
 
@@ -1603,6 +1781,13 @@ class Design(ModelEntity):
 		raise NotImplementedError()
 
 	def __repr__(self) -> str:
+		"""
+		Formats a representation of the design.
+
+		**Format:** ``Document: 'my_design'``
+
+		:returns: String representation of the design.
+		"""
 		return f"Design: {self._name}"
 
 	__str__ = __repr__
@@ -1666,6 +1851,13 @@ class Library(ModelEntity, NamedEntityMixin):
 
 	@readonly
 	def DependencyVertex(self) -> Vertex:
+		"""
+		Read-only property to access the corresponding dependency vertex (:attr:`_dependencyVertex`).
+
+		The dependency vertex references this library by its value field.
+
+		:returns: The corresponding dependency vertex.
+		"""
 		return self._dependencyVertex
 
 	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
@@ -1684,12 +1876,14 @@ class Library(ModelEntity, NamedEntityMixin):
 		6. Iterate all configurations in that library.
 
 		:param filter: An enumeration with possibly multiple flags to filter the returned design units.
-		:returns:      A generator to iterate all matched design units in the design.
+		:returns:      A generator to iterate all matched design units in the library.
 
 		.. seealso::
 
 		   :meth:`pyVHDLModel.Design.IterateDesignUnits`
 		     Iterate all design units in the design.
+		   :meth:`pyVHDLModel.Document.IterateDesignUnits`
+		     Iterate all design units in the document.
 		"""
 		if DesignUnitKind.Context in filter:
 			for context in self._contexts.values():
@@ -1724,61 +1918,188 @@ class Library(ModelEntity, NamedEntityMixin):
 		# 	yield verificationMode
 
 	def LinkArchitectures(self) -> None:
+		"""
+		Link all architectures to corresponding entities.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all architecture groups (grouped per entity symbol's name).
+
+		   * Check if entity symbol's name exists as an entity in this library.
+
+		   1. For each architecture in the same architecture group:
+
+		      * Add architecture to entities architecture dictionary :attr:`pyVHDLModel.DesignUnit.Entity._architectures`.
+		      * Assign found entity to architecture's entity symbol :attr:`pyVHDLModel.DesignUnit.Architecture._entity`
+		      * Set parent namespace of architecture's namespace to the entitie's namespace.
+		      * Add an edge in the dependency graph from the architecture's corresponding dependency vertex to the entity's corresponding dependency vertex.
+
+		:raises VHDLModelException: If entity name doesn't exist.
+		:raises VHDLModelException: If architecture name already exists for entity.
+
+		.. seealso::
+
+		   :meth:`LinkPackageBodies`
+		     Link all package bodies to corresponding packages.
+		"""
 		for entityName, architecturesPerEntity in self._architectures.items():
 			if entityName not in self._entities:
 				architectureNames = "', '".join(architecturesPerEntity.keys())
 				raise VHDLModelException(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{self._identifier}'.")
-				# TODO: search in other libraries to find that entity.
-				# TODO: add code position
+			# TODO: search in other libraries to find that entity.
+			# TODO: add code position
 
+			entity = self._entities[entityName]
 			for architecture in architecturesPerEntity.values():
-				entity = self._entities[entityName]
-
-				if architecture.NormalizedIdentifier in entity._architectures:
+				if architecture._normalizedIdentifier in entity._architectures:
 					raise VHDLModelException(f"Architecture '{architecture._identifier}' already exists for entity '{entity._identifier}'.")
-					# TODO: add code position of existing and current
+				# TODO: add code position of existing and current
 
-				entity._architectures[architecture.NormalizedIdentifier] = architecture
+				entity._architectures[architecture._normalizedIdentifier] = architecture
 				architecture._entity.Entity = entity
-				architecture._namespace.ParentNamespace = entity._namespace
+				architecture._namespace._parentNamespace = entity._namespace
 
 				# add "architecture -> entity" relation in dependency graph
 				dependency = architecture._dependencyVertex.EdgeToVertex(entity._dependencyVertex)
 				dependency["kind"] = DependencyGraphEdgeKind.EntityImplementation
 
 	def LinkPackageBodies(self) -> None:
+		"""
+		Link all package bodies to corresponding packages.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all package bodies.
+
+		   * Check if package body symbol's name exists as a package in this library.
+		   * Add package body to package :attr:`pyVHDLModel.DesignUnit.Package._packageBody`.
+		   * Assign found package to package body's package symbol :attr:`pyVHDLModel.DesignUnit.PackageBody._package`
+		   * Set parent namespace of package body's namespace to the package's namespace.
+		   * Add an edge in the dependency graph from the package body's corresponding dependency vertex to the package's corresponding dependency vertex.
+
+		:raises VHDLModelException: If package name doesn't exist.
+
+		.. seealso::
+
+		   :meth:`LinkArchitectures`
+		     Link all architectures to corresponding entities.
+		"""
 		for packageBodyName, packageBody in self._packageBodies.items():
 			if packageBodyName not in self._packages:
 				raise VHDLModelException(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{self._identifier}'.")
 
 			package = self._packages[packageBodyName]
+			package._packageBody = packageBody    # TODO: add warning if package had already a body, which is now replaced
 			packageBody._package.Package = package
-			packageBody._namespace.ParentNamespace = package._namespace
+			packageBody._namespace._parentNamespace = package._namespace
 
 			# add "package body -> package" relation in dependency graph
 			dependency = packageBody._dependencyVertex.EdgeToVertex(package._dependencyVertex)
 			dependency["kind"] = DependencyGraphEdgeKind.PackageImplementation
 
 	def IndexPackages(self) -> None:
+		"""
+		Index declared items in all packages.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all packages:
+
+		   * Index all declared items. |br|
+		     |rarr| :meth:`pyVHDLModel.DesignUnit.Package.IndexDeclaredItems`
+
+		.. seealso::
+
+		   :meth:`IndexPackageBodies`
+		     Index all declared items in a package body.
+		   :meth:`IndexEntities`
+		     Index all declared items in an entity.
+		   :meth:`IndexArchitectures`
+		     Index all declared items in an architecture.
+		"""
 		for package in self._packages.values():
 			if isinstance(package, Package):
 				package.IndexDeclaredItems()
 
 	def IndexPackageBodies(self) -> None:
+		"""
+		Index declared items in all package bodies.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all package bodies:
+
+		   * Index all declared items. |br|
+		     |rarr| :meth:`pyVHDLModel.DesignUnit.PackageBody.IndexDeclaredItems`
+
+		.. seealso::
+
+		   :meth:`IndexPackages`
+		     Index all declared items in a package.
+		   :meth:`IndexEntities`
+		     Index all declared items in an entity.
+		   :meth:`IndexArchitectures`
+		     Index all declared items in an architecture.
+		"""
 		for packageBody in self._packageBodies.values():
 			packageBody.IndexDeclaredItems()
 
 	def IndexEntities(self) -> None:
+		"""
+		Index declared items in all entities.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all entities:
+
+		   * Index all declared items. |br|
+		     |rarr| :meth:`pyVHDLModel.DesignUnit.Entity.IndexDeclaredItems`
+
+		.. seealso::
+
+		   :meth:`IndexPackages`
+		     Index all declared items in a package.
+		   :meth:`IndexPackageBodies`
+		     Index all declared items in a package body.
+		   :meth:`IndexArchitectures`
+		     Index all declared items in an architecture.
+		"""
 		for entity in self._entities.values():
 			entity.IndexDeclaredItems()
 
 	def IndexArchitectures(self) -> None:
+		"""
+		Index declared items in all architectures.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all architectures:
+
+		   * Index all declared items. |br|
+		     |rarr| :meth:`pyVHDLModel.DesignUnit.Architecture.IndexDeclaredItems`
+
+		.. seealso::
+
+		   :meth:`IndexPackages`
+		     Index all declared items in a package.
+		   :meth:`IndexPackageBodies`
+		     Index all declared items in a package body.
+		   :meth:`IndexEntities`
+		     Index all declared items in an entity.
+		"""
 		for architectures in self._architectures.values():
 			for architecture in architectures.values():
 				architecture.IndexDeclaredItems()
 				architecture.IndexStatements()
 
 	def __repr__(self) -> str:
+		"""
+		Formats a representation of the library.
+
+		**Format:** ``Library: 'my_library'``
+
+		:returns: String representation of the library.
+		"""
 		return f"Library: '{self._identifier}'"
 
 	__str__ = __repr__
@@ -1801,7 +2122,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	_verificationModes:      Dict[str, VerificationMode]         #: Dictionary of all PSL verification modes defined in a document.
 
 	_dependencyVertex:       Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
-	_compileOrderVertex:     Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]
+	_compileOrderVertex:     Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the compile-order graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
 
 	def __init__(self, path: Path, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
 		super().__init__(parent)
@@ -1819,100 +2140,149 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._verificationProperties = {}
 		self._verificationModes =      {}
 
-		self._dependencyVertex = None
+		self._dependencyVertex =   None
 		self._compileOrderVertex = None
 
 	def _AddEntity(self, item: Entity) -> None:
+		"""
+		Add an entity to the document's lists of design units.
+
+		:param item:                Entity object to be added to the document.
+		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnits.Entity`.
+		:raises VHDLModelException: If entity name already exists in document.
+		"""
 		if not isinstance(item, Entity):
 			ex = TypeError(f"Parameter 'item' is not of type 'Entity'.")
 			if version_info >= (3, 11):  # pragma: no cover
 				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
-		identifier = item.NormalizedIdentifier
+		identifier = item._normalizedIdentifier
 		if identifier in self._entities:
-			raise ValueError(f"An entity '{item.Identifier}' already exists in this document.")
+			# TODO: use a more specific exception
+			raise VHDLModelException(f"An entity '{item._identifier}' already exists in this document.")
 
 		self._entities[identifier] = item
 		self._designUnits.append(item)
-		item._parent = self
+		item._parent = self  # FIXME: parent should be the logical parent -> library
 
 	def _AddArchitecture(self, item: Architecture) -> None:
+		"""
+		Add an architecture to the document's lists of design units.
+
+		:param item:                Architecture object to be added to the document.
+		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnits.Architecture`.
+		:raises VHDLModelException: If architecture name already exists for the referenced entity name in document.
+		"""
 		if not isinstance(item, Architecture):
 			ex = TypeError(f"Parameter 'item' is not of type 'Architecture'.")
 			if version_info >= (3, 11):  # pragma: no cover
 				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
-		entity = item.Entity.Name
-		entityIdentifier = entity.NormalizedIdentifier
+		entity = item._entity.Name
+		entityIdentifier = entity._normalizedIdentifier
 		try:
 			architectures = self._architectures[entityIdentifier]
-			if item.Identifier in architectures:
-				raise ValueError(f"An architecture '{item.Identifier}' for entity '{entity.Identifier}' already exists in this document.")
+			if item._normalizedIdentifier in architectures:
+				# TODO: use a more specific exception
+				# FIXME: this is allowed and should be a warning or a strict mode.
+				raise VHDLModelException(f"An architecture '{item._identifier}' for entity '{entity._identifier}' already exists in this document.")
 
 			architectures[item.Identifier] = item
 		except KeyError:
-			self._architectures[entityIdentifier] = {item.Identifier: item}
+			self._architectures[entityIdentifier] = {item._identifier: item}
 
 		self._designUnits.append(item)
 		item._parent = self
 
 	def _AddPackage(self, item: Package) -> None:
+		"""
+		Add a package to the document's lists of design units.
+
+		:param item:                Package object to be added to the document.
+		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnits.Package`.
+		:raises VHDLModelException: If package name already exists in document.
+		"""
 		if not isinstance(item, (Package, PackageInstantiation)):
 			ex = TypeError(f"Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
 			if version_info >= (3, 11):  # pragma: no cover
 				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
-		identifier = item.NormalizedIdentifier
+		identifier = item._normalizedIdentifier
 		if identifier in self._packages:
-			raise ValueError(f"A package '{item.Identifier}' already exists in this document.")
+			# TODO: use a more specific exception
+			raise VHDLModelException(f"A package '{item._identifier}' already exists in this document.")
 
 		self._packages[identifier] = item
 		self._designUnits.append(item)
 		item._parent = self
 
 	def _AddPackageBody(self, item: PackageBody) -> None:
+		"""
+		Add a package body to the document's lists of design units.
+
+		:param item:                Package body object to be added to the document.
+		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnits.PackageBody`.
+		:raises VHDLModelException: If package body name already exists in document.
+		"""
 		if not isinstance(item, PackageBody):
 			ex = TypeError(f"Parameter 'item' is not of type 'PackageBody'.")
 			if version_info >= (3, 11):  # pragma: no cover
 				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
-		identifier = item.NormalizedIdentifier
+		identifier = item._normalizedIdentifier
 		if identifier in self._packageBodies:
-			raise ValueError(f"A package body '{item.Identifier}' already exists in this document.")
+			# TODO: use a more specific exception
+			raise VHDLModelException(f"A package body '{item._identifier}' already exists in this document.")
 
 		self._packageBodies[identifier] = item
 		self._designUnits.append(item)
 		item._parent = self
 
 	def _AddContext(self, item: Context) -> None:
+		"""
+		Add a context to the document's lists of design units.
+
+		:param item:                Context object to be added to the document.
+		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnits.Context`.
+		:raises VHDLModelException: If context name already exists in document.
+		"""
 		if not isinstance(item, Context):
 			ex = TypeError(f"Parameter 'item' is not of type 'Context'.")
 			if version_info >= (3, 11):  # pragma: no cover
 				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
-		identifier = item.NormalizedIdentifier
+		identifier = item._normalizedIdentifier
 		if identifier in self._contexts:
-			raise ValueError(f"A context '{item.Identifier}' already exists in this document.")
+			# TODO: use a more specific exception
+			raise VHDLModelException(f"A context '{item._identifier}' already exists in this document.")
 
 		self._contexts[identifier] = item
 		self._designUnits.append(item)
 		item._parent = self
 
 	def _AddConfiguration(self, item: Configuration) -> None:
+		"""
+		Add a configuration to the document's lists of design units.
+
+		:param item:                Configuration object to be added to the document.
+		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnits.Configuration`.
+		:raises VHDLModelException: If configuration name already exists in document.
+		"""
 		if not isinstance(item, Configuration):
 			ex = TypeError(f"Parameter 'item' is not of type 'Configuration'.")
 			if version_info >= (3, 11):  # pragma: no cover
 				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
-		identifier = item.NormalizedIdentifier
+		identifier = item._normalizedIdentifier
 		if identifier in self._configurations:
-			raise ValueError(f"A configuration '{item.Identifier}' already exists in this document.")
+			# TODO: use a more specific exception
+			raise VHDLModelException(f"A configuration '{item._identifier}' already exists in this document.")
 
 		self._configurations[identifier] = item
 		self._designUnits.append(item)
@@ -1925,9 +2295,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
-		identifier = item.NormalizedIdentifier
+		identifier = item._normalizedIdentifier
 		if identifier in self._verificationUnits:
-			raise ValueError(f"A verification unit '{item.Identifier}' already exists in this document.")
+			raise ValueError(f"A verification unit '{item._identifier}' already exists in this document.")
 
 		self._verificationUnits[identifier] = item
 		self._designUnits.append(item)
@@ -1964,106 +2334,196 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		item._parent = self
 
 	def _AddDesignUnit(self, item: DesignUnit) -> None:
-		identifier = item.NormalizedIdentifier
-		if isinstance(item, Entity):
-			self._entities[identifier] = item
-		elif isinstance(item, Architecture):
-			entityIdentifier = item.Entity.Name.NormalizedIdentifier
-			try:
-				architectures = self._architectures[entityIdentifier]
-				if identifier in architectures:
-					raise ValueError(f"An architecture '{item.Identifier}' for entity '{item.Entity.Identifier}' already exists in this document.")
+		"""
+		Add a design unit to the document's lists of design units.
 
-				architectures[identifier] = item
-			except KeyError:
-				self._architectures[entityIdentifier] = {identifier: item}
-		elif isinstance(item, Package):
-			self._packages[identifier] = item
-		elif isinstance(item, PackageBody):
-			self._packageBodies[identifier] = item
-		elif isinstance(item, Context):
-			self._contexts[identifier] = item
-		elif isinstance(item, Configuration):
-			self._configurations[identifier] = item
-		elif isinstance(item, VerificationUnit):
-			self._verificationUnits[identifier] = item
-		elif isinstance(item, VerificationProperty):
-			self._verificationProperties[identifier] = item
-		elif isinstance(item, VerificationMode):
-			self._verificationModes[identifier] = item
-		elif isinstance(item, DesignUnit):
-			ex = TypeError(f"Parameter 'item' is an unknown 'DesignUnit'.")
-			if version_info >= (3, 11):  # pragma: no cover
-				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
-			raise ex
-		else:
+		:param item:                Configuration object to be added to the document.
+		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnits.DesignUnit`.
+		:raises ValueError:         If parameter 'item' is an unknown :class:`~pyVHDLModel.DesignUnits.DesignUnit`.
+		:raises VHDLModelException: If configuration name already exists in document.
+		"""
+		if not isinstance(item, DesignUnit):
 			ex = TypeError(f"Parameter 'item' is not of type 'DesignUnit'.")
 			if version_info >= (3, 11):  # pragma: no cover
 				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
-		self._designUnits.append(item)
-		item._parent = self
+		if isinstance(item, Entity):
+			self._AddEntity(item)
+		elif isinstance(item, Architecture):
+			self._AddArchitecture(item)
+		elif isinstance(item, Package):
+			self._AddPackage(item)
+		elif isinstance(item, PackageBody):
+			self._AddPackageBody(item)
+		elif isinstance(item, Context):
+			self._AddContext(item)
+		elif isinstance(item, Configuration):
+			self._AddConfiguration(item)
+		elif isinstance(item, VerificationUnit):
+			self._AddVerificationUnit(item)
+		elif isinstance(item, VerificationProperty):
+			self._AddVerificationProperty(item)
+		elif isinstance(item, VerificationMode):
+			self._AddVerificationMode(item)
+		else:
+			ex = ValueError(f"Parameter 'item' is an unknown 'DesignUnit'.")
+			if version_info >= (3, 11):  # pragma: no cover
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+			raise ex
 
 	@readonly
 	def Path(self) -> Path:
+		"""
+		Read-only property to access the document's path (:attr:`_path`).
+
+		:returns: The path of this document.
+		"""
 		return self._path
 
 	@readonly
 	def DesignUnits(self) -> List[DesignUnit]:
-		"""Returns a list of all design units declarations found in this document."""
+		"""
+		Read-only property to access a list of all design units declarations found in this document (:attr:`_designUnits`).
+
+		:returns: List of all design units.
+		"""
 		return self._designUnits
 
 	@readonly
 	def Contexts(self) -> Dict[str, Context]:
-		"""Returns a list of all context declarations found in this document."""
+		"""
+		Read-only property to access a list of all context declarations found in this document (:attr:`_contexts`).
+
+		:returns: List of all contexts.
+		"""
 		return self._contexts
 
 	@readonly
 	def Configurations(self) -> Dict[str, Configuration]:
-		"""Returns a list of all configuration declarations found in this document."""
+		"""
+		Read-only property to access a list of all configuration declarations found in this document (:attr:`_configurations`).
+
+		:returns: List of all configurations.
+		"""
 		return self._configurations
 
 	@readonly
 	def Entities(self) -> Dict[str, Entity]:
-		"""Returns a list of all entity declarations found in this document."""
+		"""
+		Read-only property to access a list of all entity declarations found in this document (:attr:`_entities`).
+
+		:returns: List of all entities.
+		"""
 		return self._entities
 
 	@readonly
 	def Architectures(self) -> Dict[str, Dict[str, Architecture]]:
-		"""Returns a list of all architecture declarations found in this document."""
+		"""
+		Read-only property to access a list of all architecture declarations found in this document (:attr:`_architectures`).
+
+		:returns: List of all architectures.
+		"""
 		return self._architectures
 
 	@readonly
 	def Packages(self) -> Dict[str, Package]:
-		"""Returns a list of all package declarations found in this document."""
+		"""
+		Read-only property to access a list of all package declarations found in this document (:attr:`_packages`).
+
+		:returns: List of all packages.
+		"""
 		return self._packages
 
 	@readonly
 	def PackageBodies(self) -> Dict[str, PackageBody]:
-		"""Returns a list of all package body declarations found in this document."""
+		"""
+		Read-only property to access a list of all package body declarations found in this document (:attr:`_packageBodies`).
+
+		:returns: List of all package bodies.
+		"""
 		return self._packageBodies
 
 	@readonly
 	def VerificationUnits(self) -> Dict[str, VerificationUnit]:
-		"""Returns a list of all verification unit declarations found in this document."""
+		"""
+		Read-only property to access a list of all verification unit declarations found in this document (:attr:`_verificationUnits`).
+
+		:returns: List of all verification units.
+		"""
 		return self._verificationUnits
 
 	@readonly
 	def VerificationProperties(self) -> Dict[str, VerificationProperty]:
-		"""Returns a list of all verification property declarations found in this document."""
+		"""
+		Read-only property to access a list of all verification properties declarations found in this document (:attr:`_verificationProperties`).
+
+		:returns: List of all verification properties.
+		"""
 		return self._verificationProperties
 
 	@readonly
 	def VerificationModes(self) -> Dict[str, VerificationMode]:
-		"""Returns a list of all verification mode declarations found in this document."""
+		"""
+		Read-only property to access a list of all verification modes declarations found in this document (:attr:`_verificationModes`).
+
+		:returns: List of all verification modes.
+		"""
 		return self._verificationModes
 
 	@readonly
 	def CompileOrderVertex(self) -> Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]:
+		"""
+		Read-only property to access the corresponding compile-order vertex (:attr:`_compileOrderVertex`).
+
+		The compile-order vertex references this document by its value field.
+
+		:returns: The corresponding compile-order vertex.
+		"""
 		return self._compileOrderVertex
 
 	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
+		"""
+		Iterate all design units in the document.
+
+		A union of :class:`DesignUnitKind` values can be given to filter the returned result for suitable design units.
+
+		.. rubric:: Algorithm
+
+		* If contexts are selected in the filter:
+
+		  1. Iterate all contexts in that library.
+
+		* If packages are selected in the filter:
+
+		  1. Iterate all packages in that library.
+
+		* If package bodies are selected in the filter:
+
+		  1. Iterate all package bodies in that library.
+
+		* If entites are selected in the filter:
+
+		  1. Iterate all entites in that library.
+
+		* If architectures are selected in the filter:
+
+		  1. Iterate all architectures in that library.
+
+		* If configurations are selected in the filter:
+
+		  1. Iterate all configurations in that library.
+
+		:param filter: An enumeration with possibly multiple flags to filter the returned design units.
+		:returns:      A generator to iterate all matched design units in the document.
+
+		.. seealso::
+
+		   :meth:`pyVHDLModel.Design.IterateDesignUnits`
+		     Iterate all design units in the design.
+		   :meth:`pyVHDLModel.Library.IterateDesignUnits`
+		     Iterate all design units in the library.
+		"""
 		if DesignUnitKind.Context in filter:
 			for context in self._contexts.values():
 				yield context
@@ -2097,6 +2557,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		# 	yield verificationMode
 
 	def __repr__(self) -> str:
+		"""
+		Formats a representation of the document.
+
+		**Format:** ``Document: 'path/to/file.vhdl'``
+
+		:returns: String representation of the document.
+		"""
 		return f"Document: '{self._path}'"
 
 	__str__ = __repr__

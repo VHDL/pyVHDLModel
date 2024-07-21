@@ -78,6 +78,13 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 
 	@readonly
 	def ObjectVertex(self) -> Nullable[Vertex]:
+		"""
+		Read-only property to access the corresponding object vertex (:attr:`_objectVertex`).
+
+		The object vertex references this Object by its value field.
+
+		:returns: The corresponding object vertex.
+		"""
 		return self._objectVertex
 
 

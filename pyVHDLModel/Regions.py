@@ -46,20 +46,21 @@ from pyVHDLModel.Type       import Subtype, FullType
 
 @export
 class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
-	_declaredItems:   List  # FIXME: define list prefix type e.g. via Union
+	# FIXME: define list prefix type e.g. via Union
+	_declaredItems:   List                              #: List of all declared items in this concurrent declaration region.
 
 	# _attributes:     Dict[str, Attribute]
 	# _aliases:        Dict[str, Alias]
-	_types:           Dict[str, FullType]
-	_subtypes:        Dict[str, Subtype]
+	_types:           Dict[str, FullType]               #: Dictionary of all types declared in this concurrent declaration region.
+	_subtypes:        Dict[str, Subtype]                #: Dictionary of all subtypes declared in this concurrent declaration region.
 	# _objects:        Dict[str, Union[Constant, Variable, Signal]]
-	_constants:       Dict[str, Constant]
-	_signals:         Dict[str, Signal]
-	_sharedVariables: Dict[str, SharedVariable]
-	_files:           Dict[str, File]
-	_subprograms:     Dict[str, Dict[str, Subprogram]]
-	_functions:       Dict[str, Dict[str, Function]]
-	_procedures:      Dict[str, Dict[str, Procedure]]
+	_constants:       Dict[str, Constant]               #: Dictionary of all constants declared in this concurrent declaration region.
+	_signals:         Dict[str, Signal]                 #: Dictionary of all signals declared in this concurrent declaration region.
+	_sharedVariables: Dict[str, SharedVariable]         #: Dictionary of all shared variables declared in this concurrent declaration region.
+	_files:           Dict[str, File]                   #: Dictionary of all files declared in this concurrent declaration region.
+	# _subprograms:     Dict[str, Dict[str, Subprogram]]  #: Dictionary of all subprograms declared in this concurrent declaration region.
+	_functions:       Dict[str, Dict[str, Function]]    #: Dictionary of all functions declared in this concurrent declaration region.
+	_procedures:      Dict[str, Dict[str, Procedure]]   #: Dictionary of all procedures declared in this concurrent declaration region.
 
 	def __init__(self, declaredItems: Nullable[Iterable] = None) -> None:
 		# TODO: extract to mixin
@@ -76,7 +77,7 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		self._signals =     {}
 		self._sharedVariables = {}
 		self._files =       {}
-		self._subprograms = {}
+		# self._subprograms = {}
 		self._functions =   {}
 		self._procedures =  {}
 
@@ -112,9 +113,9 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	def Files(self) -> Dict[str, File]:
 		return self._files
 
-	@readonly
-	def Subprograms(self) -> Dict[str, Subprogram]:
-		return self._subprograms
+	# @readonly
+	# def Subprograms(self) -> Dict[str, Subprogram]:
+	# 	return self._subprograms
 
 	@readonly
 	def Functions(self) -> Dict[str, Dict[str, Function]]:
@@ -125,6 +126,35 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		return self._procedures
 
 	def IndexDeclaredItems(self) -> None:
+		"""
+		Index declared items listed in the concurrent declaration region.
+
+		.. rubric:: Algorithm
+
+		1. Iterate all declared items:
+
+		   * Every declared item is added to :attr:`_namespace`.
+		   * If the declared item is a :class:`~pyVHDLModel.Type.FullType`, then add an entry to :attr:`_types`.
+		   * If the declared item is a :class:`~pyVHDLModel.Type.SubType`, then add an entry to :attr:`_subtypes`.
+		   * If the declared item is a :class:`~pyVHDLModel.Subprogram.Function`, then add an entry to :attr:`_functions`.
+		   * If the declared item is a :class:`~pyVHDLModel.Subprogram.Procedure`, then add an entry to :attr:`_procedures`.
+		   * If the declared item is a :class:`~pyVHDLModel.Object.Constant`, then add an entry to :attr:`_constants`.
+		   * If the declared item is a :class:`~pyVHDLModel.Object.Signal`, then add an entry to :attr:`_signals`.
+		   * If the declared item is a :class:`~pyVHDLModel.Object.Variable`, TODO.
+		   * If the declared item is a :class:`~pyVHDLModel.Object.SharedVariable`, then add an entry to :attr:`_sharedVariables`.
+		   * If the declared item is a :class:`~pyVHDLModel.Object.File`, then add an entry to :attr:`_files`.
+		   * If the declared item is neither of these types, call :meth:`_IndexOtherDeclaredItem`. |br|
+		     Derived classes may override this virtual function.
+
+		.. seealso::
+
+		   :meth:`pyVHDLModel.Design.IndexPackages`
+		     Iterate all packages in the design and index declared items.
+		   :meth:`pyVHDLModel.Library.IndexPackages`
+		     Iterate all packages in the library and index declared items.
+		   :meth:`pyVHDLModel.Library._IndexOtherDeclaredItem`
+		     Iterate all packages in the library and index declared items.
+		"""
 		for item in self._declaredItems:
 			if isinstance(item, FullType):
 				self._types[item._normalizedIdentifier] = item

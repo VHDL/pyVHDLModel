@@ -66,6 +66,11 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True):
 
 	@readonly
 	def Statements(self) -> List[SequentialStatement]:
+		"""
+		Read-only property to access the list of sequential statements (:attr:`_statements`).
+
+		:returns: A list of sequential statements.
+		"""
 		return self._statements
 
 
@@ -105,6 +110,11 @@ class SequentialSimpleSignalAssignment(SequentialSignalAssignment):
 
 	@readonly
 	def Waveform(self) -> List[WaveformElement]:
+		"""
+		Read-only property to access the list waveform elements (:attr:`_waveform`).
+
+		:returns: A list of waveform elements.
+		"""
 		return self._waveform
 
 
@@ -204,14 +214,29 @@ class IfStatement(CompoundStatement):
 
 	@readonly
 	def IfBranch(self) -> IfBranch:
+		"""
+		Read-only property to access the if-branch of the if-statement (:attr:`_ifBranch`).
+
+		:returns: The if-branch.
+		"""
 		return self._ifBranch
 
 	@property
 	def ElsIfBranches(self) -> List['ElsifBranch']:
+		"""
+		Read-only property to access the elsif-branch of the if-statement (:attr:`_elsifBranch`).
+
+		:returns: The elsif-branch.
+		"""
 		return self._elsifBranches
 
 	@property
 	def ElseBranch(self) -> Nullable[ElseBranch]:
+		"""
+		Read-only property to access the else-branch of the if-statement (:attr:`_elseBranch`).
+
+		:returns: The else-branch.
+		"""
 		return self._elseBranch
 
 

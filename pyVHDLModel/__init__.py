@@ -1016,7 +1016,11 @@ class Design(ModelEntity):
 			for referencedLibrary in package._referencedPackages.values():
 				for referencedPackage in referencedLibrary.values():
 					for declaredItem in referencedPackage._declaredItems:
-						package._namespace._elements[declaredItem._normalizedIdentifier] = declaredItem
+						if hasattr(declaredItem, "_normalizedIdentifiers"):
+							for normalizedIdentifier in declaredItem._normalizedIdentifiers:
+								package._namespace._elements[normalizedIdentifier] = declaredItem
+						else:
+							package._namespace._elements[declaredItem._normalizedIdentifier] = declaredItem
 
 		for libraryName in ("std", "ieee"):
 			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package

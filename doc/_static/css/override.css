@@ -18,6 +18,20 @@
 	margin-bottom: 6px
 }
 
+.rst-content .topic-title {
+	font-size: larger;
+	font-weight: 700;
+	margin-top: 18px;
+	margin-bottom: 6px;
+}
+
+.rst-content p.rubric {
+	text-decoration: underline;
+	font-weight: 700;
+	margin-top: 18px;
+	margin-bottom: 16px;
+}
+
 /* general overrides */
 html {
 	font-size: 15px;
@@ -37,10 +51,6 @@ section > p,
 .section p,
 .simple li {
 	text-align: justify
-}
-
-p.rubric {
-	text-decoration: underline
 }
 
 /* wyrm overrides */

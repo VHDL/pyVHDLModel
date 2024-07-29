@@ -926,38 +926,38 @@ class Design(ModelEntity):
 			for contextIdentifier, context in library._contexts.items():
 				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{contextIdentifier}", value=context, graph=self._dependencyGraph)
 				dependencyVertex["kind"] = DependencyGraphVertexKind.Context
-				dependencyVertex["predefined"] = context._library._normalizedIdentifier in predefinedLibraries
+				dependencyVertex["predefined"] = context._parent._normalizedIdentifier in predefinedLibraries
 				context._dependencyVertex = dependencyVertex
 
 			for packageIdentifier, package in library._packages.items():
 				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{packageIdentifier}", value=package, graph=self._dependencyGraph)
 				dependencyVertex["kind"] = DependencyGraphVertexKind.Package
-				dependencyVertex["predefined"] = package._library._normalizedIdentifier in predefinedLibraries
+				dependencyVertex["predefined"] = package._parent._normalizedIdentifier in predefinedLibraries
 				package._dependencyVertex = dependencyVertex
 
 			for packageBodyIdentifier, packageBody in library._packageBodies.items():
 				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{packageBodyIdentifier}(body)", value=packageBody, graph=self._dependencyGraph)
 				dependencyVertex["kind"] = DependencyGraphVertexKind.PackageBody
-				dependencyVertex["predefined"] = packageBody._library._normalizedIdentifier in predefinedLibraries
+				dependencyVertex["predefined"] = packageBody._parent._normalizedIdentifier in predefinedLibraries
 				packageBody._dependencyVertex = dependencyVertex
 
 			for entityIdentifier, entity in library._entities.items():
 				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{entityIdentifier}", value=entity, graph=self._dependencyGraph)
 				dependencyVertex["kind"] = DependencyGraphVertexKind.Entity
-				dependencyVertex["predefined"] = entity._library._normalizedIdentifier in predefinedLibraries
+				dependencyVertex["predefined"] = entity._parent._normalizedIdentifier in predefinedLibraries
 				entity._dependencyVertex = dependencyVertex
 
 			for entityIdentifier, architectures in library._architectures.items():
 				for architectureIdentifier, architecture in architectures.items():
 					dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{entityIdentifier}({architectureIdentifier})", value=architecture, graph=self._dependencyGraph)
 					dependencyVertex["kind"] = DependencyGraphVertexKind.Architecture
-					dependencyVertex["predefined"] = architecture._library._normalizedIdentifier in predefinedLibraries
+					dependencyVertex["predefined"] = architecture._parent._normalizedIdentifier in predefinedLibraries
 					architecture._dependencyVertex = dependencyVertex
 
 			for configurationIdentifier, configuration in library._configurations.items():
 				dependencyVertex = Vertex(vertexID=f"{libraryIdentifier}.{configurationIdentifier}", value=configuration, graph=self._dependencyGraph)
 				dependencyVertex["kind"] = DependencyGraphVertexKind.Configuration
-				dependencyVertex["predefined"] = configuration._library._normalizedIdentifier in predefinedLibraries
+				dependencyVertex["predefined"] = configuration._parent._normalizedIdentifier in predefinedLibraries
 				configuration._dependencyVertex = dependencyVertex
 
 	def CreateCompileOrderGraph(self) -> None:
@@ -1237,7 +1237,7 @@ class Design(ModelEntity):
 
 					# In case work is used, resolve to the real library name.
 					if libraryNormalizedIdentifier == "work":
-						library: Library = context._library
+						library: Library = context._parent
 						libraryNormalizedIdentifier = library._normalizedIdentifier
 					elif libraryNormalizedIdentifier not in context._referencedLibraries:
 						# TODO: This check doesn't trigger if it's the working library.
@@ -1513,7 +1513,7 @@ class Design(ModelEntity):
 
 	def LinkComponents(self) -> None:
 		for package in self.IterateDesignUnits(DesignUnitKind.Package):  # type: Package
-			library = package._library
+			library = package._parent
 			for component in package._components.values():
 				try:
 					entity = library._entities[component.NormalizedIdentifier]
@@ -2170,7 +2170,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._entities[identifier] = item
 		self._designUnits.append(item)
-		item._parent = self  # FIXME: parent should be the logical parent -> library
+		item._document = self
 
 	def _AddArchitecture(self, item: Architecture) -> None:
 		"""
@@ -2200,7 +2200,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			self._architectures[entityIdentifier] = {item._identifier: item}
 
 		self._designUnits.append(item)
-		item._parent = self
+		item._document = self
 
 	def _AddPackage(self, item: Package) -> None:
 		"""
@@ -2223,7 +2223,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._packages[identifier] = item
 		self._designUnits.append(item)
-		item._parent = self
+		item._document = self
 
 	def _AddPackageBody(self, item: PackageBody) -> None:
 		"""
@@ -2246,7 +2246,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._packageBodies[identifier] = item
 		self._designUnits.append(item)
-		item._parent = self
+		item._document = self
 
 	def _AddContext(self, item: Context) -> None:
 		"""
@@ -2269,7 +2269,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._contexts[identifier] = item
 		self._designUnits.append(item)
-		item._parent = self
+		item._document = self
 
 	def _AddConfiguration(self, item: Configuration) -> None:
 		"""
@@ -2292,7 +2292,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._configurations[identifier] = item
 		self._designUnits.append(item)
-		item._parent = self
+		item._document = self
 
 	def _AddVerificationUnit(self, item: VerificationUnit) -> None:
 		if not isinstance(item, VerificationUnit):
@@ -2307,7 +2307,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._verificationUnits[identifier] = item
 		self._designUnits.append(item)
-		item._parent = self
+		item._document = self
 
 	def _AddVerificationProperty(self, item: VerificationProperty) -> None:
 		if not isinstance(item, VerificationProperty):
@@ -2322,7 +2322,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._verificationProperties[identifier] = item
 		self._designUnits.append(item)
-		item._parent = self
+		item._document = self
 
 	def _AddVerificationMode(self, item: VerificationMode) -> None:
 		if not isinstance(item, VerificationMode):
@@ -2337,7 +2337,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._verificationModes[identifier] = item
 		self._designUnits.append(item)
-		item._parent = self
+		item._document = self
 
 	def _AddDesignUnit(self, item: DesignUnit) -> None:
 		"""

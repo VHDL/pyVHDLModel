@@ -17,7 +17,7 @@ licensed under their terms and conditions, or any related information. Creative
 Commons disclaims all liability for damages resulting from their use to the
 fullest extent possible.
 
-.. rubric:: Using Creative Commons Public Licenses
+.. topic:: Using Creative Commons Public Licenses
 
    Creative Commons public licenses provide a standard set of terms and conditions
    that creators and other rights holders may use to share original works of

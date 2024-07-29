@@ -50,24 +50,24 @@ class PSLPrimaryUnit(PrimaryUnit):
 
 @export
 class VerificationUnit(PSLPrimaryUnit):
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str) -> None:
 		super().__init__(identifier)
 
 
 @export
 class VerificationProperty(PSLPrimaryUnit):
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str) -> None:
 		super().__init__(identifier)
 
 
 @export
 class VerificationMode(PSLPrimaryUnit):
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str) -> None:
 		super().__init__(identifier)
 
 
 @export
 class DefaultClock(PSLEntity, NamedEntityMixin):
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str) -> None:
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)

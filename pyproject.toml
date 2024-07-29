@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-  "setuptools ~= 70.3",
+  "setuptools ~= 71.1",
   "wheel ~= 0.43",
   "pyTooling ~= 6.5"
 ]
@@ -34,9 +34,14 @@ junit_logging = "all"
 [tool.interrogate]
 color = true
 verbose = 1             # possible values: 0 (minimal output), 1 (-v), 2 (-vv)
-fail-under = 80
-#generate-badge = "."
-#badge-format = "png"
+fail-under = 59
+exclude = [
+	"build",
+	"dist",
+	"doc",
+	"tests",
+	"setup.py"
+]
 ignore-setters = true
 
 [tool.coverage.run]

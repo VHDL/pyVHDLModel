@@ -48,7 +48,7 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2024, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.29.0"
+__version__ =   "0.30.0"
 
 
 from enum                      import unique, Enum, Flag, auto

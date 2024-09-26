@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -34,7 +34,7 @@ This module contains an abstract document language model for PSL in VHDL.
 """
 from pyTooling.Decorators import export
 
-from pyVHDLModel.Base import ModelEntity, NamedEntityMixin
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin
 from pyVHDLModel.DesignUnit import PrimaryUnit
 
 
@@ -50,25 +50,24 @@ class PSLPrimaryUnit(PrimaryUnit):
 
 @export
 class VerificationUnit(PSLPrimaryUnit):
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
+	def __init__(self, identifier: str) -> None:
+		super().__init__(identifier, parent=None)
 
 
 @export
 class VerificationProperty(PSLPrimaryUnit):
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
+	def __init__(self, identifier: str) -> None:
+		super().__init__(identifier, parent=None)
 
 
 @export
 class VerificationMode(PSLPrimaryUnit):
-	def __init__(self, identifier: str):
-		super().__init__(identifier)
+	def __init__(self, identifier: str) -> None:
+		super().__init__(identifier, parent=None)
 
 
 @export
 class DefaultClock(PSLEntity, NamedEntityMixin):
-
-	def __init__(self, identifier: str):
+	def __init__(self, identifier: str) -> None:
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)

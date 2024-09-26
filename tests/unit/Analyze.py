@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -54,7 +54,7 @@ class VHDLLibrary(TestCase):
 		library = design.GetLibrary("lib_1")
 
 		path = Path("tests.vhdl")
-		document = Document(path, documentation="Testing 'Library' class.")
+		document = Document(path, documentation="Testing 'Library' class.", parent=None)
 
 		contextReferences = [
 			LibraryClause([
@@ -64,7 +64,7 @@ class VHDLLibrary(TestCase):
 				AllPackageMembersReferenceSymbol(AllName(SelectedName("std_logic_1164", SimpleName("ieee")))),
 			])
 		]
-		context = Context("ctx_1", contextReferences, documentation="My first context.")
+		context = Context("ctx_1", contextReferences, documentation="My first context.", parent=None)
 		document._AddDesignUnit(context)
 
 		entityAReferences = [
@@ -81,7 +81,7 @@ class VHDLLibrary(TestCase):
 				AllPackageMembersReferenceSymbol(AllName(SelectedName("pack_1", SimpleName("work")))),
 			])
 		]
-		entityA = Entity("entity_A", entityAReferences, documentation="My first entity.")
+		entityA = Entity("entity_A", entityAReferences, documentation="My first entity.", parent=None)
 		document._AddDesignUnit(entityA)
 
 		architectureAReferences = [
@@ -89,7 +89,8 @@ class VHDLLibrary(TestCase):
 				AllPackageMembersReferenceSymbol(AllName(SelectedName("textio", SimpleName("std")))),
 			]),
 		]
-		architectureA = Architecture("arch_A", EntitySymbol(SimpleName("entity_A")), architectureAReferences, documentation="My first entity implementation.")
+		architectureA = Architecture("arch_A", EntitySymbol(SimpleName("entity_A")), architectureAReferences, documentation="My first entity implementation.",
+																 parent=None)
 		document._AddDesignUnit(architectureA)
 
 		entityBReferences = [
@@ -97,14 +98,15 @@ class VHDLLibrary(TestCase):
 				ContextReferenceSymbol(SelectedName("ctx_1", SimpleName("work"))),
 			]),
 		]
-		entityB = Entity("entity_B", entityBReferences, documentation="My second entity.")
+		entityB = Entity("entity_B", entityBReferences, documentation="My second entity.", parent=None)
 		document._AddDesignUnit(entityB)
 
 		architectureBStatements = [
 			EntityInstantiation("instWork", EntityInstantiationSymbol(SelectedName("entity_A", SimpleName("work")))),
 			EntityInstantiation("instLib", EntityInstantiationSymbol(SelectedName("entity_A", SimpleName("lib_1")))),
 		]
-		architectureB = Architecture("arch_B", EntitySymbol(SimpleName("entity_B")), None, None, architectureBStatements, documentation="My second entity implementation.")
+		architectureB = Architecture("arch_B", EntitySymbol(SimpleName("entity_B")), None, None, architectureBStatements,
+																 documentation="My second entity implementation.", parent=None)
 		document._AddDesignUnit(architectureB)
 
 		packageReferences = [
@@ -112,13 +114,13 @@ class VHDLLibrary(TestCase):
 				ContextReferenceSymbol(SelectedName("ctx_1", SimpleName("work"))),
 			]),
 		]
-		package = Package("pack_1", packageReferences, documentation="My first utility package.")
+		package = Package("pack_1", packageReferences, documentation="My first utility package.", parent=None)
 		document._AddDesignUnit(package)
 
-		packageBody = PackageBody(PackageSymbol(SimpleName("pack_1")))
+		packageBody = PackageBody(PackageSymbol(SimpleName("pack_1")), parent=None)
 		document._AddDesignUnit(packageBody)
 
-		configuration = Configuration("cfg_1")
+		configuration = Configuration("cfg_1", parent=None)
 		document._AddDesignUnit(configuration)
 
 		design.AddDocument(document, library)
@@ -128,32 +130,32 @@ class VHDLLibrary(TestCase):
 
 		return design
 
-	def test_DependencyGraph(self):
+	def test_DependencyGraph(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
 
 		self.assertEqual(39, design.DependencyGraph.VertexCount)
 
-	def test_LinkContexts(self):
+	def test_LinkContexts(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
 		design.LinkContexts()
 
-	def test_LinkArchitectures(self):
+	def test_LinkArchitectures(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
 		design.LinkArchitectures()
 
-	def test_LinkPackageBodies(self):
+	def test_LinkPackageBodies(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
 		design.LinkPackageBodies()
 
-	def test_LinkLibraryReferences(self):
+	def test_LinkLibraryReferences(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
@@ -161,7 +163,7 @@ class VHDLLibrary(TestCase):
 		design.LinkPackageBodies()
 		design.LinkLibraryReferences()
 
-	def test_LinkPackageReferences(self):
+	def test_LinkPackageReferences(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
@@ -170,7 +172,7 @@ class VHDLLibrary(TestCase):
 		design.LinkLibraryReferences()
 		design.LinkPackageReferences()
 
-	def test_LinkContextReferences(self):
+	def test_LinkContextReferences(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
@@ -180,27 +182,27 @@ class VHDLLibrary(TestCase):
 		design.LinkPackageReferences()
 		design.LinkContextReferences()
 
-	def test_IndexPackages(self):
+	def test_IndexPackages(self) -> None:
 		design = self.CreateDesign()
 
 		design.IndexPackages()
 
-	def test_IndexArchitectures(self):
+	def test_IndexArchitectures(self) -> None:
 		design = self.CreateDesign()
 
 		design.IndexArchitectures()
 
-	def test_LinkInstantiations(self):
+	def test_LinkInstantiations(self) -> None:
 		design = self.CreateDesign()
 
 		design.LinkInstantiations()
 
-	def test_CreateHierarchyGraph(self):
+	def test_CreateHierarchyGraph(self) -> None:
 		design = self.CreateDesign()
 
 		design.CreateHierarchyGraph()
 
-	def test_Analyze(self):
+	def test_Analyze(self) -> None:
 		design = self.CreateDesign()
 
 		design.Analyze()

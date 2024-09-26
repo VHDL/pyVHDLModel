@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -58,7 +58,7 @@ class Std(PredefinedLibrary):
 	     * Library :class:`~pyVHDLModel.IEEE.Ieee`
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__(PACKAGES)
 
 
@@ -83,14 +83,14 @@ class Standard(PredefinedPackage):
 	   Matching :class:`Package Body <pyVHDLModel.STD.Standard_Body>` declaration.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
-		boolean = EnumeratedType("boolean", (EnumerationLiteral("false"), EnumerationLiteral("true")))
+		boolean = EnumeratedType("boolean", (EnumerationLiteral("false"), EnumerationLiteral("true")), None)
 		self._types[boolean._normalizedIdentifier] = boolean
 		self._declaredItems.append(boolean)
 
-		bit = EnumeratedType("bit", (EnumerationLiteral("'0'"), EnumerationLiteral("'1'")))
+		bit = EnumeratedType("bit", (EnumerationLiteral("'0'"), EnumerationLiteral("'1'")), None)
 		self._types[bit._normalizedIdentifier] = bit
 		self._declaredItems.append(bit)
 
@@ -108,35 +108,30 @@ class Standard(PredefinedPackage):
 			"'È'", "'É'", "'Ê'", "'Ë'", "'Ì'", "'Í'", "'Î'", "'Ï'", "'Ð'", "'Ñ'", "'Ò'", "'Ó'", "'Ô'", "'Õ'", "'Ö'", "'×'", "'Ø'", "'Ù'", "'Ú'", "'Û'",\
 			"'Ü'", "'Ý'", "'Þ'", "'ß'", "'à'", "'á'", "'â'", "'ã'", "'ä'", "'å'", "'æ'", "'ç'", "'è'", "'é'", "'ê'", "'ë'", "'ì'", "'í'", "'î'", "'ï'",\
 			"'ð'", "'ñ'", "'ò'", "'ó'", "'ô'", "'õ'", "'ö'", "'÷'", "'ø'", "'ù'", "'ú'", "'û'", "'ü'", "'ý'", "'þ'", "'ÿ'"
-		character = EnumeratedType("character", [EnumerationLiteral(char) for char in chars])
+		character = EnumeratedType("character", [EnumerationLiteral(char) for char in chars], None)
 		self._types[character._normalizedIdentifier] = character
 		self._declaredItems.append(character)
 
 		levels = "note", "warning", "error", "failure"
-		severityLevel = EnumeratedType("severityLevel", [EnumerationLiteral(level) for level in levels])
+		severityLevel = EnumeratedType("severityLevel", [EnumerationLiteral(level) for level in levels], None)
 		self._types[severityLevel._normalizedIdentifier] = severityLevel
 		self._declaredItems.append(severityLevel)
 
-		integer = IntegerType("integer", Range(IntegerLiteral(-2**31), IntegerLiteral(2**31-1), Direction.To))
+		integer = IntegerType("integer", Range(IntegerLiteral(-2**31), IntegerLiteral(2**31 - 1), Direction.To), None)
 		self._types[integer._normalizedIdentifier] = integer
 		self._declaredItems.append(integer)
 
 		# real
 
-		time = PhysicalType(
-			"time",
-			Range(IntegerLiteral(-2**63), IntegerLiteral(2**63-1), Direction.To),
-			primaryUnit="fs",
-			units=(
-				("ps",  PhysicalIntegerLiteral(1000, "fs")),
-				("ns",  PhysicalIntegerLiteral(1000, "ps")),
-				("us",  PhysicalIntegerLiteral(1000, "ns")),
-				("ms",  PhysicalIntegerLiteral(1000, "us")),
-				("sec", PhysicalIntegerLiteral(1000, "ms")),
-				("min", PhysicalIntegerLiteral(60, "sec")),
-				("hr",  PhysicalIntegerLiteral(60, "min")),
-			)
-		)
+		time = PhysicalType("time", Range(IntegerLiteral(-2**63), IntegerLiteral(2**63 - 1), Direction.To), primaryUnit="fs", units=(
+			("ps", PhysicalIntegerLiteral(1000, "fs")),
+			("ns", PhysicalIntegerLiteral(1000, "ps")),
+			("us", PhysicalIntegerLiteral(1000, "ns")),
+			("ms", PhysicalIntegerLiteral(1000, "us")),
+			("sec", PhysicalIntegerLiteral(1000, "ms")),
+			("min", PhysicalIntegerLiteral(60, "sec")),
+			("hr", PhysicalIntegerLiteral(60, "min")),
+		), parent=None)
 		self._types[time._normalizedIdentifier] = time
 		self._declaredItems.append(time)
 
@@ -144,47 +139,47 @@ class Standard(PredefinedPackage):
 
 		# now
 
-		natural = Subtype("natural", SimpleSubtypeSymbol(SimpleName("integer")))
+		natural = Subtype("natural", SimpleSubtypeSymbol(SimpleName("integer")), None)
 		natural._baseType = integer
-		natural._range = Range(IntegerLiteral(0), IntegerLiteral(2**31-1), Direction.To)
+		natural._range = Range(IntegerLiteral(0), IntegerLiteral(2**31 - 1), Direction.To)
 		self._subtypes[natural._normalizedIdentifier] = natural
 		self._declaredItems.append(natural)
 
-		positive = Subtype("positive", SimpleSubtypeSymbol(SimpleName("integer")))
+		positive = Subtype("positive", SimpleSubtypeSymbol(SimpleName("integer")), None)
 		positive._baseType = integer
-		positive._range = Range(IntegerLiteral(1), IntegerLiteral(2**31-1), Direction.To)
+		positive._range = Range(IntegerLiteral(1), IntegerLiteral(2**31 - 1), Direction.To)
 		self._subtypes[positive._normalizedIdentifier] = positive
 		self._declaredItems.append(positive)
 
-		string = ArrayType("string", (SimpleSubtypeSymbol(SimpleName("positive")), ), SimpleSubtypeSymbol(SimpleName("character")))
+		string = ArrayType("string", (SimpleSubtypeSymbol(SimpleName("positive")),), SimpleSubtypeSymbol(SimpleName("character")), None)
 		self._types[string._normalizedIdentifier] = string
 		self._declaredItems.append(string)
 
-		booleanVector = ArrayType("boolean_vector", (SimpleSubtypeSymbol(SimpleName("natural")), ), SimpleSubtypeSymbol(SimpleName("boolean")))
+		booleanVector = ArrayType("boolean_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("boolean")), None)
 		self._types[booleanVector._normalizedIdentifier] = booleanVector
 		self._declaredItems.append(booleanVector)
 
-		bitVector = ArrayType("bit_vector", (SimpleSubtypeSymbol(SimpleName("natural")), ), SimpleSubtypeSymbol(SimpleName("bit")))
+		bitVector = ArrayType("bit_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("bit")), None)
 		self._types[bitVector._normalizedIdentifier] = bitVector
 		self._declaredItems.append(bitVector)
 
-		integerVector = ArrayType("integer_vector", (SimpleSubtypeSymbol(SimpleName("natural")), ), SimpleSubtypeSymbol(SimpleName("integer")))
+		integerVector = ArrayType("integer_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("integer")), None)
 		self._types[integerVector._normalizedIdentifier] = integerVector
 		self._declaredItems.append(integerVector)
 
 		# real_vector
 
-		timeVector = ArrayType("time_vector", (SimpleSubtypeSymbol(SimpleName("natural")), ), SimpleSubtypeSymbol(SimpleName("time")))
+		timeVector = ArrayType("time_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("time")), None)
 		self._types[timeVector._normalizedIdentifier] = timeVector
 		self._declaredItems.append(timeVector)
 
 		fileOpenKinds = "read_mode", "write_mode", "append_mode"
-		openFileKind = EnumeratedType("open_file_kind", [EnumerationLiteral(kind) for kind in fileOpenKinds])
+		openFileKind = EnumeratedType("open_file_kind", [EnumerationLiteral(kind) for kind in fileOpenKinds], None)
 		self._types[openFileKind._normalizedIdentifier] = openFileKind
 		self._declaredItems.append(openFileKind)
 
 		fileOpenStati = "open_ok", "status_error", "name_error", "mode_error"
-		fileOpenStatus = EnumeratedType("open_file_status", [EnumerationLiteral(status) for status in fileOpenStati])
+		fileOpenStatus = EnumeratedType("open_file_status", [EnumerationLiteral(status) for status in fileOpenStati], None)
 		self._types[fileOpenStatus._normalizedIdentifier] = fileOpenStatus
 		self._declaredItems.append(fileOpenStatus)
 
@@ -234,7 +229,7 @@ class Env(PredefinedPackage):
 	   Matching :class:`Package Body <pyVHDLModel.STD.Env_Body>` declaration.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddPackageClause(("work.textio.all",))

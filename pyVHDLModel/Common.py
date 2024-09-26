@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -34,9 +34,9 @@ This module contains parts of an abstract document language model for VHDL.
 
 Common definitions and Mixins are used by many classes in the model as base-classes.
 """
-from typing                  import List, Iterable, Union
+from typing                  import List, Iterable, Union, Optional as Nullable
 
-from pyTooling.Decorators    import export
+from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin
@@ -60,8 +60,8 @@ class Statement(ModelEntity, LabeledEntityMixin):
 	"""
 	A ``Statement`` is a base-class for all statements.
 	"""
-	def __init__(self, label: str = None):
-		super().__init__()
+	def __init__(self, label: Nullable[str] = None, parent=None) -> None:
+		super().__init__(parent)
 		LabeledEntityMixin.__init__(self, label)
 
 
@@ -70,7 +70,7 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 	_procedure:         Symbol  # TODO: implement a ProcedureSymbol
 	_parameterMappings: List[ParameterAssociationItem]
 
-	def __init__(self, procedureName: Symbol, parameterMappings: Iterable[ParameterAssociationItem] = None):
+	def __init__(self, procedureName: Symbol, parameterMappings: Nullable[Iterable[ParameterAssociationItem]] = None) -> None:
 		self._procedure = procedureName
 		procedureName._parent = self
 
@@ -81,7 +81,7 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 				self._parameterMappings.append(parameterMapping)
 				parameterMapping._parent = self
 
-	@property
+	@readonly
 	def Procedure(self) -> Symbol:
 		return self._procedure
 
@@ -96,7 +96,7 @@ class AssignmentMixin(metaclass=ExtendedType, mixin=True):
 
 	_target: Symbol
 
-	def __init__(self, target: Symbol):
+	def __init__(self, target: Symbol) -> None:
 		self._target = target
 		target._parent = self
 
@@ -117,7 +117,7 @@ class VariableAssignmentMixin(AssignmentMixin, mixin=True):
 	# FIXME: move to sequential?
 	_expression: ExpressionUnion
 
-	def __init__(self, target: Symbol, expression: ExpressionUnion):
+	def __init__(self, target: Symbol, expression: ExpressionUnion) -> None:
 		super().__init__(target)
 
 		self._expression = expression

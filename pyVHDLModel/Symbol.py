@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -35,11 +35,12 @@ This module contains parts of an abstract document language model for VHDL.
 Symbols are entity specific wrappers for names that reference VHDL language entities.
 """
 from enum                  import Flag, auto
-from typing                import Any, Optional as Nullable
+from typing                import Any, Optional as Nullable, Iterable, List, Dict, Mapping
 
-from pyTooling.Decorators  import export
+from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType
 
+from pyVHDLModel.Base      import Range
 from pyVHDLModel.Name      import Name, AllName
 
 
@@ -62,6 +63,7 @@ class PossibleReference(Flag):
 	ScalarType =      auto()  #: ScalarType
 	ArrayType =       auto()  #: ArrayType
 	RecordType =      auto()  #: RecordType
+	RecordElement =   auto()  #: RecordElement
 	AccessType =      auto()  #: AccessType
 	ProtectedType =   auto()  #: ProtectedType
 	FileType =        auto()  #: FileType
@@ -100,20 +102,20 @@ class Symbol(metaclass=ExtendedType):
 	_possibleReferences: PossibleReference  #: An enumeration to filter possible references.
 	_reference:          Nullable[Any]      #: The resolved language entity, otherwise ``None``.
 
-	def __init__(self, name: Name, possibleReferences: PossibleReference):
+	def __init__(self, name: Name, possibleReferences: PossibleReference) -> None:
 		self._name = name
 		self._possibleReferences = possibleReferences
 		self._reference = None
 
-	@property
+	@readonly
 	def Name(self) -> Name:
 		return self._name
 
-	@property
+	@readonly
 	def Reference(self) -> Nullable[Any]:
 		return self._reference
 
-	@property
+	@readonly
 	def IsResolved(self) -> bool:
 		return self._reference is not None
 
@@ -148,10 +150,10 @@ class LibraryReferenceSymbol(Symbol):
 	      --      ^^^^
 	"""
 
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.Library)
 
-	@property
+	@readonly
 	def Library(self) -> Nullable['Library']:
 		return self._reference
 
@@ -175,7 +177,7 @@ class PackageReferenceSymbol(Symbol):
 	      --  ^^^^^^^^^^^^^^^^
 	"""
 
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.Package)
 
 	@property
@@ -202,7 +204,7 @@ class ContextReferenceSymbol(Symbol):
 	      --      ^^^^^^^^^^^^^^^^^^^^^
 	"""
 
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.Context)
 
 	@property
@@ -229,7 +231,7 @@ class PackageMemberReferenceSymbol(Symbol):
 	      --  ^^^^^^^^^^^^^^^^^^^^^^^^^
 	"""
 
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.PackageMember)
 
 	@property
@@ -256,7 +258,7 @@ class AllPackageMembersReferenceSymbol(Symbol):
 	      --  ^^^^^^^^^^^^^^^^^^^^
 	"""
 
-	def __init__(self, name: AllName):
+	def __init__(self, name: AllName) -> None:
 		super().__init__(name, PossibleReference.PackageMember)
 
 	@property
@@ -283,7 +285,7 @@ class EntityInstantiationSymbol(Symbol):
 	       --            ^^^^^^^^^^^^
 	"""
 
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.Entity)
 
 	@property
@@ -310,7 +312,7 @@ class ComponentInstantiationSymbol(Symbol):
 	       --               ^^^^^^^
 	"""
 
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.Component)
 
 	@property
@@ -337,7 +339,7 @@ class ConfigurationInstantiationSymbol(Symbol):
 	       --                   ^^^^^^^
 	"""
 
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.Configuration)
 
 	@property
@@ -366,7 +368,7 @@ class EntitySymbol(Symbol):
 	      end architecture;
 	"""
 
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.Entity)
 
 	@property
@@ -382,7 +384,7 @@ class EntitySymbol(Symbol):
 class ArchitectureSymbol(Symbol):
 	"""An entity reference in an entity instantiation with architecture name."""
 
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.Architecture)
 
 	@property
@@ -410,7 +412,7 @@ class PackageSymbol(Symbol):
 	      end package body;
 	"""
 
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.Package)
 
 	@property
@@ -423,8 +425,14 @@ class PackageSymbol(Symbol):
 
 
 @export
+class RecordElementSymbol(Symbol):
+	def __init__(self, name: Name) -> None:
+		super().__init__(name, PossibleReference.RecordElement)
+
+
+@export
 class SubtypeSymbol(Symbol):
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.Type | PossibleReference.Subtype)
 
 	@property
@@ -438,26 +446,36 @@ class SubtypeSymbol(Symbol):
 
 @export
 class SimpleSubtypeSymbol(SubtypeSymbol):
-	"""A configuration reference in a configuration instantiation."""
+	pass
 
 
 @export
 class ConstrainedScalarSubtypeSymbol(SubtypeSymbol):
-	"""A configuration reference in a configuration instantiation."""
+	pass
 
 
 @export
 class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
-	"""A configuration reference in a configuration instantiation."""
+	pass
+
+
+@export
+class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol):
+	pass
+
+
+@export
+class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol):
+	pass
 
 
 @export
 class SimpleObjectOrFunctionCallSymbol(Symbol):
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.SimpleNameInExpression)
 
 
 @export
 class IndexedObjectOrFunctionCallSymbol(Symbol):
-	def __init__(self, name: Name):
+	def __init__(self, name: Name) -> None:
 		super().__init__(name, PossibleReference.Object | PossibleReference.Function)

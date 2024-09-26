@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -34,12 +34,13 @@ This module contains parts of an abstract document language model for VHDL.
 
 A helper class to implement namespaces and scopes.
 """
-from typing             import TypeVar, Generic, Dict
+from typing               import TypeVar, Generic, Dict, Optional as Nullable
 
-from pyVHDLModel.Object import Obj, Signal, Constant, Variable
+from pyTooling.Decorators import readonly
 
-from pyVHDLModel.Symbol import ComponentInstantiationSymbol, Symbol, PossibleReference
-from pyVHDLModel.Type   import Subtype, FullType, BaseType
+from pyVHDLModel.Object   import Obj, Signal, Constant, Variable
+from pyVHDLModel.Symbol   import ComponentInstantiationSymbol, Symbol, PossibleReference
+from pyVHDLModel.Type     import Subtype, FullType, BaseType
 
 K = TypeVar("K")
 O = TypeVar("O")
@@ -51,17 +52,17 @@ class Namespace(Generic[K, O]):
 	_subNamespaces:   Dict[str, 'Namespace']
 	_elements:        Dict[K, O]
 
-	def __init__(self, name: str, parentNamespace: 'Namespace' = None):
+	def __init__(self, name: str, parentNamespace: Nullable["Namespace"] = None) -> None:
 		self._name = name
 		self._parentNamespace = parentNamespace
 		self._subNamespaces = {}
 		self._elements = {}
 
-	@property
+	@readonly
 	def Name(self) -> str:
 		return self._name
 
-	@property
+	@readonly
 	def ParentNamespace(self) -> 'Namespace':
 		return self._parentNamespace
 
@@ -70,7 +71,7 @@ class Namespace(Generic[K, O]):
 		self._parentNamespace = value
 		value._subNamespaces[self._name] = self
 
-	@property
+	@readonly
 	def SubNamespaces(self) -> Dict[str, 'Namespace']:
 		return self._subNamespaces
 

@@ -3,7 +3,7 @@
 VHDL Language Model
 ###################
 
-.. topic:: Design Goal
+.. rubric:: Design Goal
 
    * Clearly named classes that model the semantics of VHDL.
    * All language constructs (statements, declarations, specifications, …) have

@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -38,7 +38,7 @@ combined identifiers. :mod:`Symbols <pyVHDLModel.Symbol>` are structures represe
 """
 from typing import List, Iterable, Optional as Nullable
 
-from pyTooling.Decorators import export
+from pyTooling.Decorators import export, readonly
 
 from pyVHDLModel.Base import ModelEntity, ExpressionUnion
 
@@ -52,8 +52,8 @@ class Name(ModelEntity):
 	_root: Nullable['Name']     # TODO: seams to be unused. There is no reverse linking, or?
 	_prefix: Nullable['Name']
 
-	def __init__(self, identifier: str, prefix: 'Name' = None):
-		super().__init__()
+	def __init__(self, identifier: str, prefix: Nullable["Name"] = None, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 
 		self._identifier = identifier
 		self._normalizedIdentifier = identifier.lower()
@@ -65,7 +65,7 @@ class Name(ModelEntity):
 			self._prefix = prefix
 			self._root = prefix._root
 
-	@property
+	@readonly
 	def Identifier(self) -> str:
 		"""
 		The identifier the name is referencing.
@@ -74,7 +74,7 @@ class Name(ModelEntity):
 		"""
 		return self._identifier
 
-	@property
+	@readonly
 	def NormalizedIdentifier(self) -> str:
 		"""
 		The normalized identifier the name is referencing.
@@ -83,7 +83,7 @@ class Name(ModelEntity):
 		"""
 		return self._normalizedIdentifier
 
-	@property
+	@readonly
 	def Root(self) -> 'Name':
 		"""
 		The root (left-most) element in a chain of names.
@@ -94,7 +94,7 @@ class Name(ModelEntity):
 		"""
 		return self._root
 
-	@property
+	@readonly
 	def Prefix(self) -> Nullable['Name']:
 		"""
 		The name's prefix in a chain of names.
@@ -103,7 +103,7 @@ class Name(ModelEntity):
 		"""
 		return self._prefix
 
-	@property
+	@readonly
 	def HasPrefix(self) -> bool:
 		"""
 		Returns true, if the name has a prefix.
@@ -136,15 +136,15 @@ class SimpleName(Name):
 class ParenthesisName(Name):
 	_associations: List
 
-	def __init__(self, prefix: Name, associations: Iterable):
-		super().__init__("", prefix)
+	def __init__(self, prefix: Name, associations: Iterable, parent: ModelEntity = None) -> None:
+		super().__init__("", prefix, parent)
 
 		self._associations = []
 		for association in associations:
 			self._associations.append(association)
 			association._parent = self
 
-	@property
+	@readonly
 	def Associations(self) -> List:
 		return self._associations
 
@@ -156,15 +156,15 @@ class ParenthesisName(Name):
 class IndexedName(Name):
 	_indices: List[ExpressionUnion]
 
-	def __init__(self, prefix: Name, indices: Iterable[ExpressionUnion]):
-		super().__init__("", prefix)
+	def __init__(self, prefix: Name, indices: Iterable[ExpressionUnion], parent: ModelEntity = None) -> None:
+		super().__init__("", prefix, parent)
 
 		self._indices = []
 		for index in indices:
 			self._indices.append(index)
 			index._parent = self
 
-	@property
+	@readonly
 	def Indices(self) -> List[ExpressionUnion]:
 		return self._indices
 
@@ -187,8 +187,8 @@ class SelectedName(Name):
 	referenced by the selected name via the :attr:`~pyVHDLModel.Name.Prefix` property.
 	"""
 
-	def __init__(self, identifier: str, prefix: Name):
-		super().__init__(identifier, prefix)
+	def __init__(self, identifier: str, prefix: Name, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, prefix, parent)
 
 	def __str__(self) -> str:
 		return f"{self._prefix!s}.{self._identifier}"
@@ -196,8 +196,8 @@ class SelectedName(Name):
 
 @export
 class AttributeName(Name):
-	def __init__(self, identifier: str, prefix: Name):
-		super().__init__(identifier, prefix)
+	def __init__(self, identifier: str, prefix: Name, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, prefix, parent)
 
 	def __str__(self) -> str:
 		return f"{self._prefix!s}'{self._identifier}"
@@ -210,8 +210,8 @@ class AllName(SelectedName):
 
 	Most likely this name is used in use-statements.
 	"""
-	def __init__(self, prefix: Name):
-		super().__init__("all", prefix)  # TODO: the case of 'ALL' is not preserved
+	def __init__(self, prefix: Name, parent: ModelEntity = None) -> None:
+		super().__init__("all", prefix, parent)  # TODO: the case of 'ALL' is not preserved
 
 
 @export
@@ -221,8 +221,8 @@ class OpenName(Name):
 
 	Most likely this name is used in port associations.
 	"""
-	def __init__(self):
-		super().__init__("open")  # TODO: the case of 'ALL' is not preserved
+	def __init__(self, parent: ModelEntity = None) -> None:
+		super().__init__("open", parent)  # TODO: the case of 'OPEN' is not preserved
 
 	def __str__(self) -> str:
 		return "open"

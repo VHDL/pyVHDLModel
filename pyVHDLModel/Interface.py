@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -34,13 +34,13 @@ This module contains parts of an abstract document language model for VHDL.
 
 Interface items are used in generic, port and parameter declarations.
 """
-from typing                 import Iterable
+from typing                 import Iterable, Optional as Nullable
 
-from pyTooling.Decorators   import export
+from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
 
 from pyVHDLModel.Symbol     import Symbol
-from pyVHDLModel.Base       import DocumentedEntityMixin, ExpressionUnion, Mode
+from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, ExpressionUnion, Mode
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
@@ -50,7 +50,7 @@ from pyVHDLModel.Type       import Type
 class InterfaceItemMixin(DocumentedEntityMixin, mixin=True):
 	"""An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items."""
 
-	def __init__(self, documentation: str = None):
+	def __init__(self, documentation: Nullable[str] = None) -> None:
 		super().__init__(documentation)
 
 
@@ -60,10 +60,10 @@ class InterfaceItemWithModeMixin(metaclass=ExtendedType, mixin=True):
 
 	_mode: Mode
 
-	def __init__(self, mode: Mode):
+	def __init__(self, mode: Mode) -> None:
 		self._mode = mode
 
-	@property
+	@readonly
 	def Mode(self) -> Mode:
 		return self._mode
 
@@ -77,7 +77,7 @@ class GenericInterfaceItemMixin(InterfaceItemMixin, mixin=True):
 class PortInterfaceItemMixin(InterfaceItemMixin, InterfaceItemWithModeMixin, mixin=True):
 	"""A ``PortInterfaceItem`` is a mixin class for all port interface items."""
 
-	def __init__(self, mode: Mode):
+	def __init__(self, mode: Mode) -> None:
 		super().__init__()
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
@@ -89,16 +89,24 @@ class ParameterInterfaceItemMixin(InterfaceItemMixin, mixin=True):
 
 @export
 class GenericConstantInterfaceItem(Constant, GenericInterfaceItemMixin, InterfaceItemWithModeMixin):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
-		super().__init__(identifiers, subtype, defaultExpression, documentation)
+	def __init__(
+		self,
+		identifiers: Iterable[str],
+		mode: Mode,
+		subtype: Symbol,
+		defaultExpression: Nullable[ExpressionUnion] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
 
 @export
 class GenericTypeInterfaceItem(Type, GenericInterfaceItemMixin):
-	def __init__(self, identifier: str, documentation: str = None):
-		super().__init__(identifier, documentation)
+	def __init__(self, identifier: str, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
 
 
@@ -109,58 +117,96 @@ class GenericSubprogramInterfaceItem(GenericInterfaceItemMixin):
 
 @export
 class GenericProcedureInterfaceItem(Procedure, GenericInterfaceItemMixin):
-	def __init__(self, identifier: str, documentation: str = None):
-		super().__init__(identifier, documentation)
+	def __init__(self, identifier: str, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
 
 
 @export
 class GenericFunctionInterfaceItem(Function, GenericInterfaceItemMixin):
-	def __init__(self, identifier: str, documentation: str = None):
-		super().__init__(identifier, documentation)
+	def __init__(self, identifier: str, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
 
 
 @export
 class GenericPackageInterfaceItem(GenericInterfaceItemMixin):
-	def __init__(self, identifier: str, documentation: str = None):
-		#	super().__init__(identifier, documentation)
+	def __init__(self, identifier: str, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
 
 
 @export
 class PortSignalInterfaceItem(Signal, PortInterfaceItemMixin):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
-		super().__init__(identifiers, subtype, defaultExpression, documentation)
+	def __init__(
+		self,
+		identifiers: Iterable[str],
+		mode: Mode,
+		subtype: Symbol,
+		defaultExpression: Nullable[ExpressionUnion] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		PortInterfaceItemMixin.__init__(self, mode)
 
 
 @export
 class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItemMixin, InterfaceItemWithModeMixin):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
-		super().__init__(identifiers, subtype, defaultExpression, documentation)
+	def __init__(
+		self,
+		identifiers: Iterable[str],
+		mode: Mode,
+		subtype: Symbol,
+		defaultExpression: Nullable[ExpressionUnion] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
 
 @export
 class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItemMixin, InterfaceItemWithModeMixin):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
-		super().__init__(identifiers, subtype, defaultExpression, documentation)
+	def __init__(
+		self,
+		identifiers: Iterable[str],
+		mode: Mode,
+		subtype: Symbol,
+		defaultExpression: Nullable[ExpressionUnion] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
 
 @export
 class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItemMixin, InterfaceItemWithModeMixin):
-	def __init__(self, identifiers: Iterable[str], mode: Mode, subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
-		super().__init__(identifiers, subtype, defaultExpression, documentation)
+	def __init__(
+		self,
+		identifiers: Iterable[str],
+		mode: Mode,
+		subtype: Symbol,
+		defaultExpression: Nullable[ExpressionUnion] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
 
 @export
 class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
-		super().__init__(identifiers, subtype, documentation)
+	def __init__(
+		self,
+		identifiers: Iterable[str],
+		subtype: Symbol,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifiers, subtype, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)

@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -78,10 +78,10 @@ class Ieee(PredefinedLibrary):
 	     * Library :class:`~pyVHDLModel.STD.Std`
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__(PACKAGES)
 
-	def LoadSynopsysPackages(self):
+	def LoadSynopsysPackages(self) -> None:
 		self.AddPackages(PACKAGES_SYNOPSYS)
 
 
@@ -106,7 +106,7 @@ class Math_Complex(PredefinedPackage):
 	Predefined package ``ieee.math_complex``.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddPackageClause(("work.math_real.all",))
@@ -118,7 +118,7 @@ class Math_Complex_Body(PredefinedPackageBody):
 	Predefined package body of package ``ieee.math_complex``.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddPackageClause(("work.math_real.all",))
@@ -135,7 +135,7 @@ class Std_logic_1164(PredefinedPackage):
 	* ``std_logic``, ``std_logic_vector``
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddPackageClause(("STD.TEXTIO.all", ))
@@ -150,20 +150,20 @@ class Std_logic_1164(PredefinedPackage):
 			EnumerationLiteral("L"),
 			EnumerationLiteral("H"),
 			EnumerationLiteral("-"),
-		))
+		), None)
 		self._types[stdULogic._normalizedIdentifier] = stdULogic
 		self._declaredItems.append(stdULogic)
 
-		stdULogicVector = ArrayType("std_ulogic_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		stdULogicVector = ArrayType("std_ulogic_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")), None)
 		self._types[stdULogicVector._normalizedIdentifier] = stdULogicVector
 		self._declaredItems.append(stdULogicVector)
 
-		stdLogic = Subtype("std_logic", SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		stdLogic = Subtype("std_logic", SimpleSubtypeSymbol(SimpleName("std_ulogic")), None)
 		stdLogic._baseType = stdULogic
 		self._subtypes[stdLogic._normalizedIdentifier] = stdLogic
 		self._declaredItems.append(stdLogic)
 
-		stdLogicVector = Subtype("std_logic_vector", SimpleSubtypeSymbol(SimpleName("std_ulogic_vector")))
+		stdLogicVector = Subtype("std_logic_vector", SimpleSubtypeSymbol(SimpleName("std_ulogic_vector")), None)
 		stdLogicVector._baseType = stdULogicVector
 		self._subtypes[stdLogicVector._normalizedIdentifier] = stdLogicVector
 		self._declaredItems.append(stdLogicVector)
@@ -182,7 +182,7 @@ class std_logic_textio(PredefinedPackage):
 	Predefined package ``ieee.std_logic_textio``.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddPackageClause(("STD.TEXTIO.all", ))
@@ -196,7 +196,7 @@ class Std_logic_misc(PredefinedPackage):
 	Predefined package ``ieee.std_logic_misc``.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddLibraryClause(("IEEE", ))
@@ -216,7 +216,7 @@ class Numeric_Bit(PredefinedPackage):
 	Predefined package ``ieee.numeric_bit``.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddPackageClause(("STD.TEXTIO.all", ))
@@ -242,7 +242,7 @@ class Numeric_Bit_Unsigned_Body(PredefinedPackageBody):
 	Predefined package body of package ``ieee.numeric_bit_unsigned``.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddLibraryClause(("IEEE", ))
@@ -260,27 +260,27 @@ class Numeric_Std(PredefinedPackage):
 	* ``unresolved_signed``, ``signed``
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddPackageClause(("STD.TEXTIO.all", ))
 		self._AddLibraryClause(("IEEE", ))
 		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
 
-		unresolvedUnsigned = ArrayType("unresolved_unsigned", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		unresolvedUnsigned = ArrayType("unresolved_unsigned", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")), None)
 		self._types[unresolvedUnsigned._normalizedIdentifier] = unresolvedUnsigned
 		self._declaredItems.append(unresolvedUnsigned)
 
-		unsigned = Subtype("unsigned", SimpleSubtypeSymbol(SimpleName("unresolved_unsigned")))
+		unsigned = Subtype("unsigned", SimpleSubtypeSymbol(SimpleName("unresolved_unsigned")), None)
 		unsigned._baseType = unresolvedUnsigned
 		self._subtypes[unsigned._normalizedIdentifier] = unsigned
 		self._declaredItems.append(unsigned)
 
-		unresolvedSigned = ArrayType("unresolved_signed", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		unresolvedSigned = ArrayType("unresolved_signed", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")), None)
 		self._types[unresolvedSigned._normalizedIdentifier] = unresolvedSigned
 		self._declaredItems.append(unresolvedSigned)
 
-		signed = Subtype("signed", SimpleSubtypeSymbol(SimpleName("unresolved_signed")))
+		signed = Subtype("signed", SimpleSubtypeSymbol(SimpleName("unresolved_signed")), None)
 		signed._baseType = unresolvedSigned
 		self._subtypes[signed._normalizedIdentifier] = signed
 		self._declaredItems.append(signed)
@@ -299,7 +299,7 @@ class Numeric_Std_Unsigned(PredefinedPackage):
 	Predefined package ``ieee.numeric_std_unsigned``.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddLibraryClause(("IEEE", ))
@@ -312,7 +312,7 @@ class Numeric_Std_Unsigned_Body(PredefinedPackageBody):
 	Predefined package body of package ``ieee.numeric_std_unsigned``.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddLibraryClause(("IEEE", ))
@@ -332,7 +332,7 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 	Predefined package ``ieee.fixed_generic_pkg``.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddPackageClause(("STD.TEXTIO.all", ))
@@ -348,7 +348,7 @@ class Fixed_Generic_Pkg_Body(PredefinedPackageBody):
 	Predefined package body of package ``ieee.fixed_generic_pkg``.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddLibraryClause(("IEEE", ))
@@ -360,7 +360,7 @@ class Fixed_Pkg(PredefinedPackage):
 	"""
 	Predefined package ``ieee.fixed_pkg``.
 	"""
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddLibraryClause(("IEEE", ))
@@ -372,7 +372,7 @@ class Float_Generic_Pkg(PredefinedPackage):
 	Predefined package ``ieee.float_generic_pkg``.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddPackageClause(("STD.TEXTIO.all", ))
@@ -395,7 +395,7 @@ class Float_Pkg(PredefinedPackage):
 	Predefined package ``ieee.float_pkg``.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 
 		self._AddLibraryClause(("IEEE", ))

@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -34,9 +34,9 @@ This module contains parts of an abstract document language model for VHDL.
 
 Types.
 """
-from typing                 import Union, List, Iterator, Iterable, Tuple
+from typing                 import Union, List, Iterator, Iterable, Tuple, Optional as Nullable, Dict, Mapping
 
-from pyTooling.Decorators   import export
+from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
 from pyTooling.Graph        import Vertex
 
@@ -52,13 +52,14 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	_objectVertex: Vertex
 
-	def __init__(self, identifier: str, documentation: str = None):
+	def __init__(self, identifier: str, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
 		"""
 		Initializes underlying ``BaseType``.
 
 		:param identifier: Name of the type.
+		:param parent:     Reference to the logical parent in the model hierarchy.
 		"""
-		super().__init__()
+		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
@@ -87,27 +88,27 @@ class Subtype(BaseType):
 	_range:              Range
 	_resolutionFunction: 'Function'
 
-	def __init__(self, identifier: str, symbol: Symbol):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, symbol: Symbol, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, parent)
 
 		self._type = symbol
 		self._baseType = None
 		self._range = None
 		self._resolutionFunction = None
 
-	@property
+	@readonly
 	def Type(self) -> Symbol:
 		return self._type
 
-	@property
+	@readonly
 	def BaseType(self) -> BaseType:
 		return self._baseType
 
-	@property
+	@readonly
 	def Range(self) -> Range:
 		return self._range
 
-	@property
+	@readonly
 	def ResolutionFunction(self) -> 'Function':
 		return self._resolutionFunction
 
@@ -128,11 +129,11 @@ class RangedScalarType(ScalarType):
 	_leftBound:  ExpressionUnion
 	_rightBound: ExpressionUnion
 
-	def __init__(self, identifier: str, rng: Union[Range, Name]):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, rng: Union[Range, Name], parent: ModelEntity = None) -> None:
+		super().__init__(identifier, parent)
 		self._range = rng
 
-	@property
+	@readonly
 	def Range(self) -> Union[Range, Name]:
 		return self._range
 
@@ -141,7 +142,7 @@ class RangedScalarType(ScalarType):
 class NumericTypeMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``NumericType`` is a mixin class for all numeric types."""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		pass
 
 
@@ -149,7 +150,7 @@ class NumericTypeMixin(metaclass=ExtendedType, mixin=True):
 class DiscreteTypeMixin(metaclass=ExtendedType, mixin=True):
 	"""A ``DiscreteType`` is a mixin class for all discrete types."""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		pass
 
 
@@ -157,8 +158,8 @@ class DiscreteTypeMixin(metaclass=ExtendedType, mixin=True):
 class EnumeratedType(ScalarType, DiscreteTypeMixin):
 	_literals: List[EnumerationLiteral]
 
-	def __init__(self, identifier: str, literals: Iterable[EnumerationLiteral]):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, literals: Iterable[EnumerationLiteral], parent: ModelEntity = None) -> None:
+		super().__init__(identifier, parent)
 
 		self._literals = []
 		if literals is not None:
@@ -166,7 +167,7 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 				self._literals.append(literal)
 				literal._parent = self
 
-	@property
+	@readonly
 	def Literals(self) -> List[EnumerationLiteral]:
 		return self._literals
 
@@ -176,8 +177,8 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 
 @export
 class IntegerType(RangedScalarType, NumericTypeMixin, DiscreteTypeMixin):
-	def __init__(self, identifier: str, rng: Union[Range, Name]):
-		super().__init__(identifier, rng)
+	def __init__(self, identifier: str, rng: Union[Range, Name], parent: ModelEntity = None) -> None:
+		super().__init__(identifier, rng, parent)
 
 	def __str__(self) -> str:
 		return f"{self._identifier} is range {self._range}"
@@ -185,8 +186,8 @@ class IntegerType(RangedScalarType, NumericTypeMixin, DiscreteTypeMixin):
 
 @export
 class RealType(RangedScalarType, NumericTypeMixin):
-	def __init__(self, identifier: str, rng: Union[Range, Name]):
-		super().__init__(identifier, rng)
+	def __init__(self, identifier: str, rng: Union[Range, Name], parent: ModelEntity = None) -> None:
+		super().__init__(identifier, rng, parent)
 
 	def __str__(self) -> str:
 		return f"{self._identifier} is range {self._range}"
@@ -197,8 +198,15 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 	_primaryUnit:    str
 	_secondaryUnits: List[Tuple[str, PhysicalIntegerLiteral]]
 
-	def __init__(self, identifier: str, rng: Union[Range, Name], primaryUnit: str, units: Iterable[Tuple[str, PhysicalIntegerLiteral]]):
-		super().__init__(identifier, rng)
+	def __init__(
+		self,
+		identifier: str,
+		rng: Union[Range, Name],
+		primaryUnit: str,
+		units: Iterable[Tuple[str, PhysicalIntegerLiteral]],
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifier, rng, parent)
 
 		self._primaryUnit = primaryUnit
 
@@ -207,7 +215,7 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 			self._secondaryUnits.append(unit)
 			unit[1]._parent = self
 
-	@property
+	@readonly
 	def PrimaryUnit(self) -> str:
 		return self._primaryUnit
 
@@ -229,8 +237,14 @@ class ArrayType(CompositeType):
 	_dimensions:  List[Range]
 	_elementType: Symbol
 
-	def __init__(self, identifier: str, indices: Iterable, elementSubtype: Symbol):
-		super().__init__(identifier)
+	def __init__(
+		self,
+		identifier: str,
+		indices: Iterable,
+		elementSubtype: Symbol,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifier, parent)
 
 		self._dimensions = []
 		for index in indices:
@@ -256,8 +270,8 @@ class ArrayType(CompositeType):
 class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin):
 	_subtype: Symbol
 
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol):
-		super().__init__()
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 		MultipleNamedEntityMixin.__init__(self, identifiers)
 
 		self._subtype = subtype
@@ -275,8 +289,8 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin):
 class RecordType(CompositeType):
 	_elements: List[RecordTypeElement]
 
-	def __init__(self, identifier: str, elements: Iterable[RecordTypeElement] = None):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, elements: Nullable[Iterable[RecordTypeElement]] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, parent)
 
 		self._elements = []  # TODO: convert to dict
 		if elements is not None:
@@ -296,8 +310,8 @@ class RecordType(CompositeType):
 class ProtectedType(FullType):
 	_methods: List[Union['Procedure', 'Function']]
 
-	def __init__(self, identifier: str, methods: Union[List, Iterator] = None):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, methods: Union[List, Iterator] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, parent)
 
 		self._methods = []
 		if methods is not None:
@@ -314,8 +328,8 @@ class ProtectedType(FullType):
 class ProtectedTypeBody(FullType):
 	_methods: List[Union['Procedure', 'Function']]
 
-	def __init__(self, identifier: str, declaredItems: Union[List, Iterator] = None):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, declaredItems: Union[List, Iterator] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, parent)
 
 		self._methods = []
 		if declaredItems is not None:
@@ -333,8 +347,8 @@ class ProtectedTypeBody(FullType):
 class AccessType(FullType):
 	_designatedSubtype: Symbol
 
-	def __init__(self, identifier: str, designatedSubtype: Symbol):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, designatedSubtype: Symbol, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, parent)
 
 		self._designatedSubtype = designatedSubtype
 		designatedSubtype._parent = self
@@ -351,8 +365,8 @@ class AccessType(FullType):
 class FileType(FullType):
 	_designatedSubtype: Symbol
 
-	def __init__(self, identifier: str, designatedSubtype: Symbol):
-		super().__init__(identifier)
+	def __init__(self, identifier: str, designatedSubtype: Symbol, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, parent)
 
 		self._designatedSubtype = designatedSubtype
 		designatedSubtype._parent = self

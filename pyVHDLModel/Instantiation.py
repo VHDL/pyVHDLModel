@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -34,9 +34,9 @@ This module contains parts of an abstract document language model for VHDL.
 
 Instantiations of packages, procedures, functions and protected types.
 """
-from typing import List
+from typing import List, Optional as Nullable
 
-from pyTooling.Decorators    import export
+from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Base        import ModelEntity
@@ -48,13 +48,13 @@ from pyVHDLModel.Symbol      import PackageReferenceSymbol
 
 @export
 class GenericInstantiationMixin(metaclass=ExtendedType, mixin=True):
-	def __init__(self):
+	def __init__(self) -> None:
 		pass
 
 
 @export
 class GenericEntityInstantiationMixin(GenericInstantiationMixin, mixin=True):
-	def __init__(self):
+	def __init__(self) -> None:
 		pass
 
 
@@ -62,7 +62,7 @@ class GenericEntityInstantiationMixin(GenericInstantiationMixin, mixin=True):
 class SubprogramInstantiationMixin(GenericInstantiationMixin, mixin=True):
 	_subprogramReference: Subprogram  # FIXME: is this a subprogram symbol?
 
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__()
 		self._subprogramReference = None
 
@@ -82,8 +82,8 @@ class PackageInstantiation(PrimaryUnit, GenericInstantiationMixin):
 	_packageReference: PackageReferenceSymbol
 	_genericAssociations: List[GenericAssociationItem]
 
-	def __init__(self, identifier: str, uninstantiatedPackage: PackageReferenceSymbol, documentation: str = None):
-		super().__init__(identifier, documentation)
+	def __init__(self, identifier: str, uninstantiatedPackage: PackageReferenceSymbol, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, documentation, parent)
 		GenericEntityInstantiationMixin.__init__(self)
 
 		self._packageReference = uninstantiatedPackage
@@ -92,10 +92,10 @@ class PackageInstantiation(PrimaryUnit, GenericInstantiationMixin):
 		# TODO: extract to mixin
 		self._genericAssociations = []
 
-	@property
+	@readonly
 	def PackageReference(self) -> PackageReferenceSymbol:
 		return self._packageReference
 
-	@property
+	@readonly
 	def GenericAssociations(self) -> List[GenericAssociationItem]:
 		return self._genericAssociations

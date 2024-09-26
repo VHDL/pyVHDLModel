@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -52,12 +52,12 @@ class PredefinedLibrary(Library):
 	* :class:`~pyVHDLModel.IEEE.Ieee`
 	"""
 
-	def __init__(self, packages):
-		super().__init__(self.__class__.__name__)
+	def __init__(self, packages) -> None:
+		super().__init__(self.__class__.__name__, None)
 
 		self.AddPackages(packages)
 
-	def AddPackages(self, packages):
+	def AddPackages(self, packages) -> None:
 		for packageType, packageBodyType in packages:
 			package: Package = packageType()
 			package.Library = self
@@ -104,8 +104,8 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 	A base-class for predefined VHDL packages.
 	"""
 
-	def __init__(self):
-		super().__init__(self.__class__.__name__)
+	def __init__(self) -> None:
+		super().__init__(self.__class__.__name__, parent=None)
 
 
 @export
@@ -114,6 +114,6 @@ class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 	A base-class for predefined VHDL package bodies.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		packageSymbol = PackageSymbol(SimpleName(self.__class__.__name__[:-5]))
-		super().__init__(packageSymbol)
+		super().__init__(packageSymbol, parent=None)

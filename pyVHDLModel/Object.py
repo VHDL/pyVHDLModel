@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -36,7 +36,7 @@ Objects are constants, variables, signals and files.
 """
 from typing                import Iterable, Optional as Nullable
 
-from pyTooling.Decorators  import export
+from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType
 from pyTooling.Graph       import Vertex
 
@@ -62,8 +62,8 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	_subtype:      Symbol
 	_objectVertex: Nullable[Vertex]
 
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
-		super().__init__()
+	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
 		MultipleNamedEntityMixin.__init__(self, identifiers)
 		DocumentedEntityMixin.__init__(self, documentation)
 
@@ -72,12 +72,19 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 
 		self._objectVertex = None
 
-	@property
+	@readonly
 	def Subtype(self) -> Symbol:
 		return self._subtype
 
-	@property
+	@readonly
 	def ObjectVertex(self) -> Nullable[Vertex]:
+		"""
+		Read-only property to access the corresponding object vertex (:attr:`_objectVertex`).
+
+		The object vertex references this Object by its value field.
+
+		:returns: The corresponding object vertex.
+		"""
 		return self._objectVertex
 
 
@@ -92,12 +99,12 @@ class WithDefaultExpressionMixin(metaclass=ExtendedType, mixin=True):
 
 	_defaultExpression: Nullable[ExpressionUnion]
 
-	def __init__(self, defaultExpression: ExpressionUnion = None):
+	def __init__(self, defaultExpression: Nullable[ExpressionUnion] = None) -> None:
 		self._defaultExpression = defaultExpression
 		if defaultExpression is not None:
 			defaultExpression._parent = self
 
-	@property
+	@readonly
 	def DefaultExpression(self) -> Nullable[ExpressionUnion]:
 		return self._defaultExpression
 
@@ -123,8 +130,15 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 	      constant BITS : positive := 8;
 	"""
 
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
-		super().__init__(identifiers, subtype, documentation)
+	def __init__(
+		self,
+		identifiers: Iterable[str],
+		subtype: Symbol,
+		defaultExpression: Nullable[ExpressionUnion] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifiers, subtype, documentation, parent)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -144,10 +158,16 @@ class DeferredConstant(BaseConstant):
 	"""
 	_constantReference: Nullable[Constant]
 
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, documentation: str = None):
-		super().__init__(identifiers, subtype, documentation)
+	def __init__(
+		self,
+		identifiers: Iterable[str],
+		subtype: Symbol,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifiers, subtype, documentation, parent)
 
-	@property
+	@readonly
 	def ConstantReference(self) -> Nullable[Constant]:
 		return self._constantReference
 
@@ -169,8 +189,15 @@ class Variable(Obj, WithDefaultExpressionMixin):
 	      variable result : natural := 0;
 	"""
 
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
-		super().__init__(identifiers, subtype, documentation)
+	def __init__(
+		self,
+		identifiers: Iterable[str],
+		subtype: Symbol,
+		defaultExpression: Nullable[ExpressionUnion] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifiers, subtype, documentation, parent)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 
@@ -198,8 +225,15 @@ class Signal(Obj, WithDefaultExpressionMixin):
 	      signal counter : unsigned(7 downto 0) := '0';
 	"""
 
-	def __init__(self, identifiers: Iterable[str], subtype: Symbol, defaultExpression: ExpressionUnion = None, documentation: str = None):
-		super().__init__(identifiers, subtype, documentation)
+	def __init__(
+		self,
+		identifiers: Iterable[str],
+		subtype: Symbol,
+		defaultExpression: Nullable[ExpressionUnion] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifiers, subtype, documentation, parent)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
 

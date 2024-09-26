@@ -169,7 +169,7 @@ News
 * `pyVHDLModel` was split from `pyVHDLParser <https://GitHub.com/Paebbels/pyVHDLParser>`__ (v0.6.0) as an independent Python package.
 
 
-.. _contributors:
+.. _CONTRIBUTORS:
 
 Contributors
 ************
@@ -178,6 +178,8 @@ Contributors
 * `Unai Martinez-Corral <https://GitHub.com/umarcor/>`__
 * `and more... <https://GitHub.com/VHDL/pyVHDLModel/graphs/contributors>`__
 
+
+.. _LICENSE:
 
 License
 *******

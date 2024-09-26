@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -36,7 +36,7 @@ Associations are used in generic maps, port maps and parameter maps.
 """
 from typing               import Optional as Nullable, Union
 
-from pyTooling.Decorators import export
+from pyTooling.Decorators import export, readonly
 
 from pyVHDLModel.Base       import ModelEntity
 from pyVHDLModel.Symbol     import Symbol
@@ -62,7 +62,7 @@ class AssociationItem(ModelEntity):
 	_formal: Nullable[Symbol]
 	_actual: ExpressionUnion
 
-	def __init__(self, actual: ExpressionUnion, formal: Symbol = None):
+	def __init__(self, actual: ExpressionUnion, formal: Nullable[Symbol] = None) -> None:
 		super().__init__()
 
 		self._formal = formal
@@ -72,15 +72,15 @@ class AssociationItem(ModelEntity):
 		self._actual = actual
 		# actual._parent = self  # FIXME: actual is provided as None
 
-	@property
+	@readonly
 	def Formal(self) -> Nullable[Symbol]:  # TODO: can also be a conversion function !!
 		return self._formal
 
-	@property
+	@readonly
 	def Actual(self) -> ExpressionUnion:
 		return self._actual
 
-	def __str__(self):
+	def __str__(self) -> str:
 		if self._formal is None:
 			return str(self._actual)
 		else:

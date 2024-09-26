@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2023 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from typing import List, Dict, Union, Iterable, Optional as Nullable
 
-from pyTooling.Decorators   import export
+from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
 from pyTooling.Graph        import Vertex
 
@@ -64,13 +64,24 @@ class Reference(ModelEntity):
 
 	_symbols:       List[Symbol]
 
-	def __init__(self, symbols: Iterable[Symbol]):
-		super().__init__()
+	def __init__(self, symbols: Iterable[Symbol], parent: ModelEntity = None) -> None:
+		"""
+		Initializes a reference by taking a list of symbols and a parent reference.
+
+		:param symbols: A list of symbols this reference references to.
+		:param parent:  Reference to the logical parent in the model hierarchy.
+		"""
+		super().__init__(parent)
 
 		self._symbols = [s for s in symbols]
 
-	@property
+	@readonly
 	def Symbols(self) -> List[Symbol]:
+		"""
+		Read-only property to access the symbols this reference references to (:attr:`_symbols`).
+
+		:returns: A list of symbols.
+		"""
 		return self._symbols
 
 
@@ -81,13 +92,18 @@ class LibraryClause(Reference):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       library ieee;
+	      library std, ieee;
 	"""
 
-	@property
+	@readonly
 	def Symbols(self) -> List[LibraryReferenceSymbol]:
+		"""
+		Read-only property to access the symbols this library clause references to (:attr:`_symbols`).
+
+		:returns: A list of library reference symbols.
+		"""
 		return self._symbols
 
 
@@ -98,15 +114,14 @@ class UseClause(Reference):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       use ieee.numeric_std.all;
+	      use std.text_io.all, ieee.numeric_std.all;
 	"""
 
 
 @export
 class ContextReference(Reference):
-	# TODO: rename to ContextClause?
 	"""
 	Represents a context reference.
 
@@ -114,9 +129,9 @@ class ContextReference(Reference):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       context ieee.ieee_std_context;
+	      context ieee.ieee_std_context;
 	"""
 
 
@@ -129,7 +144,9 @@ ContextUnion = Union[
 
 @export
 class DesignUnitWithContextMixin(metaclass=ExtendedType, mixin=True):
-	pass
+	"""
+	A mixin-class for all design units with a context.
+	"""
 
 
 @export
@@ -152,7 +169,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	     * :class:`~pyVHDLModel.DesignUnit.PackageBody`
 	"""
 
-	_library:             'Library'                        #: The VHDL library, the design unit was analyzed into.
+	_document: 'Document'                                  #: The VHDL library, the design unit was analyzed into.
 
 	# Either written as statements before (e.g. entity, architecture, package, ...), or as statements inside (context)
 	_contextItems:        List['ContextUnion']             #: List of all context items (library, use and context clauses).
@@ -164,24 +181,25 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_referencedPackages:  Dict[str, Dict[str, 'Package']]  #: Referenced packages based on explicit use clauses or implicit inheritance
 	_referencedContexts:  Dict[str, 'Context']             #: Referenced contexts based on explicit context references or implicit inheritance
 
-	_dependencyVertex:    Vertex[None, None, str, 'DesignUnit', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: The vertex in the dependency graph
+	_dependencyVertex:    Vertex[None, None, str, 'DesignUnit', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the design unit. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
 	_hierarchyVertex:     Vertex[None, None, str, 'DesignUnit', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: The vertex in the hierarchy graph
 
 	_namespace:           'Namespace'
 
-	def __init__(self, identifier: str, contextItems: Iterable[ContextUnion] = None, documentation: str = None):
+	def __init__(self, identifier: str, contextItems: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
 		"""
 		Initializes a design unit.
 
 		:param identifier:    Identifier (name) of the design unit.
 		:param contextItems:  A sequence of library, use or context clauses.
 		:param documentation: Associated documentation of the design unit.
+		:param parent:        Reference to the logical parent in the model hierarchy.
 		"""
-		super().__init__()
+		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._library = None
+		self._document = None
 
 		self._contextItems = []
 		self._libraryReferences = []
@@ -207,21 +225,21 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		self._namespace = Namespace(self._normalizedIdentifier)
 
-	@property
+	@readonly
 	def Document(self) -> 'Document':
-		return self._parent
+		return self._document
 
 	@Document.setter
 	def Document(self, document: 'Document') -> None:
-		self._parent = document
+		self._document = document
 
 	@property
 	def Library(self) -> 'Library':
-		return self._library
+		return self._parent
 
 	@Library.setter
 	def Library(self, library: 'Library') -> None:
-		self._library = library
+		self._parent = library
 
 	@property
 	def ContextItems(self) -> List['ContextUnion']:
@@ -274,10 +292,24 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	@property
 	def DependencyVertex(self) -> Vertex:
+		"""
+		Read-only property to access the corresponding dependency vertex (:attr:`_dependencyVertex`).
+
+		The dependency vertex references this design unit by its value field.
+
+		:returns: The corresponding dependency vertex.
+		"""
 		return self._dependencyVertex
 
 	@property
 	def HierarchyVertex(self) -> Vertex:
+		"""
+		Read-only property to access the corresponding hierarchy vertex (:attr:`_hierarchyVertex`).
+
+		The hierarchy vertex references this design unit by its value field.
+
+		:returns: The corresponding hierarchy vertex.
+		"""
 		return self._hierarchyVertex
 
 
@@ -331,17 +363,17 @@ class Context(PrimaryUnit):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       context ctx is
-	         -- ...
-	       end context;
+	      context ctx is
+	        -- ...
+	      end context;
 	"""
 
 	_references:        List[ContextUnion]
 
-	def __init__(self, identifier: str, references: Iterable[ContextUnion] = None, documentation: str = None):
-		super().__init__(identifier, None, documentation)
+	def __init__(self, identifier: str, references: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(identifier, None, documentation, parent)
 
 		self._references = []
 		self._libraryReferences = []
@@ -374,8 +406,8 @@ class Context(PrimaryUnit):
 	def ContextReferences(self) -> List[ContextReference]:
 		return self._contextReferences
 
-	def __str__(self):
-		lib = self._library.Identifier + "?" if self._library is not None else ""
+	def __str__(self) -> str:
+		lib = self._parent._identifier + "?" if self._parent is not None else ""
 
 		return f"Context: {lib}.{self._identifier}"
 
@@ -387,22 +419,34 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       package pkg is
-	         -- ...
-	       end package;
+	      package pkg is
+	        -- ...
+	      end package;
 	"""
+
+	_packageBody:       Nullable["PackageBody"]
 
 	_genericItems:      List[GenericInterfaceItemMixin]
 
 	_deferredConstants: Dict[str, DeferredConstant]
 	_components:        Dict[str, 'Component']
 
-	def __init__(self, identifier: str, contextItems: Iterable[ContextUnion] = None, genericItems: Iterable[GenericInterfaceItemMixin] = None, declaredItems: Iterable = None, documentation: str = None):
-		super().__init__(identifier, contextItems, documentation)
+	def __init__(
+		self,
+		identifier: str,
+		contextItems: Nullable[Iterable[ContextUnion]] = None,
+		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
+		declaredItems: Nullable[Iterable] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
+
+		self._packageBody = None
 
 		# TODO: extract to mixin
 		self._genericItems = []  # TODO: convert to dict
@@ -413,6 +457,10 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 
 		self._deferredConstants = {}
 		self._components = {}
+
+	@property
+	def PackageBody(self) -> Nullable["PackageBody"]:
+		return self._packageBody
 
 	@property
 	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
@@ -440,12 +488,12 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegi
 			super()._IndexOtherDeclaredItem(item)
 
 	def __str__(self) -> str:
-		lib = self._library.Identifier if self._library is not None else "%"
+		lib = self._parent._identifier if self._parent is not None else "%"
 
 		return f"Package: '{lib}.{self._identifier}'"
 
 	def __repr__(self) -> str:
-		lib = self._library.Identifier if self._library is not None else "%"
+		lib = self._parent._identifier if self._parent is not None else "%"
 
 		return f"{lib}.{self._identifier}"
 
@@ -457,17 +505,24 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       package body pkg is
-	         -- ...
-	       end package body;
+	      package body pkg is
+	        -- ...
+	      end package body;
 	"""
 
 	_package:       PackageSymbol
 
-	def __init__(self, packageSymbol: PackageSymbol, contextItems: Iterable[ContextUnion] = None, declaredItems: Iterable = None, documentation: str = None):
-		super().__init__(packageSymbol.Name.Identifier, contextItems, documentation)
+	def __init__(
+		self,
+		packageSymbol: PackageSymbol,
+		contextItems: Nullable[Iterable[ContextUnion]] = None,
+		declaredItems: Nullable[Iterable] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(packageSymbol.Name.Identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 
@@ -482,16 +537,16 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 	def DeclaredItems(self) -> List:
 		return self._declaredItems
 
-	def LinkDeclaredItemsToPackage(self):
+	def LinkDeclaredItemsToPackage(self) -> None:
 		pass
 
 	def __str__(self) -> str:
-		lib = self._library._identifier + "?" if self._library is not None else ""
+		lib = self._parent._identifier + "?" if self._parent is not None else ""
 
 		return f"Package Body: {lib}.{self._identifier}(body)"
 
 	def __repr__(self) -> str:
-		lib = self._library._identifier + "?" if self._library is not None else ""
+		lib = self._parent._identifier + "?" if self._parent is not None else ""
 
 		return f"{lib}.{self._identifier}(body)"
 
@@ -503,11 +558,11 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       entity ent is
-	         -- ...
-	       end entity;
+	      entity ent is
+	        -- ...
+	      end entity;
 	"""
 
 	_genericItems:  List[GenericInterfaceItemMixin]
@@ -518,14 +573,15 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 	def __init__(
 		self,
 		identifier: str,
-		contextItems: Iterable[ContextUnion] = None,
-		genericItems: Iterable[GenericInterfaceItemMixin] = None,
-		portItems: Iterable[PortInterfaceItemMixin] = None,
-		declaredItems: Iterable = None,
-		statements: Iterable[ConcurrentStatement] = None,
-		documentation: str = None
-	):
-		super().__init__(identifier, contextItems, documentation)
+		contextItems: Nullable[Iterable[ContextUnion]] = None,
+		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
+		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
+		declaredItems: Nullable[Iterable] = None,
+		statements: Nullable[Iterable[ConcurrentStatement]] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
@@ -561,13 +617,13 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 		return self._architectures
 
 	def __str__(self) -> str:
-		lib = self._library._identifier if self._library is not None else "%"
+		lib = self._parent._identifier if self._parent is not None else "%"
 		archs = ', '.join(self._architectures.keys()) if self._architectures else "%"
 
 		return f"Entity: '{lib}.{self._identifier}({archs})'"
 
 	def __repr__(self) -> str:
-		lib = self._library._identifier if self._library is not None else "%"
+		lib = self._parent._identifier if self._parent is not None else "%"
 		archs = ', '.join(self._architectures.keys()) if self._architectures else "%"
 
 		return f"{lib}.{self._identifier}({archs})"
@@ -580,19 +636,28 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       architecture rtl of ent is
-	         -- ...
-	       begin
-	         -- ...
-	       end architecture;
+	      architecture rtl of ent is
+	        -- ...
+	      begin
+	        -- ...
+	      end architecture;
 	"""
 
 	_entity: EntitySymbol
 
-	def __init__(self, identifier: str, entity: EntitySymbol, contextItems: Iterable[Context] = None, declaredItems: Iterable = None, statements: Iterable['ConcurrentStatement'] = None, documentation: str = None):
-		super().__init__(identifier, contextItems, documentation)
+	def __init__(
+		self,
+		identifier: str,
+		entity: EntitySymbol,
+		contextItems: Nullable[Iterable[Context]] = None,
+		declaredItems: Nullable[Iterable] = None,
+		statements: Iterable['ConcurrentStatement'] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
@@ -604,23 +669,14 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 	def Entity(self) -> EntitySymbol:
 		return self._entity
 
-	# TODO: move to Design Unit
-	@property
-	def Library(self) -> 'Library':
-		return self._library
-
-	@Library.setter
-	def Library(self, library: 'Library') -> None:
-		self._library = library
-
 	def __str__(self) -> str:
-		lib = self._library._identifier if self._library is not None else "%"
+		lib = self._parent._identifier if self._parent is not None else "%"
 		ent = self._entity._name._identifier if self._entity is not None else "%"
 
 		return f"Architecture: {lib}.{ent}({self._identifier})"
 
 	def __repr__(self) -> str:
-		lib = self._library._identifier if self._library is not None else "%"
+		lib = self._parent._identifier if self._parent is not None else "%"
 		ent = self._entity._name._identifier if self._entity is not None else "%"
 
 		return f"{lib}.{ent}({self._identifier})"
@@ -633,11 +689,11 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       component ent is
-	         -- ...
-	       end component;
+	      component ent is
+	        -- ...
+	      end component;
 	"""
 
 	_genericItems:      List[GenericInterfaceItemMixin]
@@ -645,8 +701,15 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	_entity:            Nullable[Entity]
 
-	def __init__(self, identifier: str, genericItems: Iterable[GenericInterfaceItemMixin] = None, portItems: Iterable[PortInterfaceItemMixin] = None, documentation: str = None):
-		super().__init__()
+	def __init__(
+		self,
+		identifier: str,
+		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
+		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
@@ -688,25 +751,31 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 
 	.. admonition:: Example
 
-	    .. code-block:: VHDL
+	   .. code-block:: VHDL
 
-	       configuration cfg of ent is
-	         for rtl
-	           -- ...
-	         end for;
-	       end configuration;
+	      configuration cfg of ent is
+	        for rtl
+	          -- ...
+	        end for;
+	      end configuration;
 	"""
 
-	def __init__(self, identifier: str, contextItems: Iterable[Context] = None, documentation: str = None):
-		super().__init__(identifier, contextItems, documentation)
+	def __init__(
+		self,
+		identifier: str,
+		contextItems: Nullable[Iterable[Context]] = None,
+		documentation: Nullable[str] = None,
+		parent: ModelEntity = None
+	) -> None:
+		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 
 	def __str__(self) -> str:
-		lib = self._library._identifier if self._library is not None else "%"
+		lib = self._parent._identifier if self._parent is not None else "%"
 
 		return f"Configuration: {lib}.{self._identifier}"
 
 	def __repr__(self) -> str:
-		lib = self._library._identifier if self._library is not None else "%"
+		lib = self._parent._identifier if self._parent is not None else "%"
 
 		return f"{lib}.{self._identifier}"

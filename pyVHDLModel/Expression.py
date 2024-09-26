@@ -258,6 +258,36 @@ class InverseExpression(UnaryExpression):
 
 
 @export
+class UnaryAndExpression(UnaryExpression):
+	_FORMAT = ("and ", "")
+
+
+@export
+class UnaryNandExpression(UnaryExpression):
+	_FORMAT = ("nand ", "")
+
+
+@export
+class UnaryOrExpression(UnaryExpression):
+	_FORMAT = ("or ", "")
+
+
+@export
+class UnaryNorExpression(UnaryExpression):
+	_FORMAT = ("nor ", "")
+
+
+@export
+class UnaryXorExpression(UnaryExpression):
+	_FORMAT = ("xor ", "")
+
+
+@export
+class UnaryXnorExpression(UnaryExpression):
+	_FORMAT = ("xnor ", "")
+
+
+@export
 class AbsoluteExpression(UnaryExpression):
 	_FORMAT = ("abs ", "")
 

@@ -54,7 +54,7 @@ class VHDLLibrary(TestCase):
 		library = design.GetLibrary("lib_1")
 
 		path = Path("tests.vhdl")
-		document = Document(path, documentation="Testing 'Library' class.")
+		document = Document(path, documentation="Testing 'Library' class.", parent=None)
 
 		contextReferences = [
 			LibraryClause([
@@ -64,7 +64,7 @@ class VHDLLibrary(TestCase):
 				AllPackageMembersReferenceSymbol(AllName(SelectedName("std_logic_1164", SimpleName("ieee")))),
 			])
 		]
-		context = Context("ctx_1", contextReferences, documentation="My first context.")
+		context = Context("ctx_1", contextReferences, documentation="My first context.", parent=None)
 		document._AddDesignUnit(context)
 
 		entityAReferences = [
@@ -81,7 +81,7 @@ class VHDLLibrary(TestCase):
 				AllPackageMembersReferenceSymbol(AllName(SelectedName("pack_1", SimpleName("work")))),
 			])
 		]
-		entityA = Entity("entity_A", entityAReferences, documentation="My first entity.")
+		entityA = Entity("entity_A", entityAReferences, documentation="My first entity.", parent=None)
 		document._AddDesignUnit(entityA)
 
 		architectureAReferences = [
@@ -89,7 +89,8 @@ class VHDLLibrary(TestCase):
 				AllPackageMembersReferenceSymbol(AllName(SelectedName("textio", SimpleName("std")))),
 			]),
 		]
-		architectureA = Architecture("arch_A", EntitySymbol(SimpleName("entity_A")), architectureAReferences, documentation="My first entity implementation.")
+		architectureA = Architecture("arch_A", EntitySymbol(SimpleName("entity_A")), architectureAReferences, documentation="My first entity implementation.",
+																 parent=None)
 		document._AddDesignUnit(architectureA)
 
 		entityBReferences = [
@@ -97,14 +98,15 @@ class VHDLLibrary(TestCase):
 				ContextReferenceSymbol(SelectedName("ctx_1", SimpleName("work"))),
 			]),
 		]
-		entityB = Entity("entity_B", entityBReferences, documentation="My second entity.")
+		entityB = Entity("entity_B", entityBReferences, documentation="My second entity.", parent=None)
 		document._AddDesignUnit(entityB)
 
 		architectureBStatements = [
 			EntityInstantiation("instWork", EntityInstantiationSymbol(SelectedName("entity_A", SimpleName("work")))),
 			EntityInstantiation("instLib", EntityInstantiationSymbol(SelectedName("entity_A", SimpleName("lib_1")))),
 		]
-		architectureB = Architecture("arch_B", EntitySymbol(SimpleName("entity_B")), None, None, architectureBStatements, documentation="My second entity implementation.")
+		architectureB = Architecture("arch_B", EntitySymbol(SimpleName("entity_B")), None, None, architectureBStatements,
+																 documentation="My second entity implementation.", parent=None)
 		document._AddDesignUnit(architectureB)
 
 		packageReferences = [
@@ -112,13 +114,13 @@ class VHDLLibrary(TestCase):
 				ContextReferenceSymbol(SelectedName("ctx_1", SimpleName("work"))),
 			]),
 		]
-		package = Package("pack_1", packageReferences, documentation="My first utility package.")
+		package = Package("pack_1", packageReferences, documentation="My first utility package.", parent=None)
 		document._AddDesignUnit(package)
 
-		packageBody = PackageBody(PackageSymbol(SimpleName("pack_1")))
+		packageBody = PackageBody(PackageSymbol(SimpleName("pack_1")), parent=None)
 		document._AddDesignUnit(packageBody)
 
-		configuration = Configuration("cfg_1")
+		configuration = Configuration("cfg_1", parent=None)
 		document._AddDesignUnit(configuration)
 
 		design.AddDocument(document, library)

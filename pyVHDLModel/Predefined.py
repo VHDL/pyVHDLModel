@@ -52,8 +52,8 @@ class PredefinedLibrary(Library):
 	* :class:`~pyVHDLModel.IEEE.Ieee`
 	"""
 
-	def __init__(self, packages):
-		super().__init__(self.__class__.__name__)
+	def __init__(self, packages) -> None:
+		super().__init__(self.__class__.__name__, None)
 
 		self.AddPackages(packages)
 
@@ -105,7 +105,7 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 	"""
 
 	def __init__(self) -> None:
-		super().__init__(self.__class__.__name__)
+		super().__init__(self.__class__.__name__, parent=None)
 
 
 @export
@@ -116,4 +116,4 @@ class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 
 	def __init__(self) -> None:
 		packageSymbol = PackageSymbol(SimpleName(self.__class__.__name__[:-5]))
-		super().__init__(packageSymbol)
+		super().__init__(packageSymbol, parent=None)

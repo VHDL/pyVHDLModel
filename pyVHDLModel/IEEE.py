@@ -150,20 +150,20 @@ class Std_logic_1164(PredefinedPackage):
 			EnumerationLiteral("L"),
 			EnumerationLiteral("H"),
 			EnumerationLiteral("-"),
-		))
+		), None)
 		self._types[stdULogic._normalizedIdentifier] = stdULogic
 		self._declaredItems.append(stdULogic)
 
-		stdULogicVector = ArrayType("std_ulogic_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		stdULogicVector = ArrayType("std_ulogic_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")), None)
 		self._types[stdULogicVector._normalizedIdentifier] = stdULogicVector
 		self._declaredItems.append(stdULogicVector)
 
-		stdLogic = Subtype("std_logic", SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		stdLogic = Subtype("std_logic", SimpleSubtypeSymbol(SimpleName("std_ulogic")), None)
 		stdLogic._baseType = stdULogic
 		self._subtypes[stdLogic._normalizedIdentifier] = stdLogic
 		self._declaredItems.append(stdLogic)
 
-		stdLogicVector = Subtype("std_logic_vector", SimpleSubtypeSymbol(SimpleName("std_ulogic_vector")))
+		stdLogicVector = Subtype("std_logic_vector", SimpleSubtypeSymbol(SimpleName("std_ulogic_vector")), None)
 		stdLogicVector._baseType = stdULogicVector
 		self._subtypes[stdLogicVector._normalizedIdentifier] = stdLogicVector
 		self._declaredItems.append(stdLogicVector)
@@ -267,20 +267,20 @@ class Numeric_Std(PredefinedPackage):
 		self._AddLibraryClause(("IEEE", ))
 		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
 
-		unresolvedUnsigned = ArrayType("unresolved_unsigned", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		unresolvedUnsigned = ArrayType("unresolved_unsigned", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")), None)
 		self._types[unresolvedUnsigned._normalizedIdentifier] = unresolvedUnsigned
 		self._declaredItems.append(unresolvedUnsigned)
 
-		unsigned = Subtype("unsigned", SimpleSubtypeSymbol(SimpleName("unresolved_unsigned")))
+		unsigned = Subtype("unsigned", SimpleSubtypeSymbol(SimpleName("unresolved_unsigned")), None)
 		unsigned._baseType = unresolvedUnsigned
 		self._subtypes[unsigned._normalizedIdentifier] = unsigned
 		self._declaredItems.append(unsigned)
 
-		unresolvedSigned = ArrayType("unresolved_signed", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		unresolvedSigned = ArrayType("unresolved_signed", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("std_ulogic")), None)
 		self._types[unresolvedSigned._normalizedIdentifier] = unresolvedSigned
 		self._declaredItems.append(unresolvedSigned)
 
-		signed = Subtype("signed", SimpleSubtypeSymbol(SimpleName("unresolved_signed")))
+		signed = Subtype("signed", SimpleSubtypeSymbol(SimpleName("unresolved_signed")), None)
 		signed._baseType = unresolvedSigned
 		self._subtypes[signed._normalizedIdentifier] = signed
 		self._declaredItems.append(signed)

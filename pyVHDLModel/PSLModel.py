@@ -51,19 +51,19 @@ class PSLPrimaryUnit(PrimaryUnit):
 @export
 class VerificationUnit(PSLPrimaryUnit):
 	def __init__(self, identifier: str) -> None:
-		super().__init__(identifier)
+		super().__init__(identifier, parent=None)
 
 
 @export
 class VerificationProperty(PSLPrimaryUnit):
 	def __init__(self, identifier: str) -> None:
-		super().__init__(identifier)
+		super().__init__(identifier, parent=None)
 
 
 @export
 class VerificationMode(PSLPrimaryUnit):
 	def __init__(self, identifier: str) -> None:
-		super().__init__(identifier)
+		super().__init__(identifier, parent=None)
 
 
 @export

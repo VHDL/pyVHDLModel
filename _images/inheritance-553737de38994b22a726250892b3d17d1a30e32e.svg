@@ -1,0 +1,119 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="576pt" height="86pt" viewBox="0.00 0.00 576.00 86.06">
+<ns0:g id="graph0" class="graph" transform="scale(0.85 0.85) rotate(0) translate(4 97)">
+<ns0:title>inheritance9497273ad0</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>DocumentedEntityMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.DocumentedEntityMixin" ns1:title="A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="134,-93 0,-93 0,-74 134,-74 134,-93" />
+<ns0:text text-anchor="middle" x="67" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DocumentedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>Subprogram</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Subprogram.html#pyVHDLModel.Subprogram.Subprogram" ns1:title="Subprogram" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="279.5,-56 203.5,-56 203.5,-37 279.5,-37 279.5,-56" />
+<ns0:text text-anchor="middle" x="241.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Subprogram</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge6" class="edge">
+<ns0:title>DocumentedEntityMixin-&gt;Subprogram</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M112.42,-73.97C138.81,-68.31 172.1,-61.17 198.12,-55.59" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="198.7,-57.25 203.23,-54.49 197.97,-53.83 198.7,-57.25" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>Function</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Subprogram.html#pyVHDLModel.Subprogram.Function" ns1:title="Function" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="460,-56 402,-56 402,-37 460,-37 460,-56" />
+<ns0:text text-anchor="middle" x="431" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Function</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>FunctionInstantiation</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Instantiation.html#pyVHDLModel.Instantiation.FunctionInstantiation" ns1:title="FunctionInstantiation" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="668,-37 549,-37 549,-18 668,-18 668,-37" />
+<ns0:text text-anchor="middle" x="608.5" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">FunctionInstantiation</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>Function-&gt;FunctionInstantiation</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M460.2,-43.45C482.64,-41.02 514.91,-37.52 543.54,-34.42" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="544.05,-36.13 548.84,-33.85 543.68,-32.65 544.05,-36.13" />
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>Subprogram-&gt;Function</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M279.54,-46.5C313.68,-46.5 363.89,-46.5 396.77,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="396.89,-48.25 401.89,-46.5 396.89,-44.75 396.89,-48.25" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>SubprogramInstantiationMixin</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Instantiation.html#pyVHDLModel.Instantiation.SubprogramInstantiationMixin" ns1:title="SubprogramInstantiationMixin" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="513,-19 349,-19 349,0 513,0 513,-19" />
+<ns0:text text-anchor="middle" x="431" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SubprogramInstantiationMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>SubprogramInstantiationMixin-&gt;FunctionInstantiation</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M513.07,-17.82C523.32,-18.87 533.69,-19.93 543.62,-20.95" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="543.62,-22.71 548.77,-21.48 543.97,-19.23 543.62,-22.71" />
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>GenericInstantiationMixin</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Instantiation.html#pyVHDLModel.Instantiation.GenericInstantiationMixin" ns1:title="GenericInstantiationMixin" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="313,-19 170,-19 170,0 313,0 313,-19" />
+<ns0:text text-anchor="middle" x="241.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">GenericInstantiationMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge7" class="edge">
+<ns0:title>GenericInstantiationMixin-&gt;SubprogramInstantiationMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M313.12,-9.5C323.11,-9.5 333.48,-9.5 343.72,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="343.74,-11.25 348.74,-9.5 343.74,-7.75 343.74,-11.25" />
+</ns0:g>
+
+<ns0:g id="node7" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node7"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="104.5,-56 29.5,-56 29.5,-37 104.5,-37 104.5,-56" />
+<ns0:text text-anchor="middle" x="67" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>ModelEntity-&gt;Subprogram</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M104.58,-46.5C131.96,-46.5 169.45,-46.5 198.13,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="198.38,-48.25 203.38,-46.5 198.38,-44.75 198.38,-48.25" />
+</ns0:g>
+
+<ns0:g id="node8" class="node">
+<ns0:title>NamedEntityMixin</ns0:title>
+<ns0:g id="a_node8"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.NamedEntityMixin" ns1:title="A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have identifiers." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="120.5,-19 13.5,-19 13.5,0 120.5,0 120.5,-19" />
+<ns0:text text-anchor="middle" x="67" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">NamedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>NamedEntityMixin-&gt;Subprogram</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M112.42,-19.03C138.81,-24.69 172.1,-31.83 198.12,-37.41" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="197.97,-39.17 203.23,-38.51 198.7,-35.75 197.97,-39.17" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

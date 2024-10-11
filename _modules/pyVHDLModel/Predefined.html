@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyVHDLModel.Predefined &mdash; pyVHDLModel 0.29.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=77553476" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-reports.e44b1595f1e09d5e109d001839ba3f42.css?v=0b41afa8" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../../_static/favicon.svg"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=fcb1757e"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../../_static/copybutton.js?v=f281be69"></script>
+        <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+        <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pyVHDLModel/pyVHDLModel.html">Python Class Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coverage/index.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../pyVHDLModel.html">pyVHDLModel</a></li>
+      <li class="breadcrumb-item active">pyVHDLModel.Predefined</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pyVHDLModel.Predefined</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ==================================================================================================================== #</span>
+<span class="c1">#             __     ___   _ ____  _     __  __           _      _                                                     #</span>
+<span class="c1">#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #</span>
+<span class="c1">#  | &#39;_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #</span>
+<span class="c1">#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #</span>
+<span class="c1">#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #</span>
+<span class="c1">#  |_|    |___/                                                                                                        #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1"># Authors:                                                                                                             #</span>
+<span class="c1">#   Patrick Lehmann                                                                                                    #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># License:                                                                                                             #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1"># Copyright 2017-2024 Patrick Lehmann - Boetzingen, Germany                                                            #</span>
+<span class="c1"># Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);                                                      #</span>
+<span class="c1"># you may not use this file except in compliance with the License.                                                     #</span>
+<span class="c1"># You may obtain a copy of the License at                                                                              #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software                                                  #</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,                                                    #</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #</span>
+<span class="c1"># See the License for the specific language governing permissions and                                                  #</span>
+<span class="c1"># limitations under the License.                                                                                       #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># SPDX-License-Identifier: Apache-2.0                                                                                  #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;This module contains base-classes for predefined library and package declarations.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span>                 <span class="kn">import</span> <span class="n">Iterable</span>
+
+<span class="kn">from</span> <span class="nn">pyTooling.Decorators</span>   <span class="kn">import</span> <span class="n">export</span>
+<span class="kn">from</span> <span class="nn">pyTooling.MetaClasses</span>  <span class="kn">import</span> <span class="n">ExtendedType</span>
+
+<span class="kn">from</span> <span class="nn">pyVHDLModel</span>            <span class="kn">import</span> <span class="n">Library</span><span class="p">,</span> <span class="n">Package</span><span class="p">,</span> <span class="n">PackageBody</span><span class="p">,</span> <span class="n">AllPackageMembersReferenceSymbol</span><span class="p">,</span> <span class="n">PackageMemberReferenceSymbol</span>
+<span class="kn">from</span> <span class="nn">pyVHDLModel.Name</span>       <span class="kn">import</span> <span class="n">SimpleName</span><span class="p">,</span> <span class="n">SelectedName</span><span class="p">,</span> <span class="n">AllName</span>
+<span class="kn">from</span> <span class="nn">pyVHDLModel.Symbol</span>     <span class="kn">import</span> <span class="n">LibraryReferenceSymbol</span><span class="p">,</span> <span class="n">PackageSymbol</span>
+<span class="kn">from</span> <span class="nn">pyVHDLModel.DesignUnit</span> <span class="kn">import</span> <span class="n">LibraryClause</span><span class="p">,</span> <span class="n">UseClause</span>
+
+
+<div class="viewcode-block" id="PredefinedLibrary">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Predefined.html#pyVHDLModel.Predefined.PredefinedLibrary">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">PredefinedLibrary</span><span class="p">(</span><span class="n">Library</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A base-class for predefined VHDL libraries.</span>
+
+<span class="sd">	VHDL defines 2 predefined libraries:</span>
+
+<span class="sd">	* :class:`~pyVHDLModel.STD.Std`</span>
+<span class="sd">	* :class:`~pyVHDLModel.IEEE.Ieee`</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PredefinedLibrary.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Predefined.html#pyVHDLModel.Predefined.PredefinedLibrary.__init__">[docs]</a>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">packages</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">AddPackages</span><span class="p">(</span><span class="n">packages</span><span class="p">)</span></div>
+
+
+	<span class="k">def</span> <span class="nf">AddPackages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">packages</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">packageType</span><span class="p">,</span> <span class="n">packageBodyType</span> <span class="ow">in</span> <span class="n">packages</span><span class="p">:</span>
+			<span class="n">package</span><span class="p">:</span> <span class="n">Package</span> <span class="o">=</span> <span class="n">packageType</span><span class="p">()</span>
+			<span class="n">package</span><span class="o">.</span><span class="n">Library</span> <span class="o">=</span> <span class="bp">self</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_packages</span><span class="p">[</span><span class="n">package</span><span class="o">.</span><span class="n">NormalizedIdentifier</span><span class="p">]</span> <span class="o">=</span> <span class="n">package</span>
+
+			<span class="k">if</span> <span class="n">packageBodyType</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">packageBody</span><span class="p">:</span> <span class="n">PackageBody</span> <span class="o">=</span> <span class="n">packageBodyType</span><span class="p">()</span>
+				<span class="n">packageBody</span><span class="o">.</span><span class="n">Library</span> <span class="o">=</span> <span class="bp">self</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_packageBodies</span><span class="p">[</span><span class="n">packageBody</span><span class="o">.</span><span class="n">NormalizedIdentifier</span><span class="p">]</span> <span class="o">=</span> <span class="n">packageBody</span></div>
+
+
+
+<div class="viewcode-block" id="PredefinedPackageMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Predefined.html#pyVHDLModel.Predefined.PredefinedPackageMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">PredefinedPackageMixin</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ExtendedType</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A mixin-class for predefined VHDL packages and package bodies.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">_AddLibraryClause</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">libraries</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+		<span class="n">symbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">LibraryReferenceSymbol</span><span class="p">(</span><span class="n">SimpleName</span><span class="p">(</span><span class="n">libName</span><span class="p">))</span> <span class="k">for</span> <span class="n">libName</span> <span class="ow">in</span> <span class="n">libraries</span><span class="p">]</span>
+		<span class="n">libraryClause</span> <span class="o">=</span> <span class="n">LibraryClause</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_contextItems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">libraryClause</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_libraryReferences</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">libraryClause</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">_AddPackageClause</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">packages</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+		<span class="n">symbols</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">qualifiedPackageName</span> <span class="ow">in</span> <span class="n">packages</span><span class="p">:</span>
+			<span class="n">libName</span><span class="p">,</span> <span class="n">packName</span><span class="p">,</span> <span class="n">members</span> <span class="o">=</span> <span class="n">qualifiedPackageName</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
+			<span class="n">packageName</span> <span class="o">=</span> <span class="n">SelectedName</span><span class="p">(</span><span class="n">packName</span><span class="p">,</span> <span class="n">SimpleName</span><span class="p">(</span><span class="n">libName</span><span class="p">))</span>
+			<span class="k">if</span> <span class="n">members</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+				<span class="n">symbols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AllPackageMembersReferenceSymbol</span><span class="p">(</span><span class="n">AllName</span><span class="p">(</span><span class="n">packageName</span><span class="p">)))</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">symbols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PackageMemberReferenceSymbol</span><span class="p">(</span><span class="n">SelectedName</span><span class="p">(</span><span class="n">members</span><span class="p">,</span> <span class="n">packageName</span><span class="p">)))</span>
+
+		<span class="n">useClause</span> <span class="o">=</span> <span class="n">UseClause</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_contextItems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">useClause</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_packageReferences</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">useClause</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="PredefinedPackage">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Predefined.html#pyVHDLModel.Predefined.PredefinedPackage">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">PredefinedPackage</span><span class="p">(</span><span class="n">Package</span><span class="p">,</span> <span class="n">PredefinedPackageMixin</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A base-class for predefined VHDL packages.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PredefinedPackage.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Predefined.html#pyVHDLModel.Predefined.PredefinedPackage.__init__">[docs]</a>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PredefinedPackageBody">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Predefined.html#pyVHDLModel.Predefined.PredefinedPackageBody">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span> <span class="nc">PredefinedPackageBody</span><span class="p">(</span><span class="n">PackageBody</span><span class="p">,</span> <span class="n">PredefinedPackageMixin</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A base-class for predefined VHDL package bodies.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PredefinedPackageBody.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Predefined.html#pyVHDLModel.Predefined.PredefinedPackageBody.__init__">[docs]</a>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">packageSymbol</span> <span class="o">=</span> <span class="n">PackageSymbol</span><span class="p">(</span><span class="n">SimpleName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]))</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">packageSymbol</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2024, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 11.10.2024.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

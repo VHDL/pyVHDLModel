@@ -1,0 +1,59 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="342pt" height="64pt" viewBox="0.00 0.00 342.00 64.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 60)">
+<ns0:title>inheritance92d0d33c64</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>DefaultClock</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.PSLModel.html#pyVHDLModel.PSLModel.DefaultClock" ns1:title="DefaultClock" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="334,-37 254,-37 254,-18 334,-18 334,-37" />
+<ns0:text text-anchor="middle" x="294" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DefaultClock</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>PSLEntity</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.PSLModel.html#pyVHDLModel.PSLModel.PSLEntity" ns1:title="PSLEntity" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="195.5,-56 133.5,-56 133.5,-37 195.5,-37 195.5,-56" />
+<ns0:text text-anchor="middle" x="164.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">PSLEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>PSLEntity-&gt;DefaultClock</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M195.72,-42C211.47,-39.65 231.03,-36.73 248.48,-34.13" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="249.13,-35.81 253.82,-33.34 248.62,-32.34 249.13,-35.81" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>NamedEntityMixin</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.NamedEntityMixin" ns1:title="A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have identifiers." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="218,-19 111,-19 111,0 218,0 218,-19" />
+<ns0:text text-anchor="middle" x="164.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">NamedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>NamedEntityMixin-&gt;DefaultClock</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M218.1,-16.93C228.26,-18.36 238.81,-19.85 248.68,-21.24" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="248.58,-23 253.77,-21.96 249.07,-19.53 248.58,-23" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="75,-56 0,-56 0,-37 75,-37 75,-56" />
+<ns0:text text-anchor="middle" x="37.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>ModelEntity-&gt;PSLEntity</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M75.33,-46.5C92.04,-46.5 111.71,-46.5 128.22,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="128.24,-48.25 133.24,-46.5 128.24,-44.75 128.24,-48.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

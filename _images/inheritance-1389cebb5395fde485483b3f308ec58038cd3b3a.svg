@@ -1,0 +1,74 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="533pt" height="64pt" viewBox="0.00 0.00 533.00 64.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 60)">
+<ns0:title>inheritance5e131b75c5</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>CompoundStatement</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Sequential.html#pyVHDLModel.Sequential.CompoundStatement" ns1:title="A ``CompoundStatement`` is a base-class for all compound statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="525,-37 405,-37 405,-18 525,-18 525,-37" />
+<ns0:text text-anchor="middle" x="465" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">CompoundStatement</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>SequentialStatement</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Sequential.html#pyVHDLModel.Sequential.SequentialStatement" ns1:title="A ``SequentialStatement`` is a base-class for all sequential statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="369,-37 250,-37 250,-18 369,-18 369,-37" />
+<ns0:text text-anchor="middle" x="309.5" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SequentialStatement</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>SequentialStatement-&gt;CompoundStatement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M369.41,-27.5C379.34,-27.5 389.7,-27.5 399.76,-27.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="400,-29.25 405,-27.5 400,-25.75 400,-29.25" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>LabeledEntityMixin</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.LabeledEntityMixin" ns1:title="A ``LabeledEntityMixin`` is a mixin class for all VHDL entities that can have labels." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="110,-56 0,-56 0,-37 110,-37 110,-56" />
+<ns0:text text-anchor="middle" x="55" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">LabeledEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>Statement</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Common.html#pyVHDLModel.Common.Statement" ns1:title="A ``Statement`` is a base-class for all statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="214,-37 146,-37 146,-18 214,-18 214,-37" />
+<ns0:text text-anchor="middle" x="180" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Statement</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>LabeledEntityMixin-&gt;Statement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M110.31,-38.11C120.61,-36.52 131.19,-34.89 140.86,-33.39" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="141.15,-35.12 145.83,-32.62 140.62,-31.66 141.15,-35.12" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="92.5,-19 17.5,-19 17.5,0 92.5,0 92.5,-19" />
+<ns0:text text-anchor="middle" x="55" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>ModelEntity-&gt;Statement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M92.57,-14.85C107.71,-17.07 125.28,-19.64 140.61,-21.88" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="140.51,-23.64 145.72,-22.63 141.02,-20.17 140.51,-23.64" />
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>Statement-&gt;SequentialStatement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M214.17,-27.5C223.55,-27.5 234.09,-27.5 244.64,-27.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="244.81,-29.25 249.81,-27.5 244.81,-25.75 244.81,-29.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

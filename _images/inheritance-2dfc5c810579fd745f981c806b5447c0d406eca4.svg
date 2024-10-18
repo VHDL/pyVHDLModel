@@ -1,0 +1,74 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="576pt" height="24pt" viewBox="0.00 0.00 576.00 23.56">
+<ns0:g id="graph0" class="graph" transform="scale(0.87 0.87) rotate(0) translate(4 23)">
+<ns0:title>inheritance1106d0f985</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>BaseExpression</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" ns1:title="A ``BaseExpression`` is a base-class for all expressions." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="205,-19 111,-19 111,0 205,0 205,-19" />
+<ns0:text text-anchor="middle" x="158" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">BaseExpression</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>BinaryExpression</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.BinaryExpression" ns1:title="A ``BinaryExpression`` is a base-class for all binary expressions." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="342,-19 241,-19 241,0 342,0 342,-19" />
+<ns0:text text-anchor="middle" x="291.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">BinaryExpression</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>BaseExpression-&gt;BinaryExpression</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M205.36,-9.5C215.19,-9.5 225.64,-9.5 235.74,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="235.99,-11.25 240.99,-9.5 235.99,-7.75 235.99,-11.25" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="75,-19 0,-19 0,0 75,0 75,-19" />
+<ns0:text text-anchor="middle" x="37.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ModelEntity-&gt;BaseExpression</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M75.02,-9.5C84.72,-9.5 95.38,-9.5 105.71,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="105.75,-11.25 110.75,-9.5 105.75,-7.75 105.75,-11.25" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>RelationalExpression</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.RelationalExpression" ns1:title="A ``RelationalExpression`` is a base-class for all shifting expressions." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="497,-19 378,-19 378,0 497,0 497,-19" />
+<ns0:text text-anchor="middle" x="437.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">RelationalExpression</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>BinaryExpression-&gt;RelationalExpression</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M342.06,-9.5C351.98,-9.5 362.55,-9.5 372.87,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="372.92,-11.25 377.92,-9.5 372.92,-7.75 372.92,-11.25" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>LessEqualExpression</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.LessEqualExpression" ns1:title="LessEqualExpression" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="652,-19 533,-19 533,0 652,0 652,-19" />
+<ns0:text text-anchor="middle" x="592.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">LessEqualExpression</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>RelationalExpression-&gt;LessEqualExpression</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M497.22,-9.5C507.19,-9.5 517.59,-9.5 527.69,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="527.94,-11.25 532.94,-9.5 527.94,-7.75 527.94,-11.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

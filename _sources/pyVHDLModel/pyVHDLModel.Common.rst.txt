@@ -1,0 +1,94 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+==================
+pyVHDLModel.Common
+==================
+
+.. automodule:: pyVHDLModel.Common
+
+
+.. currentmodule:: pyVHDLModel.Common
+
+
+**Classes**
+
+- :py:class:`Statement`:
+  A ``Statement`` is a base-class for all statements.
+
+- :py:class:`ProcedureCallMixin`:
+  Undocumented.
+
+- :py:class:`AssignmentMixin`:
+  A mixin-class for all assignment statements.
+
+- :py:class:`SignalAssignmentMixin`:
+  A mixin-class for all signal assignment statements.
+
+- :py:class:`VariableAssignmentMixin`:
+  A mixin-class for all variable assignment statements.
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: Statement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Statement
+      :parts: 1
+
+.. autoclass:: ProcedureCallMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ProcedureCallMixin
+      :parts: 1
+
+.. autoclass:: AssignmentMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: AssignmentMixin
+      :parts: 1
+
+.. autoclass:: SignalAssignmentMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SignalAssignmentMixin
+      :parts: 1
+
+.. autoclass:: VariableAssignmentMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: VariableAssignmentMixin
+      :parts: 1

@@ -1,0 +1,14 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="119pt" height="27pt" viewBox="0.00 0.00 119.00 27.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 23)">
+<ns0:title>inheritanceeb991d8a4d</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>ProcedureCallMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Common.html#pyVHDLModel.Common.ProcedureCallMixin" ns1:title="ProcedureCallMixin" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="111,-19 0,-19 0,0 111,0 111,-19" />
+<ns0:text text-anchor="middle" x="55.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ProcedureCallMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+</ns0:g>
+</ns0:svg>

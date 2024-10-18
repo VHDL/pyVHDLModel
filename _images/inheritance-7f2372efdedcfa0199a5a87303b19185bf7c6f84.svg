@@ -1,0 +1,59 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="392pt" height="27pt" viewBox="0.00 0.00 392.00 27.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 23)">
+<ns0:title>inheritance2919bf919a</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>AllName</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Name.html#pyVHDLModel.Name.AllName" ns1:title="The *all name* represents the reserved word ``all`` used in names." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="384,-19 325,-19 325,0 384,0 384,-19" />
+<ns0:text text-anchor="middle" x="354.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">AllName</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>SelectedName</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Name.html#pyVHDLModel.Name.SelectedName" ns1:title="A *selected name* is a name made from multiple words separated by a dot (``.``)." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="289,-19 201,-19 201,0 289,0 289,-19" />
+<ns0:text text-anchor="middle" x="245" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SelectedName</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>SelectedName-&gt;AllName</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M289.1,-9.5C299.26,-9.5 309.94,-9.5 319.62,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="319.88,-11.25 324.88,-9.5 319.88,-7.75 319.88,-11.25" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="75,-19 0,-19 0,0 75,0 75,-19" />
+<ns0:text text-anchor="middle" x="37.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>Name</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Name.html#pyVHDLModel.Name.Name" ns1:title="``Name`` is the base-class for all *names* in the VHDL language model." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="165,-19 111,-19 111,0 165,0 165,-19" />
+<ns0:text text-anchor="middle" x="138" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Name</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>ModelEntity-&gt;Name</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M75.18,-9.5C85.15,-9.5 95.85,-9.5 105.51,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="105.75,-11.25 110.75,-9.5 105.75,-7.75 105.75,-11.25" />
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>Name-&gt;SelectedName</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M165.23,-9.5C174.52,-9.5 185.29,-9.5 195.83,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="195.97,-11.25 200.97,-9.5 195.97,-7.75 195.97,-11.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

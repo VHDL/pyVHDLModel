@@ -22,7 +22,7 @@ details.
 
 .. tab-set::
 
-   .. tab-item:: Linux/MacOS
+   .. tab-item:: Linux/macOS
       :sync: Linux
 
       .. code-block:: bash
@@ -43,7 +43,7 @@ just all (``all``) dependencies.
 
 .. tab-set::
 
-   .. tab-item:: Linux/MacOS
+   .. tab-item:: Linux/macOS
       :sync: Linux
 
       .. tab-set::
@@ -109,7 +109,7 @@ Updating from PyPI using PIP
 
 .. tab-set::
 
-   .. tab-item:: Linux/MacOS
+   .. tab-item:: Linux/macOS
       :sync: Linux
 
       .. code-block:: bash
@@ -131,7 +131,7 @@ Uninstallation using PIP
 
 .. tab-set::
 
-   .. tab-item:: Linux/MacOS
+   .. tab-item:: Linux/macOS
       :sync: Linux
 
       .. code-block:: bash
@@ -176,7 +176,7 @@ Ensure :ref:`packaging requirements <DEP/packaging>` are installed.
 
 .. tab-set::
 
-   .. tab-item:: Linux/MacOS
+   .. tab-item:: Linux/macOS
       :sync: Linux
 
       .. code-block:: bash

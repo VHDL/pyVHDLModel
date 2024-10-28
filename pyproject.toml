@@ -1,8 +1,8 @@
 [build-system]
 requires = [
-  "setuptools ~= 75.1",
+  "setuptools ~= 75.3",
   "wheel ~= 0.44",
-  "pyTooling ~= 6.6"
+  "pyTooling ~= 7.0"
 ]
 build-backend = "setuptools.build_meta"
 
@@ -11,7 +11,7 @@ line-length = 120
 
 [tool.mypy]
 files = ["pyVHDLModel"]
-python_version = "3.12"
+python_version = "3.13"
 #ignore_missing_imports = true
 strict = true
 pretty = true
@@ -21,6 +21,7 @@ namespace_packages = true
 html_report = "report/typing"
 
 [tool.pytest.ini_options]
+addopts = "--tb=native"
 # Don't set 'python_classes = *' otherwise, pytest doesn't search for classes
 # derived from unittest.Testcase
 python_files = "*"

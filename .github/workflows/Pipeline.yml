@@ -12,7 +12,7 @@ jobs:
     uses: pyTooling/Actions/.github/workflows/Parameters.yml@dev
     with:
       name: pyVHDLModel
-      python_version_list: "3.9 3.10 3.11 3.12 pypy-3.9 pypy-3.10"
+#      python_version_list: "3.9 3.10 3.11 3.12 pypy-3.9 pypy-3.10"
 #      disable_list: "windows:pypy-3.8 windows:pypy-3.9 windows:pypy-3.10"
 
   UnitTesting:
@@ -46,6 +46,11 @@ jobs:
       directory: pyVHDLModel
 #      fail_below: 70
 
+  ConfigParams:
+    uses: pyTooling/Actions/.github/workflows/ExtractConfiguration.yml@dev
+    needs:
+      - DocCoverage
+
   Package:
     uses: pyTooling/Actions/.github/workflows/Package.yml@dev
     needs:
@@ -76,17 +81,6 @@ jobs:
     with:
       merged_junit_artifact: ${{ fromJson(needs.UnitTestingParams.outputs.artifact_names).unittesting_xml }}
 
-  IntermediateCleanUp:
-    uses: pyTooling/Actions/.github/workflows/IntermediateCleanUp.yml@dev
-    needs:
-      - UnitTestingParams
-      - PublishCoverageResults
-      - PublishTestResults
-      - HTMLDocumentation
-    with:
-      sqlite_coverage_artifacts_prefix: ${{ fromJson(needs.UnitTestingParams.outputs.artifact_names).codecoverage_sqlite }}-
-      xml_unittest_artifacts_prefix: ${{ fromJson(needs.UnitTestingParams.outputs.artifact_names).unittesting_xml }}-
-
 #  VerifyDocs:
 #    uses: pyTooling/Actions/.github/workflows/VerifyDocs.yml@dev
 #    needs:
@@ -94,25 +88,38 @@ jobs:
 #    with:
 #      python_version: ${{ needs.UnitTestingParams.outputs.python_version }}
 
-  HTMLDocumentation:
+  Documentation:
     uses: pyTooling/Actions/.github/workflows/SphinxDocumentation.yml@dev
     needs:
       - UnitTestingParams
+      - ConfigParams
       - PublishTestResults
       - PublishCoverageResults
 #      - VerifyDocs
     with:
       python_version: ${{ needs.UnitTestingParams.outputs.python_version }}
+      coverage_report_json_directory: ${{ needs.ConfigParams.outputs.coverage_report_json_directory }}
       unittest_xml_artifact: ${{ fromJson(needs.UnitTestingParams.outputs.artifact_names).unittesting_xml }}-ubuntu-native-3.12
       coverage_json_artifact: ${{ fromJson(needs.UnitTestingParams.outputs.artifact_names).codecoverage_json }}
       html_artifact: ${{ fromJson(needs.UnitTestingParams.outputs.artifact_names).documentation_html }}
       latex_artifact: ${{ fromJson(needs.UnitTestingParams.outputs.artifact_names).documentation_latex }}
 
+  IntermediateCleanUp:
+    uses: pyTooling/Actions/.github/workflows/IntermediateCleanUp.yml@dev
+    needs:
+      - UnitTestingParams
+      - PublishCoverageResults
+      - PublishTestResults
+      - Documentation
+    with:
+      sqlite_coverage_artifacts_prefix: ${{ fromJson(needs.UnitTestingParams.outputs.artifact_names).codecoverage_sqlite }}-
+      xml_unittest_artifacts_prefix: ${{ fromJson(needs.UnitTestingParams.outputs.artifact_names).unittesting_xml }}-
+
 #  PDFDocumentation:
 #    uses: pyTooling/Actions/.github/workflows/LaTeXDocumentation.yml@dev
 #    needs:
 #      - UnitTestingParams
-#      - HTMLDocumentation
+#      - Documentation
 #    with:
 #      document: pyVHDLModel
 #      latex_artifact: ${{ fromJson(needs.UnitTestingParams.outputs.artifact_names).documentation_latex }}
@@ -122,7 +129,7 @@ jobs:
     uses: pyTooling/Actions/.github/workflows/PublishToGitHubPages.yml@dev
     needs:
       - UnitTestingParams
-      - HTMLDocumentation
+      - Documentation
 #      - PDFDocumentation
       - PublishCoverageResults
       - StaticTypeCheck
@@ -157,7 +164,7 @@ jobs:
       - UnitTestingParams
       - UnitTesting
       - StaticTypeCheck
-      - HTMLDocumentation
+      - Documentation
 #      - PDFDocumentation
       - PublishTestResults
       - PublishCoverageResults

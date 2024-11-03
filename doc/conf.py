@@ -272,32 +272,26 @@ report_dep_dependencies = {
 	"publish": ["../dist/requirements.txt"],
 }
 
-_coverageLevels = {
-	30:      {"class": "report-cov-below30",  "desc": "almost undocumented"},
-	50:      {"class": "report-cov-below50",  "desc": "poorly documented"},
-	80:      {"class": "report-cov-below80",  "desc": "roughly documented"},
-	90:      {"class": "report-cov-below90",  "desc": "well documented"},
-	100:     {"class": "report-cov-below100", "desc": "excellent documented"},
-	"error": {"class": "report-cov-error",    "desc": "internal error"},
-}
-
 report_unittest_testsuites = {
-	"src":   {"xml_report": "../report/unit/TestReportSummary.xml"},
+	"src": {
+		"name":        f"{project}",
+		"xml_report":  "../report/unit/TestReportSummary.xml",
+	}
 }
 report_codecov_packages = {
 	"src": {
-		"name":        "pyVHDLModel",
+		"name":        f"{project}",
 		"json_report": "../report/coverage/coverage.json",
 		"fail_below":  80,
-		"levels":      _coverageLevels
+		"levels":      "default"
 	}
 }
 report_doccov_packages = {
 	"src": {
-		"name":       "pyVHDLModel",
-		"directory":  "../pyVHDLModel",
+		"name":       f"{project}",
+		"directory":  f"../{project.replace('.', '/')}",
 		"fail_below": 80,
-		"levels":     _coverageLevels
+		"levels":     "default"
 	}
 }
 
@@ -305,7 +299,7 @@ report_doccov_packages = {
 # ==============================================================================
 # Sphinx_Design
 # ==============================================================================
-sd_fontawesome_latex = True
+# sd_fontawesome_latex = True
 
 
 # ==============================================================================

@@ -3,15 +3,15 @@
 VHDL Language Model
 ###################
 
-.. rubric:: Design Goal
+.. rubric:: Design Goals
 
-   * Clearly named classes that model the semantics of VHDL.
-   * All language constructs (statements, declarations, specifications, …) have
-     their own classes. |br| These classes are arranged in a logical hierarchy,
-     with a single common base-class.
-   * Child objects shall have a reference to their parent.
-   * Comments will be associated with a particular code object.
-   * Easy modifications of the object tree.
+* Clearly named classes that model the semantics of VHDL.
+* All language constructs (statements, declarations, specifications, …) have
+  their own classes. |br| These classes are arranged in a logical hierarchy,
+  with a single common base-class.
+* Child objects shall have a reference to their parent.
+* Comments will be associated with a particular code object.
+* Easy modifications of the object tree.
 
 .. rubric:: Elements of the Language Model
 

@@ -14,7 +14,7 @@ pyVHDLParser
 ************
 
 The pyVHDLParser is a token-stream based parser creating a code document object model (CodeDOM) derived from
-pyVHDLModel. Actually, pyVHDlModel was originally part of that parser, until it got refactored into this standalone
+pyVHDLModel. Actually, pyVHDLModel was originally part of that parser, until it got refactored into this standalone
 package so multiple frontends (parsers) and backends (analysis tools) can use this VHDL language model as a common API.
 
 .. warning:: Currently, pyVHDLParser is not aligned with latest updates in pyVHDLModel.
@@ -227,8 +227,8 @@ On Mac
 Using libghdl with Python
 =========================
 
-An environment variable :envvar:`GHDL_PREFIX=C:\\Tools\\GHDL\\3.0.0-dev\\lib\\ghdl` is needed for libghdl. The path is
-constructed from installation path plus ``lib\\ghdl``.
+An environment variable :envvar:`GHDL_PREFIX=C:\\Tools\\GHDL\\3.0.0-dev\\lib\\ghdl` is needed for ``libghdl``. The path is
+constructed from installation path plus ``lib\ghdl``.
 
 .. admonition:: GettingStarted.py
 

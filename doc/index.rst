@@ -54,8 +54,8 @@ frontends.
 Use Cases
 *********
 
-* High-level API for `GHDL's <https://GitHub.com/ghdl/ghdl>`__ `libghdl` offered via `pyGHDL <https://ghdl.github.io/ghdl/using/pyGHDL/index.html>`__.
-* Code Document-Object-Model (Code-DOM) in `pyVHDLParser <https://GitHub.com/Paebbels/pyVHDLParser>`__.
+* High-level API for `GHDL's <https://GitHub.com/ghdl/ghdl>`__ `libghdl` offered via `pyGHDL <https://ghdl.github.io/ghdl/pyGHDL/pyGHDL.html>`__.
+* Code Document-Object-Model (Code-DOM) in `pyVHDLParser <https://paebbels.github.io/pyVHDLParser/>`__.
 
 
 .. _news:

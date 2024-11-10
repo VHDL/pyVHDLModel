@@ -4,7 +4,6 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
-      <excludeFolder url="file://$MODULE_DIR$/doc/_build" />
       <excludeFolder url="file://$MODULE_DIR$/tests/.pytest_cache" />
       <excludeFolder url="file://$MODULE_DIR$/.pytest_cache" />
       <excludeFolder url="file://$MODULE_DIR$/doc/_theme" />
@@ -12,6 +11,8 @@
       <excludeFolder url="file://$MODULE_DIR$/.idea" />
       <excludeFolder url="file://$MODULE_DIR$/build/bdist.win-amd64" />
       <excludeFolder url="file://$MODULE_DIR$/build/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/.vscode" />
+      <excludeFolder url="file://$MODULE_DIR$/doc/_build/html" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.13" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

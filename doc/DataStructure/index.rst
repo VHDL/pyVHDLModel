@@ -41,9 +41,9 @@ Hierarchy Graph
 
 The hierarchy graph can be derived from dependency graph by:
 
-1. copying all entity and architecture vertices
-2. copying all implements dependency edges
-3. copying all instantiates edges in reverse direction
+#. copying all entity and architecture vertices
+#. copying all implements dependency edges
+#. copying all instantiates edges in reverse direction
 
 The graph can then be scanned for a root vertices (no inbound edges). If only a single root vertex exists, this vertex
 references the toplevel of the design.
@@ -54,8 +54,9 @@ Compile Order Graph
 
 The compile order can be derived from dependency graph by:
 
-1. copying all document vertices
-2. iterating all edges in the dependency graph
+#. copying all document vertices
+#. iterating all edges in the dependency graph:
+
    #. resolve the source and the destination to the referenced design units
    #. resolved further to the documents these design units are declared in
    #. resolve further which vertices correspond in the compile order graph

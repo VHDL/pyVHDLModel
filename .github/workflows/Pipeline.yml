@@ -9,12 +9,6 @@ on:
 
 jobs:
   Pipeline:
-    uses: pyTooling/Actions/.github/workflows/Pipeline-SimplePackage.yml@dev
+    uses: pyTooling/Actions/.github/workflows/CompletePipeline.yml@r2
     with:
       package_name: pyVHDLModel
-#      unittest_python_version:
-#      unittest_python_version_list:
-#      unittest_system_list:
-#      unittest_include_list:
-#      unittest_exclude_list:
-#      unittest_disable_list:

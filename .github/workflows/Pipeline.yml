@@ -12,3 +12,6 @@ jobs:
     uses: pyTooling/Actions/.github/workflows/CompletePipeline.yml@r2
     with:
       package_name: pyVHDLModel
+    secrets:
+      PYPI_TOKEN:           ${{ secrets.PYPI_TOKEN }}
+      CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}

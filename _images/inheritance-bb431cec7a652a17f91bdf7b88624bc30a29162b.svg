@@ -1,0 +1,44 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="354pt" height="27pt" viewBox="0.00 0.00 354.00 27.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 23)">
+<ns0:title>inheritance3976506a58</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>SimpleSubtypeSymbol</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.SimpleSubtypeSymbol" ns1:title="SimpleSubtypeSymbol" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="346,-19 219,-19 219,0 346,0 346,-19" />
+<ns0:text text-anchor="middle" x="282.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SimpleSubtypeSymbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>SubtypeSymbol</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.SubtypeSymbol" ns1:title="SubtypeSymbol" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="183,-19 90,-19 90,0 183,0 183,-19" />
+<ns0:text text-anchor="middle" x="136.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SubtypeSymbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>SubtypeSymbol-&gt;SimpleSubtypeSymbol</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M183.06,-9.5C192.83,-9.5 203.36,-9.5 213.77,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="213.86,-11.25 218.86,-9.5 213.86,-7.75 213.86,-11.25" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>Symbol</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" ns1:title="Base-class for all symbol classes." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="54,-19 0,-19 0,0 54,0 54,-19" />
+<ns0:text text-anchor="middle" x="27" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Symbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>Symbol-&gt;SubtypeSymbol</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M54.02,-9.5C63.31,-9.5 74.13,-9.5 84.78,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="84.99,-11.25 89.99,-9.5 84.99,-7.75 84.99,-11.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

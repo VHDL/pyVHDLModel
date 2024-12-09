@@ -6,6 +6,13 @@ __pycache__/
 .coverage
 .cov
 coverage.xml
+/report/coverage
+
+# mypy
+/report/typing
+
+# pytest
+/report/unit
 
 # setuptools
 /build/**/*.*
@@ -21,5 +28,8 @@ coverage.xml
 /doc/pyVHDLModel/**/*.*
 !/doc/pyVHDLModel/index.rst
 
-# PyCharm project
+# PyCharm project files
 /.idea/workspace.xml
+
+# Git files
+!.git*

@@ -38,8 +38,10 @@ details.
          # Basic sphinx-reports package
          pip install pyVHDLModel
 
-Developers can install further dependencies for documentation generation (``doc``) or running unit tests (``test``) or
-just all (``all``) dependencies.
+Developers can install the |PackageName| package itself or the package with further dependencies for documentation
+generation (``doc``), running unit tests (``test``) or just all (``all``) dependencies.
+
+See :ref:`DEP` for more details.
 
 .. tab-set::
 

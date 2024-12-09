@@ -9,7 +9,7 @@ on:
 
 jobs:
   Pipeline:
-    uses: pyTooling/Actions/.github/workflows/CompletePipeline.yml@r2
+    uses: pyTooling/Actions/.github/workflows/CompletePipeline.yml@r3
     with:
       package_name: pyVHDLModel
     secrets:

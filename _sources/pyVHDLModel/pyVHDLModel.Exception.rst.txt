@@ -1,0 +1,123 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+=====================
+pyVHDLModel.Exception
+=====================
+
+.. automodule:: pyVHDLModel.Exception
+
+
+.. currentmodule:: pyVHDLModel.Exception
+
+
+**Exceptions**
+
+- :py:exc:`VHDLModelException`:
+  Base-class for all exceptions (errors) raised by pyVHDLModel.
+
+- :py:exc:`LibraryExistsInDesignError`:
+  This exception is raised, when the library is already existing in the design.
+
+- :py:exc:`LibraryRegisteredToForeignDesignError`:
+  This exception is raised, when the library is already registered to a foreign design.
+
+- :py:exc:`LibraryNotRegisteredError`:
+  This exception is raised, when the library is not registered in the design.
+
+- :py:exc:`EntityExistsInLibraryError`:
+  This exception is raised, when the entity already existing in the library.
+
+- :py:exc:`ArchitectureExistsInLibraryError`:
+  This exception is raised, when the architecture already existing in the library.
+
+- :py:exc:`PackageExistsInLibraryError`:
+  This exception is raised, when the package already existing in the library.
+
+- :py:exc:`PackageBodyExistsError`:
+  This exception is raised, when the package body already existing in the library.
+
+- :py:exc:`ConfigurationExistsInLibraryError`:
+  This exception is raised, when the configuration already existing in the library.
+
+- :py:exc:`ContextExistsInLibraryError`:
+  This exception is raised, when the context already existing in the library.
+
+- :py:exc:`ReferencedLibraryNotExistingError`:
+  This exception is raised, when a library is referenced by a `library clause`, but doesn't exist in the design.
+
+
+
+---------------------
+
+**Exceptions**
+
+
+
+
+.. autoexception:: VHDLModelException
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: VHDLModelException
+      :parts: 1
+
+.. autoexception:: LibraryExistsInDesignError
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: LibraryExistsInDesignError
+      :parts: 1
+
+.. autoexception:: LibraryRegisteredToForeignDesignError
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: LibraryRegisteredToForeignDesignError
+      :parts: 1
+
+.. autoexception:: LibraryNotRegisteredError
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: LibraryNotRegisteredError
+      :parts: 1
+
+.. autoexception:: EntityExistsInLibraryError
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: EntityExistsInLibraryError
+      :parts: 1
+
+.. autoexception:: ArchitectureExistsInLibraryError
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ArchitectureExistsInLibraryError
+      :parts: 1
+
+.. autoexception:: PackageExistsInLibraryError
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PackageExistsInLibraryError
+      :parts: 1
+
+.. autoexception:: PackageBodyExistsError
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PackageBodyExistsError
+      :parts: 1
+
+.. autoexception:: ConfigurationExistsInLibraryError
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ConfigurationExistsInLibraryError
+      :parts: 1
+
+.. autoexception:: ContextExistsInLibraryError
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ContextExistsInLibraryError
+      :parts: 1
+
+.. autoexception:: ReferencedLibraryNotExistingError
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ReferencedLibraryNotExistingError
+      :parts: 1

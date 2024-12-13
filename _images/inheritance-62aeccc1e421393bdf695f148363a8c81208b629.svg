@@ -1,0 +1,59 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="399pt" height="64pt" viewBox="0.00 0.00 399.00 64.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 60)">
+<ns0:title>inheritance52ef1d054c</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>BaseCase</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.BaseCase" ns1:title="A ``Case`` is a base-class for all cases." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="219.5,-19 154.5,-19 154.5,0 219.5,0 219.5,-19" />
+<ns0:text text-anchor="middle" x="187" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">BaseCase</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>SequentialCase</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Sequential.html#pyVHDLModel.Sequential.SequentialCase" ns1:title="SequentialCase" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="391,-37 299,-37 299,-18 391,-18 391,-37" />
+<ns0:text text-anchor="middle" x="345" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SequentialCase</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>BaseCase-&gt;SequentialCase</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M219.57,-13.14C240.85,-15.6 269.37,-18.89 293.74,-21.7" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="293.71,-23.46 298.88,-22.29 294.11,-19.98 293.71,-23.46" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="75,-19 0,-19 0,0 75,0 75,-19" />
+<ns0:text text-anchor="middle" x="37.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ModelEntity-&gt;BaseCase</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M75.34,-9.5C97.87,-9.5 126.59,-9.5 149.13,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="149.13,-11.25 154.13,-9.5 149.13,-7.75 149.13,-11.25" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>SequentialStatementsMixin</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Sequential.html#pyVHDLModel.Sequential.SequentialStatementsMixin" ns1:title="SequentialStatementsMixin" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="263,-56 111,-56 111,-37 263,-37 263,-56" />
+<ns0:text text-anchor="middle" x="187" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SequentialStatementsMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>SequentialStatementsMixin-&gt;SequentialCase</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M263.26,-37.33C273.61,-36.07 284.02,-34.8 293.77,-33.62" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="294.05,-35.35 298.81,-33 293.63,-31.87 294.05,-35.35" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

@@ -1,0 +1,104 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="576pt" height="135pt" viewBox="0.00 0.00 576.00 134.73">
+<ns0:g id="graph0" class="graph" transform="scale(0.98 0.98) rotate(0) translate(4 134)">
+<ns0:title>inheritancef26d073291</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>BaseCase</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.BaseCase" ns1:title="A ``Case`` is a base-class for all cases." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="237,-19 172,-19 172,0 237,0 237,-19" />
+<ns0:text text-anchor="middle" x="204.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">BaseCase</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>ConcurrentCase</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentCase" ns1:title="ConcurrentCase" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="428,-74 334,-74 334,-55 428,-55 428,-74" />
+<ns0:text text-anchor="middle" x="381" y="-62" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConcurrentCase</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>BaseCase-&gt;ConcurrentCase</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M237.18,-14.3C255.24,-17.46 278.16,-22.19 298,-28.5 318.27,-34.95 340.3,-44.79 356.42,-52.56" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="355.96,-54.28 361.22,-54.89 357.49,-51.13 355.96,-54.28" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="75,-19 0,-19 0,0 75,0 75,-19" />
+<ns0:text text-anchor="middle" x="37.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ModelEntity-&gt;BaseCase</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M75.12,-9.5C102.36,-9.5 139.37,-9.5 166.66,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="166.99,-11.25 171.99,-9.5 166.99,-7.75 166.99,-11.25" />
+</ns0:g>
+
+<ns0:g id="node7" class="node">
+<ns0:title>OthersGenerateCase</ns0:title>
+<ns0:g id="a_node7"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.OthersGenerateCase" ns1:title="OthersGenerateCase" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="582,-74 464,-74 464,-55 582,-55 582,-74" />
+<ns0:text text-anchor="middle" x="523" y="-62" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">OthersGenerateCase</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge6" class="edge">
+<ns0:title>ConcurrentCase-&gt;OthersGenerateCase</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M428.23,-64.5C437.95,-64.5 448.36,-64.5 458.59,-64.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="458.59,-66.25 463.59,-64.5 458.59,-62.75 458.59,-66.25" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>LabeledEntityMixin</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.LabeledEntityMixin" ns1:title="A ``LabeledEntityMixin`` is a mixin class for all VHDL entities that can have labels." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="259.5,-130 149.5,-130 149.5,-111 259.5,-111 259.5,-130" />
+<ns0:text text-anchor="middle" x="204.5" y="-118" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">LabeledEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>LabeledEntityMixin-&gt;ConcurrentCase</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M259.86,-112.2C272.53,-109.64 285.86,-106.43 298,-102.5 318.97,-95.71 341.61,-84.93 357.78,-76.59" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="358.96,-77.94 362.58,-74.08 357.34,-74.84 358.96,-77.94" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>ConcurrentDeclarationRegionMixin</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Regions.html#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin" ns1:title="ConcurrentDeclarationRegionMixin" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="298,-93 111,-93 111,-74 298,-74 298,-93" />
+<ns0:text text-anchor="middle" x="204.5" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConcurrentDeclarationRegionMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>ConcurrentDeclarationRegionMixin-&gt;ConcurrentCase</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M293.01,-73.97C305.25,-72.64 317.48,-71.31 328.75,-70.08" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="329.07,-71.81 333.85,-69.52 328.69,-68.33 329.07,-71.81" />
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>ConcurrentStatementsMixin</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentStatementsMixin" ns1:title="A mixin-class for all language constructs supporting concurrent statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="281,-56 128,-56 128,-37 281,-37 281,-56" />
+<ns0:text text-anchor="middle" x="204.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConcurrentStatementsMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>ConcurrentStatementsMixin-&gt;ConcurrentCase</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M281.02,-54.29C297.08,-55.95 313.67,-57.66 328.58,-59.2" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="328.41,-60.94 333.56,-59.71 328.77,-57.46 328.41,-60.94" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

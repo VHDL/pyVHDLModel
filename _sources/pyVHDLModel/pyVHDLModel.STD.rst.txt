@@ -1,0 +1,122 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+===============
+pyVHDLModel.STD
+===============
+
+.. automodule:: pyVHDLModel.STD
+
+
+.. currentmodule:: pyVHDLModel.STD
+
+
+**Classes**
+
+- :py:class:`Std`:
+  Predefined VHDL library ``std``.
+
+- :py:class:`Standard`:
+  Predefined package ``std.standard``.
+
+- :py:class:`Standard_Body`:
+  Predefined package body of package ``std.standard``.
+
+- :py:class:`TextIO`:
+  Predefined package ``std.textio``.
+
+- :py:class:`TextIO_Body`:
+  Predefined package body of package ``std.textio``.
+
+- :py:class:`Env`:
+  Predefined package ``std.env``.
+
+- :py:class:`Env_Body`:
+  Predefined package body of package ``std.env``.
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: Std
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Std
+      :parts: 1
+
+.. autoclass:: Standard
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Standard
+      :parts: 1
+
+.. autoclass:: Standard_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Standard_Body
+      :parts: 1
+
+.. autoclass:: TextIO
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: TextIO
+      :parts: 1
+
+.. autoclass:: TextIO_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: TextIO_Body
+      :parts: 1
+
+.. autoclass:: Env
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Env
+      :parts: 1
+
+.. autoclass:: Env_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Env_Body
+      :parts: 1

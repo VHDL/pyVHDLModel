@@ -1,0 +1,108 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+======================
+pyVHDLModel.Subprogram
+======================
+
+.. automodule:: pyVHDLModel.Subprogram
+
+
+.. currentmodule:: pyVHDLModel.Subprogram
+
+
+**Classes**
+
+- :py:class:`Subprogram`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`Procedure`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`Function`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`MethodMixin`:
+  A ``Method`` is a mixin class for all subprograms in a protected type.
+
+- :py:class:`ProcedureMethod`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`FunctionMethod`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: Subprogram
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Subprogram
+      :parts: 1
+
+.. autoclass:: Procedure
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Procedure
+      :parts: 1
+
+.. autoclass:: Function
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Function
+      :parts: 1
+
+.. autoclass:: MethodMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: MethodMixin
+      :parts: 1
+
+.. autoclass:: ProcedureMethod
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ProcedureMethod
+      :parts: 1
+
+.. autoclass:: FunctionMethod
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: FunctionMethod
+      :parts: 1

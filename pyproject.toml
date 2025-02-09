@@ -20,6 +20,9 @@ show_error_codes = true
 namespace_packages = true
 html_report = "report/typing"
 
+[tool.pytest]
+junit_xml = "report/unit/TestReportSummary.xml"
+
 [tool.pytest.ini_options]
 addopts = "--tb=native"
 # Don't set 'python_classes = *' otherwise, pytest doesn't search for classes

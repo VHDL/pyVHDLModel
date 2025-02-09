@@ -48,7 +48,7 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2025, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.29.2"
+__version__ =   "0.29.4"
 
 
 from enum                      import unique, Enum, Flag, auto
@@ -1367,7 +1367,7 @@ class Design(ModelEntity):
 					libraryIdentifier = librarySymbol.Name.NormalizedIdentifier
 					if libraryIdentifier == "work":
 						continue
-					
+
 					try:
 						library = self._libraries[libraryIdentifier]
 					except KeyError:

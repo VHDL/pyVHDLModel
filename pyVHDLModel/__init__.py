@@ -1365,6 +1365,9 @@ class Design(ModelEntity):
 				# A library clause can have multiple comma-separated references
 				for librarySymbol in libraryReference.Symbols:
 					libraryIdentifier = librarySymbol.Name.NormalizedIdentifier
+					if libraryIdentifier == "work":
+						continue
+					
 					try:
 						library = self._libraries[libraryIdentifier]
 					except KeyError:

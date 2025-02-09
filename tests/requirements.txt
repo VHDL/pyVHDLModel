@@ -8,6 +8,6 @@ pytest ~= 8.3
 pytest-cov ~= 6.0
 
 # Static Type Checking
-mypy ~= 1.13
+mypy ~= 1.15
 typing_extensions ~= 4.12
 lxml ~= 5.3

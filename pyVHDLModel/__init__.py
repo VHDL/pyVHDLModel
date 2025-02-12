@@ -581,7 +581,7 @@ class Design(ModelEntity):
 
 		return library
 
-	def LoadIEEELibrary(self, flavor: IEEEFlavor = IEEEFlavor.IEEE) -> 'Library':
+	def LoadIEEELibrary(self, flavor: Nullable[IEEEFlavor] = None) -> 'Library':
 		"""
 		Load the predefined VHDL library ``ieee`` into the design.
 

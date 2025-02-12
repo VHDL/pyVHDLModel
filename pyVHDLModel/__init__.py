@@ -48,7 +48,7 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2025, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.29.4"
+__version__ =   "0.30.0"
 
 
 from enum                      import unique, Enum, Flag, auto
@@ -292,6 +292,13 @@ class VHDLVersion(Enum):
 			return "Latest"
 		else:
 			return str(self.value)
+
+
+@export
+class IEEEFlavor(Enum):
+	IEEE = 0
+	Synopsys = 1
+	MentorGraphics = 2
 
 
 @export
@@ -574,19 +581,20 @@ class Design(ModelEntity):
 
 		return library
 
-	def LoadIEEELibrary(self) -> 'Library':
+	def LoadIEEELibrary(self, flavor: IEEEFlavor = IEEEFlavor.IEEE) -> 'Library':
 		"""
 		Load the predefined VHDL library ``ieee`` into the design.
 
 		This will create a virtual source code file ``ieee.vhdl`` and register VHDL design units of library ``ieee`` to that file.
 
-		:returns: The library object of library ``ieee``.
+		:param flavor: Select the IEEE library flavor: IEEE, Synopsys, MentorGraphics.
+		:returns:      The library object of library ``ieee``.
 		"""
 		from pyVHDLModel.IEEE import Ieee
 
 		doc = Document(Path("ieee.vhdl"), parent=self)
 
-		library = Ieee()
+		library = Ieee(flavor)
 		for designUnit in library.IterateDesignUnits():
 			doc._AddDesignUnit(designUnit)
 
@@ -1527,6 +1535,12 @@ class Design(ModelEntity):
 
 				# QUESTION: Add link in dependency graph as dashed line from component to entity?
 				#           Currently, component has no _dependencyVertex field
+
+		# FIXME: also link components in architectures (and nested structures like generate statements and block statements
+		# for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):
+		# 	library = architecture._parent
+		# 	for component in architecture._components.values():
+		# 		pass
 
 	def LinkInstantiations(self) -> None:
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):  # type: Architecture

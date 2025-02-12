@@ -30,8 +30,13 @@
 # ==================================================================================================================== #
 #
 """This module contains library and package declarations for VHDL library ``IEEE``."""
-from pyTooling.Decorators   import export
 
+from typing                 import Optional as Nullable
+
+from pyTooling.Decorators   import export, readonly
+
+from pyVHDLModel            import IEEEFlavor
+from pyVHDLModel.Exception  import VHDLModelException
 from pyVHDLModel.Expression import EnumerationLiteral
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Predefined import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
@@ -55,7 +60,6 @@ class Ieee(PredefinedLibrary):
 
 	  * :class:`~pyVHDLModel.IEEE.Std_Logic_1164`
 	  * :class:`~pyVHDLModel.IEEE.Std_Logic_TextIO`
-	  * :class:`~pyVHDLModel.IEEE.Std_Logic_Misc`
 
 	* Numeric
 
@@ -72,18 +76,57 @@ class Ieee(PredefinedLibrary):
 	  * :class:`~pyVHDLModel.IEEE.Float_Generic_Pkg`
 	  * :class:`~pyVHDLModel.IEEE.Float_Pkg`
 
+	* Mentor Graphics packages
+
+	  * :class:`~pyVHDLModel.IEEE.Std_logic_arith`
+
+	* Synopsys packages
+
+	  * :class:`~pyVHDLModel.IEEE.Std_logic_arith`
+	  * :class:`~pyVHDLModel.IEEE.Std_logic_misc`
+	  * :class:`~pyVHDLModel.IEEE.Std_logic_signed`
+	  * :class:`~pyVHDLModel.IEEE.Std_logic_textio`
+	  * :class:`~pyVHDLModel.IEEE.Std_logic_unsigned`
+
 	.. seealso::
 
 	   Other predefined libraries:
 	     * Library :class:`~pyVHDLModel.STD.Std`
 	"""
 
-	def __init__(self) -> None:
+	_flavor: IEEEFlavor
+
+	def __init__(self, flavor: Nullable[IEEEFlavor] = None) -> None:
 		super().__init__(PACKAGES)
 
-	def LoadSynopsysPackages(self) -> None:
-		self.AddPackages(PACKAGES_SYNOPSYS)
+		self._flavor = IEEEFlavor.IEEE
+		if flavor is None or flavor is IEEEFlavor.IEEE:
+			pass
+		elif flavor is IEEEFlavor.MentorGraphics:
+			self.LoadMentorGraphicsPackages()
+		elif flavor is IEEEFlavor.Synopsys:
+			self.LoadSynopsysPackages()
+		else:
+			raise VHDLModelException(f"Unknown IEEE library flavor '{flavor}'.")
+		self._flavor = flavor
 
+	@readonly
+	def Flavor(self) -> IEEEFlavor:
+		return self._flavor
+
+	def LoadMentorGraphicsPackages(self) -> None:
+		if self._flavor is not IEEEFlavor.IEEE:
+			raise VHDLModelException(f"IEEE library flavor is '{self._flavor}' and can't be changed to '{IEEEFlavor.MentorGraphics}'.")
+
+		self._flavor = IEEEFlavor.MentorGraphics
+		self.AddPackages(MENTOR_GRAPHICS_PACKAGES)
+
+	def LoadSynopsysPackages(self) -> None:
+		if self._flavor is not IEEEFlavor.IEEE:
+			raise VHDLModelException(f"IEEE library flavor is '{self._flavor}' and can't be changed to '{IEEEFlavor.MentorGraphics}'.")
+
+		self._flavor = IEEEFlavor.Synopsys
+		self.AddPackages(SYNOPSYS_PACKAGES)
 
 
 @export
@@ -125,7 +168,7 @@ class Math_Complex_Body(PredefinedPackageBody):
 
 
 @export
-class Std_logic_1164(PredefinedPackage):
+class Std_Logic_1164(PredefinedPackage):
 	"""
 	Predefined package ``ieee.std_logic_1164``.
 
@@ -170,14 +213,14 @@ class Std_logic_1164(PredefinedPackage):
 
 
 @export
-class Std_logic_1164_Body(PredefinedPackageBody):
+class Std_Logic_1164_Body(PredefinedPackageBody):
 	"""
 	Predefined package body of package ``ieee.std_logic_1164``.
 	"""
 
 
 @export
-class std_logic_textio(PredefinedPackage):
+class Std_Logic_TextIO(PredefinedPackage):
 	"""
 	Predefined package ``ieee.std_logic_textio``.
 	"""
@@ -188,26 +231,6 @@ class std_logic_textio(PredefinedPackage):
 		self._AddPackageClause(("STD.TEXTIO.all", ))
 		self._AddLibraryClause(("IEEE", ))
 		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
-
-
-@export
-class Std_logic_misc(PredefinedPackage):
-	"""
-	Predefined package ``ieee.std_logic_misc``.
-	"""
-
-	def __init__(self) -> None:
-		super().__init__()
-
-		self._AddLibraryClause(("IEEE", ))
-		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
-
-
-@export
-class Std_logic_misc_Body(PredefinedPackageBody):
-	"""
-	Predefined package body of package ``ieee.std_logic_misc``.
-	"""
 
 
 @export
@@ -404,8 +427,8 @@ class Float_Pkg(PredefinedPackage):
 PACKAGES = (
 	(Math_Real,            Math_Real_Body),
 	(Math_Complex,         Math_Complex_Body),
-	(Std_logic_1164,       Std_logic_1164_Body),
-	(std_logic_textio,     None),
+	(Std_Logic_1164,       Std_Logic_1164_Body),
+	(Std_Logic_TextIO,     None),
 	(Numeric_Bit,          Numeric_Bit_Body),
 	(Numeric_Bit_Unsigned, Numeric_Bit_Unsigned_Body),
 	(Numeric_Std,          Numeric_Std_Body),
@@ -417,6 +440,114 @@ PACKAGES = (
 	(Float_Pkg,            None),
 )
 
-PACKAGES_SYNOPSYS = (
-	(Std_logic_misc,       Std_logic_misc_Body),
+
+@export
+class Std_Logic_Arith(PredefinedPackage):
+	"""
+	Predefined Mentor Graphics package ``ieee.std_logic_arith``.
+	"""
+
+	def __init__(self) -> None:
+		super().__init__()
+
+		self._AddLibraryClause(("IEEE", ))
+
+		# used inside of package
+		# self._AddPackageClause(("IEEE.std_logic_1164.all", ))
+
+
+@export
+class Std_Logic_Arith_Body(PredefinedPackageBody):
+	"""
+	Predefined package body of Mentor Graphics package ``ieee.std_logic_arith``.
+	"""
+
+
+MENTOR_GRAPHICS_PACKAGES = (
+	(Std_Logic_Arith, Std_Logic_Arith_Body),
+)
+
+
+@export
+class Std_Logic_Arith(PredefinedPackage):
+	"""
+	Predefined Synopsys package ``ieee.std_logic_arith``.
+	"""
+
+	def __init__(self) -> None:
+		super().__init__()
+
+		self._AddLibraryClause(("IEEE", ))
+		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
+
+
+@export
+class Std_Logic_Misc(PredefinedPackage):
+	"""
+	Predefined Synopsys package ``ieee.std_logic_misc``.
+	"""
+
+	def __init__(self) -> None:
+		super().__init__()
+
+		self._AddLibraryClause(("IEEE", ))
+		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
+
+
+@export
+class Std_Logic_Misc_Body(PredefinedPackageBody):
+	"""
+	Predefined package body of Synopsys package ``ieee.std_logic_misc``.
+	"""
+
+
+@export
+class Std_Logic_Signed(PredefinedPackage):
+	"""
+	Predefined Synopsys package ``ieee.std_logic_signed``.
+	"""
+
+	def __init__(self) -> None:
+		super().__init__()
+
+		self._AddLibraryClause(("IEEE", ))
+		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
+		self._AddPackageClause(("IEEE.std_logic_arith.all", ))
+
+
+@export
+class Std_Logic_TextIO(PredefinedPackage):
+	"""
+	Predefined Synopsys package ``ieee.std_logic_textio``.
+	"""
+
+	def __init__(self) -> None:
+		super().__init__()
+
+		self._AddPackageClause(("STD.textio.all", ))
+
+		self._AddLibraryClause(("IEEE", ))
+		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
+
+
+@export
+class Std_Logic_Unsigned(PredefinedPackage):
+	"""
+	Predefined Synopsys package ``ieee.std_logic_unsigned``.
+	"""
+
+	def __init__(self) -> None:
+		super().__init__()
+
+		self._AddLibraryClause(("IEEE", ))
+		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
+		self._AddPackageClause(("IEEE.std_logic_arith.all", ))
+
+
+SYNOPSYS_PACKAGES = (
+	(Std_Logic_Arith,    None),
+	(Std_Logic_Misc,     Std_Logic_Misc_Body),
+	(Std_Logic_Signed,   None),
+	(Std_Logic_TextIO,   None),
+	(Std_Logic_Unsigned, None),
 )

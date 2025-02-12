@@ -35,7 +35,7 @@ from unittest import TestCase
 
 from pyTooling.Graph import Graph
 
-from pyVHDLModel import Design, Library, Document
+from pyVHDLModel import Design, Library, Document, IEEEFlavor
 from pyVHDLModel.Base import Direction, Range
 from pyVHDLModel.Name import SelectedName, SimpleName, AllName, AttributeName
 from pyVHDLModel.Object import Constant, Signal
@@ -633,7 +633,7 @@ class VHDLLibrary(TestCase):
 		with self.assertRaises(Exception):
 			design.LoadStdLibrary()
 
-	def test_IeeeLibrary(self) -> None:
+	def test_IeeeLibrary_implicit(self) -> None:
 		design = Design()
 		ieeeLibrary = design.LoadIEEELibrary()
 
@@ -644,14 +644,59 @@ class VHDLLibrary(TestCase):
 
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
 
+	def test_IeeeLibrary(self) -> None:
+		design = Design()
+		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.IEEE)
+
+		self.assertEqual(1, len(design.Libraries))
+		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
+		self.assertEqual(13, len(ieeeLibrary.Packages))
+		self.assertEqual(9, len(ieeeLibrary.PackageBodies))
+
+		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
+
+	def test_IeeeMentorGraphicsLibrary(self) -> None:
+		design = Design()
+		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.MentorGraphics)
+
+		self.assertEqual(1, len(design.Libraries))
+		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
+		self.assertEqual(14, len(ieeeLibrary.Packages))
+		self.assertEqual(10, len(ieeeLibrary.PackageBodies))
+
+		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
+
+	def test_IeeeMentorGraphicsLibrary_explicit(self) -> None:
+		design = Design()
+		ieeeLibrary = design.LoadIEEELibrary()
+		ieeeLibrary.LoadMentorGraphicsPackages()
+
+		self.assertEqual(1, len(design.Libraries))
+		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
+		self.assertEqual(14, len(ieeeLibrary.Packages))
+		self.assertEqual(10, len(ieeeLibrary.PackageBodies))
+
+		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
+
 	def test_IeeeSynopsysLibrary(self) -> None:
+		design = Design()
+		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.Synopsys)
+
+		self.assertEqual(1, len(design.Libraries))
+		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
+		self.assertEqual(17, len(ieeeLibrary.Packages))
+		self.assertEqual(10, len(ieeeLibrary.PackageBodies))
+
+		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
+
+	def test_IeeeSynopsysLibrary_explicit(self) -> None:
 		design = Design()
 		ieeeLibrary = design.LoadIEEELibrary()
 		ieeeLibrary.LoadSynopsysPackages()
 
 		self.assertEqual(1, len(design.Libraries))
 		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
-		self.assertEqual(14, len(ieeeLibrary.Packages))
+		self.assertEqual(17, len(ieeeLibrary.Packages))
 		self.assertEqual(10, len(ieeeLibrary.PackageBodies))
 
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))

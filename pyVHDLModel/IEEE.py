@@ -108,7 +108,6 @@ class Ieee(PredefinedLibrary):
 			self.LoadSynopsysPackages()
 		else:
 			raise VHDLModelException(f"Unknown IEEE library flavor '{flavor}'.")
-		self._flavor = flavor
 
 	@readonly
 	def Flavor(self) -> IEEEFlavor:

@@ -1,0 +1,816 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unittest Summary Report &mdash; pyVHDLModel 0.30.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-reports.e44b1595f1e09d5e109d001839ba3f42.css?v=0b41afa8" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=0392d96e"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Code Coverage Report" href="../coverage/index.html" />
+    <link rel="prev" title="pyVHDLModel.Type" href="../pyVHDLModel/pyVHDLModel.Type.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../pyVHDLModel/pyVHDLModel.html">Python Class Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coverage/index.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Unittest Summary Report</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/unittests/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="unittest-summary-report">
+<h1>Unittest Summary Report<a class="headerlink" href="#unittest-summary-report" title="Link to this heading"></a></h1>
+<p>Unittest report generated with <a class="reference external" href="https://github.com/pytest-dev/pytest">pytest</a>.</p>
+<div class="docutils container">
+<table class="report-unittest-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head" rowspan="2"><p>Testsuite / Testcase</p></th>
+<th class="head" rowspan="2"><p>Testcases</p></th>
+<th class="head" rowspan="2"><p>Skipped</p></th>
+<th class="head" rowspan="2"><p>Errored</p></th>
+<th class="head" rowspan="2"><p>Failed</p></th>
+<th class="head" rowspan="2"><p>Passed</p></th>
+<th class="head" rowspan="2"><p>Assertions</p></th>
+<th class="head" rowspan="2"><p>Runtime (HH:MM:SS.sss)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="report-unittest-table-row report-testsuite row-even"><td><p>✅pytest</p></td>
+<td><p>60</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>60</p></td>
+<td><p></p></td>
+<td><p>00:00:00.599</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testsuite row-odd"><td><p>  ✅tests</p></td>
+<td><p>60</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>60</p></td>
+<td><p></p></td>
+<td><p>00:00:00.152</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testsuite row-even"><td><p>    ✅unit</p></td>
+<td><p>60</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>60</p></td>
+<td><p></p></td>
+<td><p>00:00:00.152</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testsuite row-odd"><td><p>      ✅Analyze</p></td>
+<td><p>12</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>12</p></td>
+<td><p></p></td>
+<td><p>00:00:00.093</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testsuite row-even"><td><p>        ✅VHDLLibrary</p></td>
+<td><p>12</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>12</p></td>
+<td><p></p></td>
+<td><p>00:00:00.093</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_Analyze</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.033</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_CreateHierarchyGraph</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.005</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_DependencyGraph</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.004</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_IndexArchitectures</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.004</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_IndexPackages</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.004</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_LinkArchitectures</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.004</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_LinkContextReferences</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.015</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_LinkContexts</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.004</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_LinkInstantiations</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.004</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_LinkLibraryReferences</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.005</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_LinkPackageBodies</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.005</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_LinkPackageReferences</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.006</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testsuite row-odd"><td><p>      ✅Instantiate</p></td>
+<td><p>48</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>48</p></td>
+<td><p></p></td>
+<td><p>00:00:00.059</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testsuite row-even"><td><p>        ✅Names</p></td>
+<td><p>5</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>5</p></td>
+<td><p></p></td>
+<td><p>00:00:00.005</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_AllName</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_AttributeName</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_SelectedName_1</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_SelectedName_2</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_SimpleName</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testsuite row-even"><td><p>        ✅SimpleInstance</p></td>
+<td><p>14</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>14</p></td>
+<td><p></p></td>
+<td><p>00:00:00.014</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_Architecture</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_Array</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_Configuration</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_Context</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_Design</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_Document</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_Entity</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_Integer</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_Library</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_Package</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_PackageBody</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_Real</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_Record</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_Subtype</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testsuite row-odd"><td><p>        ✅Symbols</p></td>
+<td><p>11</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>11</p></td>
+<td><p></p></td>
+<td><p>00:00:00.011</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_AllPackageMembersReferenceSymbol</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_ComponentInstantiationSymbol</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_ConfigurationInstantiationSymbol</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_ContextReferenceSymbol</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_EntityInstantiationSymbol</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_LibraryReferenceSymbol</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_PackageMemberReferenceSymbol</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_PackageReferenceSymbol</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_PackageSymbol</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_SelectedEntitySymbol</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_SimpleEntitySymbol</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testsuite row-odd"><td><p>        ✅VHDLDocument</p></td>
+<td><p>8</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>8</p></td>
+<td><p></p></td>
+<td><p>00:00:00.008</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_Architecture</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_Configuration</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_Context</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_DesignUnits</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_Documentation</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_Entity</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_Package</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_PackageBody</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testsuite row-even"><td><p>        ✅VHDLLibrary</p></td>
+<td><p>10</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>10</p></td>
+<td><p></p></td>
+<td><p>00:00:00.021</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_AddDocument</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_AddLibrary</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_GetLibrary</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.001</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_IeeeLibrary</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.002</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_IeeeLibrary_implicit</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.002</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_IeeeMentorGraphicsLibrary</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.002</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_IeeeMentorGraphicsLibrary_explicit</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.002</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_IeeeSynopsysLibrary</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.003</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-odd"><td><p>          ✅test_IeeeSynopsysLibrary_explicit</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.004</p></td>
+</tr>
+<tr class="report-unittest-table-row report-testcase row-even"><td><p>          ✅test_StdLibrary</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>0</p></td>
+<td><p>00:00:00.003</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../pyVHDLModel/pyVHDLModel.Type.html" class="btn btn-neutral float-left" title="pyVHDLModel.Type" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../coverage/index.html" class="btn btn-neutral float-right" title="Code Coverage Report" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 13.02.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

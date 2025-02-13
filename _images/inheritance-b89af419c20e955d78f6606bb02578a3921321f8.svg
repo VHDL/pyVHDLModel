@@ -1,0 +1,89 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="573pt" height="83pt" viewBox="0.00 0.00 573.00 83.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 79)">
+<ns0:title>inheritance46c0dfd6ec</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>LabeledEntityMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.LabeledEntityMixin" ns1:title="A ``LabeledEntityMixin`` is a mixin class for all VHDL entities that can have labels." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="110,-75 0,-75 0,-56 110,-56 110,-75" />
+<ns0:text text-anchor="middle" x="55" y="-63" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">LabeledEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>Statement</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Common.html#pyVHDLModel.Common.Statement" ns1:title="A ``Statement`` is a base-class for all statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="214,-56 146,-56 146,-37 214,-37 214,-56" />
+<ns0:text text-anchor="middle" x="180" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Statement</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>LabeledEntityMixin-&gt;Statement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M110.31,-57.11C120.61,-55.52 131.19,-53.89 140.86,-52.39" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="141.15,-54.12 145.83,-51.62 140.62,-50.66 141.15,-54.12" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="92.5,-38 17.5,-38 17.5,-19 92.5,-19 92.5,-38" />
+<ns0:text text-anchor="middle" x="55" y="-26" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>ModelEntity-&gt;Statement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M92.57,-33.85C107.71,-36.07 125.28,-38.64 140.61,-40.88" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="140.51,-42.64 145.72,-41.63 141.02,-39.17 140.51,-42.64" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>ReportStatementMixin</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ReportStatementMixin" ns1:title="A ``MixinReportStatement`` is a mixin-class for all report and assert statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="377,-19 250,-19 250,0 377,0 377,-19" />
+<ns0:text text-anchor="middle" x="313.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ReportStatementMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>SequentialReportStatement</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Sequential.html#pyVHDLModel.Sequential.SequentialReportStatement" ns1:title="SequentialReportStatement" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="565,-37 413,-37 413,-18 565,-18 565,-37" />
+<ns0:text text-anchor="middle" x="489" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SequentialReportStatement</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>ReportStatementMixin-&gt;SequentialReportStatement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M377.14,-16C387.06,-17.03 397.45,-18.11 407.71,-19.17" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="407.58,-20.92 412.74,-19.69 407.94,-17.43 407.58,-20.92" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>SequentialStatement</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Sequential.html#pyVHDLModel.Sequential.SequentialStatement" ns1:title="A ``SequentialStatement`` is a base-class for all sequential statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="373,-56 254,-56 254,-37 373,-37 373,-56" />
+<ns0:text text-anchor="middle" x="313.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SequentialStatement</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>SequentialStatement-&gt;SequentialReportStatement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M373.24,-40.07C384.24,-38.86 395.91,-37.59 407.43,-36.32" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="407.93,-38.03 412.71,-35.74 407.55,-34.55 407.93,-38.03" />
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>Statement-&gt;SequentialStatement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M214.18,-46.5C224.77,-46.5 236.86,-46.5 248.86,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="248.99,-48.25 253.99,-46.5 248.99,-44.75 248.99,-48.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

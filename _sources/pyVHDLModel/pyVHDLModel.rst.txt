@@ -1,0 +1,207 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+===========
+pyVHDLModel
+===========
+
+.. automodule:: pyVHDLModel
+
+
+
+**Submodules**
+
+.. toctree::
+   :maxdepth: 1
+
+   pyVHDLModel.Association
+   pyVHDLModel.Base
+   pyVHDLModel.Common
+   pyVHDLModel.Concurrent
+   pyVHDLModel.Declaration
+   pyVHDLModel.DesignUnit
+   pyVHDLModel.Exception
+   pyVHDLModel.Expression
+   pyVHDLModel.IEEE
+   pyVHDLModel.Instantiation
+   pyVHDLModel.Interface
+   pyVHDLModel.Name
+   pyVHDLModel.Namespace
+   pyVHDLModel.Object
+   pyVHDLModel.PSLModel
+   pyVHDLModel.Predefined
+   pyVHDLModel.Regions
+   pyVHDLModel.STD
+   pyVHDLModel.Sequential
+   pyVHDLModel.Subprogram
+   pyVHDLModel.Symbol
+   pyVHDLModel.Type
+
+.. currentmodule:: pyVHDLModel
+
+
+**Classes**
+
+- :py:class:`VHDLVersion`:
+  An enumeration for all possible version numbers for VHDL and VHDL-AMS.
+
+- :py:class:`IEEEFlavor`:
+  Create a collection of name/value pairs.
+
+- :py:class:`ObjectClass`:
+  An ``ObjectClass`` is an enumeration and represents an object's class (``constant``, ``signal``, ...).
+
+- :py:class:`DesignUnitKind`:
+  A ``DesignUnitKind`` is an enumeration and represents the kind of design unit (``Entity``, ``Architecture``, ...).
+
+- :py:class:`DependencyGraphVertexKind`:
+  A ``DependencyGraphVertexKind`` is an enumeration and represents the kind of vertex in the dependency graph.
+
+- :py:class:`DependencyGraphEdgeKind`:
+  A ``DependencyGraphEdgeKind`` is an enumeration and represents the kind of edge in the dependency graph.
+
+- :py:class:`ObjectGraphVertexKind`:
+  A ``ObjectGraphVertexKind`` is an enumeration and represents the kind of vertex in the object graph.
+
+- :py:class:`ObjectGraphEdgeKind`:
+  A ``ObjectGraphEdgeKind`` is an enumeration and represents the kind of edge in the object graph.
+
+- :py:class:`Design`:
+  A ``Design`` represents set of VHDL libraries as well as all loaded and analysed source files (see :class:`~pyVHDLModel.Document`).
+
+- :py:class:`Library`:
+  A ``Library`` represents a VHDL library. It contains all *primary* and *secondary* design units.
+
+- :py:class:`Document`:
+  A ``Document`` represents a sourcefile. It contains *primary* and *secondary* design units.
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: VHDLVersion
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: VHDLVersion
+      :parts: 1
+
+.. autoclass:: IEEEFlavor
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IEEEFlavor
+      :parts: 1
+
+.. autoclass:: ObjectClass
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ObjectClass
+      :parts: 1
+
+.. autoclass:: DesignUnitKind
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: DesignUnitKind
+      :parts: 1
+
+.. autoclass:: DependencyGraphVertexKind
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: DependencyGraphVertexKind
+      :parts: 1
+
+.. autoclass:: DependencyGraphEdgeKind
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: DependencyGraphEdgeKind
+      :parts: 1
+
+.. autoclass:: ObjectGraphVertexKind
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ObjectGraphVertexKind
+      :parts: 1
+
+.. autoclass:: ObjectGraphEdgeKind
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ObjectGraphEdgeKind
+      :parts: 1
+
+.. autoclass:: Design
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Design
+      :parts: 1
+
+.. autoclass:: Library
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Library
+      :parts: 1
+
+.. autoclass:: Document
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Document
+      :parts: 1

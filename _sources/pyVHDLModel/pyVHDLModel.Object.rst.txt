@@ -1,0 +1,150 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+==================
+pyVHDLModel.Object
+==================
+
+.. automodule:: pyVHDLModel.Object
+
+
+.. currentmodule:: pyVHDLModel.Object
+
+
+**Classes**
+
+- :py:class:`Obj`:
+  Base-class for all objects (constants, signals, variables and files) in VHDL.
+
+- :py:class:`WithDefaultExpressionMixin`:
+  A ``WithDefaultExpression`` is a mixin-class for all objects declarations accepting default expressions.
+
+- :py:class:`BaseConstant`:
+  Base-class for all constants (normal and deferred constants) in VHDL.
+
+- :py:class:`Constant`:
+  Represents a constant.
+
+- :py:class:`DeferredConstant`:
+  Represents a deferred constant.
+
+- :py:class:`Variable`:
+  Represents a variable.
+
+- :py:class:`SharedVariable`:
+  Represents a shared variable.
+
+- :py:class:`Signal`:
+  Represents a signal.
+
+- :py:class:`File`:
+  Represents a file.
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: Obj
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Obj
+      :parts: 1
+
+.. autoclass:: WithDefaultExpressionMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: WithDefaultExpressionMixin
+      :parts: 1
+
+.. autoclass:: BaseConstant
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BaseConstant
+      :parts: 1
+
+.. autoclass:: Constant
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Constant
+      :parts: 1
+
+.. autoclass:: DeferredConstant
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: DeferredConstant
+      :parts: 1
+
+.. autoclass:: Variable
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Variable
+      :parts: 1
+
+.. autoclass:: SharedVariable
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SharedVariable
+      :parts: 1
+
+.. autoclass:: Signal
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Signal
+      :parts: 1
+
+.. autoclass:: File
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: File
+      :parts: 1

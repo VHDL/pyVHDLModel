@@ -192,7 +192,7 @@ Ensure :ref:`packaging requirements <DEP/packaging>` are installed.
          python -m pip uninstall -y pyVHDLModel
 
          # Install from wheel
-         python -m pip install ./dist/pyVHDLModel-0.29.1-py3-none-any.whl
+         python -m pip install ./dist/pyVHDLModel-0.30.0-py3-none-any.whl
 
    .. tab-item:: Windows
       :sync: Windows
@@ -208,4 +208,4 @@ Ensure :ref:`packaging requirements <DEP/packaging>` are installed.
          py -m pip uninstall -y pyVHDLModel
 
          # Install from wheel
-         py -m pip install .\dist\pyVHDLModel-0.29.1-py3-none-any.whl
+         py -m pip install .\dist\pyVHDLModel-0.30.0-py3-none-any.whl

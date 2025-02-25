@@ -40,7 +40,7 @@ from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
 
 from pyVHDLModel.Symbol     import Symbol
-from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, ExpressionUnion, Mode
+from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, ExpressionUnion, Mode, NamedEntityMixin
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
@@ -130,7 +130,15 @@ class GenericFunctionInterfaceItem(Function, GenericInterfaceItemMixin):
 
 
 @export
-class GenericPackageInterfaceItem(GenericInterfaceItemMixin):
+class InterfacePackage(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
+	def __init__(self, identifier: str, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
+		super().__init__(parent)
+		NamedEntityMixin.__init__(self, identifier)
+		DocumentedEntityMixin.__init__(self, documentation)
+
+
+@export
+class GenericPackageInterfaceItem(InterfacePackage, GenericInterfaceItemMixin):
 	def __init__(self, identifier: str, documentation: Nullable[str] = None, parent: ModelEntity = None) -> None:
 		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)

@@ -655,6 +655,22 @@ class VHDLLibrary(TestCase):
 
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
 
+		stdLogic = ieeeLibrary.Packages["std_logic_1164"]
+		self.assertFalse(design.AllowBlackbox)
+		self.assertFalse(ieeeLibrary.AllowBlackbox)
+		self.assertFalse(stdLogic.AllowBlackbox)
+
+		ieeeLibrary.AllowBlackbox = True
+		self.assertFalse(design.AllowBlackbox)
+		self.assertTrue(ieeeLibrary.AllowBlackbox)
+		self.assertTrue(stdLogic.AllowBlackbox)
+
+		ieeeLibrary.AllowBlackbox = None
+		stdLogic.AllowBlackbox = True
+		self.assertFalse(design.AllowBlackbox)
+		self.assertFalse(ieeeLibrary.AllowBlackbox)
+		self.assertTrue(stdLogic.AllowBlackbox)
+
 	def test_IeeeMentorGraphicsLibrary(self) -> None:
 		design = Design()
 		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.MentorGraphics)

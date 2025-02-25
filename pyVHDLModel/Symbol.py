@@ -455,18 +455,55 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol):
 
 
 @export
+class Constraint:
+	pass
+
+
+@export
+class ArrayConstraint(Constraint):
+	_constraints: List[Range]
+
+	def __init__(self, constraints: Iterable[Range]) -> None:
+		self._constraints = [constraint for constraint in constraints]
+
+	@readonly
+	def Constraints(self) -> List[Range]:
+		return self._constraints
+
+
+@export
+class RecordConstraint(Constraint):
+	_constraints: Dict[RecordElementSymbol, Range]
+
+	def __init__(self, constraints: Mapping[RecordElementSymbol, Range]) -> None:
+		self._constraints = {key: value for key, value in constraints.items()}
+
+	@readonly
+	def Constraints(self) -> Dict[RecordElementSymbol, Range]:
+		return self._constraints
+
+
+@export
 class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 	pass
 
 
 @export
-class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol):
-	pass
+class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol, ArrayConstraint):
+	_constraints: List
+
+	def __init__(self, name: Name, constraints: Iterable) -> None:
+		super().__init__(name)
+		ArrayConstraint.__init__(self, constraints)
 
 
 @export
-class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol):
-	pass
+class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordConstraint):
+	_constraints: Dict[RecordElementSymbol, Any]
+
+	def __init__(self, name: Name, constraints: Mapping) -> None:
+		super().__init__(name)
+		RecordConstraint.__init__(self, constraints)
 
 
 @export

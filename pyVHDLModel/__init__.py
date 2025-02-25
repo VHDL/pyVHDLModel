@@ -48,7 +48,7 @@ __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
 __copyright__ = "2016-2025, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.30.0"
+__version__ =   "0.31.0"
 
 
 from enum                      import unique, Enum, Flag, auto
@@ -451,7 +451,8 @@ class Design(ModelEntity):
 	* :attr:`HierarchyGraph`
 	* :attr:`ObjectGraph`
 	"""
-	_name:              Nullable[str]         #: Name of the design
+	_name:              Nullable[str]         #: Name of the design.
+	_allowBlackbox:     bool                  #: Allow blackboxes after linking the design.
 	_libraries:         Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:         List['Document']      #: List of all documents loaded for a design.
 	_dependencyGraph:   Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
@@ -460,15 +461,22 @@ class Design(ModelEntity):
 	_objectGraph:       Graph[None, None, None, None, None, None, None, None, str, Obj, None, None, None, None, None, None, None, None, None, None, None, None, None]          #: The graph of all types and objects in the design.
 	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
 
-	def __init__(self, name: Nullable[str] = None) -> None:
+	def __init__(
+		self,
+		name: Nullable[str] = None,
+		allowBlackbox: bool = False
+	) -> None:
 		"""
-		Initializes a VHDL design.
+		Initialize a VHDL design.
 
-		:param name: Name of the design.
+		:param allowBlackbox: Specify if blackboxes are allowed in this design.
+		:param name:          Name of the design.
 		"""
 		super().__init__()
 
-		self._name =      name
+		self._name = name
+		self._allowBlackbox = allowBlackbox
+
 		self._libraries = {}
 		self._documents = []
 
@@ -477,6 +485,31 @@ class Design(ModelEntity):
 		self._hierarchyGraph = Graph()
 		self._objectGraph = Graph()
 		self._toplevel = None
+
+	@readonly
+	def Name(self) -> Nullable[str]:
+		"""
+		Read-only property to access the design's name (:attr:`_name`).
+
+		:returns: The name of the design.
+		"""
+		return self._name
+
+	@property
+	def AllowBlackbox(self) -> bool:
+		"""
+		Read-only property to check if a design supports blackboxes (:attr:`_allowBlackbox`).
+
+		:returns: If blackboxes are allowed.
+		"""
+		return self._allowBlackbox
+
+	@AllowBlackbox.setter
+	def AllowBlackbox(self, value: Nullable[bool]) -> None:
+		if value is None:
+			raise ValueError(f"Property 'AllowBlackbox' doesn't accept value 'None'.")
+
+		self._allowBlackbox = value
 
 	@readonly
 	def Libraries(self) -> Dict[str, 'Library']:
@@ -581,7 +614,7 @@ class Design(ModelEntity):
 
 		return library
 
-	def LoadIEEELibrary(self, flavor: IEEEFlavor = IEEEFlavor.IEEE) -> 'Library':
+	def LoadIEEELibrary(self, flavor: Nullable[IEEEFlavor] = None) -> 'Library':
 		"""
 		Load the predefined VHDL library ``ieee`` into the design.
 
@@ -1529,7 +1562,11 @@ class Design(ModelEntity):
 				try:
 					entity = library._entities[component.NormalizedIdentifier]
 				except KeyError:
-					print(f"Entity '{component.Identifier}' not found for component '{component.Identifier}' in library '{library.Identifier}'.")
+					if not component.AllowBlackbox:
+						raise VHDLModelException(f"Entity '{component.Identifier}' not found for component '{component.Identifier}' in library '{library.Identifier}'.")
+					else:
+						component._isBlackBox = True
+						continue
 
 				component.Entity = entity
 
@@ -1583,8 +1620,11 @@ class Design(ModelEntity):
 
 					instance.Component.Component = component
 
-					dependency = architecture._dependencyVertex.EdgeToVertex(component.Entity._dependencyVertex, edgeValue=instance)
-					dependency["kind"] = DependencyGraphEdgeKind.ComponentInstantiation
+					if not component.IsBlackbox:
+						dependency = architecture._dependencyVertex.EdgeToVertex(component.Entity._dependencyVertex, edgeValue=instance)
+						dependency["kind"] = DependencyGraphEdgeKind.ComponentInstantiation
+					else:
+						print(f"Found a blackbox for '{instance.Label}: {instance.Component.Name}'.")
 
 				elif isinstance(instance, ConfigurationInstantiation):
 					# pass
@@ -1820,6 +1860,7 @@ class Design(ModelEntity):
 class Library(ModelEntity, NamedEntityMixin):
 	"""A ``Library`` represents a VHDL library. It contains all *primary* and *secondary* design units."""
 
+	_allowBlackbox:  Nullable[bool]                      #: Allow blackboxes for components in this library.
 	_contexts:       Dict[str, Context]                  #: Dictionary of all contexts defined in a library.
 	_configurations: Dict[str, Configuration]            #: Dictionary of all configurations defined in a library.
 	_entities:       Dict[str, Entity]                   #: Dictionary of all entities defined in a library.
@@ -1829,9 +1870,23 @@ class Library(ModelEntity, NamedEntityMixin):
 
 	_dependencyVertex: Vertex[None, None, str, Union['Library', DesignUnit], None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the library. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
 
-	def __init__(self, identifier: str, parent: ModelEntity = None) -> None:
+	def __init__(
+		self,
+		identifier: str,
+		allowBlackbox: Nullable[bool] = None,
+		parent: ModelEntity = None
+	) -> None:
+		"""
+		Initialize a VHDL library.
+
+		:param identifier:    Name of the VHDL library.
+		:param allowBlackbox: Specify if blackboxes are allowed in this design.
+		:param parent:        The parent model entity (design) of this VHDL library.
+		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
+
+		self._allowBlackbox = allowBlackbox
 
 		self._contexts =        {}
 		self._configurations =  {}
@@ -1841,6 +1896,22 @@ class Library(ModelEntity, NamedEntityMixin):
 		self._packageBodies =   {}
 
 		self._dependencyVertex = None
+
+	@property
+	def AllowBlackbox(self) -> bool:
+		"""
+		Read-only property to check if a design supports blackboxes (:attr:`_allowBlackbox`).
+
+		:returns: If blackboxes are allowed.
+		"""
+		if self._allowBlackbox is None:
+			return self._parent.AllowBlackbox
+		else:
+			return self._allowBlackbox
+
+	@AllowBlackbox.setter
+	def AllowBlackbox(self, value: Nullable[bool]) -> None:
+		self._allowBlackbox = value
 
 	@readonly
 	def Contexts(self) -> Dict[str, Context]:
@@ -1894,7 +1965,7 @@ class Library(ModelEntity, NamedEntityMixin):
 		1. Iterate all contexts in that library.
 		2. Iterate all packages in that library.
 		3. Iterate all package bodies in that library.
-		4. Iterate all entites in that library.
+		4. Iterate all entities in that library.
 		5. Iterate all architectures in that library.
 		6. Iterate all configurations in that library.
 

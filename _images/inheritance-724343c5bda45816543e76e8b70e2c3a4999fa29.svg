@@ -1,0 +1,59 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="394pt" height="64pt" viewBox="0.00 0.00 394.00 64.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 60)">
+<ns0:title>inheritance502f648504</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>BaseExpression</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" ns1:title="A ``BaseExpression`` is a base-class for all expressions." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="221,-19 127,-19 127,0 221,0 221,-19" />
+<ns0:text text-anchor="middle" x="174" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">BaseExpression</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>QualifiedExpression</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" ns1:title="QualifiedExpression" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="386,-37 273,-37 273,-18 386,-18 386,-37" />
+<ns0:text text-anchor="middle" x="329.5" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">QualifiedExpression</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>BaseExpression-&gt;QualifiedExpression</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M221.06,-14.9C235.73,-16.62 252.2,-18.55 267.76,-20.38" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="267.82,-22.15 272.99,-20.99 268.23,-18.67 267.82,-22.15" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="75,-19 0,-19 0,0 75,0 75,-19" />
+<ns0:text text-anchor="middle" x="37.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ModelEntity-&gt;BaseExpression</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M75.25,-9.5C89.51,-9.5 106.08,-9.5 121.49,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="121.67,-11.25 126.67,-9.5 121.67,-7.75 121.67,-11.25" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>ParenthesisExpression</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.ParenthesisExpression" ns1:title="ParenthesisExpression" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="237,-56 111,-56 111,-37 237,-37 237,-56" />
+<ns0:text text-anchor="middle" x="174" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ParenthesisExpression</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>ParenthesisExpression-&gt;QualifiedExpression</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M237.43,-38.77C247.33,-37.55 257.55,-36.28 267.42,-35.06" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="267.79,-36.78 272.54,-34.43 267.36,-33.3 267.79,-36.78" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

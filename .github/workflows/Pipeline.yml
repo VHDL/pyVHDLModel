@@ -12,6 +12,10 @@ jobs:
     uses: pyTooling/Actions/.github/workflows/CompletePipeline.yml@r4
     with:
       package_name: pyVHDLModel
+      codecov:      true
+      codacy:       true
+      dorny:        true
     secrets:
       PYPI_TOKEN:           ${{ secrets.PYPI_TOKEN }}
+      CODECOV_TOKEN:        ${{ secrets.CODECOV_TOKEN }}
       CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}

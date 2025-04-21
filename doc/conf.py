@@ -1,7 +1,6 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-from importlib.util import find_spec
 from sys import path as sys_path
 from os.path import abspath
 from pathlib import Path
@@ -9,12 +8,22 @@ from json import loads
 
 from pyTooling.Packaging import extractVersionInformation
 
+# ==============================================================================
+# Project configuration
+# ==============================================================================
+githubNamespace = "VHDL"
+project = "pyVHDLModel"
+directoryName = project.replace('.', '/')
+
+
+# ==============================================================================
+# Project paths
+# ==============================================================================
 ROOT = Path(__file__).resolve().parent
 
 sys_path.insert(0, abspath("."))
 sys_path.insert(0, abspath(".."))
-sys_path.insert(0, abspath("../pyVHDLModel"))
-# sys_path.insert(0, abspath("_extensions"))
+sys_path.insert(0, abspath(f"../{directoryName}"))
 
 
 # ==============================================================================
@@ -23,8 +32,6 @@ sys_path.insert(0, abspath("../pyVHDLModel"))
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-project = "pyVHDLModel"
-
 packageInformationFile = Path(f"../{project.replace('.', '/')}/__init__.py")
 versionInformation = extractVersionInformation(packageInformationFile)
 
@@ -100,7 +107,7 @@ html_logo = str(Path(html_static_path[0]) / "logo.svg")
 html_favicon = str(Path(html_static_path[0]) / "favicon.svg")
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "pyVHDLModelDoc"
+htmlhelp_basename = f"{project}Doc"
 
 # If not None, a 'Last updated on:' timestamp is inserted at every page
 # bottom, using the given strftime format.
@@ -153,10 +160,10 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
 	( master_doc,
-		"pyVHDLModel.tex",
-		"The pyVHDLModel Documentation",
-		"Patrick Lehmann",
-		"manual"
+		f"{project}.tex",
+		f"The {project} Documentation",
+		f"Patrick Lehmann",
+		f"manual"
 	),
 ]
 
@@ -192,8 +199,8 @@ extensions = [
 # ==============================================================================
 intersphinx_mapping = {
 	"python": ("https://docs.python.org/3", None),
-	"vasg":   ("https://IEEE-P1076.gitlab.io/", None),
 	"pyTool": ("https://pyTooling.github.io/pyTooling/", None),
+	"vasg":   ("https://IEEE-P1076.gitlab.io/", None),
 	"ghdl":   ("https://GHDL.github.io/ghdl/", None),
 }
 
@@ -218,11 +225,12 @@ autodoc_typehints = "both"
 # Sphinx.Ext.ExtLinks
 # ==============================================================================
 extlinks = {
-	"gh":      ("https://GitHub.com/%s", "gh:%s"),
-	"ghissue": ("https://GitHub.com/VHDL/pyVHDLModel/issues/%s", "issue #%s"),
-	"ghpull":  ("https://GitHub.com/VHDL/pyVHDLModel/pull/%s", "pull request #%s"),
-	"ghsrc":   ("https://GitHub.com/VHDL/pyVHDLModel/blob/main/%s", None),
-	"wiki":    ("https://en.wikipedia.org/wiki/%s", None),
+	"gh":          (f"https://GitHub.com/%s", "%s"),
+	"ghissue":     (f"https://GitHub.com/{githubNamespace}/{project}/issues/%s", "issue #%s"),
+	"ghpull":      (f"https://GitHub.com/{githubNamespace}/{project}/pull/%s", "pull request #%s"),
+	"ghsrc":       (f"https://GitHub.com/{githubNamespace}/{project}/blob/main/%s", None),
+	"pypi":        ("https://PyPI.org/project/%s", "%s"),
+	"wiki":        (f"https://en.wikipedia.org/wiki/%s", None),
 }
 
 
@@ -275,7 +283,7 @@ report_dep_dependencies = {
 report_unittest_testsuites = {
 	"src": {
 		"name":        f"{project}",
-		"xml_report":  "../report/unit/TestReportSummary.xml",
+		"xml_report":  "../report/unit/unittest.xml",
 	}
 }
 report_codecov_packages = {
@@ -289,7 +297,7 @@ report_codecov_packages = {
 report_doccov_packages = {
 	"src": {
 		"name":       f"{project}",
-		"directory":  f"../{project.replace('.', '/')}",
+		"directory":  f"../{directoryName}",
 		"fail_below": 80,
 		"levels":     "default"
 	}

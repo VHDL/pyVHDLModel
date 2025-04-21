@@ -35,7 +35,7 @@ The pyVHDLModel Documentation
 An abstract VHDL language model.
 
 
-.. _goals:
+.. _GOALS:
 
 Main Goals
 **********
@@ -49,7 +49,7 @@ build higher level features and services on such a model, while supporting multi
 frontends.
 
 
-.. _usecase:
+.. _USECASES:
 
 Use Cases
 *********
@@ -58,7 +58,7 @@ Use Cases
 * Code Document-Object-Model (Code-DOM) in `pyVHDLParser <https://paebbels.github.io/pyVHDLParser/>`__.
 
 
-.. _news:
+.. _NEWS:
 
 News
 ****
@@ -174,8 +174,8 @@ News
 Contributors
 ************
 
-* `Patrick Lehmann <https://GitHub.com/Paebbels>`__ (Maintainer)
-* `Unai Martinez-Corral <https://GitHub.com/umarcor/>`__
+* :gh:`Patrick Lehmann <Paebbels>` (Maintainer)
+* :gh:`Unai Martinez-Corral <umarcor>`
 * `and more... <https://GitHub.com/VHDL/pyVHDLModel/graphs/contributors>`__
 
 
@@ -194,10 +194,6 @@ License
    This Python package (source code) is licensed under **Apache License 2.0**. |br|
    The accompanying documentation is licensed under **Creative Commons - Attribution 4.0 (CC-BY 4.0)**.
 
-
-.. only:: html
-
-   This document was generated on |docdate|.
 
 
 .. toctree::
@@ -227,7 +223,6 @@ License
    Analyze/index
    DataStructure/index
 
-
 .. raw:: latex
 
    \part{References and Reports}
@@ -239,6 +234,7 @@ License
    Python Class Reference <pyVHDLModel/pyVHDLModel>
    unittests/index
    coverage/index
+   CodeCoverage
    Doc. Coverage Report <DocCoverage>
    Static Type Check Report ➚ <typing/index>
 

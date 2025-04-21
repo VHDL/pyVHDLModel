@@ -13,6 +13,8 @@
       <excludeFolder url="file://$MODULE_DIR$/build/lib" />
       <excludeFolder url="file://$MODULE_DIR$/.vscode" />
       <excludeFolder url="file://$MODULE_DIR$/doc/_build/html" />
+      <excludeFolder url="file://$MODULE_DIR$/doc/_build/doctrees" />
+      <excludeFolder url="file://$MODULE_DIR$/report" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.13" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -10,7 +10,6 @@ updates:
       - Dependencies
     reviewers:
       - Paebbels
-      - Umarcor
     schedule:
       interval: "daily"    # Checks on Monday trough Friday.
 
@@ -24,6 +23,5 @@ updates:
       - Dependencies
     reviewers:
       - Paebbels
-      - Umarcor
     schedule:
       interval: "weekly"

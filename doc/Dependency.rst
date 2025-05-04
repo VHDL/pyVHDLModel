@@ -61,7 +61,7 @@ the mandatory dependencies too.
 +---------------------------------------------------------------------+-------------+----------------------------------------------------------------------------------------+----------------------+
 | `typing-extensions <https://GitHub.com/python/typing_extensions>`__ | ≥4.13       | `PSF-2.0 <https://github.com/python/typing_extensions/blob/main/LICENSE>`__            | *Not yet evaluated.* |
 +---------------------------------------------------------------------+-------------+----------------------------------------------------------------------------------------+----------------------+
-| `lxml <https://GitHub.com/lxml/lxml>`__                             | ≥5.3        | `BSD 3-Clause <https://GitHub.com/lxml/lxml/blob/master/LICENSE.txt>`__                | *Not yet evaluated.* |
+| `lxml <https://GitHub.com/lxml/lxml>`__                             | ≥5.4        | `BSD 3-Clause <https://GitHub.com/lxml/lxml/blob/master/LICENSE.txt>`__                | *Not yet evaluated.* |
 +---------------------------------------------------------------------+-------------+----------------------------------------------------------------------------------------+----------------------+
 
 

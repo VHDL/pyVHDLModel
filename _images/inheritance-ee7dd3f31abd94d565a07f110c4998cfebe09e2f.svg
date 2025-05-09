@@ -1,0 +1,170 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="576pt" height="101pt" viewBox="0.00 0.00 576.00 101.30">
+<ns0:g id="graph0" class="graph" transform="scale(0.65 0.65) rotate(0) translate(4 152)">
+<ns0:title>inheritance98c00a7eba</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>BaseConstant</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Object.html#pyVHDLModel.Object.BaseConstant" ns1:title="Base-class for all constants (normal and deferred constants) in VHDL." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="448.5,-130 364.5,-130 364.5,-111 448.5,-111 448.5,-130" />
+<ns0:text text-anchor="middle" x="406.5" y="-118" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">BaseConstant</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>Constant</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Object.html#pyVHDLModel.Object.Constant" ns1:title="Represents a constant." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="629.5,-93 569.5,-93 569.5,-74 629.5,-74 629.5,-93" />
+<ns0:text text-anchor="middle" x="599.5" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Constant</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>BaseConstant-&gt;Constant</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M448.94,-112.47C483.42,-105.79 531.9,-96.4 564.22,-90.14" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="564.68,-91.83 569.26,-89.16 564.02,-88.4 564.68,-91.83" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>Obj</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Object.html#pyVHDLModel.Object.Obj" ns1:title="Base-class for all objects (constants, signals, variables and files) in VHDL." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="265,-120 211,-120 211,-101 265,-101 265,-120" />
+<ns0:text text-anchor="middle" x="238" y="-108" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Obj</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>Obj-&gt;BaseConstant</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M265.02,-112.06C290.18,-113.57 328.85,-115.9 359.26,-117.72" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="359.35,-119.48 364.45,-118.03 359.56,-115.99 359.35,-119.48" />
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>GenericConstantInterfaceItem</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.GenericConstantInterfaceItem" ns1:title="GenericConstantInterfaceItem" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="879,-56 715,-56 715,-37 879,-37 879,-56" />
+<ns0:text text-anchor="middle" x="797" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">GenericConstantInterfaceItem</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>Constant-&gt;GenericConstantInterfaceItem</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M629.77,-77.96C658.91,-72.45 704.36,-63.84 740.38,-57.03" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="741.03,-58.68 745.62,-56.03 740.38,-55.25 741.03,-58.68" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>WithDefaultExpressionMixin</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Object.html#pyVHDLModel.Object.WithDefaultExpressionMixin" ns1:title="A ``WithDefaultExpression`` is a mixin-class for all objects declarations accepting default expressions." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="484,-93 329,-93 329,-74 484,-74 484,-93" />
+<ns0:text text-anchor="middle" x="406.5" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">WithDefaultExpressionMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>WithDefaultExpressionMixin-&gt;Constant</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M484.09,-83.5C511.76,-83.5 541.64,-83.5 563.92,-83.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="564.13,-85.25 569.13,-83.5 564.13,-81.75 564.13,-85.25" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>DocumentedEntityMixin</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.DocumentedEntityMixin" ns1:title="A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="140.5,-74 6.5,-74 6.5,-55 140.5,-55 140.5,-74" />
+<ns0:text text-anchor="middle" x="73.5" y="-62" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DocumentedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge11" class="edge">
+<ns0:title>DocumentedEntityMixin-&gt;Obj</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M111.82,-74.01C123.14,-76.97 135.6,-80.3 147,-83.5 166.5,-88.98 188.25,-95.49 205.49,-100.75" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="205.39,-102.55 210.69,-102.34 206.42,-99.2 205.39,-102.55" />
+</ns0:g>
+
+<ns0:g id="node9" class="node">
+<ns0:title>InterfaceItemMixin</ns0:title>
+<ns0:g id="a_node9"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.InterfaceItemMixin" ns1:title="An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="293,-74 183,-74 183,-55 293,-55 293,-74" />
+<ns0:text text-anchor="middle" x="238" y="-62" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">InterfaceItemMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge8" class="edge">
+<ns0:title>DocumentedEntityMixin-&gt;InterfaceItemMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M140.59,-64.5C152.9,-64.5 165.68,-64.5 177.76,-64.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="177.89,-66.25 182.89,-64.5 177.89,-62.75 177.89,-66.25" />
+</ns0:g>
+
+<ns0:g id="node7" class="node">
+<ns0:title>GenericInterfaceItemMixin</ns0:title>
+<ns0:g id="a_node7"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.GenericInterfaceItemMixin" ns1:title="A ``GenericInterfaceItem`` is a mixin class for all generic interface items." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="673,-56 526,-56 526,-37 673,-37 673,-56" />
+<ns0:text text-anchor="middle" x="599.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">GenericInterfaceItemMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>GenericInterfaceItemMixin-&gt;GenericConstantInterfaceItem</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M673.02,-46.5C684.9,-46.5 697.32,-46.5 709.51,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="709.71,-48.25 714.71,-46.5 709.71,-44.75 709.71,-48.25" />
+</ns0:g>
+
+<ns0:g id="node8" class="node">
+<ns0:title>InterfaceItemWithModeMixin</ns0:title>
+<ns0:g id="a_node8"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.InterfaceItemWithModeMixin" ns1:title="An ``InterfaceItemWithMode`` is a mixin-class to provide a ``Mode`` to interface items." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="679,-19 520,-19 520,0 679,0 679,-19" />
+<ns0:text text-anchor="middle" x="599.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">InterfaceItemWithModeMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge6" class="edge">
+<ns0:title>InterfaceItemWithModeMixin-&gt;GenericConstantInterfaceItem</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M650.85,-19.03C678.22,-24.21 712.13,-30.63 740.3,-35.96" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="740.25,-37.73 745.49,-36.94 740.9,-34.29 740.25,-37.73" />
+</ns0:g>
+
+<ns0:g id="edge7" class="edge">
+<ns0:title>InterfaceItemMixin-&gt;GenericInterfaceItemMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M293.21,-61.79C353.62,-58.76 451.82,-53.84 520.48,-50.41" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="520.88,-52.14 525.79,-50.14 520.71,-48.64 520.88,-52.14" />
+</ns0:g>
+
+<ns0:g id="node10" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node10"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="111,-148 36,-148 36,-129 111,-129 111,-148" />
+<ns0:text text-anchor="middle" x="73.5" y="-136" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge9" class="edge">
+<ns0:title>ModelEntity-&gt;Obj</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M111.37,-132.15C139.82,-127.25 178.73,-120.54 205.67,-115.9" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="206.27,-117.57 210.9,-115 205.67,-114.12 206.27,-117.57" />
+</ns0:g>
+
+<ns0:g id="node11" class="node">
+<ns0:title>MultipleNamedEntityMixin</ns0:title>
+<ns0:g id="a_node11"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.MultipleNamedEntityMixin" ns1:title="A ``MultipleNamedEntityMixin`` is a mixin class for all VHDL entities that declare multiple instances at once by" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="147,-111 0,-111 0,-92 147,-92 147,-111" />
+<ns0:text text-anchor="middle" x="73.5" y="-99" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">MultipleNamedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge10" class="edge">
+<ns0:title>MultipleNamedEntityMixin-&gt;Obj</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M147.19,-105.53C167.72,-106.66 188.98,-107.84 205.66,-108.76" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="205.59,-110.51 210.68,-109.04 205.79,-107.02 205.59,-110.51" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

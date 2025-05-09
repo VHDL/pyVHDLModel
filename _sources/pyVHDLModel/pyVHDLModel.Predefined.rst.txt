@@ -1,0 +1,80 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+======================
+pyVHDLModel.Predefined
+======================
+
+.. automodule:: pyVHDLModel.Predefined
+
+
+.. currentmodule:: pyVHDLModel.Predefined
+
+
+**Classes**
+
+- :py:class:`PredefinedLibrary`:
+  A base-class for predefined VHDL libraries.
+
+- :py:class:`PredefinedPackageMixin`:
+  A mixin-class for predefined VHDL packages and package bodies.
+
+- :py:class:`PredefinedPackage`:
+  A base-class for predefined VHDL packages.
+
+- :py:class:`PredefinedPackageBody`:
+  A base-class for predefined VHDL package bodies.
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: PredefinedLibrary
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PredefinedLibrary
+      :parts: 1
+
+.. autoclass:: PredefinedPackageMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PredefinedPackageMixin
+      :parts: 1
+
+.. autoclass:: PredefinedPackage
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PredefinedPackage
+      :parts: 1
+
+.. autoclass:: PredefinedPackageBody
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PredefinedPackageBody
+      :parts: 1

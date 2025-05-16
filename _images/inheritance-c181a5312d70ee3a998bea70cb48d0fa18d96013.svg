@@ -1,0 +1,44 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="304pt" height="64pt" viewBox="0.00 0.00 304.00 64.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 60)">
+<ns0:title>inheritanceae7fc14d84</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="111,-56 36,-56 36,-37 111,-37 111,-56" />
+<ns0:text text-anchor="middle" x="73.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>RecordTypeElement</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Type.html#pyVHDLModel.Type.RecordTypeElement" ns1:title="RecordTypeElement" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="296,-37 183,-37 183,-18 296,-18 296,-37" />
+<ns0:text text-anchor="middle" x="239.5" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">RecordTypeElement</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ModelEntity-&gt;RecordTypeElement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M111.3,-42.24C130.88,-39.97 155.46,-37.12 177.78,-34.53" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="178.04,-36.27 182.8,-33.95 177.63,-32.79 178.04,-36.27" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>MultipleNamedEntityMixin</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.MultipleNamedEntityMixin" ns1:title="A ``MultipleNamedEntityMixin`` is a mixin class for all VHDL entities that declare multiple instances at once by" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="147,-19 0,-19 0,0 147,0 147,-19" />
+<ns0:text text-anchor="middle" x="73.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">MultipleNamedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>MultipleNamedEntityMixin-&gt;RecordTypeElement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M147.39,-17.5C157.44,-18.6 167.68,-19.73 177.49,-20.8" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="177.41,-22.56 182.57,-21.36 177.8,-19.08 177.41,-22.56" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

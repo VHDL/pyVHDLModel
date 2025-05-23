@@ -1,0 +1,108 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+====================
+pyVHDLModel.PSLModel
+====================
+
+.. automodule:: pyVHDLModel.PSLModel
+
+
+.. currentmodule:: pyVHDLModel.PSLModel
+
+
+**Classes**
+
+- :py:class:`PSLEntity`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`PSLPrimaryUnit`:
+  A base-class for all primary design units.
+
+- :py:class:`VerificationUnit`:
+  A base-class for all primary design units.
+
+- :py:class:`VerificationProperty`:
+  A base-class for all primary design units.
+
+- :py:class:`VerificationMode`:
+  A base-class for all primary design units.
+
+- :py:class:`DefaultClock`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: PSLEntity
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PSLEntity
+      :parts: 1
+
+.. autoclass:: PSLPrimaryUnit
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PSLPrimaryUnit
+      :parts: 1
+
+.. autoclass:: VerificationUnit
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: VerificationUnit
+      :parts: 1
+
+.. autoclass:: VerificationProperty
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: VerificationProperty
+      :parts: 1
+
+.. autoclass:: VerificationMode
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: VerificationMode
+      :parts: 1
+
+.. autoclass:: DefaultClock
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: DefaultClock
+      :parts: 1

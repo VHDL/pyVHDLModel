@@ -1,0 +1,311 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+================
+pyVHDLModel.Base
+================
+
+.. automodule:: pyVHDLModel.Base
+
+
+.. currentmodule:: pyVHDLModel.Base
+
+
+**Variables**
+
+- :py:data:`ExpressionUnion`
+  
+
+
+**Classes**
+
+- :py:class:`Direction`:
+  An enumeration representing a direction in a range      (``to`` or ``downto``).
+
+- :py:class:`Mode`:
+  A ``Mode`` is an enumeration. It represents the direction of data exchange (``in``, ``out``, ...) for objects in
+
+- :py:class:`ModelEntity`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`NamedEntityMixin`:
+  A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have identifiers.
+
+- :py:class:`MultipleNamedEntityMixin`:
+  A ``MultipleNamedEntityMixin`` is a mixin class for all VHDL entities that declare multiple instances at once by
+
+- :py:class:`LabeledEntityMixin`:
+  A ``LabeledEntityMixin`` is a mixin class for all VHDL entities that can have labels.
+
+- :py:class:`DocumentedEntityMixin`:
+  A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation.
+
+- :py:class:`ConditionalMixin`:
+  A ``ConditionalMixin`` is a mixin-class for all statements with a condition.
+
+- :py:class:`BranchMixin`:
+  A ``BranchMixin`` is a mixin-class for all statements with branches.
+
+- :py:class:`ConditionalBranchMixin`:
+  A ``BaseBranch`` is a mixin-class for all branch statements with a condition.
+
+- :py:class:`IfBranchMixin`:
+  A ``BaseIfBranch`` is a mixin-class for all if-branches.
+
+- :py:class:`ElsifBranchMixin`:
+  A ``BaseElsifBranch`` is a mixin-class for all elsif-branches.
+
+- :py:class:`ElseBranchMixin`:
+  A ``BaseElseBranch`` is a mixin-class for all else-branches.
+
+- :py:class:`ReportStatementMixin`:
+  A ``MixinReportStatement`` is a mixin-class for all report and assert statements.
+
+- :py:class:`AssertStatementMixin`:
+  A ``MixinAssertStatement`` is a mixin-class for all assert statements.
+
+- :py:class:`BaseChoice`:
+  A ``Choice`` is a base-class for all choices.
+
+- :py:class:`BaseCase`:
+  A ``Case`` is a base-class for all cases.
+
+- :py:class:`Range`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`WaveformElement`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+
+
+---------------------
+
+**Variables**
+
+
+
+
+.. autodata:: ExpressionUnion
+   :annotation:
+
+   .. code-block:: text
+
+      typing.Union[ForwardRef('BaseExpression'), ForwardRef('QualifiedExpression'), ForwardRef('FunctionCall'), ForwardRef('TypeConversion'), ForwardRef('Literal')]
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: Direction
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Direction
+      :parts: 1
+
+.. autoclass:: Mode
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Mode
+      :parts: 1
+
+.. autoclass:: ModelEntity
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ModelEntity
+      :parts: 1
+
+.. autoclass:: NamedEntityMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: NamedEntityMixin
+      :parts: 1
+
+.. autoclass:: MultipleNamedEntityMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: MultipleNamedEntityMixin
+      :parts: 1
+
+.. autoclass:: LabeledEntityMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: LabeledEntityMixin
+      :parts: 1
+
+.. autoclass:: DocumentedEntityMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: DocumentedEntityMixin
+      :parts: 1
+
+.. autoclass:: ConditionalMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ConditionalMixin
+      :parts: 1
+
+.. autoclass:: BranchMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BranchMixin
+      :parts: 1
+
+.. autoclass:: ConditionalBranchMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ConditionalBranchMixin
+      :parts: 1
+
+.. autoclass:: IfBranchMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IfBranchMixin
+      :parts: 1
+
+.. autoclass:: ElsifBranchMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ElsifBranchMixin
+      :parts: 1
+
+.. autoclass:: ElseBranchMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ElseBranchMixin
+      :parts: 1
+
+.. autoclass:: ReportStatementMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ReportStatementMixin
+      :parts: 1
+
+.. autoclass:: AssertStatementMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: AssertStatementMixin
+      :parts: 1
+
+.. autoclass:: BaseChoice
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BaseChoice
+      :parts: 1
+
+.. autoclass:: BaseCase
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BaseCase
+      :parts: 1
+
+.. autoclass:: Range
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Range
+      :parts: 1
+
+.. autoclass:: WaveformElement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: WaveformElement
+      :parts: 1

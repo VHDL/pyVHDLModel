@@ -1,0 +1,29 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="269pt" height="27pt" viewBox="0.00 0.00 269.00 27.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 23)">
+<ns0:title>inheritancefe3b3b54df</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>ComponentInstantiationSymbol</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ComponentInstantiationSymbol" ns1:title="Represents a reference (name) to an entity in a component instantiation." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="261,-19 90,-19 90,0 261,0 261,-19" />
+<ns0:text text-anchor="middle" x="175.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ComponentInstantiationSymbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>Symbol</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" ns1:title="Base-class for all symbol classes." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="54,-19 0,-19 0,0 54,0 54,-19" />
+<ns0:text text-anchor="middle" x="27" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Symbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>Symbol-&gt;ComponentInstantiationSymbol</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M54.19,-9.5C63.11,-9.5 73.65,-9.5 84.72,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="84.84,-11.25 89.84,-9.5 84.84,-7.75 84.84,-11.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

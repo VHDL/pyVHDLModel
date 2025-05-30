@@ -1,0 +1,89 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="576pt" height="57pt" viewBox="0.00 0.00 576.00 56.54">
+<ns0:g id="graph0" class="graph" transform="scale(0.88 0.88) rotate(0) translate(4 60)">
+<ns0:title>inheritanceeba6ed54d2</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>ConstrainedCompositeSubtypeSymbol</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ConstrainedCompositeSubtypeSymbol" ns1:title="ConstrainedCompositeSubtypeSymbol" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="423,-19 219,-19 219,0 423,0 423,-19" />
+<ns0:text text-anchor="middle" x="321" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConstrainedCompositeSubtypeSymbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>ConstrainedRecordSubtypeSymbol</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol" ns1:title="ConstrainedRecordSubtypeSymbol" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="644,-37 459,-37 459,-18 644,-18 644,-37" />
+<ns0:text text-anchor="middle" x="551.5" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConstrainedRecordSubtypeSymbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>ConstrainedCompositeSubtypeSymbol-&gt;ConstrainedRecordSubtypeSymbol</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M423.22,-17.47C433.29,-18.27 443.49,-19.07 453.5,-19.86" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="453.6,-21.62 458.73,-20.27 453.88,-18.13 453.6,-21.62" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>SubtypeSymbol</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.SubtypeSymbol" ns1:title="SubtypeSymbol" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="183,-19 90,-19 90,0 183,0 183,-19" />
+<ns0:text text-anchor="middle" x="136.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SubtypeSymbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>SubtypeSymbol-&gt;ConstrainedCompositeSubtypeSymbol</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M183.08,-9.5C192.52,-9.5 202.83,-9.5 213.43,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="213.65,-11.25 218.65,-9.5 213.65,-7.75 213.65,-11.25" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>RecordConstraint</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.RecordConstraint" ns1:title="RecordConstraint" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="371.5,-56 270.5,-56 270.5,-37 371.5,-37 371.5,-56" />
+<ns0:text text-anchor="middle" x="321" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">RecordConstraint</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>RecordConstraint-&gt;ConstrainedRecordSubtypeSymbol</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M371.58,-42.38C395.55,-40.38 425.19,-37.92 453.4,-35.57" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="453.81,-37.3 458.65,-35.14 453.52,-33.81 453.81,-37.3" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>Constraint</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Constraint" ns1:title="Constraint" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="170,-56 103,-56 103,-37 170,-37 170,-56" />
+<ns0:text text-anchor="middle" x="136.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Constraint</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>Constraint-&gt;RecordConstraint</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M170.13,-46.5C196.49,-46.5 234.17,-46.5 265.16,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="265.46,-48.25 270.46,-46.5 265.46,-44.75 265.46,-48.25" />
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>Symbol</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" ns1:title="Base-class for all symbol classes." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="54,-19 0,-19 0,0 54,0 54,-19" />
+<ns0:text text-anchor="middle" x="27" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Symbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>Symbol-&gt;SubtypeSymbol</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M54.02,-9.5C63.31,-9.5 74.13,-9.5 84.78,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="84.99,-11.25 89.99,-9.5 84.99,-7.75 84.99,-11.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

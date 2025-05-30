@@ -1,0 +1,44 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="289pt" height="27pt" viewBox="0.00 0.00 289.00 27.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 23)">
+<ns0:title>inheritance200a74259a</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="75,-19 0,-19 0,0 75,0 75,-19" />
+<ns0:text text-anchor="middle" x="37.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>Reference</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.Reference" ns1:title="A base-class for all references." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="177,-19 111,-19 111,0 177,0 177,-19" />
+<ns0:text text-anchor="middle" x="144" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Reference</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ModelEntity-&gt;Reference</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M75.05,-9.5C84.97,-9.5 95.73,-9.5 105.69,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="105.83,-11.25 110.83,-9.5 105.83,-7.75 105.83,-11.25" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>UseClause</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.UseClause" ns1:title="Represents a use clause." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="281,-19 213,-19 213,0 281,0 281,-19" />
+<ns0:text text-anchor="middle" x="247" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">UseClause</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>Reference-&gt;UseClause</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M177.23,-9.5C186.87,-9.5 197.53,-9.5 207.53,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="207.68,-11.25 212.68,-9.5 207.68,-7.75 207.68,-11.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

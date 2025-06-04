@@ -236,29 +236,41 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
 class PortGroup:
 	"""A ``PortGroup`` is a group of ports."""
 
-	_parent:  Nullable[ModelEntity]
-	_ports:   List[PortInterfaceItemMixin]
+	_parent:    Nullable[ModelEntity]
+	_name:      Nullable[str]
+	_portItems: List[PortInterfaceItemMixin]
 
-	def __init__(self, ports: Iterable[PortInterfaceItemMixin]):
-		"""Initialize a PortGroup with a list of ports."""
+	def __init__(self, ports: Iterable[PortInterfaceItemMixin], name: Nullable[str] = None):
+		"""Initialize a PortGroup with a list of ports and optional name."""
 		self._parent = None
-		self._ports = list(ports)
-		if not self._ports:
+		self._name = name
+		self._portItems = list(ports)
+		if not self._portItems:
 			raise ValueError("PortGroup cannot be empty")
-		for port in self._ports:
+		for port in self._portItems:
 			if not isinstance(port, PortInterfaceItemMixin):
 				raise TypeError(f"All ports must be PortInterfaceItemMixin instances, got {type(port)}")
 			port._group = self
 
 	@property
-	def Ports(self) -> List[PortInterfaceItemMixin]:
-		"""Get the list of ports in this group."""
-		return self._ports
+	def Name(self) -> Nullable[str]:
+		"""Get the name of this port group."""
+		return self._name
+
+	@Name.setter
+	def Name(self, value: Nullable[str]) -> None:
+		"""Set the name of this port group."""
+		self._name = value
+
+	@property
+	def PortItems(self) -> List[PortInterfaceItemMixin]:
+		"""Get the list of port items in this group."""
+		return self._portItems
 
 	@property
 	def Count(self) -> int:
 		"""Get the number of ports in this group."""
-		return len(self._ports)
+		return len(self._portItems)
 
 	@property
 	def Parent(self) -> Nullable[ModelEntity]:
@@ -271,15 +283,16 @@ class PortGroup:
 
 	def __len__(self) -> int:
 		"""Return the number of ports in this group."""
-		return len(self._ports)
+		return len(self._portItems)
 
 	def __iter__(self):
 		"""Iterate over ports in this group."""
-		return iter(self._ports)
+		return iter(self._portItems)
 
 	def __str__(self) -> str:
 		"""String representation of the port group."""
-		port_names = [str(port) for port in self._ports]
-		return f"PortGroup({len(self._ports)} ports: {', '.join(port_names)})"
+		port_names = [str(port) for port in self._portItems]
+		name_part = f"'{self._name}' " if self._name else ""
+		return f"PortGroup({name_part}{len(self._portItems)} ports: {', '.join(port_names)})"
 
 	__repr__ = __str__

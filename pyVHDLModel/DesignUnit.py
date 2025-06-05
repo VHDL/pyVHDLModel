@@ -768,7 +768,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 @export
 class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""
-	Represents a configuration declaration.
+	Represents a component declaration.
 
 	.. admonition:: Example
 

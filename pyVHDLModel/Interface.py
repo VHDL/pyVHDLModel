@@ -240,11 +240,11 @@ class PortGroup:
 	_name:      Nullable[str]
 	_portItems: List[PortInterfaceItemMixin]
 
-	def __init__(self, ports: Iterable[PortInterfaceItemMixin], name: Nullable[str] = None):
+	def __init__(self, portItems: Iterable[PortInterfaceItemMixin], name: Nullable[str] = None):
 		"""Initialize a PortGroup with a list of ports and optional name."""
 		self._parent = None
 		self._name = name
-		self._portItems = list(ports)
+		self._portItems = list(portItems)
 		if not self._portItems:
 			raise ValueError("PortGroup cannot be empty")
 		for port in self._portItems:

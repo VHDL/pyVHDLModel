@@ -1,0 +1,374 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+==================
+pyVHDLModel.Symbol
+==================
+
+.. automodule:: pyVHDLModel.Symbol
+
+
+.. currentmodule:: pyVHDLModel.Symbol
+
+
+**Classes**
+
+- :py:class:`PossibleReference`:
+  Is an enumeration, representing possible targets for a reference in a :class:`~pyVHDLModel.Symbol`.
+
+- :py:class:`Symbol`:
+  Base-class for all symbol classes.
+
+- :py:class:`LibraryReferenceSymbol`:
+  Represents a reference (name) to a library.
+
+- :py:class:`PackageReferenceSymbol`:
+  Represents a reference (name) to a package.
+
+- :py:class:`ContextReferenceSymbol`:
+  Represents a reference (name) to a context.
+
+- :py:class:`PackageMemberReferenceSymbol`:
+  Represents a reference (name) to a package member.
+
+- :py:class:`AllPackageMembersReferenceSymbol`:
+  Represents a reference (name) to all package members.
+
+- :py:class:`EntityInstantiationSymbol`:
+  Represents a reference (name) to an entity in a direct entity instantiation.
+
+- :py:class:`ComponentInstantiationSymbol`:
+  Represents a reference (name) to an entity in a component instantiation.
+
+- :py:class:`ConfigurationInstantiationSymbol`:
+  Represents a reference (name) to an entity in a configuration instantiation.
+
+- :py:class:`EntitySymbol`:
+  Represents a reference (name) to an entity in an architecture declaration.
+
+- :py:class:`ArchitectureSymbol`:
+  An entity reference in an entity instantiation with architecture name.
+
+- :py:class:`PackageSymbol`:
+  Represents a reference (name) to a package in a package body declaration.
+
+- :py:class:`RecordElementSymbol`:
+  Base-class for all symbol classes.
+
+- :py:class:`SubtypeSymbol`:
+  Base-class for all symbol classes.
+
+- :py:class:`SimpleSubtypeSymbol`:
+  Base-class for all symbol classes.
+
+- :py:class:`ConstrainedScalarSubtypeSymbol`:
+  Base-class for all symbol classes.
+
+- :py:class:`Constraint`:
+  Undocumented.
+
+- :py:class:`ArrayConstraint`:
+  Undocumented.
+
+- :py:class:`RecordConstraint`:
+  Undocumented.
+
+- :py:class:`ConstrainedCompositeSubtypeSymbol`:
+  Base-class for all symbol classes.
+
+- :py:class:`ConstrainedArraySubtypeSymbol`:
+  Base-class for all symbol classes.
+
+- :py:class:`ConstrainedRecordSubtypeSymbol`:
+  Base-class for all symbol classes.
+
+- :py:class:`SimpleObjectOrFunctionCallSymbol`:
+  Base-class for all symbol classes.
+
+- :py:class:`IndexedObjectOrFunctionCallSymbol`:
+  Base-class for all symbol classes.
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: PossibleReference
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PossibleReference
+      :parts: 1
+
+.. autoclass:: Symbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Symbol
+      :parts: 1
+
+.. autoclass:: LibraryReferenceSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: LibraryReferenceSymbol
+      :parts: 1
+
+.. autoclass:: PackageReferenceSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PackageReferenceSymbol
+      :parts: 1
+
+.. autoclass:: ContextReferenceSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ContextReferenceSymbol
+      :parts: 1
+
+.. autoclass:: PackageMemberReferenceSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PackageMemberReferenceSymbol
+      :parts: 1
+
+.. autoclass:: AllPackageMembersReferenceSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: AllPackageMembersReferenceSymbol
+      :parts: 1
+
+.. autoclass:: EntityInstantiationSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: EntityInstantiationSymbol
+      :parts: 1
+
+.. autoclass:: ComponentInstantiationSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ComponentInstantiationSymbol
+      :parts: 1
+
+.. autoclass:: ConfigurationInstantiationSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ConfigurationInstantiationSymbol
+      :parts: 1
+
+.. autoclass:: EntitySymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: EntitySymbol
+      :parts: 1
+
+.. autoclass:: ArchitectureSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ArchitectureSymbol
+      :parts: 1
+
+.. autoclass:: PackageSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PackageSymbol
+      :parts: 1
+
+.. autoclass:: RecordElementSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: RecordElementSymbol
+      :parts: 1
+
+.. autoclass:: SubtypeSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SubtypeSymbol
+      :parts: 1
+
+.. autoclass:: SimpleSubtypeSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SimpleSubtypeSymbol
+      :parts: 1
+
+.. autoclass:: ConstrainedScalarSubtypeSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ConstrainedScalarSubtypeSymbol
+      :parts: 1
+
+.. autoclass:: Constraint
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Constraint
+      :parts: 1
+
+.. autoclass:: ArrayConstraint
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ArrayConstraint
+      :parts: 1
+
+.. autoclass:: RecordConstraint
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: RecordConstraint
+      :parts: 1
+
+.. autoclass:: ConstrainedCompositeSubtypeSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ConstrainedCompositeSubtypeSymbol
+      :parts: 1
+
+.. autoclass:: ConstrainedArraySubtypeSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ConstrainedArraySubtypeSymbol
+      :parts: 1
+
+.. autoclass:: ConstrainedRecordSubtypeSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ConstrainedRecordSubtypeSymbol
+      :parts: 1
+
+.. autoclass:: SimpleObjectOrFunctionCallSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SimpleObjectOrFunctionCallSymbol
+      :parts: 1
+
+.. autoclass:: IndexedObjectOrFunctionCallSymbol
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IndexedObjectOrFunctionCallSymbol
+      :parts: 1

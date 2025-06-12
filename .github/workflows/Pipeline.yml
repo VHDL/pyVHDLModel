@@ -2,7 +2,6 @@ name: Pipeline
 
 on:
   push:
-  create:
   workflow_dispatch:
   schedule:
 # Every Friday at 22:00 - rerun pipeline to check for dependency-based issues

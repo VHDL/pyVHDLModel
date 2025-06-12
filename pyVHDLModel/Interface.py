@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 Interface items are used in generic, port and parameter declarations.
 """
-from typing                 import Iterable, Optional as Nullable
+from typing                 import Iterable, Optional as Nullable, List
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
@@ -77,9 +77,21 @@ class GenericInterfaceItemMixin(InterfaceItemMixin, mixin=True):
 class PortInterfaceItemMixin(InterfaceItemMixin, InterfaceItemWithModeMixin, mixin=True):
 	"""A ``PortInterfaceItem`` is a mixin class for all port interface items."""
 
+	_group: Nullable['PortGroup']
+
 	def __init__(self, mode: Mode) -> None:
 		super().__init__()
 		InterfaceItemWithModeMixin.__init__(self, mode)
+		self._group = None
+
+	@property
+	def Group(self) -> Nullable['PortGroup']:
+		"""
+		Read-only property to access the port group this port belongs to (:attr:`_group`).
+
+		:returns: Reference to the port group, or None if not in a group.
+		"""
+		return self._group
 
 
 @export
@@ -218,3 +230,69 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
 	) -> None:
 		super().__init__(identifiers, subtype, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
+
+
+@export
+class PortGroup:
+	"""A ``PortGroup`` is a group of ports."""
+
+	_parent:    Nullable[ModelEntity]
+	_name:      Nullable[str]
+	_portItems: List[PortInterfaceItemMixin]
+
+	def __init__(self, portItems: Iterable[PortInterfaceItemMixin], name: Nullable[str] = None):
+		"""Initialize a PortGroup with a list of ports and optional name."""
+		self._parent = None
+		self._name = name
+		self._portItems = list(portItems)
+		if not self._portItems:
+			raise ValueError("PortGroup cannot be empty")
+		for port in self._portItems:
+			if not isinstance(port, PortInterfaceItemMixin):
+				raise TypeError(f"All ports must be PortInterfaceItemMixin instances, got {type(port)}")
+			port._group = self
+
+	@property
+	def Name(self) -> Nullable[str]:
+		"""Get the name of this port group."""
+		return self._name
+
+	@Name.setter
+	def Name(self, value: Nullable[str]) -> None:
+		"""Set the name of this port group."""
+		self._name = value
+
+	@property
+	def PortItems(self) -> List[PortInterfaceItemMixin]:
+		"""Get the list of port items in this group."""
+		return self._portItems
+
+	@property
+	def Count(self) -> int:
+		"""Get the number of ports in this group."""
+		return len(self._portItems)
+
+	@property
+	def Parent(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the parent entity that owns this port group (:attr:`_parent`).
+
+		:returns: Reference to the parent entity (Entity or Component), or None if not assigned.
+		"""
+		return self._parent
+
+	def __len__(self) -> int:
+		"""Return the number of ports in this group."""
+		return len(self._portItems)
+
+	def __iter__(self):
+		"""Iterate over ports in this group."""
+		return iter(self._portItems)
+
+	def __str__(self) -> str:
+		"""String representation of the port group."""
+		port_names = [str(port) for port in self._portItems]
+		name_part = f"'{self._name}' " if self._name else ""
+		return f"PortGroup({name_part}{len(self._portItems)} ports: {', '.join(port_names)})"
+
+	__repr__ = __str__

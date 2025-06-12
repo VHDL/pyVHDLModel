@@ -65,16 +65,18 @@ from pyVHDLModel.Exception     import VHDLModelException
 from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegisteredToForeignDesignError, LibraryNotRegisteredError, EntityExistsInLibraryError
 from pyVHDLModel.Exception     import ArchitectureExistsInLibraryError, PackageExistsInLibraryError, PackageBodyExistsError, ConfigurationExistsInLibraryError
 from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLibraryNotExistingError
-from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
-from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, Mode
+from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression, IntegerLiteral, EnumerationLiteral, StringLiteral
+from pyVHDLModel.Name          import SimpleName
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant
-from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation
-from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, Configuration, Package
+from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, Configuration, Package, Component
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType
+from pyVHDLModel.Interface     import GenericConstantInterfaceItem, PortSignalInterfaceItem, PortGroup
 
 
 @export

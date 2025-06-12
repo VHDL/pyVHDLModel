@@ -45,7 +45,7 @@ from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEnti
 from pyVHDLModel.Namespace  import Namespace
 from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin
 from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
-from pyVHDLModel.Interface  import GenericInterfaceItemMixin, PortInterfaceItemMixin
+from pyVHDLModel.Interface  import GenericInterfaceItemMixin, PortInterfaceItemMixin, PortGroup
 from pyVHDLModel.Object     import DeferredConstant
 from pyVHDLModel.Concurrent import ConcurrentStatement, ConcurrentStatementsMixin
 
@@ -599,6 +599,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 
 	_genericItems:  List[GenericInterfaceItemMixin]
 	_portItems:     List[PortInterfaceItemMixin]
+	_portGroups:    List[PortGroup]
 
 	_architectures: Dict[str, 'Architecture']
 
@@ -608,6 +609,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 		contextItems: Nullable[Iterable[ContextUnion]] = None,
 		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
 		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
+		portGroups: Nullable[Iterable[PortGroup]] = None,
 		declaredItems: Nullable[Iterable] = None,
 		statements: Nullable[Iterable[ConcurrentStatement]] = None,
 		documentation: Nullable[str] = None,
@@ -634,6 +636,12 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 			for item in portItems:
 				self._portItems.append(item)
 				item._parent = self
+
+		self._portGroups = []
+		if portGroups is not None:
+			for group in portGroups:
+				self._portGroups.append(group)
+				group._parent = self
 
 		self._architectures = {}
 
@@ -662,6 +670,10 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 	@property
 	def PortItems(self) -> List[PortInterfaceItemMixin]:
 		return self._portItems
+
+	@property
+	def PortGroups(self) -> List[PortGroup]:
+		return self._portGroups
 
 	@property
 	def Architectures(self) -> Dict[str, 'Architecture']:
@@ -756,7 +768,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 @export
 class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""
-	Represents a configuration declaration.
+	Represents a component declaration.
 
 	.. admonition:: Example
 
@@ -772,6 +784,7 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	_genericItems:      List[GenericInterfaceItemMixin]
 	_portItems:         List[PortInterfaceItemMixin]
+	_portGroups:        List[PortGroup]
 
 	_entity:            Nullable[Entity]
 
@@ -780,6 +793,7 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		identifier: str,
 		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
 		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
+		portGroups: Nullable[Iterable[PortGroup]] = None,
 		documentation: Nullable[str] = None,
 		allowBlackbox: Nullable[bool] = None,
 		parent: ModelEntity = None
@@ -805,6 +819,12 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 			for item in portItems:
 				self._portItems.append(item)
 				item._parent = self
+
+		self._portGroups = []
+		if portGroups is not None:
+			for group in portGroups:
+				self._portGroups.append(group)
+				group._parent = self
 
 	@property
 	def AllowBlackbox(self) -> bool:
@@ -838,6 +858,10 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	@property
 	def PortItems(self) -> List[PortInterfaceItemMixin]:
 		return self._portItems
+
+	@property
+	def PortGroups(self) -> List[PortGroup]:
+		return self._portGroups
 
 	@property
 	def Entity(self) -> Nullable[Entity]:

@@ -1,0 +1,318 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+================
+pyVHDLModel.Type
+================
+
+.. automodule:: pyVHDLModel.Type
+
+
+.. currentmodule:: pyVHDLModel.Type
+
+
+**Classes**
+
+- :py:class:`BaseType`:
+  ``BaseType`` is the base-class of all type entities in this model.
+
+- :py:class:`Type`:
+  ``BaseType`` is the base-class of all type entities in this model.
+
+- :py:class:`AnonymousType`:
+  ``BaseType`` is the base-class of all type entities in this model.
+
+- :py:class:`FullType`:
+  ``BaseType`` is the base-class of all type entities in this model.
+
+- :py:class:`Subtype`:
+  ``BaseType`` is the base-class of all type entities in this model.
+
+- :py:class:`ScalarType`:
+  A ``ScalarType`` is a base-class for all scalar types.
+
+- :py:class:`RangedScalarType`:
+  A ``RangedScalarType`` is a base-class for all scalar types with a range.
+
+- :py:class:`NumericTypeMixin`:
+  A ``NumericType`` is a mixin class for all numeric types.
+
+- :py:class:`DiscreteTypeMixin`:
+  A ``DiscreteType`` is a mixin class for all discrete types.
+
+- :py:class:`EnumeratedType`:
+  A ``ScalarType`` is a base-class for all scalar types.
+
+- :py:class:`IntegerType`:
+  A ``RangedScalarType`` is a base-class for all scalar types with a range.
+
+- :py:class:`RealType`:
+  A ``RangedScalarType`` is a base-class for all scalar types with a range.
+
+- :py:class:`PhysicalType`:
+  A ``RangedScalarType`` is a base-class for all scalar types with a range.
+
+- :py:class:`CompositeType`:
+  A ``CompositeType`` is a base-class for all composite types.
+
+- :py:class:`ArrayType`:
+  A ``CompositeType`` is a base-class for all composite types.
+
+- :py:class:`RecordTypeElement`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`RecordType`:
+  A ``CompositeType`` is a base-class for all composite types.
+
+- :py:class:`ProtectedType`:
+  ``BaseType`` is the base-class of all type entities in this model.
+
+- :py:class:`ProtectedTypeBody`:
+  ``BaseType`` is the base-class of all type entities in this model.
+
+- :py:class:`AccessType`:
+  ``BaseType`` is the base-class of all type entities in this model.
+
+- :py:class:`FileType`:
+  ``BaseType`` is the base-class of all type entities in this model.
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: BaseType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: BaseType
+      :parts: 1
+
+.. autoclass:: Type
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Type
+      :parts: 1
+
+.. autoclass:: AnonymousType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: AnonymousType
+      :parts: 1
+
+.. autoclass:: FullType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: FullType
+      :parts: 1
+
+.. autoclass:: Subtype
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Subtype
+      :parts: 1
+
+.. autoclass:: ScalarType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ScalarType
+      :parts: 1
+
+.. autoclass:: RangedScalarType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: RangedScalarType
+      :parts: 1
+
+.. autoclass:: NumericTypeMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: NumericTypeMixin
+      :parts: 1
+
+.. autoclass:: DiscreteTypeMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: DiscreteTypeMixin
+      :parts: 1
+
+.. autoclass:: EnumeratedType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: EnumeratedType
+      :parts: 1
+
+.. autoclass:: IntegerType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IntegerType
+      :parts: 1
+
+.. autoclass:: RealType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: RealType
+      :parts: 1
+
+.. autoclass:: PhysicalType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PhysicalType
+      :parts: 1
+
+.. autoclass:: CompositeType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: CompositeType
+      :parts: 1
+
+.. autoclass:: ArrayType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ArrayType
+      :parts: 1
+
+.. autoclass:: RecordTypeElement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: RecordTypeElement
+      :parts: 1
+
+.. autoclass:: RecordType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: RecordType
+      :parts: 1
+
+.. autoclass:: ProtectedType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ProtectedType
+      :parts: 1
+
+.. autoclass:: ProtectedTypeBody
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ProtectedTypeBody
+      :parts: 1
+
+.. autoclass:: AccessType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: AccessType
+      :parts: 1
+
+.. autoclass:: FileType
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: FileType
+      :parts: 1

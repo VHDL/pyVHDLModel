@@ -1,0 +1,29 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="219pt" height="27pt" viewBox="0.00 0.00 219.00 27.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 23)">
+<ns0:title>inheritancec2e8d97c35</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>BranchMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.BranchMixin" ns1:title="A ``BranchMixin`` is a mixin-class for all statements with branches." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="77,-19 0,-19 0,0 77,0 77,-19" />
+<ns0:text text-anchor="middle" x="38.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">BranchMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ElseBranchMixin</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ElseBranchMixin" ns1:title="A ``BaseElseBranch`` is a mixin-class for all else-branches." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="211,-19 113,-19 113,0 211,0 211,-19" />
+<ns0:text text-anchor="middle" x="162" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ElseBranchMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>BranchMixin-&gt;ElseBranchMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M77.28,-9.5C86.98,-9.5 97.59,-9.5 107.9,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="107.94,-11.25 112.94,-9.5 107.94,-7.75 107.94,-11.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

@@ -1,0 +1,44 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="365pt" height="27pt" viewBox="0.00 0.00 365.00 27.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 23)">
+<ns0:title>inheritance08a5c6a270</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>AssociationItem</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Association.html#pyVHDLModel.Association.AssociationItem" ns1:title="A base-class for all association items." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="206,-19 111,-19 111,0 206,0 206,-19" />
+<ns0:text text-anchor="middle" x="158.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">AssociationItem</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>PortAssociationItem</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Association.html#pyVHDLModel.Association.PortAssociationItem" ns1:title="A base-class for all port association items used in port map aspects." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="357,-19 242,-19 242,0 357,0 357,-19" />
+<ns0:text text-anchor="middle" x="299.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">PortAssociationItem</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>AssociationItem-&gt;PortAssociationItem</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M206.17,-9.5C215.84,-9.5 226.18,-9.5 236.3,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="236.57,-11.25 241.57,-9.5 236.57,-7.75 236.57,-11.25" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="75,-19 0,-19 0,0 75,0 75,-19" />
+<ns0:text text-anchor="middle" x="37.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ModelEntity-&gt;AssociationItem</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M75.17,-9.5C84.8,-9.5 95.36,-9.5 105.62,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="105.63,-11.25 110.63,-9.5 105.63,-7.75 105.63,-11.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

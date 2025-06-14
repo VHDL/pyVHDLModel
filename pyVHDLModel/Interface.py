@@ -34,13 +34,13 @@ This module contains parts of an abstract document language model for VHDL.
 
 Interface items are used in generic, port and parameter declarations.
 """
-from typing                 import Iterable, Optional as Nullable
+from typing                 import Iterable, Optional as Nullable, Dict, List
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
 
 from pyVHDLModel.Symbol     import Symbol
-from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, ExpressionUnion, Mode, NamedEntityMixin
+from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, ExpressionUnion, Mode, NamedEntityMixin, Groups
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
@@ -218,3 +218,11 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
 	) -> None:
 		super().__init__(identifiers, subtype, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
+
+
+@export
+class PortGroups(Groups[PortInterfaceItemMixin]):
+    """A typed dictionary for grouping lists of port interface items by name (string keys) or None for ungrouped items."""
+
+    def __init__(self, data: Dict[str | None, List[PortInterfaceItemMixin]]):
+        super().__init__(data, PortInterfaceItemMixin)

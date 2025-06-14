@@ -34,15 +34,15 @@ This module contains parts of an abstract document language model for VHDL.
 
 tbd.
 """
-from typing                 import List, Dict, Iterable, Optional as Nullable
+from typing                 import List, Dict, Iterable, Optional as Nullable, Any
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
 
-from pyVHDLModel.Object     import Constant, SharedVariable, File, Variable, Signal
+from pyVHDLModel.Base       import Groups
+from pyVHDLModel.Object     import Constant, SharedVariable, File, Variable, Signal, SignalGroups
 from pyVHDLModel.Subprogram import Subprogram, Function, Procedure
 from pyVHDLModel.Type       import Subtype, FullType
-
 
 @export
 class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
@@ -62,13 +62,28 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	_functions:       Dict[str, Dict[str, Function]]    #: Dictionary of all functions declared in this concurrent declaration region.
 	_procedures:      Dict[str, Dict[str, Procedure]]   #: Dictionary of all procedures declared in this concurrent declaration region.
 
+	_signalGroups:    SignalGroups                      #: Dictionary of all signal groups declared in this concurrent declaration region.
+
 	def __init__(self, declaredItems: Nullable[Iterable] = None) -> None:
 		# TODO: extract to mixin
 		self._declaredItems = []  # TODO: convert to dict
+		self._signalGroups = SignalGroups()
 		if declaredItems is not None:
 			for item in declaredItems:
-				self._declaredItems.append(item)
-				item._parent = self
+				if isinstance(item, Groups):
+					if isinstance(item, SignalGroups):
+						groups = self._signalGroups
+					else:
+						raise ValueError(f"Unsupported group type: {type(item)}")
+					for groupName in item.keys():
+						groups[groupName] = []
+						for groupItem in item[groupName]:
+							groups[groupName].append(groupItem)
+							self._declaredItems.append(groupItem)
+							groupItem._parent = self
+				else:
+					self._declaredItems.append(item)
+					item._parent = self
 
 		self._types =       {}
 		self._subtypes =    {}
@@ -124,6 +139,10 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	@readonly
 	def Procedures(self) -> Dict[str, Dict[str, Procedure]]:
 		return self._procedures
+
+	@readonly
+	def SignalGroups(self) -> SignalGroups:
+		return self._signalGroups
 
 	def IndexDeclaredItems(self) -> None:
 		"""

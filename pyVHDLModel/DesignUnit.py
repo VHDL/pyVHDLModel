@@ -45,8 +45,8 @@ from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEnti
 from pyVHDLModel.Namespace  import Namespace
 from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin
 from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
-from pyVHDLModel.Interface  import GenericInterfaceItemMixin, PortInterfaceItemMixin
-from pyVHDLModel.Object     import DeferredConstant
+from pyVHDLModel.Interface  import GenericInterfaceItemMixin, PortInterfaceItemMixin, PortGroups
+from pyVHDLModel.Object     import DeferredConstant, SignalGroups
 from pyVHDLModel.Concurrent import ConcurrentStatement, ConcurrentStatementsMixin
 
 
@@ -581,8 +581,52 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		return f"{lib}.{self._identifier}(body)"
 
 
+class DesignUnitInterfaceMixin(metaclass=ExtendedType, mixin=True):
+	_genericItems: List[GenericInterfaceItemMixin]
+	_portItems: List[PortInterfaceItemMixin]
+	_portGroups: PortGroups
+
+	def __init__(
+		self,
+		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
+		portItems: Nullable[Union[Iterable[PortInterfaceItemMixin], PortGroups]] = None
+	) -> None:
+		self._genericItems = []
+		if genericItems is not None:
+			for item in genericItems:
+				self._genericItems.append(item)
+				item._parent = self
+		self._portItems = []
+		self._portGroups = {}
+		if isinstance(portItems, PortGroups):
+			for group in portItems.keys():
+				self._portGroups[group] = []  # Initialize as empty list
+				for item in portItems[group]:
+					self._portGroups[group].append(item)  # Append to the list
+					if item not in self._portItems:
+						self._portItems.append(item)
+					item._parent = self
+		elif portItems is not None:
+			self._portGroups[None] = []
+			for item in portItems:
+				self._portGroups[None].append(item)
+				self._portItems.append(item)
+				item._parent = self
+
+	@property
+	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
+		return self._genericItems
+
+	@property
+	def PortItems(self) -> List[PortInterfaceItemMixin]:
+		return self._portItems
+
+	@property
+	def PortGroups(self) -> PortGroups:
+		return self._portGroups
+
 @export
-class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin):
+class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin, DesignUnitInterfaceMixin):
 	"""
 	Represents an entity declaration.
 
@@ -597,9 +641,6 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 
 	_allowBlackbox: Nullable[bool]                    #: Allow blackboxes for components in this package.
 
-	_genericItems:  List[GenericInterfaceItemMixin]
-	_portItems:     List[PortInterfaceItemMixin]
-
 	_architectures: Dict[str, 'Architecture']
 
 	def __init__(
@@ -607,7 +648,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 		identifier: str,
 		contextItems: Nullable[Iterable[ContextUnion]] = None,
 		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
-		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
+		portItems: Nullable[Union[Iterable[PortInterfaceItemMixin], PortGroups]] = None,
 		declaredItems: Nullable[Iterable] = None,
 		statements: Nullable[Iterable[ConcurrentStatement]] = None,
 		documentation: Nullable[str] = None,
@@ -621,19 +662,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 
 		self._allowBlackbox = allowBlackbox
 
-		# TODO: extract to mixin
-		self._genericItems = []
-		if genericItems is not None:
-			for item in genericItems:
-				self._genericItems.append(item)
-				item._parent = self
-
-		# TODO: extract to mixin
-		self._portItems = []
-		if portItems is not None:
-			for item in portItems:
-				self._portItems.append(item)
-				item._parent = self
+		DesignUnitInterfaceMixin.__init__(self, genericItems, portItems)
 
 		self._architectures = {}
 
@@ -652,16 +681,6 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegio
 	@AllowBlackbox.setter
 	def AllowBlackbox(self, value: Nullable[bool]) -> None:
 		self._allowBlackbox = value
-
-	# TODO: extract to mixin for generics
-	@property
-	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
-		return self._genericItems
-
-	# TODO: extract to mixin for ports
-	@property
-	def PortItems(self) -> List[PortInterfaceItemMixin]:
-		return self._portItems
 
 	@property
 	def Architectures(self) -> Dict[str, 'Architecture']:
@@ -704,7 +723,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		identifier: str,
 		entity: EntitySymbol,
 		contextItems: Nullable[Iterable[Context]] = None,
-		declaredItems: Nullable[Iterable] = None,
+		declaredItems: Nullable[Union[Iterable, SignalGroups]] = None,
 		statements: Iterable['ConcurrentStatement'] = None,
 		documentation: Nullable[str] = None,
 		allowBlackbox: Nullable[bool] = None,
@@ -754,7 +773,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 
 
 @export
-class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
+class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, DesignUnitInterfaceMixin):
 	"""
 	Represents a configuration declaration.
 
@@ -769,9 +788,6 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	_allowBlackbox:     Nullable[bool]                    #: Allow component to be a blackbox.
 	_isBlackBox:        Nullable[bool]                    #: Component is a blackbox.
-
-	_genericItems:      List[GenericInterfaceItemMixin]
-	_portItems:         List[PortInterfaceItemMixin]
 
 	_entity:            Nullable[Entity]
 
@@ -792,19 +808,7 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self._isBlackBox = None
 		self._entity = None
 
-		# TODO: extract to mixin
-		self._genericItems = []
-		if genericItems is not None:
-			for item in genericItems:
-				self._genericItems.append(item)
-				item._parent = self
-
-		# TODO: extract to mixin
-		self._portItems = []
-		if portItems is not None:
-			for item in portItems:
-				self._portItems.append(item)
-				item._parent = self
+		DesignUnitInterfaceMixin.__init__(self, genericItems, portItems)
 
 	@property
 	def AllowBlackbox(self) -> bool:
@@ -830,14 +834,6 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:returns: If this component is a blackbox.
 		"""
 		return self._isBlackBox
-
-	@property
-	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
-		return self._genericItems
-
-	@property
-	def PortItems(self) -> List[PortInterfaceItemMixin]:
-		return self._portItems
 
 	@property
 	def Entity(self) -> Nullable[Entity]:

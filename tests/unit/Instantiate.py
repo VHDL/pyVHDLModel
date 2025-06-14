@@ -36,15 +36,16 @@ from unittest import TestCase
 from pyTooling.Graph import Graph
 
 from pyVHDLModel import Design, Library, Document, IEEEFlavor
-from pyVHDLModel.Base import Direction, Range
+from pyVHDLModel.Base import Direction, Range, Mode
 from pyVHDLModel.Name import SelectedName, SimpleName, AllName, AttributeName
-from pyVHDLModel.Object import Constant, Signal
+from pyVHDLModel.Object import Constant, Signal, SignalGroups
 from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMemberReferenceSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Symbol import AllPackageMembersReferenceSymbol, ContextReferenceSymbol, EntitySymbol
 from pyVHDLModel.Symbol import ArchitectureSymbol, PackageSymbol, EntityInstantiationSymbol
 from pyVHDLModel.Symbol import ComponentInstantiationSymbol, ConfigurationInstantiationSymbol
 from pyVHDLModel.Expression import IntegerLiteral, FloatingPointLiteral
 from pyVHDLModel.Type import Subtype, IntegerType, RealType, ArrayType, RecordType
+from pyVHDLModel.Interface import PortSignalInterfaceItem, PortGroups
 from pyVHDLModel.DesignUnit import Package, PackageBody, Context, Entity, Architecture, Configuration
 
 
@@ -397,6 +398,34 @@ class SimpleInstance(TestCase):
 		self.assertEqual(0, len(entity.DeclaredItems))
 		self.assertEqual(0, len(entity.Statements))
 
+	def test_EntityWithPorts(self) -> None:
+		port1 = PortSignalInterfaceItem(["port1"], Mode.In,  SimpleSubtypeSymbol(SimpleName("Bit")))
+		port2 = PortSignalInterfaceItem(["port2"], Mode.Out, SimpleSubtypeSymbol(SimpleName("Bit")))
+		entity = Entity("entity_1", portItems=[port1, port2])
+
+		self.assertEqual(2, len(entity.PortItems))
+		self.assertEqual(port1, entity.PortItems[0])
+		self.assertEqual(port2, entity.PortItems[1])
+
+	def test_EntityWithPortGroups(self) -> None:
+		group1port1 = PortSignalInterfaceItem(["port1"], Mode.In,  SimpleSubtypeSymbol(SimpleName("Bit")))
+		group1port2 = PortSignalInterfaceItem(["port2"], Mode.Out, SimpleSubtypeSymbol(SimpleName("Bit")))
+		group2port1 = PortSignalInterfaceItem(["port3"], Mode.In,  SimpleSubtypeSymbol(SimpleName("Bit")))
+		group2port2 = PortSignalInterfaceItem(["port4"], Mode.Out, SimpleSubtypeSymbol(SimpleName("Bit")))
+		group2port3 = PortSignalInterfaceItem(["port5"], Mode.In,  SimpleSubtypeSymbol(SimpleName("Bit")))
+		entity = Entity("entity_1", portItems=PortGroups({
+			"group1": [group1port1, group1port2],
+			"group2": [group2port1, group2port2, group2port3]
+		}))
+
+		self.assertEqual(5, len(entity.PortItems))
+		self.assertEqual(2, len(entity.PortGroups))
+		self.assertEqual(group1port1, entity.PortGroups["group1"][0])
+		self.assertEqual(group1port2, entity.PortGroups["group1"][1])
+		self.assertEqual(group2port1, entity.PortGroups["group2"][0])
+		self.assertEqual(group2port2, entity.PortGroups["group2"][1])
+		self.assertEqual(group2port3, entity.PortGroups["group2"][2])
+
 	def test_Architecture(self) -> None:
 		entitySymbol = EntitySymbol(SimpleName("entity_1"))
 		architecture = Architecture("arch_1", entitySymbol, parent=None)
@@ -405,6 +434,54 @@ class SimpleInstance(TestCase):
 		self.assertEqual("arch_1", architecture.Identifier)
 		self.assertEqual(0, len(architecture.DeclaredItems))
 		self.assertEqual(0, len(architecture.Statements))
+
+	def test_ArchitectureWithSignals(self) -> None:
+		entitySymbol = EntitySymbol(SimpleName("entity_1"))
+		signal1 = Signal(("signal1", ), SimpleSubtypeSymbol(SimpleName("Bit")))
+		signal2 = Signal(("signal2", ), SimpleSubtypeSymbol(SimpleName("Bit")))
+		architecture = Architecture("arch_1", entitySymbol, declaredItems=[signal1, signal2])
+		architecture.IndexDeclaredItems()
+
+		self.assertIsNotNone(architecture)
+		self.assertEqual("arch_1", architecture.Identifier)
+		self.assertEqual(2, len(architecture.DeclaredItems))
+		self.assertEqual(signal1, architecture.DeclaredItems[0])
+		self.assertEqual(signal2, architecture.DeclaredItems[1])
+		self.assertEqual(2, len(architecture.Signals))
+		self.assertEqual(signal1, architecture.Signals["signal1"])
+		self.assertEqual(signal2, architecture.Signals["signal2"])
+
+	def test_ArchitectureWithSignalGroups(self) -> None:
+		entitySymbol = EntitySymbol(SimpleName("entity_1"))
+		group1signal1 = Signal(("signal1", ), SimpleSubtypeSymbol(SimpleName("Bit")))
+		group1signal2 = Signal(("signal2", ), SimpleSubtypeSymbol(SimpleName("Bit")))
+		group2signal1 = Signal(("signal3", ), SimpleSubtypeSymbol(SimpleName("Bit")))
+		group2signal2 = Signal(("signal4", ), SimpleSubtypeSymbol(SimpleName("Bit")))
+		group2signal3 = Signal(("signal5", ), SimpleSubtypeSymbol(SimpleName("Bit")))
+		architecture = Architecture("arch_1", entitySymbol, declaredItems=[SignalGroups({
+			"group1": [group1signal1, group1signal2],
+			"group2": [group2signal1, group2signal2, group2signal3]
+		})])
+		architecture.IndexDeclaredItems()
+
+		self.assertEqual(5, len(architecture.DeclaredItems))
+		self.assertEqual(group1signal1, architecture.DeclaredItems[0])
+		self.assertEqual(group1signal2, architecture.DeclaredItems[1])
+		self.assertEqual(group2signal1, architecture.DeclaredItems[2])
+		self.assertEqual(group2signal2, architecture.DeclaredItems[3])
+		self.assertEqual(group2signal3, architecture.DeclaredItems[4])
+		self.assertEqual(5, len(architecture.Signals))
+		self.assertEqual(group1signal1, architecture.Signals["signal1"])
+		self.assertEqual(group1signal2, architecture.Signals["signal2"])
+		self.assertEqual(group2signal1, architecture.Signals["signal3"])
+		self.assertEqual(group2signal2, architecture.Signals["signal4"])
+		self.assertEqual(group2signal3, architecture.Signals["signal5"])
+		self.assertEqual(2, len(architecture.SignalGroups))
+		self.assertEqual(group1signal1, architecture.SignalGroups["group1"][0])
+		self.assertEqual(group1signal2, architecture.SignalGroups["group1"][1])
+		self.assertEqual(group2signal1, architecture.SignalGroups["group2"][0])
+		self.assertEqual(group2signal2, architecture.SignalGroups["group2"][1])
+		self.assertEqual(group2signal3, architecture.SignalGroups["group2"][2])
 
 	def test_Package(self) -> None:
 		package = Package("pack_1", parent=None)

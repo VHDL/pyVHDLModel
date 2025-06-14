@@ -34,13 +34,13 @@ This module contains parts of an abstract document language model for VHDL.
 
 Objects are constants, variables, signals and files.
 """
-from typing                import Iterable, Optional as Nullable
+from typing                import Iterable, Optional as Nullable, Dict, List
 
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType
 from pyTooling.Graph       import Vertex
 
-from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
+from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Groups
 from pyVHDLModel.Symbol    import Symbol
 
 
@@ -244,3 +244,11 @@ class File(Obj):
 
 	.. todo:: File object not implemented.
 	"""
+
+
+@export
+class SignalGroups(Groups[Signal]):
+    """A typed dictionary for grouping lists of signal objects by name (string keys) or None for ungrouped items."""
+
+    def __init__(self, data: Dict[str | None, List[Signal]] = {}):
+        super().__init__(data, Signal)

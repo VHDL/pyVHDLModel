@@ -35,7 +35,7 @@ This module contains parts of an abstract document language model for VHDL.
 Base-classes for the VHDL language model.
 """
 from enum                  import unique, Enum
-from typing                import Type, Tuple, Iterable, Optional as Nullable, Union, cast
+from typing                import Type, Tuple, Iterable, Optional as Nullable, Union, cast, TypeVar, Generic, Dict, List
 
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType
@@ -450,3 +450,32 @@ class WaveformElement(ModelEntity):
 	@property
 	def After(self) -> Expression:
 		return self._after
+
+
+T = TypeVar("T")
+
+@export
+class Groups(Generic[T], dict):
+    """A typed dictionary for grouping lists of objects by name (string keys) or None for ungrouped items."""
+
+    def __init__(self, data: Dict[str | None, List[T]], item_type: Type[T]):
+        self._item_type = item_type
+        # Validate the input data before calling super().__init__
+        for key, value in data.items():
+            self._validate_key_value(key, value)
+        super().__init__(data)
+
+    def _validate_key_value(self, key: str | None, value: List[T]) -> None:
+        """Validate key and value types."""
+        if not isinstance(key, (str, type(None))):
+            raise TypeError("Keys must be strings or None")
+        if not isinstance(value, list) or not all(isinstance(item, self._item_type) for item in value):
+            raise TypeError(f"Values must be lists of {self._item_type.__name__}")
+
+    def __setitem__(self, key: str | None, value: List[T]) -> None:
+        """Override to add type checking when setting items."""
+        self._validate_key_value(key, value)
+        super().__setitem__(key, value)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({dict(self)!r})"

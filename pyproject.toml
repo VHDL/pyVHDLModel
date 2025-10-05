@@ -2,15 +2,30 @@
 requires = [
   "setuptools >= 80.0",
   "wheel ~= 0.45",
-  "pyTooling ~= 8.5"
+  "pyTooling ~= 8.7"
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
-line-length = 120
+[tool.pylint.format]
+indent-string="\t"
+max-line-length = 120
+ignore-long-lines = "^.{0,110}#: .*"
+
+[tool.pylint.basic]
+argument-naming-style = "camelCase"
+attr-naming-style = "camelCase"
+class-attribute-naming-style = "camelCase"
+class-const-naming-style = "UPPER_CASE"
+class-naming-style = "PascalCase"
+const-naming-style = "UPPER_CASE"
+function-naming-style = "camelCase"
+inlinevar-naming-style = "camelCase"
+method-naming-style = "PascalCase"
+module-naming-style = "any"
+variable-naming-style = "camelCase"
 
 [tool.mypy]
-files = ["pyVHDLModel"]
+packages = ["pyVHDLModel"]
 python_version = "3.13"
 #ignore_missing_imports = true
 strict = true

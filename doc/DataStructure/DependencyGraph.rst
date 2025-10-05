@@ -1,4 +1,4 @@
-.. _datastruct:dependencygraph:
+.. _datastruct/dependencygraph:
 
 Dependency Graph
 ################

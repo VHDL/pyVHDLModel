@@ -34,7 +34,8 @@ This module contains parts of an abstract document language model for VHDL.
 
 All declarations for literals, aggregates, operators forming an expressions.
 """
-from typing               import Tuple, List, Iterable, Union
+from enum                 import Flag
+from typing               import Tuple, List, Iterable, Union, ClassVar
 
 from pyTooling.Decorators import export, readonly
 
@@ -197,12 +198,30 @@ class StringLiteral(Literal):
 
 
 @export
+class BitStringBase(Flag):
+	NoBase = 0
+	Binary = 2
+	Octal = 8
+	Decimal = 10
+	Hexadecimal = 16
+	Unsigned = 32
+	Signed = 64
+
+
+@export
 class BitStringLiteral(Literal):
+	# _base:  ClassVar[BitStringBase]
 	_value: str
+	_bits:   int
 
 	def __init__(self, value: str) -> None:
 		super().__init__()
+		self._bits = len(value)
 		self._value = value
+
+	@readonly
+	def Bits(self) -> int:
+		return self._bits
 
 	@readonly
 	def Value(self) -> str:
@@ -210,6 +229,58 @@ class BitStringLiteral(Literal):
 
 	def __str__(self) -> str:
 		return "\"" + self._value + "\""
+
+
+@export
+class BinaryBitStringLiteral(BitStringLiteral):
+	_base: ClassVar[BitStringBase] = BitStringBase.Binary
+
+	def __init__(self, value: str, bits: int = 0) -> None:
+		super().__init__(value)
+		if bits > 0:
+			self._bits = bits
+
+	def __str__(self) -> str:
+		return "b\"" + self._value + "\""
+
+
+@export
+class OctalBitStringLiteral(BitStringLiteral):
+	_base: ClassVar[BitStringBase] = BitStringBase.Octal
+
+	def __init__(self, value: str, bits: int = 0) -> None:
+		super().__init__(value)
+		if bits > 0:
+			self._bits = bits
+
+	def __str__(self) -> str:
+		return "o\"" + self._value + "\""
+
+
+@export
+class DecimalBitStringLiteral(BitStringLiteral):
+	_base: ClassVar[BitStringBase] = BitStringBase.Decimal
+
+	def __init__(self, value: str, bits: int = 0) -> None:
+		super().__init__(value)
+		if bits > 0:
+			self._bits = bits
+
+	def __str__(self) -> str:
+		return "d\"" + self._value + "\""
+
+
+@export
+class HexadecimalBitStringLiteral(BitStringLiteral):
+	_base: ClassVar[BitStringBase] = BitStringBase.Hexadecimal
+
+	def __init__(self, value: str, bits: int = 0) -> None:
+		super().__init__(value)
+		if bits > 0:
+			self._bits = bits
+
+	def __str__(self) -> str:
+		return "x\"" + self._value + "\""
 
 
 @export

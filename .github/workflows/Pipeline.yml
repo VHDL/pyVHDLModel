@@ -12,6 +12,7 @@ jobs:
     uses: pyTooling/Actions/.github/workflows/CompletePipeline.yml@r6
     with:
       package_name:  'pyVHDLModel'
+      unittest_python_version_list: '3.11 3.12 3.13 3.14 pypy-3.11'
       bandit:        'true'
       pylint:        'false'
       codecov:       'true'

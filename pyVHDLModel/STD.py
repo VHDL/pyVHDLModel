@@ -36,8 +36,8 @@ from pyTooling.Decorators    import export
 from pyVHDLModel.Base        import Range, Direction
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
-from pyVHDLModel.Expression  import EnumerationLiteral, IntegerLiteral, PhysicalIntegerLiteral
-from pyVHDLModel.Type        import EnumeratedType, IntegerType, Subtype, PhysicalType, ArrayType
+from pyVHDLModel.Expression  import EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral
+from pyVHDLModel.Type        import EnumeratedType, IntegerType, RealType, PhysicalType, ArrayType, AccessType, Subtype
 from pyVHDLModel.Predefined  import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 
 
@@ -122,6 +122,9 @@ class Standard(PredefinedPackage):
 		self._declaredItems.append(integer)
 
 		# real
+		real = RealType("real", Range(FloatingPointLiteral(-5.0), FloatingPointLiteral(5.0), Direction.To), None)
+		self._types[real._normalizedIdentifier] = real
+		self._declaredItems.append(real)
 
 		time = PhysicalType("time", Range(IntegerLiteral(-2**63), IntegerLiteral(2**63 - 1), Direction.To), primaryUnit="fs", units=(
 			("ps", PhysicalIntegerLiteral(1000, "fs")),
@@ -154,6 +157,10 @@ class Standard(PredefinedPackage):
 		string = ArrayType("string", (SimpleSubtypeSymbol(SimpleName("positive")),), SimpleSubtypeSymbol(SimpleName("character")), None)
 		self._types[string._normalizedIdentifier] = string
 		self._declaredItems.append(string)
+
+		line = AccessType("line", SimpleSubtypeSymbol(SimpleName("character")), None)
+		self._types[line._normalizedIdentifier] = line
+		self._declaredItems.append(line)
 
 		booleanVector = ArrayType("boolean_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("boolean")), None)
 		self._types[booleanVector._normalizedIdentifier] = booleanVector

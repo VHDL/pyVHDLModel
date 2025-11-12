@@ -35,7 +35,7 @@ from unittest import TestCase
 
 from pyTooling.Graph import Graph
 
-from pyVHDLModel import Design, Library, Document, IEEEFlavor
+from pyVHDLModel import Design, Library, Document, IEEEFlavor, LibraryExistsInDesignError
 from pyVHDLModel.Base import Direction, Range
 from pyVHDLModel.Name import SelectedName, SimpleName, AllName, AttributeName
 from pyVHDLModel.Object import Constant, Signal
@@ -630,7 +630,7 @@ class VHDLLibrary(TestCase):
 
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(stdLibrary.IterateDesignUnits()))
 
-		with self.assertRaises(Exception):
+		with self.assertRaises(LibraryExistsInDesignError):
 			design.LoadStdLibrary()
 
 	def test_IeeeLibrary_implicit(self) -> None:

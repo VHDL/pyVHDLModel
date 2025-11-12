@@ -60,8 +60,9 @@ from typing                    import Union, Dict, cast, List, Generator, Option
 from pyTooling.Common          import getFullyQualifiedName
 from pyTooling.Decorators      import export, readonly
 from pyTooling.Graph           import Graph, Vertex, Edge
+from pyTooling.Warning         import WarningCollector
 
-from pyVHDLModel.Exception     import VHDLModelException
+from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning, BlackboxWarning
 from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegisteredToForeignDesignError, LibraryNotRegisteredError, EntityExistsInLibraryError
 from pyVHDLModel.Exception     import ArchitectureExistsInLibraryError, PackageExistsInLibraryError, PackageBodyExistsError, ConfigurationExistsInLibraryError
 from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLibraryNotExistingError
@@ -1054,6 +1055,8 @@ class Design(ModelEntity):
 
 	def ImportObjects(self) -> None:
 		def _ImportObjects(package: Package) -> None:
+			from pyVHDLModel.Declaration import AttributeSpecification
+
 			for referencedLibrary in package._referencedPackages.values():
 				for referencedPackage in referencedLibrary.values():
 					for declaredItem in referencedPackage._declaredItems:
@@ -1062,6 +1065,10 @@ class Design(ModelEntity):
 								package._namespace._elements[normalizedIdentifier] = declaredItem
 						elif isinstance(declaredItem, NamedEntityMixin):
 							package._namespace._elements[declaredItem._normalizedIdentifier] = declaredItem
+						elif isinstance(declaredItem, AttributeSpecification):
+							# FIXME: actually, this is not a declared item, but a application of an attribute to named entities
+							WarningCollector.Raise(NotImplementedWarning(f"Attribute specification."))
+
 						else:
 							raise VHDLModelException(f"Unexpected declared item.")
 
@@ -1154,7 +1161,7 @@ class Design(ModelEntity):
 				_LinkSymbolsInExpression(expression.LeftOperand, namespace, typeVertex)
 				_LinkSymbolsInExpression(expression.RightOperand, namespace, typeVertex)
 			elif isinstance(expression, TernaryExpression):
-				pass
+				WarningCollector.Raise(NotImplementedWarning(f"Handling of ternary expression."))
 			elif isinstance(expression, SimpleObjectOrFunctionCallSymbol):
 				obj = namespace.FindObject(expression)
 				expression._reference = obj
@@ -1162,7 +1169,7 @@ class Design(ModelEntity):
 				edge = obj._objectVertex.EdgeToVertex(typeVertex)
 				edge["kind"] = ObjectGraphEdgeKind.ReferenceInExpression
 			else:
-				pass
+				WarningCollector.Raise(NotImplementedWarning(f"Unhandled else-branch"))
 
 		def _LinkItems(package: Package):
 			for item in package._declaredItems:
@@ -1301,10 +1308,11 @@ class Design(ModelEntity):
 
 					# TODO: update the namespace with visible members
 					if isinstance(symbol, AllPackageMembersReferenceSymbol):
-						pass
+						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.all'."))
 
 					elif isinstance(symbol, PackageMemberReferenceSymbol):
-						raise NotImplementedError()
+						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.mySymbol'."))
+
 					else:
 						raise VHDLModelException()
 
@@ -1495,11 +1503,14 @@ class Design(ModelEntity):
 
 					# TODO: update the namespace with visible members
 					if isinstance(packageMemberSymbol, AllPackageMembersReferenceSymbol):
+						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.all'. Exception: components are handled."))
+
 						for componentIdentifier, component in package._components.items():
 							designUnit._namespace._elements[componentIdentifier] = component
 
 					elif isinstance(packageMemberSymbol, PackageMemberReferenceSymbol):
-						raise NotImplementedError()
+						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.mySymbol'."))
+
 					else:
 						raise VHDLModelException()
 
@@ -1624,11 +1635,10 @@ class Design(ModelEntity):
 						dependency = architecture._dependencyVertex.EdgeToVertex(component.Entity._dependencyVertex, edgeValue=instance)
 						dependency["kind"] = DependencyGraphEdgeKind.ComponentInstantiation
 					else:
-						print(f"Found a blackbox for '{instance.Label}: {instance.Component.Name}'.")
+						WarningCollector.Raise(BlackboxWarning(f"Blackbox caused by '{instance.Label}: {instance.Component.Name}'."))
 
 				elif isinstance(instance, ConfigurationInstantiation):
-					# pass
-					print(instance.Label, instance.Configuration)
+					WarningCollector.Raise(NotImplementedWarning(f"Configuration instantiation of '{instance.Label}: {instance.Configuration}'."))
 
 	def IndexPackages(self) -> None:
 		"""
@@ -1841,7 +1851,7 @@ class Design(ModelEntity):
 			yield compileOrderNode.Value
 
 	def GetUnusedDesignUnits(self) -> List[DesignUnit]:
-		raise NotImplementedError()
+		WarningCollector.Raise(NotImplementedWarning(f"Compute unused design units."))
 
 	def __repr__(self) -> str:
 		"""

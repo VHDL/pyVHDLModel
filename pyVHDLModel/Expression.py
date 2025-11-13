@@ -35,7 +35,7 @@ This module contains parts of an abstract document language model for VHDL.
 All declarations for literals, aggregates, operators forming an expressions.
 """
 from enum                 import Flag
-from typing               import Tuple, List, Iterable, Union, ClassVar
+from typing               import Tuple, List, Iterable, Union, ClassVar, Optional as Nullable
 
 from pyTooling.Decorators import export, readonly
 
@@ -211,76 +211,75 @@ class BitStringBase(Flag):
 @export
 class BitStringLiteral(Literal):
 	# _base:  ClassVar[BitStringBase]
-	_value: str
-	_bits:   int
+	_value:       str
+	_binaryValue: str
+	_bits:        int
+	_length:      Nullable[int]
+	_signed:      Nullable[bool]
 
-	def __init__(self, value: str) -> None:
+	def __init__(self, value: str, length: Nullable[int] = None, signed: Nullable[bool] = None) -> None:
 		super().__init__()
-		self._bits = len(value)
 		self._value = value
+		self._length = length
+		self._signed = signed
 
-	@readonly
-	def Bits(self) -> int:
-		return self._bits
+		self._binaryValue = None
+		self._bits = None
 
 	@readonly
 	def Value(self) -> str:
 		return self._value
 
+	@readonly
+	def BinaryValue(self) -> str:
+		return self._binaryValue
+
+	@readonly
+	def Bits(self) -> Nullable[int]:
+		return self._bits
+
+	@readonly
+	def Length(self) -> Nullable[int]:
+		return self._length
+
+	@readonly
+	def Signed(self) -> Nullable[bool]:
+		return self._signed
+
 	def __str__(self) -> str:
-		return "\"" + self._value + "\""
+		signed = "" if self._signed is None else "s" if self._signed is True else "u"
+		if self._base is BitStringBase.NoBase:
+			base = ""
+		elif self._base is BitStringBase.Binary:
+			base = "b"
+		elif self._base is BitStringBase.Octal:
+			base = "o"
+		elif self._base is BitStringBase.Decimal:
+			base = "d"
+		elif self._base is BitStringBase.Hexadecimal:
+			base = "x"
+		length = "" if self._length is None else str(self._length)
+		return length + signed + base + "\"" + self._value + "\""
 
 
 @export
 class BinaryBitStringLiteral(BitStringLiteral):
 	_base: ClassVar[BitStringBase] = BitStringBase.Binary
 
-	def __init__(self, value: str, bits: int = 0) -> None:
-		super().__init__(value)
-		if bits > 0:
-			self._bits = bits
-
-	def __str__(self) -> str:
-		return "b\"" + self._value + "\""
-
 
 @export
 class OctalBitStringLiteral(BitStringLiteral):
 	_base: ClassVar[BitStringBase] = BitStringBase.Octal
-
-	def __init__(self, value: str, bits: int = 0) -> None:
-		super().__init__(value)
-		if bits > 0:
-			self._bits = bits
-
-	def __str__(self) -> str:
-		return "o\"" + self._value + "\""
 
 
 @export
 class DecimalBitStringLiteral(BitStringLiteral):
 	_base: ClassVar[BitStringBase] = BitStringBase.Decimal
 
-	def __init__(self, value: str, bits: int = 0) -> None:
-		super().__init__(value)
-		if bits > 0:
-			self._bits = bits
-
-	def __str__(self) -> str:
-		return "d\"" + self._value + "\""
-
 
 @export
 class HexadecimalBitStringLiteral(BitStringLiteral):
 	_base: ClassVar[BitStringBase] = BitStringBase.Hexadecimal
-
-	def __init__(self, value: str, bits: int = 0) -> None:
-		super().__init__(value)
-		if bits > 0:
-			self._bits = bits
-
-	def __str__(self) -> str:
-		return "x\"" + self._value + "\""
 
 
 @export

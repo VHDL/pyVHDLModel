@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 tbd.
 """
-from typing                 import List, Dict, Iterable, Optional as Nullable
+from typing                 import List, Dict, Iterable, Optional as Nullable, Any
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
@@ -61,6 +61,7 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	# _subprograms:     Dict[str, Dict[str, Subprogram]]  #: Dictionary of all subprograms declared in this concurrent declaration region.
 	_functions:       Dict[str, Dict[str, Function]]    #: Dictionary of all functions declared in this concurrent declaration region.
 	_procedures:      Dict[str, Dict[str, Procedure]]   #: Dictionary of all procedures declared in this concurrent declaration region.
+	_components:      Dict[str, Any]                    #: Dictionary of all components declared in this concurrent declaration region.
 
 	def __init__(self, declaredItems: Nullable[Iterable] = None) -> None:
 		# TODO: extract to mixin
@@ -80,6 +81,7 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		# self._subprograms = {}
 		self._functions =   {}
 		self._procedures =  {}
+		self._components =  {}
 
 	@readonly
 	def DeclaredItems(self) -> List:
@@ -125,6 +127,10 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	def Procedures(self) -> Dict[str, Dict[str, Procedure]]:
 		return self._procedures
 
+	@readonly
+	def Components(self) -> Dict[str, Any]:
+		return self._components
+
 	def IndexDeclaredItems(self) -> None:
 		"""
 		Index declared items listed in the concurrent declaration region.
@@ -155,6 +161,8 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		   :meth:`pyVHDLModel.Library._IndexOtherDeclaredItem`
 		     Iterate all packages in the library and index declared items.
 		"""
+		from pyVHDLModel.DesignUnit import Component
+
 		for item in self._declaredItems:
 			if isinstance(item, FullType):
 				self._types[item._normalizedIdentifier] = item
@@ -187,6 +195,9 @@ class ConcurrentDeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 				for normalizedIdentifier in item._normalizedIdentifiers:
 					self._files[normalizedIdentifier] = item
 					self._namespace._elements[normalizedIdentifier] = item
+			elif isinstance(item, Component):
+				self._components[item._normalizedIdentifier] = item
+				self._namespace._elements[item._normalizedIdentifier] = item
 			else:
 				self._IndexOtherDeclaredItem(item)
 

@@ -35,27 +35,35 @@ This module contains parts of an abstract document language model for VHDL.
 The module ``Exceptions`` contains all structured errors that are raised by pyVHDLModel. Besides a default error
 message in english, each exception object contains one or multiple references to the exception's context.
 """
-from sys    import version_info
-from typing import List
-
 from pyTooling.Decorators import export, readonly
+from pyTooling.Warning    import Warning, CriticalWarning
 
-from pyVHDLModel.Symbol import Symbol
+from pyVHDLModel.Symbol   import Symbol
+
+
+@export
+class VHDLModelWarning(Warning):
+	pass
+
+
+@export
+class NotImplementedWarning(VHDLModelWarning):
+	pass
+
+
+@export
+class VHDLModelCriticalWarning(Warning):
+	pass
+
+
+@export
+class BlackboxWarning(VHDLModelCriticalWarning):
+	pass
 
 
 @export
 class VHDLModelException(Exception):
 	"""Base-class for all exceptions (errors) raised by pyVHDLModel."""
-
-	# WORKAROUND: for Python <3.11
-	# Implementing a dummy method for Python versions before
-	__notes__: List[str]
-	if version_info < (3, 11):  # pragma: no cover
-		def add_note(self, message: str) -> None:
-			try:
-				self.__notes__.append(message)
-			except AttributeError:
-				self.__notes__ = [message]
 
 
 @export

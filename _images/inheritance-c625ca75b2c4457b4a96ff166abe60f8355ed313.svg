@@ -1,0 +1,29 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="212pt" height="27pt" viewBox="0.00 0.00 212.00 27.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 23)">
+<ns0:title>inheritance6e7a3ce832</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>Constraint</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Constraint" ns1:title="Constraint" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="67,-19 0,-19 0,0 67,0 67,-19" />
+<ns0:text text-anchor="middle" x="33.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Constraint</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>RecordConstraint</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.RecordConstraint" ns1:title="RecordConstraint" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="204,-19 103,-19 103,0 204,0 204,-19" />
+<ns0:text text-anchor="middle" x="153.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">RecordConstraint</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>Constraint-&gt;RecordConstraint</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M67.06,-9.5C76.55,-9.5 87.2,-9.5 97.68,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="97.8,-11.25 102.8,-9.5 97.8,-7.75 97.8,-11.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

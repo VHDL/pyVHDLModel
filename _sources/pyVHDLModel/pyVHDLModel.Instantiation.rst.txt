@@ -1,0 +1,108 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+=========================
+pyVHDLModel.Instantiation
+=========================
+
+.. automodule:: pyVHDLModel.Instantiation
+
+
+.. currentmodule:: pyVHDLModel.Instantiation
+
+
+**Classes**
+
+- :py:class:`GenericInstantiationMixin`:
+  Undocumented.
+
+- :py:class:`GenericEntityInstantiationMixin`:
+  Undocumented.
+
+- :py:class:`SubprogramInstantiationMixin`:
+  Undocumented.
+
+- :py:class:`ProcedureInstantiation`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`FunctionInstantiation`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`PackageInstantiation`:
+  A base-class for all primary design units.
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: GenericInstantiationMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericInstantiationMixin
+      :parts: 1
+
+.. autoclass:: GenericEntityInstantiationMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericEntityInstantiationMixin
+      :parts: 1
+
+.. autoclass:: SubprogramInstantiationMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SubprogramInstantiationMixin
+      :parts: 1
+
+.. autoclass:: ProcedureInstantiation
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ProcedureInstantiation
+      :parts: 1
+
+.. autoclass:: FunctionInstantiation
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: FunctionInstantiation
+      :parts: 1
+
+.. autoclass:: PackageInstantiation
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PackageInstantiation
+      :parts: 1

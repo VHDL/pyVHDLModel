@@ -1,0 +1,996 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyVHDLModel.Base &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../../_static/favicon.svg"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+      <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+      <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+      <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs"></script>
+      <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+      <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+      <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const style = document.createElement('style');
+style.textContent = `.mermaid-container {
+    position: relative !important;
+    display: inline-block;
+    width: 100%;
+}
+
+.mermaid-fullscreen-btn {
+    position: absolute !important;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-fullscreen-content {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-fullscreen-content.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-fullscreen-content .mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-fullscreen-content .mermaid svg {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 85vh;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}
+`;
+document.head.appendChild(style);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const initFullscreen = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(initFullscreen, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-fullscreen-content${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-fullscreen-content');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = '';
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", initFullscreen);
+</script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pyVHDLModel/pyVHDLModel.html">Python Class Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../pyVHDLModel.html">pyVHDLModel</a></li>
+      <li class="breadcrumb-item active">pyVHDLModel.Base</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pyVHDLModel.Base</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ==================================================================================================================== #</span>
+<span class="c1">#             __     ___   _ ____  _     __  __           _      _                                                     #</span>
+<span class="c1">#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #</span>
+<span class="c1">#  | &#39;_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #</span>
+<span class="c1">#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #</span>
+<span class="c1">#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #</span>
+<span class="c1">#  |_|    |___/                                                                                                        #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1"># Authors:                                                                                                             #</span>
+<span class="c1">#   Patrick Lehmann                                                                                                    #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># License:                                                                                                             #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1"># Copyright 2017-2025 Patrick Lehmann - Boetzingen, Germany                                                            #</span>
+<span class="c1"># Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);                                                      #</span>
+<span class="c1"># you may not use this file except in compliance with the License.                                                     #</span>
+<span class="c1"># You may obtain a copy of the License at                                                                              #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software                                                  #</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,                                                    #</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #</span>
+<span class="c1"># See the License for the specific language governing permissions and                                                  #</span>
+<span class="c1"># limitations under the License.                                                                                       #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># SPDX-License-Identifier: Apache-2.0                                                                                  #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains parts of an abstract document language model for VHDL.</span>
+
+<span class="sd">Base-classes for the VHDL language model.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w">                  </span><span class="kn">import</span> <span class="n">unique</span><span class="p">,</span> <span class="n">Enum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w">                </span><span class="kn">import</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Optional</span> <span class="k">as</span> <span class="n">Nullable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyTooling.Decorators</span><span class="w">  </span><span class="kn">import</span> <span class="n">export</span><span class="p">,</span> <span class="n">readonly</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyTooling.MetaClasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExtendedType</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ExpressionUnion&quot;</span><span class="p">]</span>
+
+
+<span class="n">ExpressionUnion</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span>
+	<span class="s1">&#39;BaseExpression&#39;</span><span class="p">,</span>
+	<span class="s1">&#39;QualifiedExpression&#39;</span><span class="p">,</span>
+	<span class="s1">&#39;FunctionCall&#39;</span><span class="p">,</span>
+	<span class="s1">&#39;TypeConversion&#39;</span><span class="p">,</span>
+	<span class="c1"># ConstantOrSymbol,     TODO: ObjectSymbol</span>
+	<span class="s1">&#39;Literal&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="Direction">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.Direction">[docs]</a>
+<span class="nd">@export</span>
+<span class="nd">@unique</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Direction</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;An enumeration representing a direction in a range	(``to`` or ``downto``).&quot;&quot;&quot;</span>
+
+	<span class="n">To</span> <span class="o">=</span>      <span class="mi">0</span>  <span class="c1">#: Ascending direction</span>
+	<span class="n">DownTo</span> <span class="o">=</span>  <span class="mi">1</span>  <span class="c1">#: Descending direction</span>
+
+<div class="viewcode-block" id="Direction.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.Direction.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Formats the direction to ``to`` or ``downto``.</span>
+
+<span class="sd">		:returns: Formatted direction.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="p">(</span><span class="s2">&quot;to&quot;</span><span class="p">,</span> <span class="s2">&quot;downto&quot;</span><span class="p">)[</span><span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)]</span>       <span class="c1"># TODO: check performance</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Mode">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.Mode">[docs]</a>
+<span class="nd">@export</span>
+<span class="nd">@unique</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Mode</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``Mode`` is an enumeration. It represents the direction of data exchange (``in``, ``out``, ...) for objects in</span>
+<span class="sd">	generic, port or parameter lists.</span>
+
+<span class="sd">	In case no *mode* is defined, ``Default`` is used, so the *mode* is inferred from context.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">Default</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1">#: Mode not defined, thus it&#39;s context dependent.</span>
+	<span class="n">In</span> <span class="o">=</span>      <span class="mi">1</span>  <span class="c1">#: Input</span>
+	<span class="n">Out</span> <span class="o">=</span>     <span class="mi">2</span>  <span class="c1">#: Output</span>
+	<span class="n">InOut</span> <span class="o">=</span>   <span class="mi">3</span>  <span class="c1">#: Bi-directional</span>
+	<span class="n">Buffer</span> <span class="o">=</span>  <span class="mi">4</span>  <span class="c1">#: Buffered output</span>
+	<span class="n">Linkage</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1">#: undocumented</span>
+
+<div class="viewcode-block" id="Mode.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.Mode.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Formats the direction.</span>
+
+<span class="sd">		:returns: Formatted direction.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="s2">&quot;out&quot;</span><span class="p">,</span> <span class="s2">&quot;inout&quot;</span><span class="p">,</span> <span class="s2">&quot;buffer&quot;</span><span class="p">,</span> <span class="s2">&quot;linkage&quot;</span><span class="p">)[</span><span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)]</span>       <span class="c1"># TODO: check performance</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ModelEntity">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModelEntity</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ExtendedType</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple</span>
+<span class="sd">	inheritance) and enumerations.</span>
+
+<span class="sd">	Each entity in this model has a reference to its parent entity. Therefore, a protected variable :attr:`_parent` is</span>
+<span class="sd">	available and a readonly property :attr:`Parent`.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_parent</span><span class="p">:</span> <span class="s1">&#39;ModelEntity&#39;</span>      <span class="c1">#: Reference to a parent entity in the logical model hierarchy.</span>
+
+<div class="viewcode-block" id="ModelEntity.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="s2">&quot;ModelEntity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Initializes a VHDL model entity.</span>
+
+<span class="sd">		:param parent: The parent model entity of this entity.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Parent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ModelEntity&#39;</span><span class="p">:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Read-only property to access the model entity&#39;s parent element reference in a logical hierarchy (:attr:`_parent`).</span>
+
+<span class="sd">		:returns: Reference to the parent entity.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">GetAncestor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="n">Type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ModelEntity&#39;</span><span class="p">:</span>
+		<span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span>
+		<span class="k">while</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+			<span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">_parent</span>
+
+		<span class="k">return</span> <span class="n">parent</span></div>
+
+
+
+<div class="viewcode-block" id="NamedEntityMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.NamedEntityMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NamedEntityMixin</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ExtendedType</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have identifiers.</span>
+
+<span class="sd">	Protected variables :attr:`_identifier` and :attr:`_normalizedIdentifier` are available to derived classes as well as</span>
+<span class="sd">	two readonly properties :attr:`Identifier` and :attr:`NormalizedIdentifier` for public access.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_identifier</span><span class="p">:</span> <span class="nb">str</span>            <span class="c1">#: The identifier of a model entity.</span>
+	<span class="n">_normalizedIdentifier</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1">#: The normalized (lower case) identifier of a model entity.</span>
+
+<div class="viewcode-block" id="NamedEntityMixin.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.NamedEntityMixin.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Initializes a named entity.</span>
+
+<span class="sd">		:param identifier: Identifier (name) of the model entity.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_identifier</span> <span class="o">=</span> <span class="n">identifier</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_normalizedIdentifier</span> <span class="o">=</span> <span class="n">identifier</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Identifier</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns a model entity&#39;s identifier (name).</span>
+
+<span class="sd">		:returns: Name of a model entity.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_identifier</span>
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">NormalizedIdentifier</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns a model entity&#39;s normalized identifier (lower case name).</span>
+
+<span class="sd">		:returns: Normalized name of a model entity.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalizedIdentifier</span></div>
+
+
+
+<div class="viewcode-block" id="MultipleNamedEntityMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.MultipleNamedEntityMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MultipleNamedEntityMixin</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ExtendedType</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``MultipleNamedEntityMixin`` is a mixin class for all VHDL entities that declare multiple instances at once by</span>
+<span class="sd">	defining multiple identifiers.</span>
+
+<span class="sd">	Protected variables :attr:`_identifiers` and :attr:`_normalizedIdentifiers` are available to derived classes as well</span>
+<span class="sd">	as two readonly properties :attr:`Identifiers` and :attr:`NormalizedIdentifiers` for public access.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_identifiers</span><span class="p">:</span>           <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>  <span class="c1">#: A list of identifiers.</span>
+	<span class="n">_normalizedIdentifiers</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>  <span class="c1">#: A list of normalized (lower case) identifiers.</span>
+
+<div class="viewcode-block" id="MultipleNamedEntityMixin.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.MultipleNamedEntityMixin.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifiers</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Initializes a multiple-named entity.</span>
+
+<span class="sd">		:param identifiers: Sequence of identifiers (names) of the model entity.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_identifiers</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">identifiers</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_normalizedIdentifiers</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">identifier</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">identifier</span> <span class="ow">in</span> <span class="n">identifiers</span><span class="p">])</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Identifiers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns a model entity&#39;s tuple of identifiers (names).</span>
+
+<span class="sd">		:returns: Tuple of identifiers.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_identifiers</span>
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">NormalizedIdentifiers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns a model entity&#39;s tuple of normalized identifiers (lower case names).</span>
+
+<span class="sd">		:returns: Tuple of normalized identifiers.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalizedIdentifiers</span></div>
+
+
+
+<div class="viewcode-block" id="LabeledEntityMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.LabeledEntityMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LabeledEntityMixin</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ExtendedType</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``LabeledEntityMixin`` is a mixin class for all VHDL entities that can have labels.</span>
+
+<span class="sd">	protected variables :attr:`_label` and :attr:`_normalizedLabel` are available to derived classes as well as two</span>
+<span class="sd">	readonly properties :attr:`Label` and :attr:`NormalizedLabel` for public access.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">_label</span><span class="p">:</span>           <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>  <span class="c1">#: The label of a model entity.</span>
+	<span class="n">_normalizedLabel</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>  <span class="c1">#: The normalized (lower case) label of a model entity.</span>
+
+<div class="viewcode-block" id="LabeledEntityMixin.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.LabeledEntityMixin.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Initializes a labeled entity.</span>
+
+<span class="sd">		:param label: Label of the model entity.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="o">=</span> <span class="n">label</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_normalizedLabel</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns a model entity&#39;s label.</span>
+
+<span class="sd">		:returns: Label of a model entity.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label</span>
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">NormalizedLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns a model entity&#39;s normalized (lower case) label.</span>
+
+<span class="sd">		:returns: Normalized label of a model entity.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalizedLabel</span></div>
+
+
+
+<div class="viewcode-block" id="DocumentedEntityMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.DocumentedEntityMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DocumentedEntityMixin</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ExtendedType</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation.</span>
+
+<span class="sd">	A protected variable :attr:`_documentation` is available to derived classes as well as a readonly property</span>
+<span class="sd">	:attr:`Documentation` for public access.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_documentation</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>  <span class="c1">#: The associated documentation of a model entity.</span>
+
+<div class="viewcode-block" id="DocumentedEntityMixin.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.DocumentedEntityMixin.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">documentation</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Initializes a documented entity.</span>
+
+<span class="sd">		:param documentation: Documentation of a model entity.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_documentation</span> <span class="o">=</span> <span class="n">documentation</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Documentation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns a model entity&#39;s associated documentation.</span>
+
+<span class="sd">		:returns: Associated documentation of a model entity.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_documentation</span></div>
+
+
+
+<div class="viewcode-block" id="ConditionalMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ConditionalMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConditionalMixin</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ExtendedType</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``ConditionalMixin`` is a mixin-class for all statements with a condition.&quot;&quot;&quot;</span>
+
+	<span class="n">_condition</span><span class="p">:</span> <span class="n">ExpressionUnion</span>
+
+<div class="viewcode-block" id="ConditionalMixin.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ConditionalMixin.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ExpressionUnion</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Initializes a statement with a condition.</span>
+
+<span class="sd">		When the condition is not None, the condition&#39;s parent reference is set to this statement.</span>
+
+<span class="sd">		:param condition: The expression representing the condition.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_condition</span> <span class="o">=</span> <span class="n">condition</span>
+		<span class="k">if</span> <span class="n">condition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">condition</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Condition</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExpressionUnion</span><span class="p">:</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Read-only property to access the condition of a statement (:attr:`_condition`).</span>
+
+<span class="sd">		:returns: The expression representing the condition of a statement.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_condition</span></div>
+
+
+
+<div class="viewcode-block" id="BranchMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.BranchMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BranchMixin</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ExtendedType</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``BranchMixin`` is a mixin-class for all statements with branches.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BranchMixin.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.BranchMixin.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">pass</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ConditionalBranchMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ConditionalBranchMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConditionalBranchMixin</span><span class="p">(</span><span class="n">BranchMixin</span><span class="p">,</span> <span class="n">ConditionalMixin</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``BaseBranch`` is a mixin-class for all branch statements with a condition.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ConditionalBranchMixin.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ConditionalBranchMixin.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="n">ConditionalMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="IfBranchMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.IfBranchMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IfBranchMixin</span><span class="p">(</span><span class="n">ConditionalBranchMixin</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``BaseIfBranch`` is a mixin-class for all if-branches.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ElsifBranchMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ElsifBranchMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ElsifBranchMixin</span><span class="p">(</span><span class="n">ConditionalBranchMixin</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``BaseElsifBranch`` is a mixin-class for all elsif-branches.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ElseBranchMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ElseBranchMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ElseBranchMixin</span><span class="p">(</span><span class="n">BranchMixin</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``BaseElseBranch`` is a mixin-class for all else-branches.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ReportStatementMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ReportStatementMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReportStatementMixin</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ExtendedType</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``MixinReportStatement`` is a mixin-class for all report and assert statements.&quot;&quot;&quot;</span>
+
+	<span class="n">_message</span><span class="p">:</span>  <span class="n">Nullable</span><span class="p">[</span><span class="n">ExpressionUnion</span><span class="p">]</span>
+	<span class="n">_severity</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ExpressionUnion</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ReportStatementMixin.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ReportStatementMixin.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ExpressionUnion</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">severity</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ExpressionUnion</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_message</span> <span class="o">=</span> <span class="n">message</span>
+		<span class="k">if</span> <span class="n">message</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">message</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_severity</span> <span class="o">=</span> <span class="n">severity</span>
+		<span class="k">if</span> <span class="n">severity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">severity</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Message</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ExpressionUnion</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_message</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Severity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ExpressionUnion</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_severity</span></div>
+
+
+
+<div class="viewcode-block" id="AssertStatementMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.AssertStatementMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AssertStatementMixin</span><span class="p">(</span><span class="n">ReportStatementMixin</span><span class="p">,</span> <span class="n">ConditionalMixin</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``MixinAssertStatement`` is a mixin-class for all assert statements.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AssertStatementMixin.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.AssertStatementMixin.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ExpressionUnion</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">severity</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ExpressionUnion</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">severity</span><span class="p">)</span>
+		<span class="n">ConditionalMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BlockStatementMixin</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ExtendedType</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``BlockStatement`` is a mixin-class for all block statements.&quot;&quot;&quot;</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">pass</span>
+
+
+<div class="viewcode-block" id="BaseChoice">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.BaseChoice">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseChoice</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``Choice`` is a base-class for all choices.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="BaseCase">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.BaseCase">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseCase</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A ``Case`` is a base-class for all cases.</span>
+<span class="sd">	&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Range">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.Range">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Range</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+	<span class="n">_leftBound</span><span class="p">:</span>  <span class="n">ExpressionUnion</span>
+	<span class="n">_rightBound</span><span class="p">:</span> <span class="n">ExpressionUnion</span>
+	<span class="n">_direction</span><span class="p">:</span>  <span class="n">Direction</span>
+
+<div class="viewcode-block" id="Range.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.Range.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">leftBound</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">rightBound</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_leftBound</span> <span class="o">=</span> <span class="n">leftBound</span>
+		<span class="n">leftBound</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_rightBound</span> <span class="o">=</span> <span class="n">rightBound</span>
+		<span class="n">rightBound</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">=</span> <span class="n">direction</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">LeftBound</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExpressionUnion</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leftBound</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">RightBound</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExpressionUnion</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rightBound</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Direction</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Direction</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span>
+
+<div class="viewcode-block" id="Range.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.Range.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_leftBound</span><span class="si">!s}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_direction</span><span class="si">!s}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_rightBound</span><span class="si">!s}</span><span class="s2">&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="WaveformElement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.WaveformElement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">WaveformElement</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+	<span class="n">_expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span>
+	<span class="n">_after</span><span class="p">:</span> <span class="n">ExpressionUnion</span>
+
+<div class="viewcode-block" id="WaveformElement.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.WaveformElement.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">after</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ExpressionUnion</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_expression</span> <span class="o">=</span> <span class="n">expression</span>
+		<span class="n">expression</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_after</span> <span class="o">=</span> <span class="n">after</span>
+		<span class="k">if</span> <span class="n">after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">after</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Expression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExpressionUnion</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">After</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_after</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

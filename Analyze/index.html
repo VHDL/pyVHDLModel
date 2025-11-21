@@ -1,0 +1,272 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analyze &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Data Structures" href="../DataStructure/index.html" />
+    <link rel="prev" title="Literals and Expressions" href="../LanguageModel/Expressions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Analyze</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dependency-analysis">Dependency Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#create-dependency-graph">1. Create Dependency Graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-compile-order-graph">2. Create Compile Order Graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#index-packages">3. Index Packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#index-architectures">4. Index Architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#link-contexts">5. Link Contexts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#link-architectures">6. Link Architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#link-package-bodies">7. Link Package Bodies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#link-library-references">8. Link Library References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#link-package-references">9. Link Package References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#link-context-references">10. Link Context References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#link-components">11. Link Components</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#link-instantiations">12. Link Instantiations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-hierarchy-graph">13. Create Hierarchy Graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compute-compile-order">14. Compute Compile Order</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pyVHDLModel/pyVHDLModel.html">Python Class Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Analyze</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Analyze/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="analyze">
+<span id="id1"></span><h1>Analyze<a class="headerlink" href="#analyze" title="Link to this heading"></a></h1>
+<ol class="arabic simple">
+<li><p>Dependency analysis</p></li>
+</ol>
+<section id="dependency-analysis">
+<h2>Dependency Analysis<a class="headerlink" href="#dependency-analysis" title="Link to this heading"></a></h2>
+<section id="create-dependency-graph">
+<h3>1. Create Dependency Graph<a class="headerlink" href="#create-dependency-graph" title="Link to this heading"></a></h3>
+<p>Create unconnected vertices in the design’s dependency graph for every VHDL library object and every design unit.</p>
+<p>The vertex’s <code class="docutils literal notranslate"><span class="pre">ID</span></code> field is set to a unique identifying string. <br />
+The following patterns are used:</p>
+<dl class="simple">
+<dt>Libraries</dt><dd><p>The normalized library name: <code class="docutils literal notranslate"><span class="pre">library</span></code>.</p>
+</dd>
+<dt>Contexts</dt><dd><p>The normalized library and context name: <code class="docutils literal notranslate"><span class="pre">library.context</span></code>.</p>
+</dd>
+<dt>Entities</dt><dd><p>The normalized library and entity name: <code class="docutils literal notranslate"><span class="pre">library.entity</span></code>.</p>
+</dd>
+<dt>Architectures</dt><dd><p>The normalized library, entity and architecture name in parenthesis: <code class="docutils literal notranslate"><span class="pre">library.entity(architecture)</span></code>.</p>
+</dd>
+<dt>Packages</dt><dd><p>The normalized library and package name: <code class="docutils literal notranslate"><span class="pre">library.package</span></code>.</p>
+</dd>
+<dt>Package Bodies</dt><dd><p>The normalized library and package name: <code class="docutils literal notranslate"><span class="pre">library.package(body)</span></code>.</p>
+</dd>
+</dl>
+<p>The vertex’s <code class="docutils literal notranslate"><span class="pre">Value</span></code> field references to the library or design unit object respectively.</p>
+<p>Each vertex has two attributes:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;kind&quot;</span></code></dt><dd><p>A kind attribute is set to an enumeration value of <a class="reference internal" href="../pyVHDLModel/pyVHDLModel.html#pyVHDLModel.DependencyGraphVertexKind" title="pyVHDLModel.DependencyGraphVertexKind"><code class="xref py py-class docutils literal notranslate"><span class="pre">DependencyGraphVertexKind</span></code></a> representing
+vertex kind (type).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;predefined&quot;</span></code></dt><dd><p>A predefined attribute is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, if the library or design unit is a VHDL predefined language entity from
+e.g. from <code class="docutils literal notranslate"><span class="pre">std</span></code> or <code class="docutils literal notranslate"><span class="pre">ieee</span></code>.</p>
+</dd>
+</dl>
+<p>Lastly, every vertex is assigned to a :py:attr:<code class="docutils literal notranslate"><span class="pre">~pyVHDLModel.DesignUnit.DesignUnit._dependencyVertex</span></code> field. Thus,
+there is a double reference from graph’s vertex via <code class="docutils literal notranslate"><span class="pre">Value</span></code> to the DOM object as well as in reverse via
+<code class="docutils literal notranslate"><span class="pre">_dependencyVertex</span></code> to the representing vertex.</p>
+<div class="highlight-vhdl notranslate"><div class="highlight"><pre><span></span><span class="n">predefinedLibraries</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;std&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ieee&quot;</span><span class="p">)</span>
+
+<span class="k">for</span><span class="w"> </span><span class="n">libraryIdentifier</span><span class="p">,</span><span class="w"> </span><span class="k">library</span><span class="w"> </span><span class="nn">in</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="n">_libraries</span><span class="p">.</span><span class="n">items</span><span class="p">()</span><span class="o">:</span>
+<span class="w">  </span><span class="n">dependencyVertex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Vertex</span><span class="p">(</span><span class="n">vertexID</span><span class="o">=</span><span class="n">f</span><span class="s">&quot;{libraryIdentifier}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="o">=</span><span class="k">library</span><span class="p">,</span><span class="w"> </span><span class="n">graph</span><span class="o">=</span><span class="n">self</span><span class="p">.</span><span class="n">_dependencyGraph</span><span class="p">)</span>
+<span class="w">  </span><span class="n">dependencyVertex</span><span class="p">[</span><span class="s">&quot;kind&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DependencyGraphVertexKind</span><span class="p">.</span><span class="k">Library</span>
+<span class="w">  </span><span class="nn">dependencyVertex</span><span class="p">[</span><span class="s">&quot;predefined&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">libraryIdentifier</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">predefinedLibraries</span>
+<span class="w">  </span><span class="k">library</span><span class="p">.</span><span class="n">_dependencyVertex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dependencyVertex</span>
+
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="n">contextIdentifier</span><span class="p">,</span><span class="w"> </span><span class="n">context</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">library</span><span class="p">.</span><span class="n">_contexts</span><span class="p">.</span><span class="n">items</span><span class="p">()</span><span class="o">:</span>
+<span class="w">    </span><span class="n">dependencyVertex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Vertex</span><span class="p">(</span><span class="n">vertexID</span><span class="o">=</span><span class="n">f</span><span class="s">&quot;{libraryIdentifier}.{contextIdentifier}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="o">=</span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">graph</span><span class="o">=</span><span class="n">self</span><span class="p">.</span><span class="n">_dependencyGraph</span><span class="p">)</span>
+<span class="w">    </span><span class="n">dependencyVertex</span><span class="p">[</span><span class="s">&quot;kind&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DependencyGraphVertexKind</span><span class="p">.</span><span class="n">Context</span>
+<span class="w">    </span><span class="n">dependencyVertex</span><span class="p">[</span><span class="s">&quot;predefined&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">context</span><span class="p">.</span><span class="n">_library</span><span class="p">.</span><span class="n">_normalizedIdentifier</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">predefinedLibraries</span>
+<span class="w">    </span><span class="n">context</span><span class="p">.</span><span class="n">_dependencyVertex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dependencyVertex</span>
+</pre></div>
+</div>
+</section>
+<section id="create-compile-order-graph">
+<h3>2. Create Compile Order Graph<a class="headerlink" href="#create-compile-order-graph" title="Link to this heading"></a></h3>
+</section>
+<section id="index-packages">
+<h3>3. Index Packages<a class="headerlink" href="#index-packages" title="Link to this heading"></a></h3>
+</section>
+<section id="index-architectures">
+<h3>4. Index Architectures<a class="headerlink" href="#index-architectures" title="Link to this heading"></a></h3>
+</section>
+<section id="link-contexts">
+<h3>5. Link Contexts<a class="headerlink" href="#link-contexts" title="Link to this heading"></a></h3>
+</section>
+<section id="link-architectures">
+<h3>6. Link Architectures<a class="headerlink" href="#link-architectures" title="Link to this heading"></a></h3>
+</section>
+<section id="link-package-bodies">
+<h3>7. Link Package Bodies<a class="headerlink" href="#link-package-bodies" title="Link to this heading"></a></h3>
+</section>
+<section id="link-library-references">
+<h3>8. Link Library References<a class="headerlink" href="#link-library-references" title="Link to this heading"></a></h3>
+</section>
+<section id="link-package-references">
+<h3>9. Link Package References<a class="headerlink" href="#link-package-references" title="Link to this heading"></a></h3>
+</section>
+<section id="link-context-references">
+<h3>10. Link Context References<a class="headerlink" href="#link-context-references" title="Link to this heading"></a></h3>
+</section>
+<section id="link-components">
+<h3>11. Link Components<a class="headerlink" href="#link-components" title="Link to this heading"></a></h3>
+</section>
+<section id="link-instantiations">
+<h3>12. Link Instantiations<a class="headerlink" href="#link-instantiations" title="Link to this heading"></a></h3>
+</section>
+<section id="create-hierarchy-graph">
+<h3>13. Create Hierarchy Graph<a class="headerlink" href="#create-hierarchy-graph" title="Link to this heading"></a></h3>
+</section>
+<section id="compute-compile-order">
+<h3>14. Compute Compile Order<a class="headerlink" href="#compute-compile-order" title="Link to this heading"></a></h3>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../LanguageModel/Expressions.html" class="btn btn-neutral float-left" title="Literals and Expressions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../DataStructure/index.html" class="btn btn-neutral float-right" title="Data Structures" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

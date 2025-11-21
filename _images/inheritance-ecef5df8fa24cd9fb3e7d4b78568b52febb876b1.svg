@@ -1,0 +1,29 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="288pt" height="27pt" viewBox="0.00 0.00 288.00 27.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 23)">
+<ns0:title>inheritance6211b518f9</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>DocumentedEntityMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.DocumentedEntityMixin" ns1:title="A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="134,-19 0,-19 0,0 134,0 134,-19" />
+<ns0:text text-anchor="middle" x="67" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DocumentedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>InterfaceItemMixin</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.InterfaceItemMixin" ns1:title="An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="280,-19 170,-19 170,0 280,0 280,-19" />
+<ns0:text text-anchor="middle" x="225" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">InterfaceItemMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>DocumentedEntityMixin-&gt;InterfaceItemMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M134.16,-9.5C144.2,-9.5 154.51,-9.5 164.4,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="164.53,-11.25 169.53,-9.5 164.53,-7.75 164.53,-11.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

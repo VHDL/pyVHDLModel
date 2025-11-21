@@ -1,0 +1,430 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+================
+pyVHDLModel.IEEE
+================
+
+.. automodule:: pyVHDLModel.IEEE
+
+
+.. currentmodule:: pyVHDLModel.IEEE
+
+
+**Classes**
+
+- :py:class:`Ieee`:
+  Predefined VHDL library ``ieee``.
+
+- :py:class:`Math_Real`:
+  Predefined package ``ieee.math_real``.
+
+- :py:class:`Math_Real_Body`:
+  Predefined package body of package ``ieee.math_real``.
+
+- :py:class:`Math_Complex`:
+  Predefined package ``ieee.math_complex``.
+
+- :py:class:`Math_Complex_Body`:
+  Predefined package body of package ``ieee.math_complex``.
+
+- :py:class:`Std_Logic_1164`:
+  Predefined package ``ieee.std_logic_1164``.
+
+- :py:class:`Std_Logic_1164_Body`:
+  Predefined package body of package ``ieee.std_logic_1164``.
+
+- :py:class:`Std_Logic_TextIO`:
+  Predefined Synopsys package ``ieee.std_logic_textio``.
+
+- :py:class:`Numeric_Bit`:
+  Predefined package ``ieee.numeric_bit``.
+
+- :py:class:`Numeric_Bit_Body`:
+  Predefined package body of package ``ieee.numeric_bit``.
+
+- :py:class:`Numeric_Bit_Unsigned`:
+  Predefined package ``ieee.numeric_bit_unsigned``.
+
+- :py:class:`Numeric_Bit_Unsigned_Body`:
+  Predefined package body of package ``ieee.numeric_bit_unsigned``.
+
+- :py:class:`Numeric_Std`:
+  Predefined package ``ieee.numeric_std``.
+
+- :py:class:`Numeric_Std_Body`:
+  Predefined package body of package ``ieee.numeric_std``.
+
+- :py:class:`Numeric_Std_Unsigned`:
+  Predefined package ``ieee.numeric_std_unsigned``.
+
+- :py:class:`Numeric_Std_Unsigned_Body`:
+  Predefined package body of package ``ieee.numeric_std_unsigned``.
+
+- :py:class:`Fixed_Float_Types`:
+  Predefined package ``ieee.fixed_float_types``.
+
+- :py:class:`Fixed_Generic_Pkg`:
+  Predefined package ``ieee.fixed_generic_pkg``.
+
+- :py:class:`Fixed_Generic_Pkg_Body`:
+  Predefined package body of package ``ieee.fixed_generic_pkg``.
+
+- :py:class:`Fixed_Pkg`:
+  Predefined package ``ieee.fixed_pkg``.
+
+- :py:class:`Float_Generic_Pkg`:
+  Predefined package ``ieee.float_generic_pkg``.
+
+- :py:class:`Float_Generic_Pkg_Body`:
+  Predefined package body of package ``ieee.float_generic_pkg``.
+
+- :py:class:`Float_Pkg`:
+  Predefined package ``ieee.float_pkg``.
+
+- :py:class:`Std_Logic_Arith`:
+  Predefined Synopsys package ``ieee.std_logic_arith``.
+
+- :py:class:`Std_Logic_Arith_Body`:
+  Predefined package body of Mentor Graphics package ``ieee.std_logic_arith``.
+
+- :py:class:`Std_Logic_Misc`:
+  Predefined Synopsys package ``ieee.std_logic_misc``.
+
+- :py:class:`Std_Logic_Misc_Body`:
+  Predefined package body of Synopsys package ``ieee.std_logic_misc``.
+
+- :py:class:`Std_Logic_Signed`:
+  Predefined Synopsys package ``ieee.std_logic_signed``.
+
+- :py:class:`Std_Logic_Unsigned`:
+  Predefined Synopsys package ``ieee.std_logic_unsigned``.
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: Ieee
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Ieee
+      :parts: 1
+
+.. autoclass:: Math_Real
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Math_Real
+      :parts: 1
+
+.. autoclass:: Math_Real_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Math_Real_Body
+      :parts: 1
+
+.. autoclass:: Math_Complex
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Math_Complex
+      :parts: 1
+
+.. autoclass:: Math_Complex_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Math_Complex_Body
+      :parts: 1
+
+.. autoclass:: Std_Logic_1164
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Std_Logic_1164
+      :parts: 1
+
+.. autoclass:: Std_Logic_1164_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Std_Logic_1164_Body
+      :parts: 1
+
+.. autoclass:: Std_Logic_TextIO
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Std_Logic_TextIO
+      :parts: 1
+
+.. autoclass:: Numeric_Bit
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Numeric_Bit
+      :parts: 1
+
+.. autoclass:: Numeric_Bit_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Numeric_Bit_Body
+      :parts: 1
+
+.. autoclass:: Numeric_Bit_Unsigned
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Numeric_Bit_Unsigned
+      :parts: 1
+
+.. autoclass:: Numeric_Bit_Unsigned_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Numeric_Bit_Unsigned_Body
+      :parts: 1
+
+.. autoclass:: Numeric_Std
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Numeric_Std
+      :parts: 1
+
+.. autoclass:: Numeric_Std_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Numeric_Std_Body
+      :parts: 1
+
+.. autoclass:: Numeric_Std_Unsigned
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Numeric_Std_Unsigned
+      :parts: 1
+
+.. autoclass:: Numeric_Std_Unsigned_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Numeric_Std_Unsigned_Body
+      :parts: 1
+
+.. autoclass:: Fixed_Float_Types
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Fixed_Float_Types
+      :parts: 1
+
+.. autoclass:: Fixed_Generic_Pkg
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Fixed_Generic_Pkg
+      :parts: 1
+
+.. autoclass:: Fixed_Generic_Pkg_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Fixed_Generic_Pkg_Body
+      :parts: 1
+
+.. autoclass:: Fixed_Pkg
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Fixed_Pkg
+      :parts: 1
+
+.. autoclass:: Float_Generic_Pkg
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Float_Generic_Pkg
+      :parts: 1
+
+.. autoclass:: Float_Generic_Pkg_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Float_Generic_Pkg_Body
+      :parts: 1
+
+.. autoclass:: Float_Pkg
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Float_Pkg
+      :parts: 1
+
+.. autoclass:: Std_Logic_Arith
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Std_Logic_Arith
+      :parts: 1
+
+.. autoclass:: Std_Logic_Arith_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Std_Logic_Arith_Body
+      :parts: 1
+
+.. autoclass:: Std_Logic_Misc
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Std_Logic_Misc
+      :parts: 1
+
+.. autoclass:: Std_Logic_Misc_Body
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Std_Logic_Misc_Body
+      :parts: 1
+
+.. autoclass:: Std_Logic_Signed
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Std_Logic_Signed
+      :parts: 1
+
+.. autoclass:: Std_Logic_Unsigned
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Std_Logic_Unsigned
+      :parts: 1

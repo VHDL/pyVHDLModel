@@ -1,0 +1,80 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+=======================
+pyVHDLModel.Association
+=======================
+
+.. automodule:: pyVHDLModel.Association
+
+
+.. currentmodule:: pyVHDLModel.Association
+
+
+**Classes**
+
+- :py:class:`AssociationItem`:
+  A base-class for all association items.
+
+- :py:class:`GenericAssociationItem`:
+  A base-class for all generic association items used in generic map aspects.
+
+- :py:class:`PortAssociationItem`:
+  A base-class for all port association items used in port map aspects.
+
+- :py:class:`ParameterAssociationItem`:
+  A base-class for all parameter association items used in parameter map aspects.
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: AssociationItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: AssociationItem
+      :parts: 1
+
+.. autoclass:: GenericAssociationItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericAssociationItem
+      :parts: 1
+
+.. autoclass:: PortAssociationItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PortAssociationItem
+      :parts: 1
+
+.. autoclass:: ParameterAssociationItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ParameterAssociationItem
+      :parts: 1

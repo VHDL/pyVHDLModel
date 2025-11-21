@@ -1,0 +1,1390 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyVHDLModel.PSLModel &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pyVHDLModel.Predefined" href="pyVHDLModel.Predefined.html" />
+    <link rel="prev" title="pyVHDLModel.Object" href="pyVHDLModel.Object.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pyVHDLModel.html">Python Class Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Association.html">pyVHDLModel.Association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Base.html">pyVHDLModel.Base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Common.html">pyVHDLModel.Common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Concurrent.html">pyVHDLModel.Concurrent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Declaration.html">pyVHDLModel.Declaration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.DesignUnit.html">pyVHDLModel.DesignUnit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Exception.html">pyVHDLModel.Exception</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Expression.html">pyVHDLModel.Expression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.IEEE.html">pyVHDLModel.IEEE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Instantiation.html">pyVHDLModel.Instantiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Interface.html">pyVHDLModel.Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Name.html">pyVHDLModel.Name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Namespace.html">pyVHDLModel.Namespace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Object.html">pyVHDLModel.Object</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pyVHDLModel.PSLModel</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLEntity"><code class="docutils literal notranslate"><span class="pre">PSLEntity</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLEntity.Parent"><code class="docutils literal notranslate"><span class="pre">PSLEntity.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLEntity.__init__"><code class="docutils literal notranslate"><span class="pre">PSLEntity.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLEntity._parent"><code class="docutils literal notranslate"><span class="pre">PSLEntity._parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.ContextItems"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit.ContextItems</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.ContextReferences"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit.ContextReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.DependencyVertex"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit.DependencyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.Documentation"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit.Documentation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.HierarchyVertex"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit.HierarchyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.Identifier"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.LibraryReferences"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit.LibraryReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.PackageReferences"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit.PackageReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.Parent"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.__init__"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._contextItems"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._contextItems</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._contextReferences"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._contextReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._dependencyVertex"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._dependencyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._document"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._document</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._documentation"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._documentation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._hierarchyVertex"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._hierarchyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._identifier"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._libraryReferences"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._libraryReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._normalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._normalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._packageReferences"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._packageReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._parent"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._referencedContexts"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._referencedContexts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._referencedLibraries"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._referencedLibraries</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._referencedPackages"><code class="docutils literal notranslate"><span class="pre">PSLPrimaryUnit._referencedPackages</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit"><code class="docutils literal notranslate"><span class="pre">VerificationUnit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit.__init__"><code class="docutils literal notranslate"><span class="pre">VerificationUnit.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit.ContextItems"><code class="docutils literal notranslate"><span class="pre">VerificationUnit.ContextItems</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit.ContextReferences"><code class="docutils literal notranslate"><span class="pre">VerificationUnit.ContextReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit.DependencyVertex"><code class="docutils literal notranslate"><span class="pre">VerificationUnit.DependencyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit.Documentation"><code class="docutils literal notranslate"><span class="pre">VerificationUnit.Documentation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit.HierarchyVertex"><code class="docutils literal notranslate"><span class="pre">VerificationUnit.HierarchyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit.Identifier"><code class="docutils literal notranslate"><span class="pre">VerificationUnit.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit.LibraryReferences"><code class="docutils literal notranslate"><span class="pre">VerificationUnit.LibraryReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">VerificationUnit.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit.PackageReferences"><code class="docutils literal notranslate"><span class="pre">VerificationUnit.PackageReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit.Parent"><code class="docutils literal notranslate"><span class="pre">VerificationUnit.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._contextItems"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._contextItems</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._contextReferences"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._contextReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._dependencyVertex"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._dependencyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._document"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._document</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._documentation"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._documentation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._hierarchyVertex"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._hierarchyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._identifier"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._libraryReferences"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._libraryReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._normalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._normalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._packageReferences"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._packageReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._parent"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._referencedContexts"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._referencedContexts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._referencedLibraries"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._referencedLibraries</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._referencedPackages"><code class="docutils literal notranslate"><span class="pre">VerificationUnit._referencedPackages</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty"><code class="docutils literal notranslate"><span class="pre">VerificationProperty</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty.__init__"><code class="docutils literal notranslate"><span class="pre">VerificationProperty.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty.ContextItems"><code class="docutils literal notranslate"><span class="pre">VerificationProperty.ContextItems</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty.ContextReferences"><code class="docutils literal notranslate"><span class="pre">VerificationProperty.ContextReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty.DependencyVertex"><code class="docutils literal notranslate"><span class="pre">VerificationProperty.DependencyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty.Documentation"><code class="docutils literal notranslate"><span class="pre">VerificationProperty.Documentation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty.HierarchyVertex"><code class="docutils literal notranslate"><span class="pre">VerificationProperty.HierarchyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty.Identifier"><code class="docutils literal notranslate"><span class="pre">VerificationProperty.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty.LibraryReferences"><code class="docutils literal notranslate"><span class="pre">VerificationProperty.LibraryReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">VerificationProperty.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty.PackageReferences"><code class="docutils literal notranslate"><span class="pre">VerificationProperty.PackageReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty.Parent"><code class="docutils literal notranslate"><span class="pre">VerificationProperty.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._contextItems"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._contextItems</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._contextReferences"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._contextReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._dependencyVertex"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._dependencyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._document"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._document</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._documentation"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._documentation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._hierarchyVertex"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._hierarchyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._identifier"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._libraryReferences"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._libraryReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._normalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._normalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._packageReferences"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._packageReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._parent"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._referencedContexts"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._referencedContexts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._referencedLibraries"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._referencedLibraries</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._referencedPackages"><code class="docutils literal notranslate"><span class="pre">VerificationProperty._referencedPackages</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode"><code class="docutils literal notranslate"><span class="pre">VerificationMode</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode.__init__"><code class="docutils literal notranslate"><span class="pre">VerificationMode.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode.ContextItems"><code class="docutils literal notranslate"><span class="pre">VerificationMode.ContextItems</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode.ContextReferences"><code class="docutils literal notranslate"><span class="pre">VerificationMode.ContextReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode.DependencyVertex"><code class="docutils literal notranslate"><span class="pre">VerificationMode.DependencyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode.Documentation"><code class="docutils literal notranslate"><span class="pre">VerificationMode.Documentation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode.HierarchyVertex"><code class="docutils literal notranslate"><span class="pre">VerificationMode.HierarchyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode.Identifier"><code class="docutils literal notranslate"><span class="pre">VerificationMode.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode.LibraryReferences"><code class="docutils literal notranslate"><span class="pre">VerificationMode.LibraryReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">VerificationMode.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode.PackageReferences"><code class="docutils literal notranslate"><span class="pre">VerificationMode.PackageReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode.Parent"><code class="docutils literal notranslate"><span class="pre">VerificationMode.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._contextItems"><code class="docutils literal notranslate"><span class="pre">VerificationMode._contextItems</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._contextReferences"><code class="docutils literal notranslate"><span class="pre">VerificationMode._contextReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._dependencyVertex"><code class="docutils literal notranslate"><span class="pre">VerificationMode._dependencyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._document"><code class="docutils literal notranslate"><span class="pre">VerificationMode._document</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._documentation"><code class="docutils literal notranslate"><span class="pre">VerificationMode._documentation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._hierarchyVertex"><code class="docutils literal notranslate"><span class="pre">VerificationMode._hierarchyVertex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._identifier"><code class="docutils literal notranslate"><span class="pre">VerificationMode._identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._libraryReferences"><code class="docutils literal notranslate"><span class="pre">VerificationMode._libraryReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._normalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">VerificationMode._normalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._packageReferences"><code class="docutils literal notranslate"><span class="pre">VerificationMode._packageReferences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._parent"><code class="docutils literal notranslate"><span class="pre">VerificationMode._parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._referencedContexts"><code class="docutils literal notranslate"><span class="pre">VerificationMode._referencedContexts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._referencedLibraries"><code class="docutils literal notranslate"><span class="pre">VerificationMode._referencedLibraries</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._referencedPackages"><code class="docutils literal notranslate"><span class="pre">VerificationMode._referencedPackages</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.PSLModel.DefaultClock"><code class="docutils literal notranslate"><span class="pre">DefaultClock</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.DefaultClock.__init__"><code class="docutils literal notranslate"><span class="pre">DefaultClock.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.DefaultClock._identifier"><code class="docutils literal notranslate"><span class="pre">DefaultClock._identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.DefaultClock._normalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">DefaultClock._normalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.DefaultClock.Identifier"><code class="docutils literal notranslate"><span class="pre">DefaultClock.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.DefaultClock.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">DefaultClock.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.DefaultClock.Parent"><code class="docutils literal notranslate"><span class="pre">DefaultClock.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.PSLModel.DefaultClock._parent"><code class="docutils literal notranslate"><span class="pre">DefaultClock._parent</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Predefined.html">pyVHDLModel.Predefined</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Regions.html">pyVHDLModel.Regions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.STD.html">pyVHDLModel.STD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Sequential.html">pyVHDLModel.Sequential</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Subprogram.html">pyVHDLModel.Subprogram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Symbol.html">pyVHDLModel.Symbol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Type.html">pyVHDLModel.Type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.VHDLVersion"><code class="docutils literal notranslate"><span class="pre">VHDLVersion</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.IEEEFlavor"><code class="docutils literal notranslate"><span class="pre">IEEEFlavor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectClass"><code class="docutils literal notranslate"><span class="pre">ObjectClass</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DesignUnitKind"><code class="docutils literal notranslate"><span class="pre">DesignUnitKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DependencyGraphVertexKind"><code class="docutils literal notranslate"><span class="pre">DependencyGraphVertexKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DependencyGraphEdgeKind"><code class="docutils literal notranslate"><span class="pre">DependencyGraphEdgeKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectGraphVertexKind"><code class="docutils literal notranslate"><span class="pre">ObjectGraphVertexKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectGraphEdgeKind"><code class="docutils literal notranslate"><span class="pre">ObjectGraphEdgeKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Design"><code class="docutils literal notranslate"><span class="pre">Design</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library"><code class="docutils literal notranslate"><span class="pre">Library</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Document"><code class="docutils literal notranslate"><span class="pre">Document</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="pyVHDLModel.html">pyVHDLModel</a></li>
+      <li class="breadcrumb-item active">pyVHDLModel.PSLModel</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/pyVHDLModel/pyVHDLModel.PSLModel.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="module-pyVHDLModel.PSLModel">
+<span id="pyvhdlmodel-pslmodel"></span><h1>pyVHDLModel.PSLModel<a class="headerlink" href="#module-pyVHDLModel.PSLModel" title="Link to this heading"></a></h1>
+<p>This module contains an abstract document language model for PSL in VHDL.</p>
+<p><strong>Classes</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLEntity" title="pyVHDLModel.PSLModel.PSLEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">PSLEntity</span></code></a>:
+<code class="docutils literal notranslate"><span class="pre">ModelEntity</span></code> is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit" title="pyVHDLModel.PSLModel.PSLPrimaryUnit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PSLPrimaryUnit</span></code></a>:
+A base-class for all primary design units.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit" title="pyVHDLModel.PSLModel.VerificationUnit"><code class="xref py py-class docutils literal notranslate"><span class="pre">VerificationUnit</span></code></a>:
+A base-class for all primary design units.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty" title="pyVHDLModel.PSLModel.VerificationProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">VerificationProperty</span></code></a>:
+A base-class for all primary design units.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode" title="pyVHDLModel.PSLModel.VerificationMode"><code class="xref py py-class docutils literal notranslate"><span class="pre">VerificationMode</span></code></a>:
+A base-class for all primary design units.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.PSLModel.DefaultClock" title="pyVHDLModel.PSLModel.DefaultClock"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultClock</span></code></a>:
+<code class="docutils literal notranslate"><span class="pre">ModelEntity</span></code> is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple</p></li>
+</ul>
+<hr class="docutils" />
+<p><strong>Classes</strong></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLEntity">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.PSLModel.</span></span><span class="sig-name descname"><span class="pre">PSLEntity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/PSLModel.html#PSLEntity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLEntity" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-182c95eccc2531013f6564c76939ff74b5a59524.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of PSLEntity</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parent</strong> (<a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLEntity.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLEntity.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.PSLModel.PSLEntity._parent" title="pyVHDLModel.PSLModel.PSLEntity._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLEntity.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLEntity.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – The parent model entity of this entity.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLEntity._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLEntity._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.PSLModel.</span></span><span class="sig-name descname"><span class="pre">PSLPrimaryUnit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contextItems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">documentation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/PSLModel.html#PSLPrimaryUnit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-e6f53c72b1354b83bcc96f814f059cf27fed3b47.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of PSLPrimaryUnit</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>contextItems</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.LibraryClause" title="pyVHDLModel.DesignUnit.LibraryClause"><em>LibraryClause</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.UseClause" title="pyVHDLModel.DesignUnit.UseClause"><em>UseClause</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.ContextReference" title="pyVHDLModel.DesignUnit.ContextReference"><em>ContextReference</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>documentation</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>parent</strong> (<a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit.ContextItems">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ContextItems</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.LibraryClause" title="pyVHDLModel.DesignUnit.LibraryClause"><span class="pre">LibraryClause</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.UseClause" title="pyVHDLModel.DesignUnit.UseClause"><span class="pre">UseClause</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.ContextReference" title="pyVHDLModel.DesignUnit.ContextReference"><span class="pre">ContextReference</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.ContextItems" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of all context items comprising library, use and context clauses
+(<a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._contextItems" title="pyVHDLModel.PSLModel.PSLPrimaryUnit._contextItems"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_contextItems</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of context items.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit.ContextReferences">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ContextReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.ContextReference" title="pyVHDLModel.DesignUnit.ContextReference"><span class="pre">ContextReference</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.ContextReferences" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of context clauses (<a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._contextReferences" title="pyVHDLModel.PSLModel.PSLPrimaryUnit._contextReferences"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_contextReferences</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of context clauses.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit.DependencyVertex">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DependencyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pytooling.github.io/pyTooling/pyTooling/pyTooling.Graph.html#pyTooling.Graph.Vertex" title="(in pyTooling v8.9)"><span class="pre">Vertex</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.DependencyVertex" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the corresponding dependency vertex (<a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._dependencyVertex" title="pyVHDLModel.PSLModel.PSLPrimaryUnit._dependencyVertex"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_dependencyVertex</span></code></a>).</p>
+<p>The dependency vertex references this design unit by its value field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The corresponding dependency vertex.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit.Documentation">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Documentation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.Documentation" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s associated documentation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Associated documentation of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit.HierarchyVertex">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HierarchyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pytooling.github.io/pyTooling/pyTooling/pyTooling.Graph.html#pyTooling.Graph.Vertex" title="(in pyTooling v8.9)"><span class="pre">Vertex</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.HierarchyVertex" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the corresponding hierarchy vertex (<a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._hierarchyVertex" title="pyVHDLModel.PSLModel.PSLPrimaryUnit._hierarchyVertex"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_hierarchyVertex</span></code></a>).</p>
+<p>The hierarchy vertex references this design unit by its value field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The corresponding hierarchy vertex.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.Identifier" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s identifier (name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit.LibraryReferences">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LibraryReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.LibraryClause" title="pyVHDLModel.DesignUnit.LibraryClause"><span class="pre">LibraryClause</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.LibraryReferences" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of library clauses (<a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._libraryReferences" title="pyVHDLModel.PSLModel.PSLPrimaryUnit._libraryReferences"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_libraryReferences</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of library clauses.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s normalized identifier (lower case name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Normalized name of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit.PackageReferences">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PackageReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.UseClause" title="pyVHDLModel.DesignUnit.UseClause"><span class="pre">UseClause</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.PackageReferences" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of use clauses (<a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._packageReferences" title="pyVHDLModel.PSLModel.PSLPrimaryUnit._packageReferences"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_packageReferences</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of use clauses.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._parent" title="pyVHDLModel.PSLModel.PSLPrimaryUnit._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contextItems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">documentation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a design unit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Identifier (name) of the design unit.</p></li>
+<li><p><strong>contextItems</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code></a>[<a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.LibraryClause" title="pyVHDLModel.DesignUnit.LibraryClause"><code class="xref py py-class docutils literal notranslate"><span class="pre">LibraryClause</span></code></a> | <a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.UseClause" title="pyVHDLModel.DesignUnit.UseClause"><code class="xref py py-class docutils literal notranslate"><span class="pre">UseClause</span></code></a> | <a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.ContextReference" title="pyVHDLModel.DesignUnit.ContextReference"><code class="xref py py-class docutils literal notranslate"><span class="pre">ContextReference</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – A sequence of library, use or context clauses.</p></li>
+<li><p><strong>documentation</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Associated documentation of the design unit.</p></li>
+<li><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></span>) – Reference to the logical parent in the model hierarchy.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._contextItems">
+<span class="sig-name descname"><span class="pre">_contextItems</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['ContextUnion']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._contextItems" title="Link to this definition"></a></dt>
+<dd><p>List of all context items (library, use and context clauses).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._contextReferences">
+<span class="sig-name descname"><span class="pre">_contextReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['ContextReference']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._contextReferences" title="Link to this definition"></a></dt>
+<dd><p>List of context clauses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._dependencyVertex">
+<span class="sig-name descname"><span class="pre">_dependencyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Vertex[None,</span> <span class="pre">None,</span> <span class="pre">str,</span> <span class="pre">'DesignUnit',</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._dependencyVertex" title="Link to this definition"></a></dt>
+<dd><p>Reference to the vertex in the dependency graph representing the design unit. <br /> This reference is set by <a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Design.CreateDependencyGraph" title="pyVHDLModel.Design.CreateDependencyGraph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CreateDependencyGraph()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._document">
+<span class="sig-name descname"><span class="pre">_document</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Document</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._document" title="Link to this definition"></a></dt>
+<dd><p>The VHDL library, the design unit was analyzed into.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._documentation">
+<span class="sig-name descname"><span class="pre">_documentation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Nullable[str]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._documentation" title="Link to this definition"></a></dt>
+<dd><p>The associated documentation of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._hierarchyVertex">
+<span class="sig-name descname"><span class="pre">_hierarchyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Vertex[None,</span> <span class="pre">None,</span> <span class="pre">str,</span> <span class="pre">'DesignUnit',</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._hierarchyVertex" title="Link to this definition"></a></dt>
+<dd><p>The vertex in the hierarchy graph</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._identifier">
+<span class="sig-name descname"><span class="pre">_identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._libraryReferences">
+<span class="sig-name descname"><span class="pre">_libraryReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['LibraryClause']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._libraryReferences" title="Link to this definition"></a></dt>
+<dd><p>List of library clauses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._normalizedIdentifier">
+<span class="sig-name descname"><span class="pre">_normalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._normalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized (lower case) identifier of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._packageReferences">
+<span class="sig-name descname"><span class="pre">_packageReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['UseClause']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._packageReferences" title="Link to this definition"></a></dt>
+<dd><p>List of use clauses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelEntity</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._referencedContexts">
+<span class="sig-name descname"><span class="pre">_referencedContexts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict[str,</span> <span class="pre">'Context']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._referencedContexts" title="Link to this definition"></a></dt>
+<dd><p>Referenced contexts based on explicit context references or implicit inheritance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._referencedLibraries">
+<span class="sig-name descname"><span class="pre">_referencedLibraries</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict[str,</span> <span class="pre">'Library']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._referencedLibraries" title="Link to this definition"></a></dt>
+<dd><p>Referenced libraries based on explicit library clauses or implicit inheritance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.PSLPrimaryUnit._referencedPackages">
+<span class="sig-name descname"><span class="pre">_referencedPackages</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict[str,</span> <span class="pre">Dict[str,</span> <span class="pre">'Package']]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.PSLPrimaryUnit._referencedPackages" title="Link to this definition"></a></dt>
+<dd><p>Referenced packages based on explicit use clauses or implicit inheritance</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.PSLModel.</span></span><span class="sig-name descname"><span class="pre">VerificationUnit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/PSLModel.html#VerificationUnit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-769c9df0cc7baf110e04e6d848da740150be2714.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of VerificationUnit</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/PSLModel.html#VerificationUnit.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a design unit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Identifier (name) of the design unit.</p></li>
+<li><p><strong>contextItems</strong> – A sequence of library, use or context clauses.</p></li>
+<li><p><strong>documentation</strong> – Associated documentation of the design unit.</p></li>
+<li><p><strong>parent</strong> – Reference to the logical parent in the model hierarchy.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit.ContextItems">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ContextItems</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.LibraryClause" title="pyVHDLModel.DesignUnit.LibraryClause"><span class="pre">LibraryClause</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.UseClause" title="pyVHDLModel.DesignUnit.UseClause"><span class="pre">UseClause</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.ContextReference" title="pyVHDLModel.DesignUnit.ContextReference"><span class="pre">ContextReference</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit.ContextItems" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of all context items comprising library, use and context clauses
+(<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._contextItems" title="pyVHDLModel.PSLModel.VerificationUnit._contextItems"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_contextItems</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of context items.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit.ContextReferences">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ContextReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.ContextReference" title="pyVHDLModel.DesignUnit.ContextReference"><span class="pre">ContextReference</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit.ContextReferences" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of context clauses (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._contextReferences" title="pyVHDLModel.PSLModel.VerificationUnit._contextReferences"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_contextReferences</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of context clauses.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit.DependencyVertex">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DependencyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pytooling.github.io/pyTooling/pyTooling/pyTooling.Graph.html#pyTooling.Graph.Vertex" title="(in pyTooling v8.9)"><span class="pre">Vertex</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit.DependencyVertex" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the corresponding dependency vertex (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._dependencyVertex" title="pyVHDLModel.PSLModel.VerificationUnit._dependencyVertex"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_dependencyVertex</span></code></a>).</p>
+<p>The dependency vertex references this design unit by its value field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The corresponding dependency vertex.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit.Documentation">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Documentation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit.Documentation" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s associated documentation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Associated documentation of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit.HierarchyVertex">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HierarchyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pytooling.github.io/pyTooling/pyTooling/pyTooling.Graph.html#pyTooling.Graph.Vertex" title="(in pyTooling v8.9)"><span class="pre">Vertex</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit.HierarchyVertex" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the corresponding hierarchy vertex (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._hierarchyVertex" title="pyVHDLModel.PSLModel.VerificationUnit._hierarchyVertex"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_hierarchyVertex</span></code></a>).</p>
+<p>The hierarchy vertex references this design unit by its value field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The corresponding hierarchy vertex.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit.Identifier" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s identifier (name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit.LibraryReferences">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LibraryReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.LibraryClause" title="pyVHDLModel.DesignUnit.LibraryClause"><span class="pre">LibraryClause</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit.LibraryReferences" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of library clauses (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._libraryReferences" title="pyVHDLModel.PSLModel.VerificationUnit._libraryReferences"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_libraryReferences</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of library clauses.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s normalized identifier (lower case name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Normalized name of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit.PackageReferences">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PackageReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.UseClause" title="pyVHDLModel.DesignUnit.UseClause"><span class="pre">UseClause</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit.PackageReferences" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of use clauses (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._packageReferences" title="pyVHDLModel.PSLModel.VerificationUnit._packageReferences"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_packageReferences</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of use clauses.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationUnit._parent" title="pyVHDLModel.PSLModel.VerificationUnit._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._contextItems">
+<span class="sig-name descname"><span class="pre">_contextItems</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['ContextUnion']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._contextItems" title="Link to this definition"></a></dt>
+<dd><p>List of all context items (library, use and context clauses).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._contextReferences">
+<span class="sig-name descname"><span class="pre">_contextReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['ContextReference']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._contextReferences" title="Link to this definition"></a></dt>
+<dd><p>List of context clauses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._dependencyVertex">
+<span class="sig-name descname"><span class="pre">_dependencyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Vertex[None,</span> <span class="pre">None,</span> <span class="pre">str,</span> <span class="pre">'DesignUnit',</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._dependencyVertex" title="Link to this definition"></a></dt>
+<dd><p>Reference to the vertex in the dependency graph representing the design unit. <br /> This reference is set by <a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Design.CreateDependencyGraph" title="pyVHDLModel.Design.CreateDependencyGraph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CreateDependencyGraph()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._document">
+<span class="sig-name descname"><span class="pre">_document</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Document</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._document" title="Link to this definition"></a></dt>
+<dd><p>The VHDL library, the design unit was analyzed into.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._documentation">
+<span class="sig-name descname"><span class="pre">_documentation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Nullable[str]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._documentation" title="Link to this definition"></a></dt>
+<dd><p>The associated documentation of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._hierarchyVertex">
+<span class="sig-name descname"><span class="pre">_hierarchyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Vertex[None,</span> <span class="pre">None,</span> <span class="pre">str,</span> <span class="pre">'DesignUnit',</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._hierarchyVertex" title="Link to this definition"></a></dt>
+<dd><p>The vertex in the hierarchy graph</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._identifier">
+<span class="sig-name descname"><span class="pre">_identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._libraryReferences">
+<span class="sig-name descname"><span class="pre">_libraryReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['LibraryClause']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._libraryReferences" title="Link to this definition"></a></dt>
+<dd><p>List of library clauses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._normalizedIdentifier">
+<span class="sig-name descname"><span class="pre">_normalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._normalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized (lower case) identifier of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._packageReferences">
+<span class="sig-name descname"><span class="pre">_packageReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['UseClause']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._packageReferences" title="Link to this definition"></a></dt>
+<dd><p>List of use clauses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelEntity</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._referencedContexts">
+<span class="sig-name descname"><span class="pre">_referencedContexts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict[str,</span> <span class="pre">'Context']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._referencedContexts" title="Link to this definition"></a></dt>
+<dd><p>Referenced contexts based on explicit context references or implicit inheritance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._referencedLibraries">
+<span class="sig-name descname"><span class="pre">_referencedLibraries</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict[str,</span> <span class="pre">'Library']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._referencedLibraries" title="Link to this definition"></a></dt>
+<dd><p>Referenced libraries based on explicit library clauses or implicit inheritance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationUnit._referencedPackages">
+<span class="sig-name descname"><span class="pre">_referencedPackages</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict[str,</span> <span class="pre">Dict[str,</span> <span class="pre">'Package']]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationUnit._referencedPackages" title="Link to this definition"></a></dt>
+<dd><p>Referenced packages based on explicit use clauses or implicit inheritance</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.PSLModel.</span></span><span class="sig-name descname"><span class="pre">VerificationProperty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/PSLModel.html#VerificationProperty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-2683fda62e5788a0bc1a4119dbedc1067052e59f.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of VerificationProperty</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/PSLModel.html#VerificationProperty.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a design unit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Identifier (name) of the design unit.</p></li>
+<li><p><strong>contextItems</strong> – A sequence of library, use or context clauses.</p></li>
+<li><p><strong>documentation</strong> – Associated documentation of the design unit.</p></li>
+<li><p><strong>parent</strong> – Reference to the logical parent in the model hierarchy.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty.ContextItems">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ContextItems</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.LibraryClause" title="pyVHDLModel.DesignUnit.LibraryClause"><span class="pre">LibraryClause</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.UseClause" title="pyVHDLModel.DesignUnit.UseClause"><span class="pre">UseClause</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.ContextReference" title="pyVHDLModel.DesignUnit.ContextReference"><span class="pre">ContextReference</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty.ContextItems" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of all context items comprising library, use and context clauses
+(<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._contextItems" title="pyVHDLModel.PSLModel.VerificationProperty._contextItems"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_contextItems</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of context items.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty.ContextReferences">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ContextReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.ContextReference" title="pyVHDLModel.DesignUnit.ContextReference"><span class="pre">ContextReference</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty.ContextReferences" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of context clauses (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._contextReferences" title="pyVHDLModel.PSLModel.VerificationProperty._contextReferences"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_contextReferences</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of context clauses.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty.DependencyVertex">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DependencyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pytooling.github.io/pyTooling/pyTooling/pyTooling.Graph.html#pyTooling.Graph.Vertex" title="(in pyTooling v8.9)"><span class="pre">Vertex</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty.DependencyVertex" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the corresponding dependency vertex (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._dependencyVertex" title="pyVHDLModel.PSLModel.VerificationProperty._dependencyVertex"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_dependencyVertex</span></code></a>).</p>
+<p>The dependency vertex references this design unit by its value field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The corresponding dependency vertex.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty.Documentation">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Documentation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty.Documentation" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s associated documentation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Associated documentation of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty.HierarchyVertex">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HierarchyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pytooling.github.io/pyTooling/pyTooling/pyTooling.Graph.html#pyTooling.Graph.Vertex" title="(in pyTooling v8.9)"><span class="pre">Vertex</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty.HierarchyVertex" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the corresponding hierarchy vertex (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._hierarchyVertex" title="pyVHDLModel.PSLModel.VerificationProperty._hierarchyVertex"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_hierarchyVertex</span></code></a>).</p>
+<p>The hierarchy vertex references this design unit by its value field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The corresponding hierarchy vertex.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty.Identifier" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s identifier (name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty.LibraryReferences">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LibraryReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.LibraryClause" title="pyVHDLModel.DesignUnit.LibraryClause"><span class="pre">LibraryClause</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty.LibraryReferences" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of library clauses (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._libraryReferences" title="pyVHDLModel.PSLModel.VerificationProperty._libraryReferences"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_libraryReferences</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of library clauses.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s normalized identifier (lower case name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Normalized name of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty.PackageReferences">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PackageReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.UseClause" title="pyVHDLModel.DesignUnit.UseClause"><span class="pre">UseClause</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty.PackageReferences" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of use clauses (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._packageReferences" title="pyVHDLModel.PSLModel.VerificationProperty._packageReferences"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_packageReferences</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of use clauses.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationProperty._parent" title="pyVHDLModel.PSLModel.VerificationProperty._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._contextItems">
+<span class="sig-name descname"><span class="pre">_contextItems</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['ContextUnion']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._contextItems" title="Link to this definition"></a></dt>
+<dd><p>List of all context items (library, use and context clauses).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._contextReferences">
+<span class="sig-name descname"><span class="pre">_contextReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['ContextReference']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._contextReferences" title="Link to this definition"></a></dt>
+<dd><p>List of context clauses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._dependencyVertex">
+<span class="sig-name descname"><span class="pre">_dependencyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Vertex[None,</span> <span class="pre">None,</span> <span class="pre">str,</span> <span class="pre">'DesignUnit',</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._dependencyVertex" title="Link to this definition"></a></dt>
+<dd><p>Reference to the vertex in the dependency graph representing the design unit. <br /> This reference is set by <a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Design.CreateDependencyGraph" title="pyVHDLModel.Design.CreateDependencyGraph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CreateDependencyGraph()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._document">
+<span class="sig-name descname"><span class="pre">_document</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Document</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._document" title="Link to this definition"></a></dt>
+<dd><p>The VHDL library, the design unit was analyzed into.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._documentation">
+<span class="sig-name descname"><span class="pre">_documentation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Nullable[str]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._documentation" title="Link to this definition"></a></dt>
+<dd><p>The associated documentation of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._hierarchyVertex">
+<span class="sig-name descname"><span class="pre">_hierarchyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Vertex[None,</span> <span class="pre">None,</span> <span class="pre">str,</span> <span class="pre">'DesignUnit',</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._hierarchyVertex" title="Link to this definition"></a></dt>
+<dd><p>The vertex in the hierarchy graph</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._identifier">
+<span class="sig-name descname"><span class="pre">_identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._libraryReferences">
+<span class="sig-name descname"><span class="pre">_libraryReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['LibraryClause']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._libraryReferences" title="Link to this definition"></a></dt>
+<dd><p>List of library clauses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._normalizedIdentifier">
+<span class="sig-name descname"><span class="pre">_normalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._normalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized (lower case) identifier of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._packageReferences">
+<span class="sig-name descname"><span class="pre">_packageReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['UseClause']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._packageReferences" title="Link to this definition"></a></dt>
+<dd><p>List of use clauses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelEntity</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._referencedContexts">
+<span class="sig-name descname"><span class="pre">_referencedContexts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict[str,</span> <span class="pre">'Context']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._referencedContexts" title="Link to this definition"></a></dt>
+<dd><p>Referenced contexts based on explicit context references or implicit inheritance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._referencedLibraries">
+<span class="sig-name descname"><span class="pre">_referencedLibraries</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict[str,</span> <span class="pre">'Library']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._referencedLibraries" title="Link to this definition"></a></dt>
+<dd><p>Referenced libraries based on explicit library clauses or implicit inheritance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationProperty._referencedPackages">
+<span class="sig-name descname"><span class="pre">_referencedPackages</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict[str,</span> <span class="pre">Dict[str,</span> <span class="pre">'Package']]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationProperty._referencedPackages" title="Link to this definition"></a></dt>
+<dd><p>Referenced packages based on explicit use clauses or implicit inheritance</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.PSLModel.</span></span><span class="sig-name descname"><span class="pre">VerificationMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/PSLModel.html#VerificationMode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-a7c87bcb99559a5f4592ffb2d967ead6f65060f3.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of VerificationMode</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/PSLModel.html#VerificationMode.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a design unit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Identifier (name) of the design unit.</p></li>
+<li><p><strong>contextItems</strong> – A sequence of library, use or context clauses.</p></li>
+<li><p><strong>documentation</strong> – Associated documentation of the design unit.</p></li>
+<li><p><strong>parent</strong> – Reference to the logical parent in the model hierarchy.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode.ContextItems">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ContextItems</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.LibraryClause" title="pyVHDLModel.DesignUnit.LibraryClause"><span class="pre">LibraryClause</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.UseClause" title="pyVHDLModel.DesignUnit.UseClause"><span class="pre">UseClause</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.ContextReference" title="pyVHDLModel.DesignUnit.ContextReference"><span class="pre">ContextReference</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode.ContextItems" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of all context items comprising library, use and context clauses
+(<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._contextItems" title="pyVHDLModel.PSLModel.VerificationMode._contextItems"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_contextItems</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of context items.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode.ContextReferences">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ContextReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.ContextReference" title="pyVHDLModel.DesignUnit.ContextReference"><span class="pre">ContextReference</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode.ContextReferences" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of context clauses (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._contextReferences" title="pyVHDLModel.PSLModel.VerificationMode._contextReferences"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_contextReferences</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of context clauses.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode.DependencyVertex">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DependencyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pytooling.github.io/pyTooling/pyTooling/pyTooling.Graph.html#pyTooling.Graph.Vertex" title="(in pyTooling v8.9)"><span class="pre">Vertex</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode.DependencyVertex" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the corresponding dependency vertex (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._dependencyVertex" title="pyVHDLModel.PSLModel.VerificationMode._dependencyVertex"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_dependencyVertex</span></code></a>).</p>
+<p>The dependency vertex references this design unit by its value field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The corresponding dependency vertex.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode.Documentation">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Documentation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode.Documentation" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s associated documentation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Associated documentation of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode.HierarchyVertex">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HierarchyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pytooling.github.io/pyTooling/pyTooling/pyTooling.Graph.html#pyTooling.Graph.Vertex" title="(in pyTooling v8.9)"><span class="pre">Vertex</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode.HierarchyVertex" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the corresponding hierarchy vertex (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._hierarchyVertex" title="pyVHDLModel.PSLModel.VerificationMode._hierarchyVertex"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_hierarchyVertex</span></code></a>).</p>
+<p>The hierarchy vertex references this design unit by its value field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The corresponding hierarchy vertex.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode.Identifier" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s identifier (name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode.LibraryReferences">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LibraryReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.LibraryClause" title="pyVHDLModel.DesignUnit.LibraryClause"><span class="pre">LibraryClause</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode.LibraryReferences" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of library clauses (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._libraryReferences" title="pyVHDLModel.PSLModel.VerificationMode._libraryReferences"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_libraryReferences</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of library clauses.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s normalized identifier (lower case name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Normalized name of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode.PackageReferences">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PackageReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.UseClause" title="pyVHDLModel.DesignUnit.UseClause"><span class="pre">UseClause</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode.PackageReferences" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the sequence of use clauses (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._packageReferences" title="pyVHDLModel.PSLModel.VerificationMode._packageReferences"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_packageReferences</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sequence of use clauses.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.PSLModel.VerificationMode._parent" title="pyVHDLModel.PSLModel.VerificationMode._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._contextItems">
+<span class="sig-name descname"><span class="pre">_contextItems</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['ContextUnion']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._contextItems" title="Link to this definition"></a></dt>
+<dd><p>List of all context items (library, use and context clauses).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._contextReferences">
+<span class="sig-name descname"><span class="pre">_contextReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['ContextReference']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._contextReferences" title="Link to this definition"></a></dt>
+<dd><p>List of context clauses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._dependencyVertex">
+<span class="sig-name descname"><span class="pre">_dependencyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Vertex[None,</span> <span class="pre">None,</span> <span class="pre">str,</span> <span class="pre">'DesignUnit',</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._dependencyVertex" title="Link to this definition"></a></dt>
+<dd><p>Reference to the vertex in the dependency graph representing the design unit. <br /> This reference is set by <a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Design.CreateDependencyGraph" title="pyVHDLModel.Design.CreateDependencyGraph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CreateDependencyGraph()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._document">
+<span class="sig-name descname"><span class="pre">_document</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Document</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._document" title="Link to this definition"></a></dt>
+<dd><p>The VHDL library, the design unit was analyzed into.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._documentation">
+<span class="sig-name descname"><span class="pre">_documentation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Nullable[str]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._documentation" title="Link to this definition"></a></dt>
+<dd><p>The associated documentation of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._hierarchyVertex">
+<span class="sig-name descname"><span class="pre">_hierarchyVertex</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Vertex[None,</span> <span class="pre">None,</span> <span class="pre">str,</span> <span class="pre">'DesignUnit',</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None,</span> <span class="pre">None]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._hierarchyVertex" title="Link to this definition"></a></dt>
+<dd><p>The vertex in the hierarchy graph</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._identifier">
+<span class="sig-name descname"><span class="pre">_identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._libraryReferences">
+<span class="sig-name descname"><span class="pre">_libraryReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['LibraryClause']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._libraryReferences" title="Link to this definition"></a></dt>
+<dd><p>List of library clauses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._normalizedIdentifier">
+<span class="sig-name descname"><span class="pre">_normalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._normalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized (lower case) identifier of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._packageReferences">
+<span class="sig-name descname"><span class="pre">_packageReferences</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List['UseClause']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._packageReferences" title="Link to this definition"></a></dt>
+<dd><p>List of use clauses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelEntity</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._referencedContexts">
+<span class="sig-name descname"><span class="pre">_referencedContexts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict[str,</span> <span class="pre">'Context']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._referencedContexts" title="Link to this definition"></a></dt>
+<dd><p>Referenced contexts based on explicit context references or implicit inheritance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._referencedLibraries">
+<span class="sig-name descname"><span class="pre">_referencedLibraries</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict[str,</span> <span class="pre">'Library']</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._referencedLibraries" title="Link to this definition"></a></dt>
+<dd><p>Referenced libraries based on explicit library clauses or implicit inheritance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.VerificationMode._referencedPackages">
+<span class="sig-name descname"><span class="pre">_referencedPackages</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict[str,</span> <span class="pre">Dict[str,</span> <span class="pre">'Package']]</span></em><a class="headerlink" href="#pyVHDLModel.PSLModel.VerificationMode._referencedPackages" title="Link to this definition"></a></dt>
+<dd><p>Referenced packages based on explicit use clauses or implicit inheritance</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.DefaultClock">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.PSLModel.</span></span><span class="sig-name descname"><span class="pre">DefaultClock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/PSLModel.html#DefaultClock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.PSLModel.DefaultClock" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-2e39732cc9dc77ad0a7b23e7609e065d4b49cc43.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of DefaultClock</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.DefaultClock.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/PSLModel.html#DefaultClock.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.PSLModel.DefaultClock.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> – The parent model entity of this entity.</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.DefaultClock._identifier">
+<span class="sig-name descname"><span class="pre">_identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.DefaultClock._identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.DefaultClock._normalizedIdentifier">
+<span class="sig-name descname"><span class="pre">_normalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.DefaultClock._normalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized (lower case) identifier of a model entity.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.DefaultClock.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.DefaultClock.Identifier" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s identifier (name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.DefaultClock.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.DefaultClock.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s normalized identifier (lower case name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Normalized name of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.DefaultClock.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.DefaultClock.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.PSLModel.DefaultClock._parent" title="pyVHDLModel.PSLModel.DefaultClock._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.PSLModel.DefaultClock._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.PSLModel.DefaultClock._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pyVHDLModel.Object.html" class="btn btn-neutral float-left" title="pyVHDLModel.Object" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pyVHDLModel.Predefined.html" class="btn btn-neutral float-right" title="pyVHDLModel.Predefined" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

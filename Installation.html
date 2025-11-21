@@ -1,0 +1,369 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation/Updates &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.svg"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=3595839c"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Dependency" href="Dependency.html" />
+    <link rel="prev" title="Getting Started" href="GettingStarted.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation/Updates</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-pip-to-install-from-pypi">Using PIP to Install from PyPI</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installing-a-wheel-package-from-pypi-using-pip">Installing a Wheel Package from PyPI using PIP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#updating-from-pypi-using-pip">Updating from PyPI using PIP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#uninstallation-using-pip">Uninstallation using PIP</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#using-setup-py-legacy">Using <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> (legacy)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installation-using-setup-py">Installation using <code class="docutils literal notranslate"><span class="pre">setup.py</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#local-packaging-and-installation-via-pip">Local Packaging and Installation via PIP</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pyVHDLModel/pyVHDLModel.html">Python Class Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation/Updates</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="installation-updates">
+<span id="install"></span><h1>Installation/Updates<a class="headerlink" href="#installation-updates" title="Link to this heading"></a></h1>
+<section id="using-pip-to-install-from-pypi">
+<span id="install-pip"></span><h2>Using PIP to Install from PyPI<a class="headerlink" href="#using-pip-to-install-from-pypi" title="Link to this heading"></a></h2>
+<p>The following instruction are using PIP (Package Installer for Python) as a package manager and PyPI (Python Package
+Index) as a source of Python packages.</p>
+<section id="installing-a-wheel-package-from-pypi-using-pip">
+<span id="install-pip-install"></span><h3>Installing a Wheel Package from PyPI using PIP<a class="headerlink" href="#installing-a-wheel-package-from-pypi-using-pip" title="Link to this heading"></a></h3>
+<p>Users of pyTooling can select if the want to install a basic variant of pyTooling. See <a class="reference external" href="https://pytooling.github.io/pyTooling/Dependency.html#dep" title="(in pyTooling v8.9)"><span>Dependencies</span></a> for more
+details.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Linux" for="sd-tab-item-0">
+Linux/macOS</label><div class="sd-tab-content docutils">
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Basic sphinx-reports package</span>
+pip3<span class="w"> </span>install<span class="w"> </span>pyVHDLModel
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Windows" for="sd-tab-item-1">
+Windows</label><div class="sd-tab-content docutils">
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="c"># Basic sphinx-reports package</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">pyVHDLModel</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Developers can install the <a href="#id1"><span class="problematic" id="id2">|PackageName|</span></a> package itself or the package with further dependencies for documentation
+generation (<code class="docutils literal notranslate"><span class="pre">doc</span></code>), running unit tests (<code class="docutils literal notranslate"><span class="pre">test</span></code>) or just all (<code class="docutils literal notranslate"><span class="pre">all</span></code>) dependencies.</p>
+<p>See <a class="reference external" href="https://pytooling.github.io/pyTooling/Dependency.html#dep" title="(in pyTooling v8.9)"><span>Dependencies</span></a> for more details.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Linux" for="sd-tab-item-2">
+Linux/macOS</label><div class="sd-tab-content docutils">
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-4" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Doc" for="sd-tab-item-4">
+With Documentation Dependencies</label><div class="sd-tab-content docutils">
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install with dependencies to generate documentation</span>
+pip3<span class="w"> </span>install<span class="w"> </span>pyVHDLModel<span class="o">[</span>doc<span class="o">]</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<input id="sd-tab-item-5" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Unit" for="sd-tab-item-5">
+With Unit Testing Dependencies</label><div class="sd-tab-content docutils">
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install with dependencies to run unit tests</span>
+pip3<span class="w"> </span>install<span class="w"> </span>pyVHDLModel<span class="o">[</span>test<span class="o">]</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<input id="sd-tab-item-6" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="All" for="sd-tab-item-6">
+All Developer Dependencies</label><div class="sd-tab-content docutils">
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install with all developer dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>pyVHDLModel<span class="o">[</span>all<span class="o">]</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+</div>
+</div>
+<input id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Windows" for="sd-tab-item-3">
+Windows</label><div class="sd-tab-content docutils">
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-7" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Doc" for="sd-tab-item-7">
+With Documentation Dependencies</label><div class="sd-tab-content docutils">
+<blockquote>
+<div><div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="c"># Install with dependencies to generate documentation</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">pyVHDLModel</span><span class="no">[doc]</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<input id="sd-tab-item-8" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Unit" for="sd-tab-item-8">
+With Unit Testing Dependencies</label><div class="sd-tab-content docutils">
+<blockquote>
+<div><div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="c"># Install with dependencies to run unit tests</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">pyVHDLModel</span><span class="no">[test]</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<input id="sd-tab-item-9" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="All" for="sd-tab-item-9">
+All Developer Dependencies</label><div class="sd-tab-content docutils">
+<blockquote>
+<div><div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="c"># Install with all developer dependencies</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">pyVHDLModel</span><span class="no">[all]</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="updating-from-pypi-using-pip">
+<span id="install-pip-update"></span><h3>Updating from PyPI using PIP<a class="headerlink" href="#updating-from-pypi-using-pip" title="Link to this heading"></a></h3>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-10" name="sd-tab-set-4" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Linux" for="sd-tab-item-10">
+Linux/macOS</label><div class="sd-tab-content docutils">
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pyVHDLModel
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-11" name="sd-tab-set-4" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Windows" for="sd-tab-item-11">
+Windows</label><div class="sd-tab-content docutils">
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">-U</span> <span class="n">pyVHDLModel</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="uninstallation-using-pip">
+<span id="install-pip-uninstall"></span><h3>Uninstallation using PIP<a class="headerlink" href="#uninstallation-using-pip" title="Link to this heading"></a></h3>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-12" name="sd-tab-set-5" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Linux" for="sd-tab-item-12">
+Linux/macOS</label><div class="sd-tab-content docutils">
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>uninstall<span class="w"> </span>pyVHDLModel
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-13" name="sd-tab-set-5" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Windows" for="sd-tab-item-13">
+Windows</label><div class="sd-tab-content docutils">
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">uninstall</span> <span class="n">pyVHDLModel</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="using-setup-py-legacy">
+<span id="install-setup"></span><h2>Using <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> (legacy)<a class="headerlink" href="#using-setup-py-legacy" title="Link to this heading"></a></h2>
+<p>See sections above on how to use PIP.</p>
+<section id="installation-using-setup-py">
+<h3>Installation using <code class="docutils literal notranslate"><span class="pre">setup.py</span></code><a class="headerlink" href="#installation-using-setup-py" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>setup.py<span class="w"> </span>install
+</pre></div>
+</div>
+</section>
+</section>
+<section id="local-packaging-and-installation-via-pip">
+<span id="install-building"></span><h2>Local Packaging and Installation via PIP<a class="headerlink" href="#local-packaging-and-installation-via-pip" title="Link to this heading"></a></h2>
+<p>For development and bug fixing it might be handy to create a local wheel package and also install it locally on the
+development machine. The following instructions will create a local wheel package (<code class="docutils literal notranslate"><span class="pre">*.whl</span></code>) and then use PIP to
+install it. As a user might have a sphinx-reports installation from PyPI, it’s recommended to uninstall any previous
+sphinx-reports packages. (This step is also needed if installing an updated local wheel file with same version number. PIP
+will not detect a new version and thus not overwrite/reinstall the updated package contents.)</p>
+<p>Ensure <a class="reference external" href="https://pytooling.github.io/pyTooling/Dependency.html#dep-packaging" title="(in pyTooling v8.9)"><span class="xref std std-ref">packaging requirements</span></a> are installed.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-14" name="sd-tab-set-6" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Linux" for="sd-tab-item-14">
+Linux/macOS</label><div class="sd-tab-content docutils">
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>&lt;sphinx-reports&gt;
+
+<span class="c1"># Package the code in a wheel (*.whl)</span>
+python<span class="w"> </span>-m<span class="w"> </span>build<span class="w"> </span>--wheel
+
+<span class="c1"># Uninstall the old package</span>
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>uninstall<span class="w"> </span>-y<span class="w"> </span>pyVHDLModel
+
+<span class="c1"># Install from wheel</span>
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>./dist/pyVHDLModel-0.31.0-py3-none-any.whl
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-15" name="sd-tab-set-6" type="radio">
+<label class="sd-tab-label" data-sync-group="tab" data-sync-id="Windows" for="sd-tab-item-15">
+Windows</label><div class="sd-tab-content docutils">
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd </span><span class="p">&lt;</span><span class="n">sphinx-reports</span><span class="p">&gt;</span>
+
+<span class="c"># Package the code in a wheel (*.whl)</span>
+<span class="n">py</span> <span class="n">-m</span> <span class="n">build</span> <span class="p">-</span><span class="n">-wheel</span>
+
+<span class="c"># Uninstall the old package</span>
+<span class="n">py</span> <span class="n">-m</span> <span class="n">pip</span> <span class="n">uninstall</span> <span class="n">-y</span> <span class="n">pyVHDLModel</span>
+
+<span class="c"># Install from wheel</span>
+<span class="n">py</span> <span class="n">-m</span> <span class="n">pip</span> <span class="n">install</span> <span class="p">.\</span><span class="n">dist</span><span class="p">\</span><span class="n">pyVHDLModel</span><span class="p">-</span><span class="n">0</span><span class="p">.</span><span class="n">31</span><span class="p">.</span><span class="n">0-py3-none-any</span><span class="p">.</span><span class="n">whl</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="GettingStarted.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Dependency.html" class="btn btn-neutral float-right" title="Dependency" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

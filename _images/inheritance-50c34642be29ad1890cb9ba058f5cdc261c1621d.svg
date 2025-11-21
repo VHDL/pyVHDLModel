@@ -1,0 +1,119 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="576pt" height="109pt" viewBox="0.00 0.00 576.00 109.15">
+<ns0:g id="graph0" class="graph" transform="scale(0.92 0.92) rotate(0) translate(4 115)">
+<ns0:title>inheritance3c3ffed631</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>AssertStatementMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.AssertStatementMixin" ns1:title="A ``MixinAssertStatement`` is a mixin-class for all assert statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="434,-56 309,-56 309,-37 434,-37 434,-56" />
+<ns0:text text-anchor="middle" x="371.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">AssertStatementMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>SequentialAssertStatement</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Sequential.html#pyVHDLModel.Sequential.SequentialAssertStatement" ns1:title="SequentialAssertStatement" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="620,-74 470,-74 470,-55 620,-55 620,-74" />
+<ns0:text text-anchor="middle" x="545" y="-62" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SequentialAssertStatement</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>AssertStatementMixin-&gt;SequentialAssertStatement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M434.42,-53C444.31,-54.04 454.66,-55.12 464.89,-56.2" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="464.74,-57.94 469.9,-56.72 465.11,-54.46 464.74,-57.94" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ReportStatementMixin</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ReportStatementMixin" ns1:title="A ``MixinReportStatement`` is a mixin-class for all report and assert statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="273,-56 146,-56 146,-37 273,-37 273,-56" />
+<ns0:text text-anchor="middle" x="209.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ReportStatementMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ReportStatementMixin-&gt;AssertStatementMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M273.28,-46.5C283.27,-46.5 293.63,-46.5 303.71,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="303.95,-48.25 308.95,-46.5 303.95,-44.75 303.95,-48.25" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>ConditionalMixin</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ConditionalMixin" ns1:title="A ``ConditionalMixin`` is a mixin-class for all statements with a condition." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="259,-19 160,-19 160,0 259,0 259,-19" />
+<ns0:text text-anchor="middle" x="209.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConditionalMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>ConditionalMixin-&gt;AssertStatementMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M251.7,-19.03C273.83,-24.14 301.17,-30.47 324.05,-35.76" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="323.89,-37.52 329.16,-36.94 324.68,-34.11 323.89,-37.52" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>LabeledEntityMixin</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.LabeledEntityMixin" ns1:title="A ``LabeledEntityMixin`` is a mixin class for all VHDL entities that can have labels." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="110,-111 0,-111 0,-92 110,-92 110,-111" />
+<ns0:text text-anchor="middle" x="55" y="-99" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">LabeledEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node8" class="node">
+<ns0:title>Statement</ns0:title>
+<ns0:g id="a_node8"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Common.html#pyVHDLModel.Common.Statement" ns1:title="A ``Statement`` is a base-class for all statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="243.5,-93 175.5,-93 175.5,-74 243.5,-74 243.5,-93" />
+<ns0:text text-anchor="middle" x="209.5" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Statement</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge7" class="edge">
+<ns0:title>LabeledEntityMixin-&gt;Statement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M110.2,-95.1C130.07,-92.76 152.14,-90.15 170.32,-88.01" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="170.58,-89.74 175.34,-87.41 170.17,-86.26 170.58,-89.74" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="92.5,-74 17.5,-74 17.5,-55 92.5,-55 92.5,-74" />
+<ns0:text text-anchor="middle" x="55" y="-62" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge6" class="edge">
+<ns0:title>ModelEntity-&gt;Statement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M92.53,-69.05C116.06,-71.98 146.58,-75.79 170.41,-78.75" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="170.21,-80.49 175.39,-79.37 170.65,-77.02 170.21,-80.49" />
+</ns0:g>
+
+<ns0:g id="node7" class="node">
+<ns0:title>SequentialStatement</ns0:title>
+<ns0:g id="a_node7"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Sequential.html#pyVHDLModel.Sequential.SequentialStatement" ns1:title="A ``SequentialStatement`` is a base-class for all sequential statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="431,-93 312,-93 312,-74 431,-74 431,-93" />
+<ns0:text text-anchor="middle" x="371.5" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SequentialStatement</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>SequentialStatement-&gt;SequentialAssertStatement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M431.04,-77.01C441.9,-75.81 453.4,-74.54 464.75,-73.28" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="465.18,-74.99 469.95,-72.7 464.79,-71.51 465.18,-74.99" />
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>Statement-&gt;SequentialStatement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M243.65,-83.5C261.87,-83.5 285.1,-83.5 306.68,-83.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="306.84,-85.25 311.84,-83.5 306.84,-81.75 306.84,-85.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

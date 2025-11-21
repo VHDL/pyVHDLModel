@@ -1,0 +1,1542 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyVHDLModel.Name &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pyVHDLModel.Namespace" href="pyVHDLModel.Namespace.html" />
+    <link rel="prev" title="pyVHDLModel.Interface" href="pyVHDLModel.Interface.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pyVHDLModel.html">Python Class Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Association.html">pyVHDLModel.Association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Base.html">pyVHDLModel.Base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Common.html">pyVHDLModel.Common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Concurrent.html">pyVHDLModel.Concurrent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Declaration.html">pyVHDLModel.Declaration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.DesignUnit.html">pyVHDLModel.DesignUnit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Exception.html">pyVHDLModel.Exception</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Expression.html">pyVHDLModel.Expression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.IEEE.html">pyVHDLModel.IEEE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Instantiation.html">pyVHDLModel.Instantiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Interface.html">pyVHDLModel.Interface</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pyVHDLModel.Name</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Name.Name"><code class="docutils literal notranslate"><span class="pre">Name</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.Name.__init__"><code class="docutils literal notranslate"><span class="pre">Name.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.Name.Identifier"><code class="docutils literal notranslate"><span class="pre">Name.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.Name.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">Name.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.Name.Root"><code class="docutils literal notranslate"><span class="pre">Name.Root</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.Name.Prefix"><code class="docutils literal notranslate"><span class="pre">Name.Prefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.Name.HasPrefix"><code class="docutils literal notranslate"><span class="pre">Name.HasPrefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.Name.__repr__"><code class="docutils literal notranslate"><span class="pre">Name.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.Name.__str__"><code class="docutils literal notranslate"><span class="pre">Name.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.Name.Parent"><code class="docutils literal notranslate"><span class="pre">Name.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.Name.__annotate_func__"><code class="docutils literal notranslate"><span class="pre">Name.__annotate_func__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.Name._parent"><code class="docutils literal notranslate"><span class="pre">Name._parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Name.SimpleName"><code class="docutils literal notranslate"><span class="pre">SimpleName</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SimpleName.HasPrefix"><code class="docutils literal notranslate"><span class="pre">SimpleName.HasPrefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SimpleName.Identifier"><code class="docutils literal notranslate"><span class="pre">SimpleName.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SimpleName.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">SimpleName.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SimpleName.Parent"><code class="docutils literal notranslate"><span class="pre">SimpleName.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SimpleName.Prefix"><code class="docutils literal notranslate"><span class="pre">SimpleName.Prefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SimpleName.Root"><code class="docutils literal notranslate"><span class="pre">SimpleName.Root</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SimpleName.__init__"><code class="docutils literal notranslate"><span class="pre">SimpleName.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SimpleName.__repr__"><code class="docutils literal notranslate"><span class="pre">SimpleName.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SimpleName.__str__"><code class="docutils literal notranslate"><span class="pre">SimpleName.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SimpleName._parent"><code class="docutils literal notranslate"><span class="pre">SimpleName._parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName"><code class="docutils literal notranslate"><span class="pre">ParenthesisName</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName.__init__"><code class="docutils literal notranslate"><span class="pre">ParenthesisName.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName.__str__"><code class="docutils literal notranslate"><span class="pre">ParenthesisName.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName.HasPrefix"><code class="docutils literal notranslate"><span class="pre">ParenthesisName.HasPrefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName.Identifier"><code class="docutils literal notranslate"><span class="pre">ParenthesisName.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">ParenthesisName.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName.Parent"><code class="docutils literal notranslate"><span class="pre">ParenthesisName.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName.Prefix"><code class="docutils literal notranslate"><span class="pre">ParenthesisName.Prefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName.Root"><code class="docutils literal notranslate"><span class="pre">ParenthesisName.Root</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName.__annotate_func__"><code class="docutils literal notranslate"><span class="pre">ParenthesisName.__annotate_func__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName.__repr__"><code class="docutils literal notranslate"><span class="pre">ParenthesisName.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName._parent"><code class="docutils literal notranslate"><span class="pre">ParenthesisName._parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Name.IndexedName"><code class="docutils literal notranslate"><span class="pre">IndexedName</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.IndexedName.__init__"><code class="docutils literal notranslate"><span class="pre">IndexedName.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.IndexedName.__str__"><code class="docutils literal notranslate"><span class="pre">IndexedName.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.IndexedName.HasPrefix"><code class="docutils literal notranslate"><span class="pre">IndexedName.HasPrefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.IndexedName.Identifier"><code class="docutils literal notranslate"><span class="pre">IndexedName.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.IndexedName.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">IndexedName.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.IndexedName.Parent"><code class="docutils literal notranslate"><span class="pre">IndexedName.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.IndexedName.Prefix"><code class="docutils literal notranslate"><span class="pre">IndexedName.Prefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.IndexedName.Root"><code class="docutils literal notranslate"><span class="pre">IndexedName.Root</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.IndexedName.__annotate_func__"><code class="docutils literal notranslate"><span class="pre">IndexedName.__annotate_func__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.IndexedName.__repr__"><code class="docutils literal notranslate"><span class="pre">IndexedName.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.IndexedName._parent"><code class="docutils literal notranslate"><span class="pre">IndexedName._parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Name.SlicedName"><code class="docutils literal notranslate"><span class="pre">SlicedName</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SlicedName.HasPrefix"><code class="docutils literal notranslate"><span class="pre">SlicedName.HasPrefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SlicedName.Identifier"><code class="docutils literal notranslate"><span class="pre">SlicedName.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SlicedName.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">SlicedName.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SlicedName.Parent"><code class="docutils literal notranslate"><span class="pre">SlicedName.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SlicedName.Prefix"><code class="docutils literal notranslate"><span class="pre">SlicedName.Prefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SlicedName.Root"><code class="docutils literal notranslate"><span class="pre">SlicedName.Root</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SlicedName.__init__"><code class="docutils literal notranslate"><span class="pre">SlicedName.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SlicedName.__repr__"><code class="docutils literal notranslate"><span class="pre">SlicedName.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SlicedName.__str__"><code class="docutils literal notranslate"><span class="pre">SlicedName.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SlicedName._parent"><code class="docutils literal notranslate"><span class="pre">SlicedName._parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Name.SelectedName"><code class="docutils literal notranslate"><span class="pre">SelectedName</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SelectedName.__init__"><code class="docutils literal notranslate"><span class="pre">SelectedName.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SelectedName.__str__"><code class="docutils literal notranslate"><span class="pre">SelectedName.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SelectedName.HasPrefix"><code class="docutils literal notranslate"><span class="pre">SelectedName.HasPrefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SelectedName.Identifier"><code class="docutils literal notranslate"><span class="pre">SelectedName.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SelectedName.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">SelectedName.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SelectedName.Parent"><code class="docutils literal notranslate"><span class="pre">SelectedName.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SelectedName.Prefix"><code class="docutils literal notranslate"><span class="pre">SelectedName.Prefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SelectedName.Root"><code class="docutils literal notranslate"><span class="pre">SelectedName.Root</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SelectedName.__repr__"><code class="docutils literal notranslate"><span class="pre">SelectedName.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.SelectedName._parent"><code class="docutils literal notranslate"><span class="pre">SelectedName._parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Name.AttributeName"><code class="docutils literal notranslate"><span class="pre">AttributeName</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AttributeName.HasPrefix"><code class="docutils literal notranslate"><span class="pre">AttributeName.HasPrefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AttributeName.Identifier"><code class="docutils literal notranslate"><span class="pre">AttributeName.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AttributeName.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">AttributeName.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AttributeName.Parent"><code class="docutils literal notranslate"><span class="pre">AttributeName.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AttributeName.Prefix"><code class="docutils literal notranslate"><span class="pre">AttributeName.Prefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AttributeName.Root"><code class="docutils literal notranslate"><span class="pre">AttributeName.Root</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AttributeName.__repr__"><code class="docutils literal notranslate"><span class="pre">AttributeName.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AttributeName._parent"><code class="docutils literal notranslate"><span class="pre">AttributeName._parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AttributeName.__init__"><code class="docutils literal notranslate"><span class="pre">AttributeName.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AttributeName.__str__"><code class="docutils literal notranslate"><span class="pre">AttributeName.__str__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Name.AllName"><code class="docutils literal notranslate"><span class="pre">AllName</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AllName.HasPrefix"><code class="docutils literal notranslate"><span class="pre">AllName.HasPrefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AllName.Identifier"><code class="docutils literal notranslate"><span class="pre">AllName.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AllName.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">AllName.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AllName.Parent"><code class="docutils literal notranslate"><span class="pre">AllName.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AllName.Prefix"><code class="docutils literal notranslate"><span class="pre">AllName.Prefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AllName.Root"><code class="docutils literal notranslate"><span class="pre">AllName.Root</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AllName.__repr__"><code class="docutils literal notranslate"><span class="pre">AllName.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AllName.__str__"><code class="docutils literal notranslate"><span class="pre">AllName.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AllName._parent"><code class="docutils literal notranslate"><span class="pre">AllName._parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.AllName.__init__"><code class="docutils literal notranslate"><span class="pre">AllName.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Name.OpenName"><code class="docutils literal notranslate"><span class="pre">OpenName</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.OpenName.HasPrefix"><code class="docutils literal notranslate"><span class="pre">OpenName.HasPrefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.OpenName.Identifier"><code class="docutils literal notranslate"><span class="pre">OpenName.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.OpenName.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">OpenName.NormalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.OpenName.Parent"><code class="docutils literal notranslate"><span class="pre">OpenName.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.OpenName.Prefix"><code class="docutils literal notranslate"><span class="pre">OpenName.Prefix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.OpenName.Root"><code class="docutils literal notranslate"><span class="pre">OpenName.Root</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.OpenName.__repr__"><code class="docutils literal notranslate"><span class="pre">OpenName.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.OpenName._parent"><code class="docutils literal notranslate"><span class="pre">OpenName._parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.OpenName.__init__"><code class="docutils literal notranslate"><span class="pre">OpenName.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Name.OpenName.__str__"><code class="docutils literal notranslate"><span class="pre">OpenName.__str__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Namespace.html">pyVHDLModel.Namespace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Object.html">pyVHDLModel.Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.PSLModel.html">pyVHDLModel.PSLModel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Predefined.html">pyVHDLModel.Predefined</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Regions.html">pyVHDLModel.Regions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.STD.html">pyVHDLModel.STD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Sequential.html">pyVHDLModel.Sequential</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Subprogram.html">pyVHDLModel.Subprogram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Symbol.html">pyVHDLModel.Symbol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Type.html">pyVHDLModel.Type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.VHDLVersion"><code class="docutils literal notranslate"><span class="pre">VHDLVersion</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.IEEEFlavor"><code class="docutils literal notranslate"><span class="pre">IEEEFlavor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectClass"><code class="docutils literal notranslate"><span class="pre">ObjectClass</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DesignUnitKind"><code class="docutils literal notranslate"><span class="pre">DesignUnitKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DependencyGraphVertexKind"><code class="docutils literal notranslate"><span class="pre">DependencyGraphVertexKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DependencyGraphEdgeKind"><code class="docutils literal notranslate"><span class="pre">DependencyGraphEdgeKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectGraphVertexKind"><code class="docutils literal notranslate"><span class="pre">ObjectGraphVertexKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectGraphEdgeKind"><code class="docutils literal notranslate"><span class="pre">ObjectGraphEdgeKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Design"><code class="docutils literal notranslate"><span class="pre">Design</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library"><code class="docutils literal notranslate"><span class="pre">Library</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Document"><code class="docutils literal notranslate"><span class="pre">Document</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="pyVHDLModel.html">pyVHDLModel</a></li>
+      <li class="breadcrumb-item active">pyVHDLModel.Name</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/pyVHDLModel/pyVHDLModel.Name.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="module-pyVHDLModel.Name">
+<span id="pyvhdlmodel-name"></span><h1>pyVHDLModel.Name<a class="headerlink" href="#module-pyVHDLModel.Name" title="Link to this heading"></a></h1>
+<p>This module contains parts of an abstract document language model for VHDL.</p>
+<p>VHDL uses <em>names</em> to express cross-references from <em>usage locations</em> to <em>declarations</em>. Here, <em>names</em> are single or
+combined identifiers. <a class="reference internal" href="pyVHDLModel.Symbol.html#module-pyVHDLModel.Symbol" title="pyVHDLModel.Symbol"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Symbols</span></code></a> are structures representing a <em>name</em> and a reference
+(pointer) to the referenced vhdl language entity.</p>
+<p><strong>Classes</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><code class="xref py py-class docutils literal notranslate"><span class="pre">Name</span></code></a>:
+<code class="docutils literal notranslate"><span class="pre">Name</span></code> is the base-class for all <em>names</em> in the VHDL language model.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleName</span></code></a>:
+A <em>simple name</em> is a name made from a single word.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName" title="pyVHDLModel.Name.ParenthesisName"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParenthesisName</span></code></a>:
+<code class="docutils literal notranslate"><span class="pre">Name</span></code> is the base-class for all <em>names</em> in the VHDL language model.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Name.IndexedName" title="pyVHDLModel.Name.IndexedName"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexedName</span></code></a>:
+<code class="docutils literal notranslate"><span class="pre">Name</span></code> is the base-class for all <em>names</em> in the VHDL language model.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Name.SlicedName" title="pyVHDLModel.Name.SlicedName"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlicedName</span></code></a>:
+<code class="docutils literal notranslate"><span class="pre">Name</span></code> is the base-class for all <em>names</em> in the VHDL language model.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Name.SelectedName" title="pyVHDLModel.Name.SelectedName"><code class="xref py py-class docutils literal notranslate"><span class="pre">SelectedName</span></code></a>:
+A <em>selected name</em> is a name made from multiple words separated by a dot (<code class="docutils literal notranslate"><span class="pre">.</span></code>).</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Name.AttributeName" title="pyVHDLModel.Name.AttributeName"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeName</span></code></a>:
+<code class="docutils literal notranslate"><span class="pre">Name</span></code> is the base-class for all <em>names</em> in the VHDL language model.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Name.AllName" title="pyVHDLModel.Name.AllName"><code class="xref py py-class docutils literal notranslate"><span class="pre">AllName</span></code></a>:
+The <em>all name</em> represents the reserved word <code class="docutils literal notranslate"><span class="pre">all</span></code> used in names.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Name.OpenName" title="pyVHDLModel.Name.OpenName"><code class="xref py py-class docutils literal notranslate"><span class="pre">OpenName</span></code></a>:
+The <em>open name</em> represents the reserved word <code class="docutils literal notranslate"><span class="pre">open</span></code>.</p></li>
+</ul>
+<hr class="docutils" />
+<p><strong>Classes</strong></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.Name">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Name.</span></span><span class="sig-name descname"><span class="pre">Name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#Name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.Name" title="Link to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">Name</span></code> is the base-class for all <em>names</em> in the VHDL language model.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-2d5830c35f77b97d38f8e9db8c1a6a49ebaab46b.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of Name</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>parent</strong> (<a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.Name.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#Name.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.Name.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></span>) – The parent model entity of this entity.</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.Name.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.Name.Identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.Name.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.Name.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier (normalized).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.Name.Root">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Root</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.Name.Root" title="Link to this definition"></a></dt>
+<dd><p>The root (left-most) element in a chain of names.</p>
+<p>In case the name is a <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">name</span></code></a>, the root points to the name itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name’s root element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.Name.Prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.Name.Prefix" title="Link to this definition"></a></dt>
+<dd><p>The name’s prefix in a chain of names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name left from current name, if not a simple name, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.Name.HasPrefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HasPrefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.Name.HasPrefix" title="Link to this definition"></a></dt>
+<dd><p>Returns true, if the name has a prefix.</p>
+<p>This is true for all names except <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">names</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">True</span></code>, if the name as a prefix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.Name.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#Name.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.Name.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.Name.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#Name.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.Name.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.Name.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.Name.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Name.Name._parent" title="pyVHDLModel.Name.Name._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.Name.__annotate_func__">
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.Name.__annotate_func__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.Name._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Name.Name._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SimpleName">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Name.</span></span><span class="sig-name descname"><span class="pre">SimpleName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#SimpleName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.SimpleName" title="Link to this definition"></a></dt>
+<dd><p>A <em>simple name</em> is a name made from a single word.</p>
+<p>For example, the entity name in an architecture declaration is a simple name, while the name of the architecture
+itself is an identifier. The simple name references is again an identifier in the entity declaration, thus names
+reference other (already) declared language entities.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-40c45666ea19dd80f9e16314d957770aad0d1f2e.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of SimpleName</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>parent</strong> (<a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SimpleName.HasPrefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HasPrefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SimpleName.HasPrefix" title="Link to this definition"></a></dt>
+<dd><p>Returns true, if the name has a prefix.</p>
+<p>This is true for all names except <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">names</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">True</span></code>, if the name as a prefix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SimpleName.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SimpleName.Identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SimpleName.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SimpleName.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier (normalized).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SimpleName.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SimpleName.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Name.SimpleName._parent" title="pyVHDLModel.Name.SimpleName._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SimpleName.Prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SimpleName.Prefix" title="Link to this definition"></a></dt>
+<dd><p>The name’s prefix in a chain of names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name left from current name, if not a simple name, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SimpleName.Root">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Root</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SimpleName.Root" title="Link to this definition"></a></dt>
+<dd><p>The root (left-most) element in a chain of names.</p>
+<p>In case the name is a <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">name</span></code></a>, the root points to the name itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name’s root element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SimpleName.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.SimpleName.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></span>) – The parent model entity of this entity.</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SimpleName.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.SimpleName.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SimpleName.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.SimpleName.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SimpleName._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Name.SimpleName._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.ParenthesisName">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Name.</span></span><span class="sig-name descname"><span class="pre">ParenthesisName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">associations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#ParenthesisName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.ParenthesisName" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-cd7b457fa74c9e49b2a6655c95e5fa5528c96ad1.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ParenthesisName</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a>)</p></li>
+<li><p><strong>associations</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a>)</p></li>
+<li><p><strong>parent</strong> (<a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.ParenthesisName.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">associations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#ParenthesisName.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.ParenthesisName.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></span>) – The parent model entity of this entity.</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a>)</p></li>
+<li><p><strong>associations</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.ParenthesisName.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#ParenthesisName.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.ParenthesisName.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.ParenthesisName.HasPrefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HasPrefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.ParenthesisName.HasPrefix" title="Link to this definition"></a></dt>
+<dd><p>Returns true, if the name has a prefix.</p>
+<p>This is true for all names except <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">names</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">True</span></code>, if the name as a prefix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.ParenthesisName.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.ParenthesisName.Identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.ParenthesisName.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.ParenthesisName.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier (normalized).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.ParenthesisName.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.ParenthesisName.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Name.ParenthesisName._parent" title="pyVHDLModel.Name.ParenthesisName._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.ParenthesisName.Prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.ParenthesisName.Prefix" title="Link to this definition"></a></dt>
+<dd><p>The name’s prefix in a chain of names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name left from current name, if not a simple name, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.ParenthesisName.Root">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Root</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.ParenthesisName.Root" title="Link to this definition"></a></dt>
+<dd><p>The root (left-most) element in a chain of names.</p>
+<p>In case the name is a <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">name</span></code></a>, the root points to the name itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name’s root element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.ParenthesisName.__annotate_func__">
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.ParenthesisName.__annotate_func__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.ParenthesisName.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.ParenthesisName.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.ParenthesisName._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Name.ParenthesisName._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.IndexedName">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Name.</span></span><span class="sig-name descname"><span class="pre">IndexedName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#IndexedName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.IndexedName" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-8ca732deb6e4c458b91cc1201c80065def4b41c0.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of IndexedName</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a>)</p></li>
+<li><p><strong>indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em>]</em>)</p></li>
+<li><p><strong>parent</strong> (<a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.IndexedName.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#IndexedName.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.IndexedName.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></span>) – The parent model entity of this entity.</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a>)</p></li>
+<li><p><strong>indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.IndexedName.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#IndexedName.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.IndexedName.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.IndexedName.HasPrefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HasPrefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.IndexedName.HasPrefix" title="Link to this definition"></a></dt>
+<dd><p>Returns true, if the name has a prefix.</p>
+<p>This is true for all names except <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">names</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">True</span></code>, if the name as a prefix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.IndexedName.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.IndexedName.Identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.IndexedName.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.IndexedName.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier (normalized).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.IndexedName.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.IndexedName.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Name.IndexedName._parent" title="pyVHDLModel.Name.IndexedName._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.IndexedName.Prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.IndexedName.Prefix" title="Link to this definition"></a></dt>
+<dd><p>The name’s prefix in a chain of names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name left from current name, if not a simple name, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.IndexedName.Root">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Root</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.IndexedName.Root" title="Link to this definition"></a></dt>
+<dd><p>The root (left-most) element in a chain of names.</p>
+<p>In case the name is a <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">name</span></code></a>, the root points to the name itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name’s root element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.IndexedName.__annotate_func__">
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.IndexedName.__annotate_func__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.IndexedName.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.IndexedName.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.IndexedName._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelEntity</span></em><a class="headerlink" href="#pyVHDLModel.Name.IndexedName._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SlicedName">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Name.</span></span><span class="sig-name descname"><span class="pre">SlicedName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#SlicedName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.SlicedName" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-bb94e83bb432c6940200fd856527d2bc5dae7506.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of SlicedName</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>parent</strong> (<a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SlicedName.HasPrefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HasPrefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SlicedName.HasPrefix" title="Link to this definition"></a></dt>
+<dd><p>Returns true, if the name has a prefix.</p>
+<p>This is true for all names except <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">names</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">True</span></code>, if the name as a prefix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SlicedName.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SlicedName.Identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SlicedName.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SlicedName.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier (normalized).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SlicedName.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SlicedName.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Name.SlicedName._parent" title="pyVHDLModel.Name.SlicedName._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SlicedName.Prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SlicedName.Prefix" title="Link to this definition"></a></dt>
+<dd><p>The name’s prefix in a chain of names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name left from current name, if not a simple name, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SlicedName.Root">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Root</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SlicedName.Root" title="Link to this definition"></a></dt>
+<dd><p>The root (left-most) element in a chain of names.</p>
+<p>In case the name is a <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">name</span></code></a>, the root points to the name itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name’s root element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SlicedName.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.SlicedName.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></span>) – The parent model entity of this entity.</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SlicedName.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.SlicedName.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SlicedName.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.SlicedName.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SlicedName._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Name.SlicedName._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SelectedName">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Name.</span></span><span class="sig-name descname"><span class="pre">SelectedName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#SelectedName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.SelectedName" title="Link to this definition"></a></dt>
+<dd><p>A <em>selected name</em> is a name made from multiple words separated by a dot (<code class="docutils literal notranslate"><span class="pre">.</span></code>).</p>
+<p>For example, the library and entity name in a direct entity instantiation is a selected name. Here the entity
+identifier is a selected name. The library identifier is a <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">name</span></code></a>, which is
+referenced by the selected name via the <code class="xref py py-attr docutils literal notranslate"><span class="pre">Prefix</span></code> property.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-c74d20c24884f1972caaa3c65fb3993a4316b019.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of SelectedName</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a>)</p></li>
+<li><p><strong>parent</strong> (<a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SelectedName.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#SelectedName.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.SelectedName.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></span>) – The parent model entity of this entity.</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SelectedName.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#SelectedName.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.SelectedName.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SelectedName.HasPrefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HasPrefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SelectedName.HasPrefix" title="Link to this definition"></a></dt>
+<dd><p>Returns true, if the name has a prefix.</p>
+<p>This is true for all names except <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">names</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">True</span></code>, if the name as a prefix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SelectedName.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SelectedName.Identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SelectedName.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SelectedName.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier (normalized).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SelectedName.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SelectedName.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Name.SelectedName._parent" title="pyVHDLModel.Name.SelectedName._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SelectedName.Prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SelectedName.Prefix" title="Link to this definition"></a></dt>
+<dd><p>The name’s prefix in a chain of names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name left from current name, if not a simple name, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SelectedName.Root">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Root</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.SelectedName.Root" title="Link to this definition"></a></dt>
+<dd><p>The root (left-most) element in a chain of names.</p>
+<p>In case the name is a <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">name</span></code></a>, the root points to the name itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name’s root element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SelectedName.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.SelectedName.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.SelectedName._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Name.SelectedName._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AttributeName">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Name.</span></span><span class="sig-name descname"><span class="pre">AttributeName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#AttributeName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.AttributeName" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-3bd4eefcbac61032ccf8e1116b3111ab77fa17f4.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of AttributeName</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a>)</p></li>
+<li><p><strong>parent</strong> (<a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AttributeName.HasPrefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HasPrefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.AttributeName.HasPrefix" title="Link to this definition"></a></dt>
+<dd><p>Returns true, if the name has a prefix.</p>
+<p>This is true for all names except <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">names</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">True</span></code>, if the name as a prefix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AttributeName.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.AttributeName.Identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AttributeName.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.AttributeName.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier (normalized).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AttributeName.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.AttributeName.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Name.AttributeName._parent" title="pyVHDLModel.Name.AttributeName._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AttributeName.Prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.AttributeName.Prefix" title="Link to this definition"></a></dt>
+<dd><p>The name’s prefix in a chain of names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name left from current name, if not a simple name, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AttributeName.Root">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Root</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.AttributeName.Root" title="Link to this definition"></a></dt>
+<dd><p>The root (left-most) element in a chain of names.</p>
+<p>In case the name is a <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">name</span></code></a>, the root points to the name itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name’s root element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AttributeName.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.AttributeName.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AttributeName._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Name.AttributeName._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AttributeName.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#AttributeName.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.AttributeName.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></span>) – The parent model entity of this entity.</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AttributeName.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#AttributeName.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.AttributeName.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AllName">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Name.</span></span><span class="sig-name descname"><span class="pre">AllName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#AllName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.AllName" title="Link to this definition"></a></dt>
+<dd><p>The <em>all name</em> represents the reserved word <code class="docutils literal notranslate"><span class="pre">all</span></code> used in names.</p>
+<p>Most likely this name is used in use-statements.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-bc66a3d17ee019845d16a0e058234c0a2a2e6e59.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of AllName</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a>)</p></li>
+<li><p><strong>parent</strong> (<a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AllName.HasPrefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HasPrefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.AllName.HasPrefix" title="Link to this definition"></a></dt>
+<dd><p>Returns true, if the name has a prefix.</p>
+<p>This is true for all names except <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">names</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">True</span></code>, if the name as a prefix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AllName.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.AllName.Identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AllName.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.AllName.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier (normalized).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AllName.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.AllName.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Name.AllName._parent" title="pyVHDLModel.Name.AllName._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AllName.Prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.AllName.Prefix" title="Link to this definition"></a></dt>
+<dd><p>The name’s prefix in a chain of names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name left from current name, if not a simple name, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AllName.Root">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Root</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.AllName.Root" title="Link to this definition"></a></dt>
+<dd><p>The root (left-most) element in a chain of names.</p>
+<p>In case the name is a <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">name</span></code></a>, the root points to the name itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name’s root element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AllName.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.AllName.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AllName.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.AllName.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AllName._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Name.AllName._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.AllName.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#AllName.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.AllName.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></span>) – The parent model entity of this entity.</p></li>
+<li><p><strong>prefix</strong> (<a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><em>Name</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.OpenName">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Name.</span></span><span class="sig-name descname"><span class="pre">OpenName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#OpenName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.OpenName" title="Link to this definition"></a></dt>
+<dd><p>The <em>open name</em> represents the reserved word <code class="docutils literal notranslate"><span class="pre">open</span></code>.</p>
+<p>Most likely this name is used in port associations.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-e58204f98c465bc5a74bd9c556a1e92dafdc8c48.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of OpenName</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parent</strong> (<a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a>)</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.OpenName.HasPrefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">HasPrefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.OpenName.HasPrefix" title="Link to this definition"></a></dt>
+<dd><p>Returns true, if the name has a prefix.</p>
+<p>This is true for all names except <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">names</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">True</span></code>, if the name as a prefix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.OpenName.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.OpenName.Identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.OpenName.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.OpenName.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized identifier the name is referencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The referenced identifier (normalized).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.OpenName.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.OpenName.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Name.OpenName._parent" title="pyVHDLModel.Name.OpenName._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.OpenName.Prefix">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.OpenName.Prefix" title="Link to this definition"></a></dt>
+<dd><p>The name’s prefix in a chain of names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name left from current name, if not a simple name, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.OpenName.Root">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Root</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Name.Name" title="pyVHDLModel.Name.Name"><span class="pre">Name</span></a></em><a class="headerlink" href="#pyVHDLModel.Name.OpenName.Root" title="Link to this definition"></a></dt>
+<dd><p>The root (left-most) element in a chain of names.</p>
+<p>In case the name is a <a class="reference internal" href="#pyVHDLModel.Name.SimpleName" title="pyVHDLModel.Name.SimpleName"><code class="xref py py-class docutils literal notranslate"><span class="pre">simple</span> <span class="pre">name</span></code></a>, the root points to the name itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name’s root element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.OpenName.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Name.OpenName.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.OpenName._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Name.OpenName._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.OpenName.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#OpenName.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.OpenName.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></span>) – The parent model entity of this entity.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Name.OpenName.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Name.html#OpenName.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Name.OpenName.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pyVHDLModel.Interface.html" class="btn btn-neutral float-left" title="pyVHDLModel.Interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pyVHDLModel.Namespace.html" class="btn btn-neutral float-right" title="pyVHDLModel.Namespace" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

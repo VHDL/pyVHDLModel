@@ -1,0 +1,262 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+=====================
+pyVHDLModel.Interface
+=====================
+
+.. automodule:: pyVHDLModel.Interface
+
+
+.. currentmodule:: pyVHDLModel.Interface
+
+
+**Classes**
+
+- :py:class:`InterfaceItemMixin`:
+  An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items.
+
+- :py:class:`InterfaceItemWithModeMixin`:
+  An ``InterfaceItemWithMode`` is a mixin-class to provide a ``Mode`` to interface items.
+
+- :py:class:`GenericInterfaceItemMixin`:
+  A ``GenericInterfaceItem`` is a mixin class for all generic interface items.
+
+- :py:class:`PortInterfaceItemMixin`:
+  A ``PortInterfaceItem`` is a mixin class for all port interface items.
+
+- :py:class:`ParameterInterfaceItemMixin`:
+  A ``ParameterInterfaceItem`` is a mixin class for all parameter interface items.
+
+- :py:class:`GenericConstantInterfaceItem`:
+  Represents a constant.
+
+- :py:class:`GenericTypeInterfaceItem`:
+  ``BaseType`` is the base-class of all type entities in this model.
+
+- :py:class:`GenericSubprogramInterfaceItem`:
+  A ``GenericInterfaceItem`` is a mixin class for all generic interface items.
+
+- :py:class:`GenericProcedureInterfaceItem`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`GenericFunctionInterfaceItem`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`InterfacePackage`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`GenericPackageInterfaceItem`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+- :py:class:`PortSignalInterfaceItem`:
+  Represents a signal.
+
+- :py:class:`ParameterConstantInterfaceItem`:
+  Represents a constant.
+
+- :py:class:`ParameterVariableInterfaceItem`:
+  Represents a variable.
+
+- :py:class:`ParameterSignalInterfaceItem`:
+  Represents a signal.
+
+- :py:class:`ParameterFileInterfaceItem`:
+  Represents a file.
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: InterfaceItemMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: InterfaceItemMixin
+      :parts: 1
+
+.. autoclass:: InterfaceItemWithModeMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: InterfaceItemWithModeMixin
+      :parts: 1
+
+.. autoclass:: GenericInterfaceItemMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericInterfaceItemMixin
+      :parts: 1
+
+.. autoclass:: PortInterfaceItemMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PortInterfaceItemMixin
+      :parts: 1
+
+.. autoclass:: ParameterInterfaceItemMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ParameterInterfaceItemMixin
+      :parts: 1
+
+.. autoclass:: GenericConstantInterfaceItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericConstantInterfaceItem
+      :parts: 1
+
+.. autoclass:: GenericTypeInterfaceItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericTypeInterfaceItem
+      :parts: 1
+
+.. autoclass:: GenericSubprogramInterfaceItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericSubprogramInterfaceItem
+      :parts: 1
+
+.. autoclass:: GenericProcedureInterfaceItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericProcedureInterfaceItem
+      :parts: 1
+
+.. autoclass:: GenericFunctionInterfaceItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericFunctionInterfaceItem
+      :parts: 1
+
+.. autoclass:: InterfacePackage
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: InterfacePackage
+      :parts: 1
+
+.. autoclass:: GenericPackageInterfaceItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: GenericPackageInterfaceItem
+      :parts: 1
+
+.. autoclass:: PortSignalInterfaceItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: PortSignalInterfaceItem
+      :parts: 1
+
+.. autoclass:: ParameterConstantInterfaceItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ParameterConstantInterfaceItem
+      :parts: 1
+
+.. autoclass:: ParameterVariableInterfaceItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ParameterVariableInterfaceItem
+      :parts: 1
+
+.. autoclass:: ParameterSignalInterfaceItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ParameterSignalInterfaceItem
+      :parts: 1
+
+.. autoclass:: ParameterFileInterfaceItem
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ParameterFileInterfaceItem
+      :parts: 1

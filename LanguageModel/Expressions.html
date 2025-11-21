@@ -1,0 +1,327 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Literals and Expressions &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Analyze" href="../Analyze/index.html" />
+    <link rel="prev" title="Sequential Statements" href="SequentialStatements.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">VHDL Language Model</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Miscellaneous.html">Concepts not defined by VHDL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Enumerations.html">Enumerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DesignUnits.html">Design Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="InterfaceItems.html">Interface Items</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SubprogramDefinitions.html">Subprogram Declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TypeDefinitions.html">Type Declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SubtypeDefinitions.html">Subtype Declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ObjectDeclarations.html">Object Declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ConcurrentStatements.html">Concurrent Statements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SequentialStatements.html">Sequential Statements</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Literals and Expressions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#literals">Literals</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#enumeration-literal">Enumeration Literal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#integer-literal">Integer Literal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#floating-point-literal">Floating Point Literal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#physical-literal">Physical Literal</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#expressions">Expressions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#unary-expressions">Unary Expressions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#binary-expressions">Binary Expressions</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#adding-expressions">Adding Expressions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#multiplying-expressions">Multiplying Expressions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#logical-expressions">Logical Expressions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#relational-expressions">Relational Expressions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#shifting-expressions">Shifting Expressions</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#ternary-expressions">Ternary Expressions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pyVHDLModel/pyVHDLModel.html">Python Class Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">VHDL Language Model</a></li>
+      <li class="breadcrumb-item active">Literals and Expressions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/LanguageModel/Expressions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="literals-and-expressions">
+<span id="vhdlmodel-expr"></span><h1>Literals and Expressions<a class="headerlink" href="#literals-and-expressions" title="Link to this heading"></a></h1>
+<nav class="contents local" id="table-of-content">
+<p class="topic-title">Table of Content</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#literals" id="id14">Literals</a></p>
+<ul>
+<li><p><a class="reference internal" href="#enumeration-literal" id="id15">Enumeration Literal</a></p></li>
+<li><p><a class="reference internal" href="#integer-literal" id="id16">Integer Literal</a></p></li>
+<li><p><a class="reference internal" href="#floating-point-literal" id="id17">Floating Point Literal</a></p></li>
+<li><p><a class="reference internal" href="#physical-literal" id="id18">Physical Literal</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#expressions" id="id19">Expressions</a></p>
+<ul>
+<li><p><a class="reference internal" href="#unary-expressions" id="id20">Unary Expressions</a></p></li>
+<li><p><a class="reference internal" href="#binary-expressions" id="id21">Binary Expressions</a></p>
+<ul>
+<li><p><a class="reference internal" href="#adding-expressions" id="id22">Adding Expressions</a></p></li>
+<li><p><a class="reference internal" href="#multiplying-expressions" id="id23">Multiplying Expressions</a></p></li>
+<li><p><a class="reference internal" href="#logical-expressions" id="id24">Logical Expressions</a></p></li>
+<li><p><a class="reference internal" href="#relational-expressions" id="id25">Relational Expressions</a></p></li>
+<li><p><a class="reference internal" href="#shifting-expressions" id="id26">Shifting Expressions</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#ternary-expressions" id="id27">Ternary Expressions</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<p class="rubric">Class Hierarchy</p>
+<section id="literals">
+<span id="vhdlmodel-literals"></span><h2><a class="toc-backref" href="#id14" role="doc-backlink">Literals</a><a class="headerlink" href="#literals" title="Link to this heading"></a></h2>
+<section id="enumeration-literal">
+<span id="vhdlmodel-enumerationliteral"></span><h3><a class="toc-backref" href="#id15" role="doc-backlink">Enumeration Literal</a><a class="headerlink" href="#enumeration-literal" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</section>
+<section id="integer-literal">
+<span id="vhdlmodel-integerliteral"></span><h3><a class="toc-backref" href="#id16" role="doc-backlink">Integer Literal</a><a class="headerlink" href="#integer-literal" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</section>
+<section id="floating-point-literal">
+<span id="vhdlmodel-realliteral"></span><h3><a class="toc-backref" href="#id17" role="doc-backlink">Floating Point Literal</a><a class="headerlink" href="#floating-point-literal" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</section>
+<section id="physical-literal">
+<span id="vhdlmodel-physicalliteral"></span><h3><a class="toc-backref" href="#id18" role="doc-backlink">Physical Literal</a><a class="headerlink" href="#physical-literal" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</section>
+</section>
+<section id="expressions">
+<span id="vhdlmodel-expressions"></span><h2><a class="toc-backref" href="#id19" role="doc-backlink">Expressions</a><a class="headerlink" href="#expressions" title="Link to this heading"></a></h2>
+<p class="rubric">Class Hierarchy</p>
+<div class="admonition-todo admonition" id="id5">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<section id="unary-expressions">
+<span id="vhdlmodel-unary"></span><h3><a class="toc-backref" href="#id20" role="doc-backlink">Unary Expressions</a><a class="headerlink" href="#unary-expressions" title="Link to this heading"></a></h3>
+<p class="rubric">Class Hierarchy</p>
+<div class="admonition-todo admonition" id="id6">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</section>
+<section id="binary-expressions">
+<span id="vhdlmodel-binary"></span><h3><a class="toc-backref" href="#id21" role="doc-backlink">Binary Expressions</a><a class="headerlink" href="#binary-expressions" title="Link to this heading"></a></h3>
+<p class="rubric">Class Hierarchy</p>
+<div class="admonition-todo admonition" id="id7">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<section id="adding-expressions">
+<span id="vhdlmodel-addingexpression"></span><h4><a class="toc-backref" href="#id22" role="doc-backlink">Adding Expressions</a><a class="headerlink" href="#adding-expressions" title="Link to this heading"></a></h4>
+<p class="rubric">Class Hierarchy</p>
+<div class="admonition-todo admonition" id="id8">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</section>
+<section id="multiplying-expressions">
+<span id="vhdlmodel-multiplyingexpressions"></span><h4><a class="toc-backref" href="#id23" role="doc-backlink">Multiplying Expressions</a><a class="headerlink" href="#multiplying-expressions" title="Link to this heading"></a></h4>
+<p class="rubric">Class Hierarchy</p>
+<div class="admonition-todo admonition" id="id9">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</section>
+<section id="logical-expressions">
+<span id="vhdlmodel-logicalexpressions"></span><h4><a class="toc-backref" href="#id24" role="doc-backlink">Logical Expressions</a><a class="headerlink" href="#logical-expressions" title="Link to this heading"></a></h4>
+<p class="rubric">Class Hierarchy</p>
+<div class="admonition-todo admonition" id="id10">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</section>
+<section id="relational-expressions">
+<span id="vhdlmodel-relationalexpressions"></span><h4><a class="toc-backref" href="#id25" role="doc-backlink">Relational Expressions</a><a class="headerlink" href="#relational-expressions" title="Link to this heading"></a></h4>
+<p class="rubric">Class Hierarchy</p>
+<div class="admonition-todo admonition" id="id11">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</section>
+<section id="shifting-expressions">
+<span id="vhdlmodel-shiftingexpressions"></span><h4><a class="toc-backref" href="#id26" role="doc-backlink">Shifting Expressions</a><a class="headerlink" href="#shifting-expressions" title="Link to this heading"></a></h4>
+<p class="rubric">Class Hierarchy</p>
+<div class="admonition-todo admonition" id="id12">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</section>
+</section>
+<section id="ternary-expressions">
+<span id="vhdlmodel-ternary"></span><h3><a class="toc-backref" href="#id27" role="doc-backlink">Ternary Expressions</a><a class="headerlink" href="#ternary-expressions" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id13">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="SequentialStatements.html" class="btn btn-neutral float-left" title="Sequential Statements" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../Analyze/index.html" class="btn btn-neutral float-right" title="Analyze" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,125 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="576pt" height="86pt" viewBox="0.00 0.00 576.00 86.06">
+<ns0:g id="graph0" class="graph" transform="scale(0.85 0.85) rotate(0) translate(4 97)">
+<ns0:title>inheritance0630be94b2</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>DocumentedEntityMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.DocumentedEntityMixin" ns1:title="A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="134,-93 0,-93 0,-74 134,-74 134,-93" />
+<ns0:text text-anchor="middle" x="67" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DocumentedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>InterfaceItemMixin</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.InterfaceItemMixin" ns1:title="An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="280,-93 170,-93 170,-74 280,-74 280,-93" />
+<ns0:text text-anchor="middle" x="225" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">InterfaceItemMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>DocumentedEntityMixin-&gt;InterfaceItemMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M134.16,-83.5C144.2,-83.5 154.51,-83.5 164.4,-83.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="164.53,-85.25 169.53,-83.5 164.53,-81.75 164.53,-85.25" />
+</ns0:g>
+
+<ns0:g id="node8" class="node">
+<ns0:title>Subprogram</ns0:title>
+<ns0:g id="a_node8"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Subprogram.html#pyVHDLModel.Subprogram.Subprogram" ns1:title="Subprogram" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="263,-56 187,-56 187,-37 263,-37 263,-56" />
+<ns0:text text-anchor="middle" x="225" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Subprogram</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge8" class="edge">
+<ns0:title>DocumentedEntityMixin-&gt;Subprogram</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M108.17,-73.97C130.75,-68.62 158.91,-61.94 181.8,-56.51" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="182.44,-58.15 186.91,-55.3 181.64,-54.75 182.44,-58.15" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>GenericInterfaceItemMixin</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.GenericInterfaceItemMixin" ns1:title="A ``GenericInterfaceItem`` is a mixin class for all generic interface items." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="463,-93 316,-93 316,-74 463,-74 463,-93" />
+<ns0:text text-anchor="middle" x="389.5" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">GenericInterfaceItemMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>GenericProcedureInterfaceItem</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.GenericProcedureInterfaceItem" ns1:title="GenericProcedureInterfaceItem" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="668,-74 499,-74 499,-55 668,-55 668,-74" />
+<ns0:text text-anchor="middle" x="583.5" y="-62" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">GenericProcedureInterfaceItem</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>GenericInterfaceItemMixin-&gt;GenericProcedureInterfaceItem</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M463.09,-76.32C473.13,-75.32 483.53,-74.29 493.82,-73.28" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="494.05,-75.01 498.86,-72.78 493.71,-71.53 494.05,-75.01" />
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>InterfaceItemMixin-&gt;GenericInterfaceItemMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M280.11,-83.5C289.95,-83.5 300.39,-83.5 310.75,-83.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="310.83,-85.25 315.83,-83.5 310.83,-81.75 310.83,-85.25" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>Procedure</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Subprogram.html#pyVHDLModel.Subprogram.Procedure" ns1:title="Procedure" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="422,-56 357,-56 357,-37 422,-37 422,-56" />
+<ns0:text text-anchor="middle" x="389.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Procedure</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>Procedure-&gt;GenericProcedureInterfaceItem</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M422.2,-49.47C441.88,-51.32 468.21,-53.79 493.85,-56.19" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="493.82,-57.94 498.96,-56.67 494.15,-54.46 493.82,-57.94" />
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="104.5,-56 29.5,-56 29.5,-37 104.5,-37 104.5,-56" />
+<ns0:text text-anchor="middle" x="67" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge6" class="edge">
+<ns0:title>ModelEntity-&gt;Subprogram</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M104.58,-46.5C127.7,-46.5 157.66,-46.5 181.79,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="181.84,-48.25 186.84,-46.5 181.84,-44.75 181.84,-48.25" />
+</ns0:g>
+
+<ns0:g id="node7" class="node">
+<ns0:title>NamedEntityMixin</ns0:title>
+<ns0:g id="a_node7"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.NamedEntityMixin" ns1:title="A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have identifiers." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="120.5,-19 13.5,-19 13.5,0 120.5,0 120.5,-19" />
+<ns0:text text-anchor="middle" x="67" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">NamedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge7" class="edge">
+<ns0:title>NamedEntityMixin-&gt;Subprogram</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M108.17,-19.03C130.75,-24.38 158.91,-31.06 181.8,-36.49" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="181.64,-38.25 186.91,-37.7 182.44,-34.85 181.64,-38.25" />
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>Subprogram-&gt;Procedure</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M263.28,-46.5C289.81,-46.5 325.29,-46.5 351.71,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="351.87,-48.25 356.87,-46.5 351.87,-44.75 351.87,-48.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

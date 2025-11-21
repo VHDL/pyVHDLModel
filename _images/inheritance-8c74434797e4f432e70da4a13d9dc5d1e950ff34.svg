@@ -1,0 +1,89 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="576pt" height="57pt" viewBox="0.00 0.00 576.00 57.15">
+<ns0:g id="graph0" class="graph" transform="scale(0.89 0.89) rotate(0) translate(4 60)">
+<ns0:title>inheritance134110668c</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>ArrayConstraint</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ArrayConstraint" ns1:title="ArrayConstraint" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="367.5,-19 274.5,-19 274.5,0 367.5,0 367.5,-19" />
+<ns0:text text-anchor="middle" x="321" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ArrayConstraint</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>ConstrainedArraySubtypeSymbol</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol" ns1:title="ConstrainedArraySubtypeSymbol" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="637,-37 459,-37 459,-18 637,-18 637,-37" />
+<ns0:text text-anchor="middle" x="548" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConstrainedArraySubtypeSymbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>ArrayConstraint-&gt;ConstrainedArraySubtypeSymbol</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M367.53,-13.14C392.3,-15.12 423.86,-17.65 453.6,-20.03" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="453.62,-21.78 458.74,-20.44 453.9,-18.3 453.62,-21.78" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>Constraint</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Constraint" ns1:title="Constraint" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="170,-19 103,-19 103,0 170,0 170,-19" />
+<ns0:text text-anchor="middle" x="136.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Constraint</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>Constraint-&gt;ArrayConstraint</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M170.13,-9.5C197.67,-9.5 237.57,-9.5 269.27,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="269.29,-11.25 274.29,-9.5 269.29,-7.75 269.29,-11.25" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>ConstrainedCompositeSubtypeSymbol</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ConstrainedCompositeSubtypeSymbol" ns1:title="ConstrainedCompositeSubtypeSymbol" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="423,-56 219,-56 219,-37 423,-37 423,-56" />
+<ns0:text text-anchor="middle" x="321" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConstrainedCompositeSubtypeSymbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>ConstrainedCompositeSubtypeSymbol-&gt;ConstrainedArraySubtypeSymbol</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M423.31,-37.94C433.44,-37.09 443.7,-36.22 453.74,-35.38" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="454.13,-37.1 458.97,-34.93 453.84,-33.61 454.13,-37.1" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>SubtypeSymbol</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.SubtypeSymbol" ns1:title="SubtypeSymbol" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="183,-56 90,-56 90,-37 183,-37 183,-56" />
+<ns0:text text-anchor="middle" x="136.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SubtypeSymbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>SubtypeSymbol-&gt;ConstrainedCompositeSubtypeSymbol</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M183.08,-46.5C192.52,-46.5 202.83,-46.5 213.43,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="213.65,-48.25 218.65,-46.5 213.65,-44.75 213.65,-48.25" />
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>Symbol</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" ns1:title="Base-class for all symbol classes." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="54,-56 0,-56 0,-37 54,-37 54,-56" />
+<ns0:text text-anchor="middle" x="27" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Symbol</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>Symbol-&gt;SubtypeSymbol</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M54.02,-46.5C63.31,-46.5 74.13,-46.5 84.78,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="84.99,-48.25 89.99,-46.5 84.99,-44.75 84.99,-48.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

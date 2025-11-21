@@ -1,0 +1,448 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interface Items &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Subprogram Declarations" href="SubprogramDefinitions.html" />
+    <link rel="prev" title="Design Units" href="DesignUnits.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">VHDL Language Model</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Miscellaneous.html">Concepts not defined by VHDL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Enumerations.html">Enumerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DesignUnits.html">Design Units</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Interface Items</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#generic-interface-items">Generic Interface Items</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#genericconstantinterfaceitem">GenericConstantInterfaceItem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generictypeinterfaceitem">GenericTypeInterfaceItem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#genericprocedureinterfaceitem">GenericProcedureInterfaceItem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#genericfunctioninterfaceitem">GenericFunctionInterfaceItem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#genericpackageinterfaceitem">GenericPackageInterfaceItem</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#port-interface-item">Port Interface Item</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#portsignalinterfaceitem">PortSignalInterfaceItem</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parameter-interface-item">Parameter Interface Item</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parameterconstantinterfaceitem">ParameterConstantInterfaceItem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parametervariableinterfaceitem">ParameterVariableInterfaceItem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parametersignalinterfaceitem">ParameterSignalInterfaceItem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parameterfileinterfaceitem">ParameterFileInterfaceItem</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SubprogramDefinitions.html">Subprogram Declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TypeDefinitions.html">Type Declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SubtypeDefinitions.html">Subtype Declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ObjectDeclarations.html">Object Declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ConcurrentStatements.html">Concurrent Statements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SequentialStatements.html">Sequential Statements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Expressions.html">Literals and Expressions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pyVHDLModel/pyVHDLModel.html">Python Class Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">VHDL Language Model</a></li>
+      <li class="breadcrumb-item active">Interface Items</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/LanguageModel/InterfaceItems.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="interface-items">
+<span id="vhdlmodel-inter"></span><h1>Interface Items<a class="headerlink" href="#interface-items" title="Link to this heading"></a></h1>
+<p>Interface items are used in generic, port and parameter declarations.</p>
+<nav class="contents local" id="table-of-content">
+<p class="topic-title">Table of Content</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#generic-interface-items" id="id11">Generic Interface Items</a></p>
+<ul>
+<li><p><a class="reference internal" href="#genericconstantinterfaceitem" id="id12">GenericConstantInterfaceItem</a></p></li>
+<li><p><a class="reference internal" href="#generictypeinterfaceitem" id="id13">GenericTypeInterfaceItem</a></p></li>
+<li><p><a class="reference internal" href="#genericprocedureinterfaceitem" id="id14">GenericProcedureInterfaceItem</a></p></li>
+<li><p><a class="reference internal" href="#genericfunctioninterfaceitem" id="id15">GenericFunctionInterfaceItem</a></p></li>
+<li><p><a class="reference internal" href="#genericpackageinterfaceitem" id="id16">GenericPackageInterfaceItem</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#port-interface-item" id="id17">Port Interface Item</a></p>
+<ul>
+<li><p><a class="reference internal" href="#portsignalinterfaceitem" id="id18">PortSignalInterfaceItem</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#parameter-interface-item" id="id19">Parameter Interface Item</a></p>
+<ul>
+<li><p><a class="reference internal" href="#parameterconstantinterfaceitem" id="id20">ParameterConstantInterfaceItem</a></p></li>
+<li><p><a class="reference internal" href="#parametervariableinterfaceitem" id="id21">ParameterVariableInterfaceItem</a></p></li>
+<li><p><a class="reference internal" href="#parametersignalinterfaceitem" id="id22">ParameterSignalInterfaceItem</a></p></li>
+<li><p><a class="reference internal" href="#parameterfileinterfaceitem" id="id23">ParameterFileInterfaceItem</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<p class="rubric">Class Hierarchy</p>
+<section id="generic-interface-items">
+<span id="vhdlmodel-generics"></span><h2><a class="toc-backref" href="#id11" role="doc-backlink">Generic Interface Items</a><a class="headerlink" href="#generic-interface-items" title="Link to this heading"></a></h2>
+<section id="genericconstantinterfaceitem">
+<span id="vhdlmodel-genericconstant"></span><h3><a class="toc-backref" href="#id12" role="doc-backlink">GenericConstantInterfaceItem</a><a class="headerlink" href="#genericconstantinterfaceitem" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">GenericConstantInterfaceItem</span></code>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GenericConstantInterfaceItem</span><span class="p">(</span><span class="n">Constant</span><span class="p">,</span> <span class="n">GenericInterfaceItem</span><span class="p">):</span>
+  <span class="c1"># inherited from ModelEntity</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Parent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModelEntity</span><span class="p">:</span>
+
+  <span class="c1"># inherited from NamedEntity</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+  <span class="c1"># inherited from Object</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Subtype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Subtype</span><span class="p">:</span>
+
+  <span class="c1"># inherited from WithDefaultExpressionMixin</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">DefaultExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseExpression</span><span class="p">:</span>
+
+  <span class="c1"># inherited from InterfaceItem</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mode</span><span class="p">:</span>
+</pre></div>
+</div>
+</section>
+<section id="generictypeinterfaceitem">
+<span id="vhdlmodel-generictype"></span><h3><a class="toc-backref" href="#id13" role="doc-backlink">GenericTypeInterfaceItem</a><a class="headerlink" href="#generictypeinterfaceitem" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">GenericTypeInterfaceItem</span></code>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@Export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GenericTypeInterfaceItem</span><span class="p">(</span><span class="n">GenericInterfaceItem</span><span class="p">):</span>
+</pre></div>
+</div>
+</section>
+<section id="genericprocedureinterfaceitem">
+<span id="vhdlmodel-genericprocedure"></span><h3><a class="toc-backref" href="#id14" role="doc-backlink">GenericProcedureInterfaceItem</a><a class="headerlink" href="#genericprocedureinterfaceitem" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">GenericProcedureInterfaceItem</span></code>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@Export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GenericProcedureInterfaceItem</span><span class="p">(</span><span class="n">GenericSubprogramInterfaceItem</span><span class="p">):</span>
+</pre></div>
+</div>
+</section>
+<section id="genericfunctioninterfaceitem">
+<span id="vhdlmodel-genericfunction"></span><h3><a class="toc-backref" href="#id15" role="doc-backlink">GenericFunctionInterfaceItem</a><a class="headerlink" href="#genericfunctioninterfaceitem" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">GenericFunctionInterfaceItem</span></code>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@Export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GenericFunctionInterfaceItem</span><span class="p">(</span><span class="n">GenericSubprogramInterfaceItem</span><span class="p">):</span>
+</pre></div>
+</div>
+</section>
+<section id="genericpackageinterfaceitem">
+<span id="vhdlmodel-genericpackage"></span><h3><a class="toc-backref" href="#id16" role="doc-backlink">GenericPackageInterfaceItem</a><a class="headerlink" href="#genericpackageinterfaceitem" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id5">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">GenericPackageInterfaceItem</span></code>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@Export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GenericPackageInterfaceItem</span><span class="p">(</span><span class="n">GenericInterfaceItem</span><span class="p">):</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="port-interface-item">
+<span id="vhdlmodel-ports"></span><h2><a class="toc-backref" href="#id17" role="doc-backlink">Port Interface Item</a><a class="headerlink" href="#port-interface-item" title="Link to this heading"></a></h2>
+<section id="portsignalinterfaceitem">
+<span id="vhdlmodel-portsignal"></span><h3><a class="toc-backref" href="#id18" role="doc-backlink">PortSignalInterfaceItem</a><a class="headerlink" href="#portsignalinterfaceitem" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id6">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">PortSignalInterfaceItem</span></code>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PortSignalInterfaceItem</span><span class="p">(</span><span class="n">Signal</span><span class="p">,</span> <span class="n">PortInterfaceItem</span><span class="p">):</span>
+  <span class="c1"># inherited from ModelEntity</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Parent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModelEntity</span><span class="p">:</span>
+
+  <span class="c1"># inherited from NamedEntity</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+  <span class="c1"># inherited from Object</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Subtype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Subtype</span><span class="p">:</span>
+
+  <span class="c1"># inherited from WithDefaultExpressionMixin</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">DefaultExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseExpression</span><span class="p">:</span>
+
+  <span class="c1"># inherited from InterfaceItem</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mode</span><span class="p">:</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="parameter-interface-item">
+<span id="vhdlmodel-parameters"></span><h2><a class="toc-backref" href="#id19" role="doc-backlink">Parameter Interface Item</a><a class="headerlink" href="#parameter-interface-item" title="Link to this heading"></a></h2>
+<section id="parameterconstantinterfaceitem">
+<span id="vhdlmodel-parameterconstant"></span><h3><a class="toc-backref" href="#id20" role="doc-backlink">ParameterConstantInterfaceItem</a><a class="headerlink" href="#parameterconstantinterfaceitem" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id7">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterConstantInterfaceItem</span></code>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ParameterConstantInterfaceItem</span><span class="p">(</span><span class="n">Constant</span><span class="p">,</span> <span class="n">ParameterInterfaceItem</span><span class="p">):</span>
+  <span class="c1"># inherited from ModelEntity</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Parent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModelEntity</span><span class="p">:</span>
+
+  <span class="c1"># inherited from NamedEntity</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+  <span class="c1"># inherited from Object</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Subtype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Subtype</span><span class="p">:</span>
+
+  <span class="c1"># inherited from WithDefaultExpressionMixin</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">DefaultExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseExpression</span><span class="p">:</span>
+
+  <span class="c1"># inherited from InterfaceItem</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mode</span><span class="p">:</span>
+</pre></div>
+</div>
+</section>
+<section id="parametervariableinterfaceitem">
+<span id="vhdlmodel-parametervariable"></span><h3><a class="toc-backref" href="#id21" role="doc-backlink">ParameterVariableInterfaceItem</a><a class="headerlink" href="#parametervariableinterfaceitem" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id8">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterVariableInterfaceItem</span></code>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ParameterVariableInterfaceItem</span><span class="p">(</span><span class="n">Variable</span><span class="p">,</span> <span class="n">ParameterInterfaceItem</span><span class="p">):</span>
+  <span class="c1"># inherited from ModelEntity</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Parent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModelEntity</span><span class="p">:</span>
+
+  <span class="c1"># inherited from NamedEntity</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+  <span class="c1"># inherited from Object</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Subtype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Subtype</span><span class="p">:</span>
+
+  <span class="c1"># inherited from WithDefaultExpressionMixin</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">DefaultExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseExpression</span><span class="p">:</span>
+
+  <span class="c1"># inherited from InterfaceItem</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mode</span><span class="p">:</span>
+</pre></div>
+</div>
+</section>
+<section id="parametersignalinterfaceitem">
+<span id="vhdlmodel-parametersignal"></span><h3><a class="toc-backref" href="#id22" role="doc-backlink">ParameterSignalInterfaceItem</a><a class="headerlink" href="#parametersignalinterfaceitem" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id9">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterSignalInterfaceItem</span></code>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ParameterSignalInterfaceItem</span><span class="p">(</span><span class="n">Signal</span><span class="p">,</span> <span class="n">ParameterInterfaceItem</span><span class="p">):</span>
+  <span class="c1"># inherited from ModelEntity</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Parent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModelEntity</span><span class="p">:</span>
+
+  <span class="c1"># inherited from NamedEntity</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+  <span class="c1"># inherited from Object</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Subtype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Subtype</span><span class="p">:</span>
+
+  <span class="c1"># inherited from WithDefaultExpressionMixin</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">DefaultExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseExpression</span><span class="p">:</span>
+
+  <span class="c1"># inherited from InterfaceItem</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">Mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mode</span><span class="p">:</span>
+</pre></div>
+</div>
+</section>
+<section id="parameterfileinterfaceitem">
+<span id="vhdlmodel-parameterfile"></span><h3><a class="toc-backref" href="#id23" role="doc-backlink">ParameterFileInterfaceItem</a><a class="headerlink" href="#parameterfileinterfaceitem" title="Link to this heading"></a></h3>
+<div class="admonition-todo admonition" id="id10">
+<p class="admonition-title">Todo</p>
+<p>Write documentation.</p>
+</div>
+<p><strong>Condensed definition of class</strong> <code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterFileInterfaceItem</span></code>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nd">@Export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ParameterFileInterfaceItem</span><span class="p">(</span><span class="n">ParameterInterfaceItem</span><span class="p">):</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="DesignUnits.html" class="btn btn-neutral float-left" title="Design Units" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="SubprogramDefinitions.html" class="btn btn-neutral float-right" title="Subprogram Declarations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

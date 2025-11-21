@@ -1,0 +1,1490 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyVHDLModel.Concurrent &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../../_static/favicon.svg"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+      <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+      <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+      <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs"></script>
+      <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+      <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+      <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const style = document.createElement('style');
+style.textContent = `.mermaid-container {
+    position: relative !important;
+    display: inline-block;
+    width: 100%;
+}
+
+.mermaid-fullscreen-btn {
+    position: absolute !important;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-fullscreen-content {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-fullscreen-content.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-fullscreen-content .mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-fullscreen-content .mermaid svg {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 85vh;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}
+`;
+document.head.appendChild(style);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const initFullscreen = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(initFullscreen, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-fullscreen-content${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-fullscreen-content');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = '';
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", initFullscreen);
+</script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pyVHDLModel/pyVHDLModel.html">Python Class Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../pyVHDLModel.html">pyVHDLModel</a></li>
+      <li class="breadcrumb-item active">pyVHDLModel.Concurrent</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pyVHDLModel.Concurrent</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ==================================================================================================================== #</span>
+<span class="c1">#             __     ___   _ ____  _     __  __           _      _                                                     #</span>
+<span class="c1">#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #</span>
+<span class="c1">#  | &#39;_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #</span>
+<span class="c1">#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #</span>
+<span class="c1">#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #</span>
+<span class="c1">#  |_|    |___/                                                                                                        #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1"># Authors:                                                                                                             #</span>
+<span class="c1">#   Patrick Lehmann                                                                                                    #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># License:                                                                                                             #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1"># Copyright 2017-2025 Patrick Lehmann - Boetzingen, Germany                                                            #</span>
+<span class="c1"># Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);                                                      #</span>
+<span class="c1"># you may not use this file except in compliance with the License.                                                     #</span>
+<span class="c1"># You may obtain a copy of the License at                                                                              #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software                                                  #</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,                                                    #</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #</span>
+<span class="c1"># See the License for the specific language governing permissions and                                                  #</span>
+<span class="c1"># limitations under the License.                                                                                       #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># SPDX-License-Identifier: Apache-2.0                                                                                  #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains parts of an abstract document language model for VHDL.</span>
+
+<span class="sd">Concurrent defines all concurrent statements used in entities, architectures, generates and block statements.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w">                  </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Optional</span> <span class="k">as</span> <span class="n">Nullable</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyTooling.Decorators</span><span class="w">    </span><span class="kn">import</span> <span class="n">export</span><span class="p">,</span> <span class="n">readonly</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyTooling.MetaClasses</span><span class="w">   </span><span class="kn">import</span> <span class="n">ExtendedType</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Base</span><span class="w">        </span><span class="kn">import</span> <span class="n">ModelEntity</span><span class="p">,</span> <span class="n">LabeledEntityMixin</span><span class="p">,</span> <span class="n">DocumentedEntityMixin</span><span class="p">,</span> <span class="n">Range</span><span class="p">,</span> <span class="n">BaseChoice</span><span class="p">,</span> <span class="n">BaseCase</span><span class="p">,</span> <span class="n">IfBranchMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Base</span><span class="w">        </span><span class="kn">import</span> <span class="n">ElsifBranchMixin</span><span class="p">,</span> <span class="n">ElseBranchMixin</span><span class="p">,</span> <span class="n">AssertStatementMixin</span><span class="p">,</span> <span class="n">BlockStatementMixin</span><span class="p">,</span> <span class="n">WaveformElement</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Regions</span><span class="w">     </span><span class="kn">import</span> <span class="n">ConcurrentDeclarationRegionMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Namespace</span><span class="w">   </span><span class="kn">import</span> <span class="n">Namespace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Name</span><span class="w">        </span><span class="kn">import</span> <span class="n">Name</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Symbol</span><span class="w">      </span><span class="kn">import</span> <span class="n">ComponentInstantiationSymbol</span><span class="p">,</span> <span class="n">EntityInstantiationSymbol</span><span class="p">,</span> <span class="n">ArchitectureSymbol</span><span class="p">,</span> <span class="n">ConfigurationInstantiationSymbol</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Expression</span><span class="w">  </span><span class="kn">import</span> <span class="n">BaseExpression</span><span class="p">,</span> <span class="n">QualifiedExpression</span><span class="p">,</span> <span class="n">FunctionCall</span><span class="p">,</span> <span class="n">TypeConversion</span><span class="p">,</span> <span class="n">Literal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Association</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssociationItem</span><span class="p">,</span> <span class="n">ParameterAssociationItem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Interface</span><span class="w">   </span><span class="kn">import</span> <span class="n">PortInterfaceItemMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Common</span><span class="w">      </span><span class="kn">import</span> <span class="n">Statement</span><span class="p">,</span> <span class="n">ProcedureCallMixin</span><span class="p">,</span> <span class="n">SignalAssignmentMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Sequential</span><span class="w">  </span><span class="kn">import</span> <span class="n">SequentialStatement</span><span class="p">,</span> <span class="n">SequentialStatementsMixin</span><span class="p">,</span> <span class="n">SequentialDeclarationsMixin</span>
+
+
+<span class="n">ExpressionUnion</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span>
+	<span class="n">BaseExpression</span><span class="p">,</span>
+	<span class="n">QualifiedExpression</span><span class="p">,</span>
+	<span class="n">FunctionCall</span><span class="p">,</span>
+	<span class="n">TypeConversion</span><span class="p">,</span>
+	<span class="c1"># ConstantOrSymbol,     TODO: ObjectSymbol</span>
+	<span class="n">Literal</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="ConcurrentStatement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentStatement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcurrentStatement</span><span class="p">(</span><span class="n">Statement</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A base-class for all concurrent statements.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ConcurrentStatementsMixin">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentStatementsMixin">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcurrentStatementsMixin</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ExtendedType</span><span class="p">,</span> <span class="n">mixin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A mixin-class for all language constructs supporting concurrent statements.</span>
+
+<span class="sd">	.. seealso::</span>
+
+<span class="sd">	   .. todo:: concurrent declaration region</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_statements</span><span class="p">:</span>     <span class="n">List</span><span class="p">[</span><span class="n">ConcurrentStatement</span><span class="p">]</span>
+
+	<span class="n">_instantiations</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;Instantiation&#39;</span><span class="p">]</span>  <span class="c1"># TODO: add another instantiation class level for entity/configuration/component inst.</span>
+	<span class="n">_blocks</span><span class="p">:</span>         <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;ConcurrentBlockStatement&#39;</span><span class="p">]</span>
+	<span class="n">_generates</span><span class="p">:</span>      <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;GenerateStatement&#39;</span><span class="p">]</span>
+	<span class="n">_hierarchy</span><span class="p">:</span>      <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="s1">&#39;ConcurrentBlockStatement&#39;</span><span class="p">,</span> <span class="s1">&#39;GenerateStatement&#39;</span><span class="p">]]</span>
+
+<div class="viewcode-block" id="ConcurrentStatementsMixin.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentStatementsMixin.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">statements</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">ConcurrentStatement</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_statements</span> <span class="o">=</span> <span class="p">[]</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_instantiations</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_blocks</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_generates</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_hierarchy</span> <span class="o">=</span> <span class="p">{}</span>
+
+		<span class="k">if</span> <span class="n">statements</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">statements</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_statements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+				<span class="n">statement</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Statements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ConcurrentStatement</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_statements</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">IterateInstantiations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="s1">&#39;Instantiation&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+		<span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instantiations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+			<span class="k">yield</span> <span class="n">instance</span>
+
+		<span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blocks</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+			<span class="k">yield from</span> <span class="n">block</span><span class="o">.</span><span class="n">IterateInstantiations</span><span class="p">()</span>
+
+		<span class="k">for</span> <span class="n">generate</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generates</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+			<span class="k">yield from</span> <span class="n">generate</span><span class="o">.</span><span class="n">IterateInstantiations</span><span class="p">()</span>
+
+	<span class="c1"># TODO: move into _init__</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">IndexStatements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">statement</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_statements</span><span class="p">:</span>
+			<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="p">(</span><span class="n">EntityInstantiation</span><span class="p">,</span> <span class="n">ComponentInstantiation</span><span class="p">,</span> <span class="n">ConfigurationInstantiation</span><span class="p">)):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_instantiations</span><span class="p">[</span><span class="n">statement</span><span class="o">.</span><span class="n">NormalizedLabel</span><span class="p">]</span> <span class="o">=</span> <span class="n">statement</span>
+			<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="p">(</span><span class="n">ForGenerateStatement</span><span class="p">,</span> <span class="n">IfGenerateStatement</span><span class="p">,</span> <span class="n">CaseGenerateStatement</span><span class="p">)):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_generates</span><span class="p">[</span><span class="n">statement</span><span class="o">.</span><span class="n">NormalizedLabel</span><span class="p">]</span> <span class="o">=</span> <span class="n">statement</span>
+				<span class="n">statement</span><span class="o">.</span><span class="n">IndexStatement</span><span class="p">()</span>
+			<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="n">ConcurrentBlockStatement</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_hierarchy</span><span class="p">[</span><span class="n">statement</span><span class="o">.</span><span class="n">NormalizedLabel</span><span class="p">]</span> <span class="o">=</span> <span class="n">statement</span>
+				<span class="n">statement</span><span class="o">.</span><span class="n">IndexStatements</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Instantiation">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.Instantiation">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Instantiation</span><span class="p">(</span><span class="n">ConcurrentStatement</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A base-class for all (component) instantiations.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_genericAssociations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">AssociationItem</span><span class="p">]</span>
+	<span class="n">_portAssociations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">AssociationItem</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Instantiation.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.Instantiation.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+		<span class="n">genericAssociations</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">AssociationItem</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">portAssociations</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">AssociationItem</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+		<span class="c1"># TODO: extract to mixin</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_genericAssociations</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="n">genericAssociations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">association</span> <span class="ow">in</span> <span class="n">genericAssociations</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_genericAssociations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">association</span><span class="p">)</span>
+				<span class="n">association</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span>
+
+		<span class="c1"># TODO: extract to mixin</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_portAssociations</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="n">portAssociations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">association</span> <span class="ow">in</span> <span class="n">portAssociations</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_portAssociations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">association</span><span class="p">)</span>
+				<span class="n">association</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">GenericAssociations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">AssociationItem</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_genericAssociations</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">PortAssociations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">AssociationItem</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_portAssociations</span></div>
+
+
+
+<div class="viewcode-block" id="ComponentInstantiation">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ComponentInstantiation">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ComponentInstantiation</span><span class="p">(</span><span class="n">Instantiation</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a component instantiation by referring to a component name.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      inst : component Counter;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_component</span><span class="p">:</span> <span class="n">ComponentInstantiationSymbol</span>
+
+<div class="viewcode-block" id="ComponentInstantiation.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ComponentInstantiation.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+		<span class="n">componentSymbol</span><span class="p">:</span> <span class="n">ComponentInstantiationSymbol</span><span class="p">,</span>
+		<span class="n">genericAssociations</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">AssociationItem</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">portAssociations</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">AssociationItem</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">genericAssociations</span><span class="p">,</span> <span class="n">portAssociations</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_component</span> <span class="o">=</span> <span class="n">componentSymbol</span>
+		<span class="n">componentSymbol</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Component</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentInstantiationSymbol</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_component</span></div>
+
+
+
+<div class="viewcode-block" id="EntityInstantiation">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.EntityInstantiation">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EntityInstantiation</span><span class="p">(</span><span class="n">Instantiation</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents an entity instantiation by referring to an entity name with optional architecture name.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      inst : entity work. Counter;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_entity</span><span class="p">:</span> <span class="n">EntityInstantiationSymbol</span>
+	<span class="n">_architecture</span><span class="p">:</span> <span class="n">ArchitectureSymbol</span>
+
+<div class="viewcode-block" id="EntityInstantiation.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.EntityInstantiation.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+		<span class="n">entitySymbol</span><span class="p">:</span> <span class="n">EntityInstantiationSymbol</span><span class="p">,</span>
+		<span class="n">architectureSymbol</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ArchitectureSymbol</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">genericAssociations</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">AssociationItem</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">portAssociations</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">AssociationItem</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">genericAssociations</span><span class="p">,</span> <span class="n">portAssociations</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_entity</span> <span class="o">=</span> <span class="n">entitySymbol</span>
+		<span class="n">entitySymbol</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_architecture</span> <span class="o">=</span> <span class="n">architectureSymbol</span>
+		<span class="k">if</span> <span class="n">architectureSymbol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">architectureSymbol</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Entity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EntityInstantiationSymbol</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Architecture</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ArchitectureSymbol</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_architecture</span></div>
+
+
+
+<div class="viewcode-block" id="ConfigurationInstantiation">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConfigurationInstantiation">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConfigurationInstantiation</span><span class="p">(</span><span class="n">Instantiation</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a configuration instantiation by referring to a configuration name.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      inst : configuration Counter;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_configuration</span><span class="p">:</span> <span class="n">ConfigurationInstantiationSymbol</span>
+
+<div class="viewcode-block" id="ConfigurationInstantiation.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConfigurationInstantiation.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+		<span class="n">configurationSymbol</span><span class="p">:</span> <span class="n">ConfigurationInstantiationSymbol</span><span class="p">,</span>
+		<span class="n">genericAssociations</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">AssociationItem</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">portAssociations</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">AssociationItem</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">genericAssociations</span><span class="p">,</span> <span class="n">portAssociations</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_configuration</span> <span class="o">=</span> <span class="n">configurationSymbol</span>
+		<span class="n">configurationSymbol</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConfigurationInstantiationSymbol</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configuration</span></div>
+
+
+
+<div class="viewcode-block" id="ProcessStatement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ProcessStatement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProcessStatement</span><span class="p">(</span><span class="n">ConcurrentStatement</span><span class="p">,</span> <span class="n">SequentialDeclarationsMixin</span><span class="p">,</span> <span class="n">SequentialStatementsMixin</span><span class="p">,</span> <span class="n">DocumentedEntityMixin</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a process statement with sensitivity list, sequential declaration region and sequential statements.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      proc: process(Clock)</span>
+<span class="sd">	        -- sequential declarations</span>
+<span class="sd">	      begin</span>
+<span class="sd">	        -- sequential statements</span>
+<span class="sd">	      end process;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_sensitivityList</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span>  <span class="c1"># TODO: implement a SignalSymbol</span>
+
+<div class="viewcode-block" id="ProcessStatement.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ProcessStatement.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">label</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">declaredItems</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">statements</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">SequentialStatement</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">sensitivityList</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">Name</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">documentation</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+		<span class="n">SequentialDeclarationsMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">declaredItems</span><span class="p">)</span>
+		<span class="n">SequentialStatementsMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">statements</span><span class="p">)</span>
+		<span class="n">DocumentedEntityMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">documentation</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">sensitivityList</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_sensitivityList</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_sensitivityList</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># TODO: convert to dict</span>
+			<span class="k">for</span> <span class="n">signalSymbol</span> <span class="ow">in</span> <span class="n">sensitivityList</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_sensitivityList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">signalSymbol</span><span class="p">)</span></div>
+
+				<span class="c1"># signalSymbol._parent = self  # FIXME: currently str are provided</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">SensitivityList</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Name</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sensitivityList</span></div>
+
+
+
+<div class="viewcode-block" id="ConcurrentProcedureCall">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentProcedureCall">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcurrentProcedureCall</span><span class="p">(</span><span class="n">ConcurrentStatement</span><span class="p">,</span> <span class="n">ProcedureCallMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="ConcurrentProcedureCall.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentProcedureCall.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+		<span class="n">procedureName</span><span class="p">:</span> <span class="n">Name</span><span class="p">,</span>
+		<span class="n">parameterMappings</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">ParameterAssociationItem</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+		<span class="n">ProcedureCallMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">procedureName</span><span class="p">,</span> <span class="n">parameterMappings</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ConcurrentBlockStatement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentBlockStatement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcurrentBlockStatement</span><span class="p">(</span><span class="n">ConcurrentStatement</span><span class="p">,</span> <span class="n">BlockStatementMixin</span><span class="p">,</span> <span class="n">LabeledEntityMixin</span><span class="p">,</span> <span class="n">ConcurrentDeclarationRegionMixin</span><span class="p">,</span> <span class="n">ConcurrentStatementsMixin</span><span class="p">,</span> <span class="n">DocumentedEntityMixin</span><span class="p">):</span>
+	<span class="n">_portItems</span><span class="p">:</span>     <span class="n">List</span><span class="p">[</span><span class="n">PortInterfaceItemMixin</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ConcurrentBlockStatement.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentBlockStatement.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+		<span class="n">portItems</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">PortInterfaceItemMixin</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">declaredItems</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">statements</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="s1">&#39;ConcurrentStatement&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">documentation</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+		<span class="n">BlockStatementMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		<span class="n">LabeledEntityMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+		<span class="n">ConcurrentDeclarationRegionMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">declaredItems</span><span class="p">)</span>
+		<span class="n">ConcurrentStatementsMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">statements</span><span class="p">)</span>
+		<span class="n">DocumentedEntityMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">documentation</span><span class="p">)</span>
+
+		<span class="c1"># TODO: extract to mixin</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_portItems</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="n">portItems</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">portItems</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_portItems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+				<span class="n">item</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">PortItems</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">PortInterfaceItemMixin</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_portItems</span></div>
+
+
+
+<div class="viewcode-block" id="GenerateBranch">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.GenerateBranch">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GenerateBranch</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">,</span> <span class="n">ConcurrentDeclarationRegionMixin</span><span class="p">,</span> <span class="n">ConcurrentStatementsMixin</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A base-class for all branches in a generate statements.</span>
+
+<span class="sd">	.. seealso::</span>
+
+<span class="sd">	   * :class:`If-generate branch &lt;pyVHDLModel.Concurrent.IfGenerateBranch&gt;`</span>
+<span class="sd">	   * :class:`Elsif-generate branch &lt;pyVHDLModel.Concurrent.ElsifGenerateBranch&gt;`</span>
+<span class="sd">	   * :class:`Else-generate branch &lt;pyVHDLModel.Concurrent.ElseGenerateBranch&gt;`</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_alternativeLabel</span><span class="p">:</span>           <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+	<span class="n">_normalizedAlternativeLabel</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+	<span class="n">_namespace</span><span class="p">:</span>                  <span class="n">Namespace</span>
+
+<div class="viewcode-block" id="GenerateBranch.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.GenerateBranch.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">declaredItems</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">statements</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">ConcurrentStatement</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">alternativeLabel</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+		<span class="n">ConcurrentDeclarationRegionMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">declaredItems</span><span class="p">)</span>
+		<span class="n">ConcurrentStatementsMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">statements</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_alternativeLabel</span> <span class="o">=</span> <span class="n">alternativeLabel</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_normalizedAlternativeLabel</span> <span class="o">=</span> <span class="n">alternativeLabel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">if</span> <span class="n">alternativeLabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_normalizedAlternativeLabel</span><span class="p">)</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">AlternativeLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alternativeLabel</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">NormalizedAlternativeLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalizedAlternativeLabel</span></div>
+
+
+
+<div class="viewcode-block" id="IfGenerateBranch">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.IfGenerateBranch">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IfGenerateBranch</span><span class="p">(</span><span class="n">GenerateBranch</span><span class="p">,</span> <span class="n">IfBranchMixin</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents if-generate branch in a generate statement with a concurrent declaration region and concurrent statements.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      gen: if condition generate</span>
+<span class="sd">	        -- concurrent declarations</span>
+<span class="sd">	      begin</span>
+<span class="sd">	        -- concurrent statements</span>
+<span class="sd">	      elsif condition generate</span>
+<span class="sd">	        -- ...</span>
+<span class="sd">	      else generate</span>
+<span class="sd">	        -- ...</span>
+<span class="sd">	      end generate;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="IfGenerateBranch.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.IfGenerateBranch.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">condition</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span>
+		<span class="n">declaredItems</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">statements</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">ConcurrentStatement</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">alternativeLabel</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">declaredItems</span><span class="p">,</span> <span class="n">statements</span><span class="p">,</span> <span class="n">alternativeLabel</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+		<span class="n">IfBranchMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ElsifGenerateBranch">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ElsifGenerateBranch">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ElsifGenerateBranch</span><span class="p">(</span><span class="n">GenerateBranch</span><span class="p">,</span> <span class="n">ElsifBranchMixin</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents elsif-generate branch in a generate statement with a concurrent declaration region and concurrent statements.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      gen: if condition generate</span>
+<span class="sd">	        -- ...</span>
+<span class="sd">	      elsif condition generate</span>
+<span class="sd">	        -- concurrent declarations</span>
+<span class="sd">	      begin</span>
+<span class="sd">	        -- concurrent statements</span>
+<span class="sd">	      else generate</span>
+<span class="sd">	        -- ...</span>
+<span class="sd">	      end generate;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ElsifGenerateBranch.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ElsifGenerateBranch.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">condition</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span>
+		<span class="n">declaredItems</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">statements</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">ConcurrentStatement</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">alternativeLabel</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">declaredItems</span><span class="p">,</span> <span class="n">statements</span><span class="p">,</span> <span class="n">alternativeLabel</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+		<span class="n">ElsifBranchMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ElseGenerateBranch">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ElseGenerateBranch">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ElseGenerateBranch</span><span class="p">(</span><span class="n">GenerateBranch</span><span class="p">,</span> <span class="n">ElseBranchMixin</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents else-generate branch in a generate statement with a concurrent declaration region and concurrent statements.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      gen: if condition generate</span>
+<span class="sd">	        -- ...</span>
+<span class="sd">	      elsif condition generate</span>
+<span class="sd">	        -- ...</span>
+<span class="sd">	      else generate</span>
+<span class="sd">	        -- concurrent declarations</span>
+<span class="sd">	      begin</span>
+<span class="sd">	        -- concurrent statements</span>
+<span class="sd">	      end generate;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ElseGenerateBranch.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ElseGenerateBranch.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">declaredItems</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">statements</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">ConcurrentStatement</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">alternativeLabel</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">declaredItems</span><span class="p">,</span> <span class="n">statements</span><span class="p">,</span> <span class="n">alternativeLabel</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+		<span class="n">ElseBranchMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="GenerateStatement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.GenerateStatement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GenerateStatement</span><span class="p">(</span><span class="n">ConcurrentStatement</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A base-class for all generate statements.</span>
+
+<span class="sd">	.. seealso::</span>
+
+<span class="sd">	   * :class:`If...generate statement &lt;pyVHDLModel.Concurrent.IfGenerateStatement&gt;`</span>
+<span class="sd">	   * :class:`Case...generate statement &lt;pyVHDLModel.Concurrent.CaseGenerateStatement&gt;`</span>
+<span class="sd">	   * :class:`For...generate statement &lt;pyVHDLModel.Concurrent.ForGenerateStatement&gt;`</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_namespace</span><span class="p">:</span> <span class="n">Namespace</span>
+
+<div class="viewcode-block" id="GenerateStatement.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.GenerateStatement.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">label</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_normalizedLabel</span><span class="p">)</span></div>
+
+
+	<span class="c1"># @mustoverride</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">IterateInstantiations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Instantiation</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+		<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+	<span class="c1"># @mustoverride</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">IndexStatement</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="IfGenerateStatement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.IfGenerateStatement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IfGenerateStatement</span><span class="p">(</span><span class="n">GenerateStatement</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents an if...generate statement.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      gen: if condition generate</span>
+<span class="sd">	        -- ...</span>
+<span class="sd">	      elsif condition generate</span>
+<span class="sd">	        -- ...</span>
+<span class="sd">	      else generate</span>
+<span class="sd">	        -- ...</span>
+<span class="sd">	      end generate;</span>
+
+<span class="sd">	.. seealso::</span>
+
+<span class="sd">	   * :class:`Generate branch &lt;pyVHDLModel.Concurrent.GenerateBranch&gt;` base-class</span>
+<span class="sd">	   * :class:`If-generate branch &lt;pyVHDLModel.Concurrent.IfGenerateBranch&gt;`</span>
+<span class="sd">	   * :class:`Elsif-generate branch &lt;pyVHDLModel.Concurrent.ElsifGenerateBranch&gt;`</span>
+<span class="sd">	   * :class:`Else-generate branch &lt;pyVHDLModel.Concurrent.ElseGenerateBranch&gt;`</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_ifBranch</span><span class="p">:</span>      <span class="n">IfGenerateBranch</span>
+	<span class="n">_elsifBranches</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ElsifGenerateBranch</span><span class="p">]</span>
+	<span class="n">_elseBranch</span><span class="p">:</span>    <span class="n">Nullable</span><span class="p">[</span><span class="n">ElseGenerateBranch</span><span class="p">]</span>
+
+<div class="viewcode-block" id="IfGenerateStatement.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.IfGenerateStatement.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+		<span class="n">ifBranch</span><span class="p">:</span> <span class="n">IfGenerateBranch</span><span class="p">,</span>
+		<span class="n">elsifBranches</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">ElsifGenerateBranch</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">elseBranch</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ElseGenerateBranch</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_ifBranch</span> <span class="o">=</span> <span class="n">ifBranch</span>
+		<span class="n">ifBranch</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_elsifBranches</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="n">elsifBranches</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="n">elsifBranches</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_elsifBranches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span>
+				<span class="n">branch</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span>
+
+		<span class="k">if</span> <span class="n">elseBranch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_elseBranch</span> <span class="o">=</span> <span class="n">elseBranch</span>
+			<span class="n">elseBranch</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_elseBranch</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">IfBranch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IfGenerateBranch</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ifBranch</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">ElsifBranches</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ElsifGenerateBranch</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elsifBranches</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">ElseBranch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ElseGenerateBranch</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elseBranch</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">IterateInstantiations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Instantiation</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+		<span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ifBranch</span><span class="o">.</span><span class="n">IterateInstantiations</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elsifBranches</span><span class="p">:</span>
+			<span class="k">yield from</span> <span class="n">branch</span><span class="o">.</span><span class="n">IterateInstantiations</span><span class="p">()</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elseBranch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ifBranch</span><span class="o">.</span><span class="n">IterateInstantiations</span><span class="p">()</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">IndexStatement</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_ifBranch</span><span class="o">.</span><span class="n">IndexStatements</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elsifBranches</span><span class="p">:</span>
+			<span class="n">branch</span><span class="o">.</span><span class="n">IndexStatements</span><span class="p">()</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elseBranch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_elseBranch</span><span class="o">.</span><span class="n">IndexStatements</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ConcurrentChoice">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentChoice">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcurrentChoice</span><span class="p">(</span><span class="n">BaseChoice</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A base-class for all concurrent choices (in case...generate statements).&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="IndexedGenerateChoice">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.IndexedGenerateChoice">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IndexedGenerateChoice</span><span class="p">(</span><span class="n">ConcurrentChoice</span><span class="p">):</span>
+	<span class="n">_expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span>
+
+<div class="viewcode-block" id="IndexedGenerateChoice.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.IndexedGenerateChoice.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_expression</span> <span class="o">=</span> <span class="n">expression</span>
+		<span class="n">expression</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Expression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExpressionUnion</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span>
+
+<div class="viewcode-block" id="IndexedGenerateChoice.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.IndexedGenerateChoice.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_expression</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RangedGenerateChoice">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.RangedGenerateChoice">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RangedGenerateChoice</span><span class="p">(</span><span class="n">ConcurrentChoice</span><span class="p">):</span>
+	<span class="n">_range</span><span class="p">:</span> <span class="s1">&#39;Range&#39;</span>
+
+<div class="viewcode-block" id="RangedGenerateChoice.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.RangedGenerateChoice.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rng</span><span class="p">:</span> <span class="s1">&#39;Range&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_range</span> <span class="o">=</span> <span class="n">rng</span>
+		<span class="n">rng</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Range</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Range&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range</span>
+
+<div class="viewcode-block" id="RangedGenerateChoice.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.RangedGenerateChoice.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_range</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ConcurrentCase">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentCase">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcurrentCase</span><span class="p">(</span><span class="n">BaseCase</span><span class="p">,</span> <span class="n">LabeledEntityMixin</span><span class="p">,</span> <span class="n">ConcurrentDeclarationRegionMixin</span><span class="p">,</span> <span class="n">ConcurrentStatementsMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="ConcurrentCase.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentCase.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">declaredItems</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">statements</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">ConcurrentStatement</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">alternativeLabel</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+		<span class="n">LabeledEntityMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alternativeLabel</span><span class="p">)</span>
+		<span class="n">ConcurrentDeclarationRegionMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">declaredItems</span><span class="p">)</span>
+		<span class="n">ConcurrentStatementsMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">statements</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="GenerateCase">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.GenerateCase">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GenerateCase</span><span class="p">(</span><span class="n">ConcurrentCase</span><span class="p">):</span>
+	<span class="n">_choices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ConcurrentChoice</span><span class="p">]</span>
+
+<div class="viewcode-block" id="GenerateCase.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.GenerateCase.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">choices</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">ConcurrentChoice</span><span class="p">],</span>
+		<span class="n">declaredItems</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">statements</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">ConcurrentStatement</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">alternativeLabel</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">declaredItems</span><span class="p">,</span> <span class="n">statements</span><span class="p">,</span> <span class="n">alternativeLabel</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+		<span class="c1"># TODO: move to parent or grandparent</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_choices</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="n">choices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">choice</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_choices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">choice</span><span class="p">)</span>
+				<span class="n">choice</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="c1"># TODO: move to parent or grandparent</span>
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Choices</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ConcurrentChoice</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_choices</span>
+
+<div class="viewcode-block" id="GenerateCase.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.GenerateCase.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;when </span><span class="si">{choices}</span><span class="s2"> =&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="s2">&quot; | &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_choices</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="OthersGenerateCase">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.OthersGenerateCase">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OthersGenerateCase</span><span class="p">(</span><span class="n">ConcurrentCase</span><span class="p">):</span>
+<div class="viewcode-block" id="OthersGenerateCase.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.OthersGenerateCase.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;when others =&gt;&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="CaseGenerateStatement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.CaseGenerateStatement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CaseGenerateStatement</span><span class="p">(</span><span class="n">GenerateStatement</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a case...generate statement.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      gen: case selector generate</span>
+<span class="sd">	        case choice1 =&gt;</span>
+<span class="sd">	          -- ...</span>
+<span class="sd">	        case choice2 =&gt;</span>
+<span class="sd">	          -- ...</span>
+<span class="sd">	        case others =&gt;</span>
+<span class="sd">	          -- ...</span>
+<span class="sd">	      end generate;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span>
+	<span class="n">_cases</span><span class="p">:</span>      <span class="n">List</span><span class="p">[</span><span class="n">GenerateCase</span><span class="p">]</span>
+
+<div class="viewcode-block" id="CaseGenerateStatement.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.CaseGenerateStatement.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+		<span class="n">expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span>
+		<span class="n">cases</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">ConcurrentCase</span><span class="p">],</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_expression</span> <span class="o">=</span> <span class="n">expression</span>
+		<span class="n">expression</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span>
+
+		<span class="c1"># TODO: create a mixin for things with cases</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_cases</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="n">cases</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">case</span> <span class="ow">in</span> <span class="n">cases</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_cases</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">case</span><span class="p">)</span>
+				<span class="k">case</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">SelectExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExpressionUnion</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Cases</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">GenerateCase</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cases</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">IterateInstantiations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Instantiation</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+		<span class="k">for</span> <span class="n">case</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cases</span><span class="p">:</span>
+			<span class="k">yield from</span> <span class="n">case</span><span class="o">.</span><span class="n">IterateInstantiations</span><span class="p">()</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">IndexStatement</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">case</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cases</span><span class="p">:</span>
+			<span class="k">case</span><span class="o">.</span><span class="n">IndexStatements</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ForGenerateStatement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ForGenerateStatement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ForGenerateStatement</span><span class="p">(</span><span class="n">GenerateStatement</span><span class="p">,</span> <span class="n">ConcurrentDeclarationRegionMixin</span><span class="p">,</span> <span class="n">ConcurrentStatementsMixin</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a for...generate statement.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      gen: for i in 0 to 3 generate</span>
+<span class="sd">	        -- ...</span>
+<span class="sd">	      end generate;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_loopIndex</span><span class="p">:</span> <span class="nb">str</span>
+	<span class="n">_range</span><span class="p">:</span>     <span class="n">Range</span>
+
+<div class="viewcode-block" id="ForGenerateStatement.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ForGenerateStatement.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+		<span class="n">loopIndex</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+		<span class="n">rng</span><span class="p">:</span> <span class="n">Range</span><span class="p">,</span>
+		<span class="n">declaredItems</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">statements</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">ConcurrentStatement</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+		<span class="n">ConcurrentDeclarationRegionMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">declaredItems</span><span class="p">)</span>
+		<span class="n">ConcurrentStatementsMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">statements</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_loopIndex</span> <span class="o">=</span> <span class="n">loopIndex</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_range</span> <span class="o">=</span> <span class="n">rng</span>
+		<span class="n">rng</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">LoopIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loopIndex</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Range</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Range</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range</span>
+
+	<span class="c1"># IndexDeclaredItems = ConcurrentStatements.IndexDeclaredItems</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">IndexStatement</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">IndexStatements</span><span class="p">()</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">IndexStatements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">IndexStatements</span><span class="p">()</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="nf">IterateInstantiations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Instantiation</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="n">ConcurrentStatementsMixin</span><span class="o">.</span><span class="n">IterateInstantiations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ConcurrentSignalAssignment">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentSignalAssignment">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcurrentSignalAssignment</span><span class="p">(</span><span class="n">ConcurrentStatement</span><span class="p">,</span> <span class="n">SignalAssignmentMixin</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A base-class for concurrent signal assignments.</span>
+
+<span class="sd">	.. seealso::</span>
+
+<span class="sd">	   * :class:`~pyVHDLModel.Concurrent.ConcurrentSimpleSignalAssignment`</span>
+<span class="sd">	   * :class:`~pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment`</span>
+<span class="sd">	   * :class:`~pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment`</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ConcurrentSignalAssignment.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentSignalAssignment.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Name</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+		<span class="n">SignalAssignmentMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ConcurrentSimpleSignalAssignment">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentSimpleSignalAssignment">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcurrentSimpleSignalAssignment</span><span class="p">(</span><span class="n">ConcurrentSignalAssignment</span><span class="p">):</span>
+	<span class="n">_waveform</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">WaveformElement</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ConcurrentSimpleSignalAssignment.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentSimpleSignalAssignment.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Name</span><span class="p">,</span> <span class="n">waveform</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">WaveformElement</span><span class="p">],</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+		<span class="c1"># TODO: extract to mixin</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_waveform</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="n">waveform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">waveformElement</span> <span class="ow">in</span> <span class="n">waveform</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_waveform</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">waveformElement</span><span class="p">)</span>
+				<span class="n">waveformElement</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">WaveformElement</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waveform</span></div>
+
+
+
+<div class="viewcode-block" id="ConcurrentSelectedSignalAssignment">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcurrentSelectedSignalAssignment</span><span class="p">(</span><span class="n">ConcurrentSignalAssignment</span><span class="p">):</span>
+<div class="viewcode-block" id="ConcurrentSelectedSignalAssignment.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Name</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ConcurrentConditionalSignalAssignment">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcurrentConditionalSignalAssignment</span><span class="p">(</span><span class="n">ConcurrentSignalAssignment</span><span class="p">):</span>
+<div class="viewcode-block" id="ConcurrentConditionalSignalAssignment.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Name</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ConcurrentAssertStatement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentAssertStatement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcurrentAssertStatement</span><span class="p">(</span><span class="n">ConcurrentStatement</span><span class="p">,</span> <span class="n">AssertStatementMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="ConcurrentAssertStatement.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentAssertStatement.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+		<span class="bp">self</span><span class="p">,</span>
+		<span class="n">condition</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span>
+		<span class="n">message</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span>
+		<span class="n">severity</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">ExpressionUnion</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">label</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+		<span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+		<span class="n">AssertStatementMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">severity</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

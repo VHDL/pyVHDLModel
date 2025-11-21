@@ -1,0 +1,493 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyVHDLModel.Association &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pyVHDLModel.Base" href="pyVHDLModel.Base.html" />
+    <link rel="prev" title="pyVHDLModel" href="pyVHDLModel.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pyVHDLModel.html">Python Class Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pyVHDLModel.Association</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Association.AssociationItem"><code class="docutils literal notranslate"><span class="pre">AssociationItem</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.AssociationItem.__init__"><code class="docutils literal notranslate"><span class="pre">AssociationItem.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.AssociationItem.__str__"><code class="docutils literal notranslate"><span class="pre">AssociationItem.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.AssociationItem.Parent"><code class="docutils literal notranslate"><span class="pre">AssociationItem.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.AssociationItem._parent"><code class="docutils literal notranslate"><span class="pre">AssociationItem._parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Association.GenericAssociationItem"><code class="docutils literal notranslate"><span class="pre">GenericAssociationItem</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.GenericAssociationItem.Parent"><code class="docutils literal notranslate"><span class="pre">GenericAssociationItem.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.GenericAssociationItem.__init__"><code class="docutils literal notranslate"><span class="pre">GenericAssociationItem.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.GenericAssociationItem.__str__"><code class="docutils literal notranslate"><span class="pre">GenericAssociationItem.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.GenericAssociationItem._parent"><code class="docutils literal notranslate"><span class="pre">GenericAssociationItem._parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Association.PortAssociationItem"><code class="docutils literal notranslate"><span class="pre">PortAssociationItem</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.PortAssociationItem.Parent"><code class="docutils literal notranslate"><span class="pre">PortAssociationItem.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.PortAssociationItem.__init__"><code class="docutils literal notranslate"><span class="pre">PortAssociationItem.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.PortAssociationItem.__str__"><code class="docutils literal notranslate"><span class="pre">PortAssociationItem.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.PortAssociationItem._parent"><code class="docutils literal notranslate"><span class="pre">PortAssociationItem._parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Association.ParameterAssociationItem"><code class="docutils literal notranslate"><span class="pre">ParameterAssociationItem</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.ParameterAssociationItem.Parent"><code class="docutils literal notranslate"><span class="pre">ParameterAssociationItem.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.ParameterAssociationItem.__init__"><code class="docutils literal notranslate"><span class="pre">ParameterAssociationItem.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.ParameterAssociationItem.__str__"><code class="docutils literal notranslate"><span class="pre">ParameterAssociationItem.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Association.ParameterAssociationItem._parent"><code class="docutils literal notranslate"><span class="pre">ParameterAssociationItem._parent</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Base.html">pyVHDLModel.Base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Common.html">pyVHDLModel.Common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Concurrent.html">pyVHDLModel.Concurrent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Declaration.html">pyVHDLModel.Declaration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.DesignUnit.html">pyVHDLModel.DesignUnit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Exception.html">pyVHDLModel.Exception</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Expression.html">pyVHDLModel.Expression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.IEEE.html">pyVHDLModel.IEEE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Instantiation.html">pyVHDLModel.Instantiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Interface.html">pyVHDLModel.Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Name.html">pyVHDLModel.Name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Namespace.html">pyVHDLModel.Namespace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Object.html">pyVHDLModel.Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.PSLModel.html">pyVHDLModel.PSLModel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Predefined.html">pyVHDLModel.Predefined</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Regions.html">pyVHDLModel.Regions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.STD.html">pyVHDLModel.STD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Sequential.html">pyVHDLModel.Sequential</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Subprogram.html">pyVHDLModel.Subprogram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Symbol.html">pyVHDLModel.Symbol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Type.html">pyVHDLModel.Type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.VHDLVersion"><code class="docutils literal notranslate"><span class="pre">VHDLVersion</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.IEEEFlavor"><code class="docutils literal notranslate"><span class="pre">IEEEFlavor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectClass"><code class="docutils literal notranslate"><span class="pre">ObjectClass</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DesignUnitKind"><code class="docutils literal notranslate"><span class="pre">DesignUnitKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DependencyGraphVertexKind"><code class="docutils literal notranslate"><span class="pre">DependencyGraphVertexKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DependencyGraphEdgeKind"><code class="docutils literal notranslate"><span class="pre">DependencyGraphEdgeKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectGraphVertexKind"><code class="docutils literal notranslate"><span class="pre">ObjectGraphVertexKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectGraphEdgeKind"><code class="docutils literal notranslate"><span class="pre">ObjectGraphEdgeKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Design"><code class="docutils literal notranslate"><span class="pre">Design</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library"><code class="docutils literal notranslate"><span class="pre">Library</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Document"><code class="docutils literal notranslate"><span class="pre">Document</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="pyVHDLModel.html">pyVHDLModel</a></li>
+      <li class="breadcrumb-item active">pyVHDLModel.Association</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/pyVHDLModel/pyVHDLModel.Association.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="module-pyVHDLModel.Association">
+<span id="pyvhdlmodel-association"></span><h1>pyVHDLModel.Association<a class="headerlink" href="#module-pyVHDLModel.Association" title="Link to this heading"></a></h1>
+<p>This module contains parts of an abstract document language model for VHDL.</p>
+<p>Associations are used in generic maps, port maps and parameter maps.</p>
+<p><strong>Classes</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pyVHDLModel.Association.AssociationItem" title="pyVHDLModel.Association.AssociationItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssociationItem</span></code></a>:
+A base-class for all association items.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Association.GenericAssociationItem" title="pyVHDLModel.Association.GenericAssociationItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenericAssociationItem</span></code></a>:
+A base-class for all generic association items used in generic map aspects.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Association.PortAssociationItem" title="pyVHDLModel.Association.PortAssociationItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">PortAssociationItem</span></code></a>:
+A base-class for all port association items used in port map aspects.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Association.ParameterAssociationItem" title="pyVHDLModel.Association.ParameterAssociationItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterAssociationItem</span></code></a>:
+A base-class for all parameter association items used in parameter map aspects.</p></li>
+</ul>
+<hr class="docutils" />
+<p><strong>Classes</strong></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.AssociationItem">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Association.</span></span><span class="sig-name descname"><span class="pre">AssociationItem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Association.html#AssociationItem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Association.AssociationItem" title="Link to this definition"></a></dt>
+<dd><p>A base-class for all association items.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-e7a4797c344514409b6881e708bab020620c96a6.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of AssociationItem</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>formal</strong> (<a class="reference internal" href="pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" title="pyVHDLModel.Symbol.Symbol"><em>Symbol</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.AssociationItem.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Association.html#AssociationItem.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Association.AssociationItem.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> – The parent model entity of this entity.</p></li>
+<li><p><strong>actual</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>formal</strong> (<a class="reference internal" href="pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" title="pyVHDLModel.Symbol.Symbol"><em>Symbol</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.AssociationItem.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Association.html#AssociationItem.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Association.AssociationItem.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.AssociationItem.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Association.AssociationItem.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Association.AssociationItem._parent" title="pyVHDLModel.Association.AssociationItem._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.AssociationItem._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Association.AssociationItem._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.GenericAssociationItem">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Association.</span></span><span class="sig-name descname"><span class="pre">GenericAssociationItem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Association.html#GenericAssociationItem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Association.GenericAssociationItem" title="Link to this definition"></a></dt>
+<dd><p>A base-class for all generic association items used in generic map aspects.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-a158421a1eedf170c6a3db8cda3cefa2a4fc20cf.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of GenericAssociationItem</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>formal</strong> (<a class="reference internal" href="pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" title="pyVHDLModel.Symbol.Symbol"><em>Symbol</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.GenericAssociationItem.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Association.GenericAssociationItem.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Association.GenericAssociationItem._parent" title="pyVHDLModel.Association.GenericAssociationItem._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.GenericAssociationItem.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Association.GenericAssociationItem.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> – The parent model entity of this entity.</p></li>
+<li><p><strong>actual</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>formal</strong> (<a class="reference internal" href="pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" title="pyVHDLModel.Symbol.Symbol"><em>Symbol</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.GenericAssociationItem.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Association.GenericAssociationItem.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.GenericAssociationItem._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Association.GenericAssociationItem._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.PortAssociationItem">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Association.</span></span><span class="sig-name descname"><span class="pre">PortAssociationItem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Association.html#PortAssociationItem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Association.PortAssociationItem" title="Link to this definition"></a></dt>
+<dd><p>A base-class for all port association items used in port map aspects.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-0bd0e209485874f60f503da07e11f2ff062dd9fc.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of PortAssociationItem</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>formal</strong> (<a class="reference internal" href="pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" title="pyVHDLModel.Symbol.Symbol"><em>Symbol</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.PortAssociationItem.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Association.PortAssociationItem.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Association.PortAssociationItem._parent" title="pyVHDLModel.Association.PortAssociationItem._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.PortAssociationItem.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Association.PortAssociationItem.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> – The parent model entity of this entity.</p></li>
+<li><p><strong>actual</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>formal</strong> (<a class="reference internal" href="pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" title="pyVHDLModel.Symbol.Symbol"><em>Symbol</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.PortAssociationItem.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Association.PortAssociationItem.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.PortAssociationItem._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Association.PortAssociationItem._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.ParameterAssociationItem">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Association.</span></span><span class="sig-name descname"><span class="pre">ParameterAssociationItem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Association.html#ParameterAssociationItem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Association.ParameterAssociationItem" title="Link to this definition"></a></dt>
+<dd><p>A base-class for all parameter association items used in parameter map aspects.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-1c58174f2d603d714875bcdfb039466f409a65bd.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ParameterAssociationItem</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>formal</strong> (<a class="reference internal" href="pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" title="pyVHDLModel.Symbol.Symbol"><em>Symbol</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.ParameterAssociationItem.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Association.ParameterAssociationItem.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Association.ParameterAssociationItem._parent" title="pyVHDLModel.Association.ParameterAssociationItem._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.ParameterAssociationItem.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Association.ParameterAssociationItem.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> – The parent model entity of this entity.</p></li>
+<li><p><strong>actual</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>formal</strong> (<a class="reference internal" href="pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" title="pyVHDLModel.Symbol.Symbol"><em>Symbol</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.ParameterAssociationItem.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Association.ParameterAssociationItem.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Association.ParameterAssociationItem._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Association.ParameterAssociationItem._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pyVHDLModel.html" class="btn btn-neutral float-left" title="pyVHDLModel" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pyVHDLModel.Base.html" class="btn btn-neutral float-right" title="pyVHDLModel.Base" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

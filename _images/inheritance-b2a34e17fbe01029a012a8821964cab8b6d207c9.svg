@@ -1,0 +1,89 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="552pt" height="83pt" viewBox="0.00 0.00 552.00 83.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 79)">
+<ns0:title>inheritance4391dd6bc3</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>ConcurrentProcedureCall</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentProcedureCall" ns1:title="ConcurrentProcedureCall" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="544,-37 407,-37 407,-18 544,-18 544,-37" />
+<ns0:text text-anchor="middle" x="475.5" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConcurrentProcedureCall</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ConcurrentStatement</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentStatement" ns1:title="A base-class for all concurrent statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="371,-56 250,-56 250,-37 371,-37 371,-56" />
+<ns0:text text-anchor="middle" x="310.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConcurrentStatement</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ConcurrentStatement-&gt;ConcurrentProcedureCall</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M371.27,-39.53C381.19,-38.38 391.57,-37.17 401.76,-35.98" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="401.98,-37.71 406.75,-35.4 401.58,-34.24 401.98,-37.71" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>ProcedureCallMixin</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Common.html#pyVHDLModel.Common.ProcedureCallMixin" ns1:title="ProcedureCallMixin" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="366,-19 255,-19 255,0 366,0 366,-19" />
+<ns0:text text-anchor="middle" x="310.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ProcedureCallMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>ProcedureCallMixin-&gt;ConcurrentProcedureCall</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M366.23,-15.54C377.64,-16.8 389.84,-18.15 401.78,-19.47" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="401.72,-21.22 406.88,-20.03 402.1,-17.74 401.72,-21.22" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>Statement</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Common.html#pyVHDLModel.Common.Statement" ns1:title="A ``Statement`` is a base-class for all statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="214,-56 146,-56 146,-37 214,-37 214,-56" />
+<ns0:text text-anchor="middle" x="180" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Statement</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>Statement-&gt;ConcurrentStatement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M214.09,-46.5C223.49,-46.5 234.05,-46.5 244.64,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="244.84,-48.25 249.84,-46.5 244.84,-44.75 244.84,-48.25" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>LabeledEntityMixin</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.LabeledEntityMixin" ns1:title="A ``LabeledEntityMixin`` is a mixin class for all VHDL entities that can have labels." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="110,-75 0,-75 0,-56 110,-56 110,-75" />
+<ns0:text text-anchor="middle" x="55" y="-63" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">LabeledEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>LabeledEntityMixin-&gt;Statement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M110.31,-57.11C120.61,-55.52 131.19,-53.89 140.86,-52.39" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="141.15,-54.12 145.83,-51.62 140.62,-50.66 141.15,-54.12" />
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="92.5,-38 17.5,-38 17.5,-19 92.5,-19 92.5,-38" />
+<ns0:text text-anchor="middle" x="55" y="-26" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>ModelEntity-&gt;Statement</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M92.57,-33.85C107.71,-36.07 125.28,-38.64 140.61,-40.88" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="140.51,-42.64 145.72,-41.63 141.02,-39.17 140.51,-42.64" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

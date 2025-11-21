@@ -1,0 +1,134 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="562pt" height="175pt" viewBox="0.00 0.00 562.00 175.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 171)">
+<ns0:title>inheritanceb4a5d6e370</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>ConcurrentDeclarationRegionMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Regions.html#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin" ns1:title="ConcurrentDeclarationRegionMixin" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="464,-167 277,-167 277,-148 464,-148 464,-167" />
+<ns0:text text-anchor="middle" x="370.5" y="-155" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConcurrentDeclarationRegionMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node8" class="node">
+<ns0:title>Entity</ns0:title>
+<ns0:g id="a_node8"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.Entity" ns1:title="Represents an entity declaration." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="554,-111 500,-111 500,-92 554,-92 554,-111" />
+<ns0:text text-anchor="middle" x="527" y="-99" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Entity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge6" class="edge">
+<ns0:title>ConcurrentDeclarationRegionMixin-&gt;Entity</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M436.53,-147.91C445.9,-145.65 455.31,-142.88 464,-139.5 480.35,-133.14 497.21,-122.49 509.22,-114.08" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="510.35,-115.42 513.41,-111.1 508.32,-112.57 510.35,-115.42" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ConcurrentStatementsMixin</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentStatementsMixin" ns1:title="A mixin-class for all language constructs supporting concurrent statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="447,-130 294,-130 294,-111 447,-111 447,-130" />
+<ns0:text text-anchor="middle" x="370.5" y="-118" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConcurrentStatementsMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge7" class="edge">
+<ns0:title>ConcurrentStatementsMixin-&gt;Entity</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M447.39,-111.17C464.1,-109.11 480.89,-107.05 494.64,-105.36" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="495.2,-107.05 499.95,-104.7 494.77,-103.58 495.2,-107.05" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>DesignUnit</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.DesignUnit" ns1:title="A base-class for all design units." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="241,-56 170,-56 170,-37 241,-37 241,-56" />
+<ns0:text text-anchor="middle" x="205.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DesignUnit</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node9" class="node">
+<ns0:title>PrimaryUnit</ns0:title>
+<ns0:g id="a_node9"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.PrimaryUnit" ns1:title="A base-class for all primary design units." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="408,-56 333,-56 333,-37 408,-37 408,-56" />
+<ns0:text text-anchor="middle" x="370.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">PrimaryUnit</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge8" class="edge">
+<ns0:title>DesignUnit-&gt;PrimaryUnit</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M241.07,-46.5C266.3,-46.5 300.64,-46.5 327.46,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="327.72,-48.25 332.72,-46.5 327.72,-44.75 327.72,-48.25" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="104.5,-93 29.5,-93 29.5,-74 104.5,-74 104.5,-93" />
+<ns0:text text-anchor="middle" x="67" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ModelEntity-&gt;DesignUnit</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M103.15,-73.97C122.09,-68.84 145.5,-62.49 165.06,-57.19" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="165.57,-58.87 169.94,-55.87 164.66,-55.49 165.57,-58.87" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>NamedEntityMixin</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.NamedEntityMixin" ns1:title="A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have identifiers." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="120.5,-56 13.5,-56 13.5,-37 120.5,-37 120.5,-56" />
+<ns0:text text-anchor="middle" x="67" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">NamedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>NamedEntityMixin-&gt;DesignUnit</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M120.77,-46.5C135.35,-46.5 150.91,-46.5 164.62,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="164.97,-48.25 169.97,-46.5 164.97,-44.75 164.97,-48.25" />
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>DocumentedEntityMixin</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.DocumentedEntityMixin" ns1:title="A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="134,-19 0,-19 0,0 134,0 134,-19" />
+<ns0:text text-anchor="middle" x="67" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DocumentedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>DocumentedEntityMixin-&gt;DesignUnit</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M103.15,-19.03C122.09,-24.16 145.5,-30.51 165.06,-35.81" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="164.66,-37.51 169.94,-37.13 165.57,-34.13 164.66,-37.51" />
+</ns0:g>
+
+<ns0:g id="node7" class="node">
+<ns0:title>DesignUnitWithContextMixin</ns0:title>
+<ns0:g id="a_node7"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.DesignUnitWithContextMixin" ns1:title="A mixin-class for all design units with a context." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="449.5,-93 291.5,-93 291.5,-74 449.5,-74 449.5,-93" />
+<ns0:text text-anchor="middle" x="370.5" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DesignUnitWithContextMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>DesignUnitWithContextMixin-&gt;Entity</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M449.66,-92.61C465.65,-94.47 481.58,-96.33 494.73,-97.86" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="494.64,-99.61 499.81,-98.45 495.05,-96.13 494.64,-99.61" />
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>PrimaryUnit-&gt;Entity</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M408.29,-51.25C425.57,-54.19 446.23,-58.72 464,-65.5 479.74,-71.5 496.17,-81.23 508.16,-89.05" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="507.23,-90.54 512.37,-91.84 509.17,-87.62 507.23,-90.54" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

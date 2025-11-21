@@ -1,0 +1,349 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyVHDLModel.Regions &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pyVHDLModel.STD" href="pyVHDLModel.STD.html" />
+    <link rel="prev" title="pyVHDLModel.Predefined" href="pyVHDLModel.Predefined.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pyVHDLModel.html">Python Class Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Association.html">pyVHDLModel.Association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Base.html">pyVHDLModel.Base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Common.html">pyVHDLModel.Common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Concurrent.html">pyVHDLModel.Concurrent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Declaration.html">pyVHDLModel.Declaration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.DesignUnit.html">pyVHDLModel.DesignUnit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Exception.html">pyVHDLModel.Exception</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Expression.html">pyVHDLModel.Expression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.IEEE.html">pyVHDLModel.IEEE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Instantiation.html">pyVHDLModel.Instantiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Interface.html">pyVHDLModel.Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Name.html">pyVHDLModel.Name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Namespace.html">pyVHDLModel.Namespace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Object.html">pyVHDLModel.Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.PSLModel.html">pyVHDLModel.PSLModel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Predefined.html">pyVHDLModel.Predefined</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pyVHDLModel.Regions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin.__init__"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._declaredItems"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin._declaredItems</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._types"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin._types</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._subtypes"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin._subtypes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._constants"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin._constants</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._signals"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin._signals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._sharedVariables"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin._sharedVariables</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._files"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin._files</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._functions"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin._functions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._procedures"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin._procedures</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._components"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin._components</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin.IndexDeclaredItems"><code class="docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin.IndexDeclaredItems()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.STD.html">pyVHDLModel.STD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Sequential.html">pyVHDLModel.Sequential</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Subprogram.html">pyVHDLModel.Subprogram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Symbol.html">pyVHDLModel.Symbol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Type.html">pyVHDLModel.Type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.VHDLVersion"><code class="docutils literal notranslate"><span class="pre">VHDLVersion</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.IEEEFlavor"><code class="docutils literal notranslate"><span class="pre">IEEEFlavor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectClass"><code class="docutils literal notranslate"><span class="pre">ObjectClass</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DesignUnitKind"><code class="docutils literal notranslate"><span class="pre">DesignUnitKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DependencyGraphVertexKind"><code class="docutils literal notranslate"><span class="pre">DependencyGraphVertexKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DependencyGraphEdgeKind"><code class="docutils literal notranslate"><span class="pre">DependencyGraphEdgeKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectGraphVertexKind"><code class="docutils literal notranslate"><span class="pre">ObjectGraphVertexKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectGraphEdgeKind"><code class="docutils literal notranslate"><span class="pre">ObjectGraphEdgeKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Design"><code class="docutils literal notranslate"><span class="pre">Design</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library"><code class="docutils literal notranslate"><span class="pre">Library</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Document"><code class="docutils literal notranslate"><span class="pre">Document</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="pyVHDLModel.html">pyVHDLModel</a></li>
+      <li class="breadcrumb-item active">pyVHDLModel.Regions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/pyVHDLModel/pyVHDLModel.Regions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="module-pyVHDLModel.Regions">
+<span id="pyvhdlmodel-regions"></span><h1>pyVHDLModel.Regions<a class="headerlink" href="#module-pyVHDLModel.Regions" title="Link to this heading"></a></h1>
+<p>This module contains parts of an abstract document language model for VHDL.</p>
+<p>tbd.</p>
+<p><strong>Classes</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin" title="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConcurrentDeclarationRegionMixin</span></code></a>:
+Undocumented.</p></li>
+</ul>
+<hr class="docutils" />
+<p><strong>Classes</strong></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Regions.</span></span><span class="sig-name descname"><span class="pre">ConcurrentDeclarationRegionMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">declaredItems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Regions.html#ConcurrentDeclarationRegionMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-a16695de21030a275e9b5d6b2bf82d1e58acb540.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ConcurrentDeclarationRegionMixin</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>declaredItems</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">declaredItems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Regions.html#ConcurrentDeclarationRegionMixin.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>declaredItems</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em> | </em><em>None</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._declaredItems">
+<span class="sig-name descname"><span class="pre">_declaredItems</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._declaredItems" title="Link to this definition"></a></dt>
+<dd><p>List of all declared items in this concurrent declaration region.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._types">
+<span class="sig-name descname"><span class="pre">_types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference internal" href="pyVHDLModel.Type.html#pyVHDLModel.Type.FullType" title="pyVHDLModel.Type.FullType"><code class="xref py py-class docutils literal notranslate"><span class="pre">FullType</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._types" title="Link to this definition"></a></dt>
+<dd><p>Dictionary of all types declared in this concurrent declaration region.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._subtypes">
+<span class="sig-name descname"><span class="pre">_subtypes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference internal" href="pyVHDLModel.Type.html#pyVHDLModel.Type.Subtype" title="pyVHDLModel.Type.Subtype"><code class="xref py py-class docutils literal notranslate"><span class="pre">Subtype</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._subtypes" title="Link to this definition"></a></dt>
+<dd><p>Dictionary of all subtypes declared in this concurrent declaration region.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._constants">
+<span class="sig-name descname"><span class="pre">_constants</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference internal" href="pyVHDLModel.Object.html#pyVHDLModel.Object.Constant" title="pyVHDLModel.Object.Constant"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constant</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._constants" title="Link to this definition"></a></dt>
+<dd><p>Dictionary of all constants declared in this concurrent declaration region.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._signals">
+<span class="sig-name descname"><span class="pre">_signals</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference internal" href="pyVHDLModel.Object.html#pyVHDLModel.Object.Signal" title="pyVHDLModel.Object.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._signals" title="Link to this definition"></a></dt>
+<dd><p>Dictionary of all signals declared in this concurrent declaration region.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._sharedVariables">
+<span class="sig-name descname"><span class="pre">_sharedVariables</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference internal" href="pyVHDLModel.Object.html#pyVHDLModel.Object.SharedVariable" title="pyVHDLModel.Object.SharedVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">SharedVariable</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._sharedVariables" title="Link to this definition"></a></dt>
+<dd><p>Dictionary of all shared variables declared in this concurrent declaration region.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._files">
+<span class="sig-name descname"><span class="pre">_files</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference internal" href="pyVHDLModel.Object.html#pyVHDLModel.Object.File" title="pyVHDLModel.Object.File"><code class="xref py py-class docutils literal notranslate"><span class="pre">File</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._files" title="Link to this definition"></a></dt>
+<dd><p>Dictionary of all files declared in this concurrent declaration region.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._functions">
+<span class="sig-name descname"><span class="pre">_functions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference internal" href="pyVHDLModel.Subprogram.html#pyVHDLModel.Subprogram.Function" title="pyVHDLModel.Subprogram.Function"><code class="xref py py-class docutils literal notranslate"><span class="pre">Function</span></code></a><span class="pre">]]</span></em><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._functions" title="Link to this definition"></a></dt>
+<dd><p>Dictionary of all functions declared in this concurrent declaration region.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._procedures">
+<span class="sig-name descname"><span class="pre">_procedures</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference internal" href="pyVHDLModel.Subprogram.html#pyVHDLModel.Subprogram.Procedure" title="pyVHDLModel.Subprogram.Procedure"><code class="xref py py-class docutils literal notranslate"><span class="pre">Procedure</span></code></a><span class="pre">]]</span></em><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._procedures" title="Link to this definition"></a></dt>
+<dd><p>Dictionary of all procedures declared in this concurrent declaration region.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._components">
+<span class="sig-name descname"><span class="pre">_components</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._components" title="Link to this definition"></a></dt>
+<dd><p>Dictionary of all components declared in this concurrent declaration region.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin.IndexDeclaredItems">
+<span class="sig-name descname"><span class="pre">IndexDeclaredItems</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Regions.html#ConcurrentDeclarationRegionMixin.IndexDeclaredItems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin.IndexDeclaredItems" title="Link to this definition"></a></dt>
+<dd><p>Index declared items listed in the concurrent declaration region.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<p class="rubric">Algorithm</p>
+<ol class="arabic simple">
+<li><p>Iterate all declared items:</p>
+<ul class="simple">
+<li><p>Every declared item is added to <code class="xref py py-attr docutils literal notranslate"><span class="pre">_namespace</span></code>.</p></li>
+<li><p>If the declared item is a <a class="reference internal" href="pyVHDLModel.Type.html#pyVHDLModel.Type.FullType" title="pyVHDLModel.Type.FullType"><code class="xref py py-class docutils literal notranslate"><span class="pre">FullType</span></code></a>, then add an entry to <a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._types" title="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._types"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_types</span></code></a>.</p></li>
+<li><p>If the declared item is a <code class="xref py py-class docutils literal notranslate"><span class="pre">SubType</span></code>, then add an entry to <a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._subtypes" title="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._subtypes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_subtypes</span></code></a>.</p></li>
+<li><p>If the declared item is a <a class="reference internal" href="pyVHDLModel.Subprogram.html#pyVHDLModel.Subprogram.Function" title="pyVHDLModel.Subprogram.Function"><code class="xref py py-class docutils literal notranslate"><span class="pre">Function</span></code></a>, then add an entry to <a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._functions" title="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._functions"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_functions</span></code></a>.</p></li>
+<li><p>If the declared item is a <a class="reference internal" href="pyVHDLModel.Subprogram.html#pyVHDLModel.Subprogram.Procedure" title="pyVHDLModel.Subprogram.Procedure"><code class="xref py py-class docutils literal notranslate"><span class="pre">Procedure</span></code></a>, then add an entry to <a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._procedures" title="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._procedures"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_procedures</span></code></a>.</p></li>
+<li><p>If the declared item is a <a class="reference internal" href="pyVHDLModel.Object.html#pyVHDLModel.Object.Constant" title="pyVHDLModel.Object.Constant"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constant</span></code></a>, then add an entry to <a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._constants" title="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._constants"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_constants</span></code></a>.</p></li>
+<li><p>If the declared item is a <a class="reference internal" href="pyVHDLModel.Object.html#pyVHDLModel.Object.Signal" title="pyVHDLModel.Object.Signal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code></a>, then add an entry to <a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._signals" title="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._signals"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_signals</span></code></a>.</p></li>
+<li><p>If the declared item is a <a class="reference internal" href="pyVHDLModel.Object.html#pyVHDLModel.Object.Variable" title="pyVHDLModel.Object.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a>, TODO.</p></li>
+<li><p>If the declared item is a <a class="reference internal" href="pyVHDLModel.Object.html#pyVHDLModel.Object.SharedVariable" title="pyVHDLModel.Object.SharedVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">SharedVariable</span></code></a>, then add an entry to <a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._sharedVariables" title="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._sharedVariables"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_sharedVariables</span></code></a>.</p></li>
+<li><p>If the declared item is a <a class="reference internal" href="pyVHDLModel.Object.html#pyVHDLModel.Object.File" title="pyVHDLModel.Object.File"><code class="xref py py-class docutils literal notranslate"><span class="pre">File</span></code></a>, then add an entry to <a class="reference internal" href="#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._files" title="pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin._files"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_files</span></code></a>.</p></li>
+<li><p>If the declared item is neither of these types, call <code class="xref py py-meth docutils literal notranslate"><span class="pre">_IndexOtherDeclaredItem()</span></code>. <br />
+Derived classes may override this virtual function.</p></li>
+</ul>
+</li>
+</ol>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Design.IndexPackages" title="pyVHDLModel.Design.IndexPackages"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pyVHDLModel.Design.IndexPackages()</span></code></a></dt><dd><p>Iterate all packages in the design and index declared items.</p>
+</dd>
+<dt><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library.IndexPackages" title="pyVHDLModel.Library.IndexPackages"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pyVHDLModel.Library.IndexPackages()</span></code></a></dt><dd><p>Iterate all packages in the library and index declared items.</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">pyVHDLModel.Library._IndexOtherDeclaredItem()</span></code></dt><dd><p>Iterate all packages in the library and index declared items.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pyVHDLModel.Predefined.html" class="btn btn-neutral float-left" title="pyVHDLModel.Predefined" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pyVHDLModel.STD.html" class="btn btn-neutral float-right" title="pyVHDLModel.STD" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

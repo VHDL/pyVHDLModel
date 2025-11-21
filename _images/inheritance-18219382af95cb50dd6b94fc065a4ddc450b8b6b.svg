@@ -1,0 +1,134 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="576pt" height="150pt" viewBox="0.00 0.00 576.00 150.01">
+<ns0:g id="graph0" class="graph" transform="scale(0.96 0.96) rotate(0) translate(4 152)">
+<ns0:title>inheritanceb8bc770ac8</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>BranchMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.BranchMixin" ns1:title="A ``BranchMixin`` is a mixin-class for all statements with branches." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="88,-148 11,-148 11,-129 88,-129 88,-148" />
+<ns0:text text-anchor="middle" x="49.5" y="-136" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">BranchMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>ConditionalBranchMixin</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ConditionalBranchMixin" ns1:title="A ``BaseBranch`` is a mixin-class for all branch statements with a condition." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="295,-130 162,-130 162,-111 295,-111 295,-130" />
+<ns0:text text-anchor="middle" x="228.5" y="-118" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConditionalBranchMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>BranchMixin-&gt;ConditionalBranchMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M88.04,-134.68C108.03,-132.65 133.28,-130.08 156.79,-127.69" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="156.98,-129.43 161.77,-127.18 156.62,-125.95 156.98,-129.43" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ConcurrentDeclarationRegionMixin</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Regions.html#pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin" ns1:title="ConcurrentDeclarationRegionMixin" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="322,-93 135,-93 135,-74 322,-74 322,-93" />
+<ns0:text text-anchor="middle" x="228.5" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConcurrentDeclarationRegionMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>GenerateBranch</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.GenerateBranch" ns1:title="A base-class for all branches in a generate statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="453,-74 358,-74 358,-55 453,-55 453,-74" />
+<ns0:text text-anchor="middle" x="405.5" y="-62" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">GenerateBranch</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>ConcurrentDeclarationRegionMixin-&gt;GenerateBranch</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M317.26,-73.97C329.39,-72.66 341.51,-71.34 352.69,-70.13" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="352.98,-71.85 357.76,-69.57 352.6,-68.37 352.98,-71.85" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>ConcurrentStatementsMixin</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.ConcurrentStatementsMixin" ns1:title="A mixin-class for all language constructs supporting concurrent statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="305,-56 152,-56 152,-37 305,-37 305,-56" />
+<ns0:text text-anchor="middle" x="228.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConcurrentStatementsMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>ConcurrentStatementsMixin-&gt;GenerateBranch</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M305.24,-54.29C321.34,-55.95 337.98,-57.66 352.93,-59.2" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="352.78,-60.94 357.93,-59.71 353.14,-57.46 352.78,-60.94" />
+</ns0:g>
+
+<ns0:g id="node8" class="node">
+<ns0:title>IfBranchMixin</ns0:title>
+<ns0:g id="a_node8"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.IfBranchMixin" ns1:title="A ``BaseIfBranch`` is a mixin-class for all if-branches." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="447.5,-120 363.5,-120 363.5,-101 447.5,-101 447.5,-120" />
+<ns0:text text-anchor="middle" x="405.5" y="-108" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">IfBranchMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge6" class="edge">
+<ns0:title>ConditionalBranchMixin-&gt;IfBranchMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M295.16,-116.75C316.08,-115.55 338.78,-114.26 358.05,-113.15" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="358.5,-114.88 363.39,-112.85 358.3,-111.39 358.5,-114.88" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>ConditionalMixin</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ConditionalMixin" ns1:title="A ``ConditionalMixin`` is a mixin-class for all statements with a condition." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="99,-111 0,-111 0,-92 99,-92 99,-111" />
+<ns0:text text-anchor="middle" x="49.5" y="-99" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConditionalMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>ConditionalMixin-&gt;ConditionalBranchMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M99.33,-106.74C117.01,-108.64 137.35,-110.82 156.54,-112.88" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="156.77,-114.67 161.92,-113.46 157.14,-111.19 156.77,-114.67" />
+</ns0:g>
+
+<ns0:g id="node9" class="node">
+<ns0:title>IfGenerateBranch</ns0:title>
+<ns0:g id="a_node9"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Concurrent.html#pyVHDLModel.Concurrent.IfGenerateBranch" ns1:title="Represents if-generate branch in a generate statement with a concurrent declaration region and concurrent statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="591,-92 489,-92 489,-73 591,-73 591,-92" />
+<ns0:text text-anchor="middle" x="540" y="-80" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">IfGenerateBranch</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge7" class="edge">
+<ns0:title>GenerateBranch-&gt;IfGenerateBranch</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M453.21,-70.85C462.99,-72.17 473.38,-73.59 483.44,-74.95" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="483.47,-76.72 488.66,-75.66 483.94,-73.25 483.47,-76.72" />
+</ns0:g>
+
+<ns0:g id="node7" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node7"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="266,-19 191,-19 191,0 266,0 266,-19" />
+<ns0:text text-anchor="middle" x="228.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>ModelEntity-&gt;GenerateBranch</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M266.42,-15.26C283.54,-18.39 304.03,-22.8 322,-28.5 342.38,-34.96 364.55,-44.8 380.77,-52.56" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="380.34,-54.3 385.6,-54.9 381.86,-51.15 380.34,-54.3" />
+</ns0:g>
+
+<ns0:g id="edge8" class="edge">
+<ns0:title>IfBranchMixin-&gt;IfGenerateBranch</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M447.7,-101.79C460.69,-99.05 475.19,-95.99 488.73,-93.12" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="489.15,-94.82 493.68,-92.08 488.43,-91.4 489.15,-94.82" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

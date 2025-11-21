@@ -1,0 +1,44 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="348pt" height="27pt" viewBox="0.00 0.00 348.00 27.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 23)">
+<ns0:title>inheritanced3a92d1c32</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>DependencyGraphVertexKind</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.html#pyVHDLModel.DependencyGraphVertexKind" ns1:title="A ``DependencyGraphVertexKind`` is an enumeration and represents the kind of vertex in the dependency graph." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="340,-19 180,-19 180,0 340,0 340,-19" />
+<ns0:text text-anchor="middle" x="260" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DependencyGraphVertexKind</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>Flag</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="https://docs.python.org/3/library/enum.html#enum.Flag" ns1:title="Support for flags" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="144,-19 90,-19 90,0 144,0 144,-19" />
+<ns0:text text-anchor="middle" x="117" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Flag</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>Flag-&gt;DependencyGraphVertexKind</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M144.19,-9.5C153.17,-9.5 163.76,-9.5 174.82,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="174.93,-11.25 179.93,-9.5 174.93,-7.75 174.93,-11.25" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>Enum</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="https://docs.python.org/3/library/enum.html#enum.Enum" ns1:title="Create a collection of name/value pairs." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="54,-19 0,-19 0,0 54,0 54,-19" />
+<ns0:text text-anchor="middle" x="27" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Enum</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>Enum-&gt;Flag</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M54.4,-9.5C63.97,-9.5 74.87,-9.5 84.82,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="84.92,-11.25 89.92,-9.5 84.92,-7.75 84.92,-11.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

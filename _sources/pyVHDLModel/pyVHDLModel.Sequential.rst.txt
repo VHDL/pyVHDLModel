@@ -1,0 +1,472 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+======================
+pyVHDLModel.Sequential
+======================
+
+.. automodule:: pyVHDLModel.Sequential
+
+
+.. currentmodule:: pyVHDLModel.Sequential
+
+
+**Classes**
+
+- :py:class:`SequentialStatement`:
+  A ``SequentialStatement`` is a base-class for all sequential statements.
+
+- :py:class:`SequentialStatementsMixin`:
+  Undocumented.
+
+- :py:class:`SequentialProcedureCall`:
+  A ``SequentialStatement`` is a base-class for all sequential statements.
+
+- :py:class:`SequentialSignalAssignment`:
+  A ``SequentialStatement`` is a base-class for all sequential statements.
+
+- :py:class:`SequentialSimpleSignalAssignment`:
+  A ``SequentialStatement`` is a base-class for all sequential statements.
+
+- :py:class:`SequentialVariableAssignment`:
+  A ``SequentialStatement`` is a base-class for all sequential statements.
+
+- :py:class:`SequentialReportStatement`:
+  A ``SequentialStatement`` is a base-class for all sequential statements.
+
+- :py:class:`SequentialAssertStatement`:
+  A ``SequentialStatement`` is a base-class for all sequential statements.
+
+- :py:class:`CompoundStatement`:
+  A ``CompoundStatement`` is a base-class for all compound statements.
+
+- :py:class:`Branch`:
+  A ``Branch`` is a base-class for all branches in a if statement.
+
+- :py:class:`IfBranch`:
+  A ``Branch`` is a base-class for all branches in a if statement.
+
+- :py:class:`ElsifBranch`:
+  A ``Branch`` is a base-class for all branches in a if statement.
+
+- :py:class:`ElseBranch`:
+  A ``Branch`` is a base-class for all branches in a if statement.
+
+- :py:class:`IfStatement`:
+  A ``CompoundStatement`` is a base-class for all compound statements.
+
+- :py:class:`SequentialChoice`:
+  A ``SequentialChoice`` is a base-class for all sequential choices (in case statements).
+
+- :py:class:`IndexedChoice`:
+  A ``SequentialChoice`` is a base-class for all sequential choices (in case statements).
+
+- :py:class:`RangedChoice`:
+  A ``SequentialChoice`` is a base-class for all sequential choices (in case statements).
+
+- :py:class:`SequentialCase`:
+  A ``Case`` is a base-class for all cases.
+
+- :py:class:`Case`:
+  A ``Case`` is a base-class for all cases.
+
+- :py:class:`OthersCase`:
+  A ``Case`` is a base-class for all cases.
+
+- :py:class:`CaseStatement`:
+  A ``CompoundStatement`` is a base-class for all compound statements.
+
+- :py:class:`LoopStatement`:
+  A ``LoopStatement`` is a base-class for all loop statements.
+
+- :py:class:`EndlessLoopStatement`:
+  A ``LoopStatement`` is a base-class for all loop statements.
+
+- :py:class:`ForLoopStatement`:
+  A ``LoopStatement`` is a base-class for all loop statements.
+
+- :py:class:`WhileLoopStatement`:
+  A ``LoopStatement`` is a base-class for all loop statements.
+
+- :py:class:`LoopControlStatement`:
+  A ``LoopControlStatement`` is a base-class for all loop controlling statements.
+
+- :py:class:`NextStatement`:
+  A ``LoopControlStatement`` is a base-class for all loop controlling statements.
+
+- :py:class:`ExitStatement`:
+  A ``LoopControlStatement`` is a base-class for all loop controlling statements.
+
+- :py:class:`NullStatement`:
+  A ``SequentialStatement`` is a base-class for all sequential statements.
+
+- :py:class:`ReturnStatement`:
+  A ``SequentialStatement`` is a base-class for all sequential statements.
+
+- :py:class:`WaitStatement`:
+  A ``SequentialStatement`` is a base-class for all sequential statements.
+
+- :py:class:`SequentialDeclarationsMixin`:
+  Undocumented.
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: SequentialStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialStatement
+      :parts: 1
+
+.. autoclass:: SequentialStatementsMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialStatementsMixin
+      :parts: 1
+
+.. autoclass:: SequentialProcedureCall
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialProcedureCall
+      :parts: 1
+
+.. autoclass:: SequentialSignalAssignment
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialSignalAssignment
+      :parts: 1
+
+.. autoclass:: SequentialSimpleSignalAssignment
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialSimpleSignalAssignment
+      :parts: 1
+
+.. autoclass:: SequentialVariableAssignment
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialVariableAssignment
+      :parts: 1
+
+.. autoclass:: SequentialReportStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialReportStatement
+      :parts: 1
+
+.. autoclass:: SequentialAssertStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialAssertStatement
+      :parts: 1
+
+.. autoclass:: CompoundStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: CompoundStatement
+      :parts: 1
+
+.. autoclass:: Branch
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Branch
+      :parts: 1
+
+.. autoclass:: IfBranch
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IfBranch
+      :parts: 1
+
+.. autoclass:: ElsifBranch
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ElsifBranch
+      :parts: 1
+
+.. autoclass:: ElseBranch
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ElseBranch
+      :parts: 1
+
+.. autoclass:: IfStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IfStatement
+      :parts: 1
+
+.. autoclass:: SequentialChoice
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialChoice
+      :parts: 1
+
+.. autoclass:: IndexedChoice
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: IndexedChoice
+      :parts: 1
+
+.. autoclass:: RangedChoice
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: RangedChoice
+      :parts: 1
+
+.. autoclass:: SequentialCase
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialCase
+      :parts: 1
+
+.. autoclass:: Case
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Case
+      :parts: 1
+
+.. autoclass:: OthersCase
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: OthersCase
+      :parts: 1
+
+.. autoclass:: CaseStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: CaseStatement
+      :parts: 1
+
+.. autoclass:: LoopStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: LoopStatement
+      :parts: 1
+
+.. autoclass:: EndlessLoopStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: EndlessLoopStatement
+      :parts: 1
+
+.. autoclass:: ForLoopStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ForLoopStatement
+      :parts: 1
+
+.. autoclass:: WhileLoopStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: WhileLoopStatement
+      :parts: 1
+
+.. autoclass:: LoopControlStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: LoopControlStatement
+      :parts: 1
+
+.. autoclass:: NextStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: NextStatement
+      :parts: 1
+
+.. autoclass:: ExitStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ExitStatement
+      :parts: 1
+
+.. autoclass:: NullStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: NullStatement
+      :parts: 1
+
+.. autoclass:: ReturnStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: ReturnStatement
+      :parts: 1
+
+.. autoclass:: WaitStatement
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: WaitStatement
+      :parts: 1
+
+.. autoclass:: SequentialDeclarationsMixin
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: SequentialDeclarationsMixin
+      :parts: 1

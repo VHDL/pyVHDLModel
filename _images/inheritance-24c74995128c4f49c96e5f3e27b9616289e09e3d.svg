@@ -1,0 +1,74 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="433pt" height="64pt" viewBox="0.00 0.00 433.00 64.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 60)">
+<ns0:title>inheritance155a8126cf</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>Ieee</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.IEEE.html#pyVHDLModel.IEEE.Ieee" ns1:title="Predefined VHDL library ``ieee``." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="425,-37 371,-37 371,-18 425,-18 425,-37" />
+<ns0:text text-anchor="middle" x="398" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Ieee</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>PredefinedLibrary</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Predefined.html#pyVHDLModel.Predefined.PredefinedLibrary" ns1:title="A base-class for predefined VHDL libraries." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="335,-37 233,-37 233,-18 335,-18 335,-37" />
+<ns0:text text-anchor="middle" x="284" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">PredefinedLibrary</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>PredefinedLibrary-&gt;Ieee</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M335.1,-27.5C345.52,-27.5 356.22,-27.5 365.72,-27.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="365.87,-29.25 370.87,-27.5 365.87,-25.75 365.87,-29.25" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>Library</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.html#pyVHDLModel.Library" ns1:title="A ``Library`` represents a VHDL library. It contains all *primary* and *secondary* design units." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="197,-37 143,-37 143,-18 197,-18 197,-37" />
+<ns0:text text-anchor="middle" x="170" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Library</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>Library-&gt;PredefinedLibrary</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M197.26,-27.5C206.37,-27.5 216.96,-27.5 227.53,-27.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="227.71,-29.25 232.71,-27.5 227.71,-25.75 227.71,-29.25" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="91,-56 16,-56 16,-37 91,-37 91,-56" />
+<ns0:text text-anchor="middle" x="53.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>ModelEntity-&gt;Library</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M91.04,-40.44C106.08,-37.94 123.32,-35.08 137.76,-32.68" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="138.3,-34.37 142.95,-31.82 137.73,-30.92 138.3,-34.37" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>NamedEntityMixin</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.NamedEntityMixin" ns1:title="A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have identifiers." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="107,-19 0,-19 0,0 107,0 107,-19" />
+<ns0:text text-anchor="middle" x="53.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">NamedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>NamedEntityMixin-&gt;Library</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M107.06,-17.76C117.57,-19.42 128.3,-21.1 137.81,-22.6" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="137.75,-24.36 142.96,-23.41 138.29,-20.9 137.75,-24.36" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

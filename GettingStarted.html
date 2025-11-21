@@ -1,0 +1,403 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting Started &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.svg"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=3595839c"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation/Updates" href="Installation.html" />
+    <link rel="prev" title="The pyVHDLModel Documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pyvhdlparser">pyVHDLParser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ghdl-as-parser">GHDL as Parser</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installation-and-setup">Installation and Setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#on-windows-native">On Windows - Native</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#on-windows-msys2">On Windows - MSYS2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#on-windows-from-sources">On Windows from Sources</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#on-linux">On Linux</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#on-mac">On Mac</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#using-libghdl-with-python">Using libghdl with Python</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pyVHDLModel/pyVHDLModel.html">Python Class Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Getting Started</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/GettingStarted.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="getting-started">
+<span id="gettingstarted"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h1>
+<p><em>pyVHDLModel</em> is a VHDL language model without any parser. There are currently two parsers available that can serve as a
+frontend to pyVHDLModel. These parsers can generate a VHDL language model instance from VHDL source files:</p>
+<ul class="simple">
+<li><p>pyVHDLParser (currently broken)</p></li>
+<li><p>GHDL</p></li>
+</ul>
+<section id="pyvhdlparser">
+<h2>pyVHDLParser<a class="headerlink" href="#pyvhdlparser" title="Link to this heading"></a></h2>
+<p>The pyVHDLParser is a token-stream based parser creating a code document object model (CodeDOM) derived from
+pyVHDLModel. Actually, pyVHDLModel was originally part of that parser, until it got refactored into this standalone
+package so multiple frontends (parsers) and backends (analysis tools) can use this VHDL language model as a common API.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Currently, pyVHDLParser is not aligned with latest updates in pyVHDLModel.</p>
+</div>
+</section>
+<section id="ghdl-as-parser">
+<h2>GHDL as Parser<a class="headerlink" href="#ghdl-as-parser" title="Link to this heading"></a></h2>
+<p>The free and open-source VHDL-2008 simulator <strong>GHDL</strong> offers a Python binding, so Python code can access <code class="docutils literal notranslate"><span class="pre">libghdl</span></code>.
+This binding layer is exposed in the <code class="docutils literal notranslate"><span class="pre">pyGHDL.libghdl</span></code> package. In addition, GHDL offers a <code class="docutils literal notranslate"><span class="pre">pyGHDL.dom</span></code> package
+implementing derived classes of pyVHDLModel. Each derived class adds translation methods (<code class="docutils literal notranslate"><span class="pre">.parse(iirNode)</span></code>) from
+GHDL’s internal data structure IIR to the code document object model (CodeDOM) of pyVHDLModel.</p>
+<section id="installation-and-setup">
+<h3>Installation and Setup<a class="headerlink" href="#installation-and-setup" title="Link to this heading"></a></h3>
+<p>To use pyVHDLModel a tool offering a parser like GHDL is required. GHDL itself offers multiple options for installation.
+In addition it has multiple backends. For the usage with pyVHDLModel, an <code class="docutils literal notranslate"><span class="pre">mcode</span></code> backend is preferred, as it’s faster
+and doesn’t write <code class="docutils literal notranslate"><span class="pre">*.o</span></code> files to the disk. As most Python installation are nowadays 64-bit, an <code class="docutils literal notranslate"><span class="pre">mcode</span> <span class="pre">64-bit</span></code>
+variant of GHDL would be best.</p>
+<section id="on-windows-native">
+<h4>On Windows - Native<a class="headerlink" href="#on-windows-native" title="Link to this heading"></a></h4>
+<p>Assuming a 64-bit Windows installation and a 64-bit CPython (<a class="reference external" href="https://www.python.org/downloads/">python.org</a>)
+installation, it’s suggested to install:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/ghdl/ghdl/releases/download/nightly/MINGW64-mcode-standalone.zip">GHDL 3.0.0-dev - MinGW64 - mcode - standalone</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ghdl/ghdl/releases/download/nightly/UCRT64-mcode-standalone.zip">GHDL 3.0.0-dev - UCRT64 - mcode - standalone</a></p></li>
+</ul>
+<p>As development of Python packages <code class="docutils literal notranslate"><span class="pre">pyGHDL.dom</span></code> and <code class="docutils literal notranslate"><span class="pre">pyVHDLModel</span></code> are under quick development cycles, a GHDL
+<code class="docutils literal notranslate"><span class="pre">nightly</span></code> build is suggested compared to the stable releases (once a year). These nightly builds are provided as ZIP
+files on GitHub: <a class="reference external" href="https://github.com/ghdl/ghdl/releases/tag/nightly">https://github.com/ghdl/ghdl/releases/tag/nightly</a> (or use links from above).</p>
+<p>At next, unpack the ZIP files content to e.g. <code class="file docutils literal notranslate"><span class="pre">C:\Tools\GHDL\3.0.0-dev</span></code> (GHDL installation directory). This ZIP
+file brings the GHDL synthesis and simulation tool as well as <code class="file docutils literal notranslate"><span class="pre">libghdl-3_0_0_dev.dll</span></code> needed as a parser frontend.</p>
+</section>
+<section id="on-windows-msys2">
+<h4>On Windows - MSYS2<a class="headerlink" href="#on-windows-msys2" title="Link to this heading"></a></h4>
+<p>Assuming a 64-bit Windows installation and an <a class="reference external" href="https://www.msys2.org/">MSYS2</a> installation in <code class="file docutils literal notranslate"><span class="pre">C:msys64</span></code>.</p>
+<p class="rubric">MSYS2 Prepartions and GHDL/libghdl Installation</p>
+<p>Start either the MinGW64 or UCRT64 environment and then use <strong class="command">pacman</strong> to install GHDL. The following steps are
+explained for UCRT64, but can be applied to MinGW64 similarly.</p>
+<div class="admonition-bash admonition">
+<p class="admonition-title">Bash</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Update MSYS2 to latest package releases</span>
+pacman<span class="w"> </span>-Suyy
+
+<span class="c1"># If the core system was updated, a second run might be required.</span>
+pacman<span class="w"> </span>-Suyy
+
+<span class="c1"># Search for available GHDL packages</span>
+pacman<span class="w"> </span>-Ss<span class="w"> </span>ghdl
+<span class="c1"># mingw32/mingw-w64-i686-ghdl-mcode 2.0.0.r870.g1cc85c578-1 (mingw-w64-i686-eda) [Installiert]</span>
+<span class="c1">#     GHDL: the open-source analyzer, compiler, simulator and (experimental) synthesizer for VHDL (mcode backend) (mingw-w64)</span>
+<span class="c1"># mingw64/mingw-w64-x86_64-ghdl-llvm 2.0.0.r870.g1cc85c578-1 (mingw-w64-x86_64-eda) [Installiert]</span>
+<span class="c1">#     GHDL: the open-source analyzer, compiler, simulator and (experimental) synthesizer for VHDL (LLVM backend) (mingw-w64)</span>
+<span class="c1"># ucrt64/mingw-w64-ucrt-x86_64-ghdl-llvm 2.0.0.r870.g1cc85c578-1 (mingw-w64-ucrt-x86_64-eda) [Installiert]</span>
+<span class="c1">#     GHDL: the open-source analyzer, compiler, simulator and (experimental) synthesizer for VHDL (LLVM backend) (mingw-w64)</span>
+
+<span class="c1"># Note: The GHDL version is 870 commits after 2.0.0 release and has Git hash &quot;1cc85c578&quot; (without prefix &#39;g&#39;)</span>
+
+<span class="c1"># Install GHDL for UCRT64</span>
+pacman<span class="w"> </span>-S<span class="w"> </span>ucrt64/mingw-w64-ucrt-x86_64-ghdl-llvm
+</pre></div>
+</div>
+</div>
+<p class="rubric">Installing pyGHDL</p>
+<p>At next, pyGHDL matching the currently installed GHDL version must be installed. At best, pyGHDL matches the exact Git
+hash of GHDL, so there is no discrepancy between the libghdl binary and the DLL binding layer in <code class="docutils literal notranslate"><span class="pre">pyGHDL.libghdl</span></code>.</p>
+<p>Assuming <em>Git for Windows</em> is installed and available in PowerShell, the following command will install pyGHDL via PIP:</p>
+<div class="admonition-powershell admonition">
+<p class="admonition-title">PowerShell</p>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="c"># Install pyGHDL</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="p">+</span><span class="n">https</span><span class="p">://</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="p">/</span><span class="n">ghdl</span><span class="p">/</span><span class="n">ghdl</span><span class="p">.</span><span class="n">git</span><span class="p">@$(</span><span class="n">ghdl</span> <span class="n">version</span> <span class="n">hash</span><span class="p">).</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="on-windows-from-sources">
+<h4>On Windows from Sources<a class="headerlink" href="#on-windows-from-sources" title="Link to this heading"></a></h4>
+<p>Assuming a 64-bit Windows installation, a 64-bit CPython (<a class="reference external" href="https://www.python.org/downloads/">python.org</a>)
+installation as well as an <a class="reference external" href="https://www.msys2.org/">MSYS2</a> installation in <code class="file docutils literal notranslate"><span class="pre">C:msys64</span></code>.</p>
+<p class="rubric">MSYS2 Prepartions</p>
+<p>Start either the MinGW64 or UCRT64 environment and then use <strong class="command">pacman</strong> to install build dependencies. The
+following steps are explained for UCRT64, but can be applied to MinGW64 similarly.</p>
+<div class="admonition-bash admonition">
+<p class="admonition-title">Bash</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Update MSYS2 to latest package releases</span>
+pacman<span class="w"> </span>-Suyy
+
+<span class="c1"># If the core system was updated, a second run might be required.</span>
+pacman<span class="w"> </span>-Suyy
+
+<span class="c1"># Install system dependencies</span>
+pacman<span class="w"> </span>-S<span class="w"> </span>git
+pacman<span class="w"> </span>-S<span class="w"> </span>make
+pacman<span class="w"> </span>-S<span class="w"> </span>diffutils
+
+<span class="c1"># Install GHDL build dependencies (GCC with Ada support)</span>
+pacman<span class="w"> </span>-S<span class="w"> </span>ucrt64/mingw-w64-ucrt-x86_64-gcc-ada
+</pre></div>
+</div>
+</div>
+<p class="rubric">Building GHDL and libghdl</p>
+<p>The next steps will clone GHDL from GitHub, configure the software, build the binaries, run the testsuite and install
+all needed result files into the installation directory.</p>
+<div class="admonition-bash admonition">
+<p class="admonition-title">Bash</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone GHDL repository</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>/c/Tools/GHDL
+<span class="nb">cd</span><span class="w"> </span>/c/Tools/GHDL
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ghdl/ghdl.git<span class="w"> </span>sources
+
+<span class="c1"># Create build directory and configure GHDL</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>sources/build
+<span class="nb">cd</span><span class="w"> </span>sources/build
+../configure<span class="w"> </span>--prefix<span class="o">=</span>/c/Tools/GHDL/3.0.0-dev
+
+<span class="c1"># Build GHDL, run testsuite and install to ``prefix``</span>
+make
+make<span class="w"> </span>install
+</pre></div>
+</div>
+</div>
+<p>The directory structure will look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>├── Tools
+│   ├── GHDL
+│   │   ├── 3.0.0-dev
+│   │   │   ├── bin
+│   │   │   ├── include
+│   │   │   ├── lib
+│   │   │   │   ├── ghdl
+│   │   ├── sources
+│   │   │   ├── ...
+│   │   │   ├── pyGHDL
+│   │   │   ├── src
+│   │   │   ├── ...
+</pre></div>
+</div>
+<p>In the next steps, some files from MSYS2/UCRT64 need to be copied into the installation directory, so
+<code class="file docutils literal notranslate"><span class="pre">libghdl-3_0_0_dev.dll</span></code> can be used independently from MSYS2 environments.</p>
+<p class="rubric">Installing pyGHDL</p>
+<p>As a final setup step, pyGHDL needs to be installed via PIP by executing some commands in PowerShell. The dependencies
+of pyGHDL will take care of installing all necessary requirements like pyVHDLModel.</p>
+<div class="admonition-powershell admonition">
+<p class="admonition-title">PowerShell</p>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd </span><span class="n">C</span><span class="p">:\</span><span class="n">Tools</span><span class="p">\</span><span class="n">GHDL</span><span class="p">\</span><span class="n">sources</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="p">.</span>
+</pre></div>
+</div>
+</div>
+<p class="rubric">Updating GHDL and libghdl</p>
+<p>If GHDL gets updated through new commits, start the UCRT64 console and execute these instructions to build a latest
+<code class="file docutils literal notranslate"><span class="pre">libghdl-3_0_0_dev.dll</span></code>:</p>
+<div class="admonition-bash admonition">
+<p class="admonition-title">Bash</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Update Git reository</span>
+<span class="nb">cd</span><span class="w"> </span>/c/Tools/GHDL/sources/build
+git<span class="w"> </span>pull
+
+<span class="c1"># Recompile GHDL</span>
+make
+
+<span class="c1"># Overwrite file in installation directory</span>
+make<span class="w"> </span>install
+</pre></div>
+</div>
+</div>
+<p class="rubric">Updating pyGHDL</p>
+<p>TBD</p>
+</section>
+<section id="on-linux">
+<h4>On Linux<a class="headerlink" href="#on-linux" title="Link to this heading"></a></h4>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Write how to get started on Linux with libghdl.</p>
+</div>
+</section>
+<section id="on-mac">
+<h4>On Mac<a class="headerlink" href="#on-mac" title="Link to this heading"></a></h4>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Write how to get started on Mac with libghdl.</p>
+</div>
+</section>
+</section>
+<section id="using-libghdl-with-python">
+<h3>Using libghdl with Python<a class="headerlink" href="#using-libghdl-with-python" title="Link to this heading"></a></h3>
+<p>An environment variable <span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">GHDL_PREFIX=C:\Tools\GHDL\3.0.0-dev\lib\ghdl</span></code> is needed for <code class="docutils literal notranslate"><span class="pre">libghdl</span></code>. The path is
+constructed from installation path plus <code class="docutils literal notranslate"><span class="pre">lib\ghdl</span></code>.</p>
+<div class="admonition-gettingstarted-py admonition">
+<p class="admonition-title">GettingStarted.py</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyGHDL.dom.NonStandard</span><span class="w"> </span><span class="kn">import</span> <span class="n">Design</span><span class="p">,</span> <span class="n">Document</span>
+
+<span class="n">fileList</span> <span class="o">=</span> <span class="p">(</span>
+  <span class="p">(</span><span class="s2">&quot;libStopWatch&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;Counter.vhdl&quot;</span><span class="p">)),</span>  <span class="c1"># a list of 2-element tuples; library name and pat to the VHDL file</span>
+  <span class="o">...</span>                                      <span class="c1"># just for this example to simply loop all files</span>
+<span class="p">)</span>
+
+<span class="n">design</span> <span class="o">=</span> <span class="n">Design</span><span class="p">()</span>
+<span class="n">design</span><span class="o">.</span><span class="n">LoadDefaultLibraries</span><span class="p">()</span>    <span class="c1"># loads std.* and ieee.* (dummies for now to calculate dependencies)</span>
+<span class="k">for</span> <span class="n">libName</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">fileList</span><span class="p">:</span>
+  <span class="n">library</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">GetLibrary</span><span class="p">(</span><span class="n">libName</span><span class="p">)</span>
+  <span class="n">document</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+  <span class="n">design</span><span class="o">.</span><span class="n">AddDocument</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">library</span><span class="p">)</span>
+
+<span class="c1"># Analyzing dependencies and computing graphs</span>
+<span class="n">design</span><span class="o">.</span><span class="n">Analyze</span><span class="p">()</span>
+
+<span class="c1"># Accessing the TopLevel</span>
+<span class="n">design</span><span class="o">.</span><span class="n">TopLevel</span>
+
+<span class="c1"># Accessing graphs</span>
+<span class="n">design</span><span class="o">.</span><span class="n">DependencyGraph</span>
+<span class="n">design</span><span class="o">.</span><span class="n">HierarchyGraph</span>
+<span class="n">design</span><span class="o">.</span><span class="n">CompileOrderGraph</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="The pyVHDLModel Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Installation.html" class="btn btn-neutral float-right" title="Installation/Updates" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

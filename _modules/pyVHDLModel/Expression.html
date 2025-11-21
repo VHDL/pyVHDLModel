@@ -1,0 +1,1693 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyVHDLModel.Expression &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../../_static/favicon.svg"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+      <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+      <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+      <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs"></script>
+      <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+      <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+      <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const style = document.createElement('style');
+style.textContent = `.mermaid-container {
+    position: relative !important;
+    display: inline-block;
+    width: 100%;
+}
+
+.mermaid-fullscreen-btn {
+    position: absolute !important;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-fullscreen-content {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-fullscreen-content.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-fullscreen-content .mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-fullscreen-content .mermaid svg {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 85vh;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}
+`;
+document.head.appendChild(style);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const initFullscreen = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(initFullscreen, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-fullscreen-content${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-fullscreen-content');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = '';
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", initFullscreen);
+</script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pyVHDLModel/pyVHDLModel.html">Python Class Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../pyVHDLModel.html">pyVHDLModel</a></li>
+      <li class="breadcrumb-item active">pyVHDLModel.Expression</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pyVHDLModel.Expression</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ==================================================================================================================== #</span>
+<span class="c1">#             __     ___   _ ____  _     __  __           _      _                                                     #</span>
+<span class="c1">#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #</span>
+<span class="c1">#  | &#39;_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #</span>
+<span class="c1">#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #</span>
+<span class="c1">#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #</span>
+<span class="c1">#  |_|    |___/                                                                                                        #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1"># Authors:                                                                                                             #</span>
+<span class="c1">#   Patrick Lehmann                                                                                                    #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># License:                                                                                                             #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1"># Copyright 2017-2025 Patrick Lehmann - Boetzingen, Germany                                                            #</span>
+<span class="c1"># Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);                                                      #</span>
+<span class="c1"># you may not use this file except in compliance with the License.                                                     #</span>
+<span class="c1"># You may obtain a copy of the License at                                                                              #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software                                                  #</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,                                                    #</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #</span>
+<span class="c1"># See the License for the specific language governing permissions and                                                  #</span>
+<span class="c1"># limitations under the License.                                                                                       #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># SPDX-License-Identifier: Apache-2.0                                                                                  #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains parts of an abstract document language model for VHDL.</span>
+
+<span class="sd">All declarations for literals, aggregates, operators forming an expressions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w">                 </span><span class="kn">import</span> <span class="n">Flag</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w">               </span><span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">ClassVar</span><span class="p">,</span> <span class="n">Optional</span> <span class="k">as</span> <span class="n">Nullable</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyTooling.Decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">export</span><span class="p">,</span> <span class="n">readonly</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Base</span><span class="w">     </span><span class="kn">import</span> <span class="n">ModelEntity</span><span class="p">,</span> <span class="n">Direction</span><span class="p">,</span> <span class="n">Range</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Symbol</span><span class="w">   </span><span class="kn">import</span> <span class="n">Symbol</span>
+
+
+<span class="n">ExpressionUnion</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span>
+	<span class="s1">&#39;BaseExpression&#39;</span><span class="p">,</span>
+	<span class="s1">&#39;QualifiedExpression&#39;</span><span class="p">,</span>
+	<span class="s1">&#39;FunctionCall&#39;</span><span class="p">,</span>
+	<span class="s1">&#39;TypeConversion&#39;</span><span class="p">,</span>
+	<span class="c1"># ConstantOrSymbol,     TODO: ObjectSymbol</span>
+	<span class="s1">&#39;Literal&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="BaseExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseExpression</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``BaseExpression`` is a base-class for all expressions.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Literal">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Literal</span><span class="p">(</span><span class="n">BaseExpression</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``Literal`` is a base-class for all literals.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="NullLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.NullLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NullLiteral</span><span class="p">(</span><span class="n">Literal</span><span class="p">):</span>
+<div class="viewcode-block" id="NullLiteral.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.NullLiteral.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;null&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="EnumerationLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.EnumerationLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EnumerationLiteral</span><span class="p">(</span><span class="n">Literal</span><span class="p">):</span>
+	<span class="n">_value</span><span class="p">:</span> <span class="nb">str</span>
+
+<div class="viewcode-block" id="EnumerationLiteral.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.EnumerationLiteral.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+
+<div class="viewcode-block" id="EnumerationLiteral.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.EnumerationLiteral.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NumericLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.NumericLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NumericLiteral</span><span class="p">(</span><span class="n">Literal</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``NumericLiteral`` is a base-class for all numeric literals.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="IntegerLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.IntegerLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IntegerLiteral</span><span class="p">(</span><span class="n">NumericLiteral</span><span class="p">):</span>
+	<span class="n">_value</span><span class="p">:</span> <span class="nb">int</span>
+
+<div class="viewcode-block" id="IntegerLiteral.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.IntegerLiteral.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+
+<div class="viewcode-block" id="IntegerLiteral.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.IntegerLiteral.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="FloatingPointLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.FloatingPointLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FloatingPointLiteral</span><span class="p">(</span><span class="n">NumericLiteral</span><span class="p">):</span>
+	<span class="n">_value</span><span class="p">:</span> <span class="nb">float</span>
+
+<div class="viewcode-block" id="FloatingPointLiteral.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.FloatingPointLiteral.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+
+<div class="viewcode-block" id="FloatingPointLiteral.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.FloatingPointLiteral.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PhysicalLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.PhysicalLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PhysicalLiteral</span><span class="p">(</span><span class="n">NumericLiteral</span><span class="p">):</span>
+	<span class="n">_unitName</span><span class="p">:</span> <span class="nb">str</span>
+
+<div class="viewcode-block" id="PhysicalLiteral.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.PhysicalLiteral.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unitName</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_unitName</span> <span class="o">=</span> <span class="n">unitName</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">UnitName</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unitName</span>
+
+<div class="viewcode-block" id="PhysicalLiteral.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.PhysicalLiteral.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_unitName</span><span class="si">}</span><span class="s2">&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PhysicalIntegerLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.PhysicalIntegerLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PhysicalIntegerLiteral</span><span class="p">(</span><span class="n">PhysicalLiteral</span><span class="p">):</span>
+	<span class="n">_value</span><span class="p">:</span> <span class="nb">int</span>
+
+<div class="viewcode-block" id="PhysicalIntegerLiteral.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.PhysicalIntegerLiteral.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">unitName</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">unitName</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span></div>
+
+
+
+<div class="viewcode-block" id="PhysicalFloatingLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.PhysicalFloatingLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PhysicalFloatingLiteral</span><span class="p">(</span><span class="n">PhysicalLiteral</span><span class="p">):</span>
+	<span class="n">_value</span><span class="p">:</span> <span class="nb">float</span>
+
+<div class="viewcode-block" id="PhysicalFloatingLiteral.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.PhysicalFloatingLiteral.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">unitName</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">unitName</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span></div>
+
+
+
+<div class="viewcode-block" id="CharacterLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.CharacterLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CharacterLiteral</span><span class="p">(</span><span class="n">Literal</span><span class="p">):</span>
+	<span class="n">_value</span><span class="p">:</span> <span class="nb">str</span>
+
+<div class="viewcode-block" id="CharacterLiteral.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.CharacterLiteral.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+
+<div class="viewcode-block" id="CharacterLiteral.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.CharacterLiteral.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StringLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.StringLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">StringLiteral</span><span class="p">(</span><span class="n">Literal</span><span class="p">):</span>
+	<span class="n">_value</span><span class="p">:</span> <span class="nb">str</span>
+
+<div class="viewcode-block" id="StringLiteral.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.StringLiteral.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+
+<div class="viewcode-block" id="StringLiteral.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.StringLiteral.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BitStringBase">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.BitStringBase">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BitStringBase</span><span class="p">(</span><span class="n">Flag</span><span class="p">):</span>
+	<span class="n">NoBase</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">Binary</span> <span class="o">=</span> <span class="mi">2</span>
+	<span class="n">Octal</span> <span class="o">=</span> <span class="mi">8</span>
+	<span class="n">Decimal</span> <span class="o">=</span> <span class="mi">10</span>
+	<span class="n">Hexadecimal</span> <span class="o">=</span> <span class="mi">16</span>
+	<span class="n">Unsigned</span> <span class="o">=</span> <span class="mi">32</span>
+	<span class="n">Signed</span> <span class="o">=</span> <span class="mi">64</span></div>
+
+
+
+<div class="viewcode-block" id="BitStringLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.BitStringLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BitStringLiteral</span><span class="p">(</span><span class="n">Literal</span><span class="p">):</span>
+	<span class="c1"># _base:  ClassVar[BitStringBase]</span>
+	<span class="n">_value</span><span class="p">:</span>       <span class="nb">str</span>
+	<span class="n">_binaryValue</span><span class="p">:</span> <span class="nb">str</span>
+	<span class="n">_bits</span><span class="p">:</span>        <span class="nb">int</span>
+	<span class="n">_length</span><span class="p">:</span>      <span class="n">Nullable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+	<span class="n">_signed</span><span class="p">:</span>      <span class="n">Nullable</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span>
+
+<div class="viewcode-block" id="BitStringLiteral.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.BitStringLiteral.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">signed</span><span class="p">:</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_length</span> <span class="o">=</span> <span class="n">length</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_signed</span> <span class="o">=</span> <span class="n">signed</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_binaryValue</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_bits</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">BinaryValue</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binaryValue</span>
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Bits</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bits</span>
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Length</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_length</span>
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Signed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signed</span>
+
+<div class="viewcode-block" id="BitStringLiteral.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.BitStringLiteral.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="n">signed</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signed</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;s&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signed</span> <span class="ow">is</span> <span class="kc">True</span> <span class="k">else</span> <span class="s2">&quot;u&quot;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="ow">is</span> <span class="n">BitStringBase</span><span class="o">.</span><span class="n">NoBase</span><span class="p">:</span>
+			<span class="n">base</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="ow">is</span> <span class="n">BitStringBase</span><span class="o">.</span><span class="n">Binary</span><span class="p">:</span>
+			<span class="n">base</span> <span class="o">=</span> <span class="s2">&quot;b&quot;</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="ow">is</span> <span class="n">BitStringBase</span><span class="o">.</span><span class="n">Octal</span><span class="p">:</span>
+			<span class="n">base</span> <span class="o">=</span> <span class="s2">&quot;o&quot;</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="ow">is</span> <span class="n">BitStringBase</span><span class="o">.</span><span class="n">Decimal</span><span class="p">:</span>
+			<span class="n">base</span> <span class="o">=</span> <span class="s2">&quot;d&quot;</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="ow">is</span> <span class="n">BitStringBase</span><span class="o">.</span><span class="n">Hexadecimal</span><span class="p">:</span>
+			<span class="n">base</span> <span class="o">=</span> <span class="s2">&quot;x&quot;</span>
+		<span class="n">length</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_length</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_length</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">length</span> <span class="o">+</span> <span class="n">signed</span> <span class="o">+</span> <span class="n">base</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BinaryBitStringLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.BinaryBitStringLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BinaryBitStringLiteral</span><span class="p">(</span><span class="n">BitStringLiteral</span><span class="p">):</span>
+	<span class="n">_base</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">BitStringBase</span><span class="p">]</span> <span class="o">=</span> <span class="n">BitStringBase</span><span class="o">.</span><span class="n">Binary</span></div>
+
+
+
+<div class="viewcode-block" id="OctalBitStringLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.OctalBitStringLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OctalBitStringLiteral</span><span class="p">(</span><span class="n">BitStringLiteral</span><span class="p">):</span>
+	<span class="n">_base</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">BitStringBase</span><span class="p">]</span> <span class="o">=</span> <span class="n">BitStringBase</span><span class="o">.</span><span class="n">Octal</span></div>
+
+
+
+<div class="viewcode-block" id="DecimalBitStringLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.DecimalBitStringLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DecimalBitStringLiteral</span><span class="p">(</span><span class="n">BitStringLiteral</span><span class="p">):</span>
+	<span class="n">_base</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">BitStringBase</span><span class="p">]</span> <span class="o">=</span> <span class="n">BitStringBase</span><span class="o">.</span><span class="n">Decimal</span></div>
+
+
+
+<div class="viewcode-block" id="HexadecimalBitStringLiteral">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.HexadecimalBitStringLiteral">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">HexadecimalBitStringLiteral</span><span class="p">(</span><span class="n">BitStringLiteral</span><span class="p">):</span>
+	<span class="n">_base</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">BitStringBase</span><span class="p">]</span> <span class="o">=</span> <span class="n">BitStringBase</span><span class="o">.</span><span class="n">Hexadecimal</span></div>
+
+
+
+<div class="viewcode-block" id="ParenthesisExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.ParenthesisExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ParenthesisExpression</span><span class="p">:</span> <span class="c1">#(Protocol):</span>
+	<span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>  <span class="c1"># FIXME: use ExtendedType?</span>
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Operand</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExpressionUnion</span><span class="p">:</span>
+		<span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="UnaryExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.UnaryExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnaryExpression</span><span class="p">(</span><span class="n">BaseExpression</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``UnaryExpression`` is a base-class for all unary expressions.&quot;&quot;&quot;</span>
+
+	<span class="n">_FORMAT</span><span class="p">:</span>  <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+	<span class="n">_operand</span><span class="p">:</span> <span class="n">ExpressionUnion</span>
+
+<div class="viewcode-block" id="UnaryExpression.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.UnaryExpression.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operand</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_operand</span> <span class="o">=</span> <span class="n">operand</span></div>
+
+		<span class="c1"># operand._parent = self  # FIXME: operand is provided as None</span>
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Operand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operand</span>
+
+<div class="viewcode-block" id="UnaryExpression.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.UnaryExpression.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_FORMAT</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">_operand</span><span class="si">!s}{</span><span class="bp">self</span><span class="o">.</span><span class="n">_FORMAT</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NegationExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.NegationExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NegationExpression</span><span class="p">(</span><span class="n">UnaryExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="IdentityExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.IdentityExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IdentityExpression</span><span class="p">(</span><span class="n">UnaryExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InverseExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.InverseExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">InverseExpression</span><span class="p">(</span><span class="n">UnaryExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;not &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UnaryAndExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.UnaryAndExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnaryAndExpression</span><span class="p">(</span><span class="n">UnaryExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;and &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UnaryNandExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.UnaryNandExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnaryNandExpression</span><span class="p">(</span><span class="n">UnaryExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;nand &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UnaryOrExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.UnaryOrExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnaryOrExpression</span><span class="p">(</span><span class="n">UnaryExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;or &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UnaryNorExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.UnaryNorExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnaryNorExpression</span><span class="p">(</span><span class="n">UnaryExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;nor &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UnaryXorExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.UnaryXorExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnaryXorExpression</span><span class="p">(</span><span class="n">UnaryExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;xor &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UnaryXnorExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.UnaryXnorExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnaryXnorExpression</span><span class="p">(</span><span class="n">UnaryExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;xnor &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AbsoluteExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.AbsoluteExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AbsoluteExpression</span><span class="p">(</span><span class="n">UnaryExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;abs &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TypeConversion">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TypeConversion</span><span class="p">(</span><span class="n">UnaryExpression</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="SubExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.SubExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SubExpression</span><span class="p">(</span><span class="n">UnaryExpression</span><span class="p">,</span> <span class="n">ParenthesisExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">,</span> <span class="s2">&quot;)&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="BinaryExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.BinaryExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BinaryExpression</span><span class="p">(</span><span class="n">BaseExpression</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``BinaryExpression`` is a base-class for all binary expressions.&quot;&quot;&quot;</span>
+
+	<span class="n">_FORMAT</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+	<span class="n">_leftOperand</span><span class="p">:</span>  <span class="n">ExpressionUnion</span>
+	<span class="n">_rightOperand</span><span class="p">:</span> <span class="n">ExpressionUnion</span>
+
+<div class="viewcode-block" id="BinaryExpression.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.BinaryExpression.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">leftOperand</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">rightOperand</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_leftOperand</span> <span class="o">=</span> <span class="n">leftOperand</span>
+		<span class="n">leftOperand</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_rightOperand</span> <span class="o">=</span> <span class="n">rightOperand</span>
+		<span class="n">rightOperand</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">LeftOperand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leftOperand</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">RightOperand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rightOperand</span>
+
+<div class="viewcode-block" id="BinaryExpression.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.BinaryExpression.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;</span><span class="si">{leftOperator}{leftOperand!s}{middleOperator}{rightOperand!s}{rightOperator}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+			<span class="n">leftOperator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_FORMAT</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+			<span class="n">leftOperand</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_leftOperand</span><span class="p">,</span>
+			<span class="n">middleOperator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_FORMAT</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+			<span class="n">rightOperand</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rightOperand</span><span class="p">,</span>
+			<span class="n">rightOperator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_FORMAT</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+		<span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RangeExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.RangeExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RangeExpression</span><span class="p">(</span><span class="n">BinaryExpression</span><span class="p">):</span>
+	<span class="n">_direction</span><span class="p">:</span> <span class="n">Direction</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Direction</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Direction</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span></div>
+
+
+
+<div class="viewcode-block" id="AscendingRangeExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.AscendingRangeExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AscendingRangeExpression</span><span class="p">(</span><span class="n">RangeExpression</span><span class="p">):</span>
+	<span class="n">_direction</span> <span class="o">=</span> <span class="n">Direction</span><span class="o">.</span><span class="n">To</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; to &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="DescendingRangeExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.DescendingRangeExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DescendingRangeExpression</span><span class="p">(</span><span class="n">RangeExpression</span><span class="p">):</span>
+	<span class="n">_direction</span> <span class="o">=</span> <span class="n">Direction</span><span class="o">.</span><span class="n">DownTo</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; downto &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AddingExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.AddingExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AddingExpression</span><span class="p">(</span><span class="n">BinaryExpression</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``AddingExpression`` is a base-class for all adding expressions.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="AdditionExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.AdditionExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AdditionExpression</span><span class="p">(</span><span class="n">AddingExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; + &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SubtractionExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.SubtractionExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SubtractionExpression</span><span class="p">(</span><span class="n">AddingExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; - &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ConcatenationExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.ConcatenationExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcatenationExpression</span><span class="p">(</span><span class="n">AddingExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; &amp; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MultiplyingExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.MultiplyingExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MultiplyingExpression</span><span class="p">(</span><span class="n">BinaryExpression</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``MultiplyingExpression`` is a base-class for all multiplying expressions.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="MultiplyExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.MultiplyExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MultiplyExpression</span><span class="p">(</span><span class="n">MultiplyingExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; * &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="DivisionExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.DivisionExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DivisionExpression</span><span class="p">(</span><span class="n">MultiplyingExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; / &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RemainderExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.RemainderExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RemainderExpression</span><span class="p">(</span><span class="n">MultiplyingExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; rem &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ModuloExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.ModuloExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModuloExpression</span><span class="p">(</span><span class="n">MultiplyingExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; mod &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ExponentiationExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.ExponentiationExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExponentiationExpression</span><span class="p">(</span><span class="n">MultiplyingExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;**&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LogicalExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.LogicalExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LogicalExpression</span><span class="p">(</span><span class="n">BinaryExpression</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``LogicalExpression`` is a base-class for all logical expressions.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="AndExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.AndExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AndExpression</span><span class="p">(</span><span class="n">LogicalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; and &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="NandExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.NandExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NandExpression</span><span class="p">(</span><span class="n">LogicalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; nand &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="OrExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.OrExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OrExpression</span><span class="p">(</span><span class="n">LogicalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; or &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="NorExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.NorExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NorExpression</span><span class="p">(</span><span class="n">LogicalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; nor &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="XorExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.XorExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">XorExpression</span><span class="p">(</span><span class="n">LogicalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; xor &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="XnorExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.XnorExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">XnorExpression</span><span class="p">(</span><span class="n">LogicalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; xnor &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RelationalExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.RelationalExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RelationalExpression</span><span class="p">(</span><span class="n">BinaryExpression</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``RelationalExpression`` is a base-class for all shifting expressions.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="EqualExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.EqualExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EqualExpression</span><span class="p">(</span><span class="n">RelationalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; = &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UnequalExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.UnequalExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnequalExpression</span><span class="p">(</span><span class="n">RelationalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; /= &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="GreaterThanExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.GreaterThanExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GreaterThanExpression</span><span class="p">(</span><span class="n">RelationalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; &gt; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="GreaterEqualExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.GreaterEqualExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GreaterEqualExpression</span><span class="p">(</span><span class="n">RelationalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; &gt;= &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LessThanExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.LessThanExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LessThanExpression</span><span class="p">(</span><span class="n">RelationalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; &lt; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LessEqualExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.LessEqualExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LessEqualExpression</span><span class="p">(</span><span class="n">RelationalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; &lt;= &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MatchingRelationalExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.MatchingRelationalExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MatchingRelationalExpression</span><span class="p">(</span><span class="n">RelationalExpression</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="MatchingEqualExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.MatchingEqualExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MatchingEqualExpression</span><span class="p">(</span><span class="n">MatchingRelationalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; ?= &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MatchingUnequalExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.MatchingUnequalExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MatchingUnequalExpression</span><span class="p">(</span><span class="n">MatchingRelationalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; ?/= &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MatchingGreaterThanExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.MatchingGreaterThanExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MatchingGreaterThanExpression</span><span class="p">(</span><span class="n">MatchingRelationalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; ?&gt; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MatchingGreaterEqualExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.MatchingGreaterEqualExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MatchingGreaterEqualExpression</span><span class="p">(</span><span class="n">MatchingRelationalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; ?&gt;= &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MatchingLessThanExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.MatchingLessThanExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MatchingLessThanExpression</span><span class="p">(</span><span class="n">MatchingRelationalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; ?&lt; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MatchingLessEqualExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.MatchingLessEqualExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MatchingLessEqualExpression</span><span class="p">(</span><span class="n">MatchingRelationalExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; ?&lt;= &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ShiftExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.ShiftExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShiftExpression</span><span class="p">(</span><span class="n">BinaryExpression</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``ShiftExpression`` is a base-class for all shifting expressions.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ShiftLogicExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.ShiftLogicExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShiftLogicExpression</span><span class="p">(</span><span class="n">ShiftExpression</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ShiftArithmeticExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.ShiftArithmeticExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShiftArithmeticExpression</span><span class="p">(</span><span class="n">ShiftExpression</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="RotateExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.RotateExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RotateExpression</span><span class="p">(</span><span class="n">ShiftExpression</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ShiftRightLogicExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.ShiftRightLogicExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShiftRightLogicExpression</span><span class="p">(</span><span class="n">ShiftLogicExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; srl &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ShiftLeftLogicExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.ShiftLeftLogicExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShiftLeftLogicExpression</span><span class="p">(</span><span class="n">ShiftLogicExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; sll &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ShiftRightArithmeticExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.ShiftRightArithmeticExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShiftRightArithmeticExpression</span><span class="p">(</span><span class="n">ShiftArithmeticExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; sra &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ShiftLeftArithmeticExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.ShiftLeftArithmeticExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShiftLeftArithmeticExpression</span><span class="p">(</span><span class="n">ShiftArithmeticExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; sla &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RotateRightExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.RotateRightExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RotateRightExpression</span><span class="p">(</span><span class="n">RotateExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; ror &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RotateLeftExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.RotateLeftExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RotateLeftExpression</span><span class="p">(</span><span class="n">RotateExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; rol &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QualifiedExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">QualifiedExpression</span><span class="p">(</span><span class="n">BaseExpression</span><span class="p">,</span> <span class="n">ParenthesisExpression</span><span class="p">):</span>
+	<span class="n">_operand</span><span class="p">:</span>  <span class="n">ExpressionUnion</span>
+	<span class="n">_subtype</span><span class="p">:</span>  <span class="n">Symbol</span>
+
+<div class="viewcode-block" id="QualifiedExpression.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subtype</span><span class="p">:</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">operand</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_operand</span> <span class="o">=</span> <span class="n">operand</span>
+		<span class="n">operand</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_subtype</span> <span class="o">=</span> <span class="n">subtype</span>
+		<span class="n">subtype</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Operand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operand</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Subtyped</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subtype</span>
+
+<div class="viewcode-block" id="QualifiedExpression.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_subtype</span><span class="si">}</span><span class="s2">&#39;(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_operand</span><span class="si">!s}</span><span class="s2">)&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="TernaryExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.TernaryExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TernaryExpression</span><span class="p">(</span><span class="n">BaseExpression</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``TernaryExpression`` is a base-class for all ternary expressions.&quot;&quot;&quot;</span>
+
+	<span class="n">_FORMAT</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+	<span class="n">_firstOperand</span><span class="p">:</span>  <span class="n">ExpressionUnion</span>
+	<span class="n">_secondOperand</span><span class="p">:</span> <span class="n">ExpressionUnion</span>
+	<span class="n">_thirdOperand</span><span class="p">:</span>  <span class="n">ExpressionUnion</span>
+
+<div class="viewcode-block" id="TernaryExpression.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.TernaryExpression.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span></div>
+
+
+		<span class="c1"># FIXME: parameters and initializers are missing !!</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">FirstOperand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_firstOperand</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">SecondOperand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_secondOperand</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">ThirdOperand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thirdOperand</span>
+
+<div class="viewcode-block" id="TernaryExpression.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.TernaryExpression.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;</span><span class="si">{beforeFirstOperator}{firstOperand!s}{beforeSecondOperator}{secondOperand!s}{beforeThirdOperator}{thirdOperand!s}{lastOperator}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+			<span class="n">beforeFirstOperator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_FORMAT</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+			<span class="n">firstOperand</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_firstOperand</span><span class="p">,</span>
+			<span class="n">beforeSecondOperator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_FORMAT</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+			<span class="n">secondOperand</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_secondOperand</span><span class="p">,</span>
+			<span class="n">beforeThirdOperator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_FORMAT</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+			<span class="n">thirdOperand</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_thirdOperand</span><span class="p">,</span>
+			<span class="n">lastOperator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_FORMAT</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+		<span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="WhenElseExpression">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.WhenElseExpression">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">WhenElseExpression</span><span class="p">(</span><span class="n">TernaryExpression</span><span class="p">):</span>
+	<span class="n">_FORMAT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; when &quot;</span><span class="p">,</span> <span class="s2">&quot; else &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="FunctionCall">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FunctionCall</span><span class="p">(</span><span class="n">BaseExpression</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="Allocation">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.Allocation">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Allocation</span><span class="p">(</span><span class="n">BaseExpression</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="SubtypeAllocation">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.SubtypeAllocation">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SubtypeAllocation</span><span class="p">(</span><span class="n">Allocation</span><span class="p">):</span>
+	<span class="n">_subtype</span><span class="p">:</span> <span class="n">Symbol</span>
+
+<div class="viewcode-block" id="SubtypeAllocation.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.SubtypeAllocation.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subtype</span><span class="p">:</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_subtype</span> <span class="o">=</span> <span class="n">subtype</span>
+		<span class="n">subtype</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Subtype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Symbol</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subtype</span>
+
+<div class="viewcode-block" id="SubtypeAllocation.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.SubtypeAllocation.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;new </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_subtype</span><span class="si">!s}</span><span class="s2">&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="QualifiedExpressionAllocation">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpressionAllocation">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">QualifiedExpressionAllocation</span><span class="p">(</span><span class="n">Allocation</span><span class="p">):</span>
+	<span class="n">_qualifiedExpression</span><span class="p">:</span> <span class="n">QualifiedExpression</span>
+
+<div class="viewcode-block" id="QualifiedExpressionAllocation.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpressionAllocation.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qualifiedExpression</span><span class="p">:</span> <span class="n">QualifiedExpression</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_qualifiedExpression</span> <span class="o">=</span> <span class="n">qualifiedExpression</span>
+		<span class="n">qualifiedExpression</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">QualifiedExpression</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QualifiedExpression</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qualifiedExpression</span>
+
+<div class="viewcode-block" id="QualifiedExpressionAllocation.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpressionAllocation.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;new </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_qualifiedExpression</span><span class="si">!s}</span><span class="s2">&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="AggregateElement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.AggregateElement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AggregateElement</span><span class="p">(</span><span class="n">ModelEntity</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;A ``AggregateElement`` is a base-class for all aggregate elements.&quot;&quot;&quot;</span>
+
+	<span class="n">_expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span>
+
+<div class="viewcode-block" id="AggregateElement.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.AggregateElement.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_expression</span> <span class="o">=</span> <span class="n">expression</span>
+		<span class="n">expression</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Expression</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span></div>
+
+
+
+<div class="viewcode-block" id="SimpleAggregateElement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.SimpleAggregateElement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimpleAggregateElement</span><span class="p">(</span><span class="n">AggregateElement</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleAggregateElement.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.SimpleAggregateElement.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_expression</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="IndexedAggregateElement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.IndexedAggregateElement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IndexedAggregateElement</span><span class="p">(</span><span class="n">AggregateElement</span><span class="p">):</span>
+	<span class="n">_index</span><span class="p">:</span> <span class="nb">int</span>
+
+<div class="viewcode-block" id="IndexedAggregateElement.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.IndexedAggregateElement.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="n">index</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span>
+
+<div class="viewcode-block" id="IndexedAggregateElement.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.IndexedAggregateElement.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="si">!s}</span><span class="s2"> =&gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_expression</span><span class="si">!s}</span><span class="s2">&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RangedAggregateElement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.RangedAggregateElement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RangedAggregateElement</span><span class="p">(</span><span class="n">AggregateElement</span><span class="p">):</span>
+	<span class="n">_range</span><span class="p">:</span> <span class="n">Range</span>
+
+<div class="viewcode-block" id="RangedAggregateElement.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.RangedAggregateElement.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rng</span><span class="p">:</span> <span class="n">Range</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_range</span> <span class="o">=</span> <span class="n">rng</span>
+		<span class="n">rng</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Range</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Range</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range</span>
+
+<div class="viewcode-block" id="RangedAggregateElement.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.RangedAggregateElement.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_range</span><span class="si">!s}</span><span class="s2"> =&gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_expression</span><span class="si">!s}</span><span class="s2">&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NamedAggregateElement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.NamedAggregateElement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NamedAggregateElement</span><span class="p">(</span><span class="n">AggregateElement</span><span class="p">):</span>
+	<span class="n">_name</span><span class="p">:</span> <span class="n">Symbol</span>
+
+<div class="viewcode-block" id="NamedAggregateElement.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.NamedAggregateElement.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="n">ExpressionUnion</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+		<span class="n">name</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Symbol</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+<div class="viewcode-block" id="NamedAggregateElement.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.NamedAggregateElement.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;</span><span class="si">{name!s}</span><span class="s2"> =&gt; </span><span class="si">{value!s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+			<span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span>
+			<span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_expression</span><span class="p">,</span>
+		<span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="OthersAggregateElement">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.OthersAggregateElement">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OthersAggregateElement</span><span class="p">(</span><span class="n">AggregateElement</span><span class="p">):</span>
+<div class="viewcode-block" id="OthersAggregateElement.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.OthersAggregateElement.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s2">&quot;others =&gt; </span><span class="si">{value!s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+			<span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_expression</span><span class="p">,</span>
+		<span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Aggregate">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.Aggregate">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Aggregate</span><span class="p">(</span><span class="n">BaseExpression</span><span class="p">):</span>
+	<span class="n">_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">AggregateElement</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Aggregate.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.Aggregate.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">AggregateElement</span><span class="p">],</span> <span class="n">parent</span><span class="p">:</span> <span class="n">ModelEntity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_elements</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+			<span class="n">element</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Elements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">AggregateElement</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elements</span>
+
+<div class="viewcode-block" id="Aggregate.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Expression.html#pyVHDLModel.Expression.Aggregate.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="n">choices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">element</span><span class="p">)</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elements</span><span class="p">]</span>
+		<span class="k">return</span> <span class="s2">&quot;(</span><span class="si">{choices}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+			<span class="n">choices</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span>
+		<span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

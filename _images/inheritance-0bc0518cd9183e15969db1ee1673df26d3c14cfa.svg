@@ -1,0 +1,44 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="484pt" height="27pt" viewBox="0.00 0.00 484.00 27.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 23)">
+<ns0:title>inheritance3a1f6dbffb</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>DocumentedEntityMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.DocumentedEntityMixin" ns1:title="A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="134,-19 0,-19 0,0 134,0 134,-19" />
+<ns0:text text-anchor="middle" x="67" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DocumentedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>InterfaceItemMixin</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.InterfaceItemMixin" ns1:title="An ``InterfaceItem`` is a base-class for all mixin-classes for all interface items." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="280,-19 170,-19 170,0 280,0 280,-19" />
+<ns0:text text-anchor="middle" x="225" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">InterfaceItemMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>DocumentedEntityMixin-&gt;InterfaceItemMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M134.16,-9.5C144.2,-9.5 154.51,-9.5 164.4,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="164.53,-11.25 169.53,-9.5 164.53,-7.75 164.53,-11.25" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>ParameterInterfaceItemMixin</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.ParameterInterfaceItemMixin" ns1:title="A ``ParameterInterfaceItem`` is a mixin class for all parameter interface items." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="476,-19 316,-19 316,0 476,0 476,-19" />
+<ns0:text text-anchor="middle" x="396" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ParameterInterfaceItemMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>InterfaceItemMixin-&gt;ParameterInterfaceItemMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M280.4,-9.5C290.1,-9.5 300.42,-9.5 310.72,-9.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="310.78,-11.25 315.78,-9.5 310.78,-7.75 310.78,-11.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

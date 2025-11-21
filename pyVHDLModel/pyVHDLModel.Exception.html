@@ -1,0 +1,695 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyVHDLModel.Exception &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pyVHDLModel.Expression" href="pyVHDLModel.Expression.html" />
+    <link rel="prev" title="pyVHDLModel.DesignUnit" href="pyVHDLModel.DesignUnit.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pyVHDLModel.html">Python Class Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Association.html">pyVHDLModel.Association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Base.html">pyVHDLModel.Base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Common.html">pyVHDLModel.Common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Concurrent.html">pyVHDLModel.Concurrent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Declaration.html">pyVHDLModel.Declaration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.DesignUnit.html">pyVHDLModel.DesignUnit</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pyVHDLModel.Exception</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelException"><code class="docutils literal notranslate"><span class="pre">VHDLModelException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.LibraryExistsInDesignError"><code class="docutils literal notranslate"><span class="pre">LibraryExistsInDesignError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.LibraryRegisteredToForeignDesignError"><code class="docutils literal notranslate"><span class="pre">LibraryRegisteredToForeignDesignError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.LibraryNotRegisteredError"><code class="docutils literal notranslate"><span class="pre">LibraryNotRegisteredError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.EntityExistsInLibraryError"><code class="docutils literal notranslate"><span class="pre">EntityExistsInLibraryError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.ArchitectureExistsInLibraryError"><code class="docutils literal notranslate"><span class="pre">ArchitectureExistsInLibraryError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.PackageExistsInLibraryError"><code class="docutils literal notranslate"><span class="pre">PackageExistsInLibraryError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.PackageBodyExistsError"><code class="docutils literal notranslate"><span class="pre">PackageBodyExistsError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.ConfigurationExistsInLibraryError"><code class="docutils literal notranslate"><span class="pre">ConfigurationExistsInLibraryError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.ContextExistsInLibraryError"><code class="docutils literal notranslate"><span class="pre">ContextExistsInLibraryError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.ReferencedLibraryNotExistingError"><code class="docutils literal notranslate"><span class="pre">ReferencedLibraryNotExistingError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelWarning"><code class="docutils literal notranslate"><span class="pre">VHDLModelWarning</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelWarning.__init__"><code class="docutils literal notranslate"><span class="pre">VHDLModelWarning.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelWarning.__new__"><code class="docutils literal notranslate"><span class="pre">VHDLModelWarning.__new__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelWarning.__reduce__"><code class="docutils literal notranslate"><span class="pre">VHDLModelWarning.__reduce__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelWarning.__repr__"><code class="docutils literal notranslate"><span class="pre">VHDLModelWarning.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelWarning.__str__"><code class="docutils literal notranslate"><span class="pre">VHDLModelWarning.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelWarning.add_note"><code class="docutils literal notranslate"><span class="pre">VHDLModelWarning.add_note()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelWarning.with_traceback"><code class="docutils literal notranslate"><span class="pre">VHDLModelWarning.with_traceback()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.NotImplementedWarning"><code class="docutils literal notranslate"><span class="pre">NotImplementedWarning</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.NotImplementedWarning.__init__"><code class="docutils literal notranslate"><span class="pre">NotImplementedWarning.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.NotImplementedWarning.__new__"><code class="docutils literal notranslate"><span class="pre">NotImplementedWarning.__new__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.NotImplementedWarning.__reduce__"><code class="docutils literal notranslate"><span class="pre">NotImplementedWarning.__reduce__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.NotImplementedWarning.__repr__"><code class="docutils literal notranslate"><span class="pre">NotImplementedWarning.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.NotImplementedWarning.__str__"><code class="docutils literal notranslate"><span class="pre">NotImplementedWarning.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.NotImplementedWarning.add_note"><code class="docutils literal notranslate"><span class="pre">NotImplementedWarning.add_note()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.NotImplementedWarning.with_traceback"><code class="docutils literal notranslate"><span class="pre">NotImplementedWarning.with_traceback()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning"><code class="docutils literal notranslate"><span class="pre">VHDLModelCriticalWarning</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.__init__"><code class="docutils literal notranslate"><span class="pre">VHDLModelCriticalWarning.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.__new__"><code class="docutils literal notranslate"><span class="pre">VHDLModelCriticalWarning.__new__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.__reduce__"><code class="docutils literal notranslate"><span class="pre">VHDLModelCriticalWarning.__reduce__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.__repr__"><code class="docutils literal notranslate"><span class="pre">VHDLModelCriticalWarning.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.__str__"><code class="docutils literal notranslate"><span class="pre">VHDLModelCriticalWarning.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.add_note"><code class="docutils literal notranslate"><span class="pre">VHDLModelCriticalWarning.add_note()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.with_traceback"><code class="docutils literal notranslate"><span class="pre">VHDLModelCriticalWarning.with_traceback()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Exception.BlackboxWarning"><code class="docutils literal notranslate"><span class="pre">BlackboxWarning</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.BlackboxWarning.__init__"><code class="docutils literal notranslate"><span class="pre">BlackboxWarning.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.BlackboxWarning.__new__"><code class="docutils literal notranslate"><span class="pre">BlackboxWarning.__new__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.BlackboxWarning.__reduce__"><code class="docutils literal notranslate"><span class="pre">BlackboxWarning.__reduce__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.BlackboxWarning.__repr__"><code class="docutils literal notranslate"><span class="pre">BlackboxWarning.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.BlackboxWarning.__str__"><code class="docutils literal notranslate"><span class="pre">BlackboxWarning.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.BlackboxWarning.add_note"><code class="docutils literal notranslate"><span class="pre">BlackboxWarning.add_note()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Exception.BlackboxWarning.with_traceback"><code class="docutils literal notranslate"><span class="pre">BlackboxWarning.with_traceback()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Expression.html">pyVHDLModel.Expression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.IEEE.html">pyVHDLModel.IEEE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Instantiation.html">pyVHDLModel.Instantiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Interface.html">pyVHDLModel.Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Name.html">pyVHDLModel.Name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Namespace.html">pyVHDLModel.Namespace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Object.html">pyVHDLModel.Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.PSLModel.html">pyVHDLModel.PSLModel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Predefined.html">pyVHDLModel.Predefined</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Regions.html">pyVHDLModel.Regions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.STD.html">pyVHDLModel.STD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Sequential.html">pyVHDLModel.Sequential</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Subprogram.html">pyVHDLModel.Subprogram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Symbol.html">pyVHDLModel.Symbol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Type.html">pyVHDLModel.Type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.VHDLVersion"><code class="docutils literal notranslate"><span class="pre">VHDLVersion</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.IEEEFlavor"><code class="docutils literal notranslate"><span class="pre">IEEEFlavor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectClass"><code class="docutils literal notranslate"><span class="pre">ObjectClass</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DesignUnitKind"><code class="docutils literal notranslate"><span class="pre">DesignUnitKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DependencyGraphVertexKind"><code class="docutils literal notranslate"><span class="pre">DependencyGraphVertexKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DependencyGraphEdgeKind"><code class="docutils literal notranslate"><span class="pre">DependencyGraphEdgeKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectGraphVertexKind"><code class="docutils literal notranslate"><span class="pre">ObjectGraphVertexKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectGraphEdgeKind"><code class="docutils literal notranslate"><span class="pre">ObjectGraphEdgeKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Design"><code class="docutils literal notranslate"><span class="pre">Design</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library"><code class="docutils literal notranslate"><span class="pre">Library</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Document"><code class="docutils literal notranslate"><span class="pre">Document</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="pyVHDLModel.html">pyVHDLModel</a></li>
+      <li class="breadcrumb-item active">pyVHDLModel.Exception</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/pyVHDLModel/pyVHDLModel.Exception.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="module-pyVHDLModel.Exception">
+<span id="pyvhdlmodel-exception"></span><h1>pyVHDLModel.Exception<a class="headerlink" href="#module-pyVHDLModel.Exception" title="Link to this heading"></a></h1>
+<p>This module contains parts of an abstract document language model for VHDL.</p>
+<p>The module <code class="docutils literal notranslate"><span class="pre">Exceptions</span></code> contains all structured errors that are raised by pyVHDLModel. Besides a default error
+message in english, each exception object contains one or multiple references to the exception’s context.</p>
+<p><strong>Exceptions</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelException" title="pyVHDLModel.Exception.VHDLModelException"><code class="xref py py-exc docutils literal notranslate"><span class="pre">VHDLModelException</span></code></a>:
+Base-class for all exceptions (errors) raised by pyVHDLModel.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.LibraryExistsInDesignError" title="pyVHDLModel.Exception.LibraryExistsInDesignError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">LibraryExistsInDesignError</span></code></a>:
+This exception is raised, when the library is already existing in the design.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.LibraryRegisteredToForeignDesignError" title="pyVHDLModel.Exception.LibraryRegisteredToForeignDesignError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">LibraryRegisteredToForeignDesignError</span></code></a>:
+This exception is raised, when the library is already registered to a foreign design.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.LibraryNotRegisteredError" title="pyVHDLModel.Exception.LibraryNotRegisteredError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">LibraryNotRegisteredError</span></code></a>:
+This exception is raised, when the library is not registered in the design.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.EntityExistsInLibraryError" title="pyVHDLModel.Exception.EntityExistsInLibraryError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">EntityExistsInLibraryError</span></code></a>:
+This exception is raised, when the entity already existing in the library.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.ArchitectureExistsInLibraryError" title="pyVHDLModel.Exception.ArchitectureExistsInLibraryError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ArchitectureExistsInLibraryError</span></code></a>:
+This exception is raised, when the architecture already existing in the library.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.PackageExistsInLibraryError" title="pyVHDLModel.Exception.PackageExistsInLibraryError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">PackageExistsInLibraryError</span></code></a>:
+This exception is raised, when the package already existing in the library.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.PackageBodyExistsError" title="pyVHDLModel.Exception.PackageBodyExistsError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">PackageBodyExistsError</span></code></a>:
+This exception is raised, when the package body already existing in the library.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.ConfigurationExistsInLibraryError" title="pyVHDLModel.Exception.ConfigurationExistsInLibraryError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ConfigurationExistsInLibraryError</span></code></a>:
+This exception is raised, when the configuration already existing in the library.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.ContextExistsInLibraryError" title="pyVHDLModel.Exception.ContextExistsInLibraryError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ContextExistsInLibraryError</span></code></a>:
+This exception is raised, when the context already existing in the library.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.ReferencedLibraryNotExistingError" title="pyVHDLModel.Exception.ReferencedLibraryNotExistingError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ReferencedLibraryNotExistingError</span></code></a>:
+This exception is raised, when a library is referenced by a <cite>library clause</cite>, but doesn’t exist in the design.</p></li>
+</ul>
+<p><strong>Classes</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelWarning" title="pyVHDLModel.Exception.VHDLModelWarning"><code class="xref py py-class docutils literal notranslate"><span class="pre">VHDLModelWarning</span></code></a>:
+Common base class for all exceptions</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.NotImplementedWarning" title="pyVHDLModel.Exception.NotImplementedWarning"><code class="xref py py-class docutils literal notranslate"><span class="pre">NotImplementedWarning</span></code></a>:
+Common base class for all exceptions</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning" title="pyVHDLModel.Exception.VHDLModelCriticalWarning"><code class="xref py py-class docutils literal notranslate"><span class="pre">VHDLModelCriticalWarning</span></code></a>:
+Common base class for all exceptions</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Exception.BlackboxWarning" title="pyVHDLModel.Exception.BlackboxWarning"><code class="xref py py-class docutils literal notranslate"><span class="pre">BlackboxWarning</span></code></a>:
+Common base class for all exceptions</p></li>
+</ul>
+<hr class="docutils" />
+<p><strong>Exceptions</strong></p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelException">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">VHDLModelException</span></span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#VHDLModelException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelException" title="Link to this definition"></a></dt>
+<dd><p>Base-class for all exceptions (errors) raised by pyVHDLModel.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-4ed879afbcae5e17ce7220db86829958139bedb6.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of VHDLModelException</p></object></div>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.LibraryExistsInDesignError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">LibraryExistsInDesignError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#LibraryExistsInDesignError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.LibraryExistsInDesignError" title="Link to this definition"></a></dt>
+<dd><p>This exception is raised, when the library is already existing in the design.</p>
+<p>Message: <code class="code highlight python docutils literal highlight-python"><span class="sa">f</span><span class="s2">&quot;Library &#39;</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39; already exists in design.&quot;</span></code></p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-189457200047eb1639a30a6a35ecde7ccb02bc4e.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of LibraryExistsInDesignError</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>library</strong> (<a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library" title="pyVHDLModel.Library"><em>Library</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.LibraryRegisteredToForeignDesignError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">LibraryRegisteredToForeignDesignError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#LibraryRegisteredToForeignDesignError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.LibraryRegisteredToForeignDesignError" title="Link to this definition"></a></dt>
+<dd><p>This exception is raised, when the library is already registered to a foreign design.</p>
+<p>Message: <code class="code highlight python docutils literal highlight-python"><span class="sa">f</span><span class="s2">&quot;Library &#39;</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39; already registered in design &#39;</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">Parent</span><span class="si">}</span><span class="s2">&#39;.&quot;</span></code></p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-8ba252c5c2af520957f4dc9a8fa99830c218b94d.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of LibraryRegisteredToForeignDesignError</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>library</strong> (<a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library" title="pyVHDLModel.Library"><em>Library</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.LibraryNotRegisteredError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">LibraryNotRegisteredError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#LibraryNotRegisteredError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.LibraryNotRegisteredError" title="Link to this definition"></a></dt>
+<dd><p>This exception is raised, when the library is not registered in the design.</p>
+<p>Message: <code class="code highlight python docutils literal highlight-python"><span class="sa">f</span><span class="s2">&quot;Library &#39;</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39; is not registered in the design.&quot;</span></code></p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-a64020867d9409ee92c29317ce0f8607ec1f4e30.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of LibraryNotRegisteredError</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>library</strong> (<a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library" title="pyVHDLModel.Library"><em>Library</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.EntityExistsInLibraryError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">EntityExistsInLibraryError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#EntityExistsInLibraryError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.EntityExistsInLibraryError" title="Link to this definition"></a></dt>
+<dd><p>This exception is raised, when the entity already existing in the library.</p>
+<p>Message: <code class="code highlight python docutils literal highlight-python"><span class="sa">f</span><span class="s2">&quot;Entity &#39;</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39; already exists in library &#39;</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39;.&quot;</span></code></p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-a01f89a11c3c8f14ab6f94344cef9363c7eea1ae.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of EntityExistsInLibraryError</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entity</strong> (<a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.Entity" title="pyVHDLModel.DesignUnit.Entity"><em>Entity</em></a>)</p></li>
+<li><p><strong>library</strong> (<a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library" title="pyVHDLModel.Library"><em>Library</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.ArchitectureExistsInLibraryError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">ArchitectureExistsInLibraryError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">architecture</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#ArchitectureExistsInLibraryError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.ArchitectureExistsInLibraryError" title="Link to this definition"></a></dt>
+<dd><p>This exception is raised, when the architecture already existing in the library.</p>
+<p>Message: <code class="code highlight python docutils literal highlight-python"><span class="sa">f</span><span class="s2">&quot;Architecture &#39;</span><span class="si">{</span><span class="n">architecture</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39; for entity &#39;</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39; already exists in library &#39;</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39;.&quot;</span></code></p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-ca6bbffbfc31a7af8da4d5d6d8dea858209f6285.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ArchitectureExistsInLibraryError</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>architecture</strong> (<a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.Architecture" title="pyVHDLModel.DesignUnit.Architecture"><em>Architecture</em></a>)</p></li>
+<li><p><strong>entity</strong> (<a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.Entity" title="pyVHDLModel.DesignUnit.Entity"><em>Entity</em></a>)</p></li>
+<li><p><strong>library</strong> (<a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library" title="pyVHDLModel.Library"><em>Library</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.PackageExistsInLibraryError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">PackageExistsInLibraryError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#PackageExistsInLibraryError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.PackageExistsInLibraryError" title="Link to this definition"></a></dt>
+<dd><p>This exception is raised, when the package already existing in the library.</p>
+<p>Message: <code class="code highlight python docutils literal highlight-python"><span class="sa">f</span><span class="s2">&quot;Package &#39;</span><span class="si">{</span><span class="n">package</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39; already exists in library &#39;</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39;.&quot;</span></code></p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-866e0226c5b3b3eab0cdb945a23e9eec92f30e6e.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of PackageExistsInLibraryError</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>package</strong> (<a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.Package" title="pyVHDLModel.DesignUnit.Package"><em>Package</em></a>)</p></li>
+<li><p><strong>library</strong> (<a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library" title="pyVHDLModel.Library"><em>Library</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.PackageBodyExistsError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">PackageBodyExistsError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">packageBody</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#PackageBodyExistsError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.PackageBodyExistsError" title="Link to this definition"></a></dt>
+<dd><p>This exception is raised, when the package body already existing in the library.</p>
+<p>Message: <code class="code highlight python docutils literal highlight-python"><span class="sa">f</span><span class="s2">&quot;Package body &#39;</span><span class="si">{</span><span class="n">packageBody</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39; already exists in library &#39;</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39;.&quot;</span></code></p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-91d8dc992a394fa38a0629dfb64a613beac0386a.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of PackageBodyExistsError</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>packageBody</strong> (<a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.PackageBody" title="pyVHDLModel.DesignUnit.PackageBody"><em>PackageBody</em></a>)</p></li>
+<li><p><strong>library</strong> (<a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library" title="pyVHDLModel.Library"><em>Library</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.ConfigurationExistsInLibraryError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">ConfigurationExistsInLibraryError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#ConfigurationExistsInLibraryError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.ConfigurationExistsInLibraryError" title="Link to this definition"></a></dt>
+<dd><p>This exception is raised, when the configuration already existing in the library.</p>
+<p>Message: <code class="code highlight python docutils literal highlight-python"><span class="sa">f</span><span class="s2">&quot;Configuration &#39;</span><span class="si">{</span><span class="n">configuration</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39; already exists in library &#39;</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39;.&quot;</span></code></p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-456109336462d17866842883b7a9856a2e908be3.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ConfigurationExistsInLibraryError</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>configuration</strong> (<a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.Configuration" title="pyVHDLModel.DesignUnit.Configuration"><em>Configuration</em></a>)</p></li>
+<li><p><strong>library</strong> (<a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library" title="pyVHDLModel.Library"><em>Library</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.ContextExistsInLibraryError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">ContextExistsInLibraryError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#ContextExistsInLibraryError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.ContextExistsInLibraryError" title="Link to this definition"></a></dt>
+<dd><p>This exception is raised, when the context already existing in the library.</p>
+<p>Message: <code class="code highlight python docutils literal highlight-python"><span class="sa">f</span><span class="s2">&quot;Context &#39;</span><span class="si">{</span><span class="n">context</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39; already exists in library &#39;</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39;.&quot;</span></code></p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-33eff55e6e9bf087d234ef23d8e1c7ea06636102.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ContextExistsInLibraryError</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>context</strong> (<a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.Context" title="pyVHDLModel.DesignUnit.Context"><em>Context</em></a>)</p></li>
+<li><p><strong>library</strong> (<a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library" title="pyVHDLModel.Library"><em>Library</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.ReferencedLibraryNotExistingError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">ReferencedLibraryNotExistingError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">librarySymbol</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#ReferencedLibraryNotExistingError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.ReferencedLibraryNotExistingError" title="Link to this definition"></a></dt>
+<dd><p>This exception is raised, when a library is referenced by a <cite>library clause</cite>, but doesn’t exist in the design.</p>
+<p>Message: <code class="code highlight python docutils literal highlight-python"><span class="sa">f</span><span class="s2">&quot;Library &#39;</span><span class="si">{</span><span class="n">librarySymbol</span><span class="o">.</span><span class="n">Name</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39; referenced by library clause of context &#39;</span><span class="si">{</span><span class="n">context</span><span class="o">.</span><span class="n">_identifier</span><span class="si">}</span><span class="s2">&#39; doesn&#39;t exist in design.&quot;</span></code></p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-1daeeb04a530d8e03480bb7745db1121ed031cac.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ReferencedLibraryNotExistingError</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>context</strong> (<a class="reference internal" href="pyVHDLModel.DesignUnit.html#pyVHDLModel.DesignUnit.Context" title="pyVHDLModel.DesignUnit.Context"><em>Context</em></a>)</p></li>
+<li><p><strong>librarySymbol</strong> (<a class="reference internal" href="pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol" title="pyVHDLModel.Symbol.Symbol"><em>Symbol</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<p><strong>Classes</strong></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelWarning">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">VHDLModelWarning</span></span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#VHDLModelWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelWarning" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-2edd82902477564e8eb250ca16c4aeb31a794822.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of VHDLModelWarning</p></object></div>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelWarning.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelWarning.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelWarning.__new__">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelWarning.__new__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelWarning.__reduce__">
+<span class="sig-name descname"><span class="pre">__reduce__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelWarning.__reduce__" title="Link to this definition"></a></dt>
+<dd><p>Helper for pickle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelWarning.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelWarning.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelWarning.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelWarning.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelWarning.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelWarning.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelWarning.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelWarning.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.NotImplementedWarning">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">NotImplementedWarning</span></span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#NotImplementedWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.NotImplementedWarning" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-92f51ae00dd118b6422ea6a17fa17941d16f7c3d.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of NotImplementedWarning</p></object></div>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.NotImplementedWarning.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.NotImplementedWarning.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.NotImplementedWarning.__new__">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.NotImplementedWarning.__new__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.NotImplementedWarning.__reduce__">
+<span class="sig-name descname"><span class="pre">__reduce__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.NotImplementedWarning.__reduce__" title="Link to this definition"></a></dt>
+<dd><p>Helper for pickle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.NotImplementedWarning.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.NotImplementedWarning.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.NotImplementedWarning.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.NotImplementedWarning.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.NotImplementedWarning.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.NotImplementedWarning.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.NotImplementedWarning.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.NotImplementedWarning.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelCriticalWarning">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">VHDLModelCriticalWarning</span></span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#VHDLModelCriticalWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-de1d6d318c73008c24ad81303ecb834bb16cbfd3.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of VHDLModelCriticalWarning</p></object></div>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelCriticalWarning.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelCriticalWarning.__new__">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.__new__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelCriticalWarning.__reduce__">
+<span class="sig-name descname"><span class="pre">__reduce__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.__reduce__" title="Link to this definition"></a></dt>
+<dd><p>Helper for pickle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelCriticalWarning.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelCriticalWarning.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelCriticalWarning.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.VHDLModelCriticalWarning.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.VHDLModelCriticalWarning.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.BlackboxWarning">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Exception.</span></span><span class="sig-name descname"><span class="pre">BlackboxWarning</span></span><a class="reference internal" href="../_modules/pyVHDLModel/Exception.html#BlackboxWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Exception.BlackboxWarning" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-2166b20e2a1c37776b258c342b9ece7d11f0c11a.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of BlackboxWarning</p></object></div>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.BlackboxWarning.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.BlackboxWarning.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.BlackboxWarning.__new__">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.BlackboxWarning.__new__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.BlackboxWarning.__reduce__">
+<span class="sig-name descname"><span class="pre">__reduce__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.BlackboxWarning.__reduce__" title="Link to this definition"></a></dt>
+<dd><p>Helper for pickle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.BlackboxWarning.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.BlackboxWarning.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.BlackboxWarning.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.BlackboxWarning.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.BlackboxWarning.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">note</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.BlackboxWarning.add_note" title="Link to this definition"></a></dt>
+<dd><p>Add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Exception.BlackboxWarning.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Exception.BlackboxWarning.with_traceback" title="Link to this definition"></a></dt>
+<dd><p>Set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pyVHDLModel.DesignUnit.html" class="btn btn-neutral float-left" title="pyVHDLModel.DesignUnit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pyVHDLModel.Expression.html" class="btn btn-neutral float-right" title="pyVHDLModel.Expression" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

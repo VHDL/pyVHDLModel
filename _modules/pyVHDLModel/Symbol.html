@@ -1,0 +1,1101 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyVHDLModel.Symbol &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../../_static/favicon.svg"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+      <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+      <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+      <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs"></script>
+      <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.1.4/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+      <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+      <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const style = document.createElement('style');
+style.textContent = `.mermaid-container {
+    position: relative !important;
+    display: inline-block;
+    width: 100%;
+}
+
+.mermaid-fullscreen-btn {
+    position: absolute !important;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-fullscreen-content {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-fullscreen-content.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-fullscreen-content .mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-fullscreen-content .mermaid svg {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 85vh;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}
+`;
+document.head.appendChild(style);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const initFullscreen = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(initFullscreen, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-fullscreen-content${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-fullscreen-content');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = '';
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", initFullscreen);
+</script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pyVHDLModel/pyVHDLModel.html">Python Class Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../pyVHDLModel.html">pyVHDLModel</a></li>
+      <li class="breadcrumb-item active">pyVHDLModel.Symbol</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pyVHDLModel.Symbol</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ==================================================================================================================== #</span>
+<span class="c1">#             __     ___   _ ____  _     __  __           _      _                                                     #</span>
+<span class="c1">#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #</span>
+<span class="c1">#  | &#39;_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #</span>
+<span class="c1">#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #</span>
+<span class="c1">#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #</span>
+<span class="c1">#  |_|    |___/                                                                                                        #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1"># Authors:                                                                                                             #</span>
+<span class="c1">#   Patrick Lehmann                                                                                                    #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># License:                                                                                                             #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1"># Copyright 2017-2025 Patrick Lehmann - Boetzingen, Germany                                                            #</span>
+<span class="c1"># Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);                                                      #</span>
+<span class="c1"># you may not use this file except in compliance with the License.                                                     #</span>
+<span class="c1"># You may obtain a copy of the License at                                                                              #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software                                                  #</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,                                                    #</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #</span>
+<span class="c1"># See the License for the specific language governing permissions and                                                  #</span>
+<span class="c1"># limitations under the License.                                                                                       #</span>
+<span class="c1">#                                                                                                                      #</span>
+<span class="c1"># SPDX-License-Identifier: Apache-2.0                                                                                  #</span>
+<span class="c1"># ==================================================================================================================== #</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains parts of an abstract document language model for VHDL.</span>
+
+<span class="sd">Symbols are entity specific wrappers for names that reference VHDL language entities.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w">                  </span><span class="kn">import</span> <span class="n">Flag</span><span class="p">,</span> <span class="n">auto</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w">                </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span> <span class="k">as</span> <span class="n">Nullable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Mapping</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyTooling.Decorators</span><span class="w">  </span><span class="kn">import</span> <span class="n">export</span><span class="p">,</span> <span class="n">readonly</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyTooling.MetaClasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExtendedType</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Base</span><span class="w">      </span><span class="kn">import</span> <span class="n">Range</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyVHDLModel.Name</span><span class="w">      </span><span class="kn">import</span> <span class="n">Name</span><span class="p">,</span> <span class="n">AllName</span>
+
+
+<div class="viewcode-block" id="PossibleReference">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.PossibleReference">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PossibleReference</span><span class="p">(</span><span class="n">Flag</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Is an enumeration, representing possible targets for a reference in a :class:`~pyVHDLModel.Symbol`.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">Unknown</span> <span class="o">=</span>         <span class="mi">0</span>
+	<span class="n">Library</span> <span class="o">=</span>         <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Library</span>
+	<span class="n">Entity</span> <span class="o">=</span>          <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Entity</span>
+	<span class="n">Architecture</span> <span class="o">=</span>    <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Architecture</span>
+	<span class="n">Component</span> <span class="o">=</span>       <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Component</span>
+	<span class="n">Package</span> <span class="o">=</span>         <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Package</span>
+	<span class="n">Configuration</span> <span class="o">=</span>   <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Configuration</span>
+	<span class="n">Context</span> <span class="o">=</span>         <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Context</span>
+	<span class="n">Type</span> <span class="o">=</span>            <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Type</span>
+	<span class="n">Subtype</span> <span class="o">=</span>         <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Subtype</span>
+	<span class="n">ScalarType</span> <span class="o">=</span>      <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: ScalarType</span>
+	<span class="n">ArrayType</span> <span class="o">=</span>       <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: ArrayType</span>
+	<span class="n">RecordType</span> <span class="o">=</span>      <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: RecordType</span>
+	<span class="n">RecordElement</span> <span class="o">=</span>   <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: RecordElement</span>
+	<span class="n">AccessType</span> <span class="o">=</span>      <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: AccessType</span>
+	<span class="n">ProtectedType</span> <span class="o">=</span>   <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: ProtectedType</span>
+	<span class="n">FileType</span> <span class="o">=</span>        <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: FileType</span>
+<span class="c1">#	Alias =           auto()   # TODO: Is this needed?</span>
+	<span class="n">Attribute</span> <span class="o">=</span>       <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Attribute</span>
+	<span class="n">TypeAttribute</span> <span class="o">=</span>   <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: TypeAttribute</span>
+	<span class="n">ValueAttribute</span> <span class="o">=</span>  <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: ValueAttribute</span>
+	<span class="n">SignalAttribute</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: SignalAttribute</span>
+	<span class="n">RangeAttribute</span> <span class="o">=</span>  <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: RangeAttribute</span>
+	<span class="n">ViewAttribute</span> <span class="o">=</span>   <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: ViewAttribute</span>
+	<span class="n">Constant</span> <span class="o">=</span>        <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Constant</span>
+	<span class="n">Variable</span> <span class="o">=</span>        <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Variable</span>
+	<span class="n">Signal</span> <span class="o">=</span>          <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Signal</span>
+	<span class="n">File</span> <span class="o">=</span>            <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: File</span>
+<span class="c1">#	Object =          auto()   # TODO: Is this needed?</span>
+	<span class="n">EnumLiteral</span> <span class="o">=</span>     <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: EnumLiteral</span>
+	<span class="n">Procedure</span> <span class="o">=</span>       <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Procedure</span>
+	<span class="n">Function</span> <span class="o">=</span>        <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Function</span>
+	<span class="n">Label</span> <span class="o">=</span>           <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: Label</span>
+	<span class="n">View</span> <span class="o">=</span>            <span class="n">auto</span><span class="p">()</span>  <span class="c1">#: View</span>
+
+	<span class="n">AnyType</span> <span class="o">=</span> <span class="n">ScalarType</span> <span class="o">|</span> <span class="n">ArrayType</span> <span class="o">|</span> <span class="n">RecordType</span> <span class="o">|</span> <span class="n">ProtectedType</span> <span class="o">|</span> <span class="n">AccessType</span> <span class="o">|</span> <span class="n">FileType</span> <span class="o">|</span> <span class="n">Subtype</span>  <span class="c1">#: Any possible type incl. subtypes.</span>
+	<span class="n">Object</span> <span class="o">=</span> <span class="n">Constant</span> <span class="o">|</span> <span class="n">Variable</span> <span class="o">|</span> <span class="n">Signal</span>  <span class="c1"># | File                                                     #: Any object</span>
+	<span class="n">SubProgram</span> <span class="o">=</span> <span class="n">Procedure</span> <span class="o">|</span> <span class="n">Function</span>                                                                <span class="c1">#: Any subprogram</span>
+	<span class="n">PackageMember</span> <span class="o">=</span> <span class="n">AnyType</span> <span class="o">|</span> <span class="n">Object</span> <span class="o">|</span> <span class="n">SubProgram</span> <span class="o">|</span> <span class="n">Component</span>                                        <span class="c1">#: Any member of a package</span>
+	<span class="n">SimpleNameInExpression</span> <span class="o">=</span> <span class="n">Constant</span> <span class="o">|</span> <span class="n">Variable</span> <span class="o">|</span> <span class="n">Signal</span> <span class="o">|</span> <span class="n">ScalarType</span> <span class="o">|</span> <span class="n">EnumLiteral</span> <span class="o">|</span> <span class="n">Function</span>      <span class="c1">#: Any possible item in an expression.</span></div>
+
+
+
+<div class="viewcode-block" id="Symbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Symbol</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ExtendedType</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Base-class for all symbol classes.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">_name</span><span class="p">:</span>               <span class="n">Name</span>               <span class="c1">#: The name to reference the langauge entity.</span>
+	<span class="n">_possibleReferences</span><span class="p">:</span> <span class="n">PossibleReference</span>  <span class="c1">#: An enumeration to filter possible references.</span>
+	<span class="n">_reference</span><span class="p">:</span>          <span class="n">Nullable</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span>      <span class="c1">#: The resolved language entity, otherwise ``None``.</span>
+
+<div class="viewcode-block" id="Symbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">,</span> <span class="n">possibleReferences</span><span class="p">:</span> <span class="n">PossibleReference</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_possibleReferences</span> <span class="o">=</span> <span class="n">possibleReferences</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Name</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Reference</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">IsResolved</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+	<span class="k">def</span><span class="w"> </span><span class="fm">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Symbol.__repr__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol.__repr__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">!s}</span><span class="s2">&#39; -&gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_reference</span><span class="si">!s}</span><span class="s2">&quot;</span>
+
+		<span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">!s}</span><span class="s2">&#39; -&gt; unresolved&quot;</span></div>
+
+
+<div class="viewcode-block" id="Symbol.__str__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Symbol.__str__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reference</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">!s}</span><span class="s2">?&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LibraryReferenceSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.LibraryReferenceSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LibraryReferenceSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a reference (name) to a library.</span>
+
+<span class="sd">	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName`.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      library ieee;</span>
+<span class="sd">	      --      ^^^^</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LibraryReferenceSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.LibraryReferenceSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Library</span><span class="p">)</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Library</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="s1">&#39;Library&#39;</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@Library</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Library</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;Library&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="PackageReferenceSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.PackageReferenceSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PackageReferenceSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a reference (name) to a package.</span>
+
+<span class="sd">	The internal name will be a :class:`~pyVHDLModel.Name.SelectedName`.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      use ieee.numeric_std;</span>
+<span class="sd">	      --  ^^^^^^^^^^^^^^^^</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PackageReferenceSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.PackageReferenceSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Package</span><span class="p">)</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Package</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="s1">&#39;Package&#39;</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@Package</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Package</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;Package&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="ContextReferenceSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ContextReferenceSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ContextReferenceSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a reference (name) to a context.</span>
+
+<span class="sd">	The internal name will be a :class:`~pyVHDLModel.Name.SelectedName`.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      context ieee.ieee_std_context;</span>
+<span class="sd">	      --      ^^^^^^^^^^^^^^^^^^^^^</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ContextReferenceSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ContextReferenceSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Context</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Context&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@Context</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;Context&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="PackageMemberReferenceSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.PackageMemberReferenceSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PackageMemberReferenceSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a reference (name) to a package member.</span>
+
+<span class="sd">	The internal name will be a :class:`~pyVHDLModel.Name.SelectedName`.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      use ieee.numeric_std.unsigned;</span>
+<span class="sd">	      --  ^^^^^^^^^^^^^^^^^^^^^^^^^</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PackageMemberReferenceSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.PackageMemberReferenceSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">PackageMember</span><span class="p">)</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Member</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Nullable</span><span class="p">[</span><span class="s1">&#39;Package&#39;</span><span class="p">]:</span>  <span class="c1"># TODO: typehint</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@Member</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;Package&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># TODO: typehint</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="AllPackageMembersReferenceSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.AllPackageMembersReferenceSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AllPackageMembersReferenceSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a reference (name) to all package members.</span>
+
+<span class="sd">	The internal name will be a :class:`~pyVHDLModel.Name.AllName`.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      use ieee.numeric_std.all;</span>
+<span class="sd">	      --  ^^^^^^^^^^^^^^^^^^^^</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AllPackageMembersReferenceSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.AllPackageMembersReferenceSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">AllName</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">PackageMember</span><span class="p">)</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Members</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Package&#39;</span><span class="p">:</span>  <span class="c1"># TODO: typehint</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@Members</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Members</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;Package&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># TODO: typehint</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="EntityInstantiationSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.EntityInstantiationSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EntityInstantiationSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a reference (name) to an entity in a direct entity instantiation.</span>
+
+<span class="sd">	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	    .. code-block:: VHDL</span>
+
+<span class="sd">	       inst : entity work.Counter;</span>
+<span class="sd">	       --            ^^^^^^^^^^^^</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="EntityInstantiationSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.EntityInstantiationSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Entity</span><span class="p">)</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Entity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Entity&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@Entity</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;Entity&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="ComponentInstantiationSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ComponentInstantiationSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ComponentInstantiationSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a reference (name) to an entity in a component instantiation.</span>
+
+<span class="sd">	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	    .. code-block:: VHDL</span>
+
+<span class="sd">	       inst : component Counter;</span>
+<span class="sd">	       --               ^^^^^^^</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ComponentInstantiationSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ComponentInstantiationSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Component</span><span class="p">)</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Component</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Component&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@Component</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;Component&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="ConfigurationInstantiationSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ConfigurationInstantiationSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConfigurationInstantiationSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a reference (name) to an entity in a configuration instantiation.</span>
+
+<span class="sd">	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	    .. code-block:: VHDL</span>
+
+<span class="sd">	       inst : configuration Counter;</span>
+<span class="sd">	       --                   ^^^^^^^</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ConfigurationInstantiationSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ConfigurationInstantiationSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Configuration</span><span class="p">)</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Configuration&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@Configuration</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;Configuration&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="EntitySymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.EntitySymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EntitySymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a reference (name) to an entity in an architecture declaration.</span>
+
+<span class="sd">	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      architecture rtl of Counter is</span>
+<span class="sd">	      --                  ^^^^^^^</span>
+<span class="sd">	      begin</span>
+<span class="sd">	      end architecture;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="EntitySymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.EntitySymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Entity</span><span class="p">)</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Entity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Entity&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@Entity</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;Entity&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="ArchitectureSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ArchitectureSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ArchitectureSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;An entity reference in an entity instantiation with architecture name.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ArchitectureSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ArchitectureSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Architecture</span><span class="p">)</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Architecture</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Architecture&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@Architecture</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Architecture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;Architecture&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="PackageSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.PackageSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PackageSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Represents a reference (name) to a package in a package body declaration.</span>
+
+<span class="sd">	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName` or :class:`~pyVHDLModel.Name.SelectedName`.</span>
+
+<span class="sd">	.. admonition:: Example</span>
+
+<span class="sd">	   .. code-block:: VHDL</span>
+
+<span class="sd">	      package body Utilities is</span>
+<span class="sd">	      --           ^^^^^^^^^</span>
+<span class="sd">	      end package body;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PackageSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.PackageSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Package</span><span class="p">)</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Package</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Package&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@Package</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Package</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;Package&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="RecordElementSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.RecordElementSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RecordElementSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<div class="viewcode-block" id="RecordElementSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.RecordElementSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">RecordElement</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SubtypeSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.SubtypeSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SubtypeSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<div class="viewcode-block" id="SubtypeSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.SubtypeSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Type</span> <span class="o">|</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Subtype</span><span class="p">)</span></div>
+
+
+	<span class="nd">@property</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Subtype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Subtype&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span>
+
+	<span class="nd">@Subtype</span><span class="o">.</span><span class="n">setter</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Subtype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="s1">&#39;Subtype&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="SimpleSubtypeSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.SimpleSubtypeSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimpleSubtypeSymbol</span><span class="p">(</span><span class="n">SubtypeSymbol</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ConstrainedScalarSubtypeSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ConstrainedScalarSubtypeSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstrainedScalarSubtypeSymbol</span><span class="p">(</span><span class="n">SubtypeSymbol</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="Constraint">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.Constraint">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Constraint</span><span class="p">:</span>
+	<span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ArrayConstraint">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ArrayConstraint">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ArrayConstraint</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
+	<span class="n">_constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ArrayConstraint.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ArrayConstraint.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Range</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">constraint</span> <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">]</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Range</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span></div>
+
+
+
+<div class="viewcode-block" id="RecordConstraint">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.RecordConstraint">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RecordConstraint</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
+	<span class="n">_constraints</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">RecordElementSymbol</span><span class="p">,</span> <span class="n">Range</span><span class="p">]</span>
+
+<div class="viewcode-block" id="RecordConstraint.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.RecordConstraint.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">RecordElementSymbol</span><span class="p">,</span> <span class="n">Range</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">constraints</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+
+
+	<span class="nd">@readonly</span>
+	<span class="k">def</span><span class="w"> </span><span class="nf">Constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">RecordElementSymbol</span><span class="p">,</span> <span class="n">Range</span><span class="p">]:</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span></div>
+
+
+
+<div class="viewcode-block" id="ConstrainedCompositeSubtypeSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ConstrainedCompositeSubtypeSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstrainedCompositeSubtypeSymbol</span><span class="p">(</span><span class="n">SubtypeSymbol</span><span class="p">):</span>
+	<span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ConstrainedArraySubtypeSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstrainedArraySubtypeSymbol</span><span class="p">(</span><span class="n">ConstrainedCompositeSubtypeSymbol</span><span class="p">,</span> <span class="n">ArrayConstraint</span><span class="p">):</span>
+	<span class="n">_constraints</span><span class="p">:</span> <span class="n">List</span>
+
+<div class="viewcode-block" id="ConstrainedArraySubtypeSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+		<span class="n">ArrayConstraint</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ConstrainedRecordSubtypeSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstrainedRecordSubtypeSymbol</span><span class="p">(</span><span class="n">ConstrainedCompositeSubtypeSymbol</span><span class="p">,</span> <span class="n">RecordConstraint</span><span class="p">):</span>
+	<span class="n">_constraints</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">RecordElementSymbol</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ConstrainedRecordSubtypeSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+		<span class="n">RecordConstraint</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SimpleObjectOrFunctionCallSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.SimpleObjectOrFunctionCallSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimpleObjectOrFunctionCallSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleObjectOrFunctionCallSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.SimpleObjectOrFunctionCallSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">SimpleNameInExpression</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="IndexedObjectOrFunctionCallSymbol">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.IndexedObjectOrFunctionCallSymbol">[docs]</a>
+<span class="nd">@export</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IndexedObjectOrFunctionCallSymbol</span><span class="p">(</span><span class="n">Symbol</span><span class="p">):</span>
+<div class="viewcode-block" id="IndexedObjectOrFunctionCallSymbol.__init__">
+<a class="viewcode-back" href="../../pyVHDLModel/pyVHDLModel.Symbol.html#pyVHDLModel.Symbol.IndexedObjectOrFunctionCallSymbol.__init__">[docs]</a>
+	<span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Object</span> <span class="o">|</span> <span class="n">PossibleReference</span><span class="o">.</span><span class="n">Function</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

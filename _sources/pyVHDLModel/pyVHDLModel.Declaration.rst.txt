@@ -1,0 +1,80 @@
+.. # Template modified by Patrick Lehmann
+     * removed automodule on top, because private members are activated for autodoc (no doubled documentation).
+     * Made sections like 'submodules' bold text, but no headlines to reduce number of ToC levels.
+
+=======================
+pyVHDLModel.Declaration
+=======================
+
+.. automodule:: pyVHDLModel.Declaration
+
+
+.. currentmodule:: pyVHDLModel.Declaration
+
+
+**Classes**
+
+- :py:class:`EntityClass`:
+  An ``EntityClass`` is an enumeration. It represents a VHDL language entity class (``entity``, ``label``, ...).
+
+- :py:class:`Attribute`:
+  Represents an attribute declaration.
+
+- :py:class:`AttributeSpecification`:
+  Represents an attribute specification.
+
+- :py:class:`Alias`:
+  ``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+
+
+
+---------------------
+
+**Classes**
+
+
+
+
+.. autoclass:: EntityClass
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: EntityClass
+      :parts: 1
+
+.. autoclass:: Attribute
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Attribute
+      :parts: 1
+
+.. autoclass:: AttributeSpecification
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: AttributeSpecification
+      :parts: 1
+
+.. autoclass:: Alias
+   :members:
+   :private-members:
+   :special-members:
+   :inherited-members:
+   :exclude-members: __weakref__
+
+   .. rubric:: Inheritance
+   .. inheritance-diagram:: Alias
+      :parts: 1

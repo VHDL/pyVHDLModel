@@ -1,0 +1,59 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="278pt" height="101pt" viewBox="0.00 0.00 278.00 101.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 97)">
+<ns0:title>inheritancec6470539aa</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>DocumentedEntityMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.DocumentedEntityMixin" ns1:title="A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="134,-93 0,-93 0,-74 134,-74 134,-93" />
+<ns0:text text-anchor="middle" x="67" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DocumentedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>InterfacePackage</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Interface.html#pyVHDLModel.Interface.InterfacePackage" ns1:title="InterfacePackage" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="270,-56 170,-56 170,-37 270,-37 270,-56" />
+<ns0:text text-anchor="middle" x="220" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">InterfacePackage</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>DocumentedEntityMixin-&gt;InterfacePackage</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M106.89,-73.97C127.68,-68.88 153.36,-62.59 174.89,-57.31" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="175.54,-58.95 179.98,-56.06 174.71,-55.55 175.54,-58.95" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="104.5,-56 29.5,-56 29.5,-37 104.5,-37 104.5,-56" />
+<ns0:text text-anchor="middle" x="67" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ModelEntity-&gt;InterfacePackage</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M104.55,-46.5C122.66,-46.5 144.88,-46.5 164.9,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="164.95,-48.25 169.95,-46.5 164.95,-44.75 164.95,-48.25" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>NamedEntityMixin</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.NamedEntityMixin" ns1:title="A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have identifiers." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="120.5,-19 13.5,-19 13.5,0 120.5,0 120.5,-19" />
+<ns0:text text-anchor="middle" x="67" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">NamedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>NamedEntityMixin-&gt;InterfacePackage</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M106.89,-19.03C127.68,-24.12 153.36,-30.41 174.89,-35.69" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="174.71,-37.45 179.98,-36.94 175.54,-34.05 174.71,-37.45" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

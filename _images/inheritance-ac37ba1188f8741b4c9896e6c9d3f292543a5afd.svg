@@ -1,0 +1,89 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="438pt" height="101pt" viewBox="0.00 0.00 438.00 101.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 97)">
+<ns0:title>inheritance1d19a82bec</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>DocumentedEntityMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.DocumentedEntityMixin" ns1:title="A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="140.5,-93 6.5,-93 6.5,-74 140.5,-74 140.5,-93" />
+<ns0:text text-anchor="middle" x="73.5" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DocumentedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>Obj</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Object.html#pyVHDLModel.Object.Obj" ns1:title="Base-class for all objects (constants, signals, variables and files) in VHDL." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="287.5,-56 233.5,-56 233.5,-37 287.5,-37 287.5,-56" />
+<ns0:text text-anchor="middle" x="260.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Obj</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>DocumentedEntityMixin-&gt;Obj</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M122.14,-73.97C155.5,-67.3 199.13,-58.57 228.18,-52.76" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="228.86,-54.41 233.42,-51.72 228.18,-50.98 228.86,-54.41" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="111,-56 36,-56 36,-37 111,-37 111,-56" />
+<ns0:text text-anchor="middle" x="73.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ModelEntity-&gt;Obj</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M111.05,-46.5C145.33,-46.5 196.04,-46.5 228.43,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="228.46,-48.25 233.46,-46.5 228.46,-44.75 228.46,-48.25" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>MultipleNamedEntityMixin</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.MultipleNamedEntityMixin" ns1:title="A ``MultipleNamedEntityMixin`` is a mixin class for all VHDL entities that declare multiple instances at once by" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="147,-19 0,-19 0,0 147,0 147,-19" />
+<ns0:text text-anchor="middle" x="73.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">MultipleNamedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>MultipleNamedEntityMixin-&gt;Obj</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M122.14,-19.03C155.5,-25.7 199.13,-34.43 228.18,-40.24" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="228.18,-42.02 233.42,-41.28 228.86,-38.59 228.18,-42.02" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>Variable</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Object.html#pyVHDLModel.Object.Variable" ns1:title="Represents a variable." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="430,-37 374,-37 374,-18 430,-18 430,-37" />
+<ns0:text text-anchor="middle" x="402" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Variable</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>Obj-&gt;Variable</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M287.74,-42.93C310.73,-39.8 344.22,-35.23 368.82,-31.88" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="369.21,-33.6 373.93,-31.19 368.74,-30.13 369.21,-33.6" />
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>WithDefaultExpressionMixin</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Object.html#pyVHDLModel.Object.WithDefaultExpressionMixin" ns1:title="A ``WithDefaultExpression`` is a mixin-class for all objects declarations accepting default expressions." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="338,-19 183,-19 183,0 338,0 338,-19" />
+<ns0:text text-anchor="middle" x="260.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">WithDefaultExpressionMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>WithDefaultExpressionMixin-&gt;Variable</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M335.33,-19.03C347.02,-20.54 358.56,-22.02 368.62,-23.32" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="368.56,-25.08 373.74,-23.98 369,-21.61 368.56,-25.08" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

@@ -1,0 +1,74 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="371pt" height="101pt" viewBox="0.00 0.00 371.00 101.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 97)">
+<ns0:title>inheritancefc4f5bd18c</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>DocumentedEntityMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.DocumentedEntityMixin" ns1:title="A ``DocumentedEntityMixin`` is a mixin class for all VHDL entities that can have an associated documentation." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="140.5,-93 6.5,-93 6.5,-74 140.5,-74 140.5,-93" />
+<ns0:text text-anchor="middle" x="73.5" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DocumentedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>Obj</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Object.html#pyVHDLModel.Object.Obj" ns1:title="Base-class for all objects (constants, signals, variables and files) in VHDL." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="237,-56 183,-56 183,-37 237,-37 237,-56" />
+<ns0:text text-anchor="middle" x="210" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Obj</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>DocumentedEntityMixin-&gt;Obj</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M114.49,-73.98C125.09,-71.35 136.5,-68.41 147,-65.5 157.07,-62.71 167.99,-59.44 177.82,-56.42" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="178.59,-58.01 182.85,-54.86 177.55,-54.67 178.59,-58.01" />
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ModelEntity</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ModelEntity" ns1:title="``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="111,-56 36,-56 36,-37 111,-37 111,-56" />
+<ns0:text text-anchor="middle" x="73.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ModelEntity</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ModelEntity-&gt;Obj</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M111.25,-46.5C132.1,-46.5 157.91,-46.5 177.77,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="177.95,-48.25 182.95,-46.5 177.95,-44.75 177.95,-48.25" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>MultipleNamedEntityMixin</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.MultipleNamedEntityMixin" ns1:title="A ``MultipleNamedEntityMixin`` is a mixin class for all VHDL entities that declare multiple instances at once by" target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="147,-19 0,-19 0,0 147,0 147,-19" />
+<ns0:text text-anchor="middle" x="73.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">MultipleNamedEntityMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>MultipleNamedEntityMixin-&gt;Obj</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M111.81,-19.08C123.13,-22.04 135.59,-25.35 147,-28.5 157.03,-31.27 167.94,-34.4 177.77,-37.26" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="177.51,-39.01 182.8,-38.73 178.49,-35.65 177.51,-39.01" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>SharedVariable</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Object.html#pyVHDLModel.Object.SharedVariable" ns1:title="Represents a shared variable." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="363,-56 273,-56 273,-37 363,-37 363,-56" />
+<ns0:text text-anchor="middle" x="318" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SharedVariable</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>Obj-&gt;SharedVariable</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M237.2,-46.5C246.48,-46.5 257.23,-46.5 267.79,-46.5" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="267.95,-48.25 272.95,-46.5 267.95,-44.75 267.95,-48.25" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

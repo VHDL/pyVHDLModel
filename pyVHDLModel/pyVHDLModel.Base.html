@@ -1,0 +1,1324 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyVHDLModel.Base &mdash; pyVHDLModel 0.33.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=55b73dce" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-reports.089ed2e62f89368aa21ac7591d90c12a.css?v=83177741" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/override.css?v=e6c450a4" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3595839c"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pyVHDLModel.Common" href="pyVHDLModel.Common.html" />
+    <link rel="prev" title="pyVHDLModel.Association" href="pyVHDLModel.Association.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference external" href="https://edaa-org.github.io/">Used as a layer of EDA² ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation/Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Dependency.html">Dependency</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../LanguageModel/index.html">VHDL Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Analyze/index.html">Analyze</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DataStructure/index.html">Data Structures</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References and Reports</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pyVHDLModel.html">Python Class Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Association.html">pyVHDLModel.Association</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pyVHDLModel.Base</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.ExpressionUnion"><code class="docutils literal notranslate"><span class="pre">ExpressionUnion</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.Direction"><code class="docutils literal notranslate"><span class="pre">Direction</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Direction.To"><code class="docutils literal notranslate"><span class="pre">Direction.To</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Direction.DownTo"><code class="docutils literal notranslate"><span class="pre">Direction.DownTo</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Direction.__str__"><code class="docutils literal notranslate"><span class="pre">Direction.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Direction.__contains__"><code class="docutils literal notranslate"><span class="pre">Direction.__contains__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Direction.__getitem__"><code class="docutils literal notranslate"><span class="pre">Direction.__getitem__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Direction.__iter__"><code class="docutils literal notranslate"><span class="pre">Direction.__iter__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Direction.__len__"><code class="docutils literal notranslate"><span class="pre">Direction.__len__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.Mode"><code class="docutils literal notranslate"><span class="pre">Mode</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Mode.Default"><code class="docutils literal notranslate"><span class="pre">Mode.Default</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Mode.In"><code class="docutils literal notranslate"><span class="pre">Mode.In</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Mode.Out"><code class="docutils literal notranslate"><span class="pre">Mode.Out</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Mode.InOut"><code class="docutils literal notranslate"><span class="pre">Mode.InOut</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Mode.Buffer"><code class="docutils literal notranslate"><span class="pre">Mode.Buffer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Mode.Linkage"><code class="docutils literal notranslate"><span class="pre">Mode.Linkage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Mode.__str__"><code class="docutils literal notranslate"><span class="pre">Mode.__str__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Mode.__contains__"><code class="docutils literal notranslate"><span class="pre">Mode.__contains__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Mode.__getitem__"><code class="docutils literal notranslate"><span class="pre">Mode.__getitem__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Mode.__iter__"><code class="docutils literal notranslate"><span class="pre">Mode.__iter__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Mode.__len__"><code class="docutils literal notranslate"><span class="pre">Mode.__len__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity"><code class="docutils literal notranslate"><span class="pre">ModelEntity</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity.__init__"><code class="docutils literal notranslate"><span class="pre">ModelEntity.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity._parent"><code class="docutils literal notranslate"><span class="pre">ModelEntity._parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity.Parent"><code class="docutils literal notranslate"><span class="pre">ModelEntity.Parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.NamedEntityMixin"><code class="docutils literal notranslate"><span class="pre">NamedEntityMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.NamedEntityMixin.__init__"><code class="docutils literal notranslate"><span class="pre">NamedEntityMixin.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.NamedEntityMixin._identifier"><code class="docutils literal notranslate"><span class="pre">NamedEntityMixin._identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.NamedEntityMixin._normalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">NamedEntityMixin._normalizedIdentifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.NamedEntityMixin.Identifier"><code class="docutils literal notranslate"><span class="pre">NamedEntityMixin.Identifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.NamedEntityMixin.NormalizedIdentifier"><code class="docutils literal notranslate"><span class="pre">NamedEntityMixin.NormalizedIdentifier</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.MultipleNamedEntityMixin"><code class="docutils literal notranslate"><span class="pre">MultipleNamedEntityMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.MultipleNamedEntityMixin.__init__"><code class="docutils literal notranslate"><span class="pre">MultipleNamedEntityMixin.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.MultipleNamedEntityMixin._identifiers"><code class="docutils literal notranslate"><span class="pre">MultipleNamedEntityMixin._identifiers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.MultipleNamedEntityMixin._normalizedIdentifiers"><code class="docutils literal notranslate"><span class="pre">MultipleNamedEntityMixin._normalizedIdentifiers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.MultipleNamedEntityMixin.Identifiers"><code class="docutils literal notranslate"><span class="pre">MultipleNamedEntityMixin.Identifiers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.MultipleNamedEntityMixin.NormalizedIdentifiers"><code class="docutils literal notranslate"><span class="pre">MultipleNamedEntityMixin.NormalizedIdentifiers</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.LabeledEntityMixin"><code class="docutils literal notranslate"><span class="pre">LabeledEntityMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.LabeledEntityMixin.__init__"><code class="docutils literal notranslate"><span class="pre">LabeledEntityMixin.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.LabeledEntityMixin._label"><code class="docutils literal notranslate"><span class="pre">LabeledEntityMixin._label</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.LabeledEntityMixin._normalizedLabel"><code class="docutils literal notranslate"><span class="pre">LabeledEntityMixin._normalizedLabel</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.LabeledEntityMixin.Label"><code class="docutils literal notranslate"><span class="pre">LabeledEntityMixin.Label</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.LabeledEntityMixin.NormalizedLabel"><code class="docutils literal notranslate"><span class="pre">LabeledEntityMixin.NormalizedLabel</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.DocumentedEntityMixin"><code class="docutils literal notranslate"><span class="pre">DocumentedEntityMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.DocumentedEntityMixin.__init__"><code class="docutils literal notranslate"><span class="pre">DocumentedEntityMixin.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.DocumentedEntityMixin._documentation"><code class="docutils literal notranslate"><span class="pre">DocumentedEntityMixin._documentation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.DocumentedEntityMixin.Documentation"><code class="docutils literal notranslate"><span class="pre">DocumentedEntityMixin.Documentation</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.ConditionalMixin"><code class="docutils literal notranslate"><span class="pre">ConditionalMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.ConditionalMixin.__init__"><code class="docutils literal notranslate"><span class="pre">ConditionalMixin.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.ConditionalMixin.Condition"><code class="docutils literal notranslate"><span class="pre">ConditionalMixin.Condition</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.BranchMixin"><code class="docutils literal notranslate"><span class="pre">BranchMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.BranchMixin.__init__"><code class="docutils literal notranslate"><span class="pre">BranchMixin.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.ConditionalBranchMixin"><code class="docutils literal notranslate"><span class="pre">ConditionalBranchMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.ConditionalBranchMixin.__init__"><code class="docutils literal notranslate"><span class="pre">ConditionalBranchMixin.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.ConditionalBranchMixin.Condition"><code class="docutils literal notranslate"><span class="pre">ConditionalBranchMixin.Condition</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.IfBranchMixin"><code class="docutils literal notranslate"><span class="pre">IfBranchMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.IfBranchMixin.Condition"><code class="docutils literal notranslate"><span class="pre">IfBranchMixin.Condition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.IfBranchMixin.__init__"><code class="docutils literal notranslate"><span class="pre">IfBranchMixin.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.ElsifBranchMixin"><code class="docutils literal notranslate"><span class="pre">ElsifBranchMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.ElsifBranchMixin.Condition"><code class="docutils literal notranslate"><span class="pre">ElsifBranchMixin.Condition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.ElsifBranchMixin.__init__"><code class="docutils literal notranslate"><span class="pre">ElsifBranchMixin.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.ElseBranchMixin"><code class="docutils literal notranslate"><span class="pre">ElseBranchMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.ElseBranchMixin.__init__"><code class="docutils literal notranslate"><span class="pre">ElseBranchMixin.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.ReportStatementMixin"><code class="docutils literal notranslate"><span class="pre">ReportStatementMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.ReportStatementMixin.__init__"><code class="docutils literal notranslate"><span class="pre">ReportStatementMixin.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.AssertStatementMixin"><code class="docutils literal notranslate"><span class="pre">AssertStatementMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.AssertStatementMixin.__init__"><code class="docutils literal notranslate"><span class="pre">AssertStatementMixin.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.AssertStatementMixin.Condition"><code class="docutils literal notranslate"><span class="pre">AssertStatementMixin.Condition</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.BaseChoice"><code class="docutils literal notranslate"><span class="pre">BaseChoice</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.BaseChoice.Parent"><code class="docutils literal notranslate"><span class="pre">BaseChoice.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.BaseChoice.__init__"><code class="docutils literal notranslate"><span class="pre">BaseChoice.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.BaseChoice._parent"><code class="docutils literal notranslate"><span class="pre">BaseChoice._parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.BaseCase"><code class="docutils literal notranslate"><span class="pre">BaseCase</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.BaseCase.Parent"><code class="docutils literal notranslate"><span class="pre">BaseCase.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.BaseCase.__init__"><code class="docutils literal notranslate"><span class="pre">BaseCase.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.BaseCase._parent"><code class="docutils literal notranslate"><span class="pre">BaseCase._parent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.Range"><code class="docutils literal notranslate"><span class="pre">Range</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Range.Parent"><code class="docutils literal notranslate"><span class="pre">Range.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Range.__annotate_func__"><code class="docutils literal notranslate"><span class="pre">Range.__annotate_func__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Range.__init__"><code class="docutils literal notranslate"><span class="pre">Range.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Range._parent"><code class="docutils literal notranslate"><span class="pre">Range._parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.Range.__str__"><code class="docutils literal notranslate"><span class="pre">Range.__str__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyVHDLModel.Base.WaveformElement"><code class="docutils literal notranslate"><span class="pre">WaveformElement</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.WaveformElement.Parent"><code class="docutils literal notranslate"><span class="pre">WaveformElement.Parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.WaveformElement.__annotate_func__"><code class="docutils literal notranslate"><span class="pre">WaveformElement.__annotate_func__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.WaveformElement._parent"><code class="docutils literal notranslate"><span class="pre">WaveformElement._parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyVHDLModel.Base.WaveformElement.__init__"><code class="docutils literal notranslate"><span class="pre">WaveformElement.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Common.html">pyVHDLModel.Common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Concurrent.html">pyVHDLModel.Concurrent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Declaration.html">pyVHDLModel.Declaration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.DesignUnit.html">pyVHDLModel.DesignUnit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Exception.html">pyVHDLModel.Exception</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Expression.html">pyVHDLModel.Expression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.IEEE.html">pyVHDLModel.IEEE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Instantiation.html">pyVHDLModel.Instantiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Interface.html">pyVHDLModel.Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Name.html">pyVHDLModel.Name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Namespace.html">pyVHDLModel.Namespace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Object.html">pyVHDLModel.Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.PSLModel.html">pyVHDLModel.PSLModel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Predefined.html">pyVHDLModel.Predefined</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Regions.html">pyVHDLModel.Regions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.STD.html">pyVHDLModel.STD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Sequential.html">pyVHDLModel.Sequential</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Subprogram.html">pyVHDLModel.Subprogram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Symbol.html">pyVHDLModel.Symbol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.Type.html">pyVHDLModel.Type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.VHDLVersion"><code class="docutils literal notranslate"><span class="pre">VHDLVersion</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.IEEEFlavor"><code class="docutils literal notranslate"><span class="pre">IEEEFlavor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectClass"><code class="docutils literal notranslate"><span class="pre">ObjectClass</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DesignUnitKind"><code class="docutils literal notranslate"><span class="pre">DesignUnitKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DependencyGraphVertexKind"><code class="docutils literal notranslate"><span class="pre">DependencyGraphVertexKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.DependencyGraphEdgeKind"><code class="docutils literal notranslate"><span class="pre">DependencyGraphEdgeKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectGraphVertexKind"><code class="docutils literal notranslate"><span class="pre">ObjectGraphVertexKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.ObjectGraphEdgeKind"><code class="docutils literal notranslate"><span class="pre">ObjectGraphEdgeKind</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Design"><code class="docutils literal notranslate"><span class="pre">Design</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Library"><code class="docutils literal notranslate"><span class="pre">Library</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyVHDLModel.html#pyVHDLModel.Document"><code class="docutils literal notranslate"><span class="pre">Document</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../unittests/index.html">Unittest Summary Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coverage/index.html">Code Coverage Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CodeCoverage.html">Code Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../DocCoverage.html">Doc. Coverage Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../typing/index.html">Static Type Check Report ➚</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ChangeLog/index.html">ChangeLog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">Apache License 2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Doc-License.html">Creative Commons Attribution 4.0 International</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../py-modindex.html">Python Module Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TODO.html">TODOs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyVHDLModel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="pyVHDLModel.html">pyVHDLModel</a></li>
+      <li class="breadcrumb-item active">pyVHDLModel.Base</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/pyVHDLModel/pyVHDLModel.Base.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <style type="text/css">
+  span.bolditalic {font-weight: bold; font-style: italic; }
+  span.underline {text-decoration: underline; }
+  span.strike {text-decoration: line-through; }
+  span.xlarge {font-size: x-large; }
+  span.colorred {color: #CC0000; }
+  span.colorgreen {color: #009933; }
+  span.colorblue {color: #0066FF; }
+  span.colorpurple {color: #9900CC; }
+</style><section id="module-pyVHDLModel.Base">
+<span id="pyvhdlmodel-base"></span><h1>pyVHDLModel.Base<a class="headerlink" href="#module-pyVHDLModel.Base" title="Link to this heading"></a></h1>
+<p>This module contains parts of an abstract document language model for VHDL.</p>
+<p>Base-classes for the VHDL language model.</p>
+<p><strong>Variables</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.ExpressionUnion" title="pyVHDLModel.Base.ExpressionUnion"><code class="xref py py-data docutils literal notranslate"><span class="pre">ExpressionUnion</span></code></a></p></li>
+</ul>
+<p><strong>Classes</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.Direction" title="pyVHDLModel.Base.Direction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Direction</span></code></a>:
+An enumeration representing a direction in a range      (<code class="docutils literal notranslate"><span class="pre">to</span></code> or <code class="docutils literal notranslate"><span class="pre">downto</span></code>).</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.Mode" title="pyVHDLModel.Base.Mode"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mode</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">Mode</span></code> is an enumeration. It represents the direction of data exchange (<code class="docutils literal notranslate"><span class="pre">in</span></code>, <code class="docutils literal notranslate"><span class="pre">out</span></code>, …) for objects in</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a>:
+<code class="docutils literal notranslate"><span class="pre">ModelEntity</span></code> is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.NamedEntityMixin" title="pyVHDLModel.Base.NamedEntityMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedEntityMixin</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">NamedEntityMixin</span></code> is a mixin class for all VHDL entities that have identifiers.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.MultipleNamedEntityMixin" title="pyVHDLModel.Base.MultipleNamedEntityMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultipleNamedEntityMixin</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">MultipleNamedEntityMixin</span></code> is a mixin class for all VHDL entities that declare multiple instances at once by</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.LabeledEntityMixin" title="pyVHDLModel.Base.LabeledEntityMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">LabeledEntityMixin</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">LabeledEntityMixin</span></code> is a mixin class for all VHDL entities that can have labels.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.DocumentedEntityMixin" title="pyVHDLModel.Base.DocumentedEntityMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">DocumentedEntityMixin</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">DocumentedEntityMixin</span></code> is a mixin class for all VHDL entities that can have an associated documentation.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.ConditionalMixin" title="pyVHDLModel.Base.ConditionalMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionalMixin</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">ConditionalMixin</span></code> is a mixin-class for all statements with a condition.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.BranchMixin" title="pyVHDLModel.Base.BranchMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">BranchMixin</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">BranchMixin</span></code> is a mixin-class for all statements with branches.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.ConditionalBranchMixin" title="pyVHDLModel.Base.ConditionalBranchMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionalBranchMixin</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">BaseBranch</span></code> is a mixin-class for all branch statements with a condition.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.IfBranchMixin" title="pyVHDLModel.Base.IfBranchMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">IfBranchMixin</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">BaseIfBranch</span></code> is a mixin-class for all if-branches.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.ElsifBranchMixin" title="pyVHDLModel.Base.ElsifBranchMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElsifBranchMixin</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">BaseElsifBranch</span></code> is a mixin-class for all elsif-branches.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.ElseBranchMixin" title="pyVHDLModel.Base.ElseBranchMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElseBranchMixin</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">BaseElseBranch</span></code> is a mixin-class for all else-branches.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.ReportStatementMixin" title="pyVHDLModel.Base.ReportStatementMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReportStatementMixin</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">MixinReportStatement</span></code> is a mixin-class for all report and assert statements.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.AssertStatementMixin" title="pyVHDLModel.Base.AssertStatementMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssertStatementMixin</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">MixinAssertStatement</span></code> is a mixin-class for all assert statements.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.BaseChoice" title="pyVHDLModel.Base.BaseChoice"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseChoice</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">Choice</span></code> is a base-class for all choices.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.BaseCase" title="pyVHDLModel.Base.BaseCase"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseCase</span></code></a>:
+A <code class="docutils literal notranslate"><span class="pre">Case</span></code> is a base-class for all cases.</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.Range" title="pyVHDLModel.Base.Range"><code class="xref py py-class docutils literal notranslate"><span class="pre">Range</span></code></a>:
+<code class="docutils literal notranslate"><span class="pre">ModelEntity</span></code> is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple</p></li>
+<li><p><a class="reference internal" href="#pyVHDLModel.Base.WaveformElement" title="pyVHDLModel.Base.WaveformElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaveformElement</span></code></a>:
+<code class="docutils literal notranslate"><span class="pre">ModelEntity</span></code> is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple</p></li>
+</ul>
+<hr class="docutils" />
+<p><strong>Variables</strong></p>
+<dl class="py data">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ExpressionUnion">
+<span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">ExpressionUnion</span></span><a class="headerlink" href="#pyVHDLModel.Base.ExpressionUnion" title="Link to this definition"></a></dt>
+<dd><p>Represent a union type</p>
+<p>E.g. for int | str</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>ForwardRef(&#39;BaseExpression&#39;) | ForwardRef(&#39;QualifiedExpression&#39;) | ForwardRef(&#39;FunctionCall&#39;) | ForwardRef(&#39;TypeConversion&#39;) | ForwardRef(&#39;Literal&#39;)
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<p><strong>Classes</strong></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Direction">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">Direction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#Direction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.Direction" title="Link to this definition"></a></dt>
+<dd><p>An enumeration representing a direction in a range      (<code class="docutils literal notranslate"><span class="pre">to</span></code> or <code class="docutils literal notranslate"><span class="pre">downto</span></code>).</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-ffe96fb148338d9c94c483e21157176a49a95023.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of Direction</p></object></div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Direction.To">
+<span class="sig-name descname"><span class="pre">To</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#pyVHDLModel.Base.Direction.To" title="Link to this definition"></a></dt>
+<dd><p>Ascending direction</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Direction.DownTo">
+<span class="sig-name descname"><span class="pre">DownTo</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#pyVHDLModel.Base.Direction.DownTo" title="Link to this definition"></a></dt>
+<dd><p>Descending direction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Direction.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#Direction.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.Direction.__str__" title="Link to this definition"></a></dt>
+<dd><p>Formats the direction to <code class="docutils literal notranslate"><span class="pre">to</span></code> or <code class="docutils literal notranslate"><span class="pre">downto</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Formatted direction.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Direction.__contains__">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__contains__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.Direction.__contains__" title="Link to this definition"></a></dt>
+<dd><p>Return True if <cite>value</cite> is in <cite>cls</cite>.</p>
+<p><cite>value</cite> is in <cite>cls</cite> if:
+1) <cite>value</cite> is a member of <cite>cls</cite>, or
+2) <cite>value</cite> is the value of one of the <cite>cls</cite>’s members.
+3) <cite>value</cite> is a pseudo-member (flags)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Direction.__getitem__">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.Direction.__getitem__" title="Link to this definition"></a></dt>
+<dd><p>Return the member matching <cite>name</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Direction.__iter__">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__iter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.Direction.__iter__" title="Link to this definition"></a></dt>
+<dd><p>Return members in definition order.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Direction.__len__">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.Direction.__len__" title="Link to this definition"></a></dt>
+<dd><p>Return the number of members (no aliases)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Mode">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">Mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#Mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.Mode" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">Mode</span></code> is an enumeration. It represents the direction of data exchange (<code class="docutils literal notranslate"><span class="pre">in</span></code>, <code class="docutils literal notranslate"><span class="pre">out</span></code>, …) for objects in
+generic, port or parameter lists.</p>
+<p>In case no <em>mode</em> is defined, <code class="docutils literal notranslate"><span class="pre">Default</span></code> is used, so the <em>mode</em> is inferred from context.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-397e83b0d1ec1c4b7f5ec6dc5afbd7d29cbf2462.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of Mode</p></object></div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Mode.Default">
+<span class="sig-name descname"><span class="pre">Default</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#pyVHDLModel.Base.Mode.Default" title="Link to this definition"></a></dt>
+<dd><p>Mode not defined, thus it’s context dependent.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Mode.In">
+<span class="sig-name descname"><span class="pre">In</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#pyVHDLModel.Base.Mode.In" title="Link to this definition"></a></dt>
+<dd><p>Input</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Mode.Out">
+<span class="sig-name descname"><span class="pre">Out</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#pyVHDLModel.Base.Mode.Out" title="Link to this definition"></a></dt>
+<dd><p>Output</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Mode.InOut">
+<span class="sig-name descname"><span class="pre">InOut</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#pyVHDLModel.Base.Mode.InOut" title="Link to this definition"></a></dt>
+<dd><p>Bi-directional</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Mode.Buffer">
+<span class="sig-name descname"><span class="pre">Buffer</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#pyVHDLModel.Base.Mode.Buffer" title="Link to this definition"></a></dt>
+<dd><p>Buffered output</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Mode.Linkage">
+<span class="sig-name descname"><span class="pre">Linkage</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#pyVHDLModel.Base.Mode.Linkage" title="Link to this definition"></a></dt>
+<dd><p>undocumented</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Mode.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#Mode.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.Mode.__str__" title="Link to this definition"></a></dt>
+<dd><p>Formats the direction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Formatted direction.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Mode.__contains__">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__contains__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.Mode.__contains__" title="Link to this definition"></a></dt>
+<dd><p>Return True if <cite>value</cite> is in <cite>cls</cite>.</p>
+<p><cite>value</cite> is in <cite>cls</cite> if:
+1) <cite>value</cite> is a member of <cite>cls</cite>, or
+2) <cite>value</cite> is the value of one of the <cite>cls</cite>’s members.
+3) <cite>value</cite> is a pseudo-member (flags)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Mode.__getitem__">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.Mode.__getitem__" title="Link to this definition"></a></dt>
+<dd><p>Return the member matching <cite>name</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Mode.__iter__">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__iter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.Mode.__iter__" title="Link to this definition"></a></dt>
+<dd><p>Return members in definition order.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Mode.__len__">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.Mode.__len__" title="Link to this definition"></a></dt>
+<dd><p>Return the number of members (no aliases)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ModelEntity">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">ModelEntity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#ModelEntity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.ModelEntity" title="Link to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">ModelEntity</span></code> is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
+inheritance) and enumerations.</p>
+<p>Each entity in this model has a reference to its parent entity. Therefore, a protected variable <a class="reference internal" href="#pyVHDLModel.Base.ModelEntity._parent" title="pyVHDLModel.Base.ModelEntity._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a> is
+available and a readonly property <a class="reference internal" href="#pyVHDLModel.Base.ModelEntity.Parent" title="pyVHDLModel.Base.ModelEntity.Parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Parent</span></code></a>.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-6f62f9c428587522a6537a97dc822928fe7a31da.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ModelEntity</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parent</strong> (<a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ModelEntity.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#ModelEntity.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.ModelEntity.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – The parent model entity of this entity.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ModelEntity._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Base.ModelEntity._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ModelEntity.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.ModelEntity.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Base.ModelEntity._parent" title="pyVHDLModel.Base.ModelEntity._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.NamedEntityMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">NamedEntityMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#NamedEntityMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.NamedEntityMixin" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">NamedEntityMixin</span></code> is a mixin class for all VHDL entities that have identifiers.</p>
+<p>Protected variables <a class="reference internal" href="#pyVHDLModel.Base.NamedEntityMixin._identifier" title="pyVHDLModel.Base.NamedEntityMixin._identifier"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_identifier</span></code></a> and <a class="reference internal" href="#pyVHDLModel.Base.NamedEntityMixin._normalizedIdentifier" title="pyVHDLModel.Base.NamedEntityMixin._normalizedIdentifier"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_normalizedIdentifier</span></code></a> are available to derived classes as well as
+two readonly properties <a class="reference internal" href="#pyVHDLModel.Base.NamedEntityMixin.Identifier" title="pyVHDLModel.Base.NamedEntityMixin.Identifier"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Identifier</span></code></a> and <a class="reference internal" href="#pyVHDLModel.Base.NamedEntityMixin.NormalizedIdentifier" title="pyVHDLModel.Base.NamedEntityMixin.NormalizedIdentifier"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NormalizedIdentifier</span></code></a> for public access.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-171436ededeee5ac1fd50635b125f50f3d1703f9.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of NamedEntityMixin</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.NamedEntityMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#NamedEntityMixin.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.NamedEntityMixin.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a named entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>identifier</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Identifier (name) of the model entity.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.NamedEntityMixin._identifier">
+<span class="sig-name descname"><span class="pre">_identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Base.NamedEntityMixin._identifier" title="Link to this definition"></a></dt>
+<dd><p>The identifier of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.NamedEntityMixin._normalizedIdentifier">
+<span class="sig-name descname"><span class="pre">_normalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Base.NamedEntityMixin._normalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>The normalized (lower case) identifier of a model entity.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.NamedEntityMixin.Identifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.NamedEntityMixin.Identifier" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s identifier (name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.NamedEntityMixin.NormalizedIdentifier">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.NamedEntityMixin.NormalizedIdentifier" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s normalized identifier (lower case name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Normalized name of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.MultipleNamedEntityMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">MultipleNamedEntityMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifiers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#MultipleNamedEntityMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.MultipleNamedEntityMixin" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">MultipleNamedEntityMixin</span></code> is a mixin class for all VHDL entities that declare multiple instances at once by
+defining multiple identifiers.</p>
+<p>Protected variables <a class="reference internal" href="#pyVHDLModel.Base.MultipleNamedEntityMixin._identifiers" title="pyVHDLModel.Base.MultipleNamedEntityMixin._identifiers"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_identifiers</span></code></a> and <a class="reference internal" href="#pyVHDLModel.Base.MultipleNamedEntityMixin._normalizedIdentifiers" title="pyVHDLModel.Base.MultipleNamedEntityMixin._normalizedIdentifiers"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_normalizedIdentifiers</span></code></a> are available to derived classes as well
+as two readonly properties <a class="reference internal" href="#pyVHDLModel.Base.MultipleNamedEntityMixin.Identifiers" title="pyVHDLModel.Base.MultipleNamedEntityMixin.Identifiers"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Identifiers</span></code></a> and <a class="reference internal" href="#pyVHDLModel.Base.MultipleNamedEntityMixin.NormalizedIdentifiers" title="pyVHDLModel.Base.MultipleNamedEntityMixin.NormalizedIdentifiers"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NormalizedIdentifiers</span></code></a> for public access.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-f1f0100d787b7fc317245f00504b2b99f118cee1.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of MultipleNamedEntityMixin</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>identifiers</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.MultipleNamedEntityMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifiers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#MultipleNamedEntityMixin.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.MultipleNamedEntityMixin.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a multiple-named entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>identifiers</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Sequence of identifiers (names) of the model entity.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.MultipleNamedEntityMixin._identifiers">
+<span class="sig-name descname"><span class="pre">_identifiers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#pyVHDLModel.Base.MultipleNamedEntityMixin._identifiers" title="Link to this definition"></a></dt>
+<dd><p>A list of identifiers.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.MultipleNamedEntityMixin._normalizedIdentifiers">
+<span class="sig-name descname"><span class="pre">_normalizedIdentifiers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#pyVHDLModel.Base.MultipleNamedEntityMixin._normalizedIdentifiers" title="Link to this definition"></a></dt>
+<dd><p>A list of normalized (lower case) identifiers.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.MultipleNamedEntityMixin.Identifiers">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Identifiers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.Base.MultipleNamedEntityMixin.Identifiers" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s tuple of identifiers (names).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple of identifiers.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.MultipleNamedEntityMixin.NormalizedIdentifiers">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedIdentifiers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyVHDLModel.Base.MultipleNamedEntityMixin.NormalizedIdentifiers" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s tuple of normalized identifiers (lower case names).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple of normalized identifiers.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.LabeledEntityMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">LabeledEntityMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#LabeledEntityMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.LabeledEntityMixin" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">LabeledEntityMixin</span></code> is a mixin class for all VHDL entities that can have labels.</p>
+<p>protected variables <a class="reference internal" href="#pyVHDLModel.Base.LabeledEntityMixin._label" title="pyVHDLModel.Base.LabeledEntityMixin._label"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_label</span></code></a> and <a class="reference internal" href="#pyVHDLModel.Base.LabeledEntityMixin._normalizedLabel" title="pyVHDLModel.Base.LabeledEntityMixin._normalizedLabel"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_normalizedLabel</span></code></a> are available to derived classes as well as two
+readonly properties <a class="reference internal" href="#pyVHDLModel.Base.LabeledEntityMixin.Label" title="pyVHDLModel.Base.LabeledEntityMixin.Label"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Label</span></code></a> and <a class="reference internal" href="#pyVHDLModel.Base.LabeledEntityMixin.NormalizedLabel" title="pyVHDLModel.Base.LabeledEntityMixin.NormalizedLabel"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NormalizedLabel</span></code></a> for public access.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-b19d35f6c69b9e91e19856b7fa6740610c318b9f.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of LabeledEntityMixin</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.LabeledEntityMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#LabeledEntityMixin.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.LabeledEntityMixin.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a labeled entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>label</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Label of the model entity.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.LabeledEntityMixin._label">
+<span class="sig-name descname"><span class="pre">_label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> <span class="pre">|</span> <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Base.LabeledEntityMixin._label" title="Link to this definition"></a></dt>
+<dd><p>The label of a model entity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.LabeledEntityMixin._normalizedLabel">
+<span class="sig-name descname"><span class="pre">_normalizedLabel</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> <span class="pre">|</span> <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Base.LabeledEntityMixin._normalizedLabel" title="Link to this definition"></a></dt>
+<dd><p>The normalized (lower case) label of a model entity.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.LabeledEntityMixin.Label">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.LabeledEntityMixin.Label" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Label of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.LabeledEntityMixin.NormalizedLabel">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NormalizedLabel</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.LabeledEntityMixin.NormalizedLabel" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s normalized (lower case) label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Normalized label of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.DocumentedEntityMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">DocumentedEntityMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">documentation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#DocumentedEntityMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.DocumentedEntityMixin" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">DocumentedEntityMixin</span></code> is a mixin class for all VHDL entities that can have an associated documentation.</p>
+<p>A protected variable <a class="reference internal" href="#pyVHDLModel.Base.DocumentedEntityMixin._documentation" title="pyVHDLModel.Base.DocumentedEntityMixin._documentation"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_documentation</span></code></a> is available to derived classes as well as a readonly property
+<a class="reference internal" href="#pyVHDLModel.Base.DocumentedEntityMixin.Documentation" title="pyVHDLModel.Base.DocumentedEntityMixin.Documentation"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Documentation</span></code></a> for public access.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-18bc10a03a3e4f9f12f242b974fb1b641a5cc40e.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of DocumentedEntityMixin</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>documentation</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.DocumentedEntityMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">documentation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#DocumentedEntityMixin.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.DocumentedEntityMixin.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a documented entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>documentation</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Documentation of a model entity.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.DocumentedEntityMixin._documentation">
+<span class="sig-name descname"><span class="pre">_documentation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> <span class="pre">|</span> <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Base.DocumentedEntityMixin._documentation" title="Link to this definition"></a></dt>
+<dd><p>The associated documentation of a model entity.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.DocumentedEntityMixin.Documentation">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Documentation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.DocumentedEntityMixin.Documentation" title="Link to this definition"></a></dt>
+<dd><p>Returns a model entity’s associated documentation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Associated documentation of a model entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ConditionalMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">ConditionalMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#ConditionalMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.ConditionalMixin" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">ConditionalMixin</span></code> is a mixin-class for all statements with a condition.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-e270f0570428454485d2ead4ee24c10617813fb5.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ConditionalMixin</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>condition</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ConditionalMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#ConditionalMixin.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.ConditionalMixin.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a statement with a condition.</p>
+<p>When the condition is not None, the condition’s parent reference is set to this statement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>condition</strong> (<span class="sphinx_autodoc_typehints-type">BaseExpression | QualifiedExpression | FunctionCall | TypeConversion | Literal | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – The expression representing the condition.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ConditionalMixin.Condition">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Condition</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><span class="pre">BaseExpression</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><span class="pre">QualifiedExpression</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><span class="pre">FunctionCall</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><span class="pre">TypeConversion</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><span class="pre">Literal</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.ConditionalMixin.Condition" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the condition of a statement (<code class="xref py py-attr docutils literal notranslate"><span class="pre">_condition</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The expression representing the condition of a statement.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.BranchMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">BranchMixin</span></span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#BranchMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.BranchMixin" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">BranchMixin</span></code> is a mixin-class for all statements with branches.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-6a08a9b428132f6da154f4ed81711ce97bb69fe6.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of BranchMixin</p></object></div>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.BranchMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#BranchMixin.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.BranchMixin.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ConditionalBranchMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">ConditionalBranchMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#ConditionalBranchMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.ConditionalBranchMixin" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">BaseBranch</span></code> is a mixin-class for all branch statements with a condition.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-d3d9deb744d5e273b164bfb3ff6015dd98716d9b.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ConditionalBranchMixin</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>condition</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ConditionalBranchMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#ConditionalBranchMixin.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.ConditionalBranchMixin.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a statement with a condition.</p>
+<p>When the condition is not None, the condition’s parent reference is set to this statement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>condition</strong> (<span class="sphinx_autodoc_typehints-type">BaseExpression | QualifiedExpression | FunctionCall | TypeConversion | Literal</span>) – The expression representing the condition.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ConditionalBranchMixin.Condition">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Condition</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><span class="pre">BaseExpression</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><span class="pre">QualifiedExpression</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><span class="pre">FunctionCall</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><span class="pre">TypeConversion</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><span class="pre">Literal</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.ConditionalBranchMixin.Condition" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the condition of a statement (<code class="xref py py-attr docutils literal notranslate"><span class="pre">_condition</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The expression representing the condition of a statement.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.IfBranchMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">IfBranchMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#IfBranchMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.IfBranchMixin" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">BaseIfBranch</span></code> is a mixin-class for all if-branches.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-198e5b931ed829451f52e42dbc58456a68cd6f39.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of IfBranchMixin</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>condition</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.IfBranchMixin.Condition">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Condition</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><span class="pre">BaseExpression</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><span class="pre">QualifiedExpression</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><span class="pre">FunctionCall</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><span class="pre">TypeConversion</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><span class="pre">Literal</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.IfBranchMixin.Condition" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the condition of a statement (<code class="xref py py-attr docutils literal notranslate"><span class="pre">_condition</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The expression representing the condition of a statement.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.IfBranchMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.IfBranchMixin.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a statement with a condition.</p>
+<p>When the condition is not None, the condition’s parent reference is set to this statement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>condition</strong> (<span class="sphinx_autodoc_typehints-type">BaseExpression | QualifiedExpression | FunctionCall | TypeConversion | Literal</span>) – The expression representing the condition.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ElsifBranchMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">ElsifBranchMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#ElsifBranchMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.ElsifBranchMixin" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">BaseElsifBranch</span></code> is a mixin-class for all elsif-branches.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-822246bbb2548d1bf3ff64892f9a3c47a7d7a01f.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ElsifBranchMixin</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>condition</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ElsifBranchMixin.Condition">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Condition</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><span class="pre">BaseExpression</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><span class="pre">QualifiedExpression</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><span class="pre">FunctionCall</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><span class="pre">TypeConversion</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><span class="pre">Literal</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.ElsifBranchMixin.Condition" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the condition of a statement (<code class="xref py py-attr docutils literal notranslate"><span class="pre">_condition</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The expression representing the condition of a statement.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ElsifBranchMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.ElsifBranchMixin.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a statement with a condition.</p>
+<p>When the condition is not None, the condition’s parent reference is set to this statement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>condition</strong> (<span class="sphinx_autodoc_typehints-type">BaseExpression | QualifiedExpression | FunctionCall | TypeConversion | Literal</span>) – The expression representing the condition.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ElseBranchMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">ElseBranchMixin</span></span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#ElseBranchMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.ElseBranchMixin" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">BaseElseBranch</span></code> is a mixin-class for all else-branches.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-4aa5b4a50bd5dcb3462c31c38076b65256c5f2fb.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ElseBranchMixin</p></object></div>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ElseBranchMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.ElseBranchMixin.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ReportStatementMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">ReportStatementMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#ReportStatementMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.ReportStatementMixin" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">MixinReportStatement</span></code> is a mixin-class for all report and assert statements.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-7fec433a68abc78cb5330ae151c57502737a5128.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of ReportStatementMixin</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>severity</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.ReportStatementMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#ReportStatementMixin.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.ReportStatementMixin.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>severity</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.AssertStatementMixin">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">AssertStatementMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#AssertStatementMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.AssertStatementMixin" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">MixinAssertStatement</span></code> is a mixin-class for all assert statements.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-0013459038d84da869b29c7c9776eb3df80eeb9a.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of AssertStatementMixin</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>condition</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>message</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>severity</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.AssertStatementMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#AssertStatementMixin.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.AssertStatementMixin.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a statement with a condition.</p>
+<p>When the condition is not None, the condition’s parent reference is set to this statement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>condition</strong> (<span class="sphinx_autodoc_typehints-type">BaseExpression | QualifiedExpression | FunctionCall | TypeConversion | Literal</span>) – The expression representing the condition.</p></li>
+<li><p><strong>message</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>severity</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.AssertStatementMixin.Condition">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Condition</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><span class="pre">BaseExpression</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><span class="pre">QualifiedExpression</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><span class="pre">FunctionCall</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><span class="pre">TypeConversion</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><span class="pre">Literal</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.AssertStatementMixin.Condition" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the condition of a statement (<code class="xref py py-attr docutils literal notranslate"><span class="pre">_condition</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The expression representing the condition of a statement.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.BaseChoice">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">BaseChoice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#BaseChoice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.BaseChoice" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">Choice</span></code> is a base-class for all choices.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-e3320f016a4cfb19c68f4e15f5318f0dc041d8ab.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of BaseChoice</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parent</strong> (<a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.BaseChoice.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.BaseChoice.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Base.BaseChoice._parent" title="pyVHDLModel.Base.BaseChoice._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.BaseChoice.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.BaseChoice.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – The parent model entity of this entity.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.BaseChoice._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Base.BaseChoice._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.BaseCase">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">BaseCase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#BaseCase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.BaseCase" title="Link to this definition"></a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">Case</span></code> is a base-class for all cases.</p>
+<p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-479e48ac6b2028445f06a95124b762db0113790b.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of BaseCase</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parent</strong> (<a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.BaseCase.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.BaseCase.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Base.BaseCase._parent" title="pyVHDLModel.Base.BaseCase._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.BaseCase.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.BaseCase.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – The parent model entity of this entity.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.BaseCase._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></em><a class="headerlink" href="#pyVHDLModel.Base.BaseCase._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Range">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">Range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">leftBound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rightBound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#Range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.Range" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-8ca735b4d1e1742e9836cadd06b429fae14f007c.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of Range</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>leftBound</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>rightBound</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>direction</strong> (<em>&lt;property object at 0x7ff40ce3d0d0&gt;</em>)</p></li>
+<li><p><strong>parent</strong> (<a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Range.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.Range.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Base.Range._parent" title="pyVHDLModel.Base.Range._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Range.__annotate_func__">
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.Range.__annotate_func__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Range.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">leftBound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rightBound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#Range.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.Range.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></span>) – The parent model entity of this entity.</p></li>
+<li><p><strong>leftBound</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>rightBound</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>direction</strong> (<em>&lt;property object at 0x7ff40ce3d0d0&gt;</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Range._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelEntity</span></em><a class="headerlink" href="#pyVHDLModel.Base.Range._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.Range.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#Range.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.Range.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.WaveformElement">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyVHDLModel.Base.</span></span><span class="sig-name descname"><span class="pre">WaveformElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#WaveformElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.WaveformElement" title="Link to this definition"></a></dt>
+<dd><p class="rubric">Inheritance</p>
+<div class="graphviz"><object data="../_images/inheritance-967458184dcc0e223765f8102116b59705035bab.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of WaveformElement</p></object></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expression</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>after</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>parent</strong> (<a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><em>ModelEntity</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.WaveformElement.Parent">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><span class="pre">ModelEntity</span></a></em><a class="headerlink" href="#pyVHDLModel.Base.WaveformElement.Parent" title="Link to this definition"></a></dt>
+<dd><p>Read-only property to access the model entity’s parent element reference in a logical hierarchy (<a class="reference internal" href="#pyVHDLModel.Base.WaveformElement._parent" title="pyVHDLModel.Base.WaveformElement._parent"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_parent</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the parent entity.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.WaveformElement.__annotate_func__">
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyVHDLModel.Base.WaveformElement.__annotate_func__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.WaveformElement._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelEntity</span></em><a class="headerlink" href="#pyVHDLModel.Base.WaveformElement._parent" title="Link to this definition"></a></dt>
+<dd><p>Reference to a parent entity in the logical model hierarchy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyVHDLModel.Base.WaveformElement.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pyVHDLModel/Base.html#WaveformElement.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyVHDLModel.Base.WaveformElement.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes a VHDL model entity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pyVHDLModel.Base.ModelEntity" title="pyVHDLModel.Base.ModelEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></span>) – The parent model entity of this entity.</p></li>
+<li><p><strong>expression</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a>)</p></li>
+<li><p><strong>after</strong> (<a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.BaseExpression" title="pyVHDLModel.Expression.BaseExpression"><em>BaseExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.QualifiedExpression" title="pyVHDLModel.Expression.QualifiedExpression"><em>QualifiedExpression</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.FunctionCall" title="pyVHDLModel.Expression.FunctionCall"><em>FunctionCall</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.TypeConversion" title="pyVHDLModel.Expression.TypeConversion"><em>TypeConversion</em></a><em> | </em><a class="reference internal" href="pyVHDLModel.Expression.html#pyVHDLModel.Expression.Literal" title="pyVHDLModel.Expression.Literal"><em>Literal</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pyVHDLModel.Association.html" class="btn btn-neutral float-left" title="pyVHDLModel.Association" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pyVHDLModel.Common.html" class="btn btn-neutral float-right" title="pyVHDLModel.Common" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016-2025, Patrick Lehmann.
+      <span class="lastupdated">Last updated on 21.11.2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

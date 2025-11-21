@@ -1,0 +1,44 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="296pt" height="64pt" viewBox="0.00 0.00 296.00 64.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 60)">
+<ns0:title>inheritance5e1b84ab8b</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>AssertStatementMixin</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.AssertStatementMixin" ns1:title="A ``MixinAssertStatement`` is a mixin-class for all assert statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="288,-37 163,-37 163,-18 288,-18 288,-37" />
+<ns0:text text-anchor="middle" x="225.5" y="-25" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">AssertStatementMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>ReportStatementMixin</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ReportStatementMixin" ns1:title="A ``MixinReportStatement`` is a mixin-class for all report and assert statements." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="127,-56 0,-56 0,-37 127,-37 127,-56" />
+<ns0:text text-anchor="middle" x="63.5" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ReportStatementMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>ReportStatementMixin-&gt;AssertStatementMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M127.28,-39.05C137.27,-37.86 147.63,-36.63 157.71,-35.43" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="158.19,-37.14 162.95,-34.81 157.78,-33.66 158.19,-37.14" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>ConditionalMixin</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../pyVHDLModel/pyVHDLModel.Base.html#pyVHDLModel.Base.ConditionalMixin" ns1:title="A ``ConditionalMixin`` is a mixin-class for all statements with a condition." target="_top">
+<ns0:polygon fill="white" stroke="#1e90ff" points="113,-19 14,-19 14,0 113,0 113,-19" />
+<ns0:text text-anchor="middle" x="63.5" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ConditionalMixin</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>ConditionalMixin-&gt;AssertStatementMixin</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M113.37,-15C127.41,-16.58 142.96,-18.33 157.87,-20" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="157.74,-21.75 162.9,-20.57 158.13,-18.27 157.74,-21.75" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

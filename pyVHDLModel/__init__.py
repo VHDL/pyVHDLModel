@@ -11,7 +11,7 @@
 #                                                                                                                      #
 # License:                                                                                                             #
 # ==================================================================================================================== #
-# Copyright 2017-2025 Patrick Lehmann - Boetzingen, Germany                                                            #
+# Copyright 2017-2026 Patrick Lehmann - Boetzingen, Germany                                                            #
 # Copyright 2016-2017 Patrick Lehmann - Dresden, Germany                                                               #
 #                                                                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");                                                      #
@@ -40,15 +40,15 @@ on such a model, while supporting multiple frontends.
 
 .. admonition:: Copyright Information
 
-   :copyright: Copyright 2017-2025 Patrick Lehmann - Bötzingen, Germany
+   :copyright: Copyright 2017-2026 Patrick Lehmann - Bötzingen, Germany
    :copyright: Copyright 2016-2017 Patrick Lehmann - Dresden, Germany
    :license: Apache License, Version 2.0
 """
 __author__ =    "Patrick Lehmann"
 __email__ =     "Paebbels@gmail.com"
-__copyright__ = "2016-2025, Patrick Lehmann"
+__copyright__ = "2016-2026, Patrick Lehmann"
 __license__ =   "Apache License, Version 2.0"
-__version__ =   "0.33.0"
+__version__ =   "0.33.1"
 
 
 from enum                      import unique, Enum, Flag, auto
@@ -268,7 +268,7 @@ class VHDLVersion(Enum):
 		"""
 		Formats the VHDL version to pattern ``VHDL'xx`` or in case of VHDL-AMS to ``VHDL-AMS'xx``.
 
-		:return: Formatted VHDL/VHDL-AMS version.
+		:returns: Formatted VHDL/VHDL-AMS version.
 		"""
 		if self.value == self.Any.value:
 			return "VHDL'Any"
@@ -285,7 +285,7 @@ class VHDLVersion(Enum):
 		"""
 		Formats the VHDL/VHDL-AMS version to pattern ``xxxx``.
 
-		:return: Formatted VHDL/VHDL-AMS version.
+		:returns: Formatted VHDL/VHDL-AMS version.
 		"""
 		if self.value == self.Any.value:
 			return "Any"
@@ -325,7 +325,7 @@ class ObjectClass(Enum):
 		"""
 		Formats the object class.
 
-		:return: Formatted object class.
+		:returns: Formatted object class.
 		"""
 		return ("", "constant", "variable", "signal", "file", "type", "procedure", "function")[cast(int, self.value)]       # TODO: check performance
 

@@ -268,7 +268,7 @@ class VHDLVersion(Enum):
 		"""
 		Formats the VHDL version to pattern ``VHDL'xx`` or in case of VHDL-AMS to ``VHDL-AMS'xx``.
 
-		:return: Formatted VHDL/VHDL-AMS version.
+		:returns: Formatted VHDL/VHDL-AMS version.
 		"""
 		if self.value == self.Any.value:
 			return "VHDL'Any"
@@ -285,7 +285,7 @@ class VHDLVersion(Enum):
 		"""
 		Formats the VHDL/VHDL-AMS version to pattern ``xxxx``.
 
-		:return: Formatted VHDL/VHDL-AMS version.
+		:returns: Formatted VHDL/VHDL-AMS version.
 		"""
 		if self.value == self.Any.value:
 			return "Any"
@@ -325,7 +325,7 @@ class ObjectClass(Enum):
 		"""
 		Formats the object class.
 
-		:return: Formatted object class.
+		:returns: Formatted object class.
 		"""
 		return ("", "constant", "variable", "signal", "file", "type", "procedure", "function")[cast(int, self.value)]       # TODO: check performance
 

@@ -1,2 +1,2 @@
-wheel ~= 0.45
+wheel ~= 0.45.0
 twine ~= 6.2

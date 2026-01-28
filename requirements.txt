@@ -1,1 +1,1 @@
-pyTooling ~= 8.10
+pyTooling ~= 8.11

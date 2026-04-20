@@ -593,7 +593,7 @@ class Design(ModelEntity):
 
 			return toplevel.Value
 		else:
-			raise VHDLModelException(f"Found more than one toplevel: {', '.join(roots)}")
+			raise VHDLModelException(f"Found more than one toplevel: {', '.join(str(r) for r in roots)}")
 
 	def LoadStdLibrary(self) -> 'Library':
 		"""

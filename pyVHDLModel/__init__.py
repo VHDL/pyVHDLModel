@@ -1473,46 +1473,47 @@ class Design(ModelEntity):
 					packageName = packageMemberSymbol.Name.Prefix
 					libraryName = packageName.Prefix
 
-					libraryIdentifier = libraryName.NormalizedIdentifier
-					packageIdentifier = packageName.NormalizedIdentifier
+					if libraryName is not None:
+						libraryIdentifier = libraryName.NormalizedIdentifier
+						packageIdentifier = packageName.NormalizedIdentifier
 
-					# In case work is used, resolve to the real library name.
-					if libraryIdentifier == "work":
-						library: Library = designUnit.Library
-						libraryIdentifier = library.NormalizedIdentifier
-					elif libraryIdentifier not in designUnit._referencedLibraries:
-						# TODO: This check doesn't trigger if it's the working library.
-						raise VHDLModelException(f"Use clause references library '{libraryName.Identifier}', which was not referenced by a library clause.")
-					else:
-						library = self._libraries[libraryIdentifier]
+						# In case work is used, resolve to the real library name.
+						if libraryIdentifier == "work":
+							library: Library = designUnit.Library
+							libraryIdentifier = library.NormalizedIdentifier
+						elif libraryIdentifier not in designUnit._referencedLibraries:
+							# TODO: This check doesn't trigger if it's the working library.
+							raise VHDLModelException(f"Use clause references library '{libraryName.Identifier}', which was not referenced by a library clause.")
+						else:
+							library = self._libraries[libraryIdentifier]
 
-					try:
-						package = library._packages[packageIdentifier]
-					except KeyError:
-						ex = VHDLModelException(f"Package '{packageName.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
-						ex.add_note(f"Caused in design unit '{designUnit}' in file '{designUnit.Document}'.")
-						raise ex
+						try:
+							package = library._packages[packageIdentifier]
+						except KeyError:
+							ex = VHDLModelException(f"Package '{packageName.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+							ex.add_note(f"Caused in design unit '{designUnit}' in file '{designUnit.Document}'.")
+							raise ex
 
-					packageMemberSymbol.Package = package
+						packageMemberSymbol.Package = package
 
-					# TODO: warn duplicate package reference
-					designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
+						# TODO: warn duplicate package reference
+						designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
-					dependency = designUnit._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=packageReference)
-					dependency["kind"] = DependencyGraphEdgeKind.UseClause
+						dependency = designUnit._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=packageReference)
+						dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
-					# TODO: update the namespace with visible members
-					if isinstance(packageMemberSymbol, AllPackageMembersReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.all'. Exception: components are handled."))
+						# TODO: update the namespace with visible members
+						if isinstance(packageMemberSymbol, AllPackageMembersReferenceSymbol):
+							WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.all'. Exception: components are handled."))
 
-						for componentIdentifier, component in package._components.items():
-							designUnit._namespace._elements[componentIdentifier] = component
+							for componentIdentifier, component in package._components.items():
+								designUnit._namespace._elements[componentIdentifier] = component
 
-					elif isinstance(packageMemberSymbol, PackageMemberReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.mySymbol'."))
+						elif isinstance(packageMemberSymbol, PackageMemberReferenceSymbol):
+							WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.mySymbol'."))
 
-					else:
-						raise VHDLModelException()
+						else:
+							raise VHDLModelException()
 
 	def LinkContextReferences(self) -> None:
 		for designUnit in self.IterateDesignUnits():
@@ -1631,7 +1632,7 @@ class Design(ModelEntity):
 
 					instance.Component.Component = component
 
-					if not component.IsBlackbox:
+					if not component.IsBlackbox and component.Entity is not None:
 						dependency = architecture._dependencyVertex.EdgeToVertex(component.Entity._dependencyVertex, edgeValue=instance)
 						dependency["kind"] = DependencyGraphEdgeKind.ComponentInstantiation
 					else:

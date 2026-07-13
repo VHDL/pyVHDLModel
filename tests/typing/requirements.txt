@@ -1,6 +1,6 @@
 -r ../../requirements.txt
 
 # Static Type Checking
-mypy[reports] ~= 2.2
+mypy[reports] ~= 2.3
 typing_extensions ~= 4.16
 lxml >= 6.1 , <7.0

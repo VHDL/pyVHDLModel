@@ -213,6 +213,19 @@ class NamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return self._normalizedIdentifier
 
+	def __str__(self) -> str:
+		"""
+		Formats the named entity as its identifier.
+
+		Derived classes rendering more than their name - a full declaration, say - override this and take
+		priority via the MRO.
+
+		**Format:** ``myEntity``
+
+		:returns: The entity's identifier.
+		"""
+		return self._identifier
+
 
 @export
 class OptionallyNamedEntityMixin(metaclass=ExtendedType, mixin=True):
@@ -303,6 +316,19 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		:returns: Tuple of normalized identifiers.
 		"""
 		return self._normalizedIdentifiers
+
+	def __str__(self) -> str:
+		"""
+		Formats the named entity as its identifiers.
+
+		A single declaration may name several entities at once, so all identifiers are rendered. Derived
+		classes rendering more than their names override this and take priority via the MRO.
+
+		**Format:** ``a, b``
+
+		:returns: The entity's identifiers, comma-separated.
+		"""
+		return ", ".join(self._identifiers)
 
 
 @export

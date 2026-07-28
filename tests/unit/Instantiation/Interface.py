@@ -303,7 +303,8 @@ class Groups(TestCase):
 	once: ``port (p1, p2 : in bit);``). ``PortGroup``/``ParameterGroup.__str__`` crashed for
 	essentially any realistic content, and ``GenericGroup.__str__`` crashed the moment a
 	``GenericConstantInterfaceItem`` was included or a group mixed both item shapes. Fixed via the
-	shared ``_identifiersOf()`` helper, which flattens either shape into a plain tuple of names."""
+	shared ``identifiersOf()`` helper, which flattens either shape into a plain tuple of names.
+	Since then both naming mixins render themselves, so the groups simply join ``str(item)``."""
 
 	def test_GenericGroup(self) -> None:
 		item = GenericTypeInterfaceItem("T")

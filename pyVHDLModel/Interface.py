@@ -41,7 +41,7 @@ from pyTooling.MetaClasses  import ExtendedType
 
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin
-from pyVHDLModel.Base       import MultipleNamedEntityMixin, identifiersOf
+from pyVHDLModel.Base       import MultipleNamedEntityMixin
 from pyVHDLModel.Base       import ExpressionUnion, Mode
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
 from pyVHDLModel.Subprogram import Procedure, Function
@@ -1046,7 +1046,7 @@ class GenericGroup(InterfaceGroup, WithGenericsMixin):
 
 		:returns: Formatted generic group.
 		"""
-		names = ", ".join(name for item in self._genericItems for name in identifiersOf(item))
+		names = ", ".join(str(item) for item in self._genericItems)
 		return f"GenericGroup: {self._identifier} ({len(self._genericItems)}): {names}"
 
 
@@ -1104,7 +1104,7 @@ class PortGroup(InterfaceGroup, WithPortsMixin):
 
 		:returns: Formatted port group.
 		"""
-		names = ", ".join(name for item in self._portItems for name in identifiersOf(item))
+		names = ", ".join(str(item) for item in self._portItems)
 		return f"PortGroup: {self._identifier} ({len(self._portItems)}): {names}"
 
 
@@ -1162,5 +1162,5 @@ class ParameterGroup(InterfaceGroup, WithParametersMixin):
 
 		:returns: Formatted parameter group.
 		"""
-		names = ", ".join(name for item in self._parameterItems for name in identifiersOf(item))
+		names = ", ".join(str(item) for item in self._parameterItems)
 		return f"ParameterGroup: {self._identifier} ({len(self._parameterItems)}): {names}"

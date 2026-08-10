@@ -1,2 +1,2 @@
 wheel ~= 0.47.0
-twine ~= 6.2
+twine ~= 7.0

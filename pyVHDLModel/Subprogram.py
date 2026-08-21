@@ -34,10 +34,9 @@ This module contains parts of an abstract document language model for VHDL.
 
 Subprograms are procedures, functions and methods.
 """
-from typing                 import ClassVar, List, Iterable, Optional as Nullable
+from __future__             import annotations
 
-from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType
+from typing                 import ClassVar, List, Iterable, Optional as Nullable
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf
 from pyVHDLModel.Symbol     import SubtypeSymbol
@@ -45,6 +44,9 @@ from pyVHDLModel.Type       import ProtectedType
 from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
 from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin
 from pyVHDLModel.Sequential import SequentialStatement
+
+from pyTooling.Decorators   import export, readonly
+from pyTooling.MetaClasses  import ExtendedType
 
 
 @export
@@ -61,19 +63,19 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Sequentia
 	   * :class:`Procedure <pyVHDLModel.Subprogram.Procedure>`
 	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
 	"""
-	_subprogramKeyword: ClassVar[str] = "subprogram"  #: The VHDL keyword introducing this subprogram kind.
+	_subprogramKeyword: ClassVar[str] = "subprogram"    #: The VHDL keyword introducing this subprogram kind.
 
-	_genericItems:   List['GenericInterfaceItemMixin']    #: List of all generics, in declaration order.
-	_parameterItems: List['ParameterInterfaceItemMixin']  #: List of all parameters, in declaration order.
-	_statements:     List[SequentialStatement]            #: List of all sequential statements in the subprogram's body.
-	_isPure:         bool                                 #: ``True`` if the subprogram was declared pure.
+	_genericItems:   List[GenericInterfaceItemMixin]    #: List of all generics, in declaration order.
+	_parameterItems: List[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.
+	_statements:     List[SequentialStatement]          #: List of all sequential statements in the subprogram's body.
+	_isPure:         bool                               #: ``True`` if the subprogram was declared pure.
 
 	def __init__(
 		self,
 		identifier:     str,
 		isPure:         bool,
-		genericItems:   Nullable[Iterable['GenericInterfaceItemMixin']] =   None,
-		parameterItems: Nullable[Iterable['ParameterInterfaceItemMixin']] = None,
+		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
@@ -129,7 +131,7 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Sequentia
 			self._namespace.ParentNamespace = parent._namespace
 
 	@readonly
-	def GenericItems(self) -> List['GenericInterfaceItemMixin']:
+	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
 		"""
 		Read-only property to access the generic items (:attr:`_genericItems`).
 
@@ -138,7 +140,7 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Sequentia
 		return self._genericItems
 
 	@readonly
-	def ParameterItems(self) -> List['ParameterInterfaceItemMixin']:
+	def ParameterItems(self) -> List[ParameterInterfaceItemMixin]:
 		"""
 		Read-only property to access the parameter items (:attr:`_parameterItems`).
 
@@ -219,8 +221,8 @@ class Procedure(Subprogram):
 	def __init__(
 		self,
 		identifier:     str,
-		genericItems:   Nullable[Iterable['GenericInterfaceItemMixin']] =   None,
-		parameterItems: Nullable[Iterable['ParameterInterfaceItemMixin']] = None,
+		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
@@ -281,8 +283,8 @@ class Function(Subprogram):
 		identifier:     str,
 		returnType:     SubtypeSymbol,
 		isPure:         bool =                                              True,
-		genericItems:   Nullable[Iterable['GenericInterfaceItemMixin']] =   None,
-		parameterItems: Nullable[Iterable['ParameterInterfaceItemMixin']] = None,
+		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
@@ -363,8 +365,8 @@ class ProcedureMethod(Procedure, MethodMixin):
 	def __init__(
 		self,
 		identifier:     str,
-		genericItems:   Nullable[Iterable['GenericInterfaceItemMixin']] =   None,
-		parameterItems: Nullable[Iterable['ParameterInterfaceItemMixin']] = None,
+		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
@@ -403,8 +405,8 @@ class FunctionMethod(Function, MethodMixin):
 		identifier:     str,
 		returnType:     SubtypeSymbol,
 		isPure:         bool =                                              True,
-		genericItems:   Nullable[Iterable['GenericInterfaceItemMixin']] =   None,
-		parameterItems: Nullable[Iterable['ParameterInterfaceItemMixin']] = None,
+		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,

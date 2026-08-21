@@ -44,6 +44,8 @@ on such a model, while supporting multiple frontends.
    :copyright: Copyright 2016-2017 Patrick Lehmann - Dresden, Germany
    :license: Apache License, Version 2.0
 """
+from __future__ import annotations
+
 __author__ =            "Patrick Lehmann"
 __email__ =             "Paebbels@gmail.com"
 __copyright__ =         "2016-2026, Patrick Lehmann"
@@ -159,7 +161,7 @@ class VHDLVersion(Enum):
 				self.__class__.__VERSION_MAPPINGS__[k] = self
 
 	@classmethod
-	def Parse(cls, value: Union[int, str]) -> "VHDLVersion":
+	def Parse(cls, value: Union[int, str]) -> VHDLVersion:
 		"""
 		Parses a VHDL or VHDL-AMS year code as integer or string to an enum value.
 
@@ -506,8 +508,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	* :attr:`ObjectGraph`
 	"""
 	_name:              Nullable[str]         #: Name of the design.
-	_libraries:         Dict[str, 'Library']  #: List of all libraries defined for a design.
-	_documents:         List['Document']      #: List of all documents loaded for a design.
+	_libraries:         Dict[str, Library]    #: List of all libraries defined for a design.
+	_documents:         List[Document]        #: List of all documents loaded for a design.
 	_dependencyGraph:   Graph                 #: The graph of all dependencies in the designs.
 	_compileOrderGraph: Graph                 #: A graph derived from dependency graph containing the order of documents for compilation.
 	_hierarchyGraph:    Graph                 #: A graph derived from dependency graph containing the design hierarchy.
@@ -549,7 +551,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		return self._name
 
 	@readonly
-	def Libraries(self) -> Dict[str, 'Library']:
+	def Libraries(self) -> Dict[str, Library]:
 		"""
 		Read-only property to access the dictionary of library names and VHDL libraries (:attr:`_libraries`).
 
@@ -558,7 +560,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		return self._libraries
 
 	@readonly
-	def Documents(self) -> List['Document']:
+	def Documents(self) -> List[Document]:
 		"""
 		Read-only property to access the list of all documents (VHDL source files) loaded for this design (:attr:`_documents`).
 
@@ -631,7 +633,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		else:
 			raise VHDLModelException(f"Found more than one toplevel: {', '.join(str(r) for r in roots)}")
 
-	def LoadStdLibrary(self) -> 'Library':
+	def LoadStdLibrary(self) -> Library:
 		"""
 		Load the predefined VHDL library ``std`` into the design.
 
@@ -651,7 +653,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		return library
 
-	def LoadIEEELibrary(self, flavor: Nullable[IEEEFlavor] = None) -> 'Library':
+	def LoadIEEELibrary(self, flavor: Nullable[IEEEFlavor] = None) -> Library:
 		"""
 		Load the predefined VHDL library ``ieee`` into the design.
 
@@ -672,7 +674,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		return library
 
-	def AddLibrary(self, library: 'Library') -> None:
+	def AddLibrary(self, library: Library) -> None:
 		"""
 		Add a VHDL library to the design.
 
@@ -693,7 +695,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		self._libraries[libraryIdentifier] = library
 		library.Parent = self
 
-	def GetLibrary(self, libraryName: str) -> 'Library':
+	def GetLibrary(self, libraryName: str) -> Library:
 		"""
 		Return an (existing) VHDL library object of name ``libraryName``.
 
@@ -712,7 +714,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			return lib
 
 	# TODO: allow overloaded parameter library to be str?
-	def AddDocument(self, document: 'Document', library: 'Library') -> None:
+	def AddDocument(self, document: Document, library: Library) -> None:
 		"""
 		Add a document (VHDL source file) to the design and register all embedded design units to the given VHDL library.
 
@@ -2151,7 +2153,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			e = sourceVertex["dependencyVertex"].EdgeToVertex(destinationVertex["dependencyVertex"])
 			e["kind"] = DependencyGraphEdgeKind.CompileOrder
 
-	def IterateDocumentsInCompileOrder(self) -> Generator['Document', None, None]:
+	def IterateDocumentsInCompileOrder(self) -> Generator[Document, None, None]:
 		"""
 		Iterate all document in compile-order.
 

@@ -36,6 +36,7 @@ The module ``Exceptions`` contains all structured errors that are raised by pyVH
 message in english, each exception object contains one or multiple references to the exception's context.
 """
 from pyTooling.Decorators import export, readonly
+from pyTooling.Exceptions import ExceptionBase
 from pyTooling.Warning    import Warning, CriticalWarning
 
 from pyVHDLModel.Symbol   import Symbol
@@ -93,7 +94,7 @@ class BlackboxWarning(VHDLModelCriticalWarning):
 
 
 @export
-class VHDLModelException(Exception):
+class VHDLModelException(ExceptionBase):
 	"""
 	Base-class for all exceptions (errors) raised by pyVHDLModel.
 

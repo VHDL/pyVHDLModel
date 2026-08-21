@@ -34,10 +34,9 @@ This module contains parts of an abstract document language model for VHDL.
 
 Declarations for sequential statements.
 """
-from typing                  import List, Iterable, Optional as Nullable
+from __future__              import annotations
 
-from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType
+from typing                  import List, Iterable, Optional as Nullable
 
 from pyVHDLModel.Base        import ModelEntity, ExpressionUnion, Range, BaseChoice, BaseCase, ConditionalMixin, IfBranchMixin, ElsifBranchMixin
 from pyVHDLModel.Base        import ElseBranchMixin, ReportStatementMixin, AssertStatementMixin, WaveformElement, ChoicesMixin
@@ -50,6 +49,9 @@ from pyVHDLModel.Common      import ExpressionMixin, SelectedWaveformsMixin, Sel
 from pyVHDLModel.Common      import SelectedWaveform, OthersSelectedWaveform
 from pyVHDLModel.Common      import SelectedExpression, OthersSelectedExpression
 from pyVHDLModel.Association import ParameterAssociationItem
+
+from pyTooling.Decorators    import export, readonly
+from pyTooling.MetaClasses   import ExtendedType
 
 
 @export
@@ -741,9 +743,9 @@ class IfStatement(CompoundStatement):
 
 	   * :class:`If-generate statement <pyVHDLModel.Concurrent.IfGenerateStatement>`
 	"""
-	_ifBranch: IfBranch                  #: The mandatory ``if`` branch.
-	_elsifBranches: List['ElsifBranch']  #: List of all ``elsif`` branches, in the order they were written.
-	_elseBranch: Nullable[ElseBranch]    #: The optional ``else`` branch, or ``None`` if none was given.
+	_ifBranch: IfBranch                #: The mandatory ``if`` branch.
+	_elsifBranches: List[ElsifBranch]  #: List of all ``elsif`` branches, in the order they were written.
+	_elseBranch: Nullable[ElseBranch]  #: The optional ``else`` branch, or ``None`` if none was given.
 
 	def __init__(
 		self,
@@ -789,7 +791,7 @@ class IfStatement(CompoundStatement):
 		return self._ifBranch
 
 	@readonly
-	def ElsIfBranches(self) -> List['ElsifBranch']:
+	def ElsIfBranches(self) -> List[ElsifBranch]:
 		"""
 		Read-only property to access the elsif-branch of the if-statement (:attr:`_elsifBranch`).
 
@@ -881,9 +883,9 @@ class RangedChoice(SequentialChoice):
 	      when 1 to 2 => v := '0';
 	      --   ^^^^^^                <- Range
 	"""
-	_range: 'Range'  #: The range this choice selects on.
+	_range: Range  #: The range this choice selects on.
 
-	def __init__(self, rng: 'Range', parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, rng: Range, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a case choice given by a range.
 
@@ -896,7 +898,7 @@ class RangedChoice(SequentialChoice):
 		rng.Parent = self
 
 	@readonly
-	def Range(self) -> 'Range':
+	def Range(self) -> Range:
 		"""
 		Read-only property to access the range (:attr:`_range`).
 

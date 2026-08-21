@@ -34,22 +34,24 @@ This module contains parts of an abstract document language model for VHDL.
 
 Design units are contexts, entities, architectures, packages and their bodies as well as configurations.
 """
-from typing import ClassVar, List, Dict, Union, Iterable, Optional as Nullable
+from __future__                import annotations
 
-from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType, abstractmethod
-from pyTooling.Graph        import Vertex
+from typing                    import ClassVar, List, Dict, Union, Iterable, Optional as Nullable
 
-from pyVHDLModel.Common     import AllowBlackboxMixin
-from pyVHDLModel.Exception  import VHDLModelException
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
-from pyVHDLModel.Namespace  import Namespace
-from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin
-from pyVHDLModel.Symbol     import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
-from pyVHDLModel.Interface  import GenericInterfaceItemMixin, PortInterfaceItemMixin, WithGenericsMixin, WithPortsMixin
-from pyVHDLModel.Object     import DeferredConstant
-from pyVHDLModel.Concurrent import ConcurrentStatement, ConcurrentStatementsMixin
+from pyVHDLModel.Common        import AllowBlackboxMixin
+from pyVHDLModel.Exception     import VHDLModelException
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Namespace     import Namespace
+from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin
+from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
+from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, WithGenericsMixin, WithPortsMixin
+from pyVHDLModel.Object        import DeferredConstant
+from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration
+
+from pyTooling.Decorators      import export, readonly
+from pyTooling.MetaClasses     import ExtendedType, abstractmethod
+from pyTooling.Graph           import Vertex
 
 
 @export
@@ -182,24 +184,24 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	     * :class:`Package body <pyVHDLModel.DesignUnit.PackageBody>`
 	"""
 
-	_continuesParentRegion: ClassVar[bool] = False         #: ``True`` if it continues its parent's declarative region.
+	_continuesParentRegion: ClassVar[bool] = False                                                                                           #: ``True`` if it continues its parent's declarative region.
 
-	_document: 'Document'                                  #: The VHDL library, the design unit was analyzed into.
+	_document: Document                                                                                                                      #: The VHDL library, the design unit was analyzed into.
 
 	# Either written as statements before (e.g. entity, architecture, package, ...), or as statements inside (context)
-	_contextItems:        List['ContextUnion']             #: List of all context items (library, use and context clauses).
-	_libraryReferences:   List['LibraryClause']            #: List of library clauses.
-	_packageReferences:   List['UseClause']                #: List of use clauses.
-	_contextReferences:   List['ContextReference']         #: List of context clauses.
+	_contextItems:        List[ContextUnion]                                                                                                 #: List of all context items (library, use and context clauses).
+	_libraryReferences:   List[LibraryClause]                                                                                                #: List of library clauses.
+	_packageReferences:   List[UseClause]                                                                                                    #: List of use clauses.
+	_contextReferences:   List[ContextReference]                                                                                             #: List of context clauses.
 
-	_referencedLibraries: Dict[str, 'Library']             #: Referenced libraries based on explicit library clauses or implicit inheritance
-	_referencedPackages:  Dict[str, Dict[str, 'Package']]  #: Referenced packages based on explicit use clauses or implicit inheritance
-	_referencedContexts:  Dict[str, 'Context']             #: Referenced contexts based on explicit context references or implicit inheritance
+	_referencedLibraries: Dict[str, Library]                                                                                                 #: Referenced libraries based on explicit library clauses or implicit inheritance
+	_referencedPackages:  Dict[str, Dict[str, Package]]                                                                                      #: Referenced packages based on explicit use clauses or implicit inheritance
+	_referencedContexts:  Dict[str, Context]                                                                                                 #: Referenced contexts based on explicit context references or implicit inheritance
 
-	_dependencyVertex:    Vertex[None, None, str, 'DesignUnit', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the design unit. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
-	_hierarchyVertex:     Vertex[None, None, str, 'DesignUnit', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: The vertex in the hierarchy graph
+	_dependencyVertex:    Vertex[None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the design unit. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
+	_hierarchyVertex:     Vertex[None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]  #: The vertex in the hierarchy graph
 
-	_namespace:           'Namespace'  #: The namespace of this design unit's declarative region.
+	_namespace:           Namespace                                                                                                          #: The namespace of this design unit's declarative region.
 
 	def __init__(self, identifier: str, contextItems: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -241,7 +243,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self._namespace = Namespace(self._normalizedIdentifier, sharesRegionWithParent=self._continuesParentRegion)
 
 	@property
-	def Document(self) -> 'Document':
+	def Document(self) -> Document:
 		"""
 		Property to access the document (:attr:`_document`).
 
@@ -250,11 +252,11 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._document
 
 	@Document.setter
-	def Document(self, document: 'Document') -> None:
+	def Document(self, document: Document) -> None:
 		self._document = document
 
 	@property
-	def Library(self) -> 'Library':
+	def Library(self) -> Library:
 		"""
 		Property to access the library (:attr:`_parent`).
 
@@ -263,11 +265,11 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._parent
 
 	@Library.setter
-	def Library(self, library: 'Library') -> None:
+	def Library(self, library: Library) -> None:
 		self._parent = library
 
 	@readonly
-	def ContextItems(self) -> List['ContextUnion']:
+	def ContextItems(self) -> List[ContextUnion]:
 		"""
 		Read-only property to access the sequence of all context items comprising library, use and context clauses
 		(:attr:`_contextItems`).
@@ -277,7 +279,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._contextItems
 
 	@readonly
-	def ContextReferences(self) -> List['ContextReference']:
+	def ContextReferences(self) -> List[ContextReference]:
 		"""
 		Read-only property to access the sequence of context clauses (:attr:`_contextReferences`).
 
@@ -286,7 +288,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._contextReferences
 
 	@readonly
-	def LibraryReferences(self) -> List['LibraryClause']:
+	def LibraryReferences(self) -> List[LibraryClause]:
 		"""
 		Read-only property to access the sequence of library clauses (:attr:`_libraryReferences`).
 
@@ -295,7 +297,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._libraryReferences
 
 	@readonly
-	def PackageReferences(self) -> List['UseClause']:
+	def PackageReferences(self) -> List[UseClause]:
 		"""
 		Read-only property to access the sequence of use clauses (:attr:`_packageReferences`).
 
@@ -304,7 +306,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._packageReferences
 
 	@readonly
-	def ReferencedLibraries(self) -> Dict[str, 'Library']:
+	def ReferencedLibraries(self) -> Dict[str, Library]:
 		"""
 		Read-only property to access the referenced libraries (:attr:`_referencedLibraries`).
 
@@ -313,7 +315,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._referencedLibraries
 
 	@readonly
-	def ReferencedPackages(self) -> Dict[str, 'Package']:
+	def ReferencedPackages(self) -> Dict[str, Package]:
 		"""
 		Read-only property to access the referenced packages (:attr:`_referencedPackages`).
 
@@ -322,7 +324,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._referencedPackages
 
 	@readonly
-	def ReferencedContexts(self) -> Dict[str, 'Context']:
+	def ReferencedContexts(self) -> Dict[str, Context]:
 		"""
 		Read-only property to access the referenced contexts (:attr:`_referencedContexts`).
 
@@ -519,10 +521,10 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 	   * :class:`Package body implementing it <pyVHDLModel.DesignUnit.PackageBody>`
 	"""
 
-	_packageBody:       Nullable["PackageBody"]      #: The corresponding package body, or ``None`` if none was analyzed.
+	_packageBody:       Nullable[PackageBody]        #: The corresponding package body, or ``None`` if none was analyzed.
 
 	_deferredConstants: Dict[str, DeferredConstant]  #: Deferred constants, indexed by name.
-	_components:        Dict[str, 'Component']       #: Components, indexed by name.
+	_components:        Dict[str, Component]         #: Components, indexed by name.
 
 	def __init__(
 		self,
@@ -557,7 +559,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 		self._components = {}
 
 	@readonly
-	def PackageBody(self) -> Nullable["PackageBody"]:
+	def PackageBody(self) -> Nullable[PackageBody]:
 		"""
 		Read-only property to access the package body (:attr:`_packageBody`).
 
@@ -584,7 +586,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 		return self._deferredConstants
 
 	@readonly
-	def Components(self) -> Dict[str, 'Component']:
+	def Components(self) -> Dict[str, Component]:
 		"""
 		Read-only property to access the components (:attr:`_components`).
 
@@ -746,7 +748,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 	   * :class:`Configuration binding it <pyVHDLModel.DesignUnit.Configuration>`
 	"""
 
-	_architectures: Dict[str, 'Architecture']  #: Dictionary of all architectures of this entity, indexed by name.
+	_architectures: Dict[str, Architecture]  #: Dictionary of all architectures of this entity, indexed by name.
 
 	def __init__(
 		self,
@@ -784,7 +786,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		self._architectures = {}
 
 	@readonly
-	def Architectures(self) -> Dict[str, 'Architecture']:
+	def Architectures(self) -> Dict[str, Architecture]:
 		"""
 		Read-only property to access the architectures (:attr:`_architectures`).
 
@@ -859,7 +861,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		entity:        EntitySymbol,
 		contextItems:  Nullable[Iterable[Context]] = None,
 		declaredItems: Nullable[Iterable] = None,
-		statements:    Iterable['ConcurrentStatement'] = None,
+		statements:    Iterable[ConcurrentStatement] = None,
 		documentation: Nullable[str] = None,
 		allowBlackbox: Nullable[bool] = None,
 		parent:        Nullable[ModelEntity] = None

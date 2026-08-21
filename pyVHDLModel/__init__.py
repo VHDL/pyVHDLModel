@@ -44,6 +44,8 @@ on such a model, while supporting multiple frontends.
    :copyright: Copyright 2016-2017 Patrick Lehmann - Dresden, Germany
    :license: Apache License, Version 2.0
 """
+from __future__ import annotations
+
 __author__ =            "Patrick Lehmann"
 __email__ =             "Paebbels@gmail.com"
 __copyright__ =         "2016-2026, Patrick Lehmann"
@@ -159,7 +161,7 @@ class VHDLVersion(Enum):
 				self.__class__.__VERSION_MAPPINGS__[k] = self
 
 	@classmethod
-	def Parse(cls, value: Union[int, str]) -> "VHDLVersion":
+	def Parse(cls, value: Union[int, str]) -> VHDLVersion:
 		"""
 		Parses a VHDL or VHDL-AMS year code as integer or string to an enum value.
 
@@ -505,15 +507,15 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	* :attr:`HierarchyGraph`
 	* :attr:`ObjectGraph`
 	"""
-	_name:              Nullable[str]         #: Name of the design.
-	_allowBlackbox:     bool                  #: Allow blackboxes after linking the design.
-	_libraries:         Dict[str, 'Library']  #: List of all libraries defined for a design.
-	_documents:         List['Document']      #: List of all documents loaded for a design.
-	_dependencyGraph:   Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
-	_compileOrderGraph: Graph[None, None, None, None, None, None, None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: A graph derived from dependency graph containing the order of documents for compilation.
-	_hierarchyGraph:    Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: A graph derived from dependency graph containing the design hierarchy.
-	_objectGraph:       Graph[None, None, None, None, None, None, None, None, str, Obj, None, None, None, None, None, None, None, None, None, None, None, None, None]          #: The graph of all types and objects in the design.
-	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
+	_name:              Nullable[str]                                                                                                                                         #: Name of the design.
+	_allowBlackbox:     bool                                                                                                                                                  #: Allow blackboxes after linking the design.
+	_libraries:         Dict[str, Library]                                                                                                                                    #: List of all libraries defined for a design.
+	_documents:         List[Document]                                                                                                                                        #: List of all documents loaded for a design.
+	_dependencyGraph:   Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]  #: The graph of all dependencies in the designs.
+	_compileOrderGraph: Graph[None, None, None, None, None, None, None, None, None, Document, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: A graph derived from dependency graph containing the order of documents for compilation.
+	_hierarchyGraph:    Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]  #: A graph derived from dependency graph containing the design hierarchy.
+	_objectGraph:       Graph[None, None, None, None, None, None, None, None, str, Obj, None, None, None, None, None, None, None, None, None, None, None, None, None]         #: The graph of all types and objects in the design.
+	_toplevel:          Union[Entity, Configuration]                                                                                                                          #: When computed, the toplevel design unit is cached in this field.
 
 	def __init__(
 		self,
@@ -550,7 +552,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		return self._name
 
 	@readonly
-	def Libraries(self) -> Dict[str, 'Library']:
+	def Libraries(self) -> Dict[str, Library]:
 		"""
 		Read-only property to access the dictionary of library names and VHDL libraries (:attr:`_libraries`).
 
@@ -559,7 +561,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		return self._libraries
 
 	@readonly
-	def Documents(self) -> List['Document']:
+	def Documents(self) -> List[Document]:
 		"""
 		Read-only property to access the list of all documents (VHDL source files) loaded for this design (:attr:`_documents`).
 
@@ -632,7 +634,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		else:
 			raise VHDLModelException(f"Found more than one toplevel: {', '.join(str(r) for r in roots)}")
 
-	def LoadStdLibrary(self) -> 'Library':
+	def LoadStdLibrary(self) -> Library:
 		"""
 		Load the predefined VHDL library ``std`` into the design.
 
@@ -652,7 +654,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		return library
 
-	def LoadIEEELibrary(self, flavor: Nullable[IEEEFlavor] = None) -> 'Library':
+	def LoadIEEELibrary(self, flavor: Nullable[IEEEFlavor] = None) -> Library:
 		"""
 		Load the predefined VHDL library ``ieee`` into the design.
 
@@ -673,7 +675,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		return library
 
-	def AddLibrary(self, library: 'Library') -> None:
+	def AddLibrary(self, library: Library) -> None:
 		"""
 		Add a VHDL library to the design.
 
@@ -694,7 +696,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		self._libraries[libraryIdentifier] = library
 		library.Parent = self
 
-	def GetLibrary(self, libraryName: str) -> 'Library':
+	def GetLibrary(self, libraryName: str) -> Library:
 		"""
 		Return an (existing) VHDL library object of name ``libraryName``.
 
@@ -713,7 +715,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			return lib
 
 	# TODO: allow overloaded parameter library to be str?
-	def AddDocument(self, document: 'Document', library: 'Library') -> None:
+	def AddDocument(self, document: Document, library: Library) -> None:
 		"""
 		Add a document (VHDL source file) to the design and register all embedded design units to the given VHDL library.
 
@@ -2152,7 +2154,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			e = sourceVertex["dependencyVertex"].EdgeToVertex(destinationVertex["dependencyVertex"])
 			e["kind"] = DependencyGraphEdgeKind.CompileOrder
 
-	def IterateDocumentsInCompileOrder(self) -> Generator['Document', None, None]:
+	def IterateDocumentsInCompileOrder(self) -> Generator[Document, None, None]:
 		"""
 		Iterate all document in compile-order.
 
@@ -2207,15 +2209,15 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 	   * :class:`Predefined library <pyVHDLModel.Predefined.PredefinedLibrary>`
 	"""
 
-	_allowBlackbox:  Nullable[bool]                      #: Allow blackboxes for components in this library.
-	_contexts:       Dict[str, Context]                  #: Dictionary of all contexts defined in a library.
-	_configurations: Dict[str, Configuration]            #: Dictionary of all configurations defined in a library.
-	_entities:       Dict[str, Entity]                   #: Dictionary of all entities defined in a library.
-	_architectures:  Dict[str, Dict[str, Architecture]]  #: Dictionary of all architectures defined in a library.
-	_packages:       Dict[str, Package]                  #: Dictionary of all packages defined in a library.
-	_packageBodies:  Dict[str, PackageBody]              #: Dictionary of all package bodies defined in a library.
+	_allowBlackbox:  Nullable[bool]                                                                                                                       #: Allow blackboxes for components in this library.
+	_contexts:       Dict[str, Context]                                                                                                                   #: Dictionary of all contexts defined in a library.
+	_configurations: Dict[str, Configuration]                                                                                                             #: Dictionary of all configurations defined in a library.
+	_entities:       Dict[str, Entity]                                                                                                                    #: Dictionary of all entities defined in a library.
+	_architectures:  Dict[str, Dict[str, Architecture]]                                                                                                   #: Dictionary of all architectures defined in a library.
+	_packages:       Dict[str, Package]                                                                                                                   #: Dictionary of all packages defined in a library.
+	_packageBodies:  Dict[str, PackageBody]                                                                                                               #: Dictionary of all package bodies defined in a library.
 
-	_dependencyVertex: Vertex[None, None, str, Union['Library', DesignUnit], None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the library. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
+	_dependencyVertex: Vertex[None, None, str, Union[Library, DesignUnit], None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the library. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
 
 	def __init__(
 		self,
@@ -2647,22 +2649,22 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 class Document(ModelEntity, DocumentedEntityMixin):
 	"""A ``Document`` represents a sourcefile. It contains *primary* and *secondary* design units."""
 
-	_path:                   Path                                #: Path to the document. ``None`` if in-memory document.
-	_vhdlVersion:            VHDLVersion                         #: VHDL version used for analyzing this source file.
-	_library:                Library                             #: VHDL library used for analyzing the source file's content into.
-	_designUnits:            List[DesignUnit]                    #: List of all design units defined in a document.
-	_contexts:               Dict[str, Context]                  #: Dictionary of all contexts defined in a document.
-	_configurations:         Dict[str, Configuration]            #: Dictionary of all configurations defined in a document.
-	_entities:               Dict[str, Entity]                   #: Dictionary of all entities defined in a document.
-	_architectures:          Dict[str, Dict[str, Architecture]]  #: Dictionary of all architectures defined in a document.
-	_packages:               Dict[str, Package]                  #: Dictionary of all packages defined in a document.
-	_packageBodies:          Dict[str, PackageBody]              #: Dictionary of all package bodies defined in a document.
-	_verificationUnits:      Dict[str, VerificationUnit]         #: Dictionary of all PSL verification units defined in a document.
-	_verificationProperties: Dict[str, VerificationProperty]     #: Dictionary of all PSL verification properties defined in a document.
-	_verificationModes:      Dict[str, VerificationMode]         #: Dictionary of all PSL verification modes defined in a document.
+	_path:                   Path                                                                                                              #: Path to the document. ``None`` if in-memory document.
+	_vhdlVersion:            VHDLVersion                                                                                                       #: VHDL version used for analyzing this source file.
+	_library:                Library                                                                                                           #: VHDL library used for analyzing the source file's content into.
+	_designUnits:            List[DesignUnit]                                                                                                  #: List of all design units defined in a document.
+	_contexts:               Dict[str, Context]                                                                                                #: Dictionary of all contexts defined in a document.
+	_configurations:         Dict[str, Configuration]                                                                                          #: Dictionary of all configurations defined in a document.
+	_entities:               Dict[str, Entity]                                                                                                 #: Dictionary of all entities defined in a document.
+	_architectures:          Dict[str, Dict[str, Architecture]]                                                                                #: Dictionary of all architectures defined in a document.
+	_packages:               Dict[str, Package]                                                                                                #: Dictionary of all packages defined in a document.
+	_packageBodies:          Dict[str, PackageBody]                                                                                            #: Dictionary of all package bodies defined in a document.
+	_verificationUnits:      Dict[str, VerificationUnit]                                                                                       #: Dictionary of all PSL verification units defined in a document.
+	_verificationProperties: Dict[str, VerificationProperty]                                                                                   #: Dictionary of all PSL verification properties defined in a document.
+	_verificationModes:      Dict[str, VerificationMode]                                                                                       #: Dictionary of all PSL verification modes defined in a document.
 
-	_dependencyVertex:       Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
-	_compileOrderVertex:     Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the compile-order graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
+	_dependencyVertex:       Vertex[None, None, None, Document, None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
+	_compileOrderVertex:     Vertex[None, None, None, Document, None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the compile-order graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
 
 	def __init__(
 		self,
@@ -3063,7 +3065,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._verificationModes
 
 	@readonly
-	def CompileOrderVertex(self) -> Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]:
+	def CompileOrderVertex(self) -> Vertex[None, None, None, Document, None, None, None, None, None, None, None, None, None, None, None, None, None]:
 		"""
 		Read-only property to access the corresponding compile-order vertex (:attr:`_compileOrderVertex`).
 

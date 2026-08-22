@@ -34,6 +34,8 @@ This module contains parts of an abstract document language model for VHDL.
 
 Concurrent defines all concurrent statements used in entities, architectures, generates and block statements.
 """
+from __future__              import annotations
+
 from typing                  import List, Dict, Union, Iterable, Generator, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
@@ -103,11 +105,11 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 	   .. todo:: concurrent declaration region
 	"""
 
-	_statements:     List[ConcurrentStatement]  #: List of all concurrent statements in this construct.
+	_statements:     List[ConcurrentStatement]                                      #: List of all concurrent statements in this construct.
 
 	# TODO: add another instantiation class level for entity/configuration/component inst.
-	_instantiations: Dict[str, 'Instantiation']  #: All instantiations, indexed by label.
-	_hierarchy:      Dict[str, Union['ConcurrentBlockStatement', 'GenerateStatement']]  #: All elements creating a hierarchy level (blocks and generates), in declaration order.
+	_instantiations: Dict[str, Instantiation]                                       #: All instantiations, indexed by label.
+	_hierarchy:      Dict[str, Union[ConcurrentBlockStatement, GenerateStatement]]  #: All elements creating a hierarchy level (blocks and generates), in declaration order.
 
 	def __init__(self, statements: Nullable[Iterable[ConcurrentStatement]] = None) -> None:
 		"""
@@ -134,7 +136,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return self._statements
 
-	def IterateInstantiations(self) -> Generator['Instantiation', None, None]:
+	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
 		for instance in self._instantiations.values():
 			yield instance
 
@@ -529,7 +531,7 @@ class ConcurrentBlockStatement(
 		portItems:               Nullable[Iterable[PortInterfaceItemMixin]] = None,
 		portAssociationItems:    Nullable[Iterable[PortAssociationItem]] = None,
 		declaredItems:           Nullable[Iterable] = None,
-		statements:              Iterable['ConcurrentStatement'] = None,
+		statements:              Iterable[ConcurrentStatement] = None,
 		documentation:           Nullable[str] = None,
 		allowBlackbox:           Nullable[bool] = None,
 		parent:                  Nullable[ModelEntity] = None
@@ -1020,9 +1022,9 @@ class RangedGenerateChoice(ConcurrentChoice):
 	      when 0 to 3 =>
 	      --   ^^^^^^      <- Range
 	"""
-	_range: 'Range'  #: The range this choice selects on.
+	_range: Range  #: The range this choice selects on.
 
-	def __init__(self, rng: 'Range', parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, rng: Range, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a case-generate choice given by a range.
 
@@ -1035,7 +1037,7 @@ class RangedGenerateChoice(ConcurrentChoice):
 		rng.Parent = self
 
 	@readonly
-	def Range(self) -> 'Range':
+	def Range(self) -> Range:
 		"""
 		Read-only property to access the range (:attr:`_range`).
 

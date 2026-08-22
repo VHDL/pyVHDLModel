@@ -34,14 +34,16 @@ This module contains parts of an abstract document language model for VHDL.
 
 A helper class to implement namespaces and scopes.
 """
-from typing import TYPE_CHECKING, TypeVar, Generic, Dict, Optional as Nullable, Any, Tuple
+from __future__            import annotations
 
-from pyTooling.Common     import getFullyQualifiedName
-from pyTooling.Decorators import readonly
-from pyTooling.Warning    import WarningCollector
+from typing                import TYPE_CHECKING, TypeVar, Generic, Dict, Optional as Nullable, Any, Tuple
 
-from pyVHDLModel.Object   import Obj, Signal, Constant, Variable
-from pyVHDLModel.Symbol   import ComponentInstantiationSymbol, Symbol, PossibleReference
+from pyTooling.Common      import getFullyQualifiedName
+from pyTooling.Decorators  import readonly
+from pyTooling.Warning     import WarningCollector
+
+from pyVHDLModel.Object    import Obj, Signal, Constant, Variable
+from pyVHDLModel.Symbol    import ComponentInstantiationSymbol, Symbol, PossibleReference
 from pyVHDLModel.Exception import DuplicateDeclarationWarning
 if TYPE_CHECKING:
 	from pyVHDLModel.Type   import Subtype, FullType, BaseType
@@ -57,10 +59,10 @@ class ExtendedKeyError(KeyError):
 	Raised when a name cannot be resolved. Besides the key (:data:`key`), it carries every namespace
 	visited while walking outwards (:data:`searchedNamespaces`).
 	"""
-	key: str                                     #: The key that was not found.
-	searchedNamespaces: Tuple["Namespace", ...]  #: The namespaces that were searched for the key.
+	key: str                                   #: The key that was not found.
+	searchedNamespaces: Tuple[Namespace, ...]  #: The namespaces that were searched for the key.
 
-	def __init__(self, key: str, searchedNamespaces: Tuple["Namespace", ...], message: str) -> None:
+	def __init__(self, key: str, searchedNamespaces: Tuple[Namespace, ...], message: str) -> None:
 		"""
 		Initializes an extended key error.
 
@@ -87,16 +89,16 @@ class Namespace(Generic[K, O]):
 	   * :class:`Concurrent declaration region <pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin>`
 	   * :class:`Sequential declaration region <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	"""
-	_name:                   str                     #: The namespace's name.
-	_parentNamespace:        "Namespace"             #: Reference to the enclosing namespace, ``None`` if outermost.
-	_subNamespaces:          Dict[str, "Namespace"]  #: Dictionary of all nested namespaces, indexed by name.
-	_elements:               Dict[K, O]              #: All elements declared in this namespace, indexed by name.
-	_sharesRegionWithParent: bool                    #: ``True`` if the parent namespace is the same declarative region.
+	_name:                   str                   #: The namespace's name.
+	_parentNamespace:        Namespace             #: Reference to the enclosing namespace, ``None`` if outermost.
+	_subNamespaces:          Dict[str, Namespace]  #: Dictionary of all nested namespaces, indexed by name.
+	_elements:               Dict[K, O]            #: All elements declared in this namespace, indexed by name.
+	_sharesRegionWithParent: bool                  #: ``True`` if the parent namespace is the same declarative region.
 
 	def __init__(
 		self,
 		name: str,
-		parentNamespace: Nullable["Namespace"] = None,
+		parentNamespace: Nullable[Namespace] = None,
 		sharesRegionWithParent: bool = False
 	) -> None:
 		"""
@@ -121,7 +123,7 @@ class Namespace(Generic[K, O]):
 		return self._name
 
 	@property
-	def ParentNamespace(self) -> 'Namespace':
+	def ParentNamespace(self) -> Namespace:
 		"""
 		Property to access the parent namespace (:attr:`_parentNamespace`).
 
@@ -130,7 +132,7 @@ class Namespace(Generic[K, O]):
 		return self._parentNamespace
 
 	@ParentNamespace.setter
-	def ParentNamespace(self, value: 'Namespace') -> None:
+	def ParentNamespace(self, value: Namespace) -> None:
 		self._parentNamespace = value
 		value._subNamespaces[self._name] = self
 
@@ -151,7 +153,7 @@ class Namespace(Generic[K, O]):
 		return self._sharesRegionWithParent
 
 	@readonly
-	def SubNamespaces(self) -> Dict[str, 'Namespace']:
+	def SubNamespaces(self) -> Dict[str, Namespace]:
 		"""
 		Read-only property to access the sub namespaces (:attr:`_subNamespaces`).
 
@@ -196,7 +198,7 @@ class Namespace(Generic[K, O]):
 	def Elements(self) -> Dict[K, O]:
 		return self._elements
 
-	def FindComponent(self, componentSymbol: ComponentInstantiationSymbol) -> 'Component':
+	def FindComponent(self, componentSymbol: ComponentInstantiationSymbol) -> Component:
 		from pyVHDLModel.DesignUnit import Component
 
 		try:
@@ -219,7 +221,7 @@ class Namespace(Generic[K, O]):
 				searchedNamespaces = (self, *ex.searchedNamespaces)
 				raise ExtendedKeyError(key, searchedNamespaces, f"Component '{key}' not found in: {', '.join(ns._name for ns in searchedNamespaces)}.") from ex
 
-	def FindSubtype(self, subtypeSymbol: Symbol) -> 'BaseType':
+	def FindSubtype(self, subtypeSymbol: Symbol) -> BaseType:
 		from pyVHDLModel.Type import Subtype, FullType
 
 		try:

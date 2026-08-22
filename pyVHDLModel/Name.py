@@ -36,11 +36,13 @@ VHDL uses *names* to express cross-references from *usage locations* to *declara
 combined identifiers. :mod:`Symbols <pyVHDLModel.Symbol>` are structures representing a *name* and a reference
 (pointer) to the referenced vhdl language entity.
 """
-from typing import List, Iterable, Optional as Nullable
+from __future__           import annotations
+
+from typing               import List, Iterable, Optional as Nullable
 
 from pyTooling.Decorators import export, readonly
 
-from pyVHDLModel.Base import ModelEntity, ExpressionUnion
+from pyVHDLModel.Base     import ModelEntity, ExpressionUnion
 
 
 @export
@@ -62,10 +64,10 @@ class Name(ModelEntity):
 	_identifier: str            #: The name's identifier.
 	_normalizedIdentifier: str  #: The normalized (lower case) identifier.
 	# TODO: seams to be unused. There is no reverse linking, or?
-	_root: Nullable['Name']  #: Reference to the root of the name chain.
-	_prefix: Nullable['Name']   #: Reference to the name's prefix, or ``None`` for a simple name.
+	_root: Nullable[Name]       #: Reference to the root of the name chain.
+	_prefix: Nullable[Name]     #: Reference to the name's prefix, or ``None`` for a simple name.
 
-	def __init__(self, identifier: str, prefix: Nullable["Name"] = None, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, identifier: str, prefix: Nullable[Name] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a name.
 
@@ -104,7 +106,7 @@ class Name(ModelEntity):
 		return self._normalizedIdentifier
 
 	@readonly
-	def Root(self) -> 'Name':
+	def Root(self) -> Name:
 		"""
 		Read-only property to access the root (left-most) element in a chain of names (:attr:`_root`).
 
@@ -115,7 +117,7 @@ class Name(ModelEntity):
 		return self._root
 
 	@readonly
-	def Prefix(self) -> Nullable['Name']:
+	def Prefix(self) -> Nullable[Name]:
 		"""
 		Read-only property to access the name's prefix in a chain of names (:attr:`_prefix`).
 

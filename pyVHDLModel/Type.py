@@ -34,6 +34,8 @@ This module contains parts of an abstract document language model for VHDL.
 
 Types.
 """
+from __future__             import annotations
+
 from typing                 import Union, List, Iterator, Iterable, Tuple, Optional as Nullable, Dict, Mapping
 
 from pyTooling.Decorators   import export, readonly
@@ -184,10 +186,10 @@ class Subtype(BaseType):
 
 	   * :class:`Reference to a type or subtype <pyVHDLModel.Symbol.SubtypeSymbol>`
 	"""
-	_type:               Symbol      #: Reference to the type or subtype this subtype is derived from.
-	_baseType:           BaseType    #: The resolved base type of this subtype.
-	_range:              Range       #: The constraint narrowing the base type, or ``None`` if unconstrained.
-	_resolutionFunction: 'Function'  #: The resolution function, or ``None`` if the subtype is unresolved.
+	_type:               Symbol    #: Reference to the type or subtype this subtype is derived from.
+	_baseType:           BaseType  #: The resolved base type of this subtype.
+	_range:              Range     #: The constraint narrowing the base type, or ``None`` if unconstrained.
+	_resolutionFunction: Function  #: The resolution function, or ``None`` if the subtype is unresolved.
 
 	def __init__(self, identifier: str, symbol: Symbol, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -233,7 +235,7 @@ class Subtype(BaseType):
 		return self._range
 
 	@readonly
-	def ResolutionFunction(self) -> 'Function':
+	def ResolutionFunction(self) -> Function:
 		"""
 		Read-only property to access the resolution function (:attr:`_resolutionFunction`).
 
@@ -834,7 +836,7 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin):
 		ProtectedTypeDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
 
 	@readonly
-	def Methods(self) -> List[Union['Procedure', 'Function']]:
+	def Methods(self) -> List[Union[Procedure, Function]]:
 		"""
 		Read-only property to access the declared methods, in declaration order.
 
@@ -893,7 +895,7 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin):
 
 	# FIXME: needs to be declared items or so
 	@readonly
-	def Methods(self) -> List[Union['Procedure', 'Function']]:
+	def Methods(self) -> List[Union[Procedure, Function]]:
 		"""
 		Read-only property to access the implemented methods, in declaration order.
 

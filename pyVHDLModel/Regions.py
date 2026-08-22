@@ -34,16 +34,18 @@ This module contains parts of an abstract document language model for VHDL.
 
 tbd.
 """
-from typing                 import TYPE_CHECKING, List, Dict, Iterable, Optional as Nullable, Any
+from __future__            import annotations
 
-from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType
-from pyTooling.Warning      import WarningCollector
+from typing                import TYPE_CHECKING, List, Dict, Iterable, Optional as Nullable, Any
 
-from pyVHDLModel.Base       import normalizedIdentifiersOf
-from pyVHDLModel.Exception  import NotImplementedWarning
-from pyVHDLModel.Namespace  import Namespace
-from pyVHDLModel.Object     import Constant, SharedVariable, File, Variable, Signal
+from pyTooling.Decorators  import export, readonly
+from pyTooling.MetaClasses import ExtendedType
+from pyTooling.Warning     import WarningCollector
+
+from pyVHDLModel.Base      import normalizedIdentifiersOf
+from pyVHDLModel.Exception import NotImplementedWarning
+from pyVHDLModel.Namespace import Namespace
+from pyVHDLModel.Object    import Constant, SharedVariable, File, Variable, Signal
 if TYPE_CHECKING:
 	from pyVHDLModel.Type     import Subtype, FullType
 
@@ -122,22 +124,22 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 	   * :class:`Sequential declaration region <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	   * :class:`Namespace <pyVHDLModel.Namespace.Namespace>`
 	"""
-	_declaredItems:   List                              #: List of all declared items in this concurrent declaration region.
+	_declaredItems:   List                        #: List of all declared items in this concurrent declaration region.
 
 	# _attributes:     Dict[str, Attribute]
 	# _aliases:        Dict[str, Alias]
-	_types:           Dict[str, 'FullType']             #: Dictionary of all types declared in this concurrent declaration region.
-	_subtypes:        Dict[str, 'Subtype']              #: Dictionary of all subtypes declared in this concurrent declaration region.
+	_types:           Dict[str, FullType]         #: Dictionary of all types declared in this concurrent declaration region.
+	_subtypes:        Dict[str, Subtype]          #: Dictionary of all subtypes declared in this concurrent declaration region.
 	# _objects:        Dict[str, Union[Constant, Variable, Signal]]
-	_constants:       Dict[str, Constant]               #: Dictionary of all constants declared in this concurrent declaration region.
-	_signals:         Dict[str, Signal]                 #: Dictionary of all signals declared in this concurrent declaration region.
-	_sharedVariables: Dict[str, SharedVariable]         #: Dictionary of all shared variables declared in this concurrent declaration region.
-	_files:           Dict[str, File]                   #: Dictionary of all files declared in this concurrent declaration region.
+	_constants:       Dict[str, Constant]         #: Dictionary of all constants declared in this concurrent declaration region.
+	_signals:         Dict[str, Signal]           #: Dictionary of all signals declared in this concurrent declaration region.
+	_sharedVariables: Dict[str, SharedVariable]   #: Dictionary of all shared variables declared in this concurrent declaration region.
+	_files:           Dict[str, File]             #: Dictionary of all files declared in this concurrent declaration region.
 	# _subprograms:     Dict[str, List[Subprogram]]  #: Dictionary of all subprograms declared in this concurrent declaration region.
 	# FIXME: overloads are only collected into a list, not matched/resolved by signature.
-	_functions:       Dict[str, List['Function']]         #: Dictionary of all functions declared in this concurrent declaration region, indexed by name; each entry is a list of overloads.
-	_procedures:      Dict[str, List['Procedure']]        #: Dictionary of all procedures declared in this concurrent declaration region, indexed by name; each entry is a list of overloads.
-	_components:      Dict[str, Any]                    #: Dictionary of all components declared in this concurrent declaration region.
+	_functions:       Dict[str, List[Function]]   #: Dictionary of all functions declared in this concurrent declaration region, indexed by name; each entry is a list of overloads.
+	_procedures:      Dict[str, List[Procedure]]  #: Dictionary of all procedures declared in this concurrent declaration region, indexed by name; each entry is a list of overloads.
+	_components:      Dict[str, Any]              #: Dictionary of all components declared in this concurrent declaration region.
 
 	def __init__(self, declaredItems: Nullable[Iterable] = None) -> None:
 		# TODO: extract to mixin
@@ -174,7 +176,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._declaredItems
 
 	@readonly
-	def Types(self) -> Dict[str, 'FullType']:
+	def Types(self) -> Dict[str, FullType]:
 		"""
 		Read-only property to access the types (:attr:`_types`).
 
@@ -183,7 +185,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._types
 
 	@readonly
-	def Subtypes(self) -> Dict[str, 'Subtype']:
+	def Subtypes(self) -> Dict[str, Subtype]:
 		"""
 		Read-only property to access the subtypes (:attr:`_subtypes`).
 
@@ -236,7 +238,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 	# 	return self._subprograms
 
 	@readonly
-	def Functions(self) -> Dict[str, List['Function']]:
+	def Functions(self) -> Dict[str, List[Function]]:
 		"""
 		Read-only property to access the functions (:attr:`_functions`).
 
@@ -245,7 +247,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._functions
 
 	@readonly
-	def Procedures(self) -> Dict[str, List['Procedure']]:
+	def Procedures(self) -> Dict[str, List[Procedure]]:
 		"""
 		Read-only property to access the procedures (:attr:`_procedures`).
 
@@ -363,17 +365,17 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 	   * :class:`Namespace <pyVHDLModel.Namespace.Namespace>`
 	"""
 
-	_declaredItems: List                          #: List of all declared items in this sequential declaration region.
-	_namespace:     Namespace                     #: The namespace of this sequential declaration region.
+	_declaredItems: List                        #: List of all declared items in this sequential declaration region.
+	_namespace:     Namespace                   #: The namespace of this sequential declaration region.
 
-	_types:         Dict[str, 'FullType']         #: Dictionary of all types declared in this sequential declaration region.
-	_subtypes:      Dict[str, 'Subtype']          #: Dictionary of all subtypes declared in this sequential declaration region.
-	_constants:     Dict[str, Constant]           #: Dictionary of all constants declared in this sequential declaration region.
-	_variables:     Dict[str, Variable]           #: Dictionary of all variables declared in this sequential declaration region.
-	_files:         Dict[str, File]               #: Dictionary of all files declared in this sequential declaration region.
+	_types:         Dict[str, FullType]         #: Dictionary of all types declared in this sequential declaration region.
+	_subtypes:      Dict[str, Subtype]          #: Dictionary of all subtypes declared in this sequential declaration region.
+	_constants:     Dict[str, Constant]         #: Dictionary of all constants declared in this sequential declaration region.
+	_variables:     Dict[str, Variable]         #: Dictionary of all variables declared in this sequential declaration region.
+	_files:         Dict[str, File]             #: Dictionary of all files declared in this sequential declaration region.
 	# FIXME: overloads are only collected into a list, not matched/resolved by signature.
-	_functions:     Dict[str, List['Function']]   #: Dictionary of all functions declared in this sequential declaration region, indexed by name; each entry is a list of overloads.
-	_procedures:    Dict[str, List['Procedure']]  #: Dictionary of all procedures declared in this sequential declaration region, indexed by name; each entry is a list of overloads.
+	_functions:     Dict[str, List[Function]]   #: Dictionary of all functions declared in this sequential declaration region, indexed by name; each entry is a list of overloads.
+	_procedures:    Dict[str, List[Procedure]]  #: Dictionary of all procedures declared in this sequential declaration region, indexed by name; each entry is a list of overloads.
 
 	def __init__(self, namespaceName: Nullable[str] = None, declaredItems: Nullable[Iterable] = None) -> None:
 		"""
@@ -417,7 +419,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._namespace
 
 	@readonly
-	def Types(self) -> Dict[str, 'FullType']:
+	def Types(self) -> Dict[str, FullType]:
 		"""
 		Read-only property to access the declared types (:attr:`_types`).
 
@@ -426,7 +428,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._types
 
 	@readonly
-	def Subtypes(self) -> Dict[str, 'Subtype']:
+	def Subtypes(self) -> Dict[str, Subtype]:
 		"""
 		Read-only property to access the declared subtypes (:attr:`_subtypes`).
 
@@ -462,7 +464,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._files
 
 	@readonly
-	def Functions(self) -> Dict[str, List['Function']]:
+	def Functions(self) -> Dict[str, List[Function]]:
 		"""
 		Read-only property to access the declared functions (:attr:`_functions`).
 
@@ -471,7 +473,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._functions
 
 	@readonly
-	def Procedures(self) -> Dict[str, List['Procedure']]:
+	def Procedures(self) -> Dict[str, List[Procedure]]:
 		"""
 		Read-only property to access the declared procedures (:attr:`_procedures`).
 
@@ -544,12 +546,12 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 	   * :class:`Namespace <pyVHDLModel.Namespace.Namespace>`
 	"""
 
-	_declaredItems: List                          #: List of all declared items in this protected type declaration.
-	_namespace:     Namespace                     #: The namespace of this protected type declaration.
+	_declaredItems: List                        #: List of all declared items in this protected type declaration.
+	_namespace:     Namespace                   #: The namespace of this protected type declaration.
 
 	# FIXME: overloads are only collected into a list, not matched/resolved by signature.
-	_functions:     Dict[str, List['Function']]   #: All declared functions, indexed by name; each is a list of overloads.
-	_procedures:    Dict[str, List['Procedure']]  #: All declared procedures by name; each is a list of overloads.
+	_functions:     Dict[str, List[Function]]   #: All declared functions, indexed by name; each is a list of overloads.
+	_procedures:    Dict[str, List[Procedure]]  #: All declared procedures by name; each is a list of overloads.
 
 	def __init__(self, namespaceName: Nullable[str] = None, declaredItems: Nullable[Iterable] = None) -> None:
 		"""
@@ -579,7 +581,7 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._declaredItems
 
 	@readonly
-	def Functions(self) -> Dict[str, List['Function']]:
+	def Functions(self) -> Dict[str, List[Function]]:
 		"""
 		Read-only property to access the declared functions (:attr:`_functions`).
 
@@ -588,7 +590,7 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._functions
 
 	@readonly
-	def Procedures(self) -> Dict[str, List['Procedure']]:
+	def Procedures(self) -> Dict[str, List[Procedure]]:
 		"""
 		Read-only property to access the declared procedures (:attr:`_procedures`).
 

@@ -34,6 +34,8 @@ This module contains parts of an abstract document language model for VHDL.
 
 Base-classes for the VHDL language model.
 """
+from __future__            import annotations
+
 from enum                  import unique, Enum
 from typing                import Type, Tuple, List, Iterable, Optional as Nullable, Union, cast
 
@@ -108,9 +110,9 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 	available and a readonly property :attr:`Parent`.
 	"""
 
-	_parent: 'ModelEntity'      #: Reference to a parent entity in the logical model hierarchy.
+	_parent: ModelEntity      #: Reference to a parent entity in the logical model hierarchy.
 
-	def __init__(self, parent: Nullable["ModelEntity"] = None) -> None:
+	def __init__(self, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a VHDL model entity.
 
@@ -119,7 +121,7 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		self._parent = parent
 
 	@property
-	def Parent(self) -> 'ModelEntity':
+	def Parent(self) -> ModelEntity:
 		"""
 		Property to access the model entity's parent element reference in a logical hierarchy (:attr:`_parent`).
 
@@ -128,13 +130,13 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		return self._parent
 
 	@Parent.setter
-	def Parent(self, parent: 'ModelEntity') -> None:
+	def Parent(self, parent: ModelEntity) -> None:
 		if parent is None:
 			raise ValueError("Parameter 'parent' is None.")
 
 		self._parent = parent
 
-	def GetAncestor(self, type: Type) -> 'ModelEntity':
+	def GetAncestor(self, type: Type) -> ModelEntity:
 		"""
 		Return the closest ancestor of the given ``type`` found by walking the parent chain upwards.
 
@@ -804,9 +806,9 @@ class RangeFromName(Range):
 	   range``), so representing both as a range deviates from the rule split deliberately.
 	"""
 
-	_symbol: 'Symbol'  #: Reference to the name the range's bounds are inferred from.
+	_symbol: Symbol  #: Reference to the name the range's bounds are inferred from.
 
-	def __init__(self, symbol: 'Symbol', parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, symbol: Symbol, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initialize a range denoted by a name.
 
@@ -819,7 +821,7 @@ class RangeFromName(Range):
 		symbol.Parent = self
 
 	@readonly
-	def Symbol(self) -> 'Symbol':
+	def Symbol(self) -> Symbol:
 		"""
 		Read-only property to access the referenced symbol (:attr:`_symbol`).
 

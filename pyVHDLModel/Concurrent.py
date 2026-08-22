@@ -38,6 +38,9 @@ from __future__              import annotations
 
 from typing                  import List, Dict, Union, Iterable, Generator, Optional as Nullable
 
+from pyTooling.Decorators    import export, readonly
+from pyTooling.MetaClasses   import ExtendedType
+
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, BaseCase, IfBranchMixin
 from pyVHDLModel.Base        import ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement, ChoicesMixin
 from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
@@ -56,9 +59,6 @@ from pyVHDLModel.Common      import ConditionalWaveform, SelectedWaveform, Other
 from pyVHDLModel.Common      import ConditionalWaveformsMixin, WaveformMixin
 from pyVHDLModel.Common      import ExpressionMixin, SelectedWaveformsMixin
 from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatementsMixin
-
-from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType
 
 
 ExpressionUnion = Union[

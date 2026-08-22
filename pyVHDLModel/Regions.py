@@ -38,14 +38,14 @@ from __future__            import annotations
 
 from typing                import TYPE_CHECKING, List, Dict, Iterable, Optional as Nullable, Any
 
+from pyTooling.Decorators  import export, readonly
+from pyTooling.MetaClasses import ExtendedType
+from pyTooling.Warning     import WarningCollector
+
 from pyVHDLModel.Base      import normalizedIdentifiersOf
 from pyVHDLModel.Exception import NotImplementedWarning
 from pyVHDLModel.Namespace import Namespace
 from pyVHDLModel.Object    import Constant, SharedVariable, File, Variable, Signal
-
-from pyTooling.Decorators  import export, readonly
-from pyTooling.MetaClasses import ExtendedType
-from pyTooling.Warning     import WarningCollector
 if TYPE_CHECKING:
 	from pyVHDLModel.Type     import Subtype, FullType
 

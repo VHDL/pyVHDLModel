@@ -38,13 +38,13 @@ from __future__            import annotations
 
 from typing                import TYPE_CHECKING, TypeVar, Generic, Dict, Optional as Nullable, Any, Tuple
 
-from pyVHDLModel.Object    import Obj, Signal, Constant, Variable
-from pyVHDLModel.Symbol    import ComponentInstantiationSymbol, Symbol, PossibleReference
-from pyVHDLModel.Exception import DuplicateDeclarationWarning
-
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import readonly
 from pyTooling.Warning     import WarningCollector
+
+from pyVHDLModel.Object    import Obj, Signal, Constant, Variable
+from pyVHDLModel.Symbol    import ComponentInstantiationSymbol, Symbol, PossibleReference
+from pyVHDLModel.Exception import DuplicateDeclarationWarning
 if TYPE_CHECKING:
 	from pyVHDLModel.Type   import Subtype, FullType, BaseType
 

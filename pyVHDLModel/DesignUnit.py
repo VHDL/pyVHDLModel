@@ -38,6 +38,10 @@ from __future__                import annotations
 
 from typing                    import ClassVar, List, Dict, Union, Iterable, Optional as Nullable
 
+from pyTooling.Decorators      import export, readonly
+from pyTooling.MetaClasses     import ExtendedType, abstractmethod
+from pyTooling.Graph           import Vertex
+
 from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Exception     import VHDLModelException
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
@@ -48,10 +52,6 @@ from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceIt
 from pyVHDLModel.Object        import DeferredConstant
 from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration
-
-from pyTooling.Decorators      import export, readonly
-from pyTooling.MetaClasses     import ExtendedType, abstractmethod
-from pyTooling.Graph           import Vertex
 
 
 @export

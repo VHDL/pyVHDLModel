@@ -38,14 +38,14 @@ from __future__             import annotations
 
 from typing                 import Union, List, Iterator, Iterable, Tuple, Optional as Nullable, Dict, Mapping
 
+from pyTooling.Decorators   import export, readonly
+from pyTooling.MetaClasses  import ExtendedType
+from pyTooling.Graph        import Vertex
+
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
 from pyVHDLModel.Symbol     import Symbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin
-
-from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType
-from pyTooling.Graph        import Vertex
 
 
 @export

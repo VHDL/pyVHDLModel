@@ -38,15 +38,15 @@ from __future__             import annotations
 
 from typing                 import ClassVar, List, Iterable, Optional as Nullable
 
+from pyTooling.Decorators   import export, readonly
+from pyTooling.MetaClasses  import ExtendedType
+
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf
 from pyVHDLModel.Symbol     import SubtypeSymbol
 from pyVHDLModel.Type       import ProtectedType
 from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
 from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin
 from pyVHDLModel.Sequential import SequentialStatement
-
-from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType
 
 
 @export

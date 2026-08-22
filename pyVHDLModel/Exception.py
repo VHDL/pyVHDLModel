@@ -37,10 +37,10 @@ message in english, each exception object contains one or multiple references to
 """
 from __future__           import annotations
 
-from pyVHDLModel.Symbol   import Symbol
-
 from pyTooling.Decorators import export, readonly
 from pyTooling.Warning    import Warning, CriticalWarning
+
+from pyVHDLModel.Symbol   import Symbol
 
 
 @export

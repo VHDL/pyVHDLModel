@@ -38,6 +38,9 @@ from __future__              import annotations
 
 from typing                  import List, Iterable, Optional as Nullable
 
+from pyTooling.Decorators    import export, readonly
+from pyTooling.MetaClasses   import ExtendedType
+
 from pyVHDLModel.Base        import ModelEntity, ExpressionUnion, Range, BaseChoice, BaseCase, ConditionalMixin, IfBranchMixin, ElsifBranchMixin
 from pyVHDLModel.Base        import ElseBranchMixin, ReportStatementMixin, AssertStatementMixin, WaveformElement, ChoicesMixin
 from pyVHDLModel.Symbol      import Symbol, SignalSymbol, VariableSymbol
@@ -49,9 +52,6 @@ from pyVHDLModel.Common      import ExpressionMixin, SelectedWaveformsMixin, Sel
 from pyVHDLModel.Common      import SelectedWaveform, OthersSelectedWaveform
 from pyVHDLModel.Common      import SelectedExpression, OthersSelectedExpression
 from pyVHDLModel.Association import ParameterAssociationItem
-
-from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType
 
 
 @export

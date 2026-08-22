@@ -38,15 +38,15 @@ from __future__              import annotations
 
 from typing                  import List, Iterable, Union, Optional as Nullable
 
+from pyTooling.Decorators    import export, readonly
+from pyTooling.MetaClasses   import ExtendedType
+
 from pyVHDLModel.Base        import ModelEntity
 from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import Symbol, EntitySymbol, ArchitectureSymbol, ConfigurationSymbol
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol
 from pyVHDLModel.Association import GenericAssociationItem, PortAssociationItem
 from pyVHDLModel.Association import GenericMapAspectMixin, PortMapAspectMixin
-
-from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType
 
 
 @export

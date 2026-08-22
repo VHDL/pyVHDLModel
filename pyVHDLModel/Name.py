@@ -40,9 +40,9 @@ from __future__           import annotations
 
 from typing               import List, Iterable, Optional as Nullable
 
-from pyVHDLModel.Base     import ModelEntity, ExpressionUnion
-
 from pyTooling.Decorators import export, readonly
+
+from pyVHDLModel.Base     import ModelEntity, ExpressionUnion
 
 
 @export

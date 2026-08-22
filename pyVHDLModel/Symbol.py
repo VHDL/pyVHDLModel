@@ -39,11 +39,11 @@ from __future__            import annotations
 from enum                  import Flag, auto
 from typing                import Any, Optional as Nullable, Iterable, List, Dict, Mapping
 
-from pyVHDLModel.Base      import Range
-from pyVHDLModel.Name      import Name, AllName
-
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType
+
+from pyVHDLModel.Base      import Range
+from pyVHDLModel.Name      import Name, AllName
 
 
 @export

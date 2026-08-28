@@ -1540,7 +1540,7 @@ class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
 	def __init__(
 		self,
 		condition: ExpressionUnion,
-		message: ExpressionUnion,
+		message: Nullable[ExpressionUnion] = None,
 		severity: Nullable[ExpressionUnion] = None,
 		label: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None

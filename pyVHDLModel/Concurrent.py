@@ -57,6 +57,7 @@ from pyVHDLModel.Common      import ConditionalWaveform, SelectedWaveform, Other
 from pyVHDLModel.Common      import ConditionalWaveformsMixin, WaveformMixin
 from pyVHDLModel.Common      import ExpressionMixin, SelectedWaveformsMixin
 from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatementsMixin
+from pyVHDLModel.Symbol      import Symbol
 
 
 ExpressionUnion = Union[
@@ -454,8 +455,8 @@ class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
 	"""
 	def __init__(
 		self,
-		label: str,
-		procedureName: Name,
+		label: Nullable[str],
+		procedureName: Symbol,
 		parameterAssociationItems: Nullable[Iterable[ParameterAssociationItem]] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
@@ -1376,7 +1377,7 @@ class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignmentMixin):
 	   * :class:`Concurrent simple signal assignment <pyVHDLModel.Concurrent.ConcurrentSimpleSignalAssignment>`
 	   * :class:`Concurrent selected signal assignment <pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment>`
 	   * :class:`Conditional signal assignment <pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment>`	"""
-	def __init__(self, label: str, target: SignalSymbol, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, label: Nullable[str], target: SignalSymbol, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a concurrent signal assignment.
 
@@ -1408,7 +1409,7 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment, WaveformMixin
 
 	   * :class:`Sequential counterpart <pyVHDLModel.Sequential.SequentialSimpleSignalAssignment>`
 	"""
-	def __init__(self, label: str, target: SignalSymbol, waveform: Iterable[WaveformElement], parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, label: Nullable[str], target: SignalSymbol, waveform: Iterable[WaveformElement], parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a simple concurrent signal assignment.
 
@@ -1449,7 +1450,7 @@ class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment, ExpressionM
 
 	def __init__(
 		self,
-		label: str,
+		label: Nullable[str],
 		target: SignalSymbol,
 		expression: ExpressionUnion,
 		selectedWaveforms: Iterable[SelectedWaveform],
@@ -1496,7 +1497,7 @@ class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment, Conditio
 
 	def __init__(
 		self,
-		label: str,
+		label: Nullable[str],
 		target: SignalSymbol,
 		conditionalWaveforms: Iterable[ConditionalWaveform],
 		parent: Nullable[ModelEntity] = None
@@ -1538,7 +1539,7 @@ class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
 	def __init__(
 		self,
 		condition: ExpressionUnion,
-		message: ExpressionUnion,
+		message: Nullable[ExpressionUnion] = None,
 		severity: Nullable[ExpressionUnion] = None,
 		label: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None

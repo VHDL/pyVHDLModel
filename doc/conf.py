@@ -148,13 +148,20 @@ latex_elements = {
 	"printindex": r"\def\twocolumn[#1]{#1}\printindex",
 }
 
+# WORKAROUND: Python <3.12
+#   Reusing the f-string's own quote character inside its expression - and a backslash in it - both need PEP 701.
+#   The escaped project name is built first, so this file still parses on Python 3.11.
+#   Replace by inlining it again:
+#     f"The {pythonProject.replace("_", r"\_")} Documentation",
+latexProject = pythonProject.replace("_", r"\_")
+
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
 	( master_doc,
 		f"{pythonProject}.tex",
-		f"The {pythonProject.replace("_", r"\_")} Documentation",
+		f"The {latexProject} Documentation",
 		 "Patrick Lehmann",
 		 "manual"
 	),

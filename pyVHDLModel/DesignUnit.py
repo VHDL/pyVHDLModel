@@ -75,7 +75,7 @@ class Reference(ModelEntity):
 		"""
 		super().__init__(parent)
 
-		self._symbols = [s for s in symbols]
+		self._symbols = list(symbols)
 
 	@readonly
 	def Symbols(self) -> List[Symbol]:

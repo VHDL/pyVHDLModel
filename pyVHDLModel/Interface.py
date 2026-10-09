@@ -51,8 +51,9 @@ from pyVHDLModel.Type       import Type
 @export
 class ModeViewElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	"""
-	Base-class for one element definition inside a mode view declaration (VHDL-2019). An element may name
-	several fields sharing the same specification (e.g. ``a, b : out;``), hence
+	Base-class for one element definition inside a mode view declaration (VHDL-2019).
+
+	An element may name several fields sharing the same specification (e.g. ``a, b : out;``), hence
 	:class:`~pyVHDLModel.Base.MultipleNamedEntityMixin` is inherited.
 
 	.. seealso::

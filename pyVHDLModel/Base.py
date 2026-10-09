@@ -719,7 +719,9 @@ class Range(ModelEntity):
 @export
 class SimpleRange(Range):
 	"""
-	A range with both bounds given as expressions, e.g. ``0 to 7``.
+	A range with both bounds given as expressions.
+
+	``0 to 7`` is such a range.
 	"""
 
 	_leftBound:  ExpressionUnion  #: The range's left bound.

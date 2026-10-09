@@ -374,7 +374,9 @@ class ConfigurationSymbol(Symbol):
 @export
 class VariableSymbol(Symbol):
 	"""
-	Represents a reference (name) to a variable, e.g. the target of a variable assignment.
+	Represents a reference (name) to a variable.
+
+	The target of a variable assignment is such a reference.
 
 	.. admonition:: Example
 
@@ -409,7 +411,9 @@ class VariableSymbol(Symbol):
 @export
 class SignalSymbol(Symbol):
 	"""
-	Represents a reference (name) to a signal, e.g. the target of a signal assignment.
+	Represents a reference (name) to a signal.
+
+	The target of a signal assignment is such a reference.
 
 	.. admonition:: Example
 
@@ -791,7 +795,11 @@ class RecordElementSymbol(Symbol):
 
 @export
 class RangeAttributeSymbol(Symbol):
-	"""A symbol referencing a range attribute, e.g. ``vector'range``."""
+	"""
+	A symbol referencing a range attribute.
+
+	``vector'range`` is such a reference.
+	"""
 
 	def __init__(self, name: Name) -> None:
 		"""

@@ -99,8 +99,11 @@ class SimpleNames(TestCase):
 
 
 class ParenthesisNames(TestCase):
-	"""``arr(3)`` - e.g. an indexed name written through the generic ``ParenthesisName`` before it's
-	disambiguated into an indexed name, slice, or function call."""
+	"""
+	``arr(3)`` written through the generic ``ParenthesisName``.
+
+	It is e.g. an indexed name, before it's disambiguated into an indexed name, slice, or function call.
+	"""
 
 	def test_Construction(self) -> None:
 		prefix = SimpleName("arr")

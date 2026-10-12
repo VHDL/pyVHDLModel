@@ -75,7 +75,7 @@ class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Design <pyVHDLModel.Design>`
 	   * :class:`Library <pyVHDLModel.Library>`
 	"""
-	_allowBlackbox: Nullable[bool]  #: Allow blackboxes for components in language entity.
+	_allowBlackbox: Nullable[bool]  #: Allow blackboxes for components; ``None`` inherits the parent's setting.
 
 	def __init__(self, allowBlackbox: Nullable[bool] = None) -> None:
 		"""

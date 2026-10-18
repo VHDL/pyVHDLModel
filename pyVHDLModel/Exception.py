@@ -38,6 +38,7 @@ message in english, each exception object contains one or multiple references to
 from __future__           import annotations
 
 from pyTooling.Decorators import export, readonly
+from pyTooling.Exceptions import ExceptionBase
 from pyTooling.Warning    import Warning, CriticalWarning
 
 from pyVHDLModel.Symbol   import Symbol
@@ -95,7 +96,7 @@ class BlackboxWarning(VHDLModelCriticalWarning):
 
 
 @export
-class VHDLModelException(Exception):
+class VHDLModelException(ExceptionBase):
 	"""
 	Base-class for all exceptions (errors) raised by pyVHDLModel.
 

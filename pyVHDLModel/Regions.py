@@ -43,7 +43,8 @@ from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 from pyTooling.Warning       import WarningCollector
 
-from pyVHDLModel.Base        import NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf, normalizedIdentifiersOf
+from pyVHDLModel.Base        import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf
+from pyVHDLModel.Base        import normalizedIdentifiersOf
 from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError
 from pyVHDLModel.Exception   import DuplicateGenericError, DuplicatePortError, DuplicateParameterError
 from pyVHDLModel.Namespace   import Namespace
@@ -56,7 +57,6 @@ if TYPE_CHECKING:
 # `pyVHDLModel.Subprogram` imports this module (Subprogram is a sequential declaration region), so
 # `Function`/`Procedure` are quoted in annotations and imported lazily where they're needed at runtime.
 # The same holds for the interface item classes of `pyVHDLModel.Interface`.
-
 
 
 @export
@@ -692,6 +692,18 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		"""Hook for declared items the region doesn't handle itself. Derived classes may override it."""
 		pass
 
+	def _RemoveDeclaredItemsFromNamespace(self) -> None:
+		"""
+		Remove all declared items of this region from its namespace.
+
+		Interface items of this region and items imported from elsewhere (e.g. by a use clause) are kept.
+		"""
+		from pyVHDLModel.Interface import InterfaceItemMixin
+
+		for normalizedIdentifier, element in list(self._namespace.Elements().items()):
+			if not isinstance(element, InterfaceItemMixin) and element._parent is self:
+				self._namespace.RemoveElement(normalizedIdentifier, element)
+
 
 @export
 class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
@@ -864,9 +876,13 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		.. rubric:: Algorithm
 
-		1. Iterate all declared items:
+		1. Clear all lookup tables and remove all declared items from :attr:`_namespace`. Interface items and imported
+		   items stay in the namespace.
+		2. Iterate all declared items:
 
-		   * Every declared item is added to :attr:`_namespace`.
+		   * Every declared item is added to :attr:`_namespace`, except a protected type body.
+		   * If the declared item is a :class:`~pyVHDLModel.Type.ProtectedTypeBody`, skip it: it completes its protected
+		     type.
 		   * If the declared item is a :class:`~pyVHDLModel.Type.FullType`, then add an entry to :attr:`_types`.
 		   * If the declared item is a :class:`~pyVHDLModel.Type.Subtype`, then add an entry to :attr:`_subtypes`.
 		   * If the declared item is a :class:`~pyVHDLModel.Subprogram.Function`, then add an entry to :attr:`_functions`.
@@ -879,6 +895,8 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		   * If the declared item is neither of these types, call :meth:`_IndexOtherDeclaredItem`. |br|
 		     Derived classes may override this virtual function.
 
+		Indexing again yields the same lookup tables and namespace.
+
 		.. seealso::
 
 		   :meth:`pyVHDLModel.Design.IndexPackages`
@@ -888,56 +906,80 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		   :meth:`pyVHDLModel.Library._IndexOtherDeclaredItem`
 		     Iterate all packages in the library and index declared items.
 		"""
-		from pyVHDLModel.DesignUnit import Component
-		from pyVHDLModel.Subprogram import Function, Procedure
-		from pyVHDLModel.Type       import Subtype, FullType
+		self._types.clear()
+		self._subtypes.clear()
+		self._constants.clear()
+		self._signals.clear()
+		self._sharedVariables.clear()
+		self._files.clear()
+		self._functions.clear()
+		self._procedures.clear()
+		self._components.clear()
+		self._RemoveDeclaredItemsFromNamespace()
 
 		for item in self._declaredItems:
-			if isinstance(item, FullType):
-				self._types[item._normalizedIdentifier] = item
-				self._namespace.AddElement(item._normalizedIdentifier, item)
-			elif isinstance(item, Subtype):
-				self._subtypes[item._normalizedIdentifier] = item
-				self._namespace.AddElement(item._normalizedIdentifier, item)
-			elif isinstance(item, Function):
-				# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
-				#        real overload resolution yet).
-				self._functions.setdefault(item._normalizedIdentifier, []).append(item)
-				self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
-			elif isinstance(item, Procedure):
-				# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
-				#        real overload resolution yet).
-				self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
-				self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
-			elif isinstance(item, Constant):
-				for normalizedIdentifier in item._normalizedIdentifiers:
-					self._constants[normalizedIdentifier] = item
-					self._namespace.AddElement(normalizedIdentifier, item)
-					# self._objects[normalizedIdentifier] = item
-			elif isinstance(item, Signal):
-				for normalizedIdentifier in item._normalizedIdentifiers:
-					self._signals[normalizedIdentifier] = item
-					self._namespace.AddElement(normalizedIdentifier, item)
-			elif isinstance(item, Variable):
-				# TODO: variables declared in a concurrent declaration region (e.g. shared variables outside a
-				#       protected type) are not yet indexed into a dedicated namespace/lookup table.
-				identifiers = ", ".join(f"'{i}'" for i in item._identifiers)
-				WarningCollector.Raise(NotImplementedWarning(f"IndexDeclaredItems: variable(s) {identifiers} are not yet indexed."))
-			elif isinstance(item, SharedVariable):
-				for normalizedIdentifier in item._normalizedIdentifiers:
-					self._sharedVariables[normalizedIdentifier] = item
-					self._namespace.AddElement(normalizedIdentifier, item)
-			elif isinstance(item, File):
-				for normalizedIdentifier in item._normalizedIdentifiers:
-					self._files[normalizedIdentifier] = item
-					self._namespace.AddElement(normalizedIdentifier, item)
-			elif isinstance(item, Component):
-				self._components[item._normalizedIdentifier] = item
-				self._namespace.AddElement(item._normalizedIdentifier, item)
-			else:
-				self._IndexOtherDeclaredItem(item)
+			self._IndexDeclaredItem(item)
 
 		self._isIndexed = True
+
+	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Add a declared item to the namespace and to the lookup table matching its kind.
+
+		:param item: The declared item.
+		"""
+		from pyVHDLModel.DesignUnit import Component
+		from pyVHDLModel.Subprogram import Function, Procedure
+		from pyVHDLModel.Type       import Subtype, FullType, ProtectedTypeBody
+
+		if isinstance(item, ProtectedTypeBody):
+			# A protected type body completes its protected type.
+			pass
+		elif isinstance(item, FullType):
+			self._types[item._normalizedIdentifier] = item
+			self._namespace.AddElement(item._normalizedIdentifier, item)
+		elif isinstance(item, Subtype):
+			self._subtypes[item._normalizedIdentifier] = item
+			self._namespace.AddElement(item._normalizedIdentifier, item)
+		elif isinstance(item, Function):
+			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
+			#        real overload resolution yet).
+			self._functions.setdefault(item._normalizedIdentifier, []).append(item)
+			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
+		elif isinstance(item, Procedure):
+			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
+			#        real overload resolution yet).
+			self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
+			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
+		elif isinstance(item, Constant):
+			for normalizedIdentifier in item._normalizedIdentifiers:
+				self._constants[normalizedIdentifier] = item
+				self._namespace.AddElement(normalizedIdentifier, item)
+				# self._objects[normalizedIdentifier] = item
+		elif isinstance(item, Signal):
+			for normalizedIdentifier in item._normalizedIdentifiers:
+				self._signals[normalizedIdentifier] = item
+				self._namespace.AddElement(normalizedIdentifier, item)
+		elif isinstance(item, Variable):
+			# TODO: variables declared in a concurrent declaration region (e.g. shared variables outside a
+			#       protected type) are not yet indexed into a dedicated namespace/lookup table.
+			identifiers = ", ".join(f"'{i}'" for i in item._identifiers)
+			WarningCollector.Raise(
+				NotImplementedWarning(f"IndexDeclaredItems: variable(s) {identifiers} are not yet indexed.")
+			)
+		elif isinstance(item, SharedVariable):
+			for normalizedIdentifier in item._normalizedIdentifiers:
+				self._sharedVariables[normalizedIdentifier] = item
+				self._namespace.AddElement(normalizedIdentifier, item)
+		elif isinstance(item, File):
+			for normalizedIdentifier in item._normalizedIdentifiers:
+				self._files[normalizedIdentifier] = item
+				self._namespace.AddElement(normalizedIdentifier, item)
+		elif isinstance(item, Component):
+			self._components[item._normalizedIdentifier] = item
+			self._namespace.AddElement(item._normalizedIdentifier, item)
+		else:
+			self._IndexOtherDeclaredItem(item)
 
 
 @export
@@ -1083,50 +1125,72 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		Index declared items listed in the sequential declaration region.
 
-		Every declared item is added to :attr:`_namespace`, and additionally to the lookup table matching its
-		kind. Items of an unhandled kind are passed to :meth:`_IndexOtherDeclaredItem`.
+		All lookup tables are cleared and all declared items are removed from :attr:`_namespace` first. Then every declared
+		item is added to :attr:`_namespace`, and additionally to the lookup table matching its kind. Items of an unhandled
+		kind are passed to :meth:`_IndexOtherDeclaredItem`. A protected type body completes its protected type, so it's
+		skipped. Indexing again yields the same lookup tables and namespace.
 
 		.. seealso::
 
 		   :meth:`ConcurrentDeclarationRegionMixin.IndexDeclaredItems`
 		     The same algorithm for a concurrent declaration region.
 		"""
-		from pyVHDLModel.Subprogram import Function, Procedure
-		from pyVHDLModel.Type       import Subtype, FullType
+		self._types.clear()
+		self._subtypes.clear()
+		self._constants.clear()
+		self._variables.clear()
+		self._files.clear()
+		self._functions.clear()
+		self._procedures.clear()
+		self._RemoveDeclaredItemsFromNamespace()
 
 		for item in self._declaredItems:
-			if isinstance(item, FullType):
-				self._types[item._normalizedIdentifier] = item
-				self._namespace.AddElement(item._normalizedIdentifier, item)
-			elif isinstance(item, Subtype):
-				self._subtypes[item._normalizedIdentifier] = item
-				self._namespace.AddElement(item._normalizedIdentifier, item)
-			elif isinstance(item, Function):
-				# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
-				#        real overload resolution yet).
-				self._functions.setdefault(item._normalizedIdentifier, []).append(item)
-				self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
-			elif isinstance(item, Procedure):
-				# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
-				#        real overload resolution yet).
-				self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
-				self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
-			elif isinstance(item, Constant):
-				for normalizedIdentifier in item._normalizedIdentifiers:
-					self._constants[normalizedIdentifier] = item
-					self._namespace.AddElement(normalizedIdentifier, item)
-			elif isinstance(item, Variable):
-				for normalizedIdentifier in item._normalizedIdentifiers:
-					self._variables[normalizedIdentifier] = item
-					self._namespace.AddElement(normalizedIdentifier, item)
-			elif isinstance(item, File):
-				for normalizedIdentifier in item._normalizedIdentifiers:
-					self._files[normalizedIdentifier] = item
-					self._namespace.AddElement(normalizedIdentifier, item)
-			else:
-				self._IndexOtherDeclaredItem(item)
+			self._IndexDeclaredItem(item)
 
 		self._isIndexed = True
+
+	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Add a declared item to the namespace and to the lookup table matching its kind.
+
+		:param item: The declared item.
+		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+		from pyVHDLModel.Type       import Subtype, FullType, ProtectedTypeBody
+
+		if isinstance(item, ProtectedTypeBody):
+			# A protected type body completes its protected type.
+			pass
+		elif isinstance(item, FullType):
+			self._types[item._normalizedIdentifier] = item
+			self._namespace.AddElement(item._normalizedIdentifier, item)
+		elif isinstance(item, Subtype):
+			self._subtypes[item._normalizedIdentifier] = item
+			self._namespace.AddElement(item._normalizedIdentifier, item)
+		elif isinstance(item, Function):
+			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
+			#        real overload resolution yet).
+			self._functions.setdefault(item._normalizedIdentifier, []).append(item)
+			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
+		elif isinstance(item, Procedure):
+			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
+			#        real overload resolution yet).
+			self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
+			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
+		elif isinstance(item, Constant):
+			for normalizedIdentifier in item._normalizedIdentifiers:
+				self._constants[normalizedIdentifier] = item
+				self._namespace.AddElement(normalizedIdentifier, item)
+		elif isinstance(item, Variable):
+			for normalizedIdentifier in item._normalizedIdentifiers:
+				self._variables[normalizedIdentifier] = item
+				self._namespace.AddElement(normalizedIdentifier, item)
+		elif isinstance(item, File):
+			for normalizedIdentifier in item._normalizedIdentifiers:
+				self._files[normalizedIdentifier] = item
+				self._namespace.AddElement(normalizedIdentifier, item)
+		else:
+			self._IndexOtherDeclaredItem(item)
 
 
 @export
@@ -1204,29 +1268,41 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		Index declared items listed in the protected type declaration.
 
-		Only subprogram declarations are legal here, so anything else is passed to
-		:meth:`_IndexOtherDeclaredItem`.
+		Both lookup tables are cleared and all declared items are removed from :attr:`_namespace` first. Only subprogram
+		declarations are legal here, so anything else is passed to :meth:`_IndexOtherDeclaredItem`. Indexing again yields
+		the same lookup tables and namespace.
 
 		.. seealso::
 
 		   :meth:`SequentialDeclarationRegionMixin.IndexDeclaredItems`
 		     The same algorithm for the protected type's body.
 		"""
-		from pyVHDLModel.Subprogram import Function, Procedure
-		from pyVHDLModel.Type       import Subtype, FullType
+		self._functions.clear()
+		self._procedures.clear()
+		self._RemoveDeclaredItemsFromNamespace()
 
 		for item in self._declaredItems:
-			if isinstance(item, Function):
-				# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
-				#        real overload resolution yet).
-				self._functions.setdefault(item._normalizedIdentifier, []).append(item)
-				self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
-			elif isinstance(item, Procedure):
-				# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
-				#        real overload resolution yet).
-				self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
-				self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
-			else:
-				self._IndexOtherDeclaredItem(item)
+			self._IndexDeclaredItem(item)
 
 		self._isIndexed = True
+
+	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Add a declared item to the namespace and to the lookup table matching its kind.
+
+		:param item: The declared item.
+		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
+		if isinstance(item, Function):
+			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
+			#        real overload resolution yet).
+			self._functions.setdefault(item._normalizedIdentifier, []).append(item)
+			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
+		elif isinstance(item, Procedure):
+			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
+			#        real overload resolution yet).
+			self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
+			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
+		else:
+			self._IndexOtherDeclaredItem(item)

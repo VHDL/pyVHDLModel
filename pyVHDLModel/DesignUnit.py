@@ -629,6 +629,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 
 	def IndexDeclaredItems(self) -> None:
 		"""A generic package's generics share the declarative region of its declarative part."""
+		self._deferredConstants.clear()
 		self._IndexGenericItems()
 
 		super().IndexDeclaredItems()

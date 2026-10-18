@@ -71,6 +71,10 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
 from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegisteredToForeignDesignError, LibraryNotRegisteredError, EntityExistsInLibraryError
 from pyVHDLModel.Exception     import ArchitectureExistsInLibraryError, PackageExistsInLibraryError, PackageBodyExistsError, ConfigurationExistsInLibraryError
 from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLibraryNotExistingError
+from pyVHDLModel.Exception     import LibraryNotFoundError, EntityNotFoundError, PackageNotFoundError
+from pyVHDLModel.Exception     import ConfigurationNotFoundError, ContextNotFoundError
+from pyVHDLModel.Exception     import AmbiguousEntityError, AmbiguousPackageError, AmbiguousConfigurationError
+from pyVHDLModel.Exception     import AmbiguousContextError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
 from pyVHDLModel.Namespace     import Namespace
@@ -731,6 +735,230 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			self._libraries[libraryIdentifier] = lib
 			lib.Parent = self
 			return lib
+
+	def GetEntity(self, entityName: str, libraryName: Nullable[str] = None) -> Entity:
+		"""
+		Return the entity named ``entityName``.
+
+		The lookup is case-insensitive. Without ``libraryName``, all libraries of the design are searched and the
+		entity must exist in exactly one of them. Nothing is created, if the entity or library doesn't exist.
+
+		:param entityName:            Name of the requested entity.
+		:param libraryName:           Optional, name of the library to search. Default: all libraries.
+		:returns:                     The entity.
+		:raises ValueError:           If parameter 'entityName' is None or empty.
+		:raises TypeError:            If parameter 'entityName' is not of type :class:`str`.
+		:raises TypeError:            If parameter 'libraryName' is not of type :class:`str`.
+		:raises ValueError:           If parameter 'libraryName' is empty.
+		:raises LibraryNotFoundError: If the library ``libraryName`` doesn't exist in the design.
+		:raises EntityNotFoundError:  If the entity doesn't exist in the searched libraries.
+		:raises AmbiguousEntityError: If the entity exists in several libraries and no library is given.
+		"""
+		if entityName is None:
+			raise ValueError("Parameter 'entityName' is None.")
+		elif not isinstance(entityName, str):
+			ex = TypeError("Parameter 'entityName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(entityName)}'.")
+			raise ex
+		elif entityName == "":
+			raise ValueError("Parameter 'entityName' is empty.")
+
+		if libraryName is not None and not isinstance(libraryName, str):
+			ex = TypeError("Parameter 'libraryName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(libraryName)}'.")
+			raise ex
+		elif libraryName == "":
+			raise ValueError("Parameter 'libraryName' is empty.")
+
+		entityIdentifier = entityName.lower()
+		if libraryName is not None:
+			libraryIdentifier = libraryName.lower()
+			if libraryIdentifier not in self._libraries:
+				raise LibraryNotFoundError(libraryName)
+
+			library = self._libraries[libraryIdentifier]
+			if entityIdentifier not in library._entities:
+				raise EntityNotFoundError(entityName, libraryName)
+
+			return library._entities[entityIdentifier]
+
+		libraries = [library for library in self._libraries.values() if entityIdentifier in library._entities]
+		if len(libraries) == 0:
+			raise EntityNotFoundError(entityName)
+		elif len(libraries) > 1:
+			ex = AmbiguousEntityError(entityName, libraries)
+			ex.add_note("Pass parameter 'libraryName' to select a library.")
+			raise ex
+
+		return libraries[0]._entities[entityIdentifier]
+
+	def GetPackage(self, packageName: str, libraryName: Nullable[str] = None) -> Package:
+		"""
+		Return the package named ``packageName``.
+
+		The lookup is case-insensitive. Without ``libraryName``, all libraries of the design are searched and the
+		package must exist in exactly one of them. Nothing is created, if the package or library doesn't exist.
+
+		:param packageName:            Name of the requested package.
+		:param libraryName:            Optional, name of the library to search. Default: all libraries.
+		:returns:                      The package.
+		:raises ValueError:            If parameter 'packageName' is None or empty.
+		:raises TypeError:             If parameter 'packageName' is not of type :class:`str`.
+		:raises TypeError:             If parameter 'libraryName' is not of type :class:`str`.
+		:raises ValueError:            If parameter 'libraryName' is empty.
+		:raises LibraryNotFoundError:  If the library ``libraryName`` doesn't exist in the design.
+		:raises PackageNotFoundError:  If the package doesn't exist in the searched libraries.
+		:raises AmbiguousPackageError: If the package exists in several libraries and no library is given.
+		"""
+		if packageName is None:
+			raise ValueError("Parameter 'packageName' is None.")
+		elif not isinstance(packageName, str):
+			ex = TypeError("Parameter 'packageName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(packageName)}'.")
+			raise ex
+		elif packageName == "":
+			raise ValueError("Parameter 'packageName' is empty.")
+
+		if libraryName is not None and not isinstance(libraryName, str):
+			ex = TypeError("Parameter 'libraryName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(libraryName)}'.")
+			raise ex
+		elif libraryName == "":
+			raise ValueError("Parameter 'libraryName' is empty.")
+
+		packageIdentifier = packageName.lower()
+		if libraryName is not None:
+			libraryIdentifier = libraryName.lower()
+			if libraryIdentifier not in self._libraries:
+				raise LibraryNotFoundError(libraryName)
+
+			library = self._libraries[libraryIdentifier]
+			if packageIdentifier not in library._packages:
+				raise PackageNotFoundError(packageName, libraryName)
+
+			return library._packages[packageIdentifier]
+
+		libraries = [library for library in self._libraries.values() if packageIdentifier in library._packages]
+		if len(libraries) == 0:
+			raise PackageNotFoundError(packageName)
+		elif len(libraries) > 1:
+			ex = AmbiguousPackageError(packageName, libraries)
+			ex.add_note("Pass parameter 'libraryName' to select a library.")
+			raise ex
+
+		return libraries[0]._packages[packageIdentifier]
+
+	def GetConfiguration(self, configurationName: str, libraryName: Nullable[str] = None) -> Configuration:
+		"""
+		Return the configuration named ``configurationName``.
+
+		The lookup is case-insensitive. Without ``libraryName``, all libraries of the design are searched and the
+		configuration must exist in exactly one of them. Nothing is created, if the configuration or library doesn't exist.
+
+		:param configurationName:            Name of the requested configuration.
+		:param libraryName:                  Optional, name of the library to search. Default: all libraries.
+		:returns:                            The configuration.
+		:raises ValueError:                  If parameter 'configurationName' is None or empty.
+		:raises TypeError:                   If parameter 'configurationName' is not of type :class:`str`.
+		:raises TypeError:                   If parameter 'libraryName' is not of type :class:`str`.
+		:raises ValueError:                  If parameter 'libraryName' is empty.
+		:raises LibraryNotFoundError:        If the library ``libraryName`` doesn't exist in the design.
+		:raises ConfigurationNotFoundError:  If the configuration doesn't exist in the searched libraries.
+		:raises AmbiguousConfigurationError: If the configuration exists in several libraries and no library is given.
+		"""
+		if configurationName is None:
+			raise ValueError("Parameter 'configurationName' is None.")
+		elif not isinstance(configurationName, str):
+			ex = TypeError("Parameter 'configurationName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(configurationName)}'.")
+			raise ex
+		elif configurationName == "":
+			raise ValueError("Parameter 'configurationName' is empty.")
+
+		if libraryName is not None and not isinstance(libraryName, str):
+			ex = TypeError("Parameter 'libraryName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(libraryName)}'.")
+			raise ex
+		elif libraryName == "":
+			raise ValueError("Parameter 'libraryName' is empty.")
+
+		configurationIdentifier = configurationName.lower()
+		if libraryName is not None:
+			libraryIdentifier = libraryName.lower()
+			if libraryIdentifier not in self._libraries:
+				raise LibraryNotFoundError(libraryName)
+
+			library = self._libraries[libraryIdentifier]
+			if configurationIdentifier not in library._configurations:
+				raise ConfigurationNotFoundError(configurationName, libraryName)
+
+			return library._configurations[configurationIdentifier]
+
+		libraries = [library for library in self._libraries.values() if configurationIdentifier in library._configurations]
+		if len(libraries) == 0:
+			raise ConfigurationNotFoundError(configurationName)
+		elif len(libraries) > 1:
+			ex = AmbiguousConfigurationError(configurationName, libraries)
+			ex.add_note("Pass parameter 'libraryName' to select a library.")
+			raise ex
+
+		return libraries[0]._configurations[configurationIdentifier]
+
+	def GetContext(self, contextName: str, libraryName: Nullable[str] = None) -> Context:
+		"""
+		Return the context named ``contextName``.
+
+		The lookup is case-insensitive. Without ``libraryName``, all libraries of the design are searched and the
+		context must exist in exactly one of them. Nothing is created, if the context or library doesn't exist.
+
+		:param contextName:            Name of the requested context.
+		:param libraryName:            Optional, name of the library to search. Default: all libraries.
+		:returns:                      The context.
+		:raises ValueError:            If parameter 'contextName' is None or empty.
+		:raises TypeError:             If parameter 'contextName' is not of type :class:`str`.
+		:raises TypeError:             If parameter 'libraryName' is not of type :class:`str`.
+		:raises ValueError:            If parameter 'libraryName' is empty.
+		:raises LibraryNotFoundError:  If the library ``libraryName`` doesn't exist in the design.
+		:raises ContextNotFoundError:  If the context doesn't exist in the searched libraries.
+		:raises AmbiguousContextError: If the context exists in several libraries and no library is given.
+		"""
+		if contextName is None:
+			raise ValueError("Parameter 'contextName' is None.")
+		elif not isinstance(contextName, str):
+			ex = TypeError("Parameter 'contextName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(contextName)}'.")
+			raise ex
+		elif contextName == "":
+			raise ValueError("Parameter 'contextName' is empty.")
+
+		if libraryName is not None and not isinstance(libraryName, str):
+			ex = TypeError("Parameter 'libraryName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(libraryName)}'.")
+			raise ex
+		elif libraryName == "":
+			raise ValueError("Parameter 'libraryName' is empty.")
+
+		contextIdentifier = contextName.lower()
+		if libraryName is not None:
+			libraryIdentifier = libraryName.lower()
+			if libraryIdentifier not in self._libraries:
+				raise LibraryNotFoundError(libraryName)
+
+			library = self._libraries[libraryIdentifier]
+			if contextIdentifier not in library._contexts:
+				raise ContextNotFoundError(contextName, libraryName)
+
+			return library._contexts[contextIdentifier]
+
+		libraries = [library for library in self._libraries.values() if contextIdentifier in library._contexts]
+		if len(libraries) == 0:
+			raise ContextNotFoundError(contextName)
+		elif len(libraries) > 1:
+			ex = AmbiguousContextError(contextName, libraries)
+			ex.add_note("Pass parameter 'libraryName' to select a library.")
+			raise ex
+
+		return libraries[0]._contexts[contextIdentifier]
 
 	# TODO: allow overloaded parameter library to be str?
 	def AddDocument(self, document: Document, library: Library) -> None:

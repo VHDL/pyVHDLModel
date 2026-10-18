@@ -21,6 +21,15 @@ sourcecode files (documents). Sourcecode files are compiled into libraries. Thus
 a design has the two child nodes: :attr:`~pyVHDLModel.SyntaxModel.Design.Libraries`
 and :attr:`~pyVHDLModel.SyntaxModel.Design.Documents`. Each is a :class:`list`.
 
+A primary design unit is looked up by name with :meth:`~pyVHDLModel.Design.GetEntity`,
+:meth:`~pyVHDLModel.Design.GetPackage`, :meth:`~pyVHDLModel.Design.GetConfiguration` or
+:meth:`~pyVHDLModel.Design.GetContext`. The lookup is case-insensitive and searches one named library or all
+libraries. Unlike :meth:`~pyVHDLModel.Design.GetLibrary`, these methods create nothing: a missing library raises
+:exc:`~pyVHDLModel.Exception.LibraryNotFoundError`, a missing design unit raises a kind-specific error derived from
+:exc:`~pyVHDLModel.Exception.DesignUnitNotFoundError` (e.g. :exc:`~pyVHDLModel.Exception.EntityNotFoundError`), and a
+design unit found in several libraries raises a kind-specific error derived from
+:exc:`~pyVHDLModel.Exception.AmbiguousDesignUnitError` (e.g. :exc:`~pyVHDLModel.Exception.AmbiguousEntityError`).
+
 **Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Design`:
 
 .. code-block:: Python
@@ -39,6 +48,14 @@ and :attr:`~pyVHDLModel.SyntaxModel.Design.Documents`. Each is a :class:`list`.
      def Documents(self) -> list[Document]:
 
      def GetLibrary(self, libraryName: str) -> Library:
+
+     def GetEntity(self, entityName: str, libraryName: Nullable[str] = None) -> Entity:
+
+     def GetPackage(self, packageName: str, libraryName: Nullable[str] = None) -> Package:
+
+     def GetConfiguration(self, configurationName: str, libraryName: Nullable[str] = None) -> Configuration:
+
+     def GetContext(self, contextName: str, libraryName: Nullable[str] = None) -> Context:
 
      def AddDocument(self, document: Document, library: Library):
 

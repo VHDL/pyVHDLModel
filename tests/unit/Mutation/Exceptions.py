@@ -35,6 +35,7 @@ from pyTooling.Exceptions  import AlreadyInHierarchyError, DuplicateElementError
 from pyTooling.Testing     import Testcase
 
 from pyVHDLModel.Exception import VHDLModelException, AlreadyInDesignError, NotAChildError, DuplicateGenericError
+from pyVHDLModel.Exception import NotInNamespaceError
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -54,3 +55,13 @@ class Exceptions(Testcase):
 	def test_DuplicateGenericError(self) -> None:
 		self.assertTrue(issubclass(DuplicateGenericError, VHDLModelException))
 		self.assertTrue(issubclass(DuplicateGenericError, DuplicateElementError))
+
+	def test_NotInNamespaceError(self) -> None:
+		self.assertTrue(issubclass(NotInNamespaceError, VHDLModelException))
+		self.assertTrue(issubclass(NotInNamespaceError, KeyError))
+
+	def test_NotInNamespaceError_Message(self) -> None:
+		"""The message isn't quoted like a :exc:`KeyError`'s."""
+		ex = NotInNamespaceError("Namespace 'rtl' has no element 'bits'.")
+
+		self.assertEqual("Namespace 'rtl' has no element 'bits'.", str(ex))

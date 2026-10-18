@@ -370,6 +370,17 @@ class Generics(Testcase):
 
 		self.assertIs(port, entity._namespace._elements["bits"])
 
+	def test_Namespace_NotIndexed(self) -> None:
+		"""Removing a generic of a region, which wasn't indexed yet, leaves the namespace as is."""
+		bits = _generic("BITS")
+		entity = Entity("e", genericItems=[bits])
+
+		entity.RemoveGenericItem(bits)
+
+		self.assertEqual(0, entity.GenericCount)
+		self.assertIsNone(bits.Parent)
+		self.assertDictEqual({}, entity._namespace._elements)
+
 	def test_Contract(self) -> None:
 		"""A host class without the namespace methods expected by the mixin can't be instantiated."""
 		class Host(ModelEntity, WithGenericsMixin):

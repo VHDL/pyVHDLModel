@@ -45,6 +45,7 @@ from pyTooling.Warning       import WarningCollector
 
 from pyVHDLModel.Base        import identifiersOf, normalizedIdentifiersOf
 from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError, DuplicateGenericError
+from pyVHDLModel.Exception   import NotInNamespaceError
 from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Object      import Constant, SharedVariable, File, Variable, Signal
 if TYPE_CHECKING:
@@ -385,10 +386,16 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Remove an element's identifiers from this region's namespace.
 
+		An identifier not declared for this element is skipped: the region wasn't indexed yet, or the identifier refers to
+		a duplicate declaration.
+
 		:param element: The element to remove, e.g. an interface item.
 		"""
 		for normalizedIdentifier in normalizedIdentifiersOf(element):
-			self._namespace.RemoveElement(normalizedIdentifier, element)
+			try:
+				self._namespace.RemoveElement(normalizedIdentifier, element)
+			except NotInNamespaceError:
+				pass
 
 	def _IndexOtherDeclaredItem(self, item) -> None:
 		"""Hook for declared items the region doesn't handle itself. Derived classes may override it."""

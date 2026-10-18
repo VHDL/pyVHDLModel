@@ -115,6 +115,7 @@ class VHDLModelException(ExceptionBase):
 	   * :class:`Already in design error <pyVHDLModel.Exception.AlreadyInDesignError>`
 	   * :class:`Not a child error <pyVHDLModel.Exception.NotAChildError>`
 	   * :class:`Duplicate generic error <pyVHDLModel.Exception.DuplicateGenericError>`
+	   * :class:`Not in namespace error <pyVHDLModel.Exception.NotInNamespaceError>`
 	"""
 
 
@@ -521,6 +522,23 @@ class NotAChildError(VHDLModelException):
 	"""
 	This exception is raised, when a model entity is removed from a parent, but it isn't a child of that parent.
 	"""
+
+
+@export
+class NotInNamespaceError(VHDLModelException, KeyError):
+	"""
+	This exception is raised, when an element isn't declared in a namespace under the given identifier.
+
+	It's a :exc:`KeyError` too, like removing a missing key from a dictionary.
+	"""
+
+	def __str__(self) -> str:
+		"""
+		Return the exception's message.
+
+		:returns: The message, without the quotes :exc:`KeyError` adds.
+		"""
+		return self.args[0]
 
 
 @export

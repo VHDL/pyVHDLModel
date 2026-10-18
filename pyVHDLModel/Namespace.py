@@ -44,7 +44,7 @@ from pyTooling.Warning     import WarningCollector
 
 from pyVHDLModel.Object    import Obj, Signal, Constant, Variable
 from pyVHDLModel.Symbol    import ComponentInstantiationSymbol, Symbol, PossibleReference
-from pyVHDLModel.Exception import DuplicateDeclarationWarning
+from pyVHDLModel.Exception import DuplicateDeclarationWarning, NotInNamespaceError
 if TYPE_CHECKING:
 	from pyVHDLModel.Type   import Subtype, FullType, BaseType
 
@@ -199,14 +199,19 @@ class Namespace(Generic[K, O]):
 		"""
 		Remove a declared item from this namespace.
 
-		The entry is removed only, if the identifier refers to this element. An identifier referring to another element
-		(e.g. a duplicate declaration) or not declared in this namespace is left as is.
-
 		:param normalizedIdentifier: The normalized (lower case) identifier of the declared item.
 		:param element:              The declared item.
+		:raises NotInNamespaceError: If the identifier isn't declared in this namespace.
+		:raises NotInNamespaceError: If the identifier refers to another element, e.g. a duplicate declaration.
 		"""
-		if self._elements.get(normalizedIdentifier) is element:
-			del self._elements[normalizedIdentifier]
+		if (existing := self._elements.get(normalizedIdentifier)) is None:
+			raise NotInNamespaceError(f"Namespace '{self._name}' has no element '{normalizedIdentifier}'.")
+		elif existing is not element:
+			ex = NotInNamespaceError(f"Namespace '{self._name}' has another element for '{normalizedIdentifier}'.")
+			ex.add_note(f"Found element of type '{getFullyQualifiedName(existing)}'.")
+			raise ex
+
+		del self._elements[normalizedIdentifier]
 
 	def Elements(self) -> Dict[K, O]:
 		return self._elements

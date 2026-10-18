@@ -209,19 +209,43 @@ class Generics(Testcase):
 		with self.assertRaises(ValueError) as context:
 			entity.InsertGenericItem(2, width)
 
-		self.assertEqual("Parameter 'index' is out of range 0..1.", str(context.exception))
+		self.assertEqual("Parameter 'index' is out of range -1..1.", str(context.exception))
 		self.assertListEqual(["Got value '2'."], context.exception.__notes__)
 		self.assertEqual(1, entity.GenericCount)
 		self.assertIsNone(width.Parent)
 
 	def test_Insert_Negative(self) -> None:
+		bits =  _generic("BITS")
+		depth = _generic("DEPTH")
+		entity = Entity("e", genericItems=[bits, depth])
+		width = _generic("WIDTH")
+
+		entity.InsertGenericItem(-1, width)
+
+		self.assertListEqual([bits, width, depth], entity.GenericItems)
+		self.assertIs(entity, width.Parent)
+
+	def test_Insert_Negative_Start(self) -> None:
+		bits =  _generic("BITS")
+		depth = _generic("DEPTH")
+		entity = Entity("e", genericItems=[bits, depth])
+		width = _generic("WIDTH")
+
+		entity.InsertGenericItem(-2, width)
+
+		self.assertListEqual([width, bits, depth], entity.GenericItems)
+
+	def test_Insert_Negative_OutOfRange(self) -> None:
 		entity = Entity("e", genericItems=[_generic("BITS")])
+		width = _generic("WIDTH")
 
 		with self.assertRaises(ValueError) as context:
-			entity.InsertGenericItem(-1, _generic("WIDTH"))
+			entity.InsertGenericItem(-2, width)
 
-		self.assertEqual("Parameter 'index' is out of range 0..1.", str(context.exception))
+		self.assertEqual("Parameter 'index' is out of range -1..1.", str(context.exception))
+		self.assertListEqual(["Got value '-2'."], context.exception.__notes__)
 		self.assertEqual(1, entity.GenericCount)
+		self.assertIsNone(width.Parent)
 
 	def test_Insert_IndexNone(self) -> None:
 		entity = Entity("e")

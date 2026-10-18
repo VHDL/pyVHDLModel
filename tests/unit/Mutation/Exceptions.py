@@ -35,6 +35,7 @@ from pyTooling.Exceptions  import AlreadyInHierarchyError, DuplicateElementError
 from pyTooling.Testing     import Testcase
 
 from pyVHDLModel.Exception import VHDLModelException, AlreadyInDesignError, NotAChildError, DuplicateGenericError
+from pyVHDLModel.Exception import DuplicatePortError, DuplicateParameterError
 from pyVHDLModel.Exception import NotInNamespaceError
 
 
@@ -55,6 +56,14 @@ class Exceptions(Testcase):
 	def test_DuplicateGenericError(self) -> None:
 		self.assertTrue(issubclass(DuplicateGenericError, VHDLModelException))
 		self.assertTrue(issubclass(DuplicateGenericError, DuplicateElementError))
+
+	def test_DuplicatePortError(self) -> None:
+		self.assertTrue(issubclass(DuplicatePortError, VHDLModelException))
+		self.assertTrue(issubclass(DuplicatePortError, DuplicateElementError))
+
+	def test_DuplicateParameterError(self) -> None:
+		self.assertTrue(issubclass(DuplicateParameterError, VHDLModelException))
+		self.assertTrue(issubclass(DuplicateParameterError, DuplicateElementError))
 
 	def test_NotInNamespaceError(self) -> None:
 		self.assertTrue(issubclass(NotInNamespaceError, VHDLModelException))

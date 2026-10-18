@@ -115,6 +115,8 @@ class VHDLModelException(ExceptionBase):
 	   * :class:`Already in design error <pyVHDLModel.Exception.AlreadyInDesignError>`
 	   * :class:`Not a child error <pyVHDLModel.Exception.NotAChildError>`
 	   * :class:`Duplicate generic error <pyVHDLModel.Exception.DuplicateGenericError>`
+	   * :class:`Duplicate port error <pyVHDLModel.Exception.DuplicatePortError>`
+	   * :class:`Duplicate parameter error <pyVHDLModel.Exception.DuplicateParameterError>`
 	   * :class:`Not in namespace error <pyVHDLModel.Exception.NotInNamespaceError>`
 	"""
 
@@ -545,4 +547,18 @@ class NotInNamespaceError(VHDLModelException, KeyError):
 class DuplicateGenericError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when a language construct already has a generic of the same identifier.
+	"""
+
+
+@export
+class DuplicatePortError(VHDLModelException, DuplicateElementError):
+	"""
+	This exception is raised, when a language construct already has a port of the same identifier.
+	"""
+
+
+@export
+class DuplicateParameterError(VHDLModelException, DuplicateElementError):
+	"""
+	This exception is raised, when a language construct already has a parameter of the same identifier.
 	"""

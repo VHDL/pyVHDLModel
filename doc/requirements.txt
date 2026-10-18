@@ -1,5 +1,8 @@
 -r ../requirements.txt
 
+# The extension the documentation uses: pyTooling.Sphinx with its domain 'report' and the directive 'dependency-table'
+pyTooling.Sphinx[reports] ~= 0.1.0rc3
+
 # Enforce latest version on ReadTheDocs
 sphinx ~= 9.1
 #docutils ~= 0.22.0
@@ -14,4 +17,3 @@ autoapi >= 2.0.1
 sphinx_design ~= 0.7.0
 sphinx-copybutton >= 0.5.2
 sphinx_autodoc_typehints ~= 3.13
-sphinx_reports ~= 0.11.2

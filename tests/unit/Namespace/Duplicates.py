@@ -106,6 +106,19 @@ class OneDeclarativePart(Testcase):
 
 		self.assertEqual(0, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
 
+	def test_DeclarationHidesImportedItem(self) -> None:
+		"""An item imported by a use clause is hidden by a declaration of the same identifier."""
+		imported = Constant(["s"], _subtypeSymbol("bit"))
+		Package("other", declaredItems=[imported])
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[_signal("s", "natural")])
+		architecture._namespace._elements["s"] = imported
+
+		with WarningCollector() as collector:
+			architecture.IndexDeclaredItems()
+
+		self.assertEqual(0, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
+		self.assertIs(architecture.DeclaredItems[0], architecture._namespace._elements["s"])
+
 
 class OverloadableDeclarations(Testcase):
 	"""Subprograms may share a name; GHDL accepts them as long as the signatures differ."""

@@ -173,6 +173,9 @@ class Namespace(Generic[K, O]):
 		signatures differ. Signatures are not compared yet, so two subprograms sharing a name are always
 		accepted (see the overload-resolution finding).
 
+		An item imported into a namespace (e.g. by a use clause) is no declaration of that namespace's region: a
+		declaration hides it.
+
 		:param normalizedIdentifier: The normalized (lower case) identifier being declared.
 		:param element:              The declared item.
 		:param overloadable:         ``True`` if this declaration may legally share its name.
@@ -185,7 +188,8 @@ class Namespace(Generic[K, O]):
 			# `existing is element` means the region is being re-indexed, not that the name is declared twice.
 			isReindex = existing is element
 			isOverload = overloadable and isinstance(existing, (Function, Procedure))
-			if existing is not None and not isReindex and not isOverload:
+			isImport = getattr(getattr(existing, "_parent", None), "_namespace", None) is not namespace
+			if existing is not None and not isReindex and not isOverload and not isImport:
 				WarningCollector.Raise(DuplicateDeclarationWarning(
 					f"Identifier '{normalizedIdentifier}' is already used for a declaration in '{namespace._name}'."
 				))

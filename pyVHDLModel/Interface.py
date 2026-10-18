@@ -44,6 +44,7 @@ from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEnti
 from pyVHDLModel.Base       import MultipleNamedEntityMixin, identifiersOf
 from pyVHDLModel.Base       import ExpressionUnion, Mode
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
+from pyVHDLModel.Regions    import WithGenericsMixin, WithPortsMixin, WithParametersMixin
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
 
@@ -974,145 +975,6 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
 
 
 @export
-class WithGenericsMixin(metaclass=ExtendedType, mixin=True):
-	"""
-	A mixin-class for language constructs with a generic clause.
-
-	.. seealso::
-
-	   * :class:`Package <pyVHDLModel.DesignUnit.Package>`
-	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
-	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
-	"""
-	_genericItems: List[GenericInterfaceItemMixin]  #: List of all generics, in declaration order.
-
-	def __init__(
-		self,
-		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
- 	) -> None:
-		"""
-		Initializes a language construct with a generic clause.
-
-		:param genericItems: List of all generics, in declaration order.
-		"""
-		self._genericItems = []
-		if genericItems is not None:
-			for item in genericItems:
-				self._genericItems.append(item)
-				item.Parent = self
-
-	@readonly
-	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
-		"""
-		Read-only property to access the generic items (:attr:`_genericItems`).
-
-		:returns: List of generic items.
-		"""
-		return self._genericItems
-
-	@readonly
-	def GenericCount(self) -> int:
-		"""
-		Read-only property to return the number of generics in :attr:`_genericItems`.
-
-		:returns: The generic count.
-		"""
-		return len(self._genericItems)
-
-
-@export
-class WithPortsMixin(metaclass=ExtendedType, mixin=True):
-	"""
-	A mixin-class for language constructs with a port clause.
-
-	.. seealso::
-
-	   * :class:`Concurrent block statement <pyVHDLModel.Concurrent.ConcurrentBlockStatement>`
-	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
-	   * :class:`Port group <pyVHDLModel.Interface.PortGroup>`
-	"""
-	_portItems: List[PortInterfaceItemMixin]  #: List of all ports, in declaration order.
-
-	def __init__(
-		self,
-		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
-	) -> None:
-		"""
-		Initializes a language construct with a port clause.
-
-		:param portItems: List of all ports, in declaration order.
-		"""
-		self._portItems = []
-		if portItems is not None:
-			for item in portItems:
-				self._portItems.append(item)
-				item.Parent = self
-
-	@readonly
-	def PortItems(self) -> List[PortInterfaceItemMixin]:
-		"""
-		Read-only property to access the port items (:attr:`_portItems`).
-
-		:returns: List of port items.
-		"""
-		return self._portItems
-
-	@readonly
-	def PortCount(self) -> int:
-		"""
-		Read-only property to return the number of ports in :attr:`_portItems`.
-
-		:returns: The port count.
-		"""
-		return len(self._portItems)
-
-
-@export
-class WithParametersMixin(metaclass=ExtendedType, mixin=True):
-	"""
-	A mixin-class for language constructs with a parameter list.
-
-	.. seealso::
-
-	   * :class:`Parameter group <pyVHDLModel.Interface.ParameterGroup>`
-	"""
-	_parameterItems: List[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.
-
-	def __init__(
-		self,
-		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
-	) -> None:
-		"""
-		Initializes a language construct with a parameter list.
-
-		:param parameterItems: List of all parameters, in declaration order.
-		"""
-		self._parameterItems = []
-		if parameterItems is not None:
-			for item in parameterItems:
-				self._parameterItems.append(item)
-				item.Parent = self
-
-	@readonly
-	def ParameterItems(self) -> List[ParameterInterfaceItemMixin]:
-		"""
-		Read-only property to access the parameter items (:attr:`_parameterItems`).
-
-		:returns: List of parameter items.
-		"""
-		return self._parameterItems
-
-	@readonly
-	def ParameterCount(self) -> int:
-		"""
-		Read-only property to return the number of parameters in :attr:`_parameterItems`.
-
-		:returns: The parameter count.
-		"""
-		return len(self._parameterItems)
-
-
-@export
 class InterfaceGroup(ModelEntity, OptionallyNamedEntityMixin, DocumentedEntityMixin):
 	"""
 	Represents a group of interface items sharing one clause.
@@ -1141,6 +1003,20 @@ class InterfaceGroup(ModelEntity, OptionallyNamedEntityMixin, DocumentedEntityMi
 		super().__init__(parent)
 		OptionallyNamedEntityMixin.__init__(self, name)
 		DocumentedEntityMixin.__init__(self, documentation)
+
+	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Add nothing, because an interface group has no namespace.
+
+		:param element: The named element, e.g. an interface item.
+		"""
+
+	def _RemoveFromNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Remove nothing, because an interface group has no namespace.
+
+		:param element: The named element, e.g. an interface item.
+		"""
 
 
 @export

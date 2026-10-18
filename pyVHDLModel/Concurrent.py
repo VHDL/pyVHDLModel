@@ -44,6 +44,7 @@ from pyTooling.MetaClasses   import ExtendedType
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, BaseCase, IfBranchMixin
 from pyVHDLModel.Base        import ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement, ChoicesMixin
 from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
+from pyVHDLModel.Regions     import WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
@@ -52,8 +53,7 @@ from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, Functio
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
 from pyVHDLModel.Association import GenericAssociationItem, PortAssociationItem
 from pyVHDLModel.Association import GenericMapAspectMixin, PortMapAspectMixin
-from pyVHDLModel.Interface   import PortInterfaceItemMixin, WithPortsMixin
-from pyVHDLModel.Interface   import GenericInterfaceItemMixin, WithGenericsMixin
+from pyVHDLModel.Interface   import PortInterfaceItemMixin, GenericInterfaceItemMixin
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin, AllowBlackboxMixin
 from pyVHDLModel.Common      import ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform
 from pyVHDLModel.Common      import ConditionalWaveformsMixin, WaveformMixin

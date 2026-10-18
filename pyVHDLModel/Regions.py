@@ -34,24 +34,303 @@ This module contains parts of an abstract document language model for VHDL.
 
 tbd.
 """
-from __future__            import annotations
+from __future__              import annotations
 
-from typing                import TYPE_CHECKING, List, Dict, Iterable, Optional as Nullable, Any
+from typing                  import TYPE_CHECKING, List, Dict, Iterable, Optional as Nullable, Any
 
-from pyTooling.Decorators  import export, readonly
-from pyTooling.MetaClasses import ExtendedType
-from pyTooling.Warning     import WarningCollector
+from pyTooling.Common        import getFullyQualifiedName
+from pyTooling.Decorators    import export, readonly
+from pyTooling.MetaClasses   import ExtendedType
+from pyTooling.Warning       import WarningCollector
 
-from pyVHDLModel.Base      import normalizedIdentifiersOf
-from pyVHDLModel.Exception import NotImplementedWarning
-from pyVHDLModel.Namespace import Namespace
-from pyVHDLModel.Object    import Constant, SharedVariable, File, Variable, Signal
+from pyVHDLModel.Base        import NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf, normalizedIdentifiersOf
+from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError, DuplicateGenericError
+from pyVHDLModel.Namespace   import Namespace
+from pyVHDLModel.Object      import Constant, SharedVariable, File, Variable, Signal
 if TYPE_CHECKING:
-	from pyVHDLModel.Type     import Subtype, FullType
+	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin
+	from pyVHDLModel.Type      import Subtype, FullType
 
 # `pyVHDLModel.Subprogram` imports this module (Subprogram is a sequential declaration region), so
 # `Function`/`Procedure` are quoted in annotations and imported lazily where they're needed at runtime.
+# The same holds for the interface item classes of `pyVHDLModel.Interface`.
 
+
+
+@export
+class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespace", "_RemoveFromNamespace")):
+	"""
+	A mixin-class for language constructs with a generic clause.
+
+	The host class provides ``_AddToNamespace(element)`` and ``_RemoveFromNamespace(element)``, called when a generic is
+	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace, a language construct
+	without a namespace implements both as no-operations.
+
+	.. seealso::
+
+	   * :class:`Package <pyVHDLModel.DesignUnit.Package>`
+	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
+	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
+	   * :class:`Subprogram <pyVHDLModel.Subprogram.Subprogram>`
+	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
+	"""
+	_genericItems: List[GenericInterfaceItemMixin]  #: List of all generics, in declaration order.
+
+	def __init__(
+		self,
+		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
+ 	) -> None:
+		"""
+		Initializes a language construct with a generic clause.
+
+		:param genericItems: List of all generics, in declaration order.
+		"""
+		self._genericItems = []
+		if genericItems is not None:
+			for item in genericItems:
+				self._genericItems.append(item)
+				item.Parent = self
+
+	@readonly
+	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
+		"""
+		Read-only property to access the generic items (:attr:`_genericItems`).
+
+		:returns: List of generic items.
+		"""
+		return self._genericItems
+
+	@readonly
+	def GenericCount(self) -> int:
+		"""
+		Read-only property to return the number of generics in :attr:`_genericItems`.
+
+		:returns: The generic count.
+		"""
+		return len(self._genericItems)
+
+	def AddGenericItem(self, genericItem: GenericInterfaceItemMixin) -> None:
+		"""
+		Add a generic at the end of the generic clause.
+
+		The generic's parent is set to this language construct, and its identifiers are added to the language construct's
+		namespace, if it has one.
+
+		:param genericItem:            The generic to add.
+		:raises ValueError:            If parameter 'genericItem' is ``None``.
+		:raises TypeError:             If parameter 'genericItem' is not of type
+		                               :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises AlreadyInDesignError:  If parameter 'genericItem' already has a parent.
+		:raises DuplicateGenericError: If the generic clause already has a generic of the same identifier.
+
+		.. seealso::
+
+		   :meth:`InsertGenericItem`
+		      |rarr| Insert a generic at a position of the generic clause.
+		   :meth:`RemoveGenericItem`
+		      |rarr| Remove a generic from the generic clause.
+		"""
+		self.InsertGenericItem(len(self._genericItems), genericItem)
+
+	def InsertGenericItem(self, index: int, genericItem: GenericInterfaceItemMixin) -> None:
+		"""
+		Insert a generic at a position of the generic clause.
+
+		The generic's parent is set to this language construct, and its identifiers are added to the language construct's
+		namespace, if it has one.
+
+		:param index:                  Position, from ``0`` (first) to :data:`GenericCount` (append).
+		:param genericItem:            The generic to insert.
+		:raises ValueError:            If parameter 'index' is ``None``.
+		:raises TypeError:             If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:            If parameter 'index' is out of range.
+		:raises ValueError:            If parameter 'genericItem' is ``None``.
+		:raises TypeError:             If parameter 'genericItem' is not of type
+		                               :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises AlreadyInDesignError:  If parameter 'genericItem' already has a parent.
+		:raises DuplicateGenericError: If the generic clause already has a generic of the same identifier.
+
+		.. seealso::
+
+		   :meth:`AddGenericItem`
+		      |rarr| Add a generic at the end of the generic clause.
+		   :meth:`RemoveGenericItem`
+		      |rarr| Remove a generic from the generic clause.
+		"""
+		from pyVHDLModel.Interface import GenericInterfaceItemMixin
+
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif index < 0 or index > len(self._genericItems):
+			ex = ValueError(f"Parameter 'index' is out of range 0..{len(self._genericItems)}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		if genericItem is None:
+			raise ValueError("Parameter 'genericItem' is None.")
+		elif not isinstance(genericItem, GenericInterfaceItemMixin):
+			ex = TypeError("Parameter 'genericItem' is not of type 'GenericInterfaceItemMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(genericItem)}'.")
+			raise ex
+		elif genericItem._parent is not None:
+			identifiers = ", ".join(identifiersOf(genericItem))
+			ex = AlreadyInDesignError(f"{genericItem.__class__.__name__} '{identifiers}' already has a parent.")
+			ex.add_note(f"Remove it from its {genericItem._parent.__class__.__name__} first.")
+			raise ex
+
+		existingIdentifiers = {name for item in self._genericItems for name in normalizedIdentifiersOf(item)}
+		newIdentifiers = zip(identifiersOf(genericItem), normalizedIdentifiersOf(genericItem))
+		for identifier, normalizedIdentifier in newIdentifiers:
+			if normalizedIdentifier in existingIdentifiers:
+				raise DuplicateGenericError(f"{self.__class__.__name__} already has a generic '{identifier}'.")
+
+		self._genericItems.insert(index, genericItem)
+		genericItem.Parent = self
+		self._AddToNamespace(genericItem)
+
+	def RemoveGenericItem(self, genericItem: GenericInterfaceItemMixin) -> None:
+		"""
+		Remove a generic from the generic clause.
+
+		The generic is detached: its parent is cleared and its identifiers are removed from the language construct's
+		namespace, if it has one. The generic itself is unchanged and can be added to another language construct, or
+		inserted at another position.
+
+		:param genericItem:          The generic to remove.
+		:raises ValueError:          If parameter 'genericItem' is ``None``.
+		:raises TypeError:           If parameter 'genericItem' is not of type
+		                             :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises NotAChildError:      If parameter 'genericItem' is not a generic of this language construct.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the generic isn't declared in it.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the generic refers to another
+		                             element, e.g. a duplicate declaration.
+
+		.. seealso::
+
+		   :meth:`AddGenericItem`
+		      |rarr| Add a generic at the end of the generic clause.
+		   :meth:`InsertGenericItem`
+		      |rarr| Insert a generic at a position of the generic clause.
+		"""
+		from pyVHDLModel.Interface import GenericInterfaceItemMixin
+
+		if genericItem is None:
+			raise ValueError("Parameter 'genericItem' is None.")
+		elif not isinstance(genericItem, GenericInterfaceItemMixin):
+			ex = TypeError("Parameter 'genericItem' is not of type 'GenericInterfaceItemMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(genericItem)}'.")
+			raise ex
+
+		for index, item in enumerate(self._genericItems):
+			if item is genericItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(genericItem))
+			raise NotAChildError(
+				f"{genericItem.__class__.__name__} '{identifiers}' is not a generic of this {self.__class__.__name__}."
+			)
+
+		self._RemoveFromNamespace(genericItem)
+		del self._genericItems[index]
+		genericItem._parent = None
+
+
+@export
+class WithPortsMixin(metaclass=ExtendedType, mixin=True):
+	"""
+	A mixin-class for language constructs with a port clause.
+
+	.. seealso::
+
+	   * :class:`Concurrent block statement <pyVHDLModel.Concurrent.ConcurrentBlockStatement>`
+	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
+	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
+	   * :class:`Port group <pyVHDLModel.Interface.PortGroup>`
+	"""
+	_portItems: List[PortInterfaceItemMixin]  #: List of all ports, in declaration order.
+
+	def __init__(
+		self,
+		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
+	) -> None:
+		"""
+		Initializes a language construct with a port clause.
+
+		:param portItems: List of all ports, in declaration order.
+		"""
+		self._portItems = []
+		if portItems is not None:
+			for item in portItems:
+				self._portItems.append(item)
+				item.Parent = self
+
+	@readonly
+	def PortItems(self) -> List[PortInterfaceItemMixin]:
+		"""
+		Read-only property to access the port items (:attr:`_portItems`).
+
+		:returns: List of port items.
+		"""
+		return self._portItems
+
+	@readonly
+	def PortCount(self) -> int:
+		"""
+		Read-only property to return the number of ports in :attr:`_portItems`.
+
+		:returns: The port count.
+		"""
+		return len(self._portItems)
+
+
+@export
+class WithParametersMixin(metaclass=ExtendedType, mixin=True):
+	"""
+	A mixin-class for language constructs with a parameter list.
+
+	.. seealso::
+
+	   * :class:`Subprogram <pyVHDLModel.Subprogram.Subprogram>`
+	   * :class:`Parameter group <pyVHDLModel.Interface.ParameterGroup>`
+	"""
+	_parameterItems: List[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.
+
+	def __init__(
+		self,
+		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+	) -> None:
+		"""
+		Initializes a language construct with a parameter list.
+
+		:param parameterItems: List of all parameters, in declaration order.
+		"""
+		self._parameterItems = []
+		if parameterItems is not None:
+			for item in parameterItems:
+				self._parameterItems.append(item)
+				item.Parent = self
+
+	@readonly
+	def ParameterItems(self) -> List[ParameterInterfaceItemMixin]:
+		"""
+		Read-only property to access the parameter items (:attr:`_parameterItems`).
+
+		:returns: List of parameter items.
+		"""
+		return self._parameterItems
+
+	@readonly
+	def ParameterCount(self) -> int:
+		"""
+		Read-only property to return the number of parameters in :attr:`_parameterItems`.
+
+		:returns: The parameter count.
+		"""
+		return len(self._parameterItems)
 
 
 @export
@@ -77,6 +356,13 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Concurrent declaration region mixin <pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin>`
 	   * :class:`Sequential declaration region mixin <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	"""
+	_isIndexed: bool  #: ``True`` if :meth:`IndexDeclaredItems` filled the region's namespace.
+
+	def __init__(self) -> None:
+		"""
+		Initializes a declaration region, which isn't indexed yet.
+		"""
+		self._isIndexed = False
 
 	def _IndexGenericItems(self) -> None:
 		"""Add this region's generics to its namespace."""
@@ -95,6 +381,38 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		for item in self._parameterItems:
 			for normalizedIdentifier in normalizedIdentifiersOf(item):
 				self._namespace.AddElement(normalizedIdentifier, item)
+
+	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Add an element's identifiers to this region's namespace.
+
+		Nothing is added to a region not indexed yet: :meth:`IndexDeclaredItems` adds the element later.
+
+		:param element: The named element to add, e.g. an interface item.
+		"""
+		if not self._isIndexed:
+			return
+
+		for normalizedIdentifier in normalizedIdentifiersOf(element):
+			self._namespace.AddElement(normalizedIdentifier, element)
+
+	def _RemoveFromNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Remove an element's identifiers from this region's namespace.
+
+		Nothing is removed from a region not indexed yet, as its namespace doesn't contain the element.
+
+		:param element:              The named element to remove, e.g. an interface item.
+		:raises NotInNamespaceError: If the region is indexed, and an identifier of the element isn't declared in the
+		                             namespace.
+		:raises NotInNamespaceError: If the region is indexed, and an identifier of the element refers to another element,
+		                             e.g. a duplicate declaration.
+		"""
+		if not self._isIndexed:
+			return
+
+		for normalizedIdentifier in normalizedIdentifiersOf(element):
+			self._namespace.RemoveElement(normalizedIdentifier, element)
 
 	def _IndexOtherDeclaredItem(self, item) -> None:
 		"""Hook for declared items the region doesn't handle itself. Derived classes may override it."""
@@ -148,6 +466,8 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		:param declaredItems: List of all declared items in this concurrent declaration region.
 		"""
+		DeclarationRegionMixin.__init__(self)
+
 		self._declaredItems = []  # TODO: convert to dict
 		if declaredItems is not None:
 			for item in declaredItems:
@@ -343,6 +663,8 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 			else:
 				self._IndexOtherDeclaredItem(item)
 
+		self._isIndexed = True
+
 
 @export
 class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
@@ -384,6 +706,8 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		:param namespaceName:  Name of this region's namespace, usually the host's label or identifier.
 		:param declaredItems:  The items declared in this region.
 		"""
+		DeclarationRegionMixin.__init__(self)
+
 		self._namespace = Namespace(namespaceName)
 
 		self._declaredItems = []  # TODO: convert to dict
@@ -528,6 +852,8 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 			else:
 				self._IndexOtherDeclaredItem(item)
 
+		self._isIndexed = True
+
 
 @export
 class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
@@ -560,6 +886,8 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		:param namespaceName: Name of this region's namespace, usually the protected type's identifier.
 		:param declaredItems: The items declared in this region.
 		"""
+		DeclarationRegionMixin.__init__(self)
+
 		self._namespace = Namespace(namespaceName)
 
 		self._declaredItems = []  # TODO: convert to dict
@@ -626,3 +954,5 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 				self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 			else:
 				self._IndexOtherDeclaredItem(item)
+
+		self._isIndexed = True

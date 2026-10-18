@@ -36,7 +36,7 @@ Subprograms are procedures, functions and methods.
 """
 from __future__             import annotations
 
-from typing                 import ClassVar, List, Iterable, Optional as Nullable
+from typing                 import ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
@@ -45,12 +45,20 @@ from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEnti
 from pyVHDLModel.Symbol     import SubtypeSymbol
 from pyVHDLModel.Type       import ProtectedType
 from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
-from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin
-from pyVHDLModel.Sequential import SequentialStatement
+from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, WithGenericsMixin, WithParametersMixin
+from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixin
 
 
 @export
-class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, SequentialDeclarationRegionMixin):
+class Subprogram(
+	ModelEntity,
+	NamedEntityMixin,
+	DocumentedEntityMixin,
+	WithGenericsMixin,
+	WithParametersMixin,
+	SequentialDeclarationRegionMixin,
+	SequentialStatementsMixin
+):
 	"""
 	Represents the base-class of all subprograms: procedures and functions.
 
@@ -63,12 +71,8 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Sequentia
 	   * :class:`Procedure <pyVHDLModel.Subprogram.Procedure>`
 	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
 	"""
-	_subprogramKeyword: ClassVar[str] = "subprogram"    #: The VHDL keyword introducing this subprogram kind.
-
-	_genericItems:   List[GenericInterfaceItemMixin]    #: List of all generics, in declaration order.
-	_parameterItems: List[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.
-	_statements:     List[SequentialStatement]          #: List of all sequential statements in the subprogram's body.
-	_isPure:         bool                               #: ``True`` if the subprogram was declared pure.
+	_subprogramKeyword: ClassVar[str] = "subprogram"  #: The VHDL keyword introducing this subprogram kind.
+	_isPure:            bool                          #: ``True`` if the subprogram was declared pure.
 
 	def __init__(
 		self,
@@ -97,24 +101,9 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Sequentia
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 		SequentialDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
-
-		self._genericItems = []  # TODO: convert to dict
-		if genericItems is not None:
-			for item in genericItems:
-				self._genericItems.append(item)
-				item.Parent = self
-
-		self._parameterItems = []  # TODO: convert to dict
-		if parameterItems is not None:
-			for item in parameterItems:
-				self._parameterItems.append(item)
-				item.Parent = self
-
-		self._statements = []  # TODO: use mixin class
-		if statements is not None:
-			for item in statements:
-				self._statements.append(item)
-				item.Parent = self
+		WithGenericsMixin.__init__(self, genericItems)
+		WithParametersMixin.__init__(self, parameterItems)
+		SequentialStatementsMixin.__init__(self, statements)
 
 		self._isPure = isPure
 
@@ -129,33 +118,6 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Sequentia
 		regions = (ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin)
 		if isinstance(parent, regions):
 			self._namespace.ParentNamespace = parent._namespace
-
-	@readonly
-	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
-		"""
-		Read-only property to access the generic items (:attr:`_genericItems`).
-
-		:returns: List of generic items.
-		"""
-		return self._genericItems
-
-	@readonly
-	def ParameterItems(self) -> List[ParameterInterfaceItemMixin]:
-		"""
-		Read-only property to access the parameter items (:attr:`_parameterItems`).
-
-		:returns: List of parameter items.
-		"""
-		return self._parameterItems
-
-	@readonly
-	def Statements(self) -> List[SequentialStatement]:
-		"""
-		Read-only property to access the statements (:attr:`_statements`).
-
-		:returns: List of statements.
-		"""
-		return self._statements
 
 	@readonly
 	def IsPure(self) -> bool:

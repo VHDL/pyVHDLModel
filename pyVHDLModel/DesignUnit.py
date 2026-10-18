@@ -44,11 +44,11 @@ from pyTooling.Graph           import Vertex
 
 from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Exception     import VHDLModelException
-from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Namespace     import Namespace
-from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin
+from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
-from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, WithGenericsMixin, WithPortsMixin
+from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin
 from pyVHDLModel.Object        import DeferredConstant
 from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration
@@ -923,7 +923,14 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 
 
 @export
-class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackboxMixin):
+class Component(
+	ModelEntity,
+	NamedEntityMixin,
+	DocumentedEntityMixin,
+	WithGenericsMixin,
+	WithPortsMixin,
+	AllowBlackboxMixin
+):
 	"""
 	Represents a component declaration.
 
@@ -941,12 +948,8 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlack
 	   * :class:`Component configuration <pyVHDLModel.Configuration.ComponentConfiguration>`
 	"""
 
-	_isBlackbox:        Nullable[bool]                    #: Component is a blackbox.
-
-	_genericItems:      List[GenericInterfaceItemMixin]  #: List of all generics of this component, in declaration order.
-	_portItems:         List[PortInterfaceItemMixin]     #: List of all ports of this component, in declaration order.
-
-	_entity:            Nullable[Entity]                 #: Linked entity, or ``None`` if unresolved.
+	_isBlackbox: Nullable[bool]    #: Component is a blackbox.
+	_entity:     Nullable[Entity]  #: Linked entity, or ``None`` if unresolved.
 
 	def __init__(
 		self,
@@ -970,24 +973,26 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlack
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
+		WithGenericsMixin.__init__(self, genericItems)
+		WithPortsMixin.__init__(self, portItems)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
 		self._isBlackbox = None
-		self._entity = None
+		self._entity =     None
 
-		# TODO: extract to mixin
-		self._genericItems = []
-		if genericItems is not None:
-			for item in genericItems:
-				self._genericItems.append(item)
-				item.Parent = self
+	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Add nothing, because a component has no namespace.
 
-		# TODO: extract to mixin
-		self._portItems = []
-		if portItems is not None:
-			for item in portItems:
-				self._portItems.append(item)
-				item.Parent = self
+		:param element: The named element, e.g. an interface item.
+		"""
+
+	def _RemoveFromNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Remove nothing, because a component has no namespace.
+
+		:param element: The named element, e.g. an interface item.
+		"""
 
 	@readonly
 	def IsBlackbox(self) -> Nullable[bool]:
@@ -1000,24 +1005,6 @@ class Component(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlack
 		          were not linked to entities yet.
 		"""
 		return self._isBlackbox
-
-	@readonly
-	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
-		"""
-		Read-only property to access the generic items (:attr:`_genericItems`).
-
-		:returns: List of generic items.
-		"""
-		return self._genericItems
-
-	@readonly
-	def PortItems(self) -> List[PortInterfaceItemMixin]:
-		"""
-		Read-only property to access the port items (:attr:`_portItems`).
-
-		:returns: List of port items.
-		"""
-		return self._portItems
 
 	@property
 	def Entity(self) -> Nullable[Entity]:

@@ -44,11 +44,13 @@ from pyTooling.MetaClasses   import ExtendedType
 from pyTooling.Warning       import WarningCollector
 
 from pyVHDLModel.Base        import NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf, normalizedIdentifiersOf
-from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError, DuplicateGenericError
+from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError
+from pyVHDLModel.Exception   import DuplicateGenericError, DuplicatePortError, DuplicateParameterError
 from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Object      import Constant, SharedVariable, File, Variable, Signal
 if TYPE_CHECKING:
 	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin
+	from pyVHDLModel.Interface import PortSignalInterfaceItem
 	from pyVHDLModel.Type      import Subtype, FullType
 
 # `pyVHDLModel.Subprogram` imports this module (Subprogram is a sequential declaration region), so
@@ -286,6 +288,136 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return len(self._portItems)
 
+	def AddPortItem(self, portItem: PortSignalInterfaceItem) -> None:
+		"""
+		Add a port at the end of the port clause.
+
+		The port's parent is set to this language construct. If the language construct is a declarative region, the
+		port's identifiers are added to its namespace.
+
+		:param portItem:              The port to add.
+		:raises ValueError:           If parameter 'portItem' is ``None``.
+		:raises TypeError:            If parameter 'portItem' is not of type
+		                              :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises AlreadyInDesignError: If parameter 'portItem' already has a parent.
+		:raises DuplicatePortError:   If the port clause already has a port of the same identifier.
+
+		.. seealso::
+
+		   :meth:`InsertPortItem`
+		      |rarr| Insert a port at a position of the port clause.
+		   :meth:`RemovePortItem`
+		      |rarr| Remove a port from the port clause.
+		"""
+		self.InsertPortItem(len(self._portItems), portItem)
+
+	def InsertPortItem(self, index: int, portItem: PortSignalInterfaceItem) -> None:
+		"""
+		Insert a port at a position of the port clause.
+
+		The port's parent is set to this language construct. If the language construct is a declarative region, the
+		port's identifiers are added to its namespace.
+
+		:param index:                 Position, from ``0`` (first) to :data:`PortCount` (append).
+		:param portItem:              The port to insert.
+		:raises ValueError:           If parameter 'index' is ``None``.
+		:raises TypeError:            If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:           If parameter 'index' is out of range.
+		:raises ValueError:           If parameter 'portItem' is ``None``.
+		:raises TypeError:            If parameter 'portItem' is not of type
+		                              :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises AlreadyInDesignError: If parameter 'portItem' already has a parent.
+		:raises DuplicatePortError:   If the port clause already has a port of the same identifier.
+
+		.. seealso::
+
+		   :meth:`AddPortItem`
+		      |rarr| Add a port at the end of the port clause.
+		   :meth:`RemovePortItem`
+		      |rarr| Remove a port from the port clause.
+		"""
+		from pyVHDLModel.Interface import PortSignalInterfaceItem
+
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif index < 0 or index > len(self._portItems):
+			ex = ValueError(f"Parameter 'index' is out of range 0..{len(self._portItems)}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		if portItem is None:
+			raise ValueError("Parameter 'portItem' is None.")
+		elif not isinstance(portItem, PortSignalInterfaceItem):
+			ex = TypeError("Parameter 'portItem' is not of type 'PortSignalInterfaceItem'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(portItem)}'.")
+			raise ex
+		elif portItem._parent is not None:
+			identifiers = ", ".join(identifiersOf(portItem))
+			ex = AlreadyInDesignError(f"{portItem.__class__.__name__} '{identifiers}' already has a parent.")
+			ex.add_note(f"Remove it from its {portItem._parent.__class__.__name__} first.")
+			raise ex
+
+		existingIdentifiers = {name for item in self._portItems for name in normalizedIdentifiersOf(item)}
+		newIdentifiers = zip(identifiersOf(portItem), normalizedIdentifiersOf(portItem))
+		for identifier, normalizedIdentifier in newIdentifiers:
+			if normalizedIdentifier in existingIdentifiers:
+				raise DuplicatePortError(f"{self.__class__.__name__} already has a port '{identifier}'.")
+
+		self._portItems.insert(index, portItem)
+		portItem.Parent = self
+		if isinstance(self, DeclarationRegionMixin):
+			for normalizedIdentifier in normalizedIdentifiersOf(portItem):
+				self._namespace.AddElement(normalizedIdentifier, portItem)
+
+	def RemovePortItem(self, portItem: PortSignalInterfaceItem) -> None:
+		"""
+		Remove a port from the port clause.
+
+		The port is detached: its parent is cleared and, if the language construct is a declarative region, its
+		identifiers are removed from the namespace. The port itself is unchanged and can be added to another language
+		construct, or inserted at another position.
+
+		:param portItem:        The port to remove.
+		:raises ValueError:     If parameter 'portItem' is ``None``.
+		:raises TypeError:      If parameter 'portItem' is not of type
+		                        :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises NotAChildError: If parameter 'portItem' is not a port of this language construct.
+
+		.. seealso::
+
+		   :meth:`AddPortItem`
+		      |rarr| Add a port at the end of the port clause.
+		   :meth:`InsertPortItem`
+		      |rarr| Insert a port at a position of the port clause.
+		"""
+		from pyVHDLModel.Interface import PortSignalInterfaceItem
+
+		if portItem is None:
+			raise ValueError("Parameter 'portItem' is None.")
+		elif not isinstance(portItem, PortSignalInterfaceItem):
+			ex = TypeError("Parameter 'portItem' is not of type 'PortSignalInterfaceItem'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(portItem)}'.")
+			raise ex
+
+		for index, item in enumerate(self._portItems):
+			if item is portItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(portItem))
+			raise NotAChildError(
+				f"{portItem.__class__.__name__} '{identifiers}' is not a port of this {self.__class__.__name__}."
+			)
+
+		del self._portItems[index]
+		portItem._parent = None
+		if isinstance(self, DeclarationRegionMixin):
+			for normalizedIdentifier in normalizedIdentifiersOf(portItem):
+				self._namespace.RemoveElement(normalizedIdentifier, portItem)
+
 
 @export
 class WithParametersMixin(metaclass=ExtendedType, mixin=True):
@@ -331,6 +463,136 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True):
 		:returns: The parameter count.
 		"""
 		return len(self._parameterItems)
+
+	def AddParameterItem(self, parameterItem: ParameterInterfaceItemMixin) -> None:
+		"""
+		Add a parameter at the end of the parameter list.
+
+		The parameter's parent is set to this language construct. If the language construct is a declarative region, the
+		parameter's identifiers are added to its namespace.
+
+		:param parameterItem:            The parameter to add.
+		:raises ValueError:              If parameter 'parameterItem' is ``None``.
+		:raises TypeError:               If parameter 'parameterItem' is not of type
+		                                 :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises AlreadyInDesignError:    If parameter 'parameterItem' already has a parent.
+		:raises DuplicateParameterError: If the parameter list already has a parameter of the same identifier.
+
+		.. seealso::
+
+		   :meth:`InsertParameterItem`
+		      |rarr| Insert a parameter at a position of the parameter list.
+		   :meth:`RemoveParameterItem`
+		      |rarr| Remove a parameter from the parameter list.
+		"""
+		self.InsertParameterItem(len(self._parameterItems), parameterItem)
+
+	def InsertParameterItem(self, index: int, parameterItem: ParameterInterfaceItemMixin) -> None:
+		"""
+		Insert a parameter at a position of the parameter list.
+
+		The parameter's parent is set to this language construct. If the language construct is a declarative region, the
+		parameter's identifiers are added to its namespace.
+
+		:param index:                    Position, from ``0`` (first) to :data:`ParameterCount` (append).
+		:param parameterItem:            The parameter to insert.
+		:raises ValueError:              If parameter 'index' is ``None``.
+		:raises TypeError:               If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:              If parameter 'index' is out of range.
+		:raises ValueError:              If parameter 'parameterItem' is ``None``.
+		:raises TypeError:               If parameter 'parameterItem' is not of type
+		                                 :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises AlreadyInDesignError:    If parameter 'parameterItem' already has a parent.
+		:raises DuplicateParameterError: If the parameter list already has a parameter of the same identifier.
+
+		.. seealso::
+
+		   :meth:`AddParameterItem`
+		      |rarr| Add a parameter at the end of the parameter list.
+		   :meth:`RemoveParameterItem`
+		      |rarr| Remove a parameter from the parameter list.
+		"""
+		from pyVHDLModel.Interface import ParameterInterfaceItemMixin
+
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif index < 0 or index > len(self._parameterItems):
+			ex = ValueError(f"Parameter 'index' is out of range 0..{len(self._parameterItems)}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		if parameterItem is None:
+			raise ValueError("Parameter 'parameterItem' is None.")
+		elif not isinstance(parameterItem, ParameterInterfaceItemMixin):
+			ex = TypeError("Parameter 'parameterItem' is not of type 'ParameterInterfaceItemMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parameterItem)}'.")
+			raise ex
+		elif parameterItem._parent is not None:
+			identifiers = ", ".join(identifiersOf(parameterItem))
+			ex = AlreadyInDesignError(f"{parameterItem.__class__.__name__} '{identifiers}' already has a parent.")
+			ex.add_note(f"Remove it from its {parameterItem._parent.__class__.__name__} first.")
+			raise ex
+
+		existingIdentifiers = {name for item in self._parameterItems for name in normalizedIdentifiersOf(item)}
+		newIdentifiers = zip(identifiersOf(parameterItem), normalizedIdentifiersOf(parameterItem))
+		for identifier, normalizedIdentifier in newIdentifiers:
+			if normalizedIdentifier in existingIdentifiers:
+				raise DuplicateParameterError(f"{self.__class__.__name__} already has a parameter '{identifier}'.")
+
+		self._parameterItems.insert(index, parameterItem)
+		parameterItem.Parent = self
+		if isinstance(self, DeclarationRegionMixin):
+			for normalizedIdentifier in normalizedIdentifiersOf(parameterItem):
+				self._namespace.AddElement(normalizedIdentifier, parameterItem)
+
+	def RemoveParameterItem(self, parameterItem: ParameterInterfaceItemMixin) -> None:
+		"""
+		Remove a parameter from the parameter list.
+
+		The parameter is detached: its parent is cleared and, if the language construct is a declarative region, its
+		identifiers are removed from the namespace. The parameter itself is unchanged and can be added to another language
+		construct, or inserted at another position.
+
+		:param parameterItem:   The parameter to remove.
+		:raises ValueError:     If parameter 'parameterItem' is ``None``.
+		:raises TypeError:      If parameter 'parameterItem' is not of type
+		                        :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises NotAChildError: If parameter 'parameterItem' is not a parameter of this language construct.
+
+		.. seealso::
+
+		   :meth:`AddParameterItem`
+		      |rarr| Add a parameter at the end of the parameter list.
+		   :meth:`InsertParameterItem`
+		      |rarr| Insert a parameter at a position of the parameter list.
+		"""
+		from pyVHDLModel.Interface import ParameterInterfaceItemMixin
+
+		if parameterItem is None:
+			raise ValueError("Parameter 'parameterItem' is None.")
+		elif not isinstance(parameterItem, ParameterInterfaceItemMixin):
+			ex = TypeError("Parameter 'parameterItem' is not of type 'ParameterInterfaceItemMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parameterItem)}'.")
+			raise ex
+
+		for index, item in enumerate(self._parameterItems):
+			if item is parameterItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(parameterItem))
+			raise NotAChildError(
+				f"{parameterItem.__class__.__name__} '{identifiers}' is not a parameter of this {self.__class__.__name__}."
+			)
+
+		del self._parameterItems[index]
+		parameterItem._parent = None
+		if isinstance(self, DeclarationRegionMixin):
+			for normalizedIdentifier in normalizedIdentifiersOf(parameterItem):
+				self._namespace.RemoveElement(normalizedIdentifier, parameterItem)
 
 
 @export

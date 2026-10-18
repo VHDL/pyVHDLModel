@@ -41,6 +41,8 @@ from pickle import dumps, loads
 
 from pyTooling.Testing      import Testcase
 
+from pyTooling.Testing      import Testcase
+
 from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
@@ -111,16 +113,44 @@ class Literals(Testcase):
 		self.assertEqual("4.2", str(literal))
 
 	def test_CharacterLiteral(self) -> None:
-		literal = CharacterLiteral("'a'")
+		literal = CharacterLiteral("a")
 
-		self.assertEqual("'a'", literal.Value)
-		self.assertEqual("'a'", str(literal))
+		self.assertEqual("a", literal.Value)
+		self.assertEqual("a", str(literal))
 
 	def test_StringLiteral(self) -> None:
 		literal = StringLiteral("hello")
 
 		self.assertEqual("hello", literal.Value)
 		self.assertEqual("\"hello\"", str(literal))
+
+
+class CharacterLiterals(Testcase):
+	def test_Apostrophe(self) -> None:
+		literal = CharacterLiteral("'")
+
+		self.assertEqual("'", literal.Value)
+		self.assertEqual("'", str(literal))
+
+	def test_Value_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			CharacterLiteral(None)
+
+		self.assertEqual("Parameter 'value' is None.", str(context.exception))
+
+	def test_Value_Integer(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			CharacterLiteral(1)
+
+		self.assertEqual("Parameter 'value' is not of type 'str'.", str(context.exception))
+		self.assertEqual(["Got type 'int'."], context.exception.__notes__)
+
+	def test_Value_WithApostrophes(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			CharacterLiteral("'a'")
+
+		self.assertEqual("Parameter 'value' is not a single character.", str(context.exception))
+		self.assertEqual(["Got value ''a''.", "Pass the character without apostrophes."], context.exception.__notes__)
 
 
 class PhysicalLiterals(Testcase):

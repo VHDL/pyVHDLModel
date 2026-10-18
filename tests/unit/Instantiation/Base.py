@@ -175,7 +175,7 @@ class BranchMixins(Testcase):
 
 class ReportAndAssertStatementMixins(Testcase):
 	def test_ReportStatement_MessageAndSeverity(self) -> None:
-		message = CharacterLiteral("'a'")
+		message = CharacterLiteral("a")
 		severity = IntegerLiteral(1)
 		statement = SequentialReportStatement(message, severity)
 
@@ -185,7 +185,7 @@ class ReportAndAssertStatementMixins(Testcase):
 	def test_ReportStatement_MessageOnly(self) -> None:
 		"""``severity`` genuinely defaults to omitted in the grammar (``report "msg";`` without a
 		``severity`` clause)."""
-		message = CharacterLiteral("'a'")
+		message = CharacterLiteral("a")
 		statement = SequentialReportStatement(message)
 
 		self.assertIs(message, statement.Message)
@@ -195,7 +195,7 @@ class ReportAndAssertStatementMixins(Testcase):
 		"""``AssertStatementMixin`` adds a required ``Condition`` on top of ``ReportStatementMixin``'s
 		optional message/severity."""
 		condition = IntegerLiteral(1)
-		message = CharacterLiteral("'a'")
+		message = CharacterLiteral("a")
 		statement = SequentialAssertStatement(condition, message)
 
 		self.assertIs(condition, statement.Condition)
@@ -282,14 +282,14 @@ class WaveformElements(Testcase):
 	``.After``."""
 
 	def test_WithoutAfter(self) -> None:
-		expression = CharacterLiteral("'1'")
+		expression = CharacterLiteral("1")
 		element = WaveformElement(expression)
 
 		self.assertIs(expression, element.Expression)
 		self.assertIsNone(element.After)
 
 	def test_WithAfter(self) -> None:
-		expression = CharacterLiteral("'1'")
+		expression = CharacterLiteral("1")
 		after = IntegerLiteral(5)
 		element = WaveformElement(expression, after)
 

@@ -345,7 +345,7 @@ class ConcurrentSimpleSignalAssignments(Testcase):
 	def test_Construction(self) -> None:
 		"""``s <= '1';``"""
 		target = SignalSymbol(SimpleName("s"))
-		waveformElement = WaveformElement(CharacterLiteral("'1'"))
+		waveformElement = WaveformElement(CharacterLiteral("1"))
 		assignment = ConcurrentSimpleSignalAssignment("lbl", target, [waveformElement])
 
 		self.assertIs(target, assignment.Target)
@@ -356,7 +356,7 @@ class ConcurrentSimpleSignalAssignments(Testcase):
 class ConcurrentAssertStatements(Testcase):
 	def test_Full(self) -> None:
 		condition = IntegerLiteral(1)
-		message = CharacterLiteral("'a'")
+		message = CharacterLiteral("a")
 		severity = IntegerLiteral(2)
 		statement = ConcurrentAssertStatement(condition, message, severity, label="lbl")
 
@@ -366,7 +366,7 @@ class ConcurrentAssertStatements(Testcase):
 		self.assertEqual("lbl", statement.Label)
 
 	def test_NoSeverityNoLabel(self) -> None:
-		statement = ConcurrentAssertStatement(IntegerLiteral(1), CharacterLiteral("'a'"))
+		statement = ConcurrentAssertStatement(IntegerLiteral(1), CharacterLiteral("a"))
 
 		self.assertIsNone(statement.Severity)
 		self.assertIsNone(statement.Label)

@@ -275,6 +275,8 @@ pyTooling_CodeCoverage_Packages = {
 	"src": {
 		"name":        f"{project}",
 		"json_report": "../report/coverage/coverage.json",
+		"sources":     "..",
+		"pages":       "coverage/src",
 		"fail_below":  80,
 		"levels":      "default"
 	}
@@ -283,6 +285,7 @@ pyTooling_DocCoverage_Packages = {
 	"src": {
 		"name":       f"{project}",
 		"directory":  f"../{directoryName}",
+		"pages":      "doccoverage/src",
 		"fail_below": 80,
 		"levels":     "default"
 	}

@@ -46,9 +46,9 @@ from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Exception     import VHDLModelException
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Namespace     import Namespace
-from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin
+from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
-from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, WithGenericsMixin, WithPortsMixin
+from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin
 from pyVHDLModel.Object        import DeferredConstant
 from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration

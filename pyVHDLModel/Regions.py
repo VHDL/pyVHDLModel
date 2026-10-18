@@ -34,24 +34,164 @@ This module contains parts of an abstract document language model for VHDL.
 
 tbd.
 """
-from __future__            import annotations
+from __future__              import annotations
 
-from typing                import TYPE_CHECKING, List, Dict, Iterable, Optional as Nullable, Any
+from typing                  import TYPE_CHECKING, List, Dict, Iterable, Optional as Nullable, Any
 
-from pyTooling.Decorators  import export, readonly
-from pyTooling.MetaClasses import ExtendedType
-from pyTooling.Warning     import WarningCollector
+from pyTooling.Decorators    import export, readonly
+from pyTooling.MetaClasses   import ExtendedType
+from pyTooling.Warning       import WarningCollector
 
-from pyVHDLModel.Base      import normalizedIdentifiersOf
-from pyVHDLModel.Exception import NotImplementedWarning
-from pyVHDLModel.Namespace import Namespace
-from pyVHDLModel.Object    import Constant, SharedVariable, File, Variable, Signal
+from pyVHDLModel.Base        import normalizedIdentifiersOf
+from pyVHDLModel.Exception   import NotImplementedWarning
+from pyVHDLModel.Namespace   import Namespace
+from pyVHDLModel.Object      import Constant, SharedVariable, File, Variable, Signal
 if TYPE_CHECKING:
-	from pyVHDLModel.Type     import Subtype, FullType
+	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin
+	from pyVHDLModel.Type      import Subtype, FullType
 
 # `pyVHDLModel.Subprogram` imports this module (Subprogram is a sequential declaration region), so
 # `Function`/`Procedure` are quoted in annotations and imported lazily where they're needed at runtime.
 
+
+
+@export
+class WithGenericsMixin(metaclass=ExtendedType, mixin=True):
+	"""
+	A mixin-class for language constructs with a generic clause.
+
+	.. seealso::
+
+	   * :class:`Package <pyVHDLModel.DesignUnit.Package>`
+	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
+	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
+	"""
+	_genericItems: List[GenericInterfaceItemMixin]  #: List of all generics, in declaration order.
+
+	def __init__(
+		self,
+		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
+ 	) -> None:
+		"""
+		Initializes a language construct with a generic clause.
+
+		:param genericItems: List of all generics, in declaration order.
+		"""
+		self._genericItems = []
+		if genericItems is not None:
+			for item in genericItems:
+				self._genericItems.append(item)
+				item.Parent = self
+
+	@readonly
+	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
+		"""
+		Read-only property to access the generic items (:attr:`_genericItems`).
+
+		:returns: List of generic items.
+		"""
+		return self._genericItems
+
+	@readonly
+	def GenericCount(self) -> int:
+		"""
+		Read-only property to return the number of generics in :attr:`_genericItems`.
+
+		:returns: The generic count.
+		"""
+		return len(self._genericItems)
+
+
+@export
+class WithPortsMixin(metaclass=ExtendedType, mixin=True):
+	"""
+	A mixin-class for language constructs with a port clause.
+
+	.. seealso::
+
+	   * :class:`Concurrent block statement <pyVHDLModel.Concurrent.ConcurrentBlockStatement>`
+	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
+	   * :class:`Port group <pyVHDLModel.Interface.PortGroup>`
+	"""
+	_portItems: List[PortInterfaceItemMixin]  #: List of all ports, in declaration order.
+
+	def __init__(
+		self,
+		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
+	) -> None:
+		"""
+		Initializes a language construct with a port clause.
+
+		:param portItems: List of all ports, in declaration order.
+		"""
+		self._portItems = []
+		if portItems is not None:
+			for item in portItems:
+				self._portItems.append(item)
+				item.Parent = self
+
+	@readonly
+	def PortItems(self) -> List[PortInterfaceItemMixin]:
+		"""
+		Read-only property to access the port items (:attr:`_portItems`).
+
+		:returns: List of port items.
+		"""
+		return self._portItems
+
+	@readonly
+	def PortCount(self) -> int:
+		"""
+		Read-only property to return the number of ports in :attr:`_portItems`.
+
+		:returns: The port count.
+		"""
+		return len(self._portItems)
+
+
+@export
+class WithParametersMixin(metaclass=ExtendedType, mixin=True):
+	"""
+	A mixin-class for language constructs with a parameter list.
+
+	.. seealso::
+
+	   * :class:`Parameter group <pyVHDLModel.Interface.ParameterGroup>`
+	"""
+	_parameterItems: List[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.
+
+	def __init__(
+		self,
+		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+	) -> None:
+		"""
+		Initializes a language construct with a parameter list.
+
+		:param parameterItems: List of all parameters, in declaration order.
+		"""
+		self._parameterItems = []
+		if parameterItems is not None:
+			for item in parameterItems:
+				self._parameterItems.append(item)
+				item.Parent = self
+
+	@readonly
+	def ParameterItems(self) -> List[ParameterInterfaceItemMixin]:
+		"""
+		Read-only property to access the parameter items (:attr:`_parameterItems`).
+
+		:returns: List of parameter items.
+		"""
+		return self._parameterItems
+
+	@readonly
+	def ParameterCount(self) -> int:
+		"""
+		Read-only property to return the number of parameters in :attr:`_parameterItems`.
+
+		:returns: The parameter count.
+		"""
+		return len(self._parameterItems)
 
 
 @export

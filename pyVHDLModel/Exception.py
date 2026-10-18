@@ -38,7 +38,7 @@ message in english, each exception object contains one or multiple references to
 from __future__           import annotations
 
 from pyTooling.Decorators import export, readonly
-from pyTooling.Exceptions import ExceptionBase
+from pyTooling.Exceptions import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError
 from pyTooling.Warning    import Warning, CriticalWarning
 
 from pyVHDLModel.Symbol   import Symbol
@@ -112,6 +112,9 @@ class VHDLModelException(ExceptionBase):
 	   * :class:`Configuration exists in library error <pyVHDLModel.Exception.ConfigurationExistsInLibraryError>`
 	   * :class:`Context exists in library error <pyVHDLModel.Exception.ContextExistsInLibraryError>`
 	   * :class:`Referenced library not existing error <pyVHDLModel.Exception.ReferencedLibraryNotExistingError>`
+	   * :class:`Already in design error <pyVHDLModel.Exception.AlreadyInDesignError>`
+	   * :class:`Not a child error <pyVHDLModel.Exception.NotAChildError>`
+	   * :class:`Duplicate generic error <pyVHDLModel.Exception.DuplicateGenericError>`
 	"""
 
 
@@ -499,3 +502,29 @@ class ReferencedLibraryNotExistingError(VHDLModelException):
 		:returns: The context.
 		"""
 		return self._context
+
+
+@export
+class AlreadyInDesignError(VHDLModelException, AlreadyInHierarchyError):
+	"""
+	This exception is raised, when a model entity is added to a parent, but it already has a parent.
+
+	.. hint::
+
+	   Remove the model entity from its current parent first, e.g. by
+	   :meth:`~pyVHDLModel.Regions.WithGenericsMixin.RemoveGenericItem`.
+	"""
+
+
+@export
+class NotAChildError(VHDLModelException):
+	"""
+	This exception is raised, when a model entity is removed from a parent, but it isn't a child of that parent.
+	"""
+
+
+@export
+class DuplicateGenericError(VHDLModelException, DuplicateElementError):
+	"""
+	This exception is raised, when a language construct already has a generic of the same identifier.
+	"""

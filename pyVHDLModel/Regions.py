@@ -38,12 +38,13 @@ from __future__              import annotations
 
 from typing                  import TYPE_CHECKING, List, Dict, Iterable, Optional as Nullable, Any
 
+from pyTooling.Common        import getFullyQualifiedName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 from pyTooling.Warning       import WarningCollector
 
-from pyVHDLModel.Base        import normalizedIdentifiersOf
-from pyVHDLModel.Exception   import NotImplementedWarning
+from pyVHDLModel.Base        import identifiersOf, normalizedIdentifiersOf
+from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError, DuplicateGenericError
 from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Object      import Constant, SharedVariable, File, Variable, Signal
 if TYPE_CHECKING:
@@ -52,6 +53,7 @@ if TYPE_CHECKING:
 
 # `pyVHDLModel.Subprogram` imports this module (Subprogram is a sequential declaration region), so
 # `Function`/`Procedure` are quoted in annotations and imported lazily where they're needed at runtime.
+# The same holds for the interface item classes of `pyVHDLModel.Interface`.
 
 
 
@@ -102,6 +104,136 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True):
 		:returns: The generic count.
 		"""
 		return len(self._genericItems)
+
+	def AddGenericItem(self, genericItem: GenericInterfaceItemMixin) -> None:
+		"""
+		Add a generic at the end of the generic clause.
+
+		The generic's parent is set to this language construct. If the language construct is a declarative region, the
+		generic's identifiers are added to its namespace.
+
+		:param genericItem:            The generic to add.
+		:raises ValueError:            If parameter 'genericItem' is ``None``.
+		:raises TypeError:             If parameter 'genericItem' is not of type
+		                               :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises AlreadyInDesignError:  If parameter 'genericItem' already has a parent.
+		:raises DuplicateGenericError: If the generic clause already has a generic of the same identifier.
+
+		.. seealso::
+
+		   :meth:`InsertGenericItem`
+		      |rarr| Insert a generic at a position of the generic clause.
+		   :meth:`RemoveGenericItem`
+		      |rarr| Remove a generic from the generic clause.
+		"""
+		self.InsertGenericItem(len(self._genericItems), genericItem)
+
+	def InsertGenericItem(self, index: int, genericItem: GenericInterfaceItemMixin) -> None:
+		"""
+		Insert a generic at a position of the generic clause.
+
+		The generic's parent is set to this language construct. If the language construct is a declarative region, the
+		generic's identifiers are added to its namespace.
+
+		:param index:                  Position, from ``0`` (first) to :data:`GenericCount` (append).
+		:param genericItem:            The generic to insert.
+		:raises ValueError:            If parameter 'index' is ``None``.
+		:raises TypeError:             If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:            If parameter 'index' is out of range.
+		:raises ValueError:            If parameter 'genericItem' is ``None``.
+		:raises TypeError:             If parameter 'genericItem' is not of type
+		                               :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises AlreadyInDesignError:  If parameter 'genericItem' already has a parent.
+		:raises DuplicateGenericError: If the generic clause already has a generic of the same identifier.
+
+		.. seealso::
+
+		   :meth:`AddGenericItem`
+		      |rarr| Add a generic at the end of the generic clause.
+		   :meth:`RemoveGenericItem`
+		      |rarr| Remove a generic from the generic clause.
+		"""
+		from pyVHDLModel.Interface import GenericInterfaceItemMixin
+
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif index < 0 or index > len(self._genericItems):
+			ex = ValueError(f"Parameter 'index' is out of range 0..{len(self._genericItems)}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		if genericItem is None:
+			raise ValueError("Parameter 'genericItem' is None.")
+		elif not isinstance(genericItem, GenericInterfaceItemMixin):
+			ex = TypeError("Parameter 'genericItem' is not of type 'GenericInterfaceItemMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(genericItem)}'.")
+			raise ex
+		elif genericItem._parent is not None:
+			identifiers = ", ".join(identifiersOf(genericItem))
+			ex = AlreadyInDesignError(f"{genericItem.__class__.__name__} '{identifiers}' already has a parent.")
+			ex.add_note(f"Remove it from its {genericItem._parent.__class__.__name__} first.")
+			raise ex
+
+		existingIdentifiers = {name for item in self._genericItems for name in normalizedIdentifiersOf(item)}
+		newIdentifiers = zip(identifiersOf(genericItem), normalizedIdentifiersOf(genericItem))
+		for identifier, normalizedIdentifier in newIdentifiers:
+			if normalizedIdentifier in existingIdentifiers:
+				raise DuplicateGenericError(f"{self.__class__.__name__} already has a generic '{identifier}'.")
+
+		self._genericItems.insert(index, genericItem)
+		genericItem.Parent = self
+		if isinstance(self, DeclarationRegionMixin):
+			for normalizedIdentifier in normalizedIdentifiersOf(genericItem):
+				self._namespace.AddElement(normalizedIdentifier, genericItem)
+
+	def RemoveGenericItem(self, genericItem: GenericInterfaceItemMixin) -> None:
+		"""
+		Remove a generic from the generic clause.
+
+		The generic is detached: its parent is cleared and, if the language construct is a declarative region, its
+		identifiers are removed from the namespace. The generic itself is unchanged and can be added to another language
+		construct, or inserted at another position.
+
+		:param genericItem:     The generic to remove.
+		:raises ValueError:     If parameter 'genericItem' is ``None``.
+		:raises TypeError:      If parameter 'genericItem' is not of type
+		                        :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises NotAChildError: If parameter 'genericItem' is not a generic of this language construct.
+
+		.. seealso::
+
+		   :meth:`AddGenericItem`
+		      |rarr| Add a generic at the end of the generic clause.
+		   :meth:`InsertGenericItem`
+		      |rarr| Insert a generic at a position of the generic clause.
+		"""
+		from pyVHDLModel.Interface import GenericInterfaceItemMixin
+
+		if genericItem is None:
+			raise ValueError("Parameter 'genericItem' is None.")
+		elif not isinstance(genericItem, GenericInterfaceItemMixin):
+			ex = TypeError("Parameter 'genericItem' is not of type 'GenericInterfaceItemMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(genericItem)}'.")
+			raise ex
+
+		for index, item in enumerate(self._genericItems):
+			if item is genericItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(genericItem))
+			raise NotAChildError(
+				f"{genericItem.__class__.__name__} '{identifiers}' is not a generic of this {self.__class__.__name__}."
+			)
+
+		del self._genericItems[index]
+		genericItem._parent = None
+		if isinstance(self, DeclarationRegionMixin):
+			for normalizedIdentifier in normalizedIdentifiersOf(genericItem):
+				self._namespace.RemoveElement(normalizedIdentifier, genericItem)
 
 
 @export

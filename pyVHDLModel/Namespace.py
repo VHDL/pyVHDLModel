@@ -195,6 +195,19 @@ class Namespace(Generic[K, O]):
 
 		self._elements[normalizedIdentifier] = element
 
+	def RemoveElement(self, normalizedIdentifier: K, element: O) -> None:
+		"""
+		Remove a declared item from this namespace.
+
+		The entry is removed only, if the identifier refers to this element. An identifier referring to another element
+		(e.g. a duplicate declaration) or not declared in this namespace is left as is.
+
+		:param normalizedIdentifier: The normalized (lower case) identifier of the declared item.
+		:param element:              The declared item.
+		"""
+		if self._elements.get(normalizedIdentifier) is element:
+			del self._elements[normalizedIdentifier]
+
 	def Elements(self) -> Dict[K, O]:
 		return self._elements
 

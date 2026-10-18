@@ -620,7 +620,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			return self._toplevel
 
 		if self._hierarchyGraph.VertexCount == 0:
-			raise VHDLModelException(f"Hierarchy is not yet computed from dependency graph.")
+			raise VHDLModelException("Hierarchy is not yet computed from dependency graph.")
 
 		roots = tuple(self._hierarchyGraph.IterateRoots())
 		if len(roots) == 1:
@@ -1110,10 +1110,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							package._namespace._elements[declaredItem._normalizedIdentifier] = declaredItem
 						elif isinstance(declaredItem, AttributeSpecification):
 							# FIXME: actually, this is not a declared item, but a application of an attribute to named entities
-							WarningCollector.Raise(NotImplementedWarning(f"Attribute specification."))
+							WarningCollector.Raise(NotImplementedWarning("Attribute specification."))
 
 						else:
-							raise VHDLModelException(f"Unexpected declared item.")
+							raise VHDLModelException("Unexpected declared item.")
 
 		for libraryName in ("std", "ieee"):
 			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
@@ -1204,7 +1204,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				_LinkSymbolsInExpression(expression.LeftOperand, namespace, typeVertex)
 				_LinkSymbolsInExpression(expression.RightOperand, namespace, typeVertex)
 			elif isinstance(expression, TernaryExpression):
-				WarningCollector.Raise(NotImplementedWarning(f"Handling of ternary expression."))
+				WarningCollector.Raise(NotImplementedWarning("Handling of ternary expression."))
 			elif isinstance(expression, SimpleObjectOrFunctionCallSymbol):
 				obj = namespace.FindObject(expression)
 				expression._reference = obj
@@ -1212,7 +1212,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				edge = obj._objectVertex.EdgeToVertex(typeVertex)
 				edge["kind"] = ObjectGraphEdgeKind.ReferenceInExpression
 			else:
-				WarningCollector.Raise(NotImplementedWarning(f"Unhandled else-branch"))
+				WarningCollector.Raise(NotImplementedWarning("Unhandled else-branch"))
 
 		def _LinkItems(package: Package) -> None:
 			for item in package._declaredItems:
@@ -1352,10 +1352,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					# TODO: update the namespace with visible members
 					if isinstance(symbol, AllPackageMembersReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.all'."))
+						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.all'."))
 
 					elif isinstance(symbol, PackageMemberReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.mySymbol'."))
+						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.mySymbol'."))
 
 					else:
 						raise VHDLModelException()
@@ -1714,16 +1714,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						designUnit._namespace._elements[packageIdentifier] = package
 
 					elif isinstance(packageMemberSymbol, AllPackageMembersReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.all'. Exception: components are handled."))
+						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.all'. Exception: components are handled."))
 
 						for componentIdentifier, component in package._components.items():
 							designUnit._namespace._elements[componentIdentifier] = component
 
 					elif isinstance(packageMemberSymbol, PackageMemberReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.mySymbol'."))
+						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.mySymbol'."))
 
 					else:
-						ex = VHDLModelException(f"Unknown package reference symbol type.")
+						ex = VHDLModelException("Unknown package reference symbol type.")
 						ex.add_note(f"Got type '{getFullyQualifiedName(packageMemberSymbol)}'.")
 						raise ex
 
@@ -2176,13 +2176,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		"""
 		if self._compileOrderGraph.EdgeCount < self._compileOrderGraph.VertexCount - 1:
-			raise VHDLModelException(f"Compile order is not yet computed from dependency graph.")
+			raise VHDLModelException("Compile order is not yet computed from dependency graph.")
 
 		for compileOrderNode in self._compileOrderGraph.IterateTopologically():
 			yield compileOrderNode.Value
 
 	def GetUnusedDesignUnits(self) -> List[DesignUnit]:
-		WarningCollector.Raise(NotImplementedWarning(f"Compute unused design units."))
+		WarningCollector.Raise(NotImplementedWarning("Compute unused design units."))
 
 	def __repr__(self) -> str:
 		"""
@@ -2710,7 +2710,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If entity name already exists in document.
 		"""
 		if not isinstance(item, Entity):
-			ex = TypeError(f"Parameter 'item' is not of type 'Entity'.")
+			ex = TypeError("Parameter 'item' is not of type 'Entity'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2734,7 +2734,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If architecture name already exists for the referenced entity name in document.
 		"""
 		if not isinstance(item, Architecture):
-			ex = TypeError(f"Parameter 'item' is not of type 'Architecture'.")
+			ex = TypeError("Parameter 'item' is not of type 'Architecture'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2765,7 +2765,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If package name already exists in document.
 		"""
 		if not isinstance(item, (Package, PackageInstantiation)):
-			ex = TypeError(f"Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
+			ex = TypeError("Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2789,7 +2789,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If package body name already exists in document.
 		"""
 		if not isinstance(item, PackageBody):
-			ex = TypeError(f"Parameter 'item' is not of type 'PackageBody'.")
+			ex = TypeError("Parameter 'item' is not of type 'PackageBody'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2813,7 +2813,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If context name already exists in document.
 		"""
 		if not isinstance(item, Context):
-			ex = TypeError(f"Parameter 'item' is not of type 'Context'.")
+			ex = TypeError("Parameter 'item' is not of type 'Context'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2837,7 +2837,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If configuration name already exists in document.
 		"""
 		if not isinstance(item, Configuration):
-			ex = TypeError(f"Parameter 'item' is not of type 'Configuration'.")
+			ex = TypeError("Parameter 'item' is not of type 'Configuration'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2854,7 +2854,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddVerificationUnit(self, item: VerificationUnit) -> None:
 		if not isinstance(item, VerificationUnit):
-			ex = TypeError(f"Parameter 'item' is not of type 'VerificationUnit'.")
+			ex = TypeError("Parameter 'item' is not of type 'VerificationUnit'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2870,7 +2870,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddVerificationProperty(self, item: VerificationProperty) -> None:
 		if not isinstance(item, VerificationProperty):
-			ex = TypeError(f"Parameter 'item' is not of type 'VerificationProperty'.")
+			ex = TypeError("Parameter 'item' is not of type 'VerificationProperty'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2886,7 +2886,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddVerificationMode(self, item: VerificationMode) -> None:
 		if not isinstance(item, VerificationMode):
-			ex = TypeError(f"Parameter 'item' is not of type 'VerificationMode'.")
+			ex = TypeError("Parameter 'item' is not of type 'VerificationMode'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2910,7 +2910,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If configuration name already exists in document.
 		"""
 		if not isinstance(item, DesignUnit):
-			ex = TypeError(f"Parameter 'item' is not of type 'DesignUnit'.")
+			ex = TypeError("Parameter 'item' is not of type 'DesignUnit'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2933,7 +2933,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		elif isinstance(item, VerificationMode):
 			self._AddVerificationMode(item)
 		else:
-			ex = ValueError(f"Parameter 'item' is an unknown 'DesignUnit'.")
+			ex = ValueError("Parameter 'item' is an unknown 'DesignUnit'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 

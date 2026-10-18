@@ -862,6 +862,8 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		may share its identifier with its protected type, and a full type with its incomplete type declaration.
 
 		:param index:                      Position, from ``0`` (first) to the number of declared items (append).
+		                                   A negative index counts from the end, as for :meth:`list.insert`: ``-1``
+		                                   inserts before the last declared item.
 		:param declaredItem:               The declared item to insert.
 		:raises ValueError:                If parameter 'index' is ``None``.
 		:raises TypeError:                 If parameter 'index' is not of type :class:`int`.
@@ -895,8 +897,8 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			ex = TypeError("Parameter 'index' is not of type 'int'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
 			raise ex
-		elif index < 0 or index > len(self._declaredItems):
-			ex = ValueError(f"Parameter 'index' is out of range 0..{len(self._declaredItems)}.")
+		elif not (-len(self._declaredItems) <= index <= len(self._declaredItems)):
+			ex = ValueError(f"Parameter 'index' is out of range {-len(self._declaredItems)}..{len(self._declaredItems)}.")
 			ex.add_note(f"Got value '{index}'.")
 			raise ex
 

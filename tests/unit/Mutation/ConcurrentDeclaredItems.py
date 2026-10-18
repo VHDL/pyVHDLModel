@@ -394,17 +394,30 @@ class Insert(Testcase):
 		with self.assertRaises(ValueError) as context:
 			architecture.InsertDeclaredItem(2, _signal("Reset"))
 
-		self.assertEqual("Parameter 'index' is out of range 0..1.", str(context.exception))
+		self.assertEqual("Parameter 'index' is out of range -1..1.", str(context.exception))
 		self.assertListEqual(["Got value '2'."], context.exception.__notes__)
 
 	def test_Insert_IndexNegative(self) -> None:
+		clock = _signal("Clock")
+		enable = _signal("Enable")
+		architecture = _architecture(clock, enable)
+		reset = _signal("Reset")
+
+		architecture.InsertDeclaredItem(-1, reset)
+
+		self.assertListEqual([clock, reset, enable], architecture.DeclaredItems)
+		self.assertIs(architecture, reset.Parent)
+
+	def test_Insert_IndexNegative_OutOfRange(self) -> None:
 		architecture = _architecture(_signal("Clock"))
+		reset = _signal("Reset")
 
 		with self.assertRaises(ValueError) as context:
-			architecture.InsertDeclaredItem(-1, _signal("Reset"))
+			architecture.InsertDeclaredItem(-2, reset)
 
-		self.assertEqual("Parameter 'index' is out of range 0..1.", str(context.exception))
-		self.assertListEqual(["Got value '-1'."], context.exception.__notes__)
+		self.assertEqual("Parameter 'index' is out of range -1..1.", str(context.exception))
+		self.assertListEqual(["Got value '-2'."], context.exception.__notes__)
+		self.assertIsNone(reset.Parent)
 
 
 class InsertBeforeAfter(Testcase):

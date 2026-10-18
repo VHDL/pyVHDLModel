@@ -33,15 +33,20 @@ Indexing tests for declared items (``IndexDeclaredItems``).
 
 Indexing clears what it fills, so indexing again yields the same lookup tables and namespace.
 """
+from pathlib                import Path
+
 from pyTooling.Testing      import Testcase
 
+from pyVHDLModel            import Design, Document, Library
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Concurrent import ProcessStatement
-from pyVHDLModel.DesignUnit import Architecture, Entity, Package
+from pyVHDLModel.DesignUnit import Architecture, Entity, Package, PackageBody
 from pyVHDLModel.Interface  import PortSimpleSignalInterfaceItem
+from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Object     import Constant, DeferredConstant, Variable
 from pyVHDLModel.Subprogram import Function, Procedure
-from pyVHDLModel.Type       import ProtectedType
+from pyVHDLModel.Symbol     import PackageSymbol
+from pyVHDLModel.Type       import ProtectedType, ProtectedTypeBody
 
 from tests.unit             import _entitySymbol, _signal, _subtypeSymbol
 
@@ -142,3 +147,49 @@ class ProtectedTypeDeclaredItems(Testcase):
 		self.assertDictEqual({"get": [function]}, protectedType.Functions)
 		self.assertDictEqual({}, protectedType.Procedures)
 		self.assertDictEqual({"get": function}, protectedType._namespace._elements)
+
+
+class ProtectedTypeBodies(Testcase):
+	"""A protected type body completes its protected type: it's neither a type nor a namespace entry of its own."""
+
+	def test_SameRegion(self) -> None:
+		protectedType = ProtectedType("counter")
+		protectedTypeBody = ProtectedTypeBody("counter")
+		architecture = Architecture("rtl", _entitySymbol("ent"), declaredItems=[protectedType, protectedTypeBody])
+
+		architecture.IndexDeclaredItems()
+
+		self.assertDictEqual({"counter": protectedType}, architecture.Types)
+		self.assertDictEqual({"counter": protectedType}, architecture._namespace._elements)
+
+	def test_Process(self) -> None:
+		protectedType = ProtectedType("counter")
+		protectedTypeBody = ProtectedTypeBody("counter")
+		process = ProcessStatement("proc", declaredItems=[protectedType, protectedTypeBody])
+
+		process.IndexDeclaredItems()
+
+		self.assertDictEqual({"counter": protectedType}, process.Types)
+		self.assertDictEqual({"counter": protectedType}, process._namespace._elements)
+
+	def test_PackageBody(self) -> None:
+		"""A package and its body are one declarative region."""
+		protectedType = ProtectedType("counter")
+		package = Package("pkg", declaredItems=[protectedType])
+		packageBody = PackageBody(PackageSymbol(SimpleName("pkg")), declaredItems=[ProtectedTypeBody("counter")])
+		design = Design()
+		library = Library("work")
+		design.AddLibrary(library)
+		document = Document(Path("virtual.vhdl"))
+		document._AddDesignUnit(package)
+		document._AddDesignUnit(packageBody)
+		design.AddDocument(document, library)
+		design.CreateDependencyGraph()
+		design.LinkPackageBodies()
+
+		package.IndexDeclaredItems()
+		packageBody.IndexDeclaredItems()
+
+		self.assertDictEqual({"counter": protectedType}, package.Types)
+		self.assertDictEqual({}, packageBody.Types)
+		self.assertDictEqual({}, packageBody._namespace._elements)

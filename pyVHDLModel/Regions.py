@@ -878,9 +878,12 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		from pyVHDLModel.DesignUnit import Component
 		from pyVHDLModel.Subprogram import Function, Procedure
-		from pyVHDLModel.Type       import Subtype, FullType
+		from pyVHDLModel.Type       import Subtype, FullType, ProtectedTypeBody
 
-		if isinstance(item, FullType):
+		if isinstance(item, ProtectedTypeBody):
+			# A protected type body completes its protected type.
+			pass
+		elif isinstance(item, FullType):
 			self._types[item._normalizedIdentifier] = item
 			self._namespace.AddElement(item._normalizedIdentifier, item)
 		elif isinstance(item, Subtype):
@@ -936,7 +939,9 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		   items stay in the namespace.
 		2. Iterate all declared items:
 
-		   * Every declared item is added to :attr:`_namespace`.
+		   * Every declared item is added to :attr:`_namespace`, except a protected type body.
+		   * If the declared item is a :class:`~pyVHDLModel.Type.ProtectedTypeBody`, skip it: it completes its protected
+		     type.
 		   * If the declared item is a :class:`~pyVHDLModel.Type.FullType`, then add an entry to :attr:`_types`.
 		   * If the declared item is a :class:`~pyVHDLModel.Type.Subtype`, then add an entry to :attr:`_subtypes`.
 		   * If the declared item is a :class:`~pyVHDLModel.Subprogram.Function`, then add an entry to :attr:`_functions`.
@@ -1123,9 +1128,12 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		:param item: The declared item.
 		"""
 		from pyVHDLModel.Subprogram import Function, Procedure
-		from pyVHDLModel.Type       import Subtype, FullType
+		from pyVHDLModel.Type       import Subtype, FullType, ProtectedTypeBody
 
-		if isinstance(item, FullType):
+		if isinstance(item, ProtectedTypeBody):
+			# A protected type body completes its protected type.
+			pass
+		elif isinstance(item, FullType):
 			self._types[item._normalizedIdentifier] = item
 			self._namespace.AddElement(item._normalizedIdentifier, item)
 		elif isinstance(item, Subtype):
@@ -1162,7 +1170,8 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		All lookup tables are cleared and all declared items are removed from :attr:`_namespace` first. Then every declared
 		item is added to :attr:`_namespace`, and additionally to the lookup table matching its kind. Items of an unhandled
-		kind are passed to :meth:`_IndexOtherDeclaredItem`. Indexing again yields the same lookup tables and namespace.
+		kind are passed to :meth:`_IndexOtherDeclaredItem`. A protected type body completes its protected type, so it's
+		skipped. Indexing again yields the same lookup tables and namespace.
 
 		.. seealso::
 

@@ -129,6 +129,14 @@ class ConcurrentProcedureCalls(Testcase):
 		self.assertIs(procedureName, call.Procedure)
 		self.assertEqual("lbl", call.Label)
 
+	def test_Construction_WithoutLabel(self) -> None:
+		"""``proc(clock, open);``"""
+		procedureName = Symbol(SimpleName("proc"), PossibleReference.Procedure)
+		call = ConcurrentProcedureCall(None, procedureName)
+
+		self.assertIs(procedureName, call.Procedure)
+		self.assertIsNone(call.Label)
+
 
 class ConcurrentBlockStatements(Testcase):
 	"""``BlockStatementMixin``/``LabeledEntityMixin`` wiring is already covered in tests/unit/Base.py;
@@ -352,6 +360,13 @@ class ConcurrentSimpleSignalAssignments(Testcase):
 		self.assertEqual(1, len(assignment.Waveform))
 		self.assertIs(waveformElement, assignment.Waveform[0])
 
+	def test_Construction_WithoutLabel(self) -> None:
+		target = SignalSymbol(SimpleName("s"))
+		assignment = ConcurrentSimpleSignalAssignment(None, target, [WaveformElement(CharacterLiteral("'1'"))])
+
+		self.assertIs(target, assignment.Target)
+		self.assertIsNone(assignment.Label)
+
 
 class ConcurrentAssertStatements(Testcase):
 	def test_Full(self) -> None:
@@ -368,6 +383,16 @@ class ConcurrentAssertStatements(Testcase):
 	def test_NoSeverityNoLabel(self) -> None:
 		statement = ConcurrentAssertStatement(IntegerLiteral(1), CharacterLiteral("a"))
 
+		self.assertIsNone(statement.Severity)
+		self.assertIsNone(statement.Label)
+
+	def test_ConditionOnly(self) -> None:
+		"""``assert sel = '0';``"""
+		condition = IntegerLiteral(1)
+		statement = ConcurrentAssertStatement(condition)
+
+		self.assertIs(condition, statement.Condition)
+		self.assertIsNone(statement.Message)
 		self.assertIsNone(statement.Severity)
 		self.assertIsNone(statement.Label)
 

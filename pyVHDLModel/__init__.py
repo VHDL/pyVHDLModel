@@ -2660,7 +2660,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 class Document(ModelEntity, DocumentedEntityMixin):
 	"""A ``Document`` represents a sourcefile. It contains *primary* and *secondary* design units."""
 
-	_path:                   Path                                #: Path to the document. ``None`` if in-memory document.
+	_path:                   Path                                #: Path to the document.
 	_vhdlVersion:            VHDLVersion                         #: VHDL version used for analyzing this source file.
 	_library:                Library                             #: VHDL library used for analyzing the source file's content into.
 	_designUnits:            List[DesignUnit]                    #: List of all design units defined in a document.
@@ -2688,14 +2688,23 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Initializes a VHDL document.
 
-		:param path:          Path to the document. ``None`` if in-memory document.
+		:param path:          Path to the document.
 		:param documentation: The documentation comment associated with this declaration.
 		:param vhdlVersion:   VHDL version used for analyzing this source file.
 		:param library:       VHDL library used for analyzing the source file's content into.
 		:param parent:        The parent model entity of this entity.
+		:raises ValueError:   If parameter 'path' is None.
+		:raises TypeError:    If parameter 'path' is not of type :class:`~pathlib.Path`.
 		"""
 		super().__init__(parent)
 		DocumentedEntityMixin.__init__(self, documentation)
+
+		if path is None:
+			raise ValueError("Parameter 'path' is None.")
+		elif not isinstance(path, Path):
+			ex = TypeError("Parameter 'path' is not of type 'Path'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(path)}'.")
+			raise ex
 
 		self._path =                   path
 		self._vhdlVersion =            vhdlVersion

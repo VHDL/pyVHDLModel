@@ -669,6 +669,27 @@ class VHDLDocument(Testcase):
 		self.assertEqual(6, len(document.DesignUnits))
 
 
+class VHDLDocumentPath(Testcase):
+	def test_Path(self) -> None:
+		path = Path("tests.vhdl")
+		document = Document(path)
+
+		self.assertIs(path, document.Path)
+
+	def test_Path_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			Document(None)
+
+		self.assertEqual("Parameter 'path' is None.", str(context.exception))
+
+	def test_Path_String(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			Document("tests.vhdl")
+
+		self.assertEqual("Parameter 'path' is not of type 'Path'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
+
 class VHDLDocumentArchitectures(Testcase):
 	def test_Architecture_MixedCase(self) -> None:
 		"""Architectures are indexed by normalized entity and architecture identifiers."""

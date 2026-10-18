@@ -33,7 +33,7 @@
 from pathlib import Path
 
 from pyVHDLModel import Design, Document, VHDLModelException
-from pyVHDLModel.Name import SimpleName, SelectedName, AllName
+from pyVHDLModel.Name import Name, SimpleName, SelectedName, AllName
 from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, AllPackageMembersReferenceSymbol
 from pyVHDLModel.Symbol import ContextReferenceSymbol, EntitySymbol, PackageSymbol, EntityInstantiationSymbol
 from pyVHDLModel.Symbol import SimpleSubtypeSymbol, Symbol, PossibleReference
@@ -217,6 +217,49 @@ class VHDLLibrary(Testcase):
 		design = self.CreateDesign()
 
 		design.Analyze()
+
+
+class LinkInstantiations(Testcase):
+	@staticmethod
+	def _designWithEntityInstantiation(entityName: Name) -> Design:
+		design = Design("example")
+		library = design.GetLibrary("lib_1")
+
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(Entity("entity_A", parent=None))
+		document._AddDesignUnit(Architecture("arch_A", EntitySymbol(SimpleName("entity_A")), parent=None))
+		document._AddDesignUnit(Entity("entity_B", parent=None))
+
+		statements = [EntityInstantiation("inst", EntityInstantiationSymbol(entityName))]
+		architecture = Architecture("arch_B", EntitySymbol(SimpleName("entity_B")), statements=statements, parent=None)
+		document._AddDesignUnit(architecture)
+
+		design.AddDocument(document, library)
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary()
+
+		return design
+
+	def test_EntityInstantiation_WorkLibrary(self) -> None:
+		design = self._designWithEntityInstantiation(SelectedName("entity_A", SimpleName("work")))
+
+		design.Analyze()
+
+		library = design.Libraries["lib_1"]
+		instance = library.Architectures["entity_b"]["arch_b"].Statements[0]
+		self.assertIs(library.Entities["entity_a"], instance.Entity.Entity)
+
+	def test_EntityInstantiation_NoLibraryPrefix(self) -> None:
+		design = self._designWithEntityInstantiation(SimpleName("entity_A"))
+
+		with self.assertRaises(VHDLModelException) as context:
+			design.Analyze()
+
+		self.assertEqual("Direct entity instantiation 'inst' has no library prefix.", str(context.exception))
+		self.assertEqual(
+			["Use a selected name like 'work.entity_A'.", "Entities made visible by a use clause aren't supported."],
+			context.exception.__notes__
+		)
 
 
 class TopLevel(Testcase):

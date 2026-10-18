@@ -1926,7 +1926,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):  # type: Architecture
 			for instance in architecture.IterateInstantiations():
 				if isinstance(instance, EntityInstantiation):
-					libraryName = instance.Entity.Name.Prefix
+					entityName =  instance.Entity.Name
+					libraryName = entityName.Prefix
+					if libraryName is None:
+						ex = VHDLModelException(f"Direct entity instantiation '{instance.Label}' has no library prefix.")
+						ex.add_note(f"Use a selected name like 'work.{entityName.Identifier}'.")
+						ex.add_note("Entities made visible by a use clause aren't supported.")
+						raise ex
+
 					libraryIdentifier = libraryName.Identifier
 					normalizedLibraryIdentifier = libraryName.NormalizedIdentifier
 					if normalizedLibraryIdentifier == "work":

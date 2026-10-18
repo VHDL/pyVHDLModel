@@ -2313,13 +2313,13 @@ class IndexedAggregateElement(AggregateElement):
 	      --      ^                           <- Index
 	      --           ^^^                    <- Expression
 	"""
-	_index: int  #: The index selecting the element this value is assigned to.
+	_index: ExpressionUnion  #: The index expression selecting the element this value is assigned to.
 
 	def __init__(self, index: ExpressionUnion, expression: ExpressionUnion, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes an aggregate element chosen by an index.
 
-		:param index:      The index selecting the element this value is assigned to.
+		:param index:      The index expression selecting the element this value is assigned to.
 		:param expression: The expression this aggregate element supplies.
 		:param parent:     The parent model entity of this entity.
 		"""
@@ -2328,11 +2328,11 @@ class IndexedAggregateElement(AggregateElement):
 		self._index = index
 
 	@readonly
-	def Index(self) -> int:
+	def Index(self) -> ExpressionUnion:
 		"""
-		Read-only property to access the index (:attr:`_index`).
+		Read-only property to access the index expression (:attr:`_index`).
 
-		:returns: The index.
+		:returns: The index expression.
 		"""
 		return self._index
 

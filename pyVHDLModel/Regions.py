@@ -692,9 +692,12 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		for normalizedIdentifier in normalizedIdentifiersOf(element):
 			self._namespace.RemoveElement(normalizedIdentifier, element)
 
-	def _IndexOtherDeclaredItem(self, item) -> None:
-		"""Hook for declared items the region doesn't handle itself. Derived classes may override it."""
-		pass
+	def _IndexOtherDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Hook for declared items the region doesn't handle itself. Derived classes may override it.
+
+		:param item: The declared item.
+		"""
 
 	def _UnindexOtherDeclaredItem(self, item: ModelEntity) -> None:
 		"""
@@ -702,7 +705,6 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 
 		:param item: The declared item.
 		"""
-		pass
 
 	def _RemoveDeclaredItemsFromNamespace(self) -> None:
 		"""

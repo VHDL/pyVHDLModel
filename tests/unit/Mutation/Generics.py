@@ -167,7 +167,11 @@ class Generics(Testcase):
 		with self.assertRaises(DuplicateGenericError) as context:
 			entity.AddGenericItem(duplicate)
 
-		self.assertEqual("Entity already has a generic 'bits'.", str(context.exception))
+		self.assertEqual("Entity already declares 'bits'.", str(context.exception))
+		self.assertListEqual(
+			["Existing declaration is of type 'pyVHDLModel.Interface.GenericConstantInterfaceItem'."],
+			context.exception.__notes__
+		)
 		self.assertEqual(1, entity.GenericCount)
 		self.assertIsNone(duplicate.Parent)
 		self.assertNotIn("depth", entity._namespace._elements)
@@ -431,7 +435,7 @@ class Generics(Testcase):
 		self.assertDictEqual({}, entity._namespace._elements)
 
 	def test_Contract(self) -> None:
-		"""A host class without the namespace methods expected by the mixin can't be instantiated."""
+		"""A host class without the methods expected by the mixin can't be instantiated."""
 		class Host(ModelEntity, WithGenericsMixin):
 			def __init__(self) -> None:
 				super().__init__()
@@ -445,6 +449,7 @@ class Generics(Testcase):
 			[
 				"Missing '_AddToNamespace', expected by 'WithGenericsMixin'.",
 				"Missing '_RemoveFromNamespace', expected by 'WithGenericsMixin'.",
+				"Missing '_ClashingDeclarations', expected by 'WithGenericsMixin'.",
 			],
 			context.exception.__notes__
 		)

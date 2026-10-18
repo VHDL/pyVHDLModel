@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from __future__                import annotations
 
-from typing                    import ClassVar, Union, Iterable, Optional as Nullable
+from typing                    import ClassVar, List, Dict, Union, Iterable, Optional as Nullable, Tuple
 
 from pyTooling.Decorators      import export, readonly
 from pyTooling.MetaClasses     import ExtendedType, abstractmethod
@@ -45,6 +45,7 @@ from pyTooling.Graph           import Vertex
 from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Exception     import VHDLModelException
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Base          import normalizedIdentifiersOf
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
@@ -618,6 +619,14 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 		else:
 			super()._UnindexOtherDeclaredItem(item)
 
+	def _SharedRegions(self) -> Tuple[ConcurrentDeclarationRegionMixin, ...]:
+		"""
+		Return the other language constructs forming one declarative region with this package.
+
+		:returns: Tuple of the package body, if linked (:attr:`_packageBody`).
+		"""
+		return () if self._packageBody is None else (self._packageBody, )
+
 	def __str__(self) -> str:
 		"""
 		Formats the package declaration.
@@ -655,6 +664,14 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 		self._IndexGenericItems()
 
 		super().IndexDeclaredItems()
+
+	def _Declarations(self) -> List[ModelEntity]:
+		"""
+		Return all declarations of this package: its generics share the declarative region.
+
+		:returns: List of declarations: the generics, then the declared items.
+		"""
+		return [*self._genericItems, *super()._Declarations()]
 
 
 @export
@@ -724,6 +741,15 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 
 	def LinkDeclaredItemsToPackage(self) -> None:
 		pass
+
+	def _SharedRegions(self) -> Tuple[ConcurrentDeclarationRegionMixin, ...]:
+		"""
+		Return the other language constructs forming one declarative region with this package body.
+
+		:returns: Tuple of the package, if linked.
+		"""
+		package = self._package.Package
+		return () if package is None else (package, )
 
 	def __str__(self) -> str:
 		"""
@@ -858,6 +884,22 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 
 		super().IndexDeclaredItems()
 
+	def _Declarations(self) -> List[ModelEntity]:
+		"""
+		Return all declarations of this entity: its generics and ports share the declarative region.
+
+		:returns: List of declarations: the generics, the ports, then the declared items.
+		"""
+		return [*self._genericItems, *self._portItems, *super()._Declarations()]
+
+	def _SharedRegions(self) -> Tuple[ConcurrentDeclarationRegionMixin, ...]:
+		"""
+		Return the other language constructs forming one declarative region with this entity.
+
+		:returns: Tuple of the linked architectures (:attr:`_architectures`).
+		"""
+		return tuple(self._architectures.values())
+
 
 @export
 class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin, AllowBlackboxMixin):
@@ -950,6 +992,15 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 
 		return f"{lib}.{ent}({self._identifier})"
 
+	def _SharedRegions(self) -> Tuple[ConcurrentDeclarationRegionMixin, ...]:
+		"""
+		Return the other language constructs forming one declarative region with this architecture.
+
+		:returns: Tuple of the entity, if linked.
+		"""
+		entity = self._entity.Entity
+		return () if entity is None else (entity, )
+
 
 @export
 class Component(
@@ -1022,6 +1073,19 @@ class Component(
 
 		:param element: The named element, e.g. an interface item.
 		"""
+
+	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> List[ModelEntity]:
+		"""
+		Return the generics and ports of this component sharing an identifier with the given item.
+
+		:param item: The new generic or port.
+		:returns:    List of clashing generics and ports.
+		"""
+		identifiers = set(normalizedIdentifiersOf(item))
+		return [
+			declaration for declaration in (*self._genericItems, *self._portItems)
+			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
+		]
 
 	@readonly
 	def IsBlackbox(self) -> Nullable[bool]:

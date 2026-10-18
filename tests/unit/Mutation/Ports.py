@@ -126,7 +126,11 @@ class Ports(Testcase):
 		with self.assertRaises(DuplicatePortError) as context:
 			entity.AddPortItem(duplicate)
 
-		self.assertEqual("Entity already has a port 'CLOCK'.", str(context.exception))
+		self.assertEqual("Entity already declares 'CLOCK'.", str(context.exception))
+		self.assertListEqual(
+			["Existing declaration is of type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
+			context.exception.__notes__
+		)
 		self.assertEqual(1, entity.PortCount)
 		self.assertIsNone(duplicate.Parent)
 
@@ -311,7 +315,7 @@ class Ports(Testcase):
 		self.assertDictEqual({}, entity._namespace._elements)
 
 	def test_Contract(self) -> None:
-		"""A host class without the namespace methods expected by the mixin can't be instantiated."""
+		"""A host class without the methods expected by the mixin can't be instantiated."""
 		class Host(ModelEntity, WithPortsMixin):
 			def __init__(self) -> None:
 				super().__init__()
@@ -325,6 +329,7 @@ class Ports(Testcase):
 			[
 				"Missing '_AddToNamespace', expected by 'WithPortsMixin'.",
 				"Missing '_RemoveFromNamespace', expected by 'WithPortsMixin'.",
+				"Missing '_ClashingDeclarations', expected by 'WithPortsMixin'.",
 			],
 			context.exception.__notes__
 		)

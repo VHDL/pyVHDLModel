@@ -51,7 +51,7 @@ from pyVHDLModel.Exception   import DuplicateDeclarationError, DuplicateTypeErro
 from pyVHDLModel.Exception   import DuplicateConstantError, DuplicateSignalError, DuplicateVariableError
 from pyVHDLModel.Exception   import DuplicateFileError, DuplicateComponentError, DuplicateSubprogramError
 from pyVHDLModel.Namespace   import Namespace
-from pyVHDLModel.Object      import BaseConstant, Constant, SharedVariable, File, Variable, Signal
+from pyVHDLModel.Object      import BaseConstant, Constant, DeferredConstant, SharedVariable, File, Variable, Signal
 if TYPE_CHECKING:
 	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin
 	from pyVHDLModel.Interface import PortSignalInterfaceItem
@@ -63,13 +63,20 @@ if TYPE_CHECKING:
 
 
 @export
-class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespace", "_RemoveFromNamespace")):
+class WithGenericsMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=("_AddToNamespace", "_RemoveFromNamespace", "_ClashingDeclarations")
+):
 	"""
 	A mixin-class for language constructs with a generic clause.
 
 	The host class provides ``_AddToNamespace(element)`` and ``_RemoveFromNamespace(element)``, called when a generic is
 	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace, a language construct
 	without a namespace implements both as no-operations.
+
+	The host class also provides ``_ClashingDeclarations(item)``, called before a generic is inserted: it returns the
+	declarations sharing an identifier with the new item.
 
 	.. seealso::
 
@@ -121,15 +128,13 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 		The generic's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
-		:param genericItem:                    The generic to add.
-		:raises ValueError:                    If parameter 'genericItem' is ``None``.
-		:raises TypeError:                     If parameter 'genericItem' is not of type
-		                                       :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
-		:raises AlreadyInDesignError:          If parameter 'genericItem' already has a parent.
-		:raises DuplicateGenericError:         If the generic clause already has a generic of the same identifier.
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:param genericItem:            The generic to add.
+		:raises ValueError:            If parameter 'genericItem' is ``None``.
+		:raises TypeError:             If parameter 'genericItem' is not of type
+		                               :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises AlreadyInDesignError:  If parameter 'genericItem' already has a parent.
+		:raises DuplicateGenericError: If an existing declaration of the language construct shares an identifier
+		                               with the generic.
 
 		.. seealso::
 
@@ -147,21 +152,19 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 		The generic's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
-		:param index:                          Position, from ``0`` (first) to :data:`GenericCount` (append).
-		                                       A negative index counts from the end, as for :meth:`list.insert`: ``-1``
-		                                       inserts before the last generic.
-		:param genericItem:                    The generic to insert.
-		:raises ValueError:                    If parameter 'index' is ``None``.
-		:raises TypeError:                     If parameter 'index' is not of type :class:`int`.
-		:raises ValueError:                    If parameter 'index' is out of range.
-		:raises ValueError:                    If parameter 'genericItem' is ``None``.
-		:raises TypeError:                     If parameter 'genericItem' is not of type
-		                                       :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
-		:raises AlreadyInDesignError:          If parameter 'genericItem' already has a parent.
-		:raises DuplicateGenericError:         If the generic clause already has a generic of the same identifier.
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:param index:                  Position, from ``0`` (first) to :data:`GenericCount` (append).
+		                               A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
+		                               before the last generic.
+		:param genericItem:            The generic to insert.
+		:raises ValueError:            If parameter 'index' is ``None``.
+		:raises TypeError:             If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:            If parameter 'index' is out of range.
+		:raises ValueError:            If parameter 'genericItem' is ``None``.
+		:raises TypeError:             If parameter 'genericItem' is not of type
+		                               :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises AlreadyInDesignError:  If parameter 'genericItem' already has a parent.
+		:raises DuplicateGenericError: If an existing declaration of the language construct shares an identifier
+		                               with the generic.
 
 		.. seealso::
 
@@ -195,11 +198,14 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 			ex.add_note(f"Remove it from its {getTypeName(genericItem._parent)} first.")
 			raise ex
 
-		existingIdentifiers = {name for item in self._genericItems for name in normalizedIdentifiersOf(item)}
-		newIdentifiers = zip(identifiersOf(genericItem), normalizedIdentifiersOf(genericItem))
-		for identifier, normalizedIdentifier in newIdentifiers:
-			if normalizedIdentifier in existingIdentifiers:
-				raise DuplicateGenericError(f"{getTypeName(self)} already has a generic '{identifier}'.")
+		clashes = self._ClashingDeclarations(genericItem)
+		if len(clashes) > 0:
+			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
+			newIdentifiers = zip(identifiersOf(genericItem), normalizedIdentifiersOf(genericItem))
+			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
+			ex = DuplicateGenericError(f"{clashes[0]._parent.__class__.__name__} already declares '{identifier}'.")
+			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
+			raise ex
 
 		self._genericItems.insert(index, genericItem)
 		genericItem.Parent = self
@@ -253,13 +259,20 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 
 
 @export
-class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespace", "_RemoveFromNamespace")):
+class WithPortsMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=("_AddToNamespace", "_RemoveFromNamespace", "_ClashingDeclarations")
+):
 	"""
 	A mixin-class for language constructs with a port clause.
 
 	The host class provides ``_AddToNamespace(element)`` and ``_RemoveFromNamespace(element)``, called when a port is
 	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace, a language construct
 	without a namespace implements both as no-operations.
+
+	The host class also provides ``_ClashingDeclarations(item)``, called before a port is inserted: it returns the
+	declarations sharing an identifier with the new item.
 
 	.. seealso::
 
@@ -310,15 +323,13 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 		The port's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
-		:param portItem:                       The port to add.
-		:raises ValueError:                    If parameter 'portItem' is ``None``.
-		:raises TypeError:                     If parameter 'portItem' is not of type
-		                                       :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
-		:raises AlreadyInDesignError:          If parameter 'portItem' already has a parent.
-		:raises DuplicatePortError:            If the port clause already has a port of the same identifier.
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:param portItem:              The port to add.
+		:raises ValueError:           If parameter 'portItem' is ``None``.
+		:raises TypeError:            If parameter 'portItem' is not of type
+		                              :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises AlreadyInDesignError: If parameter 'portItem' already has a parent.
+		:raises DuplicatePortError:   If an existing declaration of the language construct shares an identifier
+		                              with the port.
 
 		.. seealso::
 
@@ -336,21 +347,19 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 		The port's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
-		:param index:                          Position, from ``0`` (first) to :data:`PortCount` (append).
-		                                       A negative index counts from the end, as for :meth:`list.insert`: ``-1``
-		                                       inserts before the last port.
-		:param portItem:                       The port to insert.
-		:raises ValueError:                    If parameter 'index' is ``None``.
-		:raises TypeError:                     If parameter 'index' is not of type :class:`int`.
-		:raises ValueError:                    If parameter 'index' is out of range.
-		:raises ValueError:                    If parameter 'portItem' is ``None``.
-		:raises TypeError:                     If parameter 'portItem' is not of type
-		                                       :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
-		:raises AlreadyInDesignError:          If parameter 'portItem' already has a parent.
-		:raises DuplicatePortError:            If the port clause already has a port of the same identifier.
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:param index:                 Position, from ``0`` (first) to :data:`PortCount` (append).
+		                              A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
+		                              before the last port.
+		:param portItem:              The port to insert.
+		:raises ValueError:           If parameter 'index' is ``None``.
+		:raises TypeError:            If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:           If parameter 'index' is out of range.
+		:raises ValueError:           If parameter 'portItem' is ``None``.
+		:raises TypeError:            If parameter 'portItem' is not of type
+		                              :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises AlreadyInDesignError: If parameter 'portItem' already has a parent.
+		:raises DuplicatePortError:   If an existing declaration of the language construct shares an identifier
+		                              with the port.
 
 		.. seealso::
 
@@ -384,11 +393,14 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 			ex.add_note(f"Remove it from its {getTypeName(portItem._parent)} first.")
 			raise ex
 
-		existingIdentifiers = {name for item in self._portItems for name in normalizedIdentifiersOf(item)}
-		newIdentifiers = zip(identifiersOf(portItem), normalizedIdentifiersOf(portItem))
-		for identifier, normalizedIdentifier in newIdentifiers:
-			if normalizedIdentifier in existingIdentifiers:
-				raise DuplicatePortError(f"{getTypeName(self)} already has a port '{identifier}'.")
+		clashes = self._ClashingDeclarations(portItem)
+		if len(clashes) > 0:
+			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
+			newIdentifiers = zip(identifiersOf(portItem), normalizedIdentifiersOf(portItem))
+			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
+			ex = DuplicatePortError(f"{clashes[0]._parent.__class__.__name__} already declares '{identifier}'.")
+			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
+			raise ex
 
 		self._portItems.insert(index, portItem)
 		portItem.Parent = self
@@ -442,13 +454,20 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 
 
 @export
-class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespace", "_RemoveFromNamespace")):
+class WithParametersMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=("_AddToNamespace", "_RemoveFromNamespace", "_ClashingDeclarations")
+):
 	"""
 	A mixin-class for language constructs with a parameter list.
 
 	The host class provides ``_AddToNamespace(element)`` and ``_RemoveFromNamespace(element)``, called when a parameter is
 	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace, a language construct
 	without a namespace implements both as no-operations.
+
+	The host class also provides ``_ClashingDeclarations(item)``, called before a parameter is inserted: it returns the
+	declarations sharing an identifier with the new item.
 
 	.. seealso::
 
@@ -497,15 +516,13 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 		The parameter's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
-		:param parameterItem:                  The parameter to add.
-		:raises ValueError:                    If parameter 'parameterItem' is ``None``.
-		:raises TypeError:                     If parameter 'parameterItem' is not of type
-		                                       :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
-		:raises AlreadyInDesignError:          If parameter 'parameterItem' already has a parent.
-		:raises DuplicateParameterError:       If the parameter list already has a parameter of the same identifier.
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:param parameterItem:            The parameter to add.
+		:raises ValueError:              If parameter 'parameterItem' is ``None``.
+		:raises TypeError:               If parameter 'parameterItem' is not of type
+		                                 :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises AlreadyInDesignError:    If parameter 'parameterItem' already has a parent.
+		:raises DuplicateParameterError: If an existing declaration of the language construct shares an identifier
+		                                 with the parameter.
 
 		.. seealso::
 
@@ -523,21 +540,19 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 		The parameter's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
-		:param index:                          Position, from ``0`` (first) to :data:`ParameterCount` (append).
-		                                       A negative index counts from the end, as for :meth:`list.insert`: ``-1``
-		                                       inserts before the last parameter.
-		:param parameterItem:                  The parameter to insert.
-		:raises ValueError:                    If parameter 'index' is ``None``.
-		:raises TypeError:                     If parameter 'index' is not of type :class:`int`.
-		:raises ValueError:                    If parameter 'index' is out of range.
-		:raises ValueError:                    If parameter 'parameterItem' is ``None``.
-		:raises TypeError:                     If parameter 'parameterItem' is not of type
-		                                       :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
-		:raises AlreadyInDesignError:          If parameter 'parameterItem' already has a parent.
-		:raises DuplicateParameterError:       If the parameter list already has a parameter of the same identifier.
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:param index:                    Position, from ``0`` (first) to :data:`ParameterCount` (append).
+		                                 A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
+		                                 before the last parameter.
+		:param parameterItem:            The parameter to insert.
+		:raises ValueError:              If parameter 'index' is ``None``.
+		:raises TypeError:               If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:              If parameter 'index' is out of range.
+		:raises ValueError:              If parameter 'parameterItem' is ``None``.
+		:raises TypeError:               If parameter 'parameterItem' is not of type
+		                                 :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises AlreadyInDesignError:    If parameter 'parameterItem' already has a parent.
+		:raises DuplicateParameterError: If an existing declaration of the language construct shares an identifier
+		                                 with the parameter.
 
 		.. seealso::
 
@@ -571,11 +586,14 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 			ex.add_note(f"Remove it from its {getTypeName(parameterItem._parent)} first.")
 			raise ex
 
-		existingIdentifiers = {name for item in self._parameterItems for name in normalizedIdentifiersOf(item)}
-		newIdentifiers = zip(identifiersOf(parameterItem), normalizedIdentifiersOf(parameterItem))
-		for identifier, normalizedIdentifier in newIdentifiers:
-			if normalizedIdentifier in existingIdentifiers:
-				raise DuplicateParameterError(f"{getTypeName(self)} already has a parameter '{identifier}'.")
+		clashes = self._ClashingDeclarations(parameterItem)
+		if len(clashes) > 0:
+			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
+			newIdentifiers = zip(identifiersOf(parameterItem), normalizedIdentifiersOf(parameterItem))
+			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
+			ex = DuplicateParameterError(f"{clashes[0]._parent.__class__.__name__} already declares '{identifier}'.")
+			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
+			raise ex
 
 		self._parameterItems.insert(index, parameterItem)
 		parameterItem.Parent = self
@@ -686,11 +704,17 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Add an element's identifiers to this region's namespace.
 
-		Nothing is added to a region not indexed yet: :meth:`IndexDeclaredItems` adds the element later.
+		Nothing is added to a region not indexed yet: :meth:`IndexDeclaredItems` adds the element later. A generic
+		subprogram is an overload (:meth:`_AddOverloadToNamespace`).
 
 		:param element: The named element to add, e.g. an interface item.
 		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
 		if not self._isIndexed:
+			return
+		elif isinstance(element, (Function, Procedure)):
+			self._AddOverloadToNamespace(element)
 			return
 
 		for normalizedIdentifier in normalizedIdentifiersOf(element):
@@ -700,7 +724,8 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Remove an element's identifiers from this region's namespace.
 
-		Nothing is removed from a region not indexed yet, as its namespace doesn't contain the element.
+		Nothing is removed from a region not indexed yet, as its namespace doesn't contain the element. A generic
+		subprogram is an overload (:meth:`_RemoveOverloadFromNamespace`).
 
 		:param element:              The named element to remove, e.g. an interface item.
 		:raises NotInNamespaceError: If the region is indexed, and an identifier of the element isn't declared in the
@@ -708,7 +733,12 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		:raises NotInNamespaceError: If the region is indexed, and an identifier of the element refers to another element,
 		                             e.g. a duplicate declaration.
 		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
 		if not self._isIndexed:
+			return
+		elif isinstance(element, (Function, Procedure)):
+			self._RemoveOverloadFromNamespace(element)
 			return
 
 		for normalizedIdentifier in normalizedIdentifiersOf(element):
@@ -771,8 +801,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Add an inserted function or procedure to its lookup table and to the namespace.
 
-		The list of overloads follows the declaration order. The namespace refers to the overload declared last, as after
-		:meth:`IndexDeclaredItems`.
+		The list of overloads follows the declaration order. The namespace is updated by :meth:`_AddOverloadToNamespace`.
 
 		:param item: The inserted function or procedure.
 		"""
@@ -786,22 +815,58 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			if isinstance(declaration, kind) and declaration._normalizedIdentifier == normalizedIdentifier
 		]
 
-		overloads = [
-			declaration for declaration in self._declaredItems
-			if isinstance(declaration, (Function, Procedure)) and declaration._normalizedIdentifier == normalizedIdentifier
-		]
-		if overloads[-1] is item:
-			self._namespace.AddElement(normalizedIdentifier, item, overloadable=True)
+		self._AddOverloadToNamespace(item)
 
 	def _UnindexOverload(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""
 		Remove a function or procedure from its lookup table and from the namespace.
 
-		The namespace refers to the overload declared last. Removing it, the namespace refers to the remaining overload
-		declared last, or the identifier is removed, if no overload remains. Removing another overload leaves the namespace
-		unchanged.
+		The namespace is updated first, by :meth:`_RemoveOverloadFromNamespace`.
 
 		:param item:                 The function or procedure to remove, still a declared item of this region.
+		:raises NotInNamespaceError: If the identifier isn't declared in the namespace.
+		:raises NotInNamespaceError: If the identifier refers to an element, which is no overload, e.g. a duplicate
+		                             declaration.
+		"""
+		from pyVHDLModel.Subprogram import Function
+
+		self._RemoveOverloadFromNamespace(item)
+
+		normalizedIdentifier = item._normalizedIdentifier
+		lookupTable = self._functions if isinstance(item, Function) else self._procedures
+		overloads = lookupTable[normalizedIdentifier]
+		overloads.remove(item)
+		if len(overloads) == 0:
+			del lookupTable[normalizedIdentifier]
+
+	def _AddOverloadToNamespace(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Add a function or procedure to the namespace, if it's the overload declared last.
+
+		The namespace keeps one entry per identifier: the overload declared last, as after :meth:`IndexDeclaredItems`, which
+		adds interface items first, then declared items (:meth:`_Declarations`).
+
+		:param item: The function or procedure, already an interface item or declared item of this region.
+		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
+		normalizedIdentifier = item._normalizedIdentifier
+		overloads = [
+			declaration for declaration in self._Declarations()
+			if isinstance(declaration, (Function, Procedure)) and declaration._normalizedIdentifier == normalizedIdentifier
+		]
+		if overloads[-1] is item:
+			self._namespace.AddElement(normalizedIdentifier, item, overloadable=True)
+
+	def _RemoveOverloadFromNamespace(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Remove a function or procedure from the namespace.
+
+		Removing the overload the namespace refers to, the namespace refers to the remaining overload declared last
+		(:meth:`_Declarations`), or the identifier is removed, if no overload remains. Removing another overload leaves the
+		namespace unchanged. The namespace is checked before it's changed.
+
+		:param item:                 The function or procedure, still an interface item or declared item of this region.
 		:raises NotInNamespaceError: If the identifier isn't declared in the namespace.
 		:raises NotInNamespaceError: If the identifier refers to an element, which is no overload, e.g. a duplicate
 		                             declaration.
@@ -810,28 +875,89 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 
 		normalizedIdentifier = item._normalizedIdentifier
 		entry = self._namespace.Elements().get(normalizedIdentifier)
-		if entry is not item and not isinstance(entry, (Function, Procedure)):
-			# raises NotInNamespaceError, naming the reason
-			self._namespace.RemoveElement(normalizedIdentifier, item)
-
-		remaining = [
-			declaration for declaration in self._declaredItems
-			if declaration is not item
-			and isinstance(declaration, (Function, Procedure))
-			and declaration._normalizedIdentifier == normalizedIdentifier
-		]
-
-		lookupTable = self._functions if isinstance(item, Function) else self._procedures
-		overloads = lookupTable[normalizedIdentifier]
-		overloads.remove(item)
-		if len(overloads) == 0:
-			del lookupTable[normalizedIdentifier]
-
 		if entry is item:
+			remaining = [
+				declaration for declaration in self._Declarations()
+				if declaration is not item
+				and isinstance(declaration, (Function, Procedure))
+				and declaration._normalizedIdentifier == normalizedIdentifier
+			]
 			if len(remaining) == 0:
 				self._namespace.RemoveElement(normalizedIdentifier, item)
 			else:
 				self._namespace.AddElement(normalizedIdentifier, remaining[-1], overloadable=True)
+		elif not isinstance(entry, (Function, Procedure)):
+			# raises NotInNamespaceError, naming the reason
+			self._namespace.RemoveElement(normalizedIdentifier, item)
+
+	def _SharedRegions(self) -> Tuple[DeclarationRegionMixin, ...]:
+		"""
+		Return the other language constructs forming one declarative region with this one.
+
+		An entity and each of its architectures form one declarative region, as do a package and its body. Derived classes
+		override it.
+
+		:returns: Tuple of declarative regions.
+		"""
+		return ()
+
+	def _MayShareIdentifier(self, item: ModelEntity, existing: ModelEntity) -> bool:
+		"""
+		Check if two declarations may share an identifier in one declarative region.
+
+		Subprograms are overloadable. A protected type body completes its protected type, a full type completes its
+		incomplete type, and a constant completes its deferred constant.
+
+		:param item:     The new declaration.
+		:param existing: The existing declaration.
+		:returns:        ``True``, if both declarations may share an identifier.
+		"""
+		from pyVHDLModel.Interface  import InterfaceItemMixin
+		from pyVHDLModel.Subprogram import Function, Procedure
+		from pyVHDLModel.Type       import FullType, AnonymousType, ProtectedType, ProtectedTypeBody
+
+		return (
+			(isinstance(item, (Function, Procedure)) and isinstance(existing, (Function, Procedure)))
+			or (isinstance(item, ProtectedTypeBody) and isinstance(existing, ProtectedType))
+			or (isinstance(item, ProtectedType) and isinstance(existing, ProtectedTypeBody))
+			or (isinstance(item, FullType) and isinstance(existing, AnonymousType))
+			or (isinstance(item, AnonymousType) and isinstance(existing, FullType))
+			or (
+				isinstance(item, Constant) and not isinstance(item, InterfaceItemMixin)
+				and isinstance(existing, DeferredConstant)
+			)
+			or (
+				isinstance(item, DeferredConstant)
+				and isinstance(existing, Constant) and not isinstance(existing, InterfaceItemMixin)
+			)
+		)
+
+	def _ClashingDeclarations(self, item: ModelEntity) -> List[ModelEntity]:
+		"""
+		Return the declarations sharing an identifier with the given item, which may not share it.
+
+		The declarations (:meth:`_Declarations`) of this declarative region and of the language constructs sharing it
+		(:meth:`_SharedRegions`) are searched. Items imported into the namespace (e.g. by a use clause) are no declarations.
+
+		:param item: The new declaration.
+		:returns:    List of clashing declarations, interface items first, then declared items in declaration order.
+		"""
+		if not isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
+			return []
+
+		identifiers = set(normalizedIdentifiersOf(item))
+		clashes = []
+		for region in (self, *self._SharedRegions()):
+			for declaration in region._Declarations():
+				if (
+					declaration is not item
+					and isinstance(declaration, (NamedEntityMixin, MultipleNamedEntityMixin))
+					and not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
+					and not self._MayShareIdentifier(item, declaration)
+				):
+					clashes.append(declaration)
+
+		return clashes
 
 	def _DeclaredItemsSharingIdentifiers(self, declaredItem: ModelEntity) -> list[ModelEntity]:
 		"""
@@ -858,16 +984,13 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		The declared item's parent is set to this declarative region. If the region is indexed, its identifiers are added
 		to the region's namespace and to the lookup table matching its kind.
 
-		:param declaredItem:                   The declared item to add.
-		:raises ValueError:                    If parameter 'declaredItem' is ``None``.
-		:raises TypeError:                     If parameter 'declaredItem' is not a declaration allowed in this declarative
-		                                       region.
-		:raises AlreadyInDesignError:          If parameter 'declaredItem' already has a parent.
-		:raises DuplicateDeclarationError:     If the declarative region already declares an identifier of the declared
-		                                       item, unless both declarations are subprograms.
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:param declaredItem:               The declared item to add.
+		:raises ValueError:                If parameter 'declaredItem' is ``None``.
+		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
+		                                   region.
+		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
+		:raises DuplicateDeclarationError: If an existing declaration of the declarative region shares an
+		                                   identifier with the declared item.
 
 		.. seealso::
 
@@ -885,25 +1008,25 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		The declared item's parent is set to this declarative region. If the region is indexed, its identifiers are added
 		to the region's namespace and to the lookup table matching its kind.
 
+		An identifier is declared once per declarative region: interface items and declared items count, including those of
+		the language construct sharing the declarative region (an entity and its architecture, a package and its body).
 		Subprograms are overloadable: a subprogram may share its identifier with other subprograms. A protected type body
-		may share its identifier with its protected type, and a full type with its incomplete type declaration.
+		may share its identifier with its protected type, a full type with its incomplete type declaration, and a constant
+		with its deferred constant. Items imported into the namespace (e.g. by a use clause) are hidden.
 
-		:param index:                          Position, from ``0`` (first) to the number of declared items (append).
-		                                       A negative index counts from the end, as for :meth:`list.insert`: ``-1``
-		                                       inserts before the last declared item.
-		:param declaredItem:                   The declared item to insert.
-		:raises ValueError:                    If parameter 'index' is ``None``.
-		:raises TypeError:                     If parameter 'index' is not of type :class:`int`.
-		:raises ValueError:                    If parameter 'index' is out of range.
-		:raises ValueError:                    If parameter 'declaredItem' is ``None``.
-		:raises TypeError:                     If parameter 'declaredItem' is not a declaration allowed in this declarative
-		                                       region.
-		:raises AlreadyInDesignError:          If parameter 'declaredItem' already has a parent.
-		:raises DuplicateDeclarationError:     If the declarative region already declares an identifier of the declared
-		                                       item, unless both declarations are subprograms.
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:param index:                      Position, from ``0`` (first) to the number of declared items (append).
+		                                   A negative index counts from the end, as for :meth:`list.insert`: ``-1``
+		                                   inserts before the last declared item.
+		:param declaredItem:               The declared item to insert.
+		:raises ValueError:                If parameter 'index' is ``None``.
+		:raises TypeError:                 If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:                If parameter 'index' is out of range.
+		:raises ValueError:                If parameter 'declaredItem' is ``None``.
+		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
+		                                   region.
+		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
+		:raises DuplicateDeclarationError: If an existing declaration of the declarative region shares an
+		                                   identifier with the declared item.
 
 		.. seealso::
 
@@ -919,7 +1042,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		from pyVHDLModel.DesignUnit import Component
 		from pyVHDLModel.Interface  import InterfaceItemMixin
 		from pyVHDLModel.Subprogram import Function, Procedure
-		from pyVHDLModel.Type       import BaseType, Subtype, FullType, AnonymousType, ProtectedType, ProtectedTypeBody
+		from pyVHDLModel.Type       import BaseType, Subtype
 
 		if index is None:
 			raise ValueError("Parameter 'index' is None.")
@@ -946,20 +1069,9 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			ex.add_note(f"Remove it from its {getTypeName(declaredItem._parent)} first.")
 			raise ex
 
-		sharingItems = self._DeclaredItemsSharingIdentifiers(declaredItem)
-		for item in sharingItems:
-			if isinstance(declaredItem, (Function, Procedure)) and isinstance(item, (Function, Procedure)):
-				continue
-			elif isinstance(declaredItem, ProtectedTypeBody) and isinstance(item, ProtectedType):
-				continue
-			elif isinstance(declaredItem, ProtectedType) and isinstance(item, ProtectedTypeBody):
-				continue
-			elif isinstance(declaredItem, FullType) and isinstance(item, AnonymousType):
-				continue
-			elif isinstance(declaredItem, AnonymousType) and isinstance(item, FullType):
-				continue
-
-			existingIdentifiers = normalizedIdentifiersOf(item)
+		clashes = self._ClashingDeclarations(declaredItem)
+		if len(clashes) > 0:
+			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(declaredItem), normalizedIdentifiersOf(declaredItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
 			if isinstance(declaredItem, Subtype):
@@ -980,9 +1092,11 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 				errorClass = DuplicateComponentError
 			else:
 				errorClass = DuplicateDeclarationError
-			ex = errorClass(f"{getTypeName(self)} already declares '{identifier}'.")
-			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(item)}'.")
+			ex = errorClass(f"{clashes[0]._parent.__class__.__name__} already declares '{identifier}'.")
+			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
+
+		sharingItems = self._DeclaredItemsSharingIdentifiers(declaredItem)
 
 		self._declaredItems.insert(index, declaredItem)
 		declaredItem.Parent = self
@@ -999,20 +1113,17 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		The declared item's parent is set to this declarative region. If the region is indexed, its identifiers are added
 		to the region's namespace and to the lookup table matching its kind.
 
-		:param declaredItem:                   The declared item to insert.
-		:param before:                         The declared item of this declarative region to insert before.
-		:raises ValueError:                    If parameter 'before' is ``None``.
-		:raises TypeError:                     If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError:                If parameter 'before' is not a declared item of this declarative region.
-		:raises ValueError:                    If parameter 'declaredItem' is ``None``.
-		:raises TypeError:                     If parameter 'declaredItem' is not a declaration allowed in this declarative
-		                                       region.
-		:raises AlreadyInDesignError:          If parameter 'declaredItem' already has a parent.
-		:raises DuplicateDeclarationError:     If the declarative region already declares an identifier of the declared
-		                                       item, unless both declarations are subprograms.
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:param declaredItem:               The declared item to insert.
+		:param before:                     The declared item of this declarative region to insert before.
+		:raises ValueError:                If parameter 'before' is ``None``.
+		:raises TypeError:                 If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:            If parameter 'before' is not a declared item of this declarative region.
+		:raises ValueError:                If parameter 'declaredItem' is ``None``.
+		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
+		                                   region.
+		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
+		:raises DuplicateDeclarationError: If an existing declaration of the declarative region shares an
+		                                   identifier with the declared item.
 
 		.. seealso::
 
@@ -1048,20 +1159,17 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		The declared item's parent is set to this declarative region. If the region is indexed, its identifiers are added
 		to the region's namespace and to the lookup table matching its kind.
 
-		:param declaredItem:                   The declared item to insert.
-		:param after:                          The declared item of this declarative region to insert after.
-		:raises ValueError:                    If parameter 'after' is ``None``.
-		:raises TypeError:                     If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError:                If parameter 'after' is not a declared item of this declarative region.
-		:raises ValueError:                    If parameter 'declaredItem' is ``None``.
-		:raises TypeError:                     If parameter 'declaredItem' is not a declaration allowed in this declarative
-		                                       region.
-		:raises AlreadyInDesignError:          If parameter 'declaredItem' already has a parent.
-		:raises DuplicateDeclarationError:     If the declarative region already declares an identifier of the declared
-		                                       item, unless both declarations are subprograms.
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:param declaredItem:               The declared item to insert.
+		:param after:                      The declared item of this declarative region to insert after.
+		:raises ValueError:                If parameter 'after' is ``None``.
+		:raises TypeError:                 If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:            If parameter 'after' is not a declared item of this declarative region.
+		:raises ValueError:                If parameter 'declaredItem' is ``None``.
+		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
+		                                   region.
+		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
+		:raises DuplicateDeclarationError: If an existing declaration of the declarative region shares an
+		                                   identifier with the declared item.
 
 		.. seealso::
 
@@ -1319,6 +1427,16 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		:returns: Dictionary of components, indexed by normalized identifier.
 		"""
 		return self._components
+
+	def _Declarations(self) -> List[ModelEntity]:
+		"""
+		Return all declarations of this declarative region.
+
+		A host class with interface items extends the list by its interface items, listed first.
+
+		:returns: List of declarations: the declared items, in declaration order.
+		"""
+		return list(self._declaredItems)
 
 	def IndexDeclaredItems(self) -> None:
 		"""
@@ -1608,6 +1726,16 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		return self._procedures
 
+	def _Declarations(self) -> List[ModelEntity]:
+		"""
+		Return all declarations of this declarative region.
+
+		A host class with interface items extends the list by its interface items, listed first.
+
+		:returns: List of declarations: the declared items, in declaration order.
+		"""
+		return list(self._declaredItems)
+
 	def IndexDeclaredItems(self) -> None:
 		"""
 		Index declared items listed in the sequential declaration region.
@@ -1780,6 +1908,16 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		:returns: Dictionary of all procedures, indexed by name; each entry is a list of overloads.
 		"""
 		return self._procedures
+
+	def _Declarations(self) -> List[ModelEntity]:
+		"""
+		Return all declarations of this declarative region.
+
+		A host class with interface items extends the list by its interface items, listed first.
+
+		:returns: List of declarations: the declared items, in declaration order.
+		"""
+		return list(self._declaredItems)
 
 	def IndexDeclaredItems(self) -> None:
 		"""

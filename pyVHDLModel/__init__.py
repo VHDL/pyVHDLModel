@@ -508,10 +508,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	_name:              Nullable[str]         #: Name of the design.
 	_libraries:         Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:         List['Document']      #: List of all documents loaded for a design.
-	_dependencyGraph:   Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
-	_compileOrderGraph: Graph[None, None, None, None, None, None, None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: A graph derived from dependency graph containing the order of documents for compilation.
-	_hierarchyGraph:    Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: A graph derived from dependency graph containing the design hierarchy.
-	_objectGraph:       Graph[None, None, None, None, None, None, None, None, str, Obj, None, None, None, None, None, None, None, None, None, None, None, None, None]          #: The graph of all types and objects in the design.
+	_dependencyGraph:   Graph                 #: The graph of all dependencies in the designs.
+	_compileOrderGraph: Graph                 #: A graph derived from dependency graph containing the order of documents for compilation.
+	_hierarchyGraph:    Graph                 #: A graph derived from dependency graph containing the design hierarchy.
+	_objectGraph:       Graph                 #: The graph of all types and objects in the design.
 	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
 
 	def __init__(
@@ -2213,7 +2213,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 	_packages:       Dict[str, Package]                  #: Dictionary of all packages defined in a library.
 	_packageBodies:  Dict[str, PackageBody]              #: Dictionary of all package bodies defined in a library.
 
-	_dependencyVertex: Vertex[None, None, str, Union['Library', DesignUnit], None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the library. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
+	_dependencyVertex: Vertex  #: Reference to the vertex in the dependency graph representing the library. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
 
 	def __init__(
 		self,
@@ -2659,8 +2659,8 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	_verificationProperties: Dict[str, VerificationProperty]     #: Dictionary of all PSL verification properties defined in a document.
 	_verificationModes:      Dict[str, VerificationMode]         #: Dictionary of all PSL verification modes defined in a document.
 
-	_dependencyVertex:       Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
-	_compileOrderVertex:     Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the compile-order graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
+	_dependencyVertex:       Vertex  #: Reference to the vertex in the dependency graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
+	_compileOrderVertex:     Vertex  #: Reference to the vertex in the compile-order graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
 
 	def __init__(
 		self,
@@ -3061,7 +3061,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._verificationModes
 
 	@readonly
-	def CompileOrderVertex(self) -> Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]:
+	def CompileOrderVertex(self) -> Vertex:
 		"""
 		Read-only property to access the corresponding compile-order vertex (:attr:`_compileOrderVertex`).
 

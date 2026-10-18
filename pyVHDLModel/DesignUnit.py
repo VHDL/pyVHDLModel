@@ -196,8 +196,8 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_referencedPackages:  Dict[str, Dict[str, 'Package']]  #: Referenced packages based on explicit use clauses or implicit inheritance
 	_referencedContexts:  Dict[str, 'Context']             #: Referenced contexts based on explicit context references or implicit inheritance
 
-	_dependencyVertex:    Vertex[None, None, str, 'DesignUnit', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the design unit. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
-	_hierarchyVertex:     Vertex[None, None, str, 'DesignUnit', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: The vertex in the hierarchy graph
+	_dependencyVertex:    Vertex  #: Reference to the vertex in the dependency graph representing the design unit. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
+	_hierarchyVertex:     Vertex  #: The vertex in the hierarchy graph
 
 	_namespace:           'Namespace'  #: The namespace of this design unit's declarative region.
 

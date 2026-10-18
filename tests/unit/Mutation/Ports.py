@@ -171,6 +171,28 @@ class Ports(Testcase):
 		self.assertListEqual(["Got value '1'."], context.exception.__notes__)
 		self.assertIsNone(enable.Parent)
 
+	def test_Insert_Negative(self) -> None:
+		clock = _port("Clock")
+		enable = _port("Enable")
+		entity = Entity("e", portItems=[clock, enable])
+		reset = _port("Reset")
+
+		entity.InsertPortItem(-1, reset)
+
+		self.assertListEqual([clock, reset, enable], entity.PortItems)
+		self.assertIs(entity, reset.Parent)
+
+	def test_Insert_Negative_OutOfRange(self) -> None:
+		entity = Entity("e", portItems=[_port("Clock")])
+		enable = _port("Enable")
+
+		with self.assertRaises(ValueError) as context:
+			entity.InsertPortItem(-2, enable)
+
+		self.assertEqual("Parameter 'index' is out of range -1..1.", str(context.exception))
+		self.assertListEqual(["Got value '-2'."], context.exception.__notes__)
+		self.assertIsNone(enable.Parent)
+
 	def test_Remove(self) -> None:
 		clock = _port("Clock")
 		reset = _port("Reset")

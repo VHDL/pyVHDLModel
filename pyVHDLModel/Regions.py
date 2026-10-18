@@ -142,6 +142,8 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 		namespace, if it has one.
 
 		:param index:                  Position, from ``0`` (first) to :data:`GenericCount` (append).
+		                               A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
+		                               before the last generic.
 		:param genericItem:            The generic to insert.
 		:raises ValueError:            If parameter 'index' is ``None``.
 		:raises TypeError:             If parameter 'index' is not of type :class:`int`.
@@ -167,8 +169,8 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 			ex = TypeError("Parameter 'index' is not of type 'int'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
 			raise ex
-		elif index < 0 or index > len(self._genericItems):
-			ex = ValueError(f"Parameter 'index' is out of range 0..{len(self._genericItems)}.")
+		elif not (-len(self._genericItems) <= index <= len(self._genericItems)):
+			ex = ValueError(f"Parameter 'index' is out of range {-len(self._genericItems)}..{len(self._genericItems)}.")
 			ex.add_note(f"Got value '{index}'.")
 			raise ex
 
@@ -323,6 +325,8 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 		namespace, if it has one.
 
 		:param index:                 Position, from ``0`` (first) to :data:`PortCount` (append).
+		                              A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
+		                              before the last port.
 		:param portItem:              The port to insert.
 		:raises ValueError:           If parameter 'index' is ``None``.
 		:raises TypeError:            If parameter 'index' is not of type :class:`int`.
@@ -348,8 +352,8 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 			ex = TypeError("Parameter 'index' is not of type 'int'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
 			raise ex
-		elif index < 0 or index > len(self._portItems):
-			ex = ValueError(f"Parameter 'index' is out of range 0..{len(self._portItems)}.")
+		elif not (-len(self._portItems) <= index <= len(self._portItems)):
+			ex = ValueError(f"Parameter 'index' is out of range {-len(self._portItems)}..{len(self._portItems)}.")
 			ex.add_note(f"Got value '{index}'.")
 			raise ex
 
@@ -502,6 +506,8 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 		namespace, if it has one.
 
 		:param index:                    Position, from ``0`` (first) to :data:`ParameterCount` (append).
+		                                 A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
+		                                 before the last parameter.
 		:param parameterItem:            The parameter to insert.
 		:raises ValueError:              If parameter 'index' is ``None``.
 		:raises TypeError:               If parameter 'index' is not of type :class:`int`.
@@ -527,8 +533,8 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 			ex = TypeError("Parameter 'index' is not of type 'int'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
 			raise ex
-		elif index < 0 or index > len(self._parameterItems):
-			ex = ValueError(f"Parameter 'index' is out of range 0..{len(self._parameterItems)}.")
+		elif not (-len(self._parameterItems) <= index <= len(self._parameterItems)):
+			ex = ValueError(f"Parameter 'index' is out of range {-len(self._parameterItems)}..{len(self._parameterItems)}.")
 			ex.add_note(f"Got value '{index}'.")
 			raise ex
 

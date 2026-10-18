@@ -160,8 +160,30 @@ class Parameters(Testcase):
 		with self.assertRaises(ValueError) as context:
 			group.InsertParameterItem(5, c)
 
-		self.assertEqual("Parameter 'index' is out of range 0..1.", str(context.exception))
+		self.assertEqual("Parameter 'index' is out of range -1..1.", str(context.exception))
 		self.assertListEqual(["Got value '5'."], context.exception.__notes__)
+		self.assertIsNone(c.Parent)
+
+	def test_Insert_Negative(self) -> None:
+		a = _parameter("a")
+		c = _parameter("c")
+		group = ParameterGroup([a, c])
+		b = _parameter("b")
+
+		group.InsertParameterItem(-1, b)
+
+		self.assertListEqual([a, b, c], group.ParameterItems)
+		self.assertIs(group, b.Parent)
+
+	def test_Insert_Negative_OutOfRange(self) -> None:
+		group = ParameterGroup([_parameter("a")])
+		c = _parameter("c")
+
+		with self.assertRaises(ValueError) as context:
+			group.InsertParameterItem(-2, c)
+
+		self.assertEqual("Parameter 'index' is out of range -1..1.", str(context.exception))
+		self.assertListEqual(["Got value '-2'."], context.exception.__notes__)
 		self.assertIsNone(c.Parent)
 
 	def test_Remove(self) -> None:

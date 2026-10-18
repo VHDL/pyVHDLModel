@@ -35,6 +35,8 @@ tests/unit/Assignment.py (conditional/selected signal assignments) or tests/unit
 """
 from pyTooling.Testing       import Testcase
 
+from pyTooling.Testing       import Testcase
+
 from pyVHDLModel.Base        import Direction, Mode, SimpleRange
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import (
@@ -239,6 +241,26 @@ class IfGenerateStatements(Testcase):
 
 		self.assertEqual(1, len(instantiations))
 		self.assertIs(instance, instantiations[0])
+
+
+class IfGenerateStatementInstantiations(Testcase):
+	def test_IterateInstantiations_AllBranches(self) -> None:
+		"""Each branch yields its own instantiations, in branch order."""
+		ifInstance =    ComponentInstantiation("ifInst", ComponentInstantiationSymbol(SimpleName("comp")))
+		elsifInstance = ComponentInstantiation("elsifInst", ComponentInstantiationSymbol(SimpleName("comp")))
+		elseInstance =  ComponentInstantiation("elseInst", ComponentInstantiationSymbol(SimpleName("comp")))
+		ifBranch =      IfGenerateBranch(IntegerLiteral(1), statements=[ifInstance])
+		elsifBranch =   ElsifGenerateBranch(IntegerLiteral(2), statements=[elsifInstance])
+		elseBranch =    ElseGenerateBranch(statements=[elseInstance])
+		statement =     IfGenerateStatement("gen", ifBranch, [elsifBranch], elseBranch)
+
+		statement.IndexStatement()
+		instantiations = list(statement.IterateInstantiations())
+
+		self.assertEqual(3, len(instantiations))
+		self.assertIs(ifInstance, instantiations[0])
+		self.assertIs(elsifInstance, instantiations[1])
+		self.assertIs(elseInstance, instantiations[2])
 
 
 class GenerateChoices(Testcase):

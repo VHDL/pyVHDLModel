@@ -938,7 +938,7 @@ class IfGenerateStatement(GenerateStatement):
 		for branch in self._elsifBranches:
 			yield from branch.IterateInstantiations()
 		if self._elseBranch is not None:
-			yield from self._ifBranch.IterateInstantiations()
+			yield from self._elseBranch.IterateInstantiations()
 
 	def IndexStatement(self) -> None:
 		self._ifBranch.IndexStatements()

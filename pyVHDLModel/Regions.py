@@ -45,7 +45,6 @@ from pyTooling.Warning       import WarningCollector
 
 from pyVHDLModel.Base        import identifiersOf, normalizedIdentifiersOf
 from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError, DuplicateGenericError
-from pyVHDLModel.Exception   import NotInNamespaceError
 from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Object      import Constant, SharedVariable, File, Variable, Signal
 if TYPE_CHECKING:
@@ -201,11 +200,14 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 		namespace, if it has one. The generic itself is unchanged and can be added to another language construct, or
 		inserted at another position.
 
-		:param genericItem:     The generic to remove.
-		:raises ValueError:     If parameter 'genericItem' is ``None``.
-		:raises TypeError:      If parameter 'genericItem' is not of type
-		                        :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
-		:raises NotAChildError: If parameter 'genericItem' is not a generic of this language construct.
+		:param genericItem:          The generic to remove.
+		:raises ValueError:          If parameter 'genericItem' is ``None``.
+		:raises TypeError:           If parameter 'genericItem' is not of type
+		                             :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises NotAChildError:      If parameter 'genericItem' is not a generic of this language construct.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the generic isn't declared in it.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the generic refers to another
+		                             element, e.g. a duplicate declaration.
 
 		.. seealso::
 
@@ -232,9 +234,9 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 				f"{genericItem.__class__.__name__} '{identifiers}' is not a generic of this {self.__class__.__name__}."
 			)
 
+		self._RemoveFromNamespace(genericItem)
 		del self._genericItems[index]
 		genericItem._parent = None
-		self._RemoveFromNamespace(genericItem)
 
 
 @export
@@ -354,6 +356,13 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Concurrent declaration region mixin <pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin>`
 	   * :class:`Sequential declaration region mixin <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	"""
+	_isIndexed: bool  #: ``True`` if :meth:`IndexDeclaredItems` filled the region's namespace.
+
+	def __init__(self) -> None:
+		"""
+		Initializes a declaration region, which isn't indexed yet.
+		"""
+		self._isIndexed = False
 
 	def _IndexGenericItems(self) -> None:
 		"""Add this region's generics to its namespace."""
@@ -377,8 +386,13 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Add an element's identifiers to this region's namespace.
 
+		Nothing is added to a region not indexed yet: :meth:`IndexDeclaredItems` adds the element later.
+
 		:param element: The element to add, e.g. an interface item.
 		"""
+		if not self._isIndexed:
+			return
+
 		for normalizedIdentifier in normalizedIdentifiersOf(element):
 			self._namespace.AddElement(normalizedIdentifier, element)
 
@@ -386,16 +400,19 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Remove an element's identifiers from this region's namespace.
 
-		An identifier not declared for this element is skipped: the region wasn't indexed yet, or the identifier refers to
-		a duplicate declaration.
+		Nothing is removed from a region not indexed yet, as its namespace doesn't contain the element.
 
-		:param element: The element to remove, e.g. an interface item.
+		:param element:              The element to remove, e.g. an interface item.
+		:raises NotInNamespaceError: If the region is indexed, and an identifier of the element isn't declared in the
+		                             namespace.
+		:raises NotInNamespaceError: If the region is indexed, and an identifier of the element refers to another element,
+		                             e.g. a duplicate declaration.
 		"""
+		if not self._isIndexed:
+			return
+
 		for normalizedIdentifier in normalizedIdentifiersOf(element):
-			try:
-				self._namespace.RemoveElement(normalizedIdentifier, element)
-			except NotInNamespaceError:
-				pass
+			self._namespace.RemoveElement(normalizedIdentifier, element)
 
 	def _IndexOtherDeclaredItem(self, item) -> None:
 		"""Hook for declared items the region doesn't handle itself. Derived classes may override it."""
@@ -449,6 +466,8 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		:param declaredItems: List of all declared items in this concurrent declaration region.
 		"""
+		DeclarationRegionMixin.__init__(self)
+
 		self._declaredItems = []  # TODO: convert to dict
 		if declaredItems is not None:
 			for item in declaredItems:
@@ -644,6 +663,8 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 			else:
 				self._IndexOtherDeclaredItem(item)
 
+		self._isIndexed = True
+
 
 @export
 class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
@@ -685,6 +706,8 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		:param namespaceName:  Name of this region's namespace, usually the host's label or identifier.
 		:param declaredItems:  The items declared in this region.
 		"""
+		DeclarationRegionMixin.__init__(self)
+
 		self._namespace = Namespace(namespaceName)
 
 		self._declaredItems = []  # TODO: convert to dict
@@ -829,6 +852,8 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 			else:
 				self._IndexOtherDeclaredItem(item)
 
+		self._isIndexed = True
+
 
 @export
 class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
@@ -861,6 +886,8 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		:param namespaceName: Name of this region's namespace, usually the protected type's identifier.
 		:param declaredItems: The items declared in this region.
 		"""
+		DeclarationRegionMixin.__init__(self)
+
 		self._namespace = Namespace(namespaceName)
 
 		self._declaredItems = []  # TODO: convert to dict
@@ -927,3 +954,5 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 				self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 			else:
 				self._IndexOtherDeclaredItem(item)
+
+		self._isIndexed = True

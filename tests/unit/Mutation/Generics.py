@@ -39,7 +39,7 @@ from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import ModelEntity
 from pyVHDLModel.DesignUnit import Component, Entity
-from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicateGenericError
+from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicateGenericError, NotInNamespaceError
 from pyVHDLModel.Interface  import GenericTypeInterfaceItem, GenericGroup
 from pyVHDLModel.Regions    import WithGenericsMixin
 from pyVHDLModel.Subprogram import Procedure
@@ -97,6 +97,7 @@ class Generics(Testcase):
 
 	def test_Add_Subprogram(self) -> None:
 		procedure = Procedure("p")
+		procedure.IndexDeclaredItems()
 		bits = _generic("BITS")
 
 		procedure.AddGenericItem(bits)
@@ -309,6 +310,7 @@ class Generics(Testcase):
 		depth = _generic("DEPTH")
 		width = _generic("WIDTH")
 		entity = Entity("e", genericItems=[bits, depth, width])
+		entity.IndexDeclaredItems()
 
 		entity.RemoveGenericItem(width)
 		entity.InsertGenericItem(0, width)
@@ -333,6 +335,7 @@ class Generics(Testcase):
 
 	def test_Namespace(self) -> None:
 		entity = Entity("e")
+		entity.IndexDeclaredItems()
 		item = _generic("BITS", "Depth")
 
 		entity.AddGenericItem(item)
@@ -358,16 +361,36 @@ class Generics(Testcase):
 
 		self.assertDictEqual({"depth": depth}, entity._namespace._elements)
 
-	def test_Namespace_OtherElement(self) -> None:
-		"""Removing a generic leaves a namespace entry of another element with the same identifier."""
+	def test_Namespace_AddNotIndexed(self) -> None:
+		"""A generic added to a region, which wasn't indexed yet, enters the namespace when the region is indexed."""
 		entity = Entity("e")
 		bits = _generic("BITS")
+
 		entity.AddGenericItem(bits)
+
+		self.assertDictEqual({}, entity._namespace._elements)
+
+		entity.IndexDeclaredItems()
+
+		self.assertDictEqual({"bits": bits}, entity._namespace._elements)
+
+	def test_Namespace_OtherElement(self) -> None:
+		"""Removing a generic, whose identifier refers to a duplicate declaration in the namespace, is rejected."""
+		bits = _generic("BITS")
 		port = _port("bits")
-		entity._namespace._elements["bits"] = port
+		entity = Entity("e", genericItems=[bits], portItems=[port])
+		entity.IndexDeclaredItems()
 
-		entity.RemoveGenericItem(bits)
+		with self.assertRaises(NotInNamespaceError) as context:
+			entity.RemoveGenericItem(bits)
 
+		self.assertEqual("Namespace 'e' has another element for 'bits'.", str(context.exception))
+		self.assertListEqual(
+			["Found element of type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
+			context.exception.__notes__
+		)
+		self.assertListEqual([bits], entity.GenericItems)
+		self.assertIs(entity, bits.Parent)
 		self.assertIs(port, entity._namespace._elements["bits"])
 
 	def test_Namespace_NotIndexed(self) -> None:

@@ -37,8 +37,9 @@ from pyTooling.MetaClasses  import UnfulfilledExpectationError
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import ModelEntity
-from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicateParameterError
+from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicateParameterError, NotInNamespaceError
 from pyVHDLModel.Interface  import ParameterGroup
+from pyVHDLModel.Object     import Variable
 from pyVHDLModel.Regions    import WithParametersMixin
 from pyVHDLModel.Subprogram import Function, Procedure
 
@@ -233,6 +234,7 @@ class Parameters(Testcase):
 
 	def test_Namespace(self) -> None:
 		procedure = Procedure("p")
+		procedure.IndexDeclaredItems()
 		item = _parameter("a", "B")
 
 		procedure.AddParameterItem(item)
@@ -244,6 +246,35 @@ class Parameters(Testcase):
 
 		self.assertNotIn("a", procedure._namespace._elements)
 		self.assertNotIn("b", procedure._namespace._elements)
+
+	def test_Namespace_AddNotIndexed(self) -> None:
+		"""A parameter added to a region, which wasn't indexed yet, enters the namespace when the region is indexed."""
+		procedure = Procedure("p")
+		a = _parameter("a")
+
+		procedure.AddParameterItem(a)
+
+		self.assertDictEqual({}, procedure._namespace._elements)
+
+		procedure.IndexDeclaredItems()
+
+		self.assertDictEqual({"a": a}, procedure._namespace._elements)
+
+	def test_Namespace_OtherElement(self) -> None:
+		"""Removing a parameter, whose identifier refers to a duplicate declaration in the namespace, is rejected."""
+		a = _parameter("a")
+		variable = Variable(["a"], _subtypeSymbol("integer"))
+		procedure = Procedure("p", parameterItems=[a], declaredItems=[variable])
+		procedure.IndexDeclaredItems()
+
+		with self.assertRaises(NotInNamespaceError) as context:
+			procedure.RemoveParameterItem(a)
+
+		self.assertEqual("Namespace 'p' has another element for 'a'.", str(context.exception))
+		self.assertListEqual(["Found element of type 'pyVHDLModel.Object.Variable'."], context.exception.__notes__)
+		self.assertListEqual([a], procedure.ParameterItems)
+		self.assertIs(procedure, a.Parent)
+		self.assertIs(variable, procedure._namespace._elements["a"])
 
 	def test_Namespace_NotIndexed(self) -> None:
 		"""Removing a parameter of a region, which wasn't indexed yet, leaves the namespace as is."""

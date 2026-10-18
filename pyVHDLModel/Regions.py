@@ -383,11 +383,14 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 		namespace, if it has one. The port itself is unchanged and can be added to another language construct, or
 		inserted at another position.
 
-		:param portItem:        The port to remove.
-		:raises ValueError:     If parameter 'portItem' is ``None``.
-		:raises TypeError:      If parameter 'portItem' is not of type
-		                        :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
-		:raises NotAChildError: If parameter 'portItem' is not a port of this language construct.
+		:param portItem:             The port to remove.
+		:raises ValueError:          If parameter 'portItem' is ``None``.
+		:raises TypeError:           If parameter 'portItem' is not of type
+		                             :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises NotAChildError:      If parameter 'portItem' is not a port of this language construct.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the port isn't declared in it.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the port refers to another
+		                             element, e.g. a duplicate declaration.
 
 		.. seealso::
 
@@ -414,9 +417,9 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 				f"{portItem.__class__.__name__} '{identifiers}' is not a port of this {self.__class__.__name__}."
 			)
 
+		self._RemoveFromNamespace(portItem)
 		del self._portItems[index]
 		portItem._parent = None
-		self._RemoveFromNamespace(portItem)
 
 
 @export
@@ -559,11 +562,14 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 		namespace, if it has one. The parameter itself is unchanged and can be added to another language construct, or
 		inserted at another position.
 
-		:param parameterItem:   The parameter to remove.
-		:raises ValueError:     If parameter 'parameterItem' is ``None``.
-		:raises TypeError:      If parameter 'parameterItem' is not of type
-		                        :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
-		:raises NotAChildError: If parameter 'parameterItem' is not a parameter of this language construct.
+		:param parameterItem:        The parameter to remove.
+		:raises ValueError:          If parameter 'parameterItem' is ``None``.
+		:raises TypeError:           If parameter 'parameterItem' is not of type
+		                             :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises NotAChildError:      If parameter 'parameterItem' is not a parameter of this language construct.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the parameter isn't declared in it.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the parameter refers to another
+		                             element, e.g. a duplicate declaration.
 
 		.. seealso::
 
@@ -590,9 +596,9 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 				f"{parameterItem.__class__.__name__} '{identifiers}' is not a parameter of this {self.__class__.__name__}."
 			)
 
+		self._RemoveFromNamespace(parameterItem)
 		del self._parameterItems[index]
 		parameterItem._parent = None
-		self._RemoveFromNamespace(parameterItem)
 
 
 @export

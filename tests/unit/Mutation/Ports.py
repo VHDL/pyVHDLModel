@@ -39,10 +39,12 @@ from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Mode, ModelEntity
 from pyVHDLModel.DesignUnit import Component, Entity
-from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicatePortError
+from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicatePortError, NotInNamespaceError
 from pyVHDLModel.Interface  import PortGroup
+from pyVHDLModel.Object     import Signal
 from pyVHDLModel.Regions    import WithPortsMixin
 
+from tests.unit             import _subtypeSymbol
 from tests.unit.Mutation    import _generic, _port
 
 
@@ -233,6 +235,7 @@ class Ports(Testcase):
 
 	def test_Namespace(self) -> None:
 		entity = Entity("e")
+		entity.IndexDeclaredItems()
 		clock = _port("Clock")
 
 		entity.AddPortItem(clock)
@@ -242,6 +245,35 @@ class Ports(Testcase):
 		entity.RemovePortItem(clock)
 
 		self.assertNotIn("clock", entity._namespace._elements)
+
+	def test_Namespace_AddNotIndexed(self) -> None:
+		"""A port added to a region, which wasn't indexed yet, enters the namespace when the region is indexed."""
+		entity = Entity("e")
+		clock = _port("Clock")
+
+		entity.AddPortItem(clock)
+
+		self.assertDictEqual({}, entity._namespace._elements)
+
+		entity.IndexDeclaredItems()
+
+		self.assertDictEqual({"clock": clock}, entity._namespace._elements)
+
+	def test_Namespace_OtherElement(self) -> None:
+		"""Removing a port, whose identifier refers to a duplicate declaration in the namespace, is rejected."""
+		clock = _port("Clock")
+		signal = Signal(["clock"], _subtypeSymbol("std_logic"))
+		entity = Entity("e", portItems=[clock], declaredItems=[signal])
+		entity.IndexDeclaredItems()
+
+		with self.assertRaises(NotInNamespaceError) as context:
+			entity.RemovePortItem(clock)
+
+		self.assertEqual("Namespace 'e' has another element for 'clock'.", str(context.exception))
+		self.assertListEqual(["Found element of type 'pyVHDLModel.Object.Signal'."], context.exception.__notes__)
+		self.assertListEqual([clock], entity.PortItems)
+		self.assertIs(entity, clock.Parent)
+		self.assertIs(signal, entity._namespace._elements["clock"])
 
 	def test_Namespace_NotIndexed(self) -> None:
 		"""Removing a port of a region, which wasn't indexed yet, leaves the namespace as is."""

@@ -78,12 +78,14 @@ if __name__ == "__main__":  # pragma: no cover
 
 
 class Literals(TestCase):
-	"""``BaseExpression`` itself (``class BaseExpression(ModelEntity): pass``) is never instantiated
-	directly here, matching the same reasoning as ``Allocation``/``Type`` (see tests/unit/Type.py):
-	it has no ``__init__`` override of its own (so there's no independent forwarding-bug risk to
-	check, unlike e.g. the type classes), no VHDL construct is ever "just a BaseExpression", and its
-	``Parent``-wiring behaviour is already covered via plain ``ModelEntity`` in tests/unit/Base.py -
-	every concrete literal/operator/etc. class tested below already exercises it transitively."""
+	"""
+	``BaseExpression`` itself (``class BaseExpression(ModelEntity): pass``) is never instantiated directly here.
+
+	This matches the same reasoning as ``Allocation``/``Type`` (see tests/unit/Type.py): it has no ``__init__`` override
+	of its own (so there's no independent forwarding-bug risk to check, unlike e.g. the type classes), no VHDL construct
+	is ever "just a BaseExpression", and its ``Parent``-wiring behaviour is already covered via plain ``ModelEntity`` in
+	tests/unit/Base.py - every concrete literal/operator/etc. class tested below already exercises it transitively.
+	"""
 
 
 	def test_NullLiteral(self) -> None:

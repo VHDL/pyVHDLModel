@@ -62,8 +62,12 @@ if __name__ == "__main__":  # pragma: no cover
 
 
 class SymbolBase(TestCase):
-	"""``Symbol`` itself (used directly for e.g. ``Alias.Name``, which has no single fixed
-	``PossibleReference`` - see the design note in tests/unit/Declaration.py)."""
+	"""
+	``Symbol`` itself.
+
+	It is used directly e.g. for ``Alias.Name``, which has no single fixed ``PossibleReference`` - see the design note
+	in tests/unit/Declaration.py.
+	"""
 
 	def test_Unresolved(self) -> None:
 		name = SimpleName("s")

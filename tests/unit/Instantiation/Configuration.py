@@ -160,8 +160,11 @@ class BlockConfigurations(TestCase):
 		self.assertIs(componentConfig, block.Items[0])
 
 	def test_NestedBlockConfiguration(self) -> None:
-		"""A block configuration may itself contain nested block configurations (e.g. for a generate
-		statement's alternative)."""
+		"""
+		A block configuration may itself contain nested block configurations.
+
+		A generate statement's alternative is configured by such a nested block configuration.
+		"""
 		outerSpec = Symbol(SimpleName("rtl"), PossibleReference.Architecture | PossibleReference.Label)
 		innerSpec = Symbol(SimpleName("gen_label"), PossibleReference.Architecture | PossibleReference.Label)
 		innerBlock = BlockConfiguration(innerSpec)

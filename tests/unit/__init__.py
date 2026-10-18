@@ -52,17 +52,29 @@ def _subtypeSymbol(name: str) -> SimpleSubtypeSymbol:
 
 
 def _entitySymbol(name: str) -> EntitySymbol:
-	"""Reference to an entity, e.g. for an architecture."""
+	"""
+	Reference to an entity.
+
+	An architecture references its entity.
+	"""
 	return EntitySymbol(SimpleName(name))
 
 
 def _signalSymbol(name: str) -> SignalSymbol:
-	"""Reference to a signal, e.g. as an assignment target."""
+	"""
+	Reference to a signal.
+
+	An assignment target is such a reference.
+	"""
 	return SignalSymbol(SimpleName(name))
 
 
 def _variableSymbol(name: str) -> VariableSymbol:
-	"""Reference to a variable, e.g. as an assignment target."""
+	"""
+	Reference to a variable.
+
+	An assignment target is such a reference.
+	"""
 	return VariableSymbol(SimpleName(name))
 
 

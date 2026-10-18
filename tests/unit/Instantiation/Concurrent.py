@@ -362,7 +362,7 @@ class ConcurrentSimpleSignalAssignments(Testcase):
 
 	def test_Construction_WithoutLabel(self) -> None:
 		target = SignalSymbol(SimpleName("s"))
-		assignment = ConcurrentSimpleSignalAssignment(None, target, [WaveformElement(CharacterLiteral("'1'"))])
+		assignment = ConcurrentSimpleSignalAssignment(None, target, [WaveformElement(CharacterLiteral("1"))])
 
 		self.assertIs(target, assignment.Target)
 		self.assertIsNone(assignment.Label)

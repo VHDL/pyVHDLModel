@@ -274,6 +274,27 @@ class LinkInstantiations(Testcase):
 		)
 
 
+class CompileOrderGraph(Testcase):
+	def test_Documents_SameFileName(self) -> None:
+		"""Documents with the same file name in different directories get one vertex each."""
+		design = Design("example")
+		library = design.GetLibrary("lib_1")
+
+		document1 = Document(Path("a/top.vhdl"), parent=None)
+		document1._AddDesignUnit(Entity("entity_1", parent=None))
+		design.AddDocument(document1, library)
+
+		document2 = Document(Path("b/top.vhdl"), parent=None)
+		document2._AddDesignUnit(Entity("entity_2", parent=None))
+		design.AddDocument(document2, library)
+
+		design.CreateDependencyGraph()
+		design.CreateCompileOrderGraph()
+
+		self.assertIs(document1, design.CompileOrderGraph.GetVertexByID(str(Path("a/top.vhdl"))).Value)
+		self.assertIs(document2, design.CompileOrderGraph.GetVertexByID(str(Path("b/top.vhdl"))).Value)
+
+
 class TopLevel(Testcase):
 	def test_SingleEntityWithoutArchitecture_IsNotMistakenForUncomputedHierarchy(self) -> None:
 		"""

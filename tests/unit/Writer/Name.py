@@ -33,7 +33,7 @@ from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Association     import ParameterAssociationItem
 from pyVHDLModel.Exception       import VHDLWriterError
-from pyVHDLModel.Expression      import IntegerLiteral
+from pyVHDLModel.Expression      import DescendingRangeExpression, IntegerLiteral
 from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName
 from pyVHDLModel.Name            import AttributeName, AllName, OpenName
@@ -111,6 +111,11 @@ class ParenthesisNames(Testcase):
 		name = ParenthesisName(SimpleName("maximum"), [_object("a"), _object("b")])
 
 		self.assertEqual("maximum(a, b)", VHDLWriter().Format(name))
+
+	def test_Slice(self) -> None:
+		name = ParenthesisName(SimpleName("v"), [DescendingRangeExpression(IntegerLiteral(3), IntegerLiteral(0))])
+
+		self.assertEqual("v(3 downto 0)", VHDLWriter().Format(name))
 
 	def test_Selected(self) -> None:
 		name = ParenthesisName(SelectedName("to_unsigned", SimpleName("numeric_std")), [_object("n"), IntegerLiteral(8)])

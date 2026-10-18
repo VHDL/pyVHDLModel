@@ -840,6 +840,16 @@ class UnaryExpression(BaseExpression):
 		"""
 		return self._operand
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this unary expression and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitUnaryExpression(self)
+		self._operand.Visit(visitor)
+		visitor.DepartUnaryExpression(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the unary expression.
@@ -868,6 +878,16 @@ class NegationExpression(UnaryExpression):
 	"""
 	_FORMAT: ClassVar[tuple[str, str]] = ("-", "")
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this negation and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitNegationExpression(self)
+		self._operand.Visit(visitor)
+		visitor.DepartNegationExpression(self)
+
 
 @export
 class IdentityExpression(UnaryExpression):
@@ -885,6 +905,16 @@ class IdentityExpression(UnaryExpression):
 	      --       ^^^^^^^    <- Operand
 	"""
 	_FORMAT: ClassVar[tuple[str, str]] = ("+", "")
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this identity and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIdentityExpression(self)
+		self._operand.Visit(visitor)
+		visitor.DepartIdentityExpression(self)
 
 
 @export
@@ -1079,6 +1109,18 @@ class TypeConversion(UnaryExpression):
 		"""
 		return self._targetSubtype
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this type conversion, its target subtype and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitTypeConversion(self)
+		self._targetSubtype.Visit(visitor)
+		visitor.VisitLeftParenthesis(self)
+		self._operand.Visit(visitor)
+		visitor.DepartTypeConversion(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the type conversion.
@@ -1106,6 +1148,16 @@ class SubExpression(UnaryExpression, ParenthesisExpression):
 	      --      ^^^^^^^^^     <- Operand
 	"""
 	_FORMAT: ClassVar[tuple[str, str]] = ("(", ")")
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this sub-expression and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSubExpression(self)
+		self._operand.Visit(visitor)
+		visitor.DepartSubExpression(self)
 
 
 @export
@@ -1206,6 +1258,18 @@ class RangeExpression(BinaryExpression):
 		"""
 		return self._direction
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this range expression and its bounds with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRangeExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitDirection(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartRangeExpression(self)
+
 
 @export
 class AscendingRangeExpression(RangeExpression):
@@ -1261,6 +1325,18 @@ class AddingExpression(BinaryExpression):
 	   * :class:`Subtraction expression <pyVHDLModel.Expression.SubtractionExpression>`
 	   * :class:`Concatenation expression <pyVHDLModel.Expression.ConcatenationExpression>`
 	"""
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this adding expression and its operands with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAddingExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitOperator(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartAddingExpression(self)
 
 
 @export
@@ -1336,6 +1412,18 @@ class MultiplyingExpression(BinaryExpression):
 	   * :class:`Modulo expression <pyVHDLModel.Expression.ModuloExpression>`
 	   * :class:`Exponentiation expression <pyVHDLModel.Expression.ExponentiationExpression>`
 	"""
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this multiplying expression and its operands with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitMultiplyingExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitOperator(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartMultiplyingExpression(self)
 
 
 @export
@@ -1432,6 +1520,18 @@ class ExponentiationExpression(MultiplyingExpression):
 	"""
 	_FORMAT: ClassVar[tuple[str, str, str]] = ("", "**", "")
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this exponentiation and its operands with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitExponentiationExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitOperator(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartExponentiationExpression(self)
+
 
 @export
 @abstractclass
@@ -1450,6 +1550,18 @@ class LogicalExpression(BinaryExpression):
 	   * :class:`Xor expression <pyVHDLModel.Expression.XorExpression>`
 	   * :class:`Xnor expression <pyVHDLModel.Expression.XnorExpression>`
 	"""
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this logical expression and its operands with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitLogicalExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitOperator(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartLogicalExpression(self)
 
 
 @export
@@ -1584,6 +1696,18 @@ class RelationalExpression(BinaryExpression):
 	   * :class:`Less equal expression <pyVHDLModel.Expression.LessEqualExpression>`
 	   * :class:`Matching relational expression <pyVHDLModel.Expression.MatchingRelationalExpression>`
 	"""
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this relational expression and its operands with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRelationalExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitOperator(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartRelationalExpression(self)
 
 
 @export
@@ -1856,6 +1980,18 @@ class ShiftExpression(BinaryExpression):
 	   * :class:`Rotate expression <pyVHDLModel.Expression.RotateExpression>`
 	"""
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this shift or rotate expression and its operands with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitShiftExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitOperator(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartShiftExpression(self)
+
 
 @export
 @abstractclass
@@ -2072,6 +2208,18 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 		"""
 		return self._subtype
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this qualified expression, its subtype and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitQualifiedExpression(self)
+		self._subtype.Visit(visitor)
+		visitor.VisitApostrophe(self)
+		self._operand.Visit(visitor)
+		visitor.DepartQualifiedExpression(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the qualified expression.
@@ -2210,6 +2358,20 @@ class WhenElseExpression(TernaryExpression):
 		"""
 		return self._thirdOperand
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this conditional expression, its value, condition and alternative value with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitWhenElseExpression(self)
+		self._firstOperand.Visit(visitor)
+		visitor.VisitWhen(self)
+		self._secondOperand.Visit(visitor)
+		visitor.VisitElse(self)
+		self._thirdOperand.Visit(visitor)
+		visitor.DepartWhenElseExpression(self)
+
 
 @export
 class FunctionCall(BaseExpression):
@@ -2277,6 +2439,16 @@ class SubtypeAllocation(Allocation):
 		"""
 		return self._subtype
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this allocation and its subtype with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSubtypeAllocation(self)
+		self._subtype.Visit(visitor)
+		visitor.DepartSubtypeAllocation(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the subtype allocation.
@@ -2324,6 +2496,16 @@ class QualifiedExpressionAllocation(Allocation):
 		:returns: The qualified expression.
 		"""
 		return self._qualifiedExpression
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this allocation and its qualified expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitQualifiedExpressionAllocation(self)
+		self._qualifiedExpression.Visit(visitor)
+		visitor.DepartQualifiedExpressionAllocation(self)
 
 	def __str__(self) -> str:
 		"""
@@ -2391,6 +2573,16 @@ class SimpleAggregateElement(AggregateElement):
 	      res := ('1', '0', '1', '0', '1', '0', '1', '0');
 	      --      ^^^                                        <- Expression
 	"""
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this positional aggregate element and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSimpleAggregateElement(self)
+		self._expression.Visit(visitor)
+		visitor.DepartSimpleAggregateElement(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the simple aggregate element.
@@ -2439,6 +2631,18 @@ class IndexedAggregateElement(AggregateElement):
 		:returns: The index expression.
 		"""
 		return self._index
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this aggregate element, its index and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIndexedAggregateElement(self)
+		self._index.Visit(visitor)
+		visitor.VisitArrow(self)
+		self._expression.Visit(visitor)
+		visitor.DepartIndexedAggregateElement(self)
 
 	def __str__(self) -> str:
 		"""
@@ -2490,6 +2694,18 @@ class RangedAggregateElement(AggregateElement):
 		"""
 		return self._range
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this aggregate element, its range and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRangedAggregateElement(self)
+		self._range.Visit(visitor)
+		visitor.VisitArrow(self)
+		self._expression.Visit(visitor)
+		visitor.DepartRangedAggregateElement(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the ranged aggregate element.
@@ -2540,6 +2756,18 @@ class NamedAggregateElement(AggregateElement):
 		"""
 		return self._name
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this aggregate element, its name and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitNamedAggregateElement(self)
+		self._name.Visit(visitor)
+		visitor.VisitArrow(self)
+		self._expression.Visit(visitor)
+		visitor.DepartNamedAggregateElement(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the named aggregate element.
@@ -2569,6 +2797,16 @@ class OthersAggregateElement(AggregateElement):
 	      --                ^^^^^^            <- the choice
 	      --                          ^^^     <- Expression
 	"""
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this ``others`` aggregate element and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitOthersAggregateElement(self)
+		self._expression.Visit(visitor)
+		visitor.DepartOthersAggregateElement(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the ``others`` aggregate element.
@@ -2621,6 +2859,21 @@ class Aggregate(BaseExpression):
 		:returns: List of elements.
 		"""
 		return self._elements
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this aggregate and its elements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAggregate(self)
+		for position, element in enumerate(self._elements):
+			if position > 0:
+				visitor.VisitComma(self)
+
+			element.Visit(visitor)
+
+		visitor.DepartAggregate(self)
 
 	def __str__(self) -> str:
 		"""

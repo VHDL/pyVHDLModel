@@ -40,13 +40,21 @@ from unittest                    import skipIf
 from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Association     import ParameterAssociationItem
+from pyVHDLModel.Base            import Direction, SimpleRange
 from pyVHDLModel.Expression      import (
 	IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral, PhysicalFloatingLiteral, CharacterLiteral,
-	StringLiteral, BinaryBitStringLiteral, DecimalBitStringLiteral, HexadecimalBitStringLiteral
+	StringLiteral, BinaryBitStringLiteral, DecimalBitStringLiteral, HexadecimalBitStringLiteral,
+	NegationExpression, InverseExpression, AbsoluteExpression, UnaryXorExpression, TypeConversion, SubExpression,
+	DescendingRangeExpression, AdditionExpression, SubtractionExpression, ConcatenationExpression, MultiplyExpression,
+	DivisionExpression, ModuloExpression, RemainderExpression, ExponentiationExpression, AndExpression, NandExpression,
+	OrExpression, EqualExpression, UnequalExpression, LessThanExpression, MatchingEqualExpression,
+	ShiftLeftLogicExpression, ShiftRightLogicExpression, RotateLeftExpression, QualifiedExpression,
+	SimpleAggregateElement, IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement,
+	OthersAggregateElement, Aggregate
 )
-from pyVHDLModel.Formatting.VHDL import VHDLWriter
+from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, AttributeName
-from pyVHDLModel.Symbol          import IndexedObjectOrFunctionCallSymbol
+from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol, IndexedObjectOrFunctionCallSymbol
 
 from tests.unit.Writer           import _GHDL, _analyze, _object
 
@@ -88,8 +96,87 @@ def _package(constants: Iterable[tuple[str, str]]) -> str:
 	return f"{_DECLARATIONS}{declarations}end package;\n"
 
 
+def _integer(name: str) -> SimpleSubtypeSymbol:
+	"""Reference to a subtype, as type mark of a qualified expression or type conversion."""
+	return SimpleSubtypeSymbol(SimpleName(name))
+
+
 @skipIf(_GHDL is None, "GHDL is not on PATH.")
 class GHDLOracle(Testcase):
+	def test_Integer(self) -> None:
+		writer = VHDLWriter()
+		expressions = [
+			MultiplyExpression(AdditionExpression(_object("a"), _object("b")), _object("c")),
+			AdditionExpression(_object("a"), MultiplyExpression(_object("b"), _object("c"))),
+			SubtractionExpression(_object("a"), SubtractionExpression(_object("b"), _object("c"))),
+			SubtractionExpression(SubtractionExpression(_object("a"), _object("b")), _object("c")),
+			DivisionExpression(_object("a"), MultiplyExpression(_object("b"), _object("c"))),
+			ExponentiationExpression(_object("c"), ExponentiationExpression(_object("c"), _object("c"))),
+			ExponentiationExpression(ExponentiationExpression(_object("c"), _object("c")), _object("c")),
+			NegationExpression(NegationExpression(_object("a"))),
+			NegationExpression(MultiplyExpression(_object("a"), _object("b"))),
+			NegationExpression(AdditionExpression(_object("a"), _object("b"))),
+			MultiplyExpression(NegationExpression(_object("a")), _object("b")),
+			AdditionExpression(NegationExpression(_object("a")), _object("b")),
+			AdditionExpression(_object("a"), NegationExpression(_object("b"))),
+			SubtractionExpression(_object("a"), IntegerLiteral(-1)),
+			AdditionExpression(IntegerLiteral(-1), _object("a")),
+			AbsoluteExpression(NegationExpression(_object("a"))),
+			ModuloExpression(_object("a"), RemainderExpression(_object("b"), _object("c"))),
+			QualifiedExpression(_integer("integer"), SubExpression(AdditionExpression(_object("a"), _object("b")))),
+			TypeConversion(_integer("integer"), FloatingPointLiteral(2.5)),
+		]
+
+		result = _analyze(_package(("integer", writer.Format(expression)) for expression in expressions))
+
+		self.assertEqual(0, result.returncode, msg=result.stdout + result.stderr)
+
+	def test_Boolean(self) -> None:
+		writer = VHDLWriter()
+		expressions = [
+			OrExpression(AndExpression(_object("p"), _object("q")), _object("r")),
+			AndExpression(AndExpression(_object("p"), _object("q")), _object("r")),
+			AndExpression(_object("p"), AndExpression(_object("q"), _object("r"))),
+			NandExpression(NandExpression(_object("p"), _object("q")), _object("r")),
+			InverseExpression(AndExpression(_object("p"), _object("q"))),
+			InverseExpression(InverseExpression(_object("p"))),
+			EqualExpression(EqualExpression(_object("a"), _object("b")), _object("p")),
+			AndExpression(EqualExpression(_object("a"), _object("b")), UnequalExpression(_object("a"), _object("c"))),
+			LessThanExpression(
+				AdditionExpression(_object("a"), _object("b")),
+				MultiplyExpression(_object("b"), _object("c"))
+			),
+		]
+
+		result = _analyze(_package(("boolean", writer.Format(expression)) for expression in expressions))
+
+		self.assertEqual(0, result.returncode, msg=result.stdout + result.stderr)
+
+	def test_Vector(self) -> None:
+		writer = VHDLWriter()
+		constants = [
+			("bit_vector", writer.Format(ShiftLeftLogicExpression(_object("v"), IntegerLiteral(2)))),
+			("bit_vector", writer.Format(ShiftRightLogicExpression(
+				ShiftLeftLogicExpression(_object("v"), IntegerLiteral(1)),
+				IntegerLiteral(1)
+			))),
+			("bit_vector", writer.Format(RotateLeftExpression(
+				_object("v"),
+				AdditionExpression(_object("c"), IntegerLiteral(1))
+			))),
+			("bit_vector", writer.Format(ConcatenationExpression(_object("v"), _object("v")))),
+			("bit", writer.Format(UnaryXorExpression(_object("v")))),
+			("unsigned", writer.Format(AdditionExpression(_object("u"), IntegerLiteral(1)))),
+			("std_ulogic", writer.Format(MatchingEqualExpression(_object("s"), CharacterLiteral("1")))),
+			("bit_vector", writer.Format(IndexedObjectOrFunctionCallSymbol(ParenthesisName(SimpleName("v"), [
+				DescendingRangeExpression(IntegerLiteral(3), IntegerLiteral(0))
+			])))),
+		]
+
+		result = _analyze(_package(constants))
+
+		self.assertEqual(0, result.returncode, msg=result.stdout + result.stderr)
+
 	def test_Name(self) -> None:
 		writer = VHDLWriter()
 		constants = [
@@ -126,3 +213,60 @@ class GHDLOracle(Testcase):
 		result = _analyze(_package(constants))
 
 		self.assertEqual(0, result.returncode, msg=result.stdout + result.stderr)
+
+	def test_Aggregate(self) -> None:
+		writer = VHDLWriter()
+		constants = [
+			("bit_vector(3 downto 0)", writer.Format(Aggregate([
+				SimpleAggregateElement(CharacterLiteral("1")),
+				SimpleAggregateElement(CharacterLiteral("0")),
+				SimpleAggregateElement(CharacterLiteral("1")),
+				SimpleAggregateElement(CharacterLiteral("0"))
+			]))),
+			("bit_vector(3 downto 0)", writer.Format(Aggregate([
+				IndexedAggregateElement(AdditionExpression(_object("c"), IntegerLiteral(1)), CharacterLiteral("1")),
+				OthersAggregateElement(CharacterLiteral("0"))
+			]))),
+			("bit_vector(3 downto 0)", writer.Format(Aggregate([
+				RangedAggregateElement(SimpleRange(IntegerLiteral(1), IntegerLiteral(2), Direction.To), CharacterLiteral("1")),
+				OthersAggregateElement(CharacterLiteral("0"))
+			]))),
+			("record_t", writer.Format(Aggregate([
+				NamedAggregateElement(RecordElementSymbol(SimpleName("valid")), CharacterLiteral("1")),
+				NamedAggregateElement(RecordElementSymbol(SimpleName("data")), _object("a"))
+			]))),
+			("bit_vector", writer.Format(QualifiedExpression(
+				_integer("bit_vector"),
+				Aggregate([IndexedAggregateElement(IntegerLiteral(0), CharacterLiteral("1"))])
+			))),
+		]
+
+		result = _analyze(_package(constants))
+
+		self.assertEqual(0, result.returncode, msg=result.stdout + result.stderr)
+
+	def test_UpperCase(self) -> None:
+		writer = VHDLWriter(VHDLStyle(KeywordCase.Upper))
+		constants = [
+			("integer", writer.Format(ModuloExpression(AbsoluteExpression(NegationExpression(_object("a"))), _object("b")))),
+			("boolean", writer.Format(InverseExpression(OrExpression(_object("p"), _object("q"))))),
+			("bit_vector(3 downto 0)", writer.Format(Aggregate([OthersAggregateElement(CharacterLiteral("0"))]))),
+		]
+
+		result = _analyze(_package(constants))
+
+		self.assertEqual(0, result.returncode, msg=result.stdout + result.stderr)
+
+	def test_IllegalWithoutParentheses(self) -> None:
+		"""
+		The oracle rejects what the writer parenthesizes.
+
+		GHDL accepts ``a ** b ** c``, which the grammar (``factor ::= primary [ ** primary ]``) rejects.
+		"""
+		for value in ("a + -b", "a * -b", "- -a", "abs -a"):
+			with self.subTest(value=value):
+				self.assertNotEqual(0, _analyze(_package([("integer", value)])).returncode)
+
+		for value in ("not not p", "p and q or r", "p nand q nand r", "a = b = p"):
+			with self.subTest(value=value):
+				self.assertNotEqual(0, _analyze(_package([("boolean", value)])).returncode)

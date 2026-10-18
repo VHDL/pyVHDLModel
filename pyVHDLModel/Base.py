@@ -824,6 +824,18 @@ class SimpleRange(Range):
 		"""
 		return self._direction
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this range, its left bound and its right bound with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSimpleRange(self)
+		self._leftBound.Visit(visitor)
+		visitor.VisitDirection(self)
+		self._rightBound.Visit(visitor)
+		visitor.DepartSimpleRange(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the simple range.
@@ -878,6 +890,16 @@ class RangeFromName(Range):
 		:returns: The symbol.
 		"""
 		return self._symbol
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this range and its name with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRangeFromName(self)
+		self._symbol.Visit(visitor)
+		visitor.DepartRangeFromName(self)
 
 	def __str__(self) -> str:
 		"""

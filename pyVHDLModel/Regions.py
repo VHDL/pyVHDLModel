@@ -870,6 +870,58 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		return self._components
 
+	def IndexDeclaredItems(self) -> None:
+		"""
+		Index declared items listed in the concurrent declaration region.
+
+		.. rubric:: Algorithm
+
+		1. Clear all lookup tables and remove all declared items from :attr:`_namespace`. Interface items and imported
+		   items stay in the namespace.
+		2. Iterate all declared items:
+
+		   * Every declared item is added to :attr:`_namespace`, except a protected type body.
+		   * If the declared item is a :class:`~pyVHDLModel.Type.ProtectedTypeBody`, skip it: it completes its protected
+		     type.
+		   * If the declared item is a :class:`~pyVHDLModel.Type.FullType`, then add an entry to :attr:`_types`.
+		   * If the declared item is a :class:`~pyVHDLModel.Type.Subtype`, then add an entry to :attr:`_subtypes`.
+		   * If the declared item is a :class:`~pyVHDLModel.Subprogram.Function`, then add an entry to :attr:`_functions`.
+		   * If the declared item is a :class:`~pyVHDLModel.Subprogram.Procedure`, then add an entry to :attr:`_procedures`.
+		   * If the declared item is a :class:`~pyVHDLModel.Object.Constant`, then add an entry to :attr:`_constants`.
+		   * If the declared item is a :class:`~pyVHDLModel.Object.Signal`, then add an entry to :attr:`_signals`.
+		   * If the declared item is a :class:`~pyVHDLModel.Object.Variable`, TODO.
+		   * If the declared item is a :class:`~pyVHDLModel.Object.SharedVariable`, then add an entry to :attr:`_sharedVariables`.
+		   * If the declared item is a :class:`~pyVHDLModel.Object.File`, then add an entry to :attr:`_files`.
+		   * If the declared item is neither of these types, call :meth:`_IndexOtherDeclaredItem`. |br|
+		     Derived classes may override this virtual function.
+
+		Indexing again yields the same lookup tables and namespace.
+
+		.. seealso::
+
+		   :meth:`pyVHDLModel.Design.IndexPackages`
+		     Iterate all packages in the design and index declared items.
+		   :meth:`pyVHDLModel.Library.IndexPackages`
+		     Iterate all packages in the library and index declared items.
+		   :meth:`pyVHDLModel.Library._IndexOtherDeclaredItem`
+		     Iterate all packages in the library and index declared items.
+		"""
+		self._types.clear()
+		self._subtypes.clear()
+		self._constants.clear()
+		self._signals.clear()
+		self._sharedVariables.clear()
+		self._files.clear()
+		self._functions.clear()
+		self._procedures.clear()
+		self._components.clear()
+		self._RemoveDeclaredItemsFromNamespace()
+
+		for item in self._declaredItems:
+			self._IndexDeclaredItem(item)
+
+		self._isIndexed = True
+
 	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
 		"""
 		Add a declared item to the namespace and to the lookup table matching its kind.
@@ -928,58 +980,6 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 			self._namespace.AddElement(item._normalizedIdentifier, item)
 		else:
 			self._IndexOtherDeclaredItem(item)
-
-	def IndexDeclaredItems(self) -> None:
-		"""
-		Index declared items listed in the concurrent declaration region.
-
-		.. rubric:: Algorithm
-
-		1. Clear all lookup tables and remove all declared items from :attr:`_namespace`. Interface items and imported
-		   items stay in the namespace.
-		2. Iterate all declared items:
-
-		   * Every declared item is added to :attr:`_namespace`, except a protected type body.
-		   * If the declared item is a :class:`~pyVHDLModel.Type.ProtectedTypeBody`, skip it: it completes its protected
-		     type.
-		   * If the declared item is a :class:`~pyVHDLModel.Type.FullType`, then add an entry to :attr:`_types`.
-		   * If the declared item is a :class:`~pyVHDLModel.Type.Subtype`, then add an entry to :attr:`_subtypes`.
-		   * If the declared item is a :class:`~pyVHDLModel.Subprogram.Function`, then add an entry to :attr:`_functions`.
-		   * If the declared item is a :class:`~pyVHDLModel.Subprogram.Procedure`, then add an entry to :attr:`_procedures`.
-		   * If the declared item is a :class:`~pyVHDLModel.Object.Constant`, then add an entry to :attr:`_constants`.
-		   * If the declared item is a :class:`~pyVHDLModel.Object.Signal`, then add an entry to :attr:`_signals`.
-		   * If the declared item is a :class:`~pyVHDLModel.Object.Variable`, TODO.
-		   * If the declared item is a :class:`~pyVHDLModel.Object.SharedVariable`, then add an entry to :attr:`_sharedVariables`.
-		   * If the declared item is a :class:`~pyVHDLModel.Object.File`, then add an entry to :attr:`_files`.
-		   * If the declared item is neither of these types, call :meth:`_IndexOtherDeclaredItem`. |br|
-		     Derived classes may override this virtual function.
-
-		Indexing again yields the same lookup tables and namespace.
-
-		.. seealso::
-
-		   :meth:`pyVHDLModel.Design.IndexPackages`
-		     Iterate all packages in the design and index declared items.
-		   :meth:`pyVHDLModel.Library.IndexPackages`
-		     Iterate all packages in the library and index declared items.
-		   :meth:`pyVHDLModel.Library._IndexOtherDeclaredItem`
-		     Iterate all packages in the library and index declared items.
-		"""
-		self._types.clear()
-		self._subtypes.clear()
-		self._constants.clear()
-		self._signals.clear()
-		self._sharedVariables.clear()
-		self._files.clear()
-		self._functions.clear()
-		self._procedures.clear()
-		self._components.clear()
-		self._RemoveDeclaredItemsFromNamespace()
-
-		for item in self._declaredItems:
-			self._IndexDeclaredItem(item)
-
-		self._isIndexed = True
 
 
 @export
@@ -1121,6 +1121,34 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		return self._procedures
 
+	def IndexDeclaredItems(self) -> None:
+		"""
+		Index declared items listed in the sequential declaration region.
+
+		All lookup tables are cleared and all declared items are removed from :attr:`_namespace` first. Then every declared
+		item is added to :attr:`_namespace`, and additionally to the lookup table matching its kind. Items of an unhandled
+		kind are passed to :meth:`_IndexOtherDeclaredItem`. A protected type body completes its protected type, so it's
+		skipped. Indexing again yields the same lookup tables and namespace.
+
+		.. seealso::
+
+		   :meth:`ConcurrentDeclarationRegionMixin.IndexDeclaredItems`
+		     The same algorithm for a concurrent declaration region.
+		"""
+		self._types.clear()
+		self._subtypes.clear()
+		self._constants.clear()
+		self._variables.clear()
+		self._files.clear()
+		self._functions.clear()
+		self._procedures.clear()
+		self._RemoveDeclaredItemsFromNamespace()
+
+		for item in self._declaredItems:
+			self._IndexDeclaredItem(item)
+
+		self._isIndexed = True
+
 	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
 		"""
 		Add a declared item to the namespace and to the lookup table matching its kind.
@@ -1163,34 +1191,6 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 				self._namespace.AddElement(normalizedIdentifier, item)
 		else:
 			self._IndexOtherDeclaredItem(item)
-
-	def IndexDeclaredItems(self) -> None:
-		"""
-		Index declared items listed in the sequential declaration region.
-
-		All lookup tables are cleared and all declared items are removed from :attr:`_namespace` first. Then every declared
-		item is added to :attr:`_namespace`, and additionally to the lookup table matching its kind. Items of an unhandled
-		kind are passed to :meth:`_IndexOtherDeclaredItem`. A protected type body completes its protected type, so it's
-		skipped. Indexing again yields the same lookup tables and namespace.
-
-		.. seealso::
-
-		   :meth:`ConcurrentDeclarationRegionMixin.IndexDeclaredItems`
-		     The same algorithm for a concurrent declaration region.
-		"""
-		self._types.clear()
-		self._subtypes.clear()
-		self._constants.clear()
-		self._variables.clear()
-		self._files.clear()
-		self._functions.clear()
-		self._procedures.clear()
-		self._RemoveDeclaredItemsFromNamespace()
-
-		for item in self._declaredItems:
-			self._IndexDeclaredItem(item)
-
-		self._isIndexed = True
 
 
 @export
@@ -1264,27 +1264,6 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		return self._procedures
 
-	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
-		"""
-		Add a declared item to the namespace and to the lookup table matching its kind.
-
-		:param item: The declared item.
-		"""
-		from pyVHDLModel.Subprogram import Function, Procedure
-
-		if isinstance(item, Function):
-			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
-			#        real overload resolution yet).
-			self._functions.setdefault(item._normalizedIdentifier, []).append(item)
-			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
-		elif isinstance(item, Procedure):
-			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
-			#        real overload resolution yet).
-			self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
-			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
-		else:
-			self._IndexOtherDeclaredItem(item)
-
 	def IndexDeclaredItems(self) -> None:
 		"""
 		Index declared items listed in the protected type declaration.
@@ -1306,3 +1285,24 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 			self._IndexDeclaredItem(item)
 
 		self._isIndexed = True
+
+	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Add a declared item to the namespace and to the lookup table matching its kind.
+
+		:param item: The declared item.
+		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
+		if isinstance(item, Function):
+			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
+			#        real overload resolution yet).
+			self._functions.setdefault(item._normalizedIdentifier, []).append(item)
+			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
+		elif isinstance(item, Procedure):
+			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
+			#        real overload resolution yet).
+			self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
+			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
+		else:
+			self._IndexOtherDeclaredItem(item)

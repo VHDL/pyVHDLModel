@@ -45,12 +45,15 @@ Mixins already fully exercised elsewhere are intentionally not repeated here:
 """
 from pyTooling.Testing       import Testcase
 
+from pyTooling.Testing       import Testcase
+
 from pyVHDLModel.Base        import Direction, Mode, ModelEntity, Range, RangeFromName, SimpleRange, WaveformElement
 from pyVHDLModel.Expression  import IntegerLiteral, CharacterLiteral
 from pyVHDLModel.Interface   import InterfaceGroup
 from pyVHDLModel.Sequential  import IfBranch, ElsifBranch, ElseBranch, SequentialReportStatement, SequentialAssertStatement, SequentialCase
 from pyVHDLModel.Concurrent  import ConcurrentBlockStatement
 from pyVHDLModel.Name        import SimpleName
+from pyVHDLModel.Object      import Signal
 from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol, SimpleSubtypeSymbol
 
 
@@ -132,6 +135,17 @@ class OptionallyNamedEntity(Testcase):
 		group = InterfaceGroup("Generics")
 
 		self.assertEqual("generics", group.NormalizedIdentifier)
+
+
+class MultipleNamedEntity(Testcase):
+	"""``Signal`` is tested as a consumer of ``MultipleNamedEntityMixin``."""
+
+	def test_Identifiers_Iterator(self) -> None:
+		"""Identifiers from a single-pass iterable are normalized too."""
+		signal = Signal(iter(("a", "B")), SimpleSubtypeSymbol(SimpleName("bit")))
+
+		self.assertEqual(("a", "B"), signal.Identifiers)
+		self.assertEqual(("a", "b"), signal.NormalizedIdentifiers)
 
 
 class BranchMixins(Testcase):

@@ -74,17 +74,36 @@ from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLib
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
 from pyVHDLModel.Namespace     import Namespace
-from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant
+from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant, SharedVariable, Variable, File
 from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Common        import AllowBlackboxMixin
-from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin
+from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
+from pyVHDLModel.Regions       import ProtectedTypeDeclarationRegionMixin
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation
 from pyVHDLModel.Concurrent    import GenerateStatement, IfGenerateStatement, ForGenerateStatement, CaseGenerateStatement
 from pyVHDLModel.Concurrent    import GenerateBranch, ConcurrentStatementsMixin, ConcurrentBlockStatement
 from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, Configuration, Package, Component
-from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode
+from pyVHDLModel.DesignUnit    import UseClause
+from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode, PSLEntity
 from pyVHDLModel.Instantiation import PackageInstantiation
-from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType
+from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType, BaseType
+from pyVHDLModel.Configuration import ComponentConfiguration
+from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
+from pyVHDLModel.Interface     import ModeViewDeclaration
+from pyVHDLModel.Subprogram    import Subprogram
+
+
+# Classes of declared items each declarative region accepts (ClassVar _declaredItemTypes).
+ConcurrentDeclarationRegionMixin._declaredItemTypes = (
+	BaseType, Subprogram, Package, PackageBody, Constant, Signal, SharedVariable, File, Alias, Component, Attribute,
+	AttributeSpecification, ComponentConfiguration, ModeViewDeclaration, UseClause, PSLEntity
+)
+Package._declaredItemTypes = (*ConcurrentDeclarationRegionMixin._declaredItemTypes, DeferredConstant)
+SequentialDeclarationRegionMixin._declaredItemTypes = (
+	BaseType, Subprogram, Package, PackageBody, Constant, Variable, File, Alias, Attribute, AttributeSpecification,
+	UseClause
+)
+ProtectedTypeDeclarationRegionMixin._declaredItemTypes = (Subprogram, )
 
 
 @export

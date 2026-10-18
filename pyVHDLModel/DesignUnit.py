@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from __future__                import annotations
 
-from typing                    import ClassVar, List, Dict, Union, Iterable, Optional as Nullable, Tuple
+from typing                    import ClassVar, List, Dict, Union, Iterable, Optional as Nullable
 
 from pyTooling.Decorators      import export, readonly
 from pyTooling.MetaClasses     import ExtendedType, abstractmethod
@@ -617,16 +617,6 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 					del self._deferredConstants[normalizedIdentifier]
 		else:
 			super()._UnindexOtherDeclaredItem(item)
-
-	def _DeclaredItemTypes(self) -> Tuple[type, ...]:
-		"""
-		Return the classes of declared items this declarative region accepts.
-
-		A package accepts deferred constants too.
-
-		:returns: Tuple of classes.
-		"""
-		return super()._DeclaredItemTypes() + (DeferredConstant, )
 
 	def __str__(self) -> str:
 		"""

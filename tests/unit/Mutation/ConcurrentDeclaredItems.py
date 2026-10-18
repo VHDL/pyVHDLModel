@@ -210,6 +210,11 @@ class Add(Testcase):
 		self.assertListEqual(["Got type 'pyVHDLModel.Object.Variable'."], context.exception.__notes__)
 		self.assertListEqual([], architecture.DeclaredItems)
 
+	def test_DeclaredItemTypes(self) -> None:
+		"""The accepted classes are class variables: a package accepts deferred constants, an architecture doesn't."""
+		self.assertIn(DeferredConstant, Package._declaredItemTypes)
+		self.assertNotIn(DeferredConstant, Architecture._declaredItemTypes)
+
 	def test_Add_WrongType_DeferredConstant(self) -> None:
 		"""Only a package declares deferred constants."""
 		architecture = _architecture()

@@ -36,7 +36,7 @@ tbd.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, List, Dict, Iterable, Optional as Nullable, Any, Tuple
+from typing                  import TYPE_CHECKING, Any, ClassVar, Dict, Iterable, List, Optional as Nullable, Tuple
 
 from pyTooling.Common        import getFullyQualifiedName
 from pyTooling.Decorators    import export, readonly
@@ -634,7 +634,8 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Sequential declaration region mixin <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	   * :class:`Protected type declaration region mixin <pyVHDLModel.Regions.ProtectedTypeDeclarationRegionMixin>`
 	"""
-	_isIndexed: bool  #: ``True`` if :meth:`IndexDeclaredItems` filled the region's namespace.
+	_declaredItemTypes: ClassVar[Tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
+	_isIndexed:         bool                        #: ``True`` if :meth:`IndexDeclaredItems` filled the namespace.
 
 	def __init__(self) -> None:
 		"""
@@ -906,7 +907,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 
 		if declaredItem is None:
 			raise ValueError("Parameter 'declaredItem' is None.")
-		elif not isinstance(declaredItem, self._DeclaredItemTypes()) or isinstance(declaredItem, InterfaceItemMixin):
+		elif not isinstance(declaredItem, self._declaredItemTypes) or isinstance(declaredItem, InterfaceItemMixin):
 			ex = TypeError(f"Parameter 'declaredItem' is not a declaration allowed in {self.__class__.__name__}.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(declaredItem)}'.")
 			raise ex
@@ -1286,25 +1287,6 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		return self._components
 
-	def _DeclaredItemTypes(self) -> Tuple[type, ...]:
-		"""
-		Return the classes of declared items this declarative region accepts.
-
-		:returns: Tuple of classes.
-		"""
-		from pyVHDLModel.Configuration import ComponentConfiguration
-		from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
-		from pyVHDLModel.DesignUnit    import Component, Package, PackageBody, UseClause
-		from pyVHDLModel.Interface     import ModeViewDeclaration
-		from pyVHDLModel.PSLModel      import PSLEntity
-		from pyVHDLModel.Subprogram    import Subprogram
-		from pyVHDLModel.Type          import BaseType
-
-		return (
-			BaseType, Subprogram, Package, PackageBody, Constant, Signal, SharedVariable, File, Alias, Component, Attribute,
-			AttributeSpecification, ComponentConfiguration, ModeViewDeclaration, UseClause, PSLEntity
-		)
-
 	def IndexDeclaredItems(self) -> None:
 		"""
 		Index declared items listed in the concurrent declaration region.
@@ -1589,22 +1571,6 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		return self._procedures
 
-	def _DeclaredItemTypes(self) -> Tuple[type, ...]:
-		"""
-		Return the classes of declared items this declarative region accepts.
-
-		:returns: Tuple of classes.
-		"""
-		from pyVHDLModel.Declaration import Alias, Attribute, AttributeSpecification
-		from pyVHDLModel.DesignUnit  import Package, PackageBody, UseClause
-		from pyVHDLModel.Subprogram  import Subprogram
-		from pyVHDLModel.Type        import BaseType
-
-		return (
-			BaseType, Subprogram, Package, PackageBody, Constant, Variable, File, Alias, Attribute, AttributeSpecification,
-			UseClause
-		)
-
 	def IndexDeclaredItems(self) -> None:
 		"""
 		Index declared items listed in the sequential declaration region.
@@ -1773,16 +1739,6 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		:returns: Dictionary of all procedures, indexed by name; each entry is a list of overloads.
 		"""
 		return self._procedures
-
-	def _DeclaredItemTypes(self) -> Tuple[type, ...]:
-		"""
-		Return the classes of declared items this declarative region accepts.
-
-		:returns: Tuple of classes.
-		"""
-		from pyVHDLModel.Subprogram import Subprogram
-
-		return (Subprogram, )
 
 	def IndexDeclaredItems(self) -> None:
 		"""

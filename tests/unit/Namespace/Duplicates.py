@@ -97,7 +97,7 @@ class OneDeclarativePart(Testcase):
 		self.assertEqual(0, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
 
 	def test_ReIndexingIsNotADuplicate(self) -> None:
-		"""Indexing is not idempotent by construction, so re-inserting the *same* item must not report."""
+		"""Indexing twice must not report the *same* item as a duplicate."""
 		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[_signal("s", "natural")])
 
 		with WarningCollector() as collector:

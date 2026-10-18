@@ -522,7 +522,6 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 	_packageBody:       Nullable["PackageBody"]      #: The corresponding package body, or ``None`` if none was analyzed.
 
 	_deferredConstants: Dict[str, DeferredConstant]  #: Deferred constants, indexed by name.
-	_components:        Dict[str, 'Component']       #: Components, indexed by name.
 
 	def __init__(
 		self,

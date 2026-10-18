@@ -506,7 +506,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	* :attr:`ObjectGraph`
 	"""
 	_name:              Nullable[str]         #: Name of the design.
-	_allowBlackbox:     bool                  #: Allow blackboxes after linking the design.
 	_libraries:         Dict[str, 'Library']  #: List of all libraries defined for a design.
 	_documents:         List['Document']      #: List of all documents loaded for a design.
 	_dependencyGraph:   Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
@@ -2207,7 +2206,6 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 	   * :class:`Predefined library <pyVHDLModel.Predefined.PredefinedLibrary>`
 	"""
 
-	_allowBlackbox:  Nullable[bool]                      #: Allow blackboxes for components in this library.
 	_contexts:       Dict[str, Context]                  #: Dictionary of all contexts defined in a library.
 	_configurations: Dict[str, Configuration]            #: Dictionary of all configurations defined in a library.
 	_entities:       Dict[str, Entity]                   #: Dictionary of all entities defined in a library.

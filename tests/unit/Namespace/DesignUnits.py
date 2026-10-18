@@ -29,7 +29,7 @@
 # ==================================================================================================================== #
 #
 """Namespaces owned by design units, and how ``IndexDeclaredItems`` populates them."""
-from unittest import TestCase
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.DesignUnit import Architecture
 from pyVHDLModel.Name       import SimpleName
@@ -45,7 +45,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class Architectures(TestCase):
+class Architectures(Testcase):
 	def test_IndexDeclaredItems_AlsoPopulatesNamespace(self) -> None:
 		constant = Constant(["C"], SimpleSubtypeSymbol(SimpleName("natural")))
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[constant])

@@ -41,9 +41,9 @@ yet, so any two subprograms sharing a name are accepted.
 The expectations below were established with the GHDL analyzer (``ghdl -a --std=08``).
 """
 from pathlib import Path
-from unittest import TestCase
 
-from pyTooling.Warning import WarningCollector
+from pyTooling.Warning      import WarningCollector
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import Design, Document, Library
 from pyVHDLModel.Base       import Mode
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
 
 
-class OneDeclarativePart(TestCase):
+class OneDeclarativePart(Testcase):
 	"""Two declarations in the same declarative part."""
 
 	def test_TwoSignalsWithTheSameName(self) -> None:
@@ -107,7 +107,7 @@ class OneDeclarativePart(TestCase):
 		self.assertEqual(0, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
 
 
-class OverloadableDeclarations(TestCase):
+class OverloadableDeclarations(Testcase):
 	"""Subprograms may share a name; GHDL accepts them as long as the signatures differ."""
 
 	def test_TwoProceduresSharingAName(self) -> None:
@@ -137,7 +137,7 @@ class OverloadableDeclarations(TestCase):
 		self.assertEqual(1, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
 
 
-class RegionsSpanningTwoNamespaces(TestCase):
+class RegionsSpanningTwoNamespaces(Testcase):
 	"""An entity and its architecture, and a package and its body, are each one declarative region."""
 
 	def _design(self, entityItems, architectureItems, packageItems, bodyItems) -> Design:

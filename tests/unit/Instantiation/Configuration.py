@@ -29,7 +29,7 @@
 # ==================================================================================================================== #
 #
 """Tests for pyVHDLModel.Configuration."""
-from unittest import TestCase
+from pyTooling.Testing         import Testcase
 
 from pyVHDLModel.Name          import SimpleName, SelectedName
 from pyVHDLModel.Symbol        import EntitySymbol, ArchitectureSymbol, ConfigurationSymbol
@@ -49,7 +49,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class EntityAspects(TestCase):
+class EntityAspects(Testcase):
 	def test_Entity(self) -> None:
 		"""``use entity work.sub(behav);``"""
 		entity = EntitySymbol(SelectedName("sub", SimpleName("work")))
@@ -83,7 +83,7 @@ class EntityAspects(TestCase):
 		self.assertIsInstance(aspect, EntityAspect)
 
 
-class BindingIndications(TestCase):
+class BindingIndications(Testcase):
 	def test_Full(self) -> None:
 		"""``use entity work.sub(behav) generic map (G => 1) port map (p => s);``"""
 		entity = EntitySymbol(SelectedName("sub", SimpleName("work")))
@@ -105,7 +105,7 @@ class BindingIndications(TestCase):
 		self.assertEqual(0, len(binding.PortAssociationItems))
 
 
-class ComponentConfigurations(TestCase):
+class ComponentConfigurations(Testcase):
 	"""Also covers configuration specifications, which are structurally identical."""
 
 	def test_LabeledInstantiationList(self) -> None:
@@ -139,7 +139,7 @@ class ComponentConfigurations(TestCase):
 		self.assertIsNone(config.BindingIndication)
 
 
-class BlockConfigurations(TestCase):
+class BlockConfigurations(Testcase):
 	def test_Empty(self) -> None:
 		"""``for rtl end for;``"""
 		blockSpec = Symbol(SimpleName("rtl"), PossibleReference.Architecture | PossibleReference.Label)

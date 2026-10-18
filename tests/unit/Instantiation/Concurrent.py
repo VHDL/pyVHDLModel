@@ -33,7 +33,7 @@ Tests for pyVHDLModel.Concurrent - the concurrent statement kinds not already co
 tests/unit/Assignment.py (conditional/selected signal assignments) or tests/unit/Base.py
 (ConcurrentBlockStatement's BlockStatementMixin/LabeledEntityMixin wiring).
 """
-from unittest import TestCase
+from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Base        import Direction, Mode, SimpleRange
 from pyVHDLModel.Name        import SimpleName
@@ -64,7 +64,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class Instantiations(TestCase):
+class Instantiations(Testcase):
 	def test_ComponentInstantiation(self) -> None:
 		componentSymbol = ComponentInstantiationSymbol(SimpleName("comp"))
 		generic = GenericAssociationItem(SimpleName("G"), IntegerLiteral(1))
@@ -100,7 +100,7 @@ class Instantiations(TestCase):
 		self.assertIs(instance, configurationSymbol.Parent)
 
 
-class ProcessStatements(TestCase):
+class ProcessStatements(Testcase):
 	def test_Empty(self) -> None:
 		"""``proc: process begin end process;``"""
 		process = ProcessStatement("proc")
@@ -119,7 +119,7 @@ class ProcessStatements(TestCase):
 		self.assertIs(clk, process.SensitivityList[0])
 
 
-class ConcurrentProcedureCalls(TestCase):
+class ConcurrentProcedureCalls(Testcase):
 	def test_Construction(self) -> None:
 		procedureName = Symbol(SimpleName("proc"), PossibleReference.Procedure)
 		call = ConcurrentProcedureCall("lbl", procedureName)
@@ -128,7 +128,7 @@ class ConcurrentProcedureCalls(TestCase):
 		self.assertEqual("lbl", call.Label)
 
 
-class ConcurrentBlockStatements(TestCase):
+class ConcurrentBlockStatements(Testcase):
 	"""``BlockStatementMixin``/``LabeledEntityMixin`` wiring is already covered in tests/unit/Base.py;
 	this covers the block-specific state: the block header (generic and port clauses with their map
 	aspects) and the declared items/statements via
@@ -176,7 +176,7 @@ class ConcurrentBlockStatements(TestCase):
 		self.assertEqual(0, len(block.PortAssociationItems))
 
 
-class GenerateBranches(TestCase):
+class GenerateBranches(Testcase):
 	def test_IfGenerateBranch(self) -> None:
 		condition = IntegerLiteral(1)
 		branch = IfGenerateBranch(condition, alternativeLabel="LBL")
@@ -203,7 +203,7 @@ class GenerateBranches(TestCase):
 		self.assertEqual(0, len(branch.Statements))
 
 
-class GenerateStatements(TestCase):
+class GenerateStatements(Testcase):
 	def test_AbstractMethodsRaise(self) -> None:
 		"""``GenerateStatement`` itself is meant to always be used through a concrete subclass -
 		``IterateInstantiations``/``IndexStatement`` are placeholders raising ``NotImplementedError``
@@ -218,7 +218,7 @@ class GenerateStatements(TestCase):
 			statement.IndexStatement()
 
 
-class IfGenerateStatements(TestCase):
+class IfGenerateStatements(Testcase):
 	def test_IfOnly(self) -> None:
 		ifBranch = IfGenerateBranch(IntegerLiteral(1))
 		statement = IfGenerateStatement("gen", ifBranch)
@@ -241,7 +241,7 @@ class IfGenerateStatements(TestCase):
 		self.assertIs(instance, instantiations[0])
 
 
-class GenerateChoices(TestCase):
+class GenerateChoices(Testcase):
 	def test_IndexedGenerateChoice(self) -> None:
 		expression = IntegerLiteral(0)
 		choice = IndexedGenerateChoice(expression)
@@ -258,7 +258,7 @@ class GenerateChoices(TestCase):
 		self.assertEqual("0 to 3", str(choice))
 
 
-class GenerateCases(TestCase):
+class GenerateCases(Testcase):
 	def test_GenerateCase(self) -> None:
 		choice = IndexedGenerateChoice(IntegerLiteral(0))
 		case = GenerateCase([choice])
@@ -272,7 +272,7 @@ class GenerateCases(TestCase):
 		self.assertEqual("when others =>", str(case))
 
 
-class CaseGenerateStatements(TestCase):
+class CaseGenerateStatements(Testcase):
 	def test_Construction(self) -> None:
 		expression = IntegerLiteral(0)
 		case = GenerateCase([IndexedGenerateChoice(IntegerLiteral(0))])
@@ -297,7 +297,7 @@ class CaseGenerateStatements(TestCase):
 		self.assertIs(instance, instantiations[0])
 
 
-class ForGenerateStatements(TestCase):
+class ForGenerateStatements(Testcase):
 	def test_Construction(self) -> None:
 		rng = SimpleRange(IntegerLiteral(0), IntegerLiteral(3), Direction.To)
 		statement = ForGenerateStatement("gen", "i", rng)
@@ -319,7 +319,7 @@ class ForGenerateStatements(TestCase):
 		self.assertIs(instance, instantiations[0])
 
 
-class ConcurrentSimpleSignalAssignments(TestCase):
+class ConcurrentSimpleSignalAssignments(Testcase):
 	def test_Construction(self) -> None:
 		"""``s <= '1';``"""
 		target = SignalSymbol(SimpleName("s"))
@@ -331,7 +331,7 @@ class ConcurrentSimpleSignalAssignments(TestCase):
 		self.assertIs(waveformElement, assignment.Waveform[0])
 
 
-class ConcurrentAssertStatements(TestCase):
+class ConcurrentAssertStatements(Testcase):
 	def test_Full(self) -> None:
 		condition = IntegerLiteral(1)
 		message = CharacterLiteral("'a'")
@@ -350,7 +350,7 @@ class ConcurrentAssertStatements(TestCase):
 		self.assertIsNone(statement.Label)
 
 
-class ConcurrentStatementsMixinIndexing(TestCase):
+class ConcurrentStatementsMixinIndexing(Testcase):
 	"""Tested via ``Architecture`` (the canonical ``ConcurrentDeclarationRegionMixin``/
 	``ConcurrentStatementsMixin`` host - see tests/unit/DesignUnit.py)."""
 

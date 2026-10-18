@@ -29,7 +29,7 @@
 # ==================================================================================================================== #
 #
 """Tests for pyVHDLModel.Declaration."""
-from unittest import TestCase
+from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import ConstrainedArraySubtypeSymbol, Symbol, PossibleReference
@@ -42,7 +42,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class Aliases(TestCase):
+class Aliases(Testcase):
 	"""
 	Regression tests: Alias previously had no field at all for what's being aliased - only its own
 	identifier and documentation. ``alias b is s;`` lost the fact that ``b`` aliases ``s`` entirely.

@@ -37,7 +37,7 @@ Tests for pyVHDLModel.DesignUnit and pyVHDLModel.Regions.
 tested once here via ``Architecture`` as the canonical host; every other consumer below gets only a
 one-line smoke test confirming the mixin is wired up.
 """
-from unittest import TestCase
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import VHDLModelException
 from pyVHDLModel.Base       import ModelEntity
@@ -61,7 +61,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class References(TestCase):
+class References(Testcase):
 	def test_LibraryClause(self) -> None:
 		symbol = LibraryReferenceSymbol(SimpleName("ieee"))
 		clause = LibraryClause([symbol])
@@ -101,7 +101,7 @@ class _ConcreteSecondaryUnit(SecondaryUnit):
 		return self._identifier
 
 
-class DesignUnits(TestCase):
+class DesignUnits(Testcase):
 
 	def test_NoContextItems(self) -> None:
 		unit = _ConcreteDesignUnit("u")
@@ -144,7 +144,7 @@ class DesignUnits(TestCase):
 		self.assertIs(library, unit.Parent)
 
 
-class MarkerSubclasses(TestCase):
+class MarkerSubclasses(Testcase):
 	def test_PrimaryUnit(self) -> None:
 		unit = _ConcretePrimaryUnit("u")
 
@@ -156,7 +156,7 @@ class MarkerSubclasses(TestCase):
 		self.assertEqual("u", unit.Identifier)
 
 
-class Contexts(TestCase):
+class Contexts(Testcase):
 	def test_NoReferences(self) -> None:
 		context = Context("ctx")
 
@@ -186,7 +186,7 @@ class Contexts(TestCase):
 		self.assertIn("neither a library clause, use clause, nor context reference", str(context.exception))
 
 
-class Packages(TestCase):
+class Packages(Testcase):
 	def test_Minimal(self) -> None:
 		package = Package("pkg")
 
@@ -213,7 +213,7 @@ class Packages(TestCase):
 		self.assertIs(component, package.Components["comp"])
 
 
-class PackageBodies(TestCase):
+class PackageBodies(Testcase):
 	def test_Minimal(self) -> None:
 		packageSymbol = PackageSymbol(SimpleName("pkg"))
 		body = PackageBody(packageSymbol)
@@ -228,7 +228,7 @@ class PackageBodies(TestCase):
 		self.assertIsNone(body.LinkDeclaredItemsToPackage())
 
 
-class Entities(TestCase):
+class Entities(Testcase):
 	def test_Minimal(self) -> None:
 		entity = Entity("ent")
 
@@ -237,7 +237,7 @@ class Entities(TestCase):
 		self.assertEqual(0, len(entity.Architectures))
 
 
-class Architectures(TestCase):
+class Architectures(Testcase):
 	def test_Minimal(self) -> None:
 		entitySymbol = _entitySymbol("ent")
 		architecture = Architecture("rtl", entitySymbol)
@@ -326,7 +326,7 @@ class Architectures(TestCase):
 		self.assertEqual([overload1, overload2], architecture.Procedures["p"])
 
 
-class Components(TestCase):
+class Components(Testcase):
 	def test_Minimal(self) -> None:
 		component = Component("comp")
 
@@ -361,7 +361,7 @@ class Components(TestCase):
 		self.assertFalse(component.IsBlackbox)
 
 
-class Configurations(TestCase):
+class Configurations(Testcase):
 	"""The *design-unit* ``configuration cfg of ent is ... end configuration;`` - not to be confused
 	with ``pyVHDLModel.Configuration.ComponentConfiguration``/``BlockConfiguration``, which are tested
 	in tests/unit/Configuration.py."""

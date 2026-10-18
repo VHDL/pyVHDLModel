@@ -29,7 +29,7 @@
 # ==================================================================================================================== #
 #
 """Tests for traversing the model's parent-chain hierarchy, spanning multiple classes/levels of the model."""
-from unittest import TestCase
+from pyTooling.Testing       import Testcase
 
 from pyVHDLModel             import Design, Library, VHDLModelException
 from pyVHDLModel.DesignUnit  import Entity, Architecture, Package
@@ -43,7 +43,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class GetAncestor(TestCase):
+class GetAncestor(Testcase):
 	def test_AncestorExists(self) -> None:
 		entity = Entity("entity_1")
 		architecture = Architecture("arch_1", EntitySymbol(SimpleName("entity_1")), parent=entity)
@@ -67,7 +67,7 @@ class GetAncestor(TestCase):
 			entity.GetAncestor(Package)
 
 
-class AllowBlackBox(TestCase):
+class AllowBlackBox(Testcase):
 	def test_LocalValueIsUsed(self) -> None:
 		entity = Entity("entity_1", allowBlackbox=True)
 

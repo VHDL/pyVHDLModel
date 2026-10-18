@@ -43,7 +43,7 @@ Mixins already fully exercised elsewhere are intentionally not repeated here:
 - ``ChoicesMixin`` with a non-empty choice list - covered via tests/unit/Assignment.py
   (``SelectedWaveform`` et al.). Only the ``choices=None`` default path is added here.
 """
-from unittest import TestCase
+from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Base        import Direction, Mode, ModelEntity, Range, RangeFromName, SimpleRange, WaveformElement
 from pyVHDLModel.Expression  import IntegerLiteral, CharacterLiteral
@@ -60,7 +60,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class DirectionEnum(TestCase):
+class DirectionEnum(Testcase):
 	def test_To(self) -> None:
 		self.assertEqual("to", str(Direction.To))
 
@@ -68,7 +68,7 @@ class DirectionEnum(TestCase):
 		self.assertEqual("downto", str(Direction.DownTo))
 
 
-class ModeEnum(TestCase):
+class ModeEnum(Testcase):
 	def test_AllValues(self) -> None:
 		"""Every ``Mode`` value has a dedicated formatting slot in ``Mode.__str__``'s lookup tuple."""
 		expected = {
@@ -84,7 +84,7 @@ class ModeEnum(TestCase):
 			self.assertEqual(text, str(mode))
 
 
-class ModelEntities(TestCase):
+class ModelEntities(Testcase):
 	def test_NoParent(self) -> None:
 		entity = ModelEntity()
 
@@ -113,7 +113,7 @@ class ModelEntities(TestCase):
 			entity.Parent = None
 
 
-class OptionallyNamedEntity(TestCase):
+class OptionallyNamedEntity(Testcase):
 	"""``InterfaceGroup`` is the only current consumer of ``OptionallyNamedEntityMixin``."""
 
 	def test_WithName(self) -> None:
@@ -134,7 +134,7 @@ class OptionallyNamedEntity(TestCase):
 		self.assertEqual("generics", group.NormalizedIdentifier)
 
 
-class BranchMixins(TestCase):
+class BranchMixins(Testcase):
 	"""``IfBranch``/``ElsifBranch``/``ElseBranch`` are the only consumers of ``BranchMixin``,
 	``ConditionalBranchMixin`` and the ``If-``/``Elsif-``/``ElseBranchMixin`` variants."""
 
@@ -159,7 +159,7 @@ class BranchMixins(TestCase):
 		self.assertEqual(0, len(branch.Statements))
 
 
-class ReportAndAssertStatementMixins(TestCase):
+class ReportAndAssertStatementMixins(Testcase):
 	def test_ReportStatement_MessageAndSeverity(self) -> None:
 		message = CharacterLiteral("'a'")
 		severity = IntegerLiteral(1)
@@ -189,7 +189,7 @@ class ReportAndAssertStatementMixins(TestCase):
 		self.assertIsNone(statement.Severity)
 
 
-class BlockStatementMixinHost(TestCase):
+class BlockStatementMixinHost(Testcase):
 	"""``ConcurrentBlockStatement`` is the only consumer of ``BlockStatementMixin``. Also covers
 	``LabeledEntityMixin.NormalizedLabel``, which no other current test reads (only ``.Label``)."""
 
@@ -200,7 +200,7 @@ class BlockStatementMixinHost(TestCase):
 		self.assertEqual("blk", block.NormalizedLabel)
 
 
-class ChoicesMixinHost(TestCase):
+class ChoicesMixinHost(Testcase):
 	def test_NoChoices(self) -> None:
 		"""``choices=None`` (the default) - the non-empty-list path is already covered via
 		tests/unit/Assignment.py's ``SelectedWaveform``/``SelectedExpression`` tests."""
@@ -209,7 +209,7 @@ class ChoicesMixinHost(TestCase):
 		self.assertEqual(0, len(case.Choices))
 
 
-class Ranges(TestCase):
+class Ranges(Testcase):
 	"""``SimpleRange`` (``3 downto 0``) - a concrete class defined directly in Base.py, not a mixin."""
 
 	def test_Construction(self) -> None:
@@ -234,7 +234,7 @@ class Ranges(TestCase):
 		self.assertIsInstance(rng, Range)
 
 
-class RangesFromName(TestCase):
+class RangesFromName(Testcase):
 	"""``RangeFromName`` (``vector'range``, ``bit``) - a range whose bounds come from a referenced symbol."""
 
 	def test_Construction(self) -> None:
@@ -262,7 +262,7 @@ class RangesFromName(TestCase):
 		self.assertEqual("integer", rng.Symbol.Name.Identifier)
 
 
-class WaveformElements(TestCase):
+class WaveformElements(Testcase):
 	"""``WaveformElement`` (``'1' after 5 ns``) - a concrete class defined directly in Base.py, not a
 	mixin. tests/unit/Assignment.py already constructs these but never reads ``.Expression``/
 	``.After``."""

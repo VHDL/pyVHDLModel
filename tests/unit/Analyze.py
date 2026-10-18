@@ -30,8 +30,7 @@
 # ==================================================================================================================== #
 #
 """Analysis tests for the language model."""
-from pathlib  import Path
-from unittest import TestCase
+from pathlib import Path
 
 from pyVHDLModel import Design, Document, VHDLModelException
 from pyVHDLModel.Name import SimpleName, SelectedName, AllName
@@ -45,7 +44,8 @@ from pyVHDLModel.Concurrent import EntityInstantiation
 from pyVHDLModel.Object import Variable
 from pyVHDLModel.Exception import NotImplementedWarning
 
-from pyTooling.Warning import WarningCollector
+from pyTooling.Warning         import WarningCollector
+from pyTooling.Testing         import Testcase
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -54,7 +54,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class VHDLLibrary(TestCase):
+class VHDLLibrary(Testcase):
 	def CreateDesign(self) -> Design:
 		design = Design("example")
 		library = design.GetLibrary("lib_1")
@@ -219,7 +219,7 @@ class VHDLLibrary(TestCase):
 		design.Analyze()
 
 
-class TopLevel(TestCase):
+class TopLevel(Testcase):
 	def test_SingleEntityWithoutArchitecture_IsNotMistakenForUncomputedHierarchy(self) -> None:
 		"""
 		A design consisting of a single entity without any (yet analyzed) architecture produces a hierarchy graph with
@@ -246,7 +246,7 @@ class TopLevel(TestCase):
 			design.TopLevel
 
 
-class IndexDeclaredItems(TestCase):
+class IndexDeclaredItems(Testcase):
 	"""
 	Regression tests for replacing a stray ``print()`` with ``WarningCollector.Raise(NotImplementedWarning(...))`` in
 	``IndexDeclaredItems``, consistent with the same warning idiom used elsewhere in this codebase and mirrored by

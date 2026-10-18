@@ -29,7 +29,7 @@
 # ==================================================================================================================== #
 #
 """Tests for pyVHDLModel.Instantiation (VHDL-2008 generic subprogram/package instantiation)."""
-from unittest import TestCase
+from pyTooling.Testing         import Testcase
 
 from pyVHDLModel             import VHDLModelException
 from pyVHDLModel.Name        import SimpleName
@@ -46,7 +46,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class ProcedureInstantiations(TestCase):
+class ProcedureInstantiations(Testcase):
 	"""``procedure p is new q generic map (...);``"""
 
 	def test_Construction(self) -> None:
@@ -66,7 +66,7 @@ class ProcedureInstantiations(TestCase):
 		self.assertEqual(0, len(instantiation.GenericAssociationItems))
 
 
-class FunctionInstantiations(TestCase):
+class FunctionInstantiations(Testcase):
 	"""``function f is new g generic map (...);`` - ``ReturnType`` is deliberately ``Nullable``, see
 	the class's own docstring (never resolvable at the parse-only level, a genuinely unresolved
 	forward reference like ``Symbol.Reference``, not a workaround)."""
@@ -85,7 +85,7 @@ class FunctionInstantiations(TestCase):
 		self.assertFalse(instantiation.IsPure)
 
 
-class PackageInstantiations(TestCase):
+class PackageInstantiations(Testcase):
 	"""``package p is new q generic map (...);``"""
 
 	def test_Construction(self) -> None:

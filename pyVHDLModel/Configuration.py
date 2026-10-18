@@ -295,7 +295,7 @@ class ComponentConfiguration(ModelEntity):
 			self._instantiationList = instantiationList
 			instantiationList.Parent = self
 		else:
-			self._instantiationList = [label for label in instantiationList]
+			self._instantiationList = list(instantiationList)
 			for label in self._instantiationList:
 				label.Parent = self
 

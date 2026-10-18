@@ -963,7 +963,7 @@ class ArrayConstraint(Constraint, mixin=True):
 
 		:param constraints: List of all index ranges, one per dimension.
 		"""
-		self._constraints = [constraint for constraint in constraints]
+		self._constraints = list(constraints)
 
 	@readonly
 	def Constraints(self) -> List[Range]:
@@ -994,7 +994,7 @@ class RecordConstraint(Constraint, mixin=True):
 
 		:param constraints: Dictionary of the constraint per constrained record element.
 		"""
-		self._constraints = {key: value for key, value in constraints.items()}
+		self._constraints = dict(constraints)
 
 	@readonly
 	def Constraints(self) -> Dict[RecordElementSymbol, Range]:

@@ -243,6 +243,17 @@ class Ports(Testcase):
 
 		self.assertNotIn("clock", entity._namespace._elements)
 
+	def test_Namespace_NotIndexed(self) -> None:
+		"""Removing a port of a region, which wasn't indexed yet, leaves the namespace as is."""
+		clock = _port("Clock")
+		entity = Entity("e", portItems=[clock])
+
+		entity.RemovePortItem(clock)
+
+		self.assertEqual(0, entity.PortCount)
+		self.assertIsNone(clock.Parent)
+		self.assertDictEqual({}, entity._namespace._elements)
+
 	def test_Contract(self) -> None:
 		"""A host class without the namespace methods expected by the mixin can't be instantiated."""
 		class Host(ModelEntity, WithPortsMixin):

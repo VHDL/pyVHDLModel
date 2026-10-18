@@ -245,6 +245,17 @@ class Parameters(Testcase):
 		self.assertNotIn("a", procedure._namespace._elements)
 		self.assertNotIn("b", procedure._namespace._elements)
 
+	def test_Namespace_NotIndexed(self) -> None:
+		"""Removing a parameter of a region, which wasn't indexed yet, leaves the namespace as is."""
+		a = _parameter("a")
+		procedure = Procedure("p", parameterItems=[a])
+
+		procedure.RemoveParameterItem(a)
+
+		self.assertEqual(0, procedure.ParameterCount)
+		self.assertIsNone(a.Parent)
+		self.assertDictEqual({}, procedure._namespace._elements)
+
 	def test_Contract(self) -> None:
 		"""A host class without the namespace methods expected by the mixin can't be instantiated."""
 		class Host(ModelEntity, WithParametersMixin):

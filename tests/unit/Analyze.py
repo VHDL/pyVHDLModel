@@ -261,6 +261,18 @@ class LinkInstantiations(Testcase):
 			context.exception.__notes__
 		)
 
+	def test_EntityInstantiation_LibraryNotReferenced(self) -> None:
+		design = self._designWithEntityInstantiation(SelectedName("entity_A", SimpleName("lib_2")))
+
+		with self.assertRaises(VHDLModelException) as context:
+			design.Analyze()
+
+		self.assertEqual(
+			"Referenced library 'lib_2' in direct entity instantiation 'inst: entity lib_2.entity_A' not found in "
+			"architecture 'lib_1.entity_B(arch_B)'.",
+			str(context.exception)
+		)
+
 
 class TopLevel(Testcase):
 	def test_SingleEntityWithoutArchitecture_IsNotMistakenForUncomputedHierarchy(self) -> None:

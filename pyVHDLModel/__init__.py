@@ -1940,14 +1940,20 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						libraryIdentifier = architecture.Library.Identifier
 						normalizedLibraryIdentifier = architecture.Library.NormalizedIdentifier
 					elif normalizedLibraryIdentifier not in architecture._referencedLibraries:
-						ex = VHDLModelException(f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in architecture '{architecture!r}'.")
+						ex = VHDLModelException(
+							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in architecture '{architecture!r}'."
+						)
 						ex.add_note(f"Add a library reference to the architecture or entity using a library clause like: 'library {libraryIdentifier};'.")
 						raise ex
 
 					try:
 						library = self._libraries[normalizedLibraryIdentifier]
 					except KeyError:
-						ex = VHDLModelException(f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in design.")
+						ex = VHDLModelException(
+							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in design."
+						)
 						ex.add_note(f"No design units were parsed into library '{libraryIdentifier}'. Thus it doesn't exist in design.")
 						raise ex
 

@@ -274,7 +274,11 @@ class WithGenericsPortsParametersMixins(Testcase):
 
 	def test_WithGenericsMixin(self) -> None:
 		class _Host(WithGenericsMixin):
-			pass
+			def _AddToNamespace(self, element) -> None:
+				pass
+
+			def _RemoveFromNamespace(self, element) -> None:
+				pass
 
 		item = GenericTypeInterfaceItem("T")
 		host = _Host([item])

@@ -980,6 +980,20 @@ class Component(
 		self._isBlackbox = None
 		self._entity =     None
 
+	def _AddToNamespace(self, element: ModelEntity) -> None:
+		"""
+		Add nothing, because a component has no namespace.
+
+		:param element: The element, e.g. an interface item.
+		"""
+
+	def _RemoveFromNamespace(self, element: ModelEntity) -> None:
+		"""
+		Remove nothing, because a component has no namespace.
+
+		:param element: The element, e.g. an interface item.
+		"""
+
 	@readonly
 	def IsBlackbox(self) -> Nullable[bool]:
 		"""

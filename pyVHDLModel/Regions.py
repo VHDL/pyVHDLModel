@@ -58,9 +58,13 @@ if TYPE_CHECKING:
 
 
 @export
-class WithGenericsMixin(metaclass=ExtendedType, mixin=True):
+class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespace", "_RemoveFromNamespace")):
 	"""
 	A mixin-class for language constructs with a generic clause.
+
+	The host class provides ``_AddToNamespace(element)`` and ``_RemoveFromNamespace(element)``, called when a generic is
+	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace, a language construct
+	without a namespace implements both as no-operations.
 
 	.. seealso::
 
@@ -109,8 +113,8 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Add a generic at the end of the generic clause.
 
-		The generic's parent is set to this language construct. If the language construct is a declarative region, the
-		generic's identifiers are added to its namespace.
+		The generic's parent is set to this language construct, and its identifiers are added to the language construct's
+		namespace, if it has one.
 
 		:param genericItem:            The generic to add.
 		:raises ValueError:            If parameter 'genericItem' is ``None``.
@@ -132,8 +136,8 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Insert a generic at a position of the generic clause.
 
-		The generic's parent is set to this language construct. If the language construct is a declarative region, the
-		generic's identifiers are added to its namespace.
+		The generic's parent is set to this language construct, and its identifiers are added to the language construct's
+		namespace, if it has one.
 
 		:param index:                  Position, from ``0`` (first) to :data:`GenericCount` (append).
 		:param genericItem:            The generic to insert.
@@ -186,17 +190,15 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True):
 
 		self._genericItems.insert(index, genericItem)
 		genericItem.Parent = self
-		if isinstance(self, DeclarationRegionMixin):
-			for normalizedIdentifier in normalizedIdentifiersOf(genericItem):
-				self._namespace.AddElement(normalizedIdentifier, genericItem)
+		self._AddToNamespace(genericItem)
 
 	def RemoveGenericItem(self, genericItem: GenericInterfaceItemMixin) -> None:
 		"""
 		Remove a generic from the generic clause.
 
-		The generic is detached: its parent is cleared and, if the language construct is a declarative region, its
-		identifiers are removed from the namespace. The generic itself is unchanged and can be added to another language
-		construct, or inserted at another position.
+		The generic is detached: its parent is cleared and its identifiers are removed from the language construct's
+		namespace, if it has one. The generic itself is unchanged and can be added to another language construct, or
+		inserted at another position.
 
 		:param genericItem:     The generic to remove.
 		:raises ValueError:     If parameter 'genericItem' is ``None``.
@@ -231,9 +233,7 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True):
 
 		del self._genericItems[index]
 		genericItem._parent = None
-		if isinstance(self, DeclarationRegionMixin):
-			for normalizedIdentifier in normalizedIdentifiersOf(genericItem):
-				self._namespace.RemoveElement(normalizedIdentifier, genericItem)
+		self._RemoveFromNamespace(genericItem)
 
 
 @export
@@ -371,6 +371,24 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		for item in self._parameterItems:
 			for normalizedIdentifier in normalizedIdentifiersOf(item):
 				self._namespace.AddElement(normalizedIdentifier, item)
+
+	def _AddToNamespace(self, element: Any) -> None:
+		"""
+		Add an element's identifiers to this region's namespace.
+
+		:param element: The element to add, e.g. an interface item.
+		"""
+		for normalizedIdentifier in normalizedIdentifiersOf(element):
+			self._namespace.AddElement(normalizedIdentifier, element)
+
+	def _RemoveFromNamespace(self, element: Any) -> None:
+		"""
+		Remove an element's identifiers from this region's namespace.
+
+		:param element: The element to remove, e.g. an interface item.
+		"""
+		for normalizedIdentifier in normalizedIdentifiersOf(element):
+			self._namespace.RemoveElement(normalizedIdentifier, element)
 
 	def _IndexOtherDeclaredItem(self, item) -> None:
 		"""Hook for declared items the region doesn't handle itself. Derived classes may override it."""

@@ -34,11 +34,14 @@ Mutation tests for generic clauses (:class:`~pyVHDLModel.Regions.WithGenericsMix
 The mutators are tested on an entity and a subprogram (declarative regions with a namespace), a component (no
 namespace) and a generic group.
 """
+from pyTooling.MetaClasses  import UnfulfilledExpectationError
 from pyTooling.Testing      import Testcase
 
+from pyVHDLModel.Base       import ModelEntity
 from pyVHDLModel.DesignUnit import Component, Entity
 from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicateGenericError
 from pyVHDLModel.Interface  import GenericTypeInterfaceItem, GenericGroup
+from pyVHDLModel.Regions    import WithGenericsMixin
 from pyVHDLModel.Subprogram import Procedure
 
 from tests.unit.Mutation    import _generic, _port
@@ -366,3 +369,22 @@ class Generics(Testcase):
 		entity.RemoveGenericItem(bits)
 
 		self.assertIs(port, entity._namespace._elements["bits"])
+
+	def test_Contract(self) -> None:
+		"""A host class without the namespace methods expected by the mixin can't be instantiated."""
+		class Host(ModelEntity, WithGenericsMixin):
+			def __init__(self) -> None:
+				super().__init__()
+				WithGenericsMixin.__init__(self)
+
+		with self.assertRaises(UnfulfilledExpectationError) as context:
+			Host()
+
+		self.assertEqual("Class 'Host' doesn't provide every expected member.", str(context.exception))
+		self.assertListEqual(
+			[
+				"Missing '_AddToNamespace', expected by 'WithGenericsMixin'.",
+				"Missing '_RemoveFromNamespace', expected by 'WithGenericsMixin'.",
+			],
+			context.exception.__notes__
+		)

@@ -35,7 +35,7 @@ from pathlib import Path
 from pyTooling.Graph           import Graph
 from pyTooling.Testing         import Testcase
 
-from pyVHDLModel import Design, Library, Document, IEEEFlavor, LibraryExistsInDesignError
+from pyVHDLModel import Design, Library, Document, IEEEFlavor, LibraryExistsInDesignError, VHDLModelException
 from pyVHDLModel.Base import Direction, SimpleRange
 from pyVHDLModel.Name import SelectedName, SimpleName, AllName, AttributeName
 from pyVHDLModel.Object import Constant, Signal
@@ -667,6 +667,37 @@ class VHDLDocument(Testcase):
 		self.assertEqual(1, len(document.Contexts))
 		self.assertEqual(1, len(document.Configurations))
 		self.assertEqual(6, len(document.DesignUnits))
+
+
+class VHDLDocumentArchitectures(Testcase):
+	def test_Architecture_MixedCase(self) -> None:
+		"""Architectures are indexed by normalized entity and architecture identifiers."""
+		document = Document(Path("tests.vhdl"), parent=None)
+
+		architecture1 = Architecture("RTL", EntitySymbol(SimpleName("Entity_1")), parent=None)
+		document._AddArchitecture(architecture1)
+		architecture2 = Architecture("Behav", EntitySymbol(SimpleName("ENTITY_1")), parent=None)
+		document._AddArchitecture(architecture2)
+
+		self.assertEqual(["entity_1"], list(document.Architectures.keys()))
+		self.assertEqual(["rtl", "behav"], list(document.Architectures["entity_1"].keys()))
+		self.assertIs(architecture1, document.Architectures["entity_1"]["rtl"])
+		self.assertIs(architecture2, document.Architectures["entity_1"]["behav"])
+
+	def test_Architecture_DuplicateMixedCase(self) -> None:
+		"""A second architecture differing only in case is a duplicate."""
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddArchitecture(Architecture("RTL", EntitySymbol(SimpleName("entity_1")), parent=None))
+
+		with self.assertRaises(VHDLModelException) as context:
+			document._AddArchitecture(Architecture("rtl", EntitySymbol(SimpleName("entity_1")), parent=None))
+
+		self.assertEqual(
+			"An architecture 'rtl' for entity 'entity_1' already exists in this document.",
+			str(context.exception)
+		)
+		self.assertEqual(1, len(document.Architectures["entity_1"]))
+		self.assertEqual(1, len(document.DesignUnits))
 
 
 class VHDLLibrary(Testcase):

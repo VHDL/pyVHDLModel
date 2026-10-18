@@ -2738,18 +2738,19 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
-		entity = item._entity.Name
+		entity =           item._entity.Name
 		entityIdentifier = entity._normalizedIdentifier
+		identifier =       item._normalizedIdentifier
 		try:
 			architectures = self._architectures[entityIdentifier]
-			if item._normalizedIdentifier in architectures:
+			if identifier in architectures:
 				# TODO: use a more specific exception
 				# FIXME: this is allowed and should be a warning or a strict mode.
 				raise VHDLModelException(f"An architecture '{item._identifier}' for entity '{entity._identifier}' already exists in this document.")
 
-			architectures[item.Identifier] = item
+			architectures[identifier] = item
 		except KeyError:
-			self._architectures[entityIdentifier] = {item._identifier: item}
+			self._architectures[entityIdentifier] = {identifier: item}
 
 		self._designUnits.append(item)
 		item._document = self

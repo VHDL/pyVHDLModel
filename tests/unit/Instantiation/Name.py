@@ -29,7 +29,7 @@
 # ==================================================================================================================== #
 #
 """Tests for pyVHDLModel.Name."""
-from unittest import TestCase
+from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Base        import ModelEntity
 from pyVHDLModel.Expression  import IntegerLiteral
@@ -45,7 +45,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class Names(TestCase):
+class Names(Testcase):
 	def test_NoPrefixNoParent(self) -> None:
 		name = Name("foo")
 
@@ -90,7 +90,7 @@ class Names(TestCase):
 		self.assertIs(parent, name.Parent)
 
 
-class SimpleNames(TestCase):
+class SimpleNames(Testcase):
 	def test_Construction(self) -> None:
 		name = SimpleName("sig")
 
@@ -98,7 +98,7 @@ class SimpleNames(TestCase):
 		self.assertFalse(name.HasPrefix)
 
 
-class ParenthesisNames(TestCase):
+class ParenthesisNames(Testcase):
 	"""
 	``arr(3)`` written through the generic ``ParenthesisName``.
 
@@ -116,7 +116,7 @@ class ParenthesisNames(TestCase):
 		self.assertEqual("arr(3)", str(name))
 
 
-class IndexedNames(TestCase):
+class IndexedNames(Testcase):
 	def test_Construction(self) -> None:
 		prefix = SimpleName("arr")
 		index = IntegerLiteral(3)
@@ -128,7 +128,7 @@ class IndexedNames(TestCase):
 		self.assertEqual("arr(3)", str(name))
 
 
-class SlicedNames(TestCase):
+class SlicedNames(Testcase):
 	def test_Construction(self) -> None:
 		prefix = SimpleName("v")
 		name = SlicedName("", prefix)
@@ -136,7 +136,7 @@ class SlicedNames(TestCase):
 		self.assertIs(prefix, name.Prefix)
 
 
-class SelectedNames(TestCase):
+class SelectedNames(Testcase):
 	def test_Construction(self) -> None:
 		prefix = SimpleName("pkg")
 		name = SelectedName("member", prefix)
@@ -146,7 +146,7 @@ class SelectedNames(TestCase):
 		self.assertEqual("pkg.member", str(name))
 
 
-class AttributeNames(TestCase):
+class AttributeNames(Testcase):
 	def test_Construction(self) -> None:
 		prefix = SimpleName("sig")
 		name = AttributeName("range", prefix)
@@ -155,7 +155,7 @@ class AttributeNames(TestCase):
 		self.assertEqual("sig'range", str(name))
 
 
-class AllNames(TestCase):
+class AllNames(Testcase):
 	"""``use ieee.numeric_std.all;`` - ``AllName`` is a ``SelectedName`` fixed to the identifier
 	``"all"``."""
 
@@ -167,7 +167,7 @@ class AllNames(TestCase):
 		self.assertEqual("numeric_std.all", str(name))
 
 
-class OpenNames(TestCase):
+class OpenNames(Testcase):
 	"""Regression test: the ``parent`` argument was previously forwarded positionally into ``Name.
 	__init__``'s ``prefix`` parameter instead of its ``parent`` parameter (``super().__init__("open",
 	parent)``), so any ``OpenName(parent=...)`` call crashed with an ``AttributeError`` the moment

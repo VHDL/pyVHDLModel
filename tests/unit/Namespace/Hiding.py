@@ -43,9 +43,9 @@ keeps seeing its own declaration.
    the entity's namespace - so the scopes exercised below are the ones that currently *can* be tested.
 """
 from pathlib import Path
-from unittest import TestCase
 
-from pyTooling.Warning import WarningCollector
+from pyTooling.Warning      import WarningCollector
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import Design, Document, Library
 from pyVHDLModel.Base       import Direction, SimpleRange
@@ -66,7 +66,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class EntityAndArchitecture(TestCase):
+class EntityAndArchitecture(Testcase):
 	"""
 	An architecture's namespace nests inside its entity's, which is what makes an entity's ports and
 	declarations *visible* in the architecture.
@@ -141,7 +141,7 @@ class EntityAndArchitecture(TestCase):
 		self.assertIs(self._entitySignal, found)
 
 
-class BlocksInsideArchitecture(TestCase):
+class BlocksInsideArchitecture(Testcase):
 	"""A block's declarative region nests inside the enclosing architecture's."""
 
 	def setUp(self) -> None:
@@ -176,7 +176,7 @@ class BlocksInsideArchitecture(TestCase):
 		self.assertIs(self._architectureSignal, found)
 
 
-class NestedBlocks(TestCase):
+class NestedBlocks(Testcase):
 	"""Three levels of nesting: the innermost declaration wins, and each level keeps its own."""
 
 	def setUp(self) -> None:
@@ -209,7 +209,7 @@ class NestedBlocks(TestCase):
 		self.assertIs(onlyOutside, self._inner._namespace.FindObject(SignalSymbol(SimpleName("onlyOutside"))))
 
 
-class GeneratesInsideArchitecture(TestCase):
+class GeneratesInsideArchitecture(Testcase):
 	"""A for-generate's declarative region nests inside the enclosing architecture's."""
 
 	def setUp(self) -> None:

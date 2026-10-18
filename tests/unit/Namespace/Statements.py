@@ -35,7 +35,7 @@ Namespace-connection happens in the ``Parent`` property *setter* override, not i
 passing ``parent=`` to ``__init__`` assigns ``self._parent`` directly and never reaches the overridden
 setter. Every test here therefore assigns ``.Parent`` after construction.
 """
-from unittest import TestCase
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.Concurrent import (
@@ -63,7 +63,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class BlockStatements(TestCase):
+class BlockStatements(Testcase):
 	def test_NestedBlock_ConnectsNamespaceOnParentAssignment(self) -> None:
 		outer = ConcurrentBlockStatement("outer")
 		inner = ConcurrentBlockStatement("inner")
@@ -73,7 +73,7 @@ class BlockStatements(TestCase):
 		self.assertIs(outer._namespace, inner._namespace.ParentNamespace)
 
 
-class IfGenerateStatements(TestCase):
+class IfGenerateStatements(Testcase):
 	def test_AllBranchesConnectToTheArchitecture(self) -> None:
 		"""Also a regression test: the fallback that names the if-branch's namespace after the
 		statement's own label (for the common, unlabelled-branch case) compared
@@ -94,7 +94,7 @@ class IfGenerateStatements(TestCase):
 		self.assertEqual("gen", ifBranch._namespace._name)
 
 
-class CaseGenerateStatements(TestCase):
+class CaseGenerateStatements(Testcase):
 	def test_CaseConnectsToTheArchitecture(self) -> None:
 		architecture = Architecture("rtl", _entitySymbol("e"))
 		case = GenerateCase([IndexedGenerateChoice(IntegerLiteral(0))])
@@ -105,7 +105,7 @@ class CaseGenerateStatements(TestCase):
 		self.assertIs(architecture._namespace, case._namespace.ParentNamespace)
 
 
-class ForGenerateStatements(TestCase):
+class ForGenerateStatements(Testcase):
 	def test_ConnectsToTheArchitecture(self) -> None:
 		architecture = Architecture("rtl", _entitySymbol("e"))
 		rng = SimpleRange(IntegerLiteral(0), IntegerLiteral(3), Direction.To)

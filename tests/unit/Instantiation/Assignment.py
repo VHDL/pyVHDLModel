@@ -29,7 +29,7 @@
 # ==================================================================================================================== #
 #
 """Tests for conditional/selected/force/release assignment statements (Concurrent.py, Sequential.py, Common.py)."""
-from unittest import TestCase
+from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import SignalSymbol, VariableSymbol
@@ -58,7 +58,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class ConditionalAndSelectedBuildingBlocks(TestCase):
+class ConditionalAndSelectedBuildingBlocks(Testcase):
 	def test_ConditionalWaveform(self) -> None:
 		condition = IntegerLiteral(1)
 		waveform = [WaveformElement(CharacterLiteral("'1'"))]
@@ -110,7 +110,7 @@ class ConditionalAndSelectedBuildingBlocks(TestCase):
 		self.assertIs(expression, ose.Expression)
 
 
-class ConcurrentAssignments(TestCase):
+class ConcurrentAssignments(Testcase):
 	def test_ConditionalSignalAssignment(self) -> None:
 		"""``s <= '1' when cond else '0';`` - regression test: this class was previously a bare stub
 		accepting a single 'expression' parameter that didn't fit what a conditional signal
@@ -133,7 +133,7 @@ class ConcurrentAssignments(TestCase):
 		self.assertEqual(2, len(assignment.SelectedWaveforms))
 
 
-class SequentialAssignments(TestCase):
+class SequentialAssignments(Testcase):
 	def test_SimpleVariableAssignment(self) -> None:
 		"""``v := '1';``"""
 		assignment = SequentialVariableAssignment(_variableSymbol("v"), CharacterLiteral("'1'"))

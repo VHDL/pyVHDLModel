@@ -35,7 +35,7 @@ VHDL's ``process_declarative_item`` and ``subprogram_declarative_item`` rules ar
 ``SequentialDeclarationRegionMixin``. Unlike a concurrent region it can declare a **variable**, which is
 the usual thing to hide an outer signal with.
 """
-from unittest import TestCase
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Concurrent import ConcurrentBlockStatement, ProcessStatement
 from pyVHDLModel.DesignUnit import Architecture
@@ -69,7 +69,7 @@ def _architecture(*declaredItems) -> Architecture:
 	return architecture
 
 
-class ProcessNamespaces(TestCase):
+class ProcessNamespaces(Testcase):
 	def test_NamespaceIsNamedAfterTheLabel(self) -> None:
 		process = ProcessStatement("proc")
 
@@ -145,7 +145,7 @@ class ProcessNamespaces(TestCase):
 		self.assertIs(block._namespace, process.Namespace.ParentNamespace)
 
 
-class SubprogramNamespaces(TestCase):
+class SubprogramNamespaces(Testcase):
 	def test_NamespaceIsNamedAfterTheIdentifier(self) -> None:
 		procedure = Procedure("DoIt")
 

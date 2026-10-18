@@ -37,7 +37,7 @@ GHDL analyzer: ``port (g : in bit)`` beside ``generic (g : integer)``, ``signal 
 "identifier already used for a declaration". So they go into the *same* namespace as the declared items,
 not a separate one.
 """
-from unittest import TestCase
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Concurrent import ConcurrentBlockStatement, ProcessStatement
@@ -70,7 +70,7 @@ def _generic(*identifiers: str) -> GenericConstantInterfaceItem:
 	return GenericConstantInterfaceItem(identifiers, Mode.In, _subtypeSymbol("natural"))
 
 
-class EntityInterfaceItems(TestCase):
+class EntityInterfaceItems(Testcase):
 	def test_PortIsIndexedIntoTheEntityNamespace(self) -> None:
 		port = _port("clk")
 		entity = Entity("ent", portItems=[port])
@@ -149,7 +149,7 @@ class EntityInterfaceItems(TestCase):
 		self.assertIs(port, process.Namespace.FindObject(SignalSymbol(SimpleName("clk"))))
 
 
-class PackageGenerics(TestCase):
+class PackageGenerics(Testcase):
 	def test_GenericIsIndexed(self) -> None:
 		"""A generic package (VHDL-2008) has generics but no ports."""
 		generic = _generic("width")
@@ -159,7 +159,7 @@ class PackageGenerics(TestCase):
 		self.assertIs(generic, package._namespace.Elements()["width"])
 
 
-class BlockPorts(TestCase):
+class BlockPorts(Testcase):
 	def test_PortIsIndexed(self) -> None:
 		"""``ConcurrentBlockStatement`` hand-rolls its port list rather than using ``WithPortsMixin``."""
 		port = _port("bp")
@@ -169,7 +169,7 @@ class BlockPorts(TestCase):
 		self.assertIs(port, block._namespace.Elements()["bp"])
 
 
-class SubprogramInterfaceItems(TestCase):
+class SubprogramInterfaceItems(Testcase):
 	"""
 	``Subprogram`` can't inherit ``WithGenericsMixin``/``WithParametersMixin``:
 	:mod:`pyVHDLModel.Interface` needs ``Procedure``/``Function`` as real base classes for its generic

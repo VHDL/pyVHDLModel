@@ -30,10 +30,10 @@
 # ==================================================================================================================== #
 #
 """Instantiation tests for the model's top-level composition: names, symbols, design, library and document."""
-from pathlib  import Path
-from unittest import TestCase
+from pathlib import Path
 
-from pyTooling.Graph import Graph
+from pyTooling.Graph           import Graph
+from pyTooling.Testing         import Testcase
 
 from pyVHDLModel import Design, Library, Document, IEEEFlavor, LibraryExistsInDesignError
 from pyVHDLModel.Base import Direction, SimpleRange
@@ -62,7 +62,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class Names(TestCase):
+class Names(Testcase):
 	def test_SimpleName(self) -> None:
 		name = SimpleName("Lib")
 
@@ -138,7 +138,7 @@ class Names(TestCase):
 		self.assertEqual("Sig'Length", str(name))
 
 
-class Symbols(TestCase):
+class Symbols(Testcase):
 	def test_LibraryReferenceSymbol(self) -> None:
 		name = SimpleName("Lib")
 		symbol = LibraryReferenceSymbol(name)
@@ -370,7 +370,7 @@ class Symbols(TestCase):
 			ConstrainedScalarSubtypeSymbol(SimpleName("integer"))
 
 
-class PSLEntities(TestCase):
+class PSLEntities(Testcase):
 	"""PSL is not otherwise modelled, but its declarations are still model entities."""
 
 	def test_DefaultClockWithDocumentation(self) -> None:
@@ -386,7 +386,7 @@ class PSLEntities(TestCase):
 		self.assertIsNone(clock.Documentation)
 
 
-class SimpleInstance(TestCase):
+class SimpleInstance(Testcase):
 	def test_Design(self) -> None:
 		design = Design()
 		# design.Analyze()
@@ -557,7 +557,7 @@ class SimpleInstance(TestCase):
 		self.assertEqual("rec", record.Identifier)
 
 
-class VHDLDocument(TestCase):
+class VHDLDocument(Testcase):
 	def test_Documentation(self) -> None:
 		path = Path("tests.vhdl")
 		document = Document(path, documentation="Testing 'Document' class.", parent=None)
@@ -669,7 +669,7 @@ class VHDLDocument(TestCase):
 		self.assertEqual(6, len(document.DesignUnits))
 
 
-class VHDLLibrary(TestCase):
+class VHDLLibrary(Testcase):
 	def test_DocumentationFromInitializer(self) -> None:
 		"""VHDL has no library declaration to hang a comment on, so a caller supplies one."""
 		library = Library("lib_1", "--! From a compile-order file.")

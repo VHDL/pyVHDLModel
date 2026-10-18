@@ -37,8 +37,9 @@ construction/parent-wiring behaviour is tested once via the immediate base class
 (``UnaryExpression``/``BinaryExpression``), then every leaf subclass's ``_FORMAT`` is checked
 table-driven in one ``str()``-formatting test rather than one hand-written test per class.
 """
-from pickle   import dumps, loads
-from unittest import TestCase
+from pickle import dumps, loads
+
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.Name       import SimpleName
@@ -77,7 +78,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class Literals(TestCase):
+class Literals(Testcase):
 	"""
 	``BaseExpression`` itself (``class BaseExpression(ModelEntity): pass``) is never instantiated directly here.
 
@@ -122,7 +123,7 @@ class Literals(TestCase):
 		self.assertEqual("\"hello\"", str(literal))
 
 
-class PhysicalLiterals(TestCase):
+class PhysicalLiterals(Testcase):
 	"""``PhysicalLiteral`` itself is never instantiated directly - its own ``_value`` is only declared
 	by ``PhysicalIntegerLiteral``/``PhysicalFloatingLiteral``, so it's exercised only through those two
 	concrete subclasses."""
@@ -142,7 +143,7 @@ class PhysicalLiterals(TestCase):
 		self.assertEqual("2.5 ns", str(literal))
 
 
-class BitStringLiterals(TestCase):
+class BitStringLiterals(Testcase):
 	"""``BitStringLiteral`` itself is abstract in practice (``_base`` is only set by its four concrete
 	subclasses as a ``ClassVar``); ``Length``/``Signed``/``BinaryValue``/``Bits`` are all still-open
 	gaps beyond ``Value`` itself for ``BinaryValue``/``Bits`` (see the class's own ``.. todo``-less but
@@ -190,7 +191,7 @@ class BitStringLiterals(TestCase):
 		self.assertEqual("ux\"F\"", str(literal))
 
 
-class UnaryExpressions(TestCase):
+class UnaryExpressions(Testcase):
 	"""Regression test: ``operand.Parent = self`` was previously commented out
 	(``# FIXME: operand is provided as None``) - confirmed stale in the gap analysis (every real
 	construction site always provides a real operand) and now re-enabled. Tested once here via
@@ -220,7 +221,7 @@ _UNARY_FORMATS = (
 )
 
 
-class UnaryExpressionFormats(TestCase):
+class UnaryExpressionFormats(Testcase):
 	def test_AllVariants(self) -> None:
 		for expressionClass, expected in _UNARY_FORMATS:
 			with self.subTest(expression=expressionClass.__name__):
@@ -236,7 +237,7 @@ class UnaryExpressionFormats(TestCase):
 		self.assertIs(operand, expression.Operand)
 
 
-class TypeConversions(TestCase):
+class TypeConversions(Testcase):
 	"""Regression test: ``TypeConversion`` previously had no field for the target type at all (just
 	``pass``, inheriting ``UnaryExpression`` unchanged) - unlike every other ``UnaryExpression``
 	subclass, its "operator" is the target type name itself, not a fixed ``_FORMAT`` string, so
@@ -256,7 +257,7 @@ class TypeConversions(TestCase):
 		self.assertEqual("natural?(1)", str(expression))
 
 
-class BinaryExpressions(TestCase):
+class BinaryExpressions(Testcase):
 	"""Both operands' ``Parent`` wiring is already active (no FIXME here, unlike
 	``UnaryExpression``) - tested once via ``AdditionExpression``; every other binary subclass shares
 	the identical, unoverridden constructor."""
@@ -308,14 +309,14 @@ _BINARY_FORMATS = (
 )
 
 
-class BinaryExpressionFormats(TestCase):
+class BinaryExpressionFormats(Testcase):
 	def test_AllVariants(self) -> None:
 		for expressionClass, expected in _BINARY_FORMATS:
 			with self.subTest(expression=expressionClass.__name__):
 				self.assertEqual(expected, str(expressionClass(IntegerLiteral(1), IntegerLiteral(2))))
 
 
-class RangeExpressions(TestCase):
+class RangeExpressions(Testcase):
 	"""``AscendingRangeExpression``/``DescendingRangeExpression`` additionally expose ``Direction``
 	over the plain ``BinaryExpression`` shape."""
 
@@ -332,7 +333,7 @@ class RangeExpressions(TestCase):
 		self.assertEqual("7 downto 0", str(expression))
 
 
-class QualifiedExpressions(TestCase):
+class QualifiedExpressions(Testcase):
 	def test_Construction(self) -> None:
 		subtype = SimpleSubtypeSymbol(SimpleName("bit_vector"))
 		operand = IntegerLiteral(1)
@@ -345,7 +346,7 @@ class QualifiedExpressions(TestCase):
 		self.assertEqual("bit_vector?'(1)", str(expression))
 
 
-class TernaryExpressions(TestCase):
+class TernaryExpressions(Testcase):
 	"""Regression test: the constructor previously never accepted or set its three operands at all
 	(``# FIXME: parameters and initializers are missing !!``), and ``__str__`` separately indexed past
 	the end of the 4-element ``_FORMAT`` tuple (``self._FORMAT[4]``). Both fixed together - the
@@ -373,7 +374,7 @@ class TernaryExpressions(TestCase):
 		self.assertEqual("1 when 2 else 3", str(expression))
 
 
-class FunctionCallAndAllocation(TestCase):
+class FunctionCallAndAllocation(Testcase):
 	"""``Allocation`` itself (``class Allocation(BaseExpression): pass``) is never instantiated
 	directly anywhere - real VHDL always uses one of its two concrete subclasses below (``new T`` or
 	``new T'(expr)``), so unlike ``FunctionCall`` (which *is* the real, direct class for a function
@@ -403,7 +404,7 @@ class FunctionCallAndAllocation(TestCase):
 		self.assertEqual("new integer?'(1)", str(allocation))
 
 
-class AggregateElements(TestCase):
+class AggregateElements(Testcase):
 	def test_SimpleAggregateElement(self) -> None:
 		expression = IntegerLiteral(1)
 		element = SimpleAggregateElement(expression)
@@ -449,7 +450,7 @@ class AggregateElements(TestCase):
 		self.assertEqual("others => 1", str(element))
 
 
-class Aggregates(TestCase):
+class Aggregates(Testcase):
 	def test_Construction(self) -> None:
 		element1 = SimpleAggregateElement(IntegerLiteral(1))
 		element2 = SimpleAggregateElement(IntegerLiteral(2))
@@ -461,7 +462,7 @@ class Aggregates(TestCase):
 		self.assertEqual("(1, 2)", str(aggregate))
 
 
-class ClassVariables(TestCase):
+class ClassVariables(Testcase):
 	"""
 	``_FORMAT`` and ``_direction`` are constants of the concrete expression class, not object fields.
 

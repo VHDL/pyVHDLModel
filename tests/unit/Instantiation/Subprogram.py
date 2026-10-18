@@ -29,7 +29,7 @@
 # ==================================================================================================================== #
 #
 """Tests for pyVHDLModel.Subprogram."""
-from unittest import TestCase
+from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
@@ -48,7 +48,7 @@ def _returnType(name: str = "integer") -> SimpleSubtypeSymbol:
 	return SimpleSubtypeSymbol(SimpleName(name))
 
 
-class Procedures(TestCase):
+class Procedures(Testcase):
 	"""``Subprogram`` itself is not meant to be instantiated directly (there's no VHDL construct that
 	is "just" a subprogram, only procedures and functions) - its shared declared-items/statements/
 	generic-items/parameter-items wiring is tested once here via ``Procedure``, the simpler of its two
@@ -88,7 +88,7 @@ class Procedures(TestCase):
 		self.assertIs(procedure, parameterItem.Parent)
 
 
-class Functions(TestCase):
+class Functions(Testcase):
 	def test_Minimal(self) -> None:
 		returnType = _returnType()
 		function = Function("func", returnType)
@@ -103,7 +103,7 @@ class Functions(TestCase):
 		self.assertFalse(function.IsPure)
 
 
-class MethodMixinHosts(TestCase):
+class MethodMixinHosts(Testcase):
 	"""Regression test: ``MethodMixin.__init__`` set ``protectedType.Parent = self`` unconditionally,
 	but ``protectedType`` genuinely defaults to ``None`` at both call sites (a subprogram declared
 	directly in a protected type body still goes through the same constructor) - so the common,

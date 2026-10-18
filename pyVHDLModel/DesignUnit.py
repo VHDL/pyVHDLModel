@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from __future__                import annotations
 
-from typing                    import ClassVar, List, Dict, Union, Iterable, Optional as Nullable
+from typing                    import ClassVar, List, Dict, Union, Iterable, Optional as Nullable, Tuple
 
 from pyTooling.Decorators      import export, readonly
 from pyTooling.MetaClasses     import ExtendedType, abstractmethod
@@ -601,6 +601,32 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 			self._components[item._normalizedIdentifier] = item
 		else:
 			super()._IndexOtherDeclaredItem(item)
+
+	def _UnindexOtherDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Remove a declared item, which a concurrent declaration region doesn't handle itself.
+
+		A deferred constant is removed from :attr:`_deferredConstants`. An entry referring to another deferred constant of
+		the same identifier (a duplicate declaration) is kept: :meth:`RemoveDeclaredItem` indexes the region again.
+
+		:param item: The declared item.
+		"""
+		if isinstance(item, DeferredConstant):
+			for normalizedIdentifier in item._normalizedIdentifiers:
+				if self._deferredConstants.get(normalizedIdentifier) is item:
+					del self._deferredConstants[normalizedIdentifier]
+		else:
+			super()._UnindexOtherDeclaredItem(item)
+
+	def _DeclaredItemTypes(self) -> Tuple[type, ...]:
+		"""
+		Return the classes of declared items this declarative region accepts.
+
+		A package accepts deferred constants too.
+
+		:returns: Tuple of classes.
+		"""
+		return super()._DeclaredItemTypes() + (DeferredConstant, )
 
 	def __str__(self) -> str:
 		"""

@@ -118,6 +118,7 @@ class VHDLModelException(ExceptionBase):
 	   * :class:`Duplicate port error <pyVHDLModel.Exception.DuplicatePortError>`
 	   * :class:`Duplicate parameter error <pyVHDLModel.Exception.DuplicateParameterError>`
 	   * :class:`Not in namespace error <pyVHDLModel.Exception.NotInNamespaceError>`
+	   * :class:`Duplicate declaration error <pyVHDLModel.Exception.DuplicateDeclarationError>`
 	"""
 
 
@@ -561,4 +562,83 @@ class DuplicatePortError(VHDLModelException, DuplicateElementError):
 class DuplicateParameterError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when a language construct already has a parameter of the same identifier.
+	"""
+
+
+@export
+class DuplicateDeclarationError(VHDLModelException, DuplicateElementError):
+	"""
+	This exception is raised, when a declarative region already declares an identifier of a declared item.
+
+	It's raised for declared items without a more specific error, and it's the base-class of the more specific errors.
+	Subprograms are overloadable, so a subprogram sharing its identifier with another subprogram is no duplicate.
+
+	.. seealso::
+
+	   * :class:`Duplicate type error <pyVHDLModel.Exception.DuplicateTypeError>`
+	   * :class:`Duplicate subtype error <pyVHDLModel.Exception.DuplicateSubtypeError>`
+	   * :class:`Duplicate constant error <pyVHDLModel.Exception.DuplicateConstantError>`
+	   * :class:`Duplicate signal error <pyVHDLModel.Exception.DuplicateSignalError>`
+	   * :class:`Duplicate variable error <pyVHDLModel.Exception.DuplicateVariableError>`
+	   * :class:`Duplicate file error <pyVHDLModel.Exception.DuplicateFileError>`
+	   * :class:`Duplicate component error <pyVHDLModel.Exception.DuplicateComponentError>`
+	   * :class:`Duplicate subprogram error <pyVHDLModel.Exception.DuplicateSubprogramError>`
+	"""
+
+
+@export
+class DuplicateTypeError(DuplicateDeclarationError):
+	"""
+	This exception is raised, when a declarative region already declares the identifier of a new type.
+	"""
+
+
+@export
+class DuplicateSubtypeError(DuplicateDeclarationError):
+	"""
+	This exception is raised, when a declarative region already declares the identifier of a new subtype.
+	"""
+
+
+@export
+class DuplicateConstantError(DuplicateDeclarationError):
+	"""
+	This exception is raised, when a declarative region already declares the identifier of a new constant.
+	"""
+
+
+@export
+class DuplicateSignalError(DuplicateDeclarationError):
+	"""
+	This exception is raised, when a declarative region already declares the identifier of a new signal.
+	"""
+
+
+@export
+class DuplicateVariableError(DuplicateDeclarationError):
+	"""
+	This exception is raised, when a declarative region already declares the identifier of a new (shared) variable.
+	"""
+
+
+@export
+class DuplicateFileError(DuplicateDeclarationError):
+	"""
+	This exception is raised, when a declarative region already declares the identifier of a new file.
+	"""
+
+
+@export
+class DuplicateComponentError(DuplicateDeclarationError):
+	"""
+	This exception is raised, when a declarative region already declares the identifier of a new component.
+	"""
+
+
+@export
+class DuplicateSubprogramError(DuplicateDeclarationError):
+	"""
+	This exception is raised, when a declarative region already declares the identifier of a new subprogram.
+
+	Subprograms are overloadable, so only a declaration other than a subprogram is a duplicate.
 	"""

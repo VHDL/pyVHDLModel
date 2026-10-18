@@ -37,7 +37,7 @@ message in english, each exception object contains one or multiple references to
 """
 from __future__               import annotations
 
-from typing                   import TYPE_CHECKING, Any, Optional as Nullable, Union
+from typing                   import TYPE_CHECKING, Optional as Nullable, Union
 
 from pyTooling.Decorators     import export, readonly
 from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError
@@ -816,9 +816,9 @@ class VHDLWriterError(VHDLModelException):
 	literal containing a control character).
 	"""
 
-	_element: Any  #: The model element the writer could not write.
+	_element: ModelEntity | Symbol  #: The model element the writer could not write.
 
-	def __init__(self, message: str, element: Any) -> None:
+	def __init__(self, message: str, element: ModelEntity | Symbol) -> None:
 		"""
 		Initializes the exception with a message and the model element that could not be written.
 
@@ -829,7 +829,7 @@ class VHDLWriterError(VHDLModelException):
 		self._element = element
 
 	@readonly
-	def Element(self) -> Any:
+	def Element(self) -> ModelEntity | Symbol:
 		"""
 		Read-only property to access the model element that could not be written (:attr:`_element`).
 

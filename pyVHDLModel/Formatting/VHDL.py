@@ -46,6 +46,7 @@ from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Association import GenericAssociationItem, PortAssociationItem, ParameterAssociationItem
+from pyVHDLModel.Base        import ModelEntity
 from pyVHDLModel.Exception   import VHDLWriterError
 from pyVHDLModel.Expression  import (
 	NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral,
@@ -198,7 +199,7 @@ class VHDLWriter(metaclass=ExtendedType, slots=True):
 		"""
 		return self._style
 
-	def Format(self, element: Any) -> str:
+	def Format(self, element: ModelEntity | Symbol) -> str:
 		"""
 		Format a model element as VHDL source text.
 
@@ -213,7 +214,7 @@ class VHDLWriter(metaclass=ExtendedType, slots=True):
 
 		return self._Format(element)
 
-	def _Format(self, element: Any) -> str:
+	def _Format(self, element: ModelEntity | Symbol) -> str:
 		"""
 		Format a model element by the formatter of the closest class in its class hierarchy.
 

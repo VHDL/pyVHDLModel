@@ -43,7 +43,7 @@ from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 from pyTooling.Warning       import WarningCollector
 
-from pyVHDLModel.Base        import identifiersOf, normalizedIdentifiersOf
+from pyVHDLModel.Base        import NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf, normalizedIdentifiersOf
 from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError, DuplicateGenericError
 from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Object      import Constant, SharedVariable, File, Variable, Signal
@@ -382,13 +382,13 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			for normalizedIdentifier in normalizedIdentifiersOf(item):
 				self._namespace.AddElement(normalizedIdentifier, item)
 
-	def _AddToNamespace(self, element: Any) -> None:
+	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""
 		Add an element's identifiers to this region's namespace.
 
 		Nothing is added to a region not indexed yet: :meth:`IndexDeclaredItems` adds the element later.
 
-		:param element: The element to add, e.g. an interface item.
+		:param element: The named element to add, e.g. an interface item.
 		"""
 		if not self._isIndexed:
 			return
@@ -396,13 +396,13 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		for normalizedIdentifier in normalizedIdentifiersOf(element):
 			self._namespace.AddElement(normalizedIdentifier, element)
 
-	def _RemoveFromNamespace(self, element: Any) -> None:
+	def _RemoveFromNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""
 		Remove an element's identifiers from this region's namespace.
 
 		Nothing is removed from a region not indexed yet, as its namespace doesn't contain the element.
 
-		:param element:              The element to remove, e.g. an interface item.
+		:param element:              The named element to remove, e.g. an interface item.
 		:raises NotInNamespaceError: If the region is indexed, and an identifier of the element isn't declared in the
 		                             namespace.
 		:raises NotInNamespaceError: If the region is indexed, and an identifier of the element refers to another element,

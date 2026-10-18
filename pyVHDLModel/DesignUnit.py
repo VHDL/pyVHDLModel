@@ -44,7 +44,7 @@ from pyTooling.Graph           import Vertex
 
 from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Exception     import VHDLModelException
-from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
@@ -980,18 +980,18 @@ class Component(
 		self._isBlackbox = None
 		self._entity =     None
 
-	def _AddToNamespace(self, element: ModelEntity) -> None:
+	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""
 		Add nothing, because a component has no namespace.
 
-		:param element: The element, e.g. an interface item.
+		:param element: The named element, e.g. an interface item.
 		"""
 
-	def _RemoveFromNamespace(self, element: ModelEntity) -> None:
+	def _RemoveFromNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""
 		Remove nothing, because a component has no namespace.
 
-		:param element: The element, e.g. an interface item.
+		:param element: The named element, e.g. an interface item.
 		"""
 
 	@readonly

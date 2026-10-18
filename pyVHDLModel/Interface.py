@@ -1004,18 +1004,18 @@ class InterfaceGroup(ModelEntity, OptionallyNamedEntityMixin, DocumentedEntityMi
 		OptionallyNamedEntityMixin.__init__(self, name)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-	def _AddToNamespace(self, element: ModelEntity) -> None:
+	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""
 		Add nothing, because an interface group has no namespace.
 
-		:param element: The element, e.g. an interface item.
+		:param element: The named element, e.g. an interface item.
 		"""
 
-	def _RemoveFromNamespace(self, element: ModelEntity) -> None:
+	def _RemoveFromNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""
 		Remove nothing, because an interface group has no namespace.
 
-		:param element: The element, e.g. an interface item.
+		:param element: The named element, e.g. an interface item.
 		"""
 
 

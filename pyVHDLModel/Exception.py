@@ -37,7 +37,7 @@ message in english, each exception object contains one or multiple references to
 """
 from __future__               import annotations
 
-from typing                   import TYPE_CHECKING, Optional as Nullable, Union
+from typing                   import TYPE_CHECKING, Any, Optional as Nullable, Union
 
 from pyTooling.Decorators     import export, readonly
 from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError
@@ -281,6 +281,7 @@ class VHDLModelException(ExceptionBase):
 	   * :class:`Duplicate parameter error <pyVHDLModel.Exception.DuplicateParameterError>`
 	   * :class:`Not in namespace error <pyVHDLModel.Exception.NotInNamespaceError>`
 	   * :class:`Duplicate declaration error <pyVHDLModel.Exception.DuplicateDeclarationError>`
+	   * :class:`VHDL writer error <pyVHDLModel.Exception.VHDLWriterError>`
 	"""
 
 
@@ -804,3 +805,34 @@ class DuplicateSubprogramError(DuplicateDeclarationError):
 
 	Subprograms are overloadable, so only a declaration other than a subprogram is a duplicate.
 	"""
+
+
+@export
+class VHDLWriterError(VHDLModelException):
+	"""
+	This exception is raised, when the VHDL writer can't write a model element as VHDL source text.
+
+	The element is either of a class the writer doesn't support, or its content has no VHDL notation (e.g. a string
+	literal containing a control character).
+	"""
+
+	_element: Any  #: The model element the writer could not write.
+
+	def __init__(self, message: str, element: Any) -> None:
+		"""
+		Initializes the exception with a message and the model element that could not be written.
+
+		:param message: The error message.
+		:param element: The model element that could not be written.
+		"""
+		super().__init__(message)
+		self._element = element
+
+	@readonly
+	def Element(self) -> Any:
+		"""
+		Read-only property to access the model element that could not be written (:attr:`_element`).
+
+		:returns: The model element.
+		"""
+		return self._element

@@ -45,12 +45,15 @@ Mixins already fully exercised elsewhere are intentionally not repeated here:
 """
 from pyTooling.Testing       import Testcase
 
+from pyTooling.Testing       import Testcase
+
 from pyVHDLModel.Base        import Direction, Mode, ModelEntity, Range, RangeFromName, SimpleRange, WaveformElement
 from pyVHDLModel.Expression  import IntegerLiteral, CharacterLiteral
 from pyVHDLModel.Interface   import InterfaceGroup
 from pyVHDLModel.Sequential  import IfBranch, ElsifBranch, ElseBranch, SequentialReportStatement, SequentialAssertStatement, SequentialCase
 from pyVHDLModel.Concurrent  import ConcurrentBlockStatement
 from pyVHDLModel.Name        import SimpleName
+from pyVHDLModel.Object      import Signal
 from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol, SimpleSubtypeSymbol
 
 
@@ -134,6 +137,17 @@ class OptionallyNamedEntity(Testcase):
 		self.assertEqual("generics", group.NormalizedIdentifier)
 
 
+class MultipleNamedEntity(Testcase):
+	"""``Signal`` is tested as a consumer of ``MultipleNamedEntityMixin``."""
+
+	def test_Identifiers_Iterator(self) -> None:
+		"""Identifiers from a single-pass iterable are normalized too."""
+		signal = Signal(iter(("a", "B")), SimpleSubtypeSymbol(SimpleName("bit")))
+
+		self.assertEqual(("a", "B"), signal.Identifiers)
+		self.assertEqual(("a", "b"), signal.NormalizedIdentifiers)
+
+
 class BranchMixins(Testcase):
 	"""``IfBranch``/``ElsifBranch``/``ElseBranch`` are the only consumers of ``BranchMixin``,
 	``ConditionalBranchMixin`` and the ``If-``/``Elsif-``/``ElseBranchMixin`` variants."""
@@ -161,7 +175,7 @@ class BranchMixins(Testcase):
 
 class ReportAndAssertStatementMixins(Testcase):
 	def test_ReportStatement_MessageAndSeverity(self) -> None:
-		message = CharacterLiteral("'a'")
+		message = CharacterLiteral("a")
 		severity = IntegerLiteral(1)
 		statement = SequentialReportStatement(message, severity)
 
@@ -171,7 +185,7 @@ class ReportAndAssertStatementMixins(Testcase):
 	def test_ReportStatement_MessageOnly(self) -> None:
 		"""``severity`` genuinely defaults to omitted in the grammar (``report "msg";`` without a
 		``severity`` clause)."""
-		message = CharacterLiteral("'a'")
+		message = CharacterLiteral("a")
 		statement = SequentialReportStatement(message)
 
 		self.assertIs(message, statement.Message)
@@ -181,7 +195,7 @@ class ReportAndAssertStatementMixins(Testcase):
 		"""``AssertStatementMixin`` adds a required ``Condition`` on top of ``ReportStatementMixin``'s
 		optional message/severity."""
 		condition = IntegerLiteral(1)
-		message = CharacterLiteral("'a'")
+		message = CharacterLiteral("a")
 		statement = SequentialAssertStatement(condition, message)
 
 		self.assertIs(condition, statement.Condition)
@@ -268,14 +282,14 @@ class WaveformElements(Testcase):
 	``.After``."""
 
 	def test_WithoutAfter(self) -> None:
-		expression = CharacterLiteral("'1'")
+		expression = CharacterLiteral("1")
 		element = WaveformElement(expression)
 
 		self.assertIs(expression, element.Expression)
 		self.assertIsNone(element.After)
 
 	def test_WithAfter(self) -> None:
-		expression = CharacterLiteral("'1'")
+		expression = CharacterLiteral("1")
 		after = IntegerLiteral(5)
 		element = WaveformElement(expression, after)
 

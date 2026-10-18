@@ -285,8 +285,8 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 
 		:param identifiers: Sequence of identifiers (names) of the model entity.
 		"""
-		self._identifiers = tuple(identifiers)
-		self._normalizedIdentifiers = tuple([identifier.lower() for identifier in identifiers])
+		self._identifiers =           tuple(identifiers)
+		self._normalizedIdentifiers = tuple([identifier.lower() for identifier in self._identifiers])
 
 	@readonly
 	def Identifiers(self) -> Tuple[str]:

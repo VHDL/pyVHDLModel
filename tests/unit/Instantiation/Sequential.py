@@ -94,7 +94,7 @@ class SequentialSimpleSignalAssignments(Testcase):
 	def test_Construction(self) -> None:
 		"""``s <= '1';``"""
 		target = _signalSymbol("s")
-		waveformElement = WaveformElement(CharacterLiteral("'1'"))
+		waveformElement = WaveformElement(CharacterLiteral("1"))
 		assignment = SequentialSimpleSignalAssignment(target, [waveformElement])
 
 		self.assertIs(target, assignment.Target)

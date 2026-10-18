@@ -35,6 +35,8 @@ tests/unit/Assignment.py (conditional/selected signal assignments) or tests/unit
 """
 from pyTooling.Testing       import Testcase
 
+from pyTooling.Testing       import Testcase
+
 from pyVHDLModel.Base        import Direction, Mode, SimpleRange
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import (
@@ -241,6 +243,26 @@ class IfGenerateStatements(Testcase):
 		self.assertIs(instance, instantiations[0])
 
 
+class IfGenerateStatementInstantiations(Testcase):
+	def test_IterateInstantiations_AllBranches(self) -> None:
+		"""Each branch yields its own instantiations, in branch order."""
+		ifInstance =    ComponentInstantiation("ifInst", ComponentInstantiationSymbol(SimpleName("comp")))
+		elsifInstance = ComponentInstantiation("elsifInst", ComponentInstantiationSymbol(SimpleName("comp")))
+		elseInstance =  ComponentInstantiation("elseInst", ComponentInstantiationSymbol(SimpleName("comp")))
+		ifBranch =      IfGenerateBranch(IntegerLiteral(1), statements=[ifInstance])
+		elsifBranch =   ElsifGenerateBranch(IntegerLiteral(2), statements=[elsifInstance])
+		elseBranch =    ElseGenerateBranch(statements=[elseInstance])
+		statement =     IfGenerateStatement("gen", ifBranch, [elsifBranch], elseBranch)
+
+		statement.IndexStatement()
+		instantiations = list(statement.IterateInstantiations())
+
+		self.assertEqual(3, len(instantiations))
+		self.assertIs(ifInstance, instantiations[0])
+		self.assertIs(elsifInstance, instantiations[1])
+		self.assertIs(elseInstance, instantiations[2])
+
+
 class GenerateChoices(Testcase):
 	def test_IndexedGenerateChoice(self) -> None:
 		expression = IntegerLiteral(0)
@@ -323,7 +345,7 @@ class ConcurrentSimpleSignalAssignments(Testcase):
 	def test_Construction(self) -> None:
 		"""``s <= '1';``"""
 		target = SignalSymbol(SimpleName("s"))
-		waveformElement = WaveformElement(CharacterLiteral("'1'"))
+		waveformElement = WaveformElement(CharacterLiteral("1"))
 		assignment = ConcurrentSimpleSignalAssignment("lbl", target, [waveformElement])
 
 		self.assertIs(target, assignment.Target)
@@ -334,7 +356,7 @@ class ConcurrentSimpleSignalAssignments(Testcase):
 class ConcurrentAssertStatements(Testcase):
 	def test_Full(self) -> None:
 		condition = IntegerLiteral(1)
-		message = CharacterLiteral("'a'")
+		message = CharacterLiteral("a")
 		severity = IntegerLiteral(2)
 		statement = ConcurrentAssertStatement(condition, message, severity, label="lbl")
 
@@ -344,7 +366,7 @@ class ConcurrentAssertStatements(Testcase):
 		self.assertEqual("lbl", statement.Label)
 
 	def test_NoSeverityNoLabel(self) -> None:
-		statement = ConcurrentAssertStatement(IntegerLiteral(1), CharacterLiteral("'a'"))
+		statement = ConcurrentAssertStatement(IntegerLiteral(1), CharacterLiteral("a"))
 
 		self.assertIsNone(statement.Severity)
 		self.assertIsNone(statement.Label)

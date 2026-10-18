@@ -37,6 +37,7 @@ All declarations for literals, aggregates, operators forming an expressions.
 from enum                 import Flag
 from typing               import Tuple, List, Iterable, Union, ClassVar, Optional as Nullable
 
+from pyTooling.Common     import getFullyQualifiedName
 from pyTooling.Decorators import export, readonly
 
 from pyVHDLModel.Base     import ModelEntity, Direction, Range
@@ -396,24 +397,41 @@ class CharacterLiteral(Literal):
 	"""
 	Represents a character literal.
 
-	The literal's character is available as :data:`Value`.
+	The literal's character is available as :data:`Value`. It is the bare character without the enclosing apostrophes:
+	``a`` for the character literal ``'a'``.
 
 	.. admonition:: Example
 
 	   .. code-block:: VHDL
 
 	      ch <= 'a';
-	      --    ^^^    <- Value
+	      --     ^     <- Value
 	"""
-	_value: str  #: The literal's character value.
+	_value: str  #: The literal's character value without apostrophes.
 
 	def __init__(self, value: str) -> None:
 		"""
 		Initializes a character literal.
 
-		:param value: The literal's character value.
+		:param value:       The literal's character value without apostrophes.
+		:raises ValueError: If parameter 'value' is None.
+		:raises TypeError:  If parameter 'value' is not of type :class:`str`.
+		:raises ValueError: If parameter 'value' is not a single character.
 		"""
 		super().__init__()
+
+		if value is None:
+			raise ValueError("Parameter 'value' is None.")
+		elif not isinstance(value, str):
+			ex = TypeError("Parameter 'value' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(value)}'.")
+			raise ex
+		elif len(value) != 1:
+			ex = ValueError("Parameter 'value' is not a single character.")
+			ex.add_note(f"Got value '{value}'.")
+			ex.add_note("Pass the character without apostrophes.")
+			raise ex
+
 		self._value = value
 
 	@readonly
@@ -2295,13 +2313,13 @@ class IndexedAggregateElement(AggregateElement):
 	      --      ^                           <- Index
 	      --           ^^^                    <- Expression
 	"""
-	_index: int  #: The index selecting the element this value is assigned to.
+	_index: ExpressionUnion  #: The index expression selecting the element this value is assigned to.
 
 	def __init__(self, index: ExpressionUnion, expression: ExpressionUnion, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes an aggregate element chosen by an index.
 
-		:param index:      The index selecting the element this value is assigned to.
+		:param index:      The index expression selecting the element this value is assigned to.
 		:param expression: The expression this aggregate element supplies.
 		:param parent:     The parent model entity of this entity.
 		"""
@@ -2310,11 +2328,11 @@ class IndexedAggregateElement(AggregateElement):
 		self._index = index
 
 	@readonly
-	def Index(self) -> int:
+	def Index(self) -> ExpressionUnion:
 		"""
-		Read-only property to access the index (:attr:`_index`).
+		Read-only property to access the index expression (:attr:`_index`).
 
-		:returns: The index.
+		:returns: The index expression.
 		"""
 		return self._index
 

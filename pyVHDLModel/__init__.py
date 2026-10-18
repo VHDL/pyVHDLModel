@@ -1067,7 +1067,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		1. Iterate all documents in the design.
 
-		   * Create a vertex for that document and reference the document by the vertex' value field. |br|
+		   * Create a vertex for that document with the document's path as vertex ID and reference the document by the
+		     vertex' value field. |br|
 		     In return, set the documents's :attr:`~pyVHDLModel.Document._dependencyVertex` field to reference the created vertex.
 		   * Copy the vertex from dependency graph to compile-order graph and link both vertices bidirectionally. |br|
 		     In addition, set the documents's :attr:`~pyVHDLModel.Document._dependencyVertex` field to reference the copied vertex.
@@ -1081,7 +1082,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		      * Add a key-value-pair called `kind`` denoting the edge's kind as an enumeration value of type :class:`DependencyGraphEdgeKind`.
 		"""
 		for document in self._documents:
-			dependencyVertex = Vertex(vertexID=document.Path.name, value=document, graph=self._dependencyGraph)
+			dependencyVertex = Vertex(vertexID=str(document._path), value=document, graph=self._dependencyGraph)
 			dependencyVertex["kind"] = DependencyGraphVertexKind.Document
 			document._dependencyVertex = dependencyVertex
 
@@ -1926,21 +1927,34 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):  # type: Architecture
 			for instance in architecture.IterateInstantiations():
 				if isinstance(instance, EntityInstantiation):
-					libraryName = instance.Entity.Name.Prefix
+					entityName =  instance.Entity.Name
+					libraryName = entityName.Prefix
+					if libraryName is None:
+						ex = VHDLModelException(f"Direct entity instantiation '{instance.Label}' has no library prefix.")
+						ex.add_note(f"Use a selected name like 'work.{entityName.Identifier}'.")
+						ex.add_note("Entities made visible by a use clause aren't supported.")
+						raise ex
+
 					libraryIdentifier = libraryName.Identifier
 					normalizedLibraryIdentifier = libraryName.NormalizedIdentifier
 					if normalizedLibraryIdentifier == "work":
 						libraryIdentifier = architecture.Library.Identifier
 						normalizedLibraryIdentifier = architecture.Library.NormalizedIdentifier
 					elif normalizedLibraryIdentifier not in architecture._referencedLibraries:
-						ex = VHDLModelException(f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in architecture '{architecture!r}'.")
+						ex = VHDLModelException(
+							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in architecture '{architecture!r}'."
+						)
 						ex.add_note(f"Add a library reference to the architecture or entity using a library clause like: 'library {libraryIdentifier};'.")
 						raise ex
 
 					try:
 						library = self._libraries[normalizedLibraryIdentifier]
 					except KeyError:
-						ex = VHDLModelException(f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in design.")
+						ex = VHDLModelException(
+							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in design."
+						)
 						ex.add_note(f"No design units were parsed into library '{libraryIdentifier}'. Thus it doesn't exist in design.")
 						raise ex
 
@@ -2647,7 +2661,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 class Document(ModelEntity, DocumentedEntityMixin):
 	"""A ``Document`` represents a sourcefile. It contains *primary* and *secondary* design units."""
 
-	_path:                   Path                                #: Path to the document. ``None`` if in-memory document.
+	_path:                   Path                                #: Path to the document.
 	_vhdlVersion:            VHDLVersion                         #: VHDL version used for analyzing this source file.
 	_library:                Library                             #: VHDL library used for analyzing the source file's content into.
 	_designUnits:            List[DesignUnit]                    #: List of all design units defined in a document.
@@ -2675,14 +2689,23 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Initializes a VHDL document.
 
-		:param path:          Path to the document. ``None`` if in-memory document.
+		:param path:          Path to the document.
 		:param documentation: The documentation comment associated with this declaration.
 		:param vhdlVersion:   VHDL version used for analyzing this source file.
 		:param library:       VHDL library used for analyzing the source file's content into.
 		:param parent:        The parent model entity of this entity.
+		:raises ValueError:   If parameter 'path' is None.
+		:raises TypeError:    If parameter 'path' is not of type :class:`~pathlib.Path`.
 		"""
 		super().__init__(parent)
 		DocumentedEntityMixin.__init__(self, documentation)
+
+		if path is None:
+			raise ValueError("Parameter 'path' is None.")
+		elif not isinstance(path, Path):
+			ex = TypeError("Parameter 'path' is not of type 'Path'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(path)}'.")
+			raise ex
 
 		self._path =                   path
 		self._vhdlVersion =            vhdlVersion
@@ -2738,18 +2761,19 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
-		entity = item._entity.Name
+		entity =           item._entity.Name
 		entityIdentifier = entity._normalizedIdentifier
+		identifier =       item._normalizedIdentifier
 		try:
 			architectures = self._architectures[entityIdentifier]
-			if item._normalizedIdentifier in architectures:
+			if identifier in architectures:
 				# TODO: use a more specific exception
 				# FIXME: this is allowed and should be a warning or a strict mode.
 				raise VHDLModelException(f"An architecture '{item._identifier}' for entity '{entity._identifier}' already exists in this document.")
 
-			architectures[item.Identifier] = item
+			architectures[identifier] = item
 		except KeyError:
-			self._architectures[entityIdentifier] = {item._identifier: item}
+			self._architectures[entityIdentifier] = {identifier: item}
 
 		self._designUnits.append(item)
 		item._document = self

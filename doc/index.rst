@@ -209,7 +209,7 @@ News
 * Enhanced class documentation.
 * Changed test runner to ``pytest``.
 * Dependency check and license clearance. |br|
-  See :ref:`dependency` for details.
+  See :ref:`DEP` for details.
 
 
 .. only:: html

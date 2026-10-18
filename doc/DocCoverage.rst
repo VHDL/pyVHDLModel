@@ -21,4 +21,4 @@ Documentation Coverage Report
 ----------
 
 Documentation coverage generated with `"""docstr-coverage""" <https://github.com/HunterMcGushion/docstr_coverage>`__ and
-visualized by `sphinx-reports <https://github.com/pyTooling/sphinx-reports>`__.
+visualized by `pyTooling.Sphinx <https://github.com/pyTooling/pyTooling.Sphinx>`__.

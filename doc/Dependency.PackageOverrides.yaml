@@ -1,0 +1,125 @@
+# ==================================================================================================================== #
+# Licenses a package index can't answer for, and the projects' own LICENSE files.                                      #
+#                                                                                                                      #
+# The 'dependency-table' directive resolves a package's license from what the index publishes, and warns at            #
+# the end of a build about every package it couldn't resolve. That warning is the list the 'license:' entries          #
+# below answer - each was read from the project's own LICENSE file or source headers, not guessed at.                  #
+#                                                                                                                      #
+# 'licenseURL:' answers a different question. Without one, a license links to where the license itself is              #
+# published - apache.org, opensource.org, spdx.org - which says what the license is but not that this project          #
+# adopted it. The project's own LICENSE file says both, so it wins where it is known.                                  #
+#                                                                                                                      #
+# Taken from pyTooling.GitHub's file and reduced to the packages this repository's dependency tables show.             #
+#                                                                                                                      #
+# SPDX-License-Identifier: Apache-2.0                                                                                  #
+# ==================================================================================================================== #
+# Structure of this file, checked against 'LicenseOverrides.SCHEMA_VERSION'. Quoted, so YAML keeps it a string:
+# unquoted it is a float, and a float loses a trailing zero.
+version: "0.1"
+
+# When these statements were last checked against the projects themselves. A package index answers for itself
+# every time it is asked; this file is as old as whoever last looked.
+analysedAt: 2026-09-06T21:30:00+00:00
+
+packages:
+  # Only 'License :: OSI Approved :: BSD License', which names BSD-2-Clause, -3-Clause and -4-Clause at once.
+  # LICENSE.rst carries the two-condition text.
+  alabaster:
+    license:    BSD-2-Clause
+    licenseURL: https://GitHub.com/sphinx-doc/alabaster/blob/master/LICENSE.rst
+
+  # 'project_urls' points at the documentation, so the repository has to be stated.
+  autoapi:
+    repository: https://GitHub.com/carlos-jenkins/autoapi
+    licenseURL: https://GitHub.com/carlos-jenkins/autoapi/blob/master/LICENSE
+
+  # Only 'License :: OSI Approved :: BSD License', which means BSD-2-Clause as well. LICENSE.txt is the 3-clause one.
+  colorama:
+    license:    BSD-3-Clause
+    licenseURL: https://GitHub.com/tartley/colorama/blob/master/LICENSE.txt
+
+  # Three License classifiers at once (BSD, GPL, Public Domain) and no 'license' field. COPYING.txt of 0.21.2, 0.22.4
+  # and 0.23 says the majority of files are public domain and several are BSD-2-Clause; the eLyXer-derived
+  # 'math2html.py' and 'math.css' were GPL-3.0-or-later, but their author relicensed them as BSD-2-Clause.
+  # 'smartquotes.py' carries SmartyPants' BSD-3-Clause license. The one GPL file left, 'tools/editors/emacs/rst.el',
+  # isn't in the wheel. The public-domain majority imposes nothing and needs no identifier.
+  docutils:
+    license:    BSD-2-Clause AND BSD-3-Clause
+    licenseURL: https://docutils.sourceforge.io/COPYING.html
+
+  # Only the ambiguous BSD classifier. LICENSE.txt carries the third "Neither the name" clause.
+  jinja2:
+    license:    BSD-3-Clause
+    licenseURL: https://GitHub.com/pallets/jinja/blob/main/LICENSE.txt
+
+  # 'MIT License' is the license's name; its identifier is 'MIT'.
+  sphinx-copybutton:
+    license:    MIT
+    licenseURL: https://GitHub.com/executablebooks/sphinx-copybutton/blob/master/LICENSE
+
+  # The Sphinx team's helper packages publish only the ambiguous BSD classifier - 'sphinxcontrib-jsmath' adds a
+  # free-text 'license: BSD', which is no less ambiguous. Every LICENCE.rst carries the same two-condition text as
+  # Sphinx itself, which declares BSD-2-Clause.
+  sphinxcontrib-applehelp:
+    license:    BSD-2-Clause
+    licenseURL: https://GitHub.com/sphinx-doc/sphinxcontrib-applehelp/blob/master/LICENCE.rst
+
+  sphinxcontrib-devhelp:
+    license:    BSD-2-Clause
+    licenseURL: https://GitHub.com/sphinx-doc/sphinxcontrib-devhelp/blob/master/LICENCE.rst
+
+  sphinxcontrib-htmlhelp:
+    license:    BSD-2-Clause
+    licenseURL: https://GitHub.com/sphinx-doc/sphinxcontrib-htmlhelp/blob/master/LICENCE.rst
+
+  # Only 'License :: OSI Approved :: BSD License'. LICENCE is the BSD Zero Clause Licence.
+  sphinxcontrib-jquery:
+    license:    0BSD
+    licenseURL: https://GitHub.com/sphinx-contrib/jquery/blob/master/LICENCE
+
+  sphinxcontrib-jsmath:
+    license:    BSD-2-Clause
+    licenseURL: https://GitHub.com/sphinx-doc/sphinxcontrib-jsmath/blob/master/LICENCE.rst
+
+  sphinxcontrib-qthelp:
+    license:    BSD-2-Clause
+    licenseURL: https://GitHub.com/sphinx-doc/sphinxcontrib-qthelp/blob/master/LICENCE.rst
+
+  sphinxcontrib-serializinghtml:
+    license:    BSD-2-Clause
+    licenseURL: https://GitHub.com/sphinx-doc/sphinxcontrib-serializinghtml/blob/master/LICENCE.rst
+
+  # -------------------------------------------------------------------------------------------------------------- #
+  # Licenses the index resolves on its own. Only the link to the project's own LICENSE file is stated here.          #
+  # -------------------------------------------------------------------------------------------------------------- #
+  coverage:
+    licenseURL: https://GitHub.com/nedbat/coveragepy/blob/master/LICENSE.txt
+
+  pytest:
+    licenseURL: https://GitHub.com/pytest-dev/pytest/blob/main/LICENSE
+
+  pytest-cov:
+    licenseURL: https://GitHub.com/pytest-dev/pytest-cov/blob/master/LICENSE
+
+  pyTooling:
+    licenseURL: https://GitHub.com/pyTooling/pyTooling/blob/main/LICENSE.md
+
+  sphinx:
+    licenseURL: https://GitHub.com/sphinx-doc/sphinx/blob/master/LICENSE.rst
+
+  sphinx-autodoc-typehints:
+    licenseURL: https://GitHub.com/agronholm/sphinx-autodoc-typehints/blob/master/LICENSE
+
+  sphinx-design:
+    licenseURL: https://GitHub.com/executablebooks/sphinx-design/blob/main/LICENSE
+
+  sphinx-rtd-theme:
+    licenseURL: https://GitHub.com/readthedocs/sphinx_rtd_theme/blob/master/LICENSE
+
+  sphinxcontrib-mermaid:
+    licenseURL: https://GitHub.com/mgaitan/sphinxcontrib-mermaid/blob/master/LICENSE
+
+  # No license metadata on the package index at all (neither 'license' nor a classifier). LICENSE is the MIT license.
+  mypy-extensions:
+    license:    MIT
+    licenseURL: https://GitHub.com/python/mypy_extensions/blob/master/LICENSE

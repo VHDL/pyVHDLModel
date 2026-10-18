@@ -288,7 +288,11 @@ class WithGenericsPortsParametersMixins(Testcase):
 
 	def test_WithPortsMixin(self) -> None:
 		class _Host(WithPortsMixin):
-			pass
+			def _AddToNamespace(self, element) -> None:
+				pass
+
+			def _RemoveFromNamespace(self, element) -> None:
+				pass
 
 		item = PortSimpleSignalInterfaceItem(["p"], Mode.In, _subtypeSymbol("bit"))
 		host = _Host([item])
@@ -297,7 +301,11 @@ class WithGenericsPortsParametersMixins(Testcase):
 
 	def test_WithParametersMixin(self) -> None:
 		class _Host(WithParametersMixin):
-			pass
+			def _AddToNamespace(self, element) -> None:
+				pass
+
+			def _RemoveFromNamespace(self, element) -> None:
+				pass
 
 		item = ParameterFileInterfaceItem(["f"], _subtypeSymbol("text"))
 		host = _Host([item])

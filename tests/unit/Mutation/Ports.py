@@ -34,12 +34,14 @@ Mutation tests for port clauses (:class:`~pyVHDLModel.Regions.WithPortsMixin`).
 The mutators are tested on an entity (a declarative region with a namespace), a component (no namespace) and a port
 group.
 """
+from pyTooling.MetaClasses  import UnfulfilledExpectationError
 from pyTooling.Testing      import Testcase
 
-from pyVHDLModel.Base       import Mode
+from pyVHDLModel.Base       import Mode, ModelEntity
 from pyVHDLModel.DesignUnit import Component, Entity
 from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicatePortError
 from pyVHDLModel.Interface  import PortGroup
+from pyVHDLModel.Regions    import WithPortsMixin
 
 from tests.unit.Mutation    import _generic, _port
 
@@ -240,3 +242,22 @@ class Ports(Testcase):
 		entity.RemovePortItem(clock)
 
 		self.assertNotIn("clock", entity._namespace._elements)
+
+	def test_Contract(self) -> None:
+		"""A host class without the namespace methods expected by the mixin can't be instantiated."""
+		class Host(ModelEntity, WithPortsMixin):
+			def __init__(self) -> None:
+				super().__init__()
+				WithPortsMixin.__init__(self)
+
+		with self.assertRaises(UnfulfilledExpectationError) as context:
+			Host()
+
+		self.assertEqual("Class 'Host' doesn't provide every expected member.", str(context.exception))
+		self.assertListEqual(
+			[
+				"Missing '_AddToNamespace', expected by 'WithPortsMixin'.",
+				"Missing '_RemoveFromNamespace', expected by 'WithPortsMixin'.",
+			],
+			context.exception.__notes__
+		)

@@ -33,10 +33,13 @@ Mutation tests for parameter lists (:class:`~pyVHDLModel.Regions.WithParametersM
 
 The mutators are tested on subprograms (declarative regions with a namespace) and a parameter group (no namespace).
 """
+from pyTooling.MetaClasses  import UnfulfilledExpectationError
 from pyTooling.Testing      import Testcase
 
+from pyVHDLModel.Base       import ModelEntity
 from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicateParameterError
 from pyVHDLModel.Interface  import ParameterGroup
+from pyVHDLModel.Regions    import WithParametersMixin
 from pyVHDLModel.Subprogram import Function, Procedure
 
 from tests.unit             import _subtypeSymbol
@@ -241,3 +244,22 @@ class Parameters(Testcase):
 
 		self.assertNotIn("a", procedure._namespace._elements)
 		self.assertNotIn("b", procedure._namespace._elements)
+
+	def test_Contract(self) -> None:
+		"""A host class without the namespace methods expected by the mixin can't be instantiated."""
+		class Host(ModelEntity, WithParametersMixin):
+			def __init__(self) -> None:
+				super().__init__()
+				WithParametersMixin.__init__(self)
+
+		with self.assertRaises(UnfulfilledExpectationError) as context:
+			Host()
+
+		self.assertEqual("Class 'Host' doesn't provide every expected member.", str(context.exception))
+		self.assertListEqual(
+			[
+				"Missing '_AddToNamespace', expected by 'WithParametersMixin'.",
+				"Missing '_RemoveFromNamespace', expected by 'WithParametersMixin'.",
+			],
+			context.exception.__notes__
+		)

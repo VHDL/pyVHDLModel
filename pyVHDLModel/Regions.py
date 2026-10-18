@@ -242,9 +242,13 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 
 
 @export
-class WithPortsMixin(metaclass=ExtendedType, mixin=True):
+class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespace", "_RemoveFromNamespace")):
 	"""
 	A mixin-class for language constructs with a port clause.
+
+	The host class provides ``_AddToNamespace(element)`` and ``_RemoveFromNamespace(element)``, called when a port is
+	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace, a language construct
+	without a namespace implements both as no-operations.
 
 	.. seealso::
 
@@ -292,8 +296,8 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Add a port at the end of the port clause.
 
-		The port's parent is set to this language construct. If the language construct is a declarative region, the
-		port's identifiers are added to its namespace.
+		The port's parent is set to this language construct, and its identifiers are added to the language construct's
+		namespace, if it has one.
 
 		:param portItem:              The port to add.
 		:raises ValueError:           If parameter 'portItem' is ``None``.
@@ -315,8 +319,8 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Insert a port at a position of the port clause.
 
-		The port's parent is set to this language construct. If the language construct is a declarative region, the
-		port's identifiers are added to its namespace.
+		The port's parent is set to this language construct, and its identifiers are added to the language construct's
+		namespace, if it has one.
 
 		:param index:                 Position, from ``0`` (first) to :data:`PortCount` (append).
 		:param portItem:              The port to insert.
@@ -369,17 +373,15 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True):
 
 		self._portItems.insert(index, portItem)
 		portItem.Parent = self
-		if isinstance(self, DeclarationRegionMixin):
-			for normalizedIdentifier in normalizedIdentifiersOf(portItem):
-				self._namespace.AddElement(normalizedIdentifier, portItem)
+		self._AddToNamespace(portItem)
 
 	def RemovePortItem(self, portItem: PortSignalInterfaceItem) -> None:
 		"""
 		Remove a port from the port clause.
 
-		The port is detached: its parent is cleared and, if the language construct is a declarative region, its
-		identifiers are removed from the namespace. The port itself is unchanged and can be added to another language
-		construct, or inserted at another position.
+		The port is detached: its parent is cleared and its identifiers are removed from the language construct's
+		namespace, if it has one. The port itself is unchanged and can be added to another language construct, or
+		inserted at another position.
 
 		:param portItem:        The port to remove.
 		:raises ValueError:     If parameter 'portItem' is ``None``.
@@ -414,15 +416,17 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True):
 
 		del self._portItems[index]
 		portItem._parent = None
-		if isinstance(self, DeclarationRegionMixin):
-			for normalizedIdentifier in normalizedIdentifiersOf(portItem):
-				self._namespace.RemoveElement(normalizedIdentifier, portItem)
+		self._RemoveFromNamespace(portItem)
 
 
 @export
-class WithParametersMixin(metaclass=ExtendedType, mixin=True):
+class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespace", "_RemoveFromNamespace")):
 	"""
 	A mixin-class for language constructs with a parameter list.
+
+	The host class provides ``_AddToNamespace(element)`` and ``_RemoveFromNamespace(element)``, called when a parameter is
+	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace, a language construct
+	without a namespace implements both as no-operations.
 
 	.. seealso::
 
@@ -468,8 +472,8 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Add a parameter at the end of the parameter list.
 
-		The parameter's parent is set to this language construct. If the language construct is a declarative region, the
-		parameter's identifiers are added to its namespace.
+		The parameter's parent is set to this language construct, and its identifiers are added to the language construct's
+		namespace, if it has one.
 
 		:param parameterItem:            The parameter to add.
 		:raises ValueError:              If parameter 'parameterItem' is ``None``.
@@ -491,8 +495,8 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Insert a parameter at a position of the parameter list.
 
-		The parameter's parent is set to this language construct. If the language construct is a declarative region, the
-		parameter's identifiers are added to its namespace.
+		The parameter's parent is set to this language construct, and its identifiers are added to the language construct's
+		namespace, if it has one.
 
 		:param index:                    Position, from ``0`` (first) to :data:`ParameterCount` (append).
 		:param parameterItem:            The parameter to insert.
@@ -545,17 +549,15 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True):
 
 		self._parameterItems.insert(index, parameterItem)
 		parameterItem.Parent = self
-		if isinstance(self, DeclarationRegionMixin):
-			for normalizedIdentifier in normalizedIdentifiersOf(parameterItem):
-				self._namespace.AddElement(normalizedIdentifier, parameterItem)
+		self._AddToNamespace(parameterItem)
 
 	def RemoveParameterItem(self, parameterItem: ParameterInterfaceItemMixin) -> None:
 		"""
 		Remove a parameter from the parameter list.
 
-		The parameter is detached: its parent is cleared and, if the language construct is a declarative region, its
-		identifiers are removed from the namespace. The parameter itself is unchanged and can be added to another language
-		construct, or inserted at another position.
+		The parameter is detached: its parent is cleared and its identifiers are removed from the language construct's
+		namespace, if it has one. The parameter itself is unchanged and can be added to another language construct, or
+		inserted at another position.
 
 		:param parameterItem:   The parameter to remove.
 		:raises ValueError:     If parameter 'parameterItem' is ``None``.
@@ -590,9 +592,7 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True):
 
 		del self._parameterItems[index]
 		parameterItem._parent = None
-		if isinstance(self, DeclarationRegionMixin):
-			for normalizedIdentifier in normalizedIdentifiersOf(parameterItem):
-				self._namespace.RemoveElement(normalizedIdentifier, parameterItem)
+		self._RemoveFromNamespace(parameterItem)
 
 
 @export

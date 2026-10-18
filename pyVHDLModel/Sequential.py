@@ -76,6 +76,7 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Branch <pyVHDLModel.Sequential.Branch>`
 	   * :class:`Sequential case <pyVHDLModel.Sequential.SequentialCase>`
 	   * :class:`Loop statement <pyVHDLModel.Sequential.LoopStatement>`
+	   * :class:`Subprogram <pyVHDLModel.Subprogram.Subprogram>`
 	"""
 	_statements: List[SequentialStatement]  #: List of all sequential statements in this construct.
 

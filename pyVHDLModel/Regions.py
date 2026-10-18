@@ -65,6 +65,7 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Package <pyVHDLModel.DesignUnit.Package>`
 	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
 	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
+	   * :class:`Subprogram <pyVHDLModel.Subprogram.Subprogram>`
 	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
 	"""
 	_genericItems: List[GenericInterfaceItemMixin]  #: List of all generics, in declaration order.
@@ -158,6 +159,7 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True):
 
 	.. seealso::
 
+	   * :class:`Subprogram <pyVHDLModel.Subprogram.Subprogram>`
 	   * :class:`Parameter group <pyVHDLModel.Interface.ParameterGroup>`
 	"""
 	_parameterItems: List[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.

@@ -89,7 +89,7 @@ if ($build)
   rm -Force .\build\bdist.win-amd64
   rm -Force .\build\lib
   Write-Host -ForegroundColor Yellow        "[live][BUILD]      Building $PackageName package as wheel ..."
-  py -3.14 -m build --wheel --no-isolation
+  py -3.15 -m build --wheel --no-isolation
 
   Write-Host -ForegroundColor Yellow        "[live][BUILD]      Building wheel finished"
 }
@@ -103,9 +103,9 @@ if ($install)
   }
   else
   { Write-Host -ForegroundColor Cyan        "[ADMIN][UNINSTALL] Uninstalling $PackageName ..."
-    py -3.14 -m pip uninstall -y $PackageName
+    py -3.15 -m pip uninstall -y $PackageName
     Write-Host -ForegroundColor Cyan        "[ADMIN][INSTALL]   Installing $PackageName from wheel ..."
-    py -3.14 -m pip install .\dist\$($PackageName.Replace(".", "_").ToLower())-$PackageVersion-py3-none-any.whl
+    py -3.15 -m pip install .\dist\$($PackageName.Replace(".", "_").ToLower())-$PackageVersion-py3-none-any.whl
 
     Write-Host -ForegroundColor Cyan        "[ADMIN][INSTALL]   Closing window in 5 seconds ..."
     Start-Sleep -Seconds 5
@@ -118,7 +118,7 @@ if ($livedoc)
 { Write-Host -ForegroundColor DarkYellow    "[live][DOC]       Building documentation using Sphinx ..."
 
   cd doc
-  py -3.14 -m sphinx.cmd.build -b html . _build/html --doctree-dir _build/doctrees --jobs auto --warning-file _build/sphinx-warnings.log --verbose
+  py -3.15 -m sphinx.cmd.build -b html . _build/html --doctree-dir _build/doctrees --jobs auto --warning-file _build/sphinx-warnings.log --verbose
   cd ..
 
   Write-Host -ForegroundColor DarkYellow    "[live][DOC]       Documentation finished"
@@ -130,7 +130,7 @@ elseif ($doc)
   # Compile documentation
   $compileDocFunc = {
     cd doc
-    py -3.14 -m sphinx.cmd.build -b html . _build/html --doctree-dir _build/doctrees --jobs auto --warning-file _build/sphinx-warnings.log --verbose
+    py -3.15 -m sphinx.cmd.build -b html . _build/html --doctree-dir _build/doctrees --jobs auto --warning-file _build/sphinx-warnings.log --verbose
   }
   $docJob = Start-Job -Name "Documentation" -ScriptBlock $compileDocFunc
 #  $jobs += $docJob

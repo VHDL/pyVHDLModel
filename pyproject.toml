@@ -25,7 +25,7 @@ variable-naming-style = "camelCase"
 
 [tool.mypy]
 packages = ["pyVHDLModel"]
-python_version = "3.14"
+python_version = "3.15"
 #ignore_missing_imports = true
 strict = true
 pretty = true

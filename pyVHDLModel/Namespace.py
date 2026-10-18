@@ -180,6 +180,7 @@ class Namespace(Generic[K, O]):
 		:param element:              The declared item.
 		:param overloadable:         ``True`` if this declaration may legally share its name.
 		"""
+		from pyVHDLModel            import Library
 		from pyVHDLModel.Subprogram import Function, Procedure
 
 		namespace = self
@@ -188,7 +189,11 @@ class Namespace(Generic[K, O]):
 			# `existing is element` means the region is being re-indexed, not that the name is declared twice.
 			isReindex = existing is element
 			isOverload = overloadable and isinstance(existing, (Function, Procedure))
-			isImport = getattr(getattr(existing, "_parent", None), "_namespace", None) is not namespace
+			# An item made visible by a use clause is declared elsewhere: 'use lib.pkg;' adds the package, whose parent is
+			# a library (without namespace); 'use lib.pkg.all;' adds the package's items, whose parent is the package.
+			isImport = existing is not None and (
+				isinstance(existing._parent, Library) or existing._parent._namespace is not namespace
+			)
 			if existing is not None and not isReindex and not isOverload and not isImport:
 				WarningCollector.Raise(DuplicateDeclarationWarning(
 					f"Identifier '{normalizedIdentifier}' is already used for a declaration in '{namespace._name}'."

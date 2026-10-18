@@ -106,6 +106,19 @@ class OneDeclarativePart(Testcase):
 
 		self.assertEqual(0, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
 
+	def test_DeclarationHidesVisiblePackage(self) -> None:
+		"""A package made visible by 'use lib.pkg;' (its parent is a library) is hidden by a declaration of its name."""
+		package = Package("pkg")
+		package.Library = Library("lib")
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[_signal("pkg", "natural")])
+		architecture._namespace._elements["pkg"] = package
+
+		with WarningCollector() as collector:
+			architecture.IndexDeclaredItems()
+
+		self.assertEqual(0, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
+		self.assertIs(architecture.DeclaredItems[0], architecture._namespace._elements["pkg"])
+
 	def test_DeclarationHidesImportedItem(self) -> None:
 		"""An item imported by a use clause is hidden by a declaration of the same identifier."""
 		imported = Constant(["s"], _subtypeSymbol("bit"))

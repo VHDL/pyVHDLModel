@@ -64,6 +64,7 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True):
 
 	   * :class:`Package <pyVHDLModel.DesignUnit.Package>`
 	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
+	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
 	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
 	"""
 	_genericItems: List[GenericInterfaceItemMixin]  #: List of all generics, in declaration order.
@@ -111,6 +112,7 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True):
 
 	   * :class:`Concurrent block statement <pyVHDLModel.Concurrent.ConcurrentBlockStatement>`
 	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
+	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
 	   * :class:`Port group <pyVHDLModel.Interface.PortGroup>`
 	"""
 	_portItems: List[PortInterfaceItemMixin]  #: List of all ports, in declaration order.

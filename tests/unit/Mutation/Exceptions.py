@@ -35,7 +35,10 @@ from pyTooling.Exceptions  import AlreadyInHierarchyError, DuplicateElementError
 from pyTooling.Testing     import Testcase
 
 from pyVHDLModel.Exception import VHDLModelException, AlreadyInDesignError, NotAChildError, DuplicateGenericError
-from pyVHDLModel.Exception import DuplicatePortError, DuplicateParameterError
+from pyVHDLModel.Exception import DuplicatePortError, DuplicateParameterError, DuplicateDeclarationError
+from pyVHDLModel.Exception import DuplicateTypeError, DuplicateSubtypeError, DuplicateConstantError
+from pyVHDLModel.Exception import DuplicateSignalError, DuplicateVariableError, DuplicateFileError
+from pyVHDLModel.Exception import DuplicateComponentError, DuplicateSubprogramError
 from pyVHDLModel.Exception import NotInNamespaceError
 
 
@@ -74,3 +77,17 @@ class Exceptions(Testcase):
 		ex = NotInNamespaceError("Namespace 'rtl' has no element 'bits'.")
 
 		self.assertEqual("Namespace 'rtl' has no element 'bits'.", str(ex))
+
+	def test_DuplicateDeclarationError(self) -> None:
+		self.assertTrue(issubclass(DuplicateDeclarationError, VHDLModelException))
+		self.assertTrue(issubclass(DuplicateDeclarationError, DuplicateElementError))
+
+	def test_DuplicateDeclarationError_Kinds(self) -> None:
+		self.assertTrue(issubclass(DuplicateTypeError, DuplicateDeclarationError))
+		self.assertTrue(issubclass(DuplicateSubtypeError, DuplicateDeclarationError))
+		self.assertTrue(issubclass(DuplicateConstantError, DuplicateDeclarationError))
+		self.assertTrue(issubclass(DuplicateSignalError, DuplicateDeclarationError))
+		self.assertTrue(issubclass(DuplicateVariableError, DuplicateDeclarationError))
+		self.assertTrue(issubclass(DuplicateFileError, DuplicateDeclarationError))
+		self.assertTrue(issubclass(DuplicateComponentError, DuplicateDeclarationError))
+		self.assertTrue(issubclass(DuplicateSubprogramError, DuplicateDeclarationError))

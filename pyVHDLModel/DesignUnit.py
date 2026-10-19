@@ -602,6 +602,22 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 		else:
 			super()._IndexOtherDeclaredItem(item)
 
+	def _UnindexOtherDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Remove a declared item, which a concurrent declaration region doesn't handle itself.
+
+		A deferred constant is removed from :attr:`_deferredConstants`. An entry referring to another deferred constant of
+		the same identifier (a duplicate declaration) is kept: :meth:`RemoveDeclaredItem` indexes the region again.
+
+		:param item: The declared item.
+		"""
+		if isinstance(item, DeferredConstant):
+			for normalizedIdentifier in item._normalizedIdentifiers:
+				if self._deferredConstants.get(normalizedIdentifier) is item:
+					del self._deferredConstants[normalizedIdentifier]
+		else:
+			super()._UnindexOtherDeclaredItem(item)
+
 	def __str__(self) -> str:
 		"""
 		Formats the package declaration.

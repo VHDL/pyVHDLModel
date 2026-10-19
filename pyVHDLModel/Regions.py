@@ -36,7 +36,7 @@ tbd.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, List, Dict, Iterable, Optional as Nullable, Any
+from typing                  import TYPE_CHECKING, Any, ClassVar, Dict, Iterable, List, Optional as Nullable, Tuple
 
 from pyTooling.Common        import getFullyQualifiedName
 from pyTooling.Decorators    import export, readonly
@@ -47,8 +47,11 @@ from pyVHDLModel.Base        import ModelEntity, NamedEntityMixin, MultipleNamed
 from pyVHDLModel.Base        import normalizedIdentifiersOf
 from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError
 from pyVHDLModel.Exception   import DuplicateGenericError, DuplicatePortError, DuplicateParameterError
+from pyVHDLModel.Exception   import DuplicateDeclarationError, DuplicateTypeError, DuplicateSubtypeError
+from pyVHDLModel.Exception   import DuplicateConstantError, DuplicateSignalError, DuplicateVariableError
+from pyVHDLModel.Exception   import DuplicateFileError, DuplicateComponentError, DuplicateSubprogramError
 from pyVHDLModel.Namespace   import Namespace
-from pyVHDLModel.Object      import Constant, SharedVariable, File, Variable, Signal
+from pyVHDLModel.Object      import BaseConstant, Constant, SharedVariable, File, Variable, Signal
 if TYPE_CHECKING:
 	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin
 	from pyVHDLModel.Interface import PortSignalInterfaceItem
@@ -610,10 +613,10 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 @export
 class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	"""
-	A base-class for the concurrent and sequential declaration region mixins.
+	A base-class for the concurrent, sequential and protected type declaration region mixins.
 
-	It carries what both regions share: adding interface items to the region's namespace, and the hook for
-	declared items neither region handles itself.
+	It carries what all regions share: adding interface items to the region's namespace, the mutators for declared items
+	(e.g. :meth:`AddDeclaredItem`), and the hooks for declared items no region handles itself.
 
 	An interface item shares the declarative region of the declarative part beside it - VHDL rejects
 	``port (g : in bit)`` beside ``generic (g : integer)``, ``signal x`` beside ``port (x : in bit)``, and a
@@ -629,8 +632,10 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 
 	   * :class:`Concurrent declaration region mixin <pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin>`
 	   * :class:`Sequential declaration region mixin <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
+	   * :class:`Protected type declaration region mixin <pyVHDLModel.Regions.ProtectedTypeDeclarationRegionMixin>`
 	"""
-	_isIndexed: bool  #: ``True`` if :meth:`IndexDeclaredItems` filled the region's namespace.
+	_declaredItemTypes: ClassVar[Tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
+	_isIndexed:         bool                        #: ``True`` if :meth:`IndexDeclaredItems` filled the namespace.
 
 	def __init__(self) -> None:
 		"""
@@ -688,9 +693,19 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		for normalizedIdentifier in normalizedIdentifiersOf(element):
 			self._namespace.RemoveElement(normalizedIdentifier, element)
 
-	def _IndexOtherDeclaredItem(self, item) -> None:
-		"""Hook for declared items the region doesn't handle itself. Derived classes may override it."""
-		pass
+	def _IndexOtherDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Hook for declared items the region doesn't handle itself. Derived classes may override it.
+
+		:param item: The declared item.
+		"""
+
+	def _UnindexOtherDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Hook to remove declared items the region doesn't handle itself. Derived classes may override it.
+
+		:param item: The declared item.
+		"""
 
 	def _RemoveDeclaredItemsFromNamespace(self) -> None:
 		"""
@@ -703,6 +718,408 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		for normalizedIdentifier, element in list(self._namespace.Elements().items()):
 			if not isinstance(element, InterfaceItemMixin) and element._parent is self:
 				self._namespace.RemoveElement(normalizedIdentifier, element)
+
+	def _RemoveDeclaredItemEntries(
+		self,
+		lookupTable: Dict[str, Any],
+		item:        NamedEntityMixin | MultipleNamedEntityMixin
+	) -> None:
+		"""
+		Remove a declared item's entries from a lookup table and from the namespace.
+
+		Every identifier is checked before anything is removed.
+
+		:param lookupTable:          The lookup table matching the declared item's kind.
+		:param item:                 The declared item.
+		:raises NotInNamespaceError: If an identifier of the declared item isn't declared in the namespace.
+		:raises NotInNamespaceError: If an identifier of the declared item refers to another element, e.g. a duplicate
+		                             declaration.
+		"""
+		normalizedIdentifiers = normalizedIdentifiersOf(item)
+		elements = self._namespace.Elements()
+		for normalizedIdentifier in normalizedIdentifiers:
+			if elements.get(normalizedIdentifier) is not item:
+				# raises NotInNamespaceError, naming the reason
+				self._namespace.RemoveElement(normalizedIdentifier, item)
+
+		for normalizedIdentifier in normalizedIdentifiers:
+			del lookupTable[normalizedIdentifier]
+			self._namespace.RemoveElement(normalizedIdentifier, item)
+
+	def _IndexOverload(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Add an inserted function or procedure to its lookup table and to the namespace.
+
+		The list of overloads follows the declaration order. The namespace refers to the overload declared last, as after
+		:meth:`IndexDeclaredItems`.
+
+		:param item: The inserted function or procedure.
+		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
+		kind = Function if isinstance(item, Function) else Procedure
+		lookupTable = self._functions if kind is Function else self._procedures
+		normalizedIdentifier = item._normalizedIdentifier
+		lookupTable[normalizedIdentifier] = [
+			declaration for declaration in self._declaredItems
+			if isinstance(declaration, kind) and declaration._normalizedIdentifier == normalizedIdentifier
+		]
+
+		overloads = [
+			declaration for declaration in self._declaredItems
+			if isinstance(declaration, (Function, Procedure)) and declaration._normalizedIdentifier == normalizedIdentifier
+		]
+		if overloads[-1] is item:
+			self._namespace.AddElement(normalizedIdentifier, item, overloadable=True)
+
+	def _UnindexOverload(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Remove a function or procedure from its lookup table and from the namespace.
+
+		The namespace refers to the overload declared last. Removing it, the namespace refers to the remaining overload
+		declared last, or the identifier is removed, if no overload remains. Removing another overload leaves the namespace
+		unchanged.
+
+		:param item:                 The function or procedure to remove, still a declared item of this region.
+		:raises NotInNamespaceError: If the identifier isn't declared in the namespace.
+		:raises NotInNamespaceError: If the identifier refers to an element, which is no overload, e.g. a duplicate
+		                             declaration.
+		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
+		normalizedIdentifier = item._normalizedIdentifier
+		entry = self._namespace.Elements().get(normalizedIdentifier)
+		if entry is not item and not isinstance(entry, (Function, Procedure)):
+			# raises NotInNamespaceError, naming the reason
+			self._namespace.RemoveElement(normalizedIdentifier, item)
+
+		remaining = [
+			declaration for declaration in self._declaredItems
+			if declaration is not item
+			and isinstance(declaration, (Function, Procedure))
+			and declaration._normalizedIdentifier == normalizedIdentifier
+		]
+
+		lookupTable = self._functions if isinstance(item, Function) else self._procedures
+		overloads = lookupTable[normalizedIdentifier]
+		overloads.remove(item)
+		if len(overloads) == 0:
+			del lookupTable[normalizedIdentifier]
+
+		if entry is item:
+			if len(remaining) == 0:
+				self._namespace.RemoveElement(normalizedIdentifier, item)
+			else:
+				self._namespace.AddElement(normalizedIdentifier, remaining[-1], overloadable=True)
+
+	def _DeclaredItemsSharingIdentifiers(self, declaredItem: ModelEntity) -> List[ModelEntity]:
+		"""
+		Return the other declared items of this region sharing an identifier with the given declared item.
+
+		:param declaredItem: The declared item.
+		:returns:            List of declared items, in declaration order.
+		"""
+		if not isinstance(declaredItem, (NamedEntityMixin, MultipleNamedEntityMixin)):
+			return []
+
+		identifiers = set(normalizedIdentifiersOf(declaredItem))
+		return [
+			item for item in self._declaredItems
+			if item is not declaredItem
+			and isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin))
+			and not identifiers.isdisjoint(normalizedIdentifiersOf(item))
+		]
+
+	def AddDeclaredItem(self, declaredItem: ModelEntity) -> None:
+		"""
+		Add a declared item at the end of the declarative region.
+
+		The declared item's parent is set to this declarative region. If the region is indexed, its identifiers are added
+		to the region's namespace and to the lookup table matching its kind.
+
+		:param declaredItem:               The declared item to add.
+		:raises ValueError:                If parameter 'declaredItem' is ``None``.
+		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
+		                                   region.
+		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
+		:raises DuplicateDeclarationError: If the declarative region already declares an identifier of the declared item,
+		                                   unless both declarations are subprograms.
+
+		.. seealso::
+
+		   :meth:`InsertDeclaredItem`
+		      |rarr| Insert a declared item at a position of the declarative region.
+		   :meth:`RemoveDeclaredItem`
+		      |rarr| Remove a declared item from the declarative region.
+		"""
+		self.InsertDeclaredItem(len(self._declaredItems), declaredItem)
+
+	def InsertDeclaredItem(self, index: int, declaredItem: ModelEntity) -> None:
+		"""
+		Insert a declared item at a position of the declarative region.
+
+		The declared item's parent is set to this declarative region. If the region is indexed, its identifiers are added
+		to the region's namespace and to the lookup table matching its kind.
+
+		Subprograms are overloadable: a subprogram may share its identifier with other subprograms. A protected type body
+		may share its identifier with its protected type, and a full type with its incomplete type declaration.
+
+		:param index:                      Position, from ``0`` (first) to the number of declared items (append).
+		                                   A negative index counts from the end, as for :meth:`list.insert`: ``-1``
+		                                   inserts before the last declared item.
+		:param declaredItem:               The declared item to insert.
+		:raises ValueError:                If parameter 'index' is ``None``.
+		:raises TypeError:                 If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:                If parameter 'index' is out of range.
+		:raises ValueError:                If parameter 'declaredItem' is ``None``.
+		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
+		                                   region.
+		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
+		:raises DuplicateDeclarationError: If the declarative region already declares an identifier of the declared item,
+		                                   unless both declarations are subprograms.
+
+		.. seealso::
+
+		   :meth:`AddDeclaredItem`
+		      |rarr| Add a declared item at the end of the declarative region.
+		   :meth:`InsertDeclaredItemBefore`
+		      |rarr| Insert a declared item before another declared item.
+		   :meth:`InsertDeclaredItemAfter`
+		      |rarr| Insert a declared item after another declared item.
+		   :meth:`RemoveDeclaredItem`
+		      |rarr| Remove a declared item from the declarative region.
+		"""
+		from pyVHDLModel.DesignUnit import Component
+		from pyVHDLModel.Interface  import InterfaceItemMixin
+		from pyVHDLModel.Subprogram import Function, Procedure
+		from pyVHDLModel.Type       import BaseType, Subtype, FullType, AnonymousType, ProtectedType, ProtectedTypeBody
+
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif not (-len(self._declaredItems) <= index <= len(self._declaredItems)):
+			ex = ValueError(f"Parameter 'index' is out of range {-len(self._declaredItems)}..{len(self._declaredItems)}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		if declaredItem is None:
+			raise ValueError("Parameter 'declaredItem' is None.")
+		elif not isinstance(declaredItem, self._declaredItemTypes) or isinstance(declaredItem, InterfaceItemMixin):
+			ex = TypeError(f"Parameter 'declaredItem' is not a declaration allowed in {self.__class__.__name__}.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(declaredItem)}'.")
+			raise ex
+		elif declaredItem._parent is not None:
+			identifiers = ""
+			if isinstance(declaredItem, (NamedEntityMixin, MultipleNamedEntityMixin)):
+				identifiers = f" '{', '.join(identifiersOf(declaredItem))}'"
+			ex = AlreadyInDesignError(f"{declaredItem.__class__.__name__}{identifiers} already has a parent.")
+			ex.add_note(f"Remove it from its {declaredItem._parent.__class__.__name__} first.")
+			raise ex
+
+		sharingItems = self._DeclaredItemsSharingIdentifiers(declaredItem)
+		for item in sharingItems:
+			if isinstance(declaredItem, (Function, Procedure)) and isinstance(item, (Function, Procedure)):
+				continue
+			elif isinstance(declaredItem, ProtectedTypeBody) and isinstance(item, ProtectedType):
+				continue
+			elif isinstance(declaredItem, ProtectedType) and isinstance(item, ProtectedTypeBody):
+				continue
+			elif isinstance(declaredItem, FullType) and isinstance(item, AnonymousType):
+				continue
+			elif isinstance(declaredItem, AnonymousType) and isinstance(item, FullType):
+				continue
+
+			existingIdentifiers = normalizedIdentifiersOf(item)
+			newIdentifiers = zip(identifiersOf(declaredItem), normalizedIdentifiersOf(declaredItem))
+			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
+			if isinstance(declaredItem, Subtype):
+				errorClass = DuplicateSubtypeError
+			elif isinstance(declaredItem, BaseType):
+				errorClass = DuplicateTypeError
+			elif isinstance(declaredItem, (Function, Procedure)):
+				errorClass = DuplicateSubprogramError
+			elif isinstance(declaredItem, BaseConstant):
+				errorClass = DuplicateConstantError
+			elif isinstance(declaredItem, Signal):
+				errorClass = DuplicateSignalError
+			elif isinstance(declaredItem, (Variable, SharedVariable)):
+				errorClass = DuplicateVariableError
+			elif isinstance(declaredItem, File):
+				errorClass = DuplicateFileError
+			elif isinstance(declaredItem, Component):
+				errorClass = DuplicateComponentError
+			else:
+				errorClass = DuplicateDeclarationError
+			ex = errorClass(f"{self.__class__.__name__} already declares '{identifier}'.")
+			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(item)}'.")
+			raise ex
+
+		self._declaredItems.insert(index, declaredItem)
+		declaredItem.Parent = self
+		if self._isIndexed:
+			if isinstance(declaredItem, (Function, Procedure)):
+				self._IndexOverload(declaredItem)
+			else:
+				self._IndexDeclaredItem(declaredItem)
+
+	def InsertDeclaredItemBefore(self, declaredItem: ModelEntity, before: ModelEntity) -> None:
+		"""
+		Insert a declared item before another declared item.
+
+		The declared item's parent is set to this declarative region. If the region is indexed, its identifiers are added
+		to the region's namespace and to the lookup table matching its kind.
+
+		:param declaredItem:               The declared item to insert.
+		:param before:                     The declared item of this declarative region to insert before.
+		:raises ValueError:                If parameter 'before' is ``None``.
+		:raises TypeError:                 If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:            If parameter 'before' is not a declared item of this declarative region.
+		:raises ValueError:                If parameter 'declaredItem' is ``None``.
+		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
+		                                   region.
+		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
+		:raises DuplicateDeclarationError: If the declarative region already declares an identifier of the declared item,
+		                                   unless both declarations are subprograms.
+
+		.. seealso::
+
+		   :meth:`InsertDeclaredItem`
+		      |rarr| Insert a declared item at a position of the declarative region.
+		   :meth:`InsertDeclaredItemAfter`
+		      |rarr| Insert a declared item after another declared item.
+		"""
+		if before is None:
+			raise ValueError("Parameter 'before' is None.")
+		elif not isinstance(before, ModelEntity):
+			ex = TypeError("Parameter 'before' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(before)}'.")
+			raise ex
+
+		for index, item in enumerate(self._declaredItems):
+			if item is before:
+				break
+		else:
+			identifiers = ""
+			if isinstance(before, (NamedEntityMixin, MultipleNamedEntityMixin)):
+				identifiers = f" '{', '.join(identifiersOf(before))}'"
+			raise NotAChildError(
+				f"{before.__class__.__name__}{identifiers} is not a declared item of this {self.__class__.__name__}."
+			)
+
+		self.InsertDeclaredItem(index, declaredItem)
+
+	def InsertDeclaredItemAfter(self, declaredItem: ModelEntity, after: ModelEntity) -> None:
+		"""
+		Insert a declared item after another declared item.
+
+		The declared item's parent is set to this declarative region. If the region is indexed, its identifiers are added
+		to the region's namespace and to the lookup table matching its kind.
+
+		:param declaredItem:               The declared item to insert.
+		:param after:                      The declared item of this declarative region to insert after.
+		:raises ValueError:                If parameter 'after' is ``None``.
+		:raises TypeError:                 If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:            If parameter 'after' is not a declared item of this declarative region.
+		:raises ValueError:                If parameter 'declaredItem' is ``None``.
+		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
+		                                   region.
+		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
+		:raises DuplicateDeclarationError: If the declarative region already declares an identifier of the declared item,
+		                                   unless both declarations are subprograms.
+
+		.. seealso::
+
+		   :meth:`InsertDeclaredItem`
+		      |rarr| Insert a declared item at a position of the declarative region.
+		   :meth:`InsertDeclaredItemBefore`
+		      |rarr| Insert a declared item before another declared item.
+		"""
+		if after is None:
+			raise ValueError("Parameter 'after' is None.")
+		elif not isinstance(after, ModelEntity):
+			ex = TypeError("Parameter 'after' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(after)}'.")
+			raise ex
+
+		for index, item in enumerate(self._declaredItems):
+			if item is after:
+				break
+		else:
+			identifiers = ""
+			if isinstance(after, (NamedEntityMixin, MultipleNamedEntityMixin)):
+				identifiers = f" '{', '.join(identifiersOf(after))}'"
+			raise NotAChildError(
+				f"{after.__class__.__name__}{identifiers} is not a declared item of this {self.__class__.__name__}."
+			)
+
+		self.InsertDeclaredItem(index + 1, declaredItem)
+
+	def RemoveDeclaredItem(self, declaredItem: ModelEntity) -> None:
+		"""
+		Remove a declared item from the declarative region.
+
+		The declared item is detached: its parent is cleared. If the region is indexed, the declared item's identifiers are
+		removed from the region's namespace and from the lookup table matching its kind first; they are checked before
+		anything is changed. The declared item itself is unchanged and can be added to another declarative region, or
+		inserted at another position.
+
+		The namespace refers to the overload declared last: removing it, the namespace refers to the remaining overload
+		declared last. If another declaration shares an identifier with the declared item (e.g. a duplicate declaration
+		read by a parser), the region is indexed again (:meth:`IndexDeclaredItems`) after the removal.
+
+		:param declaredItem:         The declared item to remove.
+		:raises ValueError:          If parameter 'declaredItem' is ``None``.
+		:raises TypeError:           If parameter 'declaredItem' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:      If parameter 'declaredItem' is not a declared item of this declarative region.
+		:raises NotInNamespaceError: If the region is indexed, and an identifier of the declared item isn't declared in
+		                             its namespace.
+		:raises NotInNamespaceError: If the region is indexed, and an identifier of the declared item refers to another
+		                             declaration, e.g. a duplicate declaration.
+
+		.. seealso::
+
+		   :meth:`AddDeclaredItem`
+		      |rarr| Add a declared item at the end of the declarative region.
+		   :meth:`InsertDeclaredItem`
+		      |rarr| Insert a declared item at a position of the declarative region.
+		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
+		if declaredItem is None:
+			raise ValueError("Parameter 'declaredItem' is None.")
+		elif not isinstance(declaredItem, ModelEntity):
+			ex = TypeError("Parameter 'declaredItem' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(declaredItem)}'.")
+			raise ex
+
+		for index, item in enumerate(self._declaredItems):
+			if item is declaredItem:
+				break
+		else:
+			identifiers = ""
+			if isinstance(declaredItem, (NamedEntityMixin, MultipleNamedEntityMixin)):
+				identifiers = f" '{', '.join(identifiersOf(declaredItem))}'"
+			raise NotAChildError(
+				f"{declaredItem.__class__.__name__}{identifiers} is not a declared item of this {self.__class__.__name__}."
+			)
+
+		reindex = False
+		if self._isIndexed:
+			isOverload = isinstance(declaredItem, (Function, Procedure))
+			reindex = any(
+				not (isOverload and isinstance(item, (Function, Procedure)))
+				for item in self._DeclaredItemsSharingIdentifiers(declaredItem)
+			)
+			self._UnindexDeclaredItem(declaredItem)
+
+		del self._declaredItems[index]
+		declaredItem._parent = None
+
+		if reindex:
+			self.IndexDeclaredItems()
 
 
 @export
@@ -981,6 +1398,39 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		else:
 			self._IndexOtherDeclaredItem(item)
 
+	def _UnindexDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Remove a declared item from the namespace and from the lookup table matching its kind.
+
+		:param item: The declared item.
+		"""
+		from pyVHDLModel.DesignUnit import Component
+		from pyVHDLModel.Subprogram import Function, Procedure
+		from pyVHDLModel.Type       import Subtype, FullType, ProtectedTypeBody
+
+		if isinstance(item, ProtectedTypeBody):
+			pass
+		elif isinstance(item, FullType):
+			self._RemoveDeclaredItemEntries(self._types, item)
+		elif isinstance(item, Subtype):
+			self._RemoveDeclaredItemEntries(self._subtypes, item)
+		elif isinstance(item, (Function, Procedure)):
+			self._UnindexOverload(item)
+		elif isinstance(item, Constant):
+			self._RemoveDeclaredItemEntries(self._constants, item)
+		elif isinstance(item, Signal):
+			self._RemoveDeclaredItemEntries(self._signals, item)
+		elif isinstance(item, Variable):
+			pass
+		elif isinstance(item, SharedVariable):
+			self._RemoveDeclaredItemEntries(self._sharedVariables, item)
+		elif isinstance(item, File):
+			self._RemoveDeclaredItemEntries(self._files, item)
+		elif isinstance(item, Component):
+			self._RemoveDeclaredItemEntries(self._components, item)
+		else:
+			self._UnindexOtherDeclaredItem(item)
+
 
 @export
 class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
@@ -1192,6 +1642,32 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		else:
 			self._IndexOtherDeclaredItem(item)
 
+	def _UnindexDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Remove a declared item from the namespace and from the lookup table matching its kind.
+
+		:param item: The declared item.
+		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+		from pyVHDLModel.Type       import Subtype, FullType, ProtectedTypeBody
+
+		if isinstance(item, ProtectedTypeBody):
+			pass
+		elif isinstance(item, FullType):
+			self._RemoveDeclaredItemEntries(self._types, item)
+		elif isinstance(item, Subtype):
+			self._RemoveDeclaredItemEntries(self._subtypes, item)
+		elif isinstance(item, (Function, Procedure)):
+			self._UnindexOverload(item)
+		elif isinstance(item, Constant):
+			self._RemoveDeclaredItemEntries(self._constants, item)
+		elif isinstance(item, Variable):
+			self._RemoveDeclaredItemEntries(self._variables, item)
+		elif isinstance(item, File):
+			self._RemoveDeclaredItemEntries(self._files, item)
+		else:
+			self._UnindexOtherDeclaredItem(item)
+
 
 @export
 class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
@@ -1306,3 +1782,16 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		else:
 			self._IndexOtherDeclaredItem(item)
+
+	def _UnindexDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Remove a declared item from the namespace and from the lookup table matching its kind.
+
+		:param item: The declared item.
+		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
+		if isinstance(item, (Function, Procedure)):
+			self._UnindexOverload(item)
+		else:
+			self._UnindexOtherDeclaredItem(item)

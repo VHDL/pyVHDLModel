@@ -37,6 +37,7 @@ from pyVHDLModel.Expression      import EnumerationLiteral, FunctionCall, Intege
 from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, OpenName
 from pyVHDLModel.Symbol          import ConstrainedArraySubtypeSymbol
+from pyVHDLModel.Visitor         import Visitor
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -93,10 +94,20 @@ class Writers(Testcase):
 		self.assertEqual("Parameter 'style' is not of type 'VHDLStyle'.", str(context.exception))
 		self.assertEqual(["Got type 'pyVHDLModel.Formatting.VHDL.KeywordCase'."], context.exception.__notes__)
 
-	def test_Formatters(self) -> None:
-		"""Every formatter table entry names a method of the writer."""
-		for methodName in VHDLWriter._FORMATTERS.values():
-			self.assertHasAttr(VHDLWriter, methodName)
+	def test_Events(self) -> None:
+		"""The writer handles the events of every model class with a walk, except a symbol: it's written by its name."""
+		classNames = {name[len("Depart"):] for name in dir(Visitor) if name.startswith("Depart")}
+		for className in classNames - {"Symbol"}:
+			with self.subTest(className=className):
+				self.assertTrue(
+					getattr(VHDLWriter, f"Visit{className}") is not getattr(Visitor, f"Visit{className}") or
+					getattr(VHDLWriter, f"Depart{className}") is not getattr(Visitor, f"Depart{className}")
+				)
+
+		tokenEvents = {name for name in dir(Visitor) if name.startswith("Visit")} - {f"Visit{name}" for name in classNames}
+		for tokenEvent in tokenEvents:
+			with self.subTest(tokenEvent=tokenEvent):
+				self.assertIsNot(getattr(Visitor, tokenEvent), getattr(VHDLWriter, tokenEvent))
 
 
 class Dispatch(Testcase):
@@ -105,6 +116,13 @@ class Dispatch(Testcase):
 			VHDLWriter().Format(None)
 
 		self.assertEqual("Parameter 'element' is None.", str(context.exception))
+
+	def test_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLWriter().Format("clk")
+
+		self.assertEqual("Parameter 'element' is not of type 'ModelEntity' or 'Symbol'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
 	def test_Unsupported(self) -> None:
 		call = FunctionCall()
@@ -141,6 +159,25 @@ class Dispatch(Testcase):
 		name = ParserName("clk")
 
 		self.assertEqual("clk", VHDLWriter().Format(name))
+
+
+class Buffers(Testcase):
+	def test_Reset(self) -> None:
+		"""Each call of ``Format`` starts with an empty buffer."""
+		writer = VHDLWriter()
+
+		self.assertEqual("a", writer.Format(SimpleName("a")))
+		self.assertEqual("b", writer.Format(SimpleName("b")))
+
+	def test_Reset_Error(self) -> None:
+		"""A failed call leaves no text for the next call."""
+		writer = VHDLWriter()
+		name =   ParenthesisName(SimpleName("f"), [IntegerLiteral(1), FunctionCall()])
+
+		with self.assertRaises(VHDLWriterError):
+			writer.Format(name)
+
+		self.assertEqual("c", writer.Format(SimpleName("c")))
 
 
 class KeywordCases(Testcase):

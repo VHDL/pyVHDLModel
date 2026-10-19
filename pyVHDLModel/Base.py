@@ -37,11 +37,13 @@ Base-classes for the VHDL language model.
 from __future__            import annotations
 
 from enum                  import unique, Enum
-from typing                import Type, Iterable, Optional as Nullable, Union, cast
+from typing                import TYPE_CHECKING, Type, Tuple, List, Iterable, Optional as Nullable, Union, cast
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor import Visitor
 
 
 __all__ = ["ExpressionUnion"]
@@ -161,6 +163,15 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 			raise VHDLModelException(f"No ancestor of type '{type.__name__}' found for {self!r}.")
 
 		return parent
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this model element with a visitor as an element without a walk of its own.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitUnknown(self)
+		visitor.DepartUnknown(self)
 
 
 @export

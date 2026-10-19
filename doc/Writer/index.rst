@@ -31,19 +31,44 @@ The writer formats names, symbols, literals and association items. Expressions, 
 statements follow.
 
 
-.. _WRITER/dispatch:
+.. _WRITER/visitor:
 
-Dispatch
-********
+Visitor
+*******
 
-:meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format` looks up a formatter method along the class hierarchy (MRO) of
-the element. Thus, a parser's subclass of a model class is written like that model class.
+The writer is a :class:`~pyVHDLModel.Visitor.Visitor`. A model element walks itself
+(:meth:`~pyVHDLModel.Base.ModelEntity.Visit`): it reports ``Visit<Class>`` to the visitor, walks its children in source
+order and reports ``Depart<Class>``. A token between two parts, which is not a model element itself, is reported by an
+event named after the token, e.g. ``VisitArrow`` for ``=>`` or ``VisitComma`` for ``,``. The writer appends the text of
+each event to a buffer, which :meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format` returns. A parser's subclass of a
+model class inherits the walk of that model class, so it's written like that model class.
 
-An element without a formatter raises :exc:`~pyVHDLModel.Exception.VHDLWriterError`, so does an element without VHDL
-notation, e.g. a string literal containing a control character. The writer never skips an element. The exception's
+An element of a class without a walk of its own is reported by ``VisitUnknown``. The writer raises
+:exc:`~pyVHDLModel.Exception.VHDLWriterError` there and for an element without VHDL notation, e.g. a string literal
+containing a control character. The writer never skips an element. The exception's
 :attr:`~pyVHDLModel.Exception.VHDLWriterError.Element` property returns the offending element.
 
 A symbol is written from its name, whether it's resolved or not.
+
+Every event of :class:`~pyVHDLModel.Visitor.Visitor` does nothing, so another visitor overrides only the events it
+needs:
+
+.. code-block:: Python
+
+   from typing              import List
+
+   from pyVHDLModel.Name    import SimpleName
+   from pyVHDLModel.Visitor import Visitor
+
+   class SimpleNameCollector(Visitor):
+     _identifiers: List[str]
+
+     def __init__(self) -> None:
+       super().__init__()
+       self._identifiers = []
+
+     def VisitSimpleName(self, name: SimpleName) -> None:
+       self._identifiers.append(name.Identifier)
 
 
 .. _WRITER/style:

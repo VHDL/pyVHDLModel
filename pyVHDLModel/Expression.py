@@ -34,14 +34,16 @@ This module contains parts of an abstract document language model for VHDL.
 
 All declarations for literals, aggregates, operators forming an expressions.
 """
-from enum                 import Flag
-from typing               import Iterable, Union, ClassVar, Optional as Nullable
+from enum                  import Flag
+from typing                import TYPE_CHECKING, Tuple, List, Iterable, Union, ClassVar, Optional as Nullable
 
-from pyTooling.Common     import getFullyQualifiedName
-from pyTooling.Decorators import export, readonly
+from pyTooling.Common      import getFullyQualifiedName
+from pyTooling.Decorators  import export, readonly
 
-from pyVHDLModel.Base     import ModelEntity, Direction, Range
-from pyVHDLModel.Symbol   import Symbol, SubtypeSymbol
+from pyVHDLModel.Base      import ModelEntity, Direction, Range
+from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor import Visitor
 
 
 ExpressionUnion = Union[
@@ -104,6 +106,15 @@ class NullLiteral(Literal):
 	      p := null;
 	      --   ^^^^    <- the literal
 	"""
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this null literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitNullLiteral(self)
+		visitor.DepartNullLiteral(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the null literal.
@@ -150,6 +161,15 @@ class EnumerationLiteral(Literal):
 		:returns: The value.
 		"""
 		return self._value
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this enumeration literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitEnumerationLiteral(self)
+		visitor.DepartEnumerationLiteral(self)
 
 	def __str__(self) -> str:
 		"""
@@ -211,6 +231,15 @@ class IntegerLiteral(NumericLiteral):
 		"""
 		return self._value
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this integer literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIntegerLiteral(self)
+		visitor.DepartIntegerLiteral(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the integer literal.
@@ -255,6 +284,15 @@ class FloatingPointLiteral(NumericLiteral):
 		:returns: The value.
 		"""
 		return self._value
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this floating-point literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitFloatingPointLiteral(self)
+		visitor.DepartFloatingPointLiteral(self)
 
 	def __str__(self) -> str:
 		"""
@@ -354,6 +392,15 @@ class PhysicalIntegerLiteral(PhysicalLiteral):
 		"""
 		return self._value
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this physical literal with an integer value with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitPhysicalIntegerLiteral(self)
+		visitor.DepartPhysicalIntegerLiteral(self)
+
 
 @export
 class PhysicalFloatingLiteral(PhysicalLiteral):
@@ -390,6 +437,15 @@ class PhysicalFloatingLiteral(PhysicalLiteral):
 		:returns: The value.
 		"""
 		return self._value
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this physical literal with a floating-point value with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitPhysicalFloatingLiteral(self)
+		visitor.DepartPhysicalFloatingLiteral(self)
 
 
 @export
@@ -443,6 +499,15 @@ class CharacterLiteral(Literal):
 		"""
 		return self._value
 
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this character literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitCharacterLiteral(self)
+		visitor.DepartCharacterLiteral(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the character literal.
@@ -487,6 +552,15 @@ class StringLiteral(Literal):
 		:returns: The value.
 		"""
 		return self._value
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this string literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitStringLiteral(self)
+		visitor.DepartStringLiteral(self)
 
 	def __str__(self) -> str:
 		"""
@@ -604,6 +678,15 @@ class BitStringLiteral(Literal):
 		:returns: ``True``, if the literal is signed; ``None``, if unspecified.
 		"""
 		return self._isSigned
+
+	def Visit(self, visitor: "Visitor") -> None:
+		"""
+		Walk this bit string literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitBitStringLiteral(self)
+		visitor.DepartBitStringLiteral(self)
 
 	def __str__(self) -> str:
 		"""

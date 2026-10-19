@@ -40,7 +40,7 @@ from __future__              import annotations
 
 from enum                    import Enum, unique
 from math                    import isfinite
-from typing                  import ClassVar, Dict, List, Optional as Nullable
+from typing                  import ClassVar, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName
 from pyTooling.Decorators    import export, readonly
@@ -118,7 +118,7 @@ class VHDLWriter(Visitor):
 	Symbols are written from their :attr:`~pyVHDLModel.Symbol.Symbol.Name`, whether resolved or not.
 	"""
 
-	_BASE_SPECIFIERS: ClassVar[Dict[BitStringBase, str]] = {
+	_BASE_SPECIFIERS: ClassVar[dict[BitStringBase, str]] = {
 		BitStringBase.Binary:      "b",
 		BitStringBase.Octal:       "o",
 		BitStringBase.Decimal:     "d",
@@ -126,7 +126,7 @@ class VHDLWriter(Visitor):
 	}  #: Dictionary of base specifiers, indexed by bit string base.
 
 	_style:  VHDLStyle  #: Formatting options.
-	_buffer: List[str]  #: Fragments of the VHDL source text written by the running :meth:`Format` call.
+	_buffer: list[str]  #: Fragments of the VHDL source text written by the running :meth:`Format` call.
 
 	def __init__(self, style: Nullable[VHDLStyle] = None) -> None:
 		"""

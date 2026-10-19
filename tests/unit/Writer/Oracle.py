@@ -34,7 +34,7 @@ GHDL as oracle for pyVHDLModel.Formatting.VHDL: written expressions must pass ``
 Each expression becomes the value of a constant declaration in a package. Skipped if GHDL is not on PATH.
 """
 from textwrap                    import dedent
-from typing                      import Iterable, Tuple
+from typing                      import Iterable
 from unittest                    import skipIf
 
 from pyTooling.Testing           import Testcase
@@ -80,7 +80,7 @@ _DECLARATIONS = dedent("""\
 	""")  #: Declarations the written expressions refer to.
 
 
-def _package(constants: Iterable[Tuple[str, str]]) -> str:
+def _package(constants: Iterable[tuple[str, str]]) -> str:
 	"""Source text of a package declaring one constant per (subtype, value) pair."""
 	declarations = "".join(
 		f"\tconstant c{index} : {subtype} := {value};\n" for index, (subtype, value) in enumerate(constants)

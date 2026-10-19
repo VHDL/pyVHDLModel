@@ -31,7 +31,7 @@
 """
 Shared helpers for the tests of the visitor protocol (:mod:`pyVHDLModel.Visitor`).
 """
-from typing               import Any, List, Tuple
+from typing               import Any
 
 from pyTooling.Decorators import readonly
 
@@ -41,7 +41,7 @@ from pyVHDLModel.Visitor  import Visitor
 class Recorder(Visitor):
 	"""A visitor recording the events of a walk as pairs of event name and element."""
 
-	_events: List[Tuple[str, Any]]  #: List of recorded events.
+	_events: list[tuple[str, Any]]  #: List of recorded events.
 
 	def __init__(self) -> None:
 		super().__init__()
@@ -49,7 +49,7 @@ class Recorder(Visitor):
 		self._events = []
 
 	@readonly
-	def Events(self) -> List[Tuple[str, Any]]:
+	def Events(self) -> list[tuple[str, Any]]:
 		"""Recorded events."""
 		return self._events
 

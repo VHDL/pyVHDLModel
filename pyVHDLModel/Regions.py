@@ -890,7 +890,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			# raises NotInNamespaceError, naming the reason
 			self._namespace.RemoveElement(normalizedIdentifier, item)
 
-	def _SharedRegions(self) -> Tuple[DeclarationRegionMixin, ...]:
+	def _SharedRegions(self) -> tuple[DeclarationRegionMixin, ...]:
 		"""
 		Return the other language constructs forming one declarative region with this one.
 
@@ -932,7 +932,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			)
 		)
 
-	def _ClashingDeclarations(self, item: ModelEntity) -> List[ModelEntity]:
+	def _ClashingDeclarations(self, item: ModelEntity) -> list[ModelEntity]:
 		"""
 		Return the declarations sharing an identifier with the given item, which may not share it.
 
@@ -1428,7 +1428,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		return self._components
 
-	def _Declarations(self) -> List[ModelEntity]:
+	def _Declarations(self) -> list[ModelEntity]:
 		"""
 		Return all declarations of this declarative region.
 
@@ -1726,7 +1726,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		return self._procedures
 
-	def _Declarations(self) -> List[ModelEntity]:
+	def _Declarations(self) -> list[ModelEntity]:
 		"""
 		Return all declarations of this declarative region.
 
@@ -1909,7 +1909,7 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		return self._procedures
 
-	def _Declarations(self) -> List[ModelEntity]:
+	def _Declarations(self) -> list[ModelEntity]:
 		"""
 		Return all declarations of this declarative region.
 

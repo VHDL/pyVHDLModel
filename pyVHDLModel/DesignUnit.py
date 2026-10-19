@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from __future__                import annotations
 
-from typing                    import ClassVar, List, Dict, Union, Iterable, Optional as Nullable, Tuple
+from typing                    import ClassVar, List, Dict, Union, Iterable, Optional as Nullable
 
 from pyTooling.Decorators      import export, readonly
 from pyTooling.MetaClasses     import ExtendedType, abstractmethod
@@ -619,7 +619,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 		else:
 			super()._UnindexOtherDeclaredItem(item)
 
-	def _SharedRegions(self) -> Tuple[ConcurrentDeclarationRegionMixin, ...]:
+	def _SharedRegions(self) -> tuple[ConcurrentDeclarationRegionMixin, ...]:
 		"""
 		Return the other language constructs forming one declarative region with this package.
 
@@ -665,7 +665,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> List[ModelEntity]:
+	def _Declarations(self) -> list[ModelEntity]:
 		"""
 		Return all declarations of this package: its generics share the declarative region.
 
@@ -742,7 +742,7 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 	def LinkDeclaredItemsToPackage(self) -> None:
 		pass
 
-	def _SharedRegions(self) -> Tuple[ConcurrentDeclarationRegionMixin, ...]:
+	def _SharedRegions(self) -> tuple[ConcurrentDeclarationRegionMixin, ...]:
 		"""
 		Return the other language constructs forming one declarative region with this package body.
 
@@ -884,7 +884,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> List[ModelEntity]:
+	def _Declarations(self) -> list[ModelEntity]:
 		"""
 		Return all declarations of this entity: its generics and ports share the declarative region.
 
@@ -892,7 +892,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		"""
 		return [*self._genericItems, *self._portItems, *super()._Declarations()]
 
-	def _SharedRegions(self) -> Tuple[ConcurrentDeclarationRegionMixin, ...]:
+	def _SharedRegions(self) -> tuple[ConcurrentDeclarationRegionMixin, ...]:
 		"""
 		Return the other language constructs forming one declarative region with this entity.
 
@@ -992,7 +992,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 
 		return f"{lib}.{ent}({self._identifier})"
 
-	def _SharedRegions(self) -> Tuple[ConcurrentDeclarationRegionMixin, ...]:
+	def _SharedRegions(self) -> tuple[ConcurrentDeclarationRegionMixin, ...]:
 		"""
 		Return the other language constructs forming one declarative region with this architecture.
 
@@ -1074,7 +1074,7 @@ class Component(
 		:param element: The named element, e.g. an interface item.
 		"""
 
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> List[ModelEntity]:
+	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> list[ModelEntity]:
 		"""
 		Return the generics and ports of this component sharing an identifier with the given item.
 

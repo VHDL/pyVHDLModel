@@ -36,7 +36,7 @@ Subprograms are procedures, functions and methods.
 """
 from __future__             import annotations
 
-from typing                 import ClassVar, Iterable, List, Optional as Nullable
+from typing                 import ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
@@ -142,7 +142,7 @@ class Subprogram(
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> List[ModelEntity]:
+	def _Declarations(self) -> list[ModelEntity]:
 		"""
 		Return all declarations of this subprogram: its generics and parameters share the declarative region.
 

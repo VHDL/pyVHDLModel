@@ -36,7 +36,7 @@ architecture form one region, as do a package and its body. A mutator checks all
 after the error the lists, the parent, the lookup tables and the namespace are unchanged.
 """
 from pathlib                import Path
-from typing                 import Any, Dict
+from typing                 import Any
 
 from pyTooling.Testing      import Testcase
 
@@ -66,7 +66,7 @@ _FIELDS = (
 )
 
 
-def _snapshot(region) -> Dict[str, Any]:
+def _snapshot(region) -> dict[str, Any]:
 	"""Copy the lists, lookup tables and namespace of a declarative region."""
 	snapshot = {"namespace": dict(region._namespace._elements)}
 	for field in _FIELDS:

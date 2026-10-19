@@ -586,7 +586,7 @@ class ConcurrentBlockStatement(
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> List[ModelEntity]:
+	def _Declarations(self) -> list[ModelEntity]:
 		"""
 		Return all declarations of this block: its generics and ports share the declarative region.
 

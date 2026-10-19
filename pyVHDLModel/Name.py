@@ -38,7 +38,7 @@ combined identifiers. :mod:`Symbols <pyVHDLModel.Symbol>` are structures represe
 """
 from __future__           import annotations
 
-from typing               import List, Iterable, Optional as Nullable
+from typing               import Iterable, Optional as Nullable
 
 from pyTooling.Decorators import export, readonly
 
@@ -175,7 +175,7 @@ class ParenthesisName(Name):
 
 	Used where indexing and a function call are indistinguishable before resolution.
 	"""
-	_associations: List  #: List of all associations in the parenthesis.
+	_associations: list  #: List of all associations in the parenthesis.
 
 	def __init__(self, prefix: Name, associations: Iterable, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -193,7 +193,7 @@ class ParenthesisName(Name):
 			association.Parent = self
 
 	@readonly
-	def Associations(self) -> List:
+	def Associations(self) -> list:
 		"""
 		Read-only property to access the associations (:attr:`_associations`).
 
@@ -224,7 +224,7 @@ class IndexedName(Name):
 	      s <= v(0);
 	      --   ^^^^    <- the indexed name
 	"""
-	_indices: List[ExpressionUnion]  #: List of all index expressions, one per dimension.
+	_indices: list[ExpressionUnion]  #: List of all index expressions, one per dimension.
 
 	def __init__(self, prefix: Name, indices: Iterable[ExpressionUnion], parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -242,7 +242,7 @@ class IndexedName(Name):
 			index.Parent = self
 
 	@readonly
-	def Indices(self) -> List[ExpressionUnion]:
+	def Indices(self) -> list[ExpressionUnion]:
 		"""
 		Read-only property to access the indices (:attr:`_indices`).
 

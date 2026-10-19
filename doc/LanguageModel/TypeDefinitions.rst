@@ -44,7 +44,7 @@ Enumeration
 
      # from EnumeratedType
      @property
-     def Elements(self) -> List[str]:
+     def Elements(self) -> list[str]:
 
 
 
@@ -147,7 +147,7 @@ Physical
      def PrimaryUnit(self) -> str:
 
      @property
-     def SecondaryUnits(self) -> List[Tuple[int, str]]:
+     def SecondaryUnits(self) -> list[tuple[int, str]]:
 
 
 
@@ -181,7 +181,7 @@ Array
 
      # from ArrayType
      @property
-     def Dimensions(self) -> List[Range]:
+     def Dimensions(self) -> list[Range]:
 
      @property
      def ElementType(self) -> Subtype:
@@ -213,7 +213,7 @@ Record
 
      # from RecordType
      @property
-     def Members(self) -> List[RecordTypeElement]:
+     def Members(self) -> list[RecordTypeElement]:
 
 
 .. _vhdlmodel-protectedtypes:

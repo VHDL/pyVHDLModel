@@ -36,7 +36,7 @@ tbd.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, Any, ClassVar, Dict, Iterable, List, Optional as Nullable, Tuple
+from typing                  import TYPE_CHECKING, Any, ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName
 from pyTooling.Decorators    import export, readonly
@@ -79,7 +79,7 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 	   * :class:`Subprogram <pyVHDLModel.Subprogram.Subprogram>`
 	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
 	"""
-	_genericItems: List[GenericInterfaceItemMixin]  #: List of all generics, in declaration order.
+	_genericItems: list[GenericInterfaceItemMixin]  #: List of all generics, in declaration order.
 
 	def __init__(
 		self,
@@ -97,7 +97,7 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 				item.Parent = self
 
 	@readonly
-	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
+	def GenericItems(self) -> list[GenericInterfaceItemMixin]:
 		"""
 		Read-only property to access the generic items (:attr:`_genericItems`).
 
@@ -262,7 +262,7 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
 	   * :class:`Port group <pyVHDLModel.Interface.PortGroup>`
 	"""
-	_portItems: List[PortInterfaceItemMixin]  #: List of all ports, in declaration order.
+	_portItems: list[PortInterfaceItemMixin]  #: List of all ports, in declaration order.
 
 	def __init__(
 		self,
@@ -280,7 +280,7 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 				item.Parent = self
 
 	@readonly
-	def PortItems(self) -> List[PortInterfaceItemMixin]:
+	def PortItems(self) -> list[PortInterfaceItemMixin]:
 		"""
 		Read-only property to access the port items (:attr:`_portItems`).
 
@@ -443,7 +443,7 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 	   * :class:`Subprogram <pyVHDLModel.Subprogram.Subprogram>`
 	   * :class:`Parameter group <pyVHDLModel.Interface.ParameterGroup>`
 	"""
-	_parameterItems: List[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.
+	_parameterItems: list[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.
 
 	def __init__(
 		self,
@@ -461,7 +461,7 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 				item.Parent = self
 
 	@readonly
-	def ParameterItems(self) -> List[ParameterInterfaceItemMixin]:
+	def ParameterItems(self) -> list[ParameterInterfaceItemMixin]:
 		"""
 		Read-only property to access the parameter items (:attr:`_parameterItems`).
 
@@ -634,7 +634,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Sequential declaration region mixin <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	   * :class:`Protected type declaration region mixin <pyVHDLModel.Regions.ProtectedTypeDeclarationRegionMixin>`
 	"""
-	_declaredItemTypes: ClassVar[Tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
+	_declaredItemTypes: ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
 	_isIndexed:         bool                        #: ``True`` if :meth:`IndexDeclaredItems` filled the namespace.
 
 	def __init__(self) -> None:
@@ -721,7 +721,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 
 	def _RemoveDeclaredItemEntries(
 		self,
-		lookupTable: Dict[str, Any],
+		lookupTable: dict[str, Any],
 		item:        NamedEntityMixin | MultipleNamedEntityMixin
 	) -> None:
 		"""
@@ -812,7 +812,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			else:
 				self._namespace.AddElement(normalizedIdentifier, remaining[-1], overloadable=True)
 
-	def _DeclaredItemsSharingIdentifiers(self, declaredItem: ModelEntity) -> List[ModelEntity]:
+	def _DeclaredItemsSharingIdentifiers(self, declaredItem: ModelEntity) -> list[ModelEntity]:
 		"""
 		Return the other declared items of this region sharing an identifier with the given declared item.
 
@@ -1145,22 +1145,22 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 	   * :class:`Sequential declaration region <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	   * :class:`Namespace <pyVHDLModel.Namespace.Namespace>`
 	"""
-	_declaredItems:   List                        #: List of all declared items in this concurrent declaration region.
+	_declaredItems:   list                        #: List of all declared items in this concurrent declaration region.
 
-	# _attributes:     Dict[str, Attribute]
-	# _aliases:        Dict[str, Alias]
-	_types:           Dict[str, FullType]         #: Dictionary of all types declared in this concurrent declaration region.
-	_subtypes:        Dict[str, Subtype]          #: Dictionary of all subtypes declared in this concurrent declaration region.
-	# _objects:        Dict[str, Union[Constant, Variable, Signal]]
-	_constants:       Dict[str, Constant]         #: Dictionary of all constants declared in this concurrent declaration region.
-	_signals:         Dict[str, Signal]           #: Dictionary of all signals declared in this concurrent declaration region.
-	_sharedVariables: Dict[str, SharedVariable]   #: Dictionary of all shared variables declared in this concurrent declaration region.
-	_files:           Dict[str, File]             #: Dictionary of all files declared in this concurrent declaration region.
-	# _subprograms:     Dict[str, List[Subprogram]]  #: Dictionary of all subprograms declared in this concurrent declaration region.
+	# _attributes:     dict[str, Attribute]
+	# _aliases:        dict[str, Alias]
+	_types:           dict[str, FullType]         #: Dictionary of all types declared in this concurrent declaration region.
+	_subtypes:        dict[str, Subtype]          #: Dictionary of all subtypes declared in this concurrent declaration region.
+	# _objects:        dict[str, Union[Constant, Variable, Signal]]
+	_constants:       dict[str, Constant]         #: Dictionary of all constants declared in this concurrent declaration region.
+	_signals:         dict[str, Signal]           #: Dictionary of all signals declared in this concurrent declaration region.
+	_sharedVariables: dict[str, SharedVariable]   #: Dictionary of all shared variables declared in this concurrent declaration region.
+	_files:           dict[str, File]             #: Dictionary of all files declared in this concurrent declaration region.
+	# _subprograms:     dict[str, list[Subprogram]]  #: Dictionary of all subprograms declared in this concurrent declaration region.
 	# FIXME: overloads are only collected into a list, not matched/resolved by signature.
-	_functions:       Dict[str, List[Function]]   #: Dictionary of all functions declared in this concurrent declaration region, indexed by name; each entry is a list of overloads.
-	_procedures:      Dict[str, List[Procedure]]  #: Dictionary of all procedures declared in this concurrent declaration region, indexed by name; each entry is a list of overloads.
-	_components:      Dict[str, Any]              #: Dictionary of all components declared in this concurrent declaration region.
+	_functions:       dict[str, list[Function]]   #: Dictionary of all functions declared in this concurrent declaration region, indexed by name; each entry is a list of overloads.
+	_procedures:      dict[str, list[Procedure]]  #: Dictionary of all procedures declared in this concurrent declaration region, indexed by name; each entry is a list of overloads.
+	_components:      dict[str, Any]              #: Dictionary of all components declared in this concurrent declaration region.
 
 	def __init__(self, declaredItems: Nullable[Iterable] = None) -> None:
 		# TODO: extract to mixin
@@ -1190,7 +1190,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		self._components =  {}
 
 	@readonly
-	def DeclaredItems(self) -> List:
+	def DeclaredItems(self) -> list:
 		"""
 		Read-only property to access the declared items (:attr:`_declaredItems`).
 
@@ -1199,7 +1199,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._declaredItems
 
 	@readonly
-	def Types(self) -> Dict[str, FullType]:
+	def Types(self) -> dict[str, FullType]:
 		"""
 		Read-only property to access the types (:attr:`_types`).
 
@@ -1208,7 +1208,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._types
 
 	@readonly
-	def Subtypes(self) -> Dict[str, Subtype]:
+	def Subtypes(self) -> dict[str, Subtype]:
 		"""
 		Read-only property to access the subtypes (:attr:`_subtypes`).
 
@@ -1217,11 +1217,11 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._subtypes
 
 	# @readonly
-	# def Objects(self) -> Dict[str, Union[Constant, SharedVariable, Signal, File]]:
+	# def Objects(self) -> dict[str, Union[Constant, SharedVariable, Signal, File]]:
 	# 	return self._objects
 
 	@readonly
-	def Constants(self) -> Dict[str, Constant]:
+	def Constants(self) -> dict[str, Constant]:
 		"""
 		Read-only property to access the constants (:attr:`_constants`).
 
@@ -1230,7 +1230,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._constants
 
 	@readonly
-	def Signals(self) -> Dict[str, Signal]:
+	def Signals(self) -> dict[str, Signal]:
 		"""
 		Read-only property to access the signals (:attr:`_signals`).
 
@@ -1239,7 +1239,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._signals
 
 	@readonly
-	def SharedVariables(self) -> Dict[str, SharedVariable]:
+	def SharedVariables(self) -> dict[str, SharedVariable]:
 		"""
 		Read-only property to access the shared variables (:attr:`_sharedVariables`).
 
@@ -1248,7 +1248,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._sharedVariables
 
 	@readonly
-	def Files(self) -> Dict[str, File]:
+	def Files(self) -> dict[str, File]:
 		"""
 		Read-only property to access the files (:attr:`_files`).
 
@@ -1257,11 +1257,11 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._files
 
 	# @readonly
-	# def Subprograms(self) -> Dict[str, Subprogram]:
+	# def Subprograms(self) -> dict[str, Subprogram]:
 	# 	return self._subprograms
 
 	@readonly
-	def Functions(self) -> Dict[str, List[Function]]:
+	def Functions(self) -> dict[str, list[Function]]:
 		"""
 		Read-only property to access the functions (:attr:`_functions`).
 
@@ -1270,7 +1270,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._functions
 
 	@readonly
-	def Procedures(self) -> Dict[str, List[Procedure]]:
+	def Procedures(self) -> dict[str, list[Procedure]]:
 		"""
 		Read-only property to access the procedures (:attr:`_procedures`).
 
@@ -1279,7 +1279,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._procedures
 
 	@readonly
-	def Components(self) -> Dict[str, Any]:
+	def Components(self) -> dict[str, Any]:
 		"""
 		Read-only property to access the components (:attr:`_components`).
 
@@ -1453,17 +1453,17 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 	   * :class:`Namespace <pyVHDLModel.Namespace.Namespace>`
 	"""
 
-	_declaredItems: List                        #: List of all declared items in this sequential declaration region.
+	_declaredItems: list                        #: List of all declared items in this sequential declaration region.
 	_namespace:     Namespace                   #: The namespace of this sequential declaration region.
 
-	_types:         Dict[str, FullType]         #: Dictionary of all types declared in this sequential declaration region.
-	_subtypes:      Dict[str, Subtype]          #: Dictionary of all subtypes declared in this sequential declaration region.
-	_constants:     Dict[str, Constant]         #: Dictionary of all constants declared in this sequential declaration region.
-	_variables:     Dict[str, Variable]         #: Dictionary of all variables declared in this sequential declaration region.
-	_files:         Dict[str, File]             #: Dictionary of all files declared in this sequential declaration region.
+	_types:         dict[str, FullType]         #: Dictionary of all types declared in this sequential declaration region.
+	_subtypes:      dict[str, Subtype]          #: Dictionary of all subtypes declared in this sequential declaration region.
+	_constants:     dict[str, Constant]         #: Dictionary of all constants declared in this sequential declaration region.
+	_variables:     dict[str, Variable]         #: Dictionary of all variables declared in this sequential declaration region.
+	_files:         dict[str, File]             #: Dictionary of all files declared in this sequential declaration region.
 	# FIXME: overloads are only collected into a list, not matched/resolved by signature.
-	_functions:     Dict[str, List[Function]]   #: Dictionary of all functions declared in this sequential declaration region, indexed by name; each entry is a list of overloads.
-	_procedures:    Dict[str, List[Procedure]]  #: Dictionary of all procedures declared in this sequential declaration region, indexed by name; each entry is a list of overloads.
+	_functions:     dict[str, list[Function]]   #: Dictionary of all functions declared in this sequential declaration region, indexed by name; each entry is a list of overloads.
+	_procedures:    dict[str, list[Procedure]]  #: Dictionary of all procedures declared in this sequential declaration region, indexed by name; each entry is a list of overloads.
 
 	def __init__(self, namespaceName: Nullable[str] = None, declaredItems: Nullable[Iterable] = None) -> None:
 		"""
@@ -1491,7 +1491,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		self._procedures = {}
 
 	@readonly
-	def DeclaredItems(self) -> List:
+	def DeclaredItems(self) -> list:
 		"""
 		Read-only property to access the declared items (:attr:`_declaredItems`).
 
@@ -1509,7 +1509,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._namespace
 
 	@readonly
-	def Types(self) -> Dict[str, FullType]:
+	def Types(self) -> dict[str, FullType]:
 		"""
 		Read-only property to access the declared types (:attr:`_types`).
 
@@ -1518,7 +1518,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._types
 
 	@readonly
-	def Subtypes(self) -> Dict[str, Subtype]:
+	def Subtypes(self) -> dict[str, Subtype]:
 		"""
 		Read-only property to access the declared subtypes (:attr:`_subtypes`).
 
@@ -1527,7 +1527,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._subtypes
 
 	@readonly
-	def Constants(self) -> Dict[str, Constant]:
+	def Constants(self) -> dict[str, Constant]:
 		"""
 		Read-only property to access the declared constants (:attr:`_constants`).
 
@@ -1536,7 +1536,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._constants
 
 	@readonly
-	def Variables(self) -> Dict[str, Variable]:
+	def Variables(self) -> dict[str, Variable]:
 		"""
 		Read-only property to access the declared variables (:attr:`_variables`).
 
@@ -1545,7 +1545,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._variables
 
 	@readonly
-	def Files(self) -> Dict[str, File]:
+	def Files(self) -> dict[str, File]:
 		"""
 		Read-only property to access the declared files (:attr:`_files`).
 
@@ -1554,7 +1554,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._files
 
 	@readonly
-	def Functions(self) -> Dict[str, List[Function]]:
+	def Functions(self) -> dict[str, list[Function]]:
 		"""
 		Read-only property to access the declared functions (:attr:`_functions`).
 
@@ -1563,7 +1563,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._functions
 
 	@readonly
-	def Procedures(self) -> Dict[str, List[Procedure]]:
+	def Procedures(self) -> dict[str, list[Procedure]]:
 		"""
 		Read-only property to access the declared procedures (:attr:`_procedures`).
 
@@ -1686,12 +1686,12 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 	   * :class:`Namespace <pyVHDLModel.Namespace.Namespace>`
 	"""
 
-	_declaredItems: List                        #: List of all declared items in this protected type declaration.
+	_declaredItems: list                        #: List of all declared items in this protected type declaration.
 	_namespace:     Namespace                   #: The namespace of this protected type declaration.
 
 	# FIXME: overloads are only collected into a list, not matched/resolved by signature.
-	_functions:     Dict[str, List[Function]]   #: All declared functions, indexed by name; each is a list of overloads.
-	_procedures:    Dict[str, List[Procedure]]  #: All declared procedures by name; each is a list of overloads.
+	_functions:     dict[str, list[Function]]   #: All declared functions, indexed by name; each is a list of overloads.
+	_procedures:    dict[str, list[Procedure]]  #: All declared procedures by name; each is a list of overloads.
 
 	def __init__(self, namespaceName: Nullable[str] = None, declaredItems: Nullable[Iterable] = None) -> None:
 		"""
@@ -1714,7 +1714,7 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		self._procedures = {}
 
 	@readonly
-	def DeclaredItems(self) -> List:
+	def DeclaredItems(self) -> list:
 		"""
 		Read-only property to access the declared items (:attr:`_declaredItems`).
 
@@ -1723,7 +1723,7 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._declaredItems
 
 	@readonly
-	def Functions(self) -> Dict[str, List[Function]]:
+	def Functions(self) -> dict[str, list[Function]]:
 		"""
 		Read-only property to access the declared functions (:attr:`_functions`).
 
@@ -1732,7 +1732,7 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		return self._functions
 
 	@readonly
-	def Procedures(self) -> Dict[str, List[Procedure]]:
+	def Procedures(self) -> dict[str, list[Procedure]]:
 		"""
 		Read-only property to access the declared procedures (:attr:`_procedures`).
 

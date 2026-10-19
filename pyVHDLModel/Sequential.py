@@ -36,7 +36,7 @@ Declarations for sequential statements.
 """
 from __future__              import annotations
 
-from typing                  import List, Iterable, Optional as Nullable
+from typing                  import Iterable, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
@@ -78,7 +78,7 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Loop statement <pyVHDLModel.Sequential.LoopStatement>`
 	   * :class:`Subprogram <pyVHDLModel.Subprogram.Subprogram>`
 	"""
-	_statements: List[SequentialStatement]  #: List of all sequential statements in this construct.
+	_statements: list[SequentialStatement]  #: List of all sequential statements in this construct.
 
 	def __init__(self, statements: Nullable[Iterable[SequentialStatement]] = None) -> None:
 		# TODO: extract to mixin
@@ -94,7 +94,7 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True):
 				item.Parent = self
 
 	@readonly
-	def Statements(self) -> List[SequentialStatement]:
+	def Statements(self) -> list[SequentialStatement]:
 		"""
 		Read-only property to access the list of sequential statements (:attr:`_statements`).
 
@@ -248,7 +248,7 @@ class SequentialConditionalVariableAssignment(SequentialStatement, AssignmentMix
 	   * :class:`Conditional expression <pyVHDLModel.Common.ConditionalExpression>`
 	"""
 
-	_conditionalExpressions: List[ConditionalExpression]  #: List of all alternatives, in the order they were written.
+	_conditionalExpressions: list[ConditionalExpression]  #: List of all alternatives, in the order they were written.
 
 	def __init__(
 		self,
@@ -274,7 +274,7 @@ class SequentialConditionalVariableAssignment(SequentialStatement, AssignmentMix
 			conditionalExpression.Parent = self
 
 	@readonly
-	def ConditionalExpressions(self) -> List[ConditionalExpression]:
+	def ConditionalExpressions(self) -> list[ConditionalExpression]:
 		"""
 		Read-only property to access the conditional expressions (:attr:`_conditionalExpressions`).
 
@@ -745,7 +745,7 @@ class IfStatement(CompoundStatement):
 	   * :class:`If-generate statement <pyVHDLModel.Concurrent.IfGenerateStatement>`
 	"""
 	_ifBranch: IfBranch                #: The mandatory ``if`` branch.
-	_elsifBranches: List[ElsifBranch]  #: List of all ``elsif`` branches, in the order they were written.
+	_elsifBranches: list[ElsifBranch]  #: List of all ``elsif`` branches, in the order they were written.
 	_elseBranch: Nullable[ElseBranch]  #: The optional ``else`` branch, or ``None`` if none was given.
 
 	def __init__(
@@ -792,7 +792,7 @@ class IfStatement(CompoundStatement):
 		return self._ifBranch
 
 	@readonly
-	def ElsIfBranches(self) -> List[ElsifBranch]:
+	def ElsIfBranches(self) -> list[ElsifBranch]:
 		"""
 		Read-only property to access the elsif-branch of the if-statement (:attr:`_elsifBranch`).
 
@@ -1031,7 +1031,7 @@ class CaseStatement(CompoundStatement):
 	   * :class:`Case-generate statement <pyVHDLModel.Concurrent.CaseGenerateStatement>`
 	"""
 	_expression: ExpressionUnion       #: The expression being tested.
-	_cases:      List[SequentialCase]  #: List of all alternatives, in the order they were written.
+	_cases:      list[SequentialCase]  #: List of all alternatives, in the order they were written.
 
 	def __init__(self, expression: ExpressionUnion, cases: Iterable[SequentialCase], label: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -1063,7 +1063,7 @@ class CaseStatement(CompoundStatement):
 		return self._expression
 
 	@readonly
-	def Cases(self) -> List[SequentialCase]:
+	def Cases(self) -> list[SequentialCase]:
 		"""
 		Read-only property to access the cases (:attr:`_cases`).
 
@@ -1392,7 +1392,7 @@ class WaitStatement(SequentialStatement, ConditionalMixin):
 	      --                 ^^^^^^^^^^^              <- optional Condition
 	      --                                 ^^^^^    <- optional Timeout
 	"""
-	_sensitivityList: Nullable[List[Symbol]]  #: List of all signal names to wait on, or ``None`` if none was given.
+	_sensitivityList: Nullable[list[Symbol]]  #: List of all signal names to wait on, or ``None`` if none was given.
 	_timeout:         ExpressionUnion         #: The timeout expression, or ``None`` if none was given.
 
 	def __init__(
@@ -1428,7 +1428,7 @@ class WaitStatement(SequentialStatement, ConditionalMixin):
 			timeout.Parent = self
 
 	@readonly
-	def SensitivityList(self) -> List[Symbol]:
+	def SensitivityList(self) -> list[Symbol]:
 		"""
 		Read-only property to access the sensitivity list (:attr:`_sensitivityList`).
 

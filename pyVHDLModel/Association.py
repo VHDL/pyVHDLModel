@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 Associations are used in generic maps, port maps and parameter maps.
 """
-from typing               import Iterable, List, Optional as Nullable, Union
+from typing               import Iterable, Optional as Nullable, Union
 
 from pyTooling.Decorators import export, readonly
 from pyTooling.MetaClasses import ExtendedType
@@ -151,7 +151,7 @@ class GenericMapAspectMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Port map aspect <pyVHDLModel.Association.PortMapAspectMixin>`
 	"""
 
-	_genericAssociationItems: List[GenericAssociationItem]  #: List of all generic associations.
+	_genericAssociationItems: list[GenericAssociationItem]  #: List of all generic associations.
 
 	def __init__(self, genericAssociationItems: Nullable[Iterable[GenericAssociationItem]] = None) -> None:
 		"""
@@ -166,7 +166,7 @@ class GenericMapAspectMixin(metaclass=ExtendedType, mixin=True):
 				association.Parent = self
 
 	@readonly
-	def GenericAssociationItems(self) -> List[GenericAssociationItem]:
+	def GenericAssociationItems(self) -> list[GenericAssociationItem]:
 		"""
 		Read-only property to access the generic associations (:attr:`_genericAssociationItems`).
 
@@ -188,7 +188,7 @@ class PortMapAspectMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Generic map aspect <pyVHDLModel.Association.GenericMapAspectMixin>`
 	"""
 
-	_portAssociationItems: List[PortAssociationItem]  #: List of all port associations.
+	_portAssociationItems: list[PortAssociationItem]  #: List of all port associations.
 
 	def __init__(self, portAssociationItems: Nullable[Iterable[PortAssociationItem]] = None) -> None:
 		"""
@@ -203,7 +203,7 @@ class PortMapAspectMixin(metaclass=ExtendedType, mixin=True):
 				association.Parent = self
 
 	@readonly
-	def PortAssociationItems(self) -> List[PortAssociationItem]:
+	def PortAssociationItems(self) -> list[PortAssociationItem]:
 		"""
 		Read-only property to access the port associations (:attr:`_portAssociationItems`).
 

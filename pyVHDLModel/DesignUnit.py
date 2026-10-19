@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from __future__                import annotations
 
-from typing                    import ClassVar, List, Dict, Union, Iterable, Optional as Nullable
+from typing                    import ClassVar, Union, Iterable, Optional as Nullable
 
 from pyTooling.Decorators      import export, readonly
 from pyTooling.MetaClasses     import ExtendedType, abstractmethod
@@ -66,7 +66,7 @@ class Reference(ModelEntity):
 	   * :class:`Context reference <pyVHDLModel.DesignUnit.ContextReference>`
 	"""
 
-	_symbols:       List[Symbol]  #: List of all symbols referenced by this clause.
+	_symbols:       list[Symbol]  #: List of all symbols referenced by this clause.
 
 	def __init__(self, symbols: Iterable[Symbol], parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -80,7 +80,7 @@ class Reference(ModelEntity):
 		self._symbols = list(symbols)
 
 	@readonly
-	def Symbols(self) -> List[Symbol]:
+	def Symbols(self) -> list[Symbol]:
 		"""
 		Read-only property to access the symbols this reference references to (:attr:`_symbols`).
 
@@ -102,7 +102,7 @@ class LibraryClause(Reference):
 	"""
 
 	@readonly
-	def Symbols(self) -> List[LibraryReferenceSymbol]:
+	def Symbols(self) -> list[LibraryReferenceSymbol]:
 		"""
 		Read-only property to access the symbols this library clause references to (:attr:`_symbols`).
 
@@ -189,14 +189,14 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_document: Document                                    #: The VHDL library, the design unit was analyzed into.
 
 	# Either written as statements before (e.g. entity, architecture, package, ...), or as statements inside (context)
-	_contextItems:        List[ContextUnion]               #: List of all context items (library, use and context clauses).
-	_libraryReferences:   List[LibraryClause]              #: List of library clauses.
-	_packageReferences:   List[UseClause]                  #: List of use clauses.
-	_contextReferences:   List[ContextReference]           #: List of context clauses.
+	_contextItems:        list[ContextUnion]               #: List of all context items (library, use and context clauses).
+	_libraryReferences:   list[LibraryClause]              #: List of library clauses.
+	_packageReferences:   list[UseClause]                  #: List of use clauses.
+	_contextReferences:   list[ContextReference]           #: List of context clauses.
 
-	_referencedLibraries: Dict[str, Library]               #: Referenced libraries based on explicit library clauses or implicit inheritance
-	_referencedPackages:  Dict[str, Dict[str, Package]]    #: Referenced packages based on explicit use clauses or implicit inheritance
-	_referencedContexts:  Dict[str, Context]               #: Referenced contexts based on explicit context references or implicit inheritance
+	_referencedLibraries: dict[str, Library]               #: Referenced libraries based on explicit library clauses or implicit inheritance
+	_referencedPackages:  dict[str, dict[str, Package]]    #: Referenced packages based on explicit use clauses or implicit inheritance
+	_referencedContexts:  dict[str, Context]               #: Referenced contexts based on explicit context references or implicit inheritance
 
 	_dependencyVertex:    Vertex  #: Reference to the vertex in the dependency graph representing the design unit. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
 	_hierarchyVertex:     Vertex  #: The vertex in the hierarchy graph
@@ -269,7 +269,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self._parent = library
 
 	@readonly
-	def ContextItems(self) -> List[ContextUnion]:
+	def ContextItems(self) -> list[ContextUnion]:
 		"""
 		Read-only property to access the sequence of all context items comprising library, use and context clauses
 		(:attr:`_contextItems`).
@@ -279,7 +279,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._contextItems
 
 	@readonly
-	def ContextReferences(self) -> List[ContextReference]:
+	def ContextReferences(self) -> list[ContextReference]:
 		"""
 		Read-only property to access the sequence of context clauses (:attr:`_contextReferences`).
 
@@ -288,7 +288,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._contextReferences
 
 	@readonly
-	def LibraryReferences(self) -> List[LibraryClause]:
+	def LibraryReferences(self) -> list[LibraryClause]:
 		"""
 		Read-only property to access the sequence of library clauses (:attr:`_libraryReferences`).
 
@@ -297,7 +297,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._libraryReferences
 
 	@readonly
-	def PackageReferences(self) -> List[UseClause]:
+	def PackageReferences(self) -> list[UseClause]:
 		"""
 		Read-only property to access the sequence of use clauses (:attr:`_packageReferences`).
 
@@ -306,7 +306,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._packageReferences
 
 	@readonly
-	def ReferencedLibraries(self) -> Dict[str, Library]:
+	def ReferencedLibraries(self) -> dict[str, Library]:
 		"""
 		Read-only property to access the referenced libraries (:attr:`_referencedLibraries`).
 
@@ -315,7 +315,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._referencedLibraries
 
 	@readonly
-	def ReferencedPackages(self) -> Dict[str, Package]:
+	def ReferencedPackages(self) -> dict[str, Package]:
 		"""
 		Read-only property to access the referenced packages (:attr:`_referencedPackages`).
 
@@ -324,7 +324,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._referencedPackages
 
 	@readonly
-	def ReferencedContexts(self) -> Dict[str, Context]:
+	def ReferencedContexts(self) -> dict[str, Context]:
 		"""
 		Read-only property to access the referenced contexts (:attr:`_referencedContexts`).
 
@@ -408,9 +408,9 @@ class Context(PrimaryUnit):
 
 	When :meth:`pyVHDLModel.Design.LinkContexts` got called, these lists were processed and the fields:
 
-	* :data:`_referencedLibraries` (:pycode:`Dict[libName, Library]`)
-	* :data:`_referencedPackages` (:pycode:`Dict[libName, [pkgName, Package]]`)
-	* :data:`_referencedContexts` (:pycode:`Dict[libName, [ctxName, Context]]`)
+	* :data:`_referencedLibraries` (:pycode:`dict[libName, Library]`)
+	* :data:`_referencedPackages` (:pycode:`dict[libName, [pkgName, Package]]`)
+	* :data:`_referencedContexts` (:pycode:`dict[libName, [ctxName, Context]]`)
 
 	are populated.
 
@@ -428,7 +428,7 @@ class Context(PrimaryUnit):
 	   * :class:`Use clause <pyVHDLModel.DesignUnit.UseClause>`
 	"""
 
-	_references:        List[ContextUnion]  #: All context items, in declaration order.
+	_references:        list[ContextUnion]  #: All context items, in declaration order.
 
 	def __init__(self, identifier: str, references: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -462,7 +462,7 @@ class Context(PrimaryUnit):
 					raise VHDLModelException(f"Reference '{reference!r}' is neither a library clause, use clause, nor context reference.")
 
 	@readonly
-	def LibraryReferences(self) -> List[LibraryClause]:
+	def LibraryReferences(self) -> list[LibraryClause]:
 		"""
 		Read-only property to access the library references (:attr:`_libraryReferences`).
 
@@ -471,7 +471,7 @@ class Context(PrimaryUnit):
 		return self._libraryReferences
 
 	@readonly
-	def PackageReferences(self) -> List[UseClause]:
+	def PackageReferences(self) -> list[UseClause]:
 		"""
 		Read-only property to access the package references (:attr:`_packageReferences`).
 
@@ -480,7 +480,7 @@ class Context(PrimaryUnit):
 		return self._packageReferences
 
 	@readonly
-	def ContextReferences(self) -> List[ContextReference]:
+	def ContextReferences(self) -> list[ContextReference]:
 		"""
 		Read-only property to access the context references (:attr:`_contextReferences`).
 
@@ -523,7 +523,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 
 	_packageBody:       Nullable[PackageBody]        #: The corresponding package body, or ``None`` if none was analyzed.
 
-	_deferredConstants: Dict[str, DeferredConstant]  #: Deferred constants, indexed by name.
+	_deferredConstants: dict[str, DeferredConstant]  #: Deferred constants, indexed by name.
 
 	def __init__(
 		self,
@@ -567,7 +567,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 		return self._packageBody
 
 	@readonly
-	def DeclaredItems(self) -> List:
+	def DeclaredItems(self) -> list:
 		"""
 		Read-only property to access the declared items (:attr:`_declaredItems`).
 
@@ -576,7 +576,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 		return self._declaredItems
 
 	@readonly
-	def DeferredConstants(self) -> Dict[str, DeferredConstant]:
+	def DeferredConstants(self) -> dict[str, DeferredConstant]:
 		"""
 		Read-only property to access the deferred constants (:attr:`_deferredConstants`).
 
@@ -585,7 +585,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 		return self._deferredConstants
 
 	@readonly
-	def Components(self) -> Dict[str, Component]:
+	def Components(self) -> dict[str, Component]:
 		"""
 		Read-only property to access the components (:attr:`_components`).
 
@@ -708,7 +708,7 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		return self._package
 
 	@readonly
-	def DeclaredItems(self) -> List:
+	def DeclaredItems(self) -> list:
 		"""
 		Read-only property to access the declared items (:attr:`_declaredItems`).
 
@@ -764,7 +764,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 	   * :class:`Configuration binding it <pyVHDLModel.DesignUnit.Configuration>`
 	"""
 
-	_architectures: Dict[str, Architecture]  #: Dictionary of all architectures of this entity, indexed by name.
+	_architectures: dict[str, Architecture]  #: Dictionary of all architectures of this entity, indexed by name.
 
 	def __init__(
 		self,
@@ -802,7 +802,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		self._architectures = {}
 
 	@readonly
-	def Architectures(self) -> Dict[str, Architecture]:
+	def Architectures(self) -> dict[str, Architecture]:
 		"""
 		Read-only property to access the architectures (:attr:`_architectures`).
 

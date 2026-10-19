@@ -34,7 +34,7 @@ Mutation tests: adding, inserting and removing model entities after construction
 Each test checks the parent relation, the order of the collection and the namespace of the parent, as a mutator
 updates all of them.
 """
-from typing                 import Any, Dict, Tuple
+from typing                 import Any
 
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Interface  import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem
@@ -83,7 +83,7 @@ _LOOKUP_TABLES = (
 )
 
 
-def _indexState(region) -> Dict[str, Any]:
+def _indexState(region) -> dict[str, Any]:
 	"""Copy the lookup tables and the namespace of a declarative region."""
 	state = {"namespace": dict(region._namespace._elements)}
 	for name in _LOOKUP_TABLES:
@@ -94,7 +94,7 @@ def _indexState(region) -> Dict[str, Any]:
 	return state
 
 
-def _reindexed(region) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+def _reindexed(region) -> tuple[dict[str, Any], dict[str, Any]]:
 	"""Return the lookup tables and the namespace of a declarative region before and after indexing it again."""
 	before = _indexState(region)
 	region.IndexDeclaredItems()

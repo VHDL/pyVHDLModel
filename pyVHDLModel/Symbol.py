@@ -37,7 +37,7 @@ Symbols are entity specific wrappers for names that reference VHDL language enti
 from __future__            import annotations
 
 from enum                  import Flag, auto
-from typing                import Any, Optional as Nullable, Iterable, List, Dict, Mapping
+from typing                import Any, Optional as Nullable, Iterable, Mapping
 
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType
@@ -957,7 +957,7 @@ class ArrayConstraint(Constraint, mixin=True):
 
 	   * :class:`Constrained array subtype symbol <pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol>`
 	"""
-	_constraints: List[Range]  #: List of all index ranges, one per dimension.
+	_constraints: list[Range]  #: List of all index ranges, one per dimension.
 
 	def __init__(self, constraints: Iterable[Range]) -> None:
 		"""
@@ -968,7 +968,7 @@ class ArrayConstraint(Constraint, mixin=True):
 		self._constraints = list(constraints)
 
 	@readonly
-	def Constraints(self) -> List[Range]:
+	def Constraints(self) -> list[Range]:
 		"""
 		Read-only property to access the constraints (:attr:`_constraints`).
 
@@ -988,7 +988,7 @@ class RecordConstraint(Constraint, mixin=True):
 
 	   * :class:`Constrained record subtype symbol <pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol>`
 	"""
-	_constraints: Dict[RecordElementSymbol, Range]  #: Dictionary of the constraint per constrained record element.
+	_constraints: dict[RecordElementSymbol, Range]  #: Dictionary of the constraint per constrained record element.
 
 	def __init__(self, constraints: Mapping[RecordElementSymbol, Range]) -> None:
 		"""
@@ -999,7 +999,7 @@ class RecordConstraint(Constraint, mixin=True):
 		self._constraints = dict(constraints)
 
 	@readonly
-	def Constraints(self) -> Dict[RecordElementSymbol, Range]:
+	def Constraints(self) -> dict[RecordElementSymbol, Range]:
 		"""
 		Read-only property to access the constraints (:attr:`_constraints`).
 
@@ -1038,7 +1038,7 @@ class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol, ArrayCons
 	      --         ^^^^^^^^^^                <- Name
 	      --                    ^^^^^^^^^^     <- Constraints
 	"""
-	_constraints: List  #: List of all index ranges, one per dimension.
+	_constraints: list  #: List of all index ranges, one per dimension.
 
 	def __init__(self, name: Name, constraints: Iterable) -> None:
 		"""
@@ -1058,7 +1058,7 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 
 	The referenced language entity is available as :data:`Reference` once resolved.
 	"""
-	_constraints: Dict[RecordElementSymbol, Any]  #: Dictionary of the constraint per constrained record element.
+	_constraints: dict[RecordElementSymbol, Any]  #: Dictionary of the constraint per constrained record element.
 
 	def __init__(self, name: Name, constraints: Mapping) -> None:
 		"""

@@ -1076,18 +1076,18 @@ class GenericGroup(InterfaceGroup, WithGenericsMixin):
 		names = ", ".join(name for item in self._genericItems for name in identifiersOf(item))
 		return f"GenericGroup: {self._identifier} ({len(self._genericItems)}): {names}"
 
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> list[ModelEntity]:
+	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
 		"""
 		Return the generics of this group sharing an identifier with the given item.
 
 		:param item: The new generic.
-		:returns:    List of clashing generics.
+		:returns:    Tuple of clashing generics.
 		"""
 		identifiers = set(normalizedIdentifiersOf(item))
-		return [
+		return tuple(
 			declaration for declaration in self._genericItems
 			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-		]
+		)
 
 
 @export
@@ -1147,18 +1147,18 @@ class PortGroup(InterfaceGroup, WithPortsMixin):
 		names = ", ".join(name for item in self._portItems for name in identifiersOf(item))
 		return f"PortGroup: {self._identifier} ({len(self._portItems)}): {names}"
 
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> list[ModelEntity]:
+	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
 		"""
 		Return the ports of this group sharing an identifier with the given item.
 
 		:param item: The new port.
-		:returns:    List of clashing ports.
+		:returns:    Tuple of clashing ports.
 		"""
 		identifiers = set(normalizedIdentifiersOf(item))
-		return [
+		return tuple(
 			declaration for declaration in self._portItems
 			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-		]
+		)
 
 
 @export
@@ -1218,15 +1218,15 @@ class ParameterGroup(InterfaceGroup, WithParametersMixin):
 		names = ", ".join(name for item in self._parameterItems for name in identifiersOf(item))
 		return f"ParameterGroup: {self._identifier} ({len(self._parameterItems)}): {names}"
 
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> list[ModelEntity]:
+	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
 		"""
 		Return the parameters of this group sharing an identifier with the given item.
 
 		:param item: The new parameter.
-		:returns:    List of clashing parameters.
+		:returns:    Tuple of clashing parameters.
 		"""
 		identifiers = set(normalizedIdentifiersOf(item))
-		return [
+		return tuple(
 			declaration for declaration in self._parameterItems
 			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-		]
+		)

@@ -586,13 +586,13 @@ class ConcurrentBlockStatement(
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> list[ModelEntity]:
+	def _Declarations(self) -> tuple[ModelEntity, ...]:
 		"""
 		Return all declarations of this block: its generics and ports share the declarative region.
 
-		:returns: List of declarations: the generics, the ports, then the declared items.
+		:returns: Tuple of declarations: the generics, the ports, then the declared items.
 		"""
-		return [*self._genericItems, *self._portItems, *super()._Declarations()]
+		return (*self._genericItems, *self._portItems, *super()._Declarations())
 
 
 @export

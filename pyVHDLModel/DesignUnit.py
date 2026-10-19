@@ -665,13 +665,13 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> list[ModelEntity]:
+	def _Declarations(self) -> tuple[ModelEntity, ...]:
 		"""
 		Return all declarations of this package: its generics share the declarative region.
 
-		:returns: List of declarations: the generics, then the declared items.
+		:returns: Tuple of declarations: the generics, then the declared items.
 		"""
-		return [*self._genericItems, *super()._Declarations()]
+		return (*self._genericItems, *super()._Declarations())
 
 
 @export
@@ -884,13 +884,13 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> list[ModelEntity]:
+	def _Declarations(self) -> tuple[ModelEntity, ...]:
 		"""
 		Return all declarations of this entity: its generics and ports share the declarative region.
 
-		:returns: List of declarations: the generics, the ports, then the declared items.
+		:returns: Tuple of declarations: the generics, the ports, then the declared items.
 		"""
-		return [*self._genericItems, *self._portItems, *super()._Declarations()]
+		return (*self._genericItems, *self._portItems, *super()._Declarations())
 
 	def _SharedRegions(self) -> tuple[ConcurrentDeclarationRegionMixin, ...]:
 		"""
@@ -1074,18 +1074,18 @@ class Component(
 		:param element: The named element, e.g. an interface item.
 		"""
 
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> list[ModelEntity]:
+	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
 		"""
 		Return the generics and ports of this component sharing an identifier with the given item.
 
 		:param item: The new generic or port.
-		:returns:    List of clashing generics and ports.
+		:returns:    Tuple of clashing generics and ports.
 		"""
 		identifiers = set(normalizedIdentifiersOf(item))
-		return [
+		return tuple(
 			declaration for declaration in (*self._genericItems, *self._portItems)
 			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-		]
+		)
 
 	@readonly
 	def IsBlackbox(self) -> Nullable[bool]:

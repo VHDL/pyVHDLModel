@@ -709,21 +709,21 @@ class NotInNamespaceError(VHDLModelException, KeyError):
 @export
 class DuplicateGenericError(VHDLModelException, DuplicateElementError):
 	"""
-	This exception is raised, when a language construct already declares an identifier of a new generic.
+	This exception is raised, when a language construct already has a generic of the same identifier.
 	"""
 
 
 @export
 class DuplicatePortError(VHDLModelException, DuplicateElementError):
 	"""
-	This exception is raised, when a language construct already declares an identifier of a new port.
+	This exception is raised, when a language construct already has a port of the same identifier.
 	"""
 
 
 @export
 class DuplicateParameterError(VHDLModelException, DuplicateElementError):
 	"""
-	This exception is raised, when a language construct already declares an identifier of a new parameter.
+	This exception is raised, when a language construct already has a parameter of the same identifier.
 	"""
 
 

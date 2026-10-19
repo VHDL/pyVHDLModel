@@ -198,8 +198,7 @@ class WithGenericsMixin(
 			ex.add_note(f"Remove it from its {getTypeName(genericItem._parent)} first.")
 			raise ex
 
-		clashes = self._ClashingDeclarations(genericItem)
-		if len(clashes) > 0:
+		if len(clashes := self._ClashingDeclarations(genericItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(genericItem), normalizedIdentifiersOf(genericItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
@@ -393,8 +392,7 @@ class WithPortsMixin(
 			ex.add_note(f"Remove it from its {getTypeName(portItem._parent)} first.")
 			raise ex
 
-		clashes = self._ClashingDeclarations(portItem)
-		if len(clashes) > 0:
+		if len(clashes := self._ClashingDeclarations(portItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(portItem), normalizedIdentifiersOf(portItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
@@ -586,8 +584,7 @@ class WithParametersMixin(
 			ex.add_note(f"Remove it from its {getTypeName(parameterItem._parent)} first.")
 			raise ex
 
-		clashes = self._ClashingDeclarations(parameterItem)
-		if len(clashes) > 0:
+		if len(clashes := self._ClashingDeclarations(parameterItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(parameterItem), normalizedIdentifiersOf(parameterItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
@@ -932,7 +929,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			)
 		)
 
-	def _ClashingDeclarations(self, item: ModelEntity) -> list[ModelEntity]:
+	def _ClashingDeclarations(self, item: ModelEntity) -> tuple[ModelEntity, ...]:
 		"""
 		Return the declarations sharing an identifier with the given item, which may not share it.
 
@@ -940,24 +937,23 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		(:meth:`_SharedRegions`) are searched. Items imported into the namespace (e.g. by a use clause) are no declarations.
 
 		:param item: The new declaration.
-		:returns:    List of clashing declarations, interface items first, then declared items in declaration order.
+		:returns:    Tuple of clashing declarations, interface items first, then declared items in declaration order.
 		"""
 		if not isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
-			return []
+			return ()
 
 		identifiers = set(normalizedIdentifiersOf(item))
-		clashes = []
-		for region in (self, *self._SharedRegions()):
-			for declaration in region._Declarations():
-				if (
-					declaration is not item
-					and isinstance(declaration, (NamedEntityMixin, MultipleNamedEntityMixin))
-					and not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-					and not self._MayShareIdentifier(item, declaration)
-				):
-					clashes.append(declaration)
-
-		return clashes
+		return tuple(
+			declaration
+			for region in (self, *self._SharedRegions())
+			for declaration in region._Declarations()
+			if (
+				declaration is not item
+				and isinstance(declaration, (NamedEntityMixin, MultipleNamedEntityMixin))
+				and not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
+				and not self._MayShareIdentifier(item, declaration)
+			)
+		)
 
 	def _DeclaredItemsSharingIdentifiers(self, declaredItem: ModelEntity) -> list[ModelEntity]:
 		"""
@@ -1069,8 +1065,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			ex.add_note(f"Remove it from its {getTypeName(declaredItem._parent)} first.")
 			raise ex
 
-		clashes = self._ClashingDeclarations(declaredItem)
-		if len(clashes) > 0:
+		if len(clashes := self._ClashingDeclarations(declaredItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(declaredItem), normalizedIdentifiersOf(declaredItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
@@ -1428,15 +1423,15 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		return self._components
 
-	def _Declarations(self) -> list[ModelEntity]:
+	def _Declarations(self) -> tuple[ModelEntity, ...]:
 		"""
 		Return all declarations of this declarative region.
 
 		A host class with interface items extends the list by its interface items, listed first.
 
-		:returns: List of declarations: the declared items, in declaration order.
+		:returns: Tuple of declarations: the declared items, in declaration order.
 		"""
-		return list(self._declaredItems)
+		return tuple(self._declaredItems)
 
 	def IndexDeclaredItems(self) -> None:
 		"""
@@ -1726,15 +1721,15 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		return self._procedures
 
-	def _Declarations(self) -> list[ModelEntity]:
+	def _Declarations(self) -> tuple[ModelEntity, ...]:
 		"""
 		Return all declarations of this declarative region.
 
 		A host class with interface items extends the list by its interface items, listed first.
 
-		:returns: List of declarations: the declared items, in declaration order.
+		:returns: Tuple of declarations: the declared items, in declaration order.
 		"""
-		return list(self._declaredItems)
+		return tuple(self._declaredItems)
 
 	def IndexDeclaredItems(self) -> None:
 		"""
@@ -1909,15 +1904,15 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		return self._procedures
 
-	def _Declarations(self) -> list[ModelEntity]:
+	def _Declarations(self) -> tuple[ModelEntity, ...]:
 		"""
 		Return all declarations of this declarative region.
 
 		A host class with interface items extends the list by its interface items, listed first.
 
-		:returns: List of declarations: the declared items, in declaration order.
+		:returns: Tuple of declarations: the declared items, in declaration order.
 		"""
-		return list(self._declaredItems)
+		return tuple(self._declaredItems)
 
 	def IndexDeclaredItems(self) -> None:
 		"""

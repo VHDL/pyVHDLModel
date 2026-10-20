@@ -662,10 +662,13 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		self._isIndexed = False
 
 	def _IndexGenericItems(self) -> None:
-		"""Add this region's generics to its namespace."""
+		"""Add this region's generics to its namespace; a generic subprogram is an overload."""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
 		for item in self._genericItems:
+			overloadable = isinstance(item, (Function, Procedure))
 			for normalizedIdentifier in normalizedIdentifiersOf(item):
-				self._namespace.AddElement(normalizedIdentifier, item)
+				self._namespace.AddElement(normalizedIdentifier, item, overloadable=overloadable)
 
 	def _IndexPortItems(self) -> None:
 		"""Add this region's ports to its namespace."""

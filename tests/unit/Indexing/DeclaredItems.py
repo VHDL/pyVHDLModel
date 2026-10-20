@@ -41,7 +41,7 @@ from pyVHDLModel            import Design, Document, Library
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Concurrent import ProcessStatement
 from pyVHDLModel.DesignUnit import Architecture, Entity, Package, PackageBody
-from pyVHDLModel.Interface  import PortSimpleSignalInterfaceItem
+from pyVHDLModel.Interface  import GenericFunctionInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Object     import Constant, DeferredConstant, Variable
 from pyVHDLModel.Subprogram import Function, Procedure
@@ -95,6 +95,17 @@ class ConcurrentDeclaredItems(Testcase):
 		entity.IndexDeclaredItems()
 
 		self.assertDictEqual({"clock": port, "s": signal}, entity._namespace._elements)
+
+	def test_Reindex_GenericSubprogram(self) -> None:
+		"""Indexing again keeps a generic function overloaded by a declared function, without a duplicate warning."""
+		genericFunction = GenericFunctionInterfaceItem("f", _subtypeSymbol("integer"))
+		function = Function("f", _subtypeSymbol("integer"))
+		entity = Entity("e", genericItems=[genericFunction], declaredItems=[function])
+
+		entity.IndexDeclaredItems()
+		entity.IndexDeclaredItems()
+
+		self.assertDictEqual({"f": function}, entity._namespace._elements)
 
 	def test_Reindex_ImportedItems(self) -> None:
 		"""Indexing again keeps items imported into the namespace from elsewhere."""

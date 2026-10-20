@@ -1382,7 +1382,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 			#       protected type) are not yet indexed into a dedicated namespace/lookup table.
 			identifiers = ", ".join(f"'{i}'" for i in item._identifiers)
 			WarningCollector.Raise(
-				NotImplementedWarning(f"IndexDeclaredItems: variable(s) {identifiers} are not yet indexed.")
+				NotImplementedWarning(f"IndexDeclaredItems: variable(s) {identifiers} are not yet indexed.", item=item)
 			)
 		elif isinstance(item, SharedVariable):
 			for normalizedIdentifier in item._normalizedIdentifiers:

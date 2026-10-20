@@ -196,7 +196,11 @@ class Namespace(Generic[K, O]):
 			)
 			if existing is not None and not isReindex and not isOverload and not isImport:
 				WarningCollector.Raise(DuplicateDeclarationWarning(
-					f"Identifier '{normalizedIdentifier}' is already used for a declaration in '{namespace._name}'."
+					f"Identifier '{normalizedIdentifier}' is already used for a declaration in '{namespace._name}'.",
+					identifier=normalizedIdentifier,
+					namespace=namespace,
+					element=element,
+					existing=existing
 				))
 				break
 

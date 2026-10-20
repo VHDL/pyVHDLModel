@@ -1131,7 +1131,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							package._namespace._elements[declaredItem._normalizedIdentifier] = declaredItem
 						elif isinstance(declaredItem, AttributeSpecification):
 							# FIXME: actually, this is not a declared item, but a application of an attribute to named entities
-							WarningCollector.Raise(NotImplementedWarning("Attribute specification."))
+							WarningCollector.Raise(NotImplementedWarning("Attribute specification.", item=declaredItem))
 
 						else:
 							raise VHDLModelException("Unexpected declared item.")
@@ -1225,7 +1225,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				_LinkSymbolsInExpression(expression.LeftOperand, namespace, typeVertex)
 				_LinkSymbolsInExpression(expression.RightOperand, namespace, typeVertex)
 			elif isinstance(expression, TernaryExpression):
-				WarningCollector.Raise(NotImplementedWarning("Handling of ternary expression."))
+				WarningCollector.Raise(NotImplementedWarning("Handling of ternary expression.", item=expression))
 			elif isinstance(expression, SimpleObjectOrFunctionCallSymbol):
 				obj = namespace.FindObject(expression)
 				expression._reference = obj
@@ -1233,7 +1233,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				edge = obj._objectVertex.EdgeToVertex(typeVertex)
 				edge["kind"] = ObjectGraphEdgeKind.ReferenceInExpression
 			else:
-				WarningCollector.Raise(NotImplementedWarning("Unhandled else-branch"))
+				WarningCollector.Raise(NotImplementedWarning("Unhandled else-branch", item=expression))
 
 		def _LinkItems(package: Package) -> None:
 			for item in package._declaredItems:
@@ -1373,10 +1373,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					# TODO: update the namespace with visible members
 					if isinstance(symbol, AllPackageMembersReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.all'."))
+						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.all'.", item=symbol))
 
 					elif isinstance(symbol, PackageMemberReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.mySymbol'."))
+						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.mySymbol'.", item=symbol))
 
 					else:
 						raise VHDLModelException()
@@ -1735,13 +1735,19 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						designUnit._namespace._elements[packageIdentifier] = package
 
 					elif isinstance(packageMemberSymbol, AllPackageMembersReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.all'. Exception: components are handled."))
+						WarningCollector.Raise(NotImplementedWarning(
+							"Handling of 'myLib.myPackage.all'. Exception: components are handled.",
+							item=packageMemberSymbol
+						))
 
 						for componentIdentifier, component in package._components.items():
 							designUnit._namespace._elements[componentIdentifier] = component
 
 					elif isinstance(packageMemberSymbol, PackageMemberReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.mySymbol'."))
+						WarningCollector.Raise(NotImplementedWarning(
+							"Handling of 'myLib.myPackage.mySymbol'.",
+							item=packageMemberSymbol
+						))
 
 					else:
 						ex = VHDLModelException("Unknown package reference symbol type.")
@@ -2000,10 +2006,17 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						dependency = architecture._dependencyVertex.EdgeToVertex(component.Entity._dependencyVertex, edgeValue=instance)
 						dependency["kind"] = DependencyGraphEdgeKind.ComponentInstantiation
 					else:
-						WarningCollector.Raise(BlackboxWarning(f"Blackbox caused by '{instance.Label}: {instance.Component.Name}'."))
+						WarningCollector.Raise(BlackboxWarning(
+							f"Blackbox caused by '{instance.Label}: {instance.Component.Name}'.",
+							instance=instance,
+							component=component
+						))
 
 				elif isinstance(instance, ConfigurationInstantiation):
-					WarningCollector.Raise(NotImplementedWarning(f"Configuration instantiation of '{instance.Label}: {instance.Configuration}'."))
+					WarningCollector.Raise(NotImplementedWarning(
+						f"Configuration instantiation of '{instance.Label}: {instance.Configuration}'.",
+						item=instance
+					))
 
 	def IndexPackages(self) -> None:
 		"""

@@ -77,6 +77,28 @@ class OneDeclarativePart(Testcase):
 
 		self.assertEqual(1, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
 
+	def test_WarningFields(self) -> None:
+		"""The warning carries the identifier, the namespace and both declarations."""
+		items = [_signal("s", "natural"), _signal("s", "natural")]
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=items)
+
+		with WarningCollector() as collector:
+			architecture.IndexDeclaredItems()
+
+		warning = _warningsOfType(collector, DuplicateDeclarationWarning)[0]
+		self.assertEqual("s", warning.Identifier)
+		self.assertIs(architecture._namespace, warning.Namespace)
+		self.assertIs(items[0], warning.Existing)
+		self.assertIs(items[1], warning.Element)
+
+	def test_WarningFields_MessageOnly(self) -> None:
+		warning = DuplicateDeclarationWarning("Identifier is already used for a declaration.")
+
+		self.assertIsNone(warning.Identifier)
+		self.assertIsNone(warning.Namespace)
+		self.assertIsNone(warning.Element)
+		self.assertIsNone(warning.Existing)
+
 	def test_SignalAndConstantWithTheSameName(self) -> None:
 		"""Different kinds still collide - VHDL keys on the identifier, not the kind."""
 		items = [_signal("s", "natural"), Constant(["s"], _subtypeSymbol("bit"))]

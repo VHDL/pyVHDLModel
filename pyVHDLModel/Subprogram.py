@@ -142,6 +142,14 @@ class Subprogram(
 
 		super().IndexDeclaredItems()
 
+	def _Declarations(self) -> tuple[ModelEntity, ...]:
+		"""
+		Return all declarations of this subprogram: its generics and parameters share the declarative region.
+
+		:returns: Tuple of declarations: the generics, the parameters, then the declared items.
+		"""
+		return (*self._genericItems, *self._parameterItems, *super()._Declarations())
+
 	def __str__(self) -> str:
 		"""
 		Formats the subprogram declaration.

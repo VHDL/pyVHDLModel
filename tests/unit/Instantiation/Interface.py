@@ -280,6 +280,9 @@ class WithGenericsPortsParametersMixins(Testcase):
 			def _RemoveFromNamespace(self, element) -> None:
 				pass
 
+			def _ClashingDeclarations(self, item) -> list:
+				return []
+
 		item = GenericTypeInterfaceItem("T")
 		host = _Host([item])
 
@@ -294,6 +297,9 @@ class WithGenericsPortsParametersMixins(Testcase):
 			def _RemoveFromNamespace(self, element) -> None:
 				pass
 
+			def _ClashingDeclarations(self, item) -> list:
+				return []
+
 		item = PortSimpleSignalInterfaceItem(["p"], Mode.In, _subtypeSymbol("bit"))
 		host = _Host([item])
 
@@ -306,6 +312,9 @@ class WithGenericsPortsParametersMixins(Testcase):
 
 			def _RemoveFromNamespace(self, element) -> None:
 				pass
+
+			def _ClashingDeclarations(self, item) -> list:
+				return []
 
 		item = ParameterFileInterfaceItem(["f"], _subtypeSymbol("text"))
 		host = _Host([item])

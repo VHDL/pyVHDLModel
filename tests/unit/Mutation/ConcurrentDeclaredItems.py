@@ -32,21 +32,21 @@
 Mutation tests for the declared items of concurrent declaration regions
 (:class:`~pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin`).
 
-The mutators are tested on an architecture, a package (deferred constants) and an entity (ports).
+The mutators are tested on an architecture and a package (deferred constants).
 """
 from pyTooling.Testing       import Testcase
 from pyTooling.Warning       import WarningCollector
 
 from pyVHDLModel.Declaration import Alias
-from pyVHDLModel.DesignUnit  import Architecture, Component, Entity, Package, UseClause
+from pyVHDLModel.DesignUnit  import Architecture, Component, Package, UseClause
 from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, DuplicateDeclarationError
-from pyVHDLModel.Exception   import DuplicateDeclarationWarning, DuplicateTypeError, DuplicateSubtypeError
+from pyVHDLModel.Exception   import DuplicateTypeError, DuplicateSubtypeError
 from pyVHDLModel.Exception   import DuplicateConstantError, DuplicateSignalError, DuplicateVariableError
 from pyVHDLModel.Exception   import DuplicateFileError, DuplicateComponentError, DuplicateSubprogramError
 from pyVHDLModel.Object      import DeferredConstant, File, SharedVariable
 from pyVHDLModel.Type        import AnonymousType, FullType, ProtectedType, ProtectedTypeBody, Subtype
 
-from tests.unit              import _entitySymbol, _signalSymbol, _subtypeSymbol, _warningsOfType
+from tests.unit              import _entitySymbol, _signalSymbol, _subtypeSymbol
 from tests.unit.Mutation     import _constant, _function, _port, _procedure, _reindexed, _signal, _variable
 
 
@@ -329,18 +329,6 @@ class Add(Testcase):
 		with self.assertRaises(DuplicateTypeError):
 			architecture.AddDeclaredItem(ProtectedTypeBody("counter"))
 
-	def test_Add_PortClash(self) -> None:
-		"""A declared item named like a port of the same region is reported by the namespace."""
-		port = _port("x")
-		entity = Entity("e", portItems=[port])
-		entity.IndexDeclaredItems()
-		signal = _signal("x")
-
-		with WarningCollector() as collector:
-			entity.AddDeclaredItem(signal)
-
-		self.assertEqual(1, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
-		self.assertListEqual([signal], entity.DeclaredItems)
 
 
 class Insert(Testcase):

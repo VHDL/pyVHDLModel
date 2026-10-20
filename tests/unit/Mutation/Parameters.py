@@ -119,7 +119,11 @@ class Parameters(Testcase):
 		with self.assertRaises(DuplicateParameterError) as context:
 			group.AddParameterItem(duplicate)
 
-		self.assertEqual("ParameterGroup already has a parameter 'A'.", str(context.exception))
+		self.assertEqual("ParameterGroup already declares 'A'.", str(context.exception))
+		self.assertListEqual(
+			["Existing declaration is of type 'pyVHDLModel.Interface.ParameterConstantInterfaceItem'."],
+			context.exception.__notes__
+		)
 		self.assertEqual(1, group.ParameterCount)
 		self.assertIsNone(duplicate.Parent)
 
@@ -312,7 +316,7 @@ class Parameters(Testcase):
 		self.assertDictEqual({}, procedure._namespace._elements)
 
 	def test_Contract(self) -> None:
-		"""A host class without the namespace methods expected by the mixin can't be instantiated."""
+		"""A host class without the methods expected by the mixin can't be instantiated."""
 		class Host(ModelEntity, WithParametersMixin):
 			def __init__(self) -> None:
 				super().__init__()
@@ -326,6 +330,7 @@ class Parameters(Testcase):
 			[
 				"Missing '_AddToNamespace', expected by 'WithParametersMixin'.",
 				"Missing '_RemoveFromNamespace', expected by 'WithParametersMixin'.",
+				"Missing '_ClashingDeclarations', expected by 'WithParametersMixin'.",
 			],
 			context.exception.__notes__
 		)

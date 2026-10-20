@@ -59,7 +59,7 @@ class Walks(Testcase):
 
 	def test_Default(self) -> None:
 		"""The events of the base-class do nothing."""
-		name = IndexedName(SelectedName("m", SimpleName("work")), [IntegerLiteral(0), FunctionCall()])
+		name = IndexedName(SelectedName("m", SimpleName("work")), [IntegerLiteral(0), IntegerLiteral(1)])
 
 		name.Visit(NoOverrides())
 
@@ -147,28 +147,27 @@ class Walks(Testcase):
 
 class Unknowns(Testcase):
 	def test_Unknown(self) -> None:
-		"""A class without a walk of its own reports an unknown element."""
-		call =     FunctionCall()
-		recorder = Recorder()
+		"""A class without a walk of its own raises."""
+		call = FunctionCall()
 
-		call.Visit(recorder)
+		with self.assertRaises(NotImplementedError) as context:
+			call.Visit(Recorder())
 
-		self.assertEqual([("VisitUnknown", call), ("DepartUnknown", call)], recorder.Events)
+		self.assertEqual("Model element has no walk for a visitor.", str(context.exception))
 
 	def test_Unknown_Child(self) -> None:
 		call =     FunctionCall()
 		name =     IndexedName(SimpleName("m"), [call])
-		recorder = Recorder()
 
-		name.Visit(recorder)
-
-		self.assertIn(("VisitUnknown", call), recorder.Events)
+		with self.assertRaises(NotImplementedError):
+			name.Visit(Recorder())
 
 	def test_Unknown_Symbol(self) -> None:
-		"""A constrained subtype symbol isn't walked as a symbol: its name is not visited."""
+		"""A constrained subtype symbol isn't walked as a symbol: its walk raises before its name is visited."""
 		symbol =   ConstrainedArraySubtypeSymbol(SimpleName("bit_vector"), [])
 		recorder = Recorder()
 
-		symbol.Visit(recorder)
+		with self.assertRaises(NotImplementedError):
+			symbol.Visit(recorder)
 
-		self.assertEqual([("VisitUnknown", symbol), ("DepartUnknown", symbol)], recorder.Events)
+		self.assertEqual([], recorder.Events)

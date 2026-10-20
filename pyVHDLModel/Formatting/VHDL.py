@@ -113,7 +113,7 @@ class VHDLWriter(Visitor):
 	A writer formatting VHDL language model elements as VHDL source text.
 
 	The writer handles the :mod:`visitor events <pyVHDLModel.Visitor>` of each supported model class. An element of a
-	class without a walk of its own raises :exc:`~pyVHDLModel.Exception.VHDLWriterError`; nothing is skipped.
+	class without a walk of its own raises :exc:`NotImplementedError`; nothing is skipped.
 
 	Symbols are written from their :attr:`~pyVHDLModel.Symbol.Symbol.Name`, whether resolved or not.
 	"""
@@ -162,13 +162,13 @@ class VHDLWriter(Visitor):
 
 		Each call starts with an empty buffer.
 
-		:param element:          The model element to format.
-		:returns:                The VHDL source text.
-		:raises ValueError:      If parameter 'element' is None.
-		:raises TypeError:       If parameter 'element' is not of type :class:`~pyVHDLModel.Base.ModelEntity` or
-		                         :class:`~pyVHDLModel.Symbol.Symbol`.
-		:raises VHDLWriterError: If the element or one of its children is not supported by the writer.
-		:raises VHDLWriterError: If the element or one of its children has no VHDL notation.
+		:param element:              The model element to format.
+		:returns:                    The VHDL source text.
+		:raises ValueError:          If parameter 'element' is None.
+		:raises TypeError:           If parameter 'element' is not of type :class:`~pyVHDLModel.Base.ModelEntity` or
+		                             :class:`~pyVHDLModel.Symbol.Symbol`.
+		:raises NotImplementedError: If the class of the element or of one of its children has no walk of its own.
+		:raises VHDLWriterError:     If the element or one of its children has no VHDL notation.
 		"""
 		if element is None:
 			raise ValueError("Parameter 'element' is None.")
@@ -180,17 +180,6 @@ class VHDLWriter(Visitor):
 		self._buffer = []
 		element.Visit(self)
 		return "".join(self._buffer)
-
-	def VisitUnknown(self, element: ModelElementUnion) -> None:
-		"""
-		Reject a model element of a class without a walk of its own.
-
-		:param element:          The model element.
-		:raises VHDLWriterError: Always, because the writer doesn't support the element's class.
-		"""
-		ex = VHDLWriterError("Model element is not supported by the VHDL writer.", element)
-		ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
-		raise ex
 
 	def VisitLeftParenthesis(self, element: IndexedName | ParenthesisName) -> None:
 		"""

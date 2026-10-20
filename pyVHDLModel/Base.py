@@ -40,7 +40,7 @@ from enum                  import unique, Enum
 from typing                import TYPE_CHECKING, Type, Iterable, Optional as Nullable, Union, cast
 
 from pyTooling.Common      import getFullyQualifiedName
-from pyTooling.Decorators  import export, readonly
+from pyTooling.Decorators  import export, notimplemented, readonly
 from pyTooling.MetaClasses import ExtendedType, abstractclass
 if TYPE_CHECKING:
 	from pyVHDLModel.Symbol  import Symbol
@@ -172,14 +172,16 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 
 		return parent
 
+	@notimplemented("Model element has no walk for a visitor.")
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this model element with a visitor as an element without a walk of its own.
+		Walk this model element with a visitor.
 
-		:param visitor: The visitor receiving the events.
+		A model class implements its walk; a class without one raises.
+
+		:param visitor:              The visitor receiving the events.
+		:raises NotImplementedError: Always, because the element's class has no walk of its own.
 		"""
-		visitor.VisitUnknown(self)
-		visitor.DepartUnknown(self)
 
 
 @export

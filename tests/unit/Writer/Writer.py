@@ -32,7 +32,6 @@
 from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Base            import Direction, SimpleRange
-from pyVHDLModel.Exception       import VHDLWriterError
 from pyVHDLModel.Expression      import EnumerationLiteral, FunctionCall, IntegerLiteral, NullLiteral
 from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, OpenName
@@ -127,22 +126,20 @@ class Dispatch(Testcase):
 	def test_Unsupported(self) -> None:
 		call = FunctionCall()
 
-		with self.assertRaises(VHDLWriterError) as context:
+		with self.assertRaises(NotImplementedError) as context:
 			VHDLWriter().Format(call)
 
-		self.assertEqual("Model element is not supported by the VHDL writer.", str(context.exception))
-		self.assertEqual(["Got type 'pyVHDLModel.Expression.FunctionCall'."], context.exception.__notes__)
-		self.assertIs(call, context.exception.Element)
+		self.assertEqual("Model element has no walk for a visitor.", str(context.exception))
 
 	def test_Unsupported_Child(self) -> None:
 		"""An unsupported child fails the whole element; nothing is skipped."""
 		call = FunctionCall()
 		name = ParenthesisName(SimpleName("f"), [IntegerLiteral(1), call])
 
-		with self.assertRaises(VHDLWriterError) as context:
+		with self.assertRaises(NotImplementedError) as context:
 			VHDLWriter().Format(name)
 
-		self.assertIs(call, context.exception.Element)
+		self.assertEqual("Model element has no walk for a visitor.", str(context.exception))
 
 	def test_Unsupported_Subclass(self) -> None:
 		"""A subclass carrying more data than its base class is not written as the base class."""
@@ -150,10 +147,10 @@ class Dispatch(Testcase):
 			SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)
 		])
 
-		with self.assertRaises(VHDLWriterError) as context:
+		with self.assertRaises(NotImplementedError) as context:
 			VHDLWriter().Format(subtype)
 
-		self.assertEqual(["Got type 'pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol'."], context.exception.__notes__)
+		self.assertEqual("Model element has no walk for a visitor.", str(context.exception))
 
 	def test_ParserSubclass(self) -> None:
 		name = ParserName("clk")
@@ -174,7 +171,7 @@ class Buffers(Testcase):
 		writer = VHDLWriter()
 		name =   ParenthesisName(SimpleName("f"), [IntegerLiteral(1), FunctionCall()])
 
-		with self.assertRaises(VHDLWriterError):
+		with self.assertRaises(NotImplementedError):
 			writer.Format(name)
 
 		self.assertEqual("c", writer.Format(SimpleName("c")))

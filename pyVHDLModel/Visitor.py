@@ -46,9 +46,6 @@ element and then its children in source order as events to the visitor. A parser
 ``Visit<Token>(element)``
    The walk passes a token of the element between two of its parts, which is not a model element itself. The event is
    named after the token as IEEE Std 1076-2008 names it in clauses 15.2 and 15.3, e.g. ``VisitArrow`` for ``=>``.
-
-``VisitUnknown(element)`` and ``DepartUnknown(element)``
-   The walk reaches an element of a class without a walk of its own. Its children are not walked.
 """
 from __future__                import annotations
 
@@ -59,7 +56,6 @@ from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
 if TYPE_CHECKING:
 	from pyVHDLModel.Association import AssociationItem
-	from pyVHDLModel.Base        import ModelElementUnion
 	from pyVHDLModel.Expression  import (
 		NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral,
 		PhysicalFloatingLiteral, CharacterLiteral, StringLiteral, BitStringLiteral
@@ -79,20 +75,6 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	Every event does nothing: a visitor overrides the events it needs. The events are described in
 	:mod:`pyVHDLModel.Visitor`.
 	"""
-
-	def VisitUnknown(self, element: ModelElementUnion) -> None:
-		"""
-		Visit a model element of a class without a walk of its own.
-
-		:param element: The model element.
-		"""
-
-	def DepartUnknown(self, element: ModelElementUnion) -> None:
-		"""
-		Depart from a model element of a class without a walk of its own.
-
-		:param element: The model element.
-		"""
 
 	def VisitLeftParenthesis(self, element: IndexedName | ParenthesisName) -> None:
 		"""

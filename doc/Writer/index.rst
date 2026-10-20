@@ -43,9 +43,9 @@ event named after the token, e.g. ``VisitArrow`` for ``=>`` or ``VisitComma`` fo
 each event to a buffer, which :meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format` returns. A parser's subclass of a
 model class inherits the walk of that model class, so it's written like that model class.
 
-An element of a class without a walk of its own is reported by ``VisitUnknown``. The writer raises
-:exc:`~pyVHDLModel.Exception.VHDLWriterError` there and for an element without VHDL notation, e.g. a string literal
-containing a control character. The writer never skips an element. The exception's
+An element of a class without a walk of its own raises :exc:`NotImplementedError` when it is visited. The writer raises
+:exc:`~pyVHDLModel.Exception.VHDLWriterError` for an element without VHDL notation, e.g. a string literal containing a
+control character. The writer never skips an element. The exception's
 :attr:`~pyVHDLModel.Exception.VHDLWriterError.Element` property returns the offending element.
 
 A symbol is written from its name, whether it's resolved or not.

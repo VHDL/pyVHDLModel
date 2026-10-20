@@ -40,7 +40,7 @@ from enum                  import Flag, auto
 from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping
 
 from pyTooling.Common      import getTypeName
-from pyTooling.Decorators  import export, readonly
+from pyTooling.Decorators  import export, notimplemented, readonly
 from pyTooling.MetaClasses import ExtendedType
 
 from pyVHDLModel.Base      import Range
@@ -958,14 +958,16 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol, ScalarConstraint):
 		super().__init__(name)
 		ScalarConstraint.__init__(self, constraint)
 
+	@notimplemented("Model element has no walk for a visitor.")
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this constrained scalar subtype symbol with a visitor as an element without a walk of its own.
+		Walk this constrained scalar subtype symbol with a visitor.
 
-		:param visitor: The visitor receiving the events.
+		The walk of its base class would drop the constraint.
+
+		:param visitor:              The visitor receiving the events.
+		:raises NotImplementedError: Always, because the constraint has no walk yet.
 		"""
-		visitor.VisitUnknown(self)
-		visitor.DepartUnknown(self)
 
 
 @export
@@ -1042,14 +1044,16 @@ class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 	   * :class:`Constrained array subtype symbol <pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol>`
 	   * :class:`Constrained record subtype symbol <pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol>`
 	"""
+	@notimplemented("Model element has no walk for a visitor.")
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this constrained composite subtype symbol with a visitor as an element without a walk of its own.
+		Walk this constrained composite subtype symbol with a visitor.
 
-		:param visitor: The visitor receiving the events.
+		The walk of its base class would drop the constraint.
+
+		:param visitor:              The visitor receiving the events.
+		:raises NotImplementedError: Always, because the constraint has no walk yet.
 		"""
-		visitor.VisitUnknown(self)
-		visitor.DepartUnknown(self)
 
 
 @export

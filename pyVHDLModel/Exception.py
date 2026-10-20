@@ -812,8 +812,7 @@ class VHDLWriterError(VHDLModelException):
 	"""
 	This exception is raised, when the VHDL writer can't write a model element as VHDL source text.
 
-	The element is either of a class the writer doesn't support, or its content has no VHDL notation (e.g. a string
-	literal containing a control character).
+	The element's content has no VHDL notation, e.g. a string literal containing a control character.
 	"""
 
 	_element: ModelElementUnion  #: The model element the writer could not write.

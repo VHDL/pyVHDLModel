@@ -57,12 +57,6 @@ class Recorder(Visitor):
 		"""Recorded events."""
 		return self._events
 
-	def VisitUnknown(self, element: Any) -> None:
-		self._events.append(("VisitUnknown", element))
-
-	def DepartUnknown(self, element: Any) -> None:
-		self._events.append(("DepartUnknown", element))
-
 	def VisitLeftParenthesis(self, element: Any) -> None:
 		self._events.append(("VisitLeftParenthesis", element))
 

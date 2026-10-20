@@ -37,7 +37,7 @@ Base-classes for the VHDL language model.
 from __future__            import annotations
 
 from enum                  import unique, Enum
-from typing                import TYPE_CHECKING, Type, Tuple, List, Iterable, Optional as Nullable, Union, cast
+from typing                import TYPE_CHECKING, Type, Iterable, Optional as Nullable, Union, cast
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, readonly

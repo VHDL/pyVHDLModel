@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 Associations are used in generic maps, port maps and parameter maps.
 """
-from typing               import TYPE_CHECKING, Iterable, List, Optional as Nullable, Union
+from typing               import TYPE_CHECKING, Iterable, Optional as Nullable, Union
 
 from pyTooling.Decorators import export, readonly
 from pyTooling.MetaClasses import ExtendedType

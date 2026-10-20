@@ -35,7 +35,7 @@ This module contains parts of an abstract document language model for VHDL.
 All declarations for literals, aggregates, operators forming an expressions.
 """
 from enum                  import Flag
-from typing                import TYPE_CHECKING, Tuple, List, Iterable, Union, ClassVar, Optional as Nullable
+from typing                import TYPE_CHECKING, Iterable, Union, ClassVar, Optional as Nullable
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, readonly

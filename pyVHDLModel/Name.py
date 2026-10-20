@@ -38,7 +38,7 @@ combined identifiers. :mod:`Symbols <pyVHDLModel.Symbol>` are structures represe
 """
 from __future__            import annotations
 
-from typing                import TYPE_CHECKING, List, Iterable, Optional as Nullable
+from typing                import TYPE_CHECKING, Iterable, Optional as Nullable
 
 from pyTooling.Decorators  import export, readonly
 

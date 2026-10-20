@@ -37,7 +37,7 @@ Symbols are entity specific wrappers for names that reference VHDL language enti
 from __future__            import annotations
 
 from enum                  import Flag, auto
-from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, List, Dict, Mapping
+from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping
 
 from pyTooling.Common      import getTypeName
 from pyTooling.Decorators  import export, readonly

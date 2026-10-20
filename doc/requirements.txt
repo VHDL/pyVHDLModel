@@ -16,4 +16,4 @@ sphinxcontrib-mermaid ~= 2.1
 autoapi >= 2.0.1
 sphinx_design ~= 0.7.0
 sphinx-copybutton >= 0.5.2
-sphinx_autodoc_typehints ~= 3.13
+sphinx_autodoc_typehints ~= 3.17

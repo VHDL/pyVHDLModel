@@ -130,7 +130,13 @@ class Subprogram(
 
 
 	def IndexDeclaredItems(self) -> None:
-		"""A subprogram's generics and parameters share the declarative region of its declarative part."""
+		"""
+		A subprogram's generics and parameters share the declarative region of its declarative part.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		"""
 		self._IndexGenericItems()
 		self._IndexParameterItems()
 

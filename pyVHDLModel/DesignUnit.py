@@ -644,7 +644,13 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 
 
 	def IndexDeclaredItems(self) -> None:
-		"""A generic package's generics share the declarative region of its declarative part."""
+		"""
+		A generic package's generics share the declarative region of its declarative part.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		"""
 		self._deferredConstants.clear()
 		self._IndexGenericItems()
 
@@ -840,7 +846,13 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 
 
 	def IndexDeclaredItems(self) -> None:
-		"""An entity's generics and ports share the declarative region of its declarative part."""
+		"""
+		An entity's generics and ports share the declarative region of its declarative part.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		"""
 		self._IndexGenericItems()
 		self._IndexPortItems()
 

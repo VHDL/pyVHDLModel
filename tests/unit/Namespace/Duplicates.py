@@ -42,13 +42,13 @@ The expectations below were established with the GHDL analyzer (``ghdl -a --std=
 """
 from pathlib import Path
 
-from pyTooling.Warning      import WarningCollector
+from pyTooling.Warning      import CriticalWarning, UnhandledCriticalWarningError, WarningCollector
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import Design, Document, Library
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.DesignUnit import Architecture, Entity, Package, PackageBody
-from pyVHDLModel.Exception  import DuplicateDeclarationWarning
+from pyVHDLModel.Exception  import DuplicateDeclarationWarning, VHDLModelCriticalWarning
 from pyVHDLModel.Interface  import PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Object     import Constant, Signal
@@ -98,6 +98,23 @@ class OneDeclarativePart(Testcase):
 		self.assertIsNone(warning.Namespace)
 		self.assertIsNone(warning.Element)
 		self.assertIsNone(warning.Existing)
+
+	def test_Critical(self) -> None:
+		"""A duplicate declaration is a critical warning."""
+		warning = DuplicateDeclarationWarning("Identifier is already used for a declaration.")
+
+		self.assertIsInstance(warning, VHDLModelCriticalWarning)
+		self.assertIsInstance(warning, CriticalWarning)
+
+	def test_WithoutCollector(self) -> None:
+		"""Without a collector, a duplicate declaration raises, caused by the warning."""
+		items = [_signal("s", "natural"), _signal("s", "natural")]
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=items)
+
+		with self.assertRaises(UnhandledCriticalWarningError) as context:
+			architecture.IndexDeclaredItems()
+
+		self.assertIsInstance(context.exception.__cause__, DuplicateDeclarationWarning)
 
 	def test_SignalAndConstantWithTheSameName(self) -> None:
 		"""Different kinds still collide - VHDL keys on the identifier, not the kind."""

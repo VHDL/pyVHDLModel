@@ -36,16 +36,18 @@ from pyVHDLModel import Design, Document, VHDLModelException
 from pyVHDLModel.Name import Name, SimpleName, SelectedName, AllName
 from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, AllPackageMembersReferenceSymbol
 from pyVHDLModel.Symbol import ContextReferenceSymbol, EntitySymbol, PackageSymbol, EntityInstantiationSymbol
-from pyVHDLModel.Symbol import SimpleSubtypeSymbol, Symbol, PossibleReference
-from pyVHDLModel.DesignUnit import Package, PackageBody, Context, Entity, Architecture, Configuration
+from pyVHDLModel.Symbol import SimpleSubtypeSymbol, Symbol, PossibleReference, ComponentInstantiationSymbol
+from pyVHDLModel.DesignUnit import Package, PackageBody, Context, Entity, Architecture, Configuration, Component
 from pyVHDLModel.DesignUnit import LibraryClause, UseClause, ContextReference
 from pyVHDLModel.Configuration import BlockConfiguration
-from pyVHDLModel.Concurrent import EntityInstantiation
+from pyVHDLModel.Concurrent import EntityInstantiation, ComponentInstantiation
 from pyVHDLModel.Object import Variable
-from pyVHDLModel.Exception import NotImplementedWarning
+from pyVHDLModel.Exception import NotImplementedWarning, BlackboxWarning
 
 from pyTooling.Warning         import WarningCollector
 from pyTooling.Testing         import Testcase
+
+from tests.unit                import _warningsOfType
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -272,6 +274,51 @@ class LinkInstantiations(Testcase):
 			"architecture 'lib_1.entity_B(arch_B)'.",
 			str(context.exception)
 		)
+
+
+class Blackboxes(Testcase):
+	"""A component without an entity becomes a blackbox, where the design allows blackboxes."""
+
+	@staticmethod
+	def _design() -> tuple[Design, Component, ComponentInstantiation]:
+		design = Design("example", allowBlackbox=True)
+		library = design.GetLibrary("lib_1")
+
+		component = Component("primitive")
+		instance = ComponentInstantiation("inst", ComponentInstantiationSymbol(SimpleName("primitive")))
+
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(Entity("top", parent=None))
+		architecture = Architecture(
+			"rtl", EntitySymbol(SimpleName("top")), declaredItems=[component], statements=[instance], parent=None
+		)
+		document._AddDesignUnit(architecture)
+
+		design.AddDocument(document, library)
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary()
+
+		return design, component, instance
+
+	def test_WithoutCollector(self) -> None:
+		"""A blackbox is a non-critical warning: without a collector, the analysis completes."""
+		design, component, _ = self._design()
+
+		design.Analyze()
+
+		self.assertTrue(component.IsBlackbox)
+
+	def test_Collected(self) -> None:
+		"""A collector receives the blackbox warning with the instantiation and the component."""
+		design, component, instance = self._design()
+
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		warnings = _warningsOfType(collector, BlackboxWarning)
+		self.assertEqual(1, len(warnings))
+		self.assertIs(instance, warnings[0].Instance)
+		self.assertIs(component, warnings[0].Component)
 
 
 class CompileOrderGraph(Testcase):

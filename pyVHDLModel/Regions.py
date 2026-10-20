@@ -121,12 +121,15 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 		The generic's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
-		:param genericItem:            The generic to add.
-		:raises ValueError:            If parameter 'genericItem' is ``None``.
-		:raises TypeError:             If parameter 'genericItem' is not of type
-		                               :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
-		:raises AlreadyInDesignError:  If parameter 'genericItem' already has a parent.
-		:raises DuplicateGenericError: If the generic clause already has a generic of the same identifier.
+		:param genericItem:                    The generic to add.
+		:raises ValueError:                    If parameter 'genericItem' is ``None``.
+		:raises TypeError:                     If parameter 'genericItem' is not of type
+		                                       :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises AlreadyInDesignError:          If parameter 'genericItem' already has a parent.
+		:raises DuplicateGenericError:         If the generic clause already has a generic of the same identifier.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 
 		.. seealso::
 
@@ -144,18 +147,21 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 		The generic's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
-		:param index:                  Position, from ``0`` (first) to :data:`GenericCount` (append).
-		                               A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
-		                               before the last generic.
-		:param genericItem:            The generic to insert.
-		:raises ValueError:            If parameter 'index' is ``None``.
-		:raises TypeError:             If parameter 'index' is not of type :class:`int`.
-		:raises ValueError:            If parameter 'index' is out of range.
-		:raises ValueError:            If parameter 'genericItem' is ``None``.
-		:raises TypeError:             If parameter 'genericItem' is not of type
-		                               :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
-		:raises AlreadyInDesignError:  If parameter 'genericItem' already has a parent.
-		:raises DuplicateGenericError: If the generic clause already has a generic of the same identifier.
+		:param index:                          Position, from ``0`` (first) to :data:`GenericCount` (append).
+		                                       A negative index counts from the end, as for :meth:`list.insert`: ``-1``
+		                                       inserts before the last generic.
+		:param genericItem:                    The generic to insert.
+		:raises ValueError:                    If parameter 'index' is ``None``.
+		:raises TypeError:                     If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:                    If parameter 'index' is out of range.
+		:raises ValueError:                    If parameter 'genericItem' is ``None``.
+		:raises TypeError:                     If parameter 'genericItem' is not of type
+		                                       :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises AlreadyInDesignError:          If parameter 'genericItem' already has a parent.
+		:raises DuplicateGenericError:         If the generic clause already has a generic of the same identifier.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 
 		.. seealso::
 
@@ -304,12 +310,15 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 		The port's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
-		:param portItem:              The port to add.
-		:raises ValueError:           If parameter 'portItem' is ``None``.
-		:raises TypeError:            If parameter 'portItem' is not of type
-		                              :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
-		:raises AlreadyInDesignError: If parameter 'portItem' already has a parent.
-		:raises DuplicatePortError:   If the port clause already has a port of the same identifier.
+		:param portItem:                       The port to add.
+		:raises ValueError:                    If parameter 'portItem' is ``None``.
+		:raises TypeError:                     If parameter 'portItem' is not of type
+		                                       :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises AlreadyInDesignError:          If parameter 'portItem' already has a parent.
+		:raises DuplicatePortError:            If the port clause already has a port of the same identifier.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 
 		.. seealso::
 
@@ -327,18 +336,21 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 		The port's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
-		:param index:                 Position, from ``0`` (first) to :data:`PortCount` (append).
-		                              A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
-		                              before the last port.
-		:param portItem:              The port to insert.
-		:raises ValueError:           If parameter 'index' is ``None``.
-		:raises TypeError:            If parameter 'index' is not of type :class:`int`.
-		:raises ValueError:           If parameter 'index' is out of range.
-		:raises ValueError:           If parameter 'portItem' is ``None``.
-		:raises TypeError:            If parameter 'portItem' is not of type
-		                              :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
-		:raises AlreadyInDesignError: If parameter 'portItem' already has a parent.
-		:raises DuplicatePortError:   If the port clause already has a port of the same identifier.
+		:param index:                          Position, from ``0`` (first) to :data:`PortCount` (append).
+		                                       A negative index counts from the end, as for :meth:`list.insert`: ``-1``
+		                                       inserts before the last port.
+		:param portItem:                       The port to insert.
+		:raises ValueError:                    If parameter 'index' is ``None``.
+		:raises TypeError:                     If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:                    If parameter 'index' is out of range.
+		:raises ValueError:                    If parameter 'portItem' is ``None``.
+		:raises TypeError:                     If parameter 'portItem' is not of type
+		                                       :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises AlreadyInDesignError:          If parameter 'portItem' already has a parent.
+		:raises DuplicatePortError:            If the port clause already has a port of the same identifier.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 
 		.. seealso::
 
@@ -485,12 +497,15 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 		The parameter's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
-		:param parameterItem:            The parameter to add.
-		:raises ValueError:              If parameter 'parameterItem' is ``None``.
-		:raises TypeError:               If parameter 'parameterItem' is not of type
-		                                 :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
-		:raises AlreadyInDesignError:    If parameter 'parameterItem' already has a parent.
-		:raises DuplicateParameterError: If the parameter list already has a parameter of the same identifier.
+		:param parameterItem:                  The parameter to add.
+		:raises ValueError:                    If parameter 'parameterItem' is ``None``.
+		:raises TypeError:                     If parameter 'parameterItem' is not of type
+		                                       :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises AlreadyInDesignError:          If parameter 'parameterItem' already has a parent.
+		:raises DuplicateParameterError:       If the parameter list already has a parameter of the same identifier.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 
 		.. seealso::
 
@@ -508,18 +523,21 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 		The parameter's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
-		:param index:                    Position, from ``0`` (first) to :data:`ParameterCount` (append).
-		                                 A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
-		                                 before the last parameter.
-		:param parameterItem:            The parameter to insert.
-		:raises ValueError:              If parameter 'index' is ``None``.
-		:raises TypeError:               If parameter 'index' is not of type :class:`int`.
-		:raises ValueError:              If parameter 'index' is out of range.
-		:raises ValueError:              If parameter 'parameterItem' is ``None``.
-		:raises TypeError:               If parameter 'parameterItem' is not of type
-		                                 :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
-		:raises AlreadyInDesignError:    If parameter 'parameterItem' already has a parent.
-		:raises DuplicateParameterError: If the parameter list already has a parameter of the same identifier.
+		:param index:                          Position, from ``0`` (first) to :data:`ParameterCount` (append).
+		                                       A negative index counts from the end, as for :meth:`list.insert`: ``-1``
+		                                       inserts before the last parameter.
+		:param parameterItem:                  The parameter to insert.
+		:raises ValueError:                    If parameter 'index' is ``None``.
+		:raises TypeError:                     If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:                    If parameter 'index' is out of range.
+		:raises ValueError:                    If parameter 'parameterItem' is ``None``.
+		:raises TypeError:                     If parameter 'parameterItem' is not of type
+		                                       :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises AlreadyInDesignError:          If parameter 'parameterItem' already has a parent.
+		:raises DuplicateParameterError:       If the parameter list already has a parameter of the same identifier.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 
 		.. seealso::
 
@@ -837,13 +855,16 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		The declared item's parent is set to this declarative region. If the region is indexed, its identifiers are added
 		to the region's namespace and to the lookup table matching its kind.
 
-		:param declaredItem:               The declared item to add.
-		:raises ValueError:                If parameter 'declaredItem' is ``None``.
-		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
-		                                   region.
-		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
-		:raises DuplicateDeclarationError: If the declarative region already declares an identifier of the declared item,
-		                                   unless both declarations are subprograms.
+		:param declaredItem:                   The declared item to add.
+		:raises ValueError:                    If parameter 'declaredItem' is ``None``.
+		:raises TypeError:                     If parameter 'declaredItem' is not a declaration allowed in this declarative
+		                                       region.
+		:raises AlreadyInDesignError:          If parameter 'declaredItem' already has a parent.
+		:raises DuplicateDeclarationError:     If the declarative region already declares an identifier of the declared
+		                                       item, unless both declarations are subprograms.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 
 		.. seealso::
 
@@ -864,19 +885,22 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		Subprograms are overloadable: a subprogram may share its identifier with other subprograms. A protected type body
 		may share its identifier with its protected type, and a full type with its incomplete type declaration.
 
-		:param index:                      Position, from ``0`` (first) to the number of declared items (append).
-		                                   A negative index counts from the end, as for :meth:`list.insert`: ``-1``
-		                                   inserts before the last declared item.
-		:param declaredItem:               The declared item to insert.
-		:raises ValueError:                If parameter 'index' is ``None``.
-		:raises TypeError:                 If parameter 'index' is not of type :class:`int`.
-		:raises ValueError:                If parameter 'index' is out of range.
-		:raises ValueError:                If parameter 'declaredItem' is ``None``.
-		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
-		                                   region.
-		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
-		:raises DuplicateDeclarationError: If the declarative region already declares an identifier of the declared item,
-		                                   unless both declarations are subprograms.
+		:param index:                          Position, from ``0`` (first) to the number of declared items (append).
+		                                       A negative index counts from the end, as for :meth:`list.insert`: ``-1``
+		                                       inserts before the last declared item.
+		:param declaredItem:                   The declared item to insert.
+		:raises ValueError:                    If parameter 'index' is ``None``.
+		:raises TypeError:                     If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:                    If parameter 'index' is out of range.
+		:raises ValueError:                    If parameter 'declaredItem' is ``None``.
+		:raises TypeError:                     If parameter 'declaredItem' is not a declaration allowed in this declarative
+		                                       region.
+		:raises AlreadyInDesignError:          If parameter 'declaredItem' already has a parent.
+		:raises DuplicateDeclarationError:     If the declarative region already declares an identifier of the declared
+		                                       item, unless both declarations are subprograms.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 
 		.. seealso::
 
@@ -972,17 +996,20 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		The declared item's parent is set to this declarative region. If the region is indexed, its identifiers are added
 		to the region's namespace and to the lookup table matching its kind.
 
-		:param declaredItem:               The declared item to insert.
-		:param before:                     The declared item of this declarative region to insert before.
-		:raises ValueError:                If parameter 'before' is ``None``.
-		:raises TypeError:                 If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError:            If parameter 'before' is not a declared item of this declarative region.
-		:raises ValueError:                If parameter 'declaredItem' is ``None``.
-		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
-		                                   region.
-		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
-		:raises DuplicateDeclarationError: If the declarative region already declares an identifier of the declared item,
-		                                   unless both declarations are subprograms.
+		:param declaredItem:                   The declared item to insert.
+		:param before:                         The declared item of this declarative region to insert before.
+		:raises ValueError:                    If parameter 'before' is ``None``.
+		:raises TypeError:                     If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:                If parameter 'before' is not a declared item of this declarative region.
+		:raises ValueError:                    If parameter 'declaredItem' is ``None``.
+		:raises TypeError:                     If parameter 'declaredItem' is not a declaration allowed in this declarative
+		                                       region.
+		:raises AlreadyInDesignError:          If parameter 'declaredItem' already has a parent.
+		:raises DuplicateDeclarationError:     If the declarative region already declares an identifier of the declared
+		                                       item, unless both declarations are subprograms.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 
 		.. seealso::
 
@@ -1018,17 +1045,20 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		The declared item's parent is set to this declarative region. If the region is indexed, its identifiers are added
 		to the region's namespace and to the lookup table matching its kind.
 
-		:param declaredItem:               The declared item to insert.
-		:param after:                      The declared item of this declarative region to insert after.
-		:raises ValueError:                If parameter 'after' is ``None``.
-		:raises TypeError:                 If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError:            If parameter 'after' is not a declared item of this declarative region.
-		:raises ValueError:                If parameter 'declaredItem' is ``None``.
-		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
-		                                   region.
-		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
-		:raises DuplicateDeclarationError: If the declarative region already declares an identifier of the declared item,
-		                                   unless both declarations are subprograms.
+		:param declaredItem:                   The declared item to insert.
+		:param after:                          The declared item of this declarative region to insert after.
+		:raises ValueError:                    If parameter 'after' is ``None``.
+		:raises TypeError:                     If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:                If parameter 'after' is not a declared item of this declarative region.
+		:raises ValueError:                    If parameter 'declaredItem' is ``None``.
+		:raises TypeError:                     If parameter 'declaredItem' is not a declaration allowed in this declarative
+		                                       region.
+		:raises AlreadyInDesignError:          If parameter 'declaredItem' already has a parent.
+		:raises DuplicateDeclarationError:     If the declarative region already declares an identifier of the declared
+		                                       item, unless both declarations are subprograms.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 
 		.. seealso::
 
@@ -1322,6 +1352,10 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		     Iterate all packages in the library and index declared items.
 		   :meth:`pyVHDLModel.Library._IndexOtherDeclaredItem`
 		     Iterate all packages in the library and index declared items.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		self._types.clear()
 		self._subtypes.clear()
@@ -1584,6 +1618,10 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		   :meth:`ConcurrentDeclarationRegionMixin.IndexDeclaredItems`
 		     The same algorithm for a concurrent declaration region.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		self._types.clear()
 		self._subtypes.clear()
@@ -1752,6 +1790,10 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		   :meth:`SequentialDeclarationRegionMixin.IndexDeclaredItems`
 		     The same algorithm for the protected type's body.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		self._functions.clear()
 		self._procedures.clear()

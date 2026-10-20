@@ -575,7 +575,13 @@ class ConcurrentBlockStatement(
 
 
 	def IndexDeclaredItems(self) -> None:
-		"""A block's ports share the declarative region of its declarative part."""
+		"""
+		A block's ports share the declarative region of its declarative part.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		"""
 		self._IndexPortItems()
 
 		super().IndexDeclaredItems()

@@ -888,6 +888,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		   :meth:`AnalyzeObjects`
 		     Analyze the dependencies of types and objects.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		self.AnalyzeDependencies()
 		# self.AnalyzeObjects()
@@ -928,6 +932,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		    |rarr| :meth:`CreateHierarchyGraph`
 		15. Compute the compile order. |br|
 		    |rarr| :meth:`ComputeCompileOrder`
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		self.CreateDependencyGraph()
 		self.CreateCompileOrderGraph()
@@ -962,6 +970,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`ImportObjects`
 		4. Create the type and object graph. |br|
 		   |rarr| :meth:`CreateTypeAndObjectGraph`
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		self.IndexEntities()
 		self.IndexPackageBodies()
@@ -2040,6 +2052,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Index all declared items in all entities in all libraries.
 		   :meth:`IndexArchitectures`
 		     Index all declared items in all architectures in all libraries.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for library in self._libraries.values():
 			library.IndexPackages()
@@ -2066,6 +2082,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Index all declared items in all entities in all libraries.
 		   :meth:`IndexArchitectures`
 		     Index all declared items in all architectures in all libraries.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for library in self._libraries.values():
 			library.IndexPackageBodies()
@@ -2092,6 +2112,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Index all declared items in all package bodies in all libraries.
 		   :meth:`IndexArchitectures`
 		     Index all declared items in all architectures in all libraries.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for library in self._libraries.values():
 			library.IndexEntities()
@@ -2118,6 +2142,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Index all declared items in all package bodies in all libraries.
 		   :meth:`IndexEntities`
 		     Index all declared items in all entities in all libraries.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for library in self._libraries.values():
 			library.IndexArchitectures()
@@ -2600,6 +2628,10 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		     Index all declared items in an entity.
 		   :meth:`IndexArchitectures`
 		     Index all declared items in an architecture.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for package in self._packages.values():
 			if isinstance(package, Package):
@@ -2624,6 +2656,10 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		     Index all declared items in an entity.
 		   :meth:`IndexArchitectures`
 		     Index all declared items in an architecture.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for packageBody in self._packageBodies.values():
 			packageBody.IndexDeclaredItems()
@@ -2647,6 +2683,10 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		     Index all declared items in a package body.
 		   :meth:`IndexArchitectures`
 		     Index all declared items in an architecture.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for entity in self._entities.values():
 			entity.IndexDeclaredItems()
@@ -2670,6 +2710,10 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		     Index all declared items in a package body.
 		   :meth:`IndexEntities`
 		     Index all declared items in an entity.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for architectures in self._architectures.values():
 			for architecture in architectures.values():

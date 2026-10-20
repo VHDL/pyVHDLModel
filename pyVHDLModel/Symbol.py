@@ -39,6 +39,7 @@ from __future__            import annotations
 from enum                  import Flag, auto
 from typing                import Any, Optional as Nullable, Iterable, List, Dict, Mapping
 
+from pyTooling.Common      import getTypeName
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType
 
@@ -160,9 +161,9 @@ class Symbol(metaclass=ExtendedType):
 		:returns: String representation of the symbol.
 		"""
 		if self._reference is not None:
-			return f"{self.__class__.__name__}: '{self._name!s}' -> {self._reference!s}"
+			return f"{getTypeName(self)}: '{self._name!s}' -> {self._reference!s}"
 
-		return f"{self.__class__.__name__}: '{self._name!s}' -> unresolved"
+		return f"{getTypeName(self)}: '{self._name!s}' -> unresolved"
 
 	def __str__(self) -> str:
 		"""

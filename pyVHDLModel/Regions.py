@@ -38,7 +38,7 @@ from __future__              import annotations
 
 from typing                  import TYPE_CHECKING, Any, ClassVar, Dict, Iterable, List, Optional as Nullable, Tuple
 
-from pyTooling.Common        import getFullyQualifiedName
+from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 from pyTooling.Warning       import WarningCollector
@@ -185,15 +185,15 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 			raise ex
 		elif genericItem._parent is not None:
 			identifiers = ", ".join(identifiersOf(genericItem))
-			ex = AlreadyInDesignError(f"{genericItem.__class__.__name__} '{identifiers}' already has a parent.")
-			ex.add_note(f"Remove it from its {genericItem._parent.__class__.__name__} first.")
+			ex = AlreadyInDesignError(f"{getTypeName(genericItem)} '{identifiers}' already has a parent.")
+			ex.add_note(f"Remove it from its {getTypeName(genericItem._parent)} first.")
 			raise ex
 
 		existingIdentifiers = {name for item in self._genericItems for name in normalizedIdentifiersOf(item)}
 		newIdentifiers = zip(identifiersOf(genericItem), normalizedIdentifiersOf(genericItem))
 		for identifier, normalizedIdentifier in newIdentifiers:
 			if normalizedIdentifier in existingIdentifiers:
-				raise DuplicateGenericError(f"{self.__class__.__name__} already has a generic '{identifier}'.")
+				raise DuplicateGenericError(f"{getTypeName(self)} already has a generic '{identifier}'.")
 
 		self._genericItems.insert(index, genericItem)
 		genericItem.Parent = self
@@ -238,7 +238,7 @@ class WithGenericsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToName
 		else:
 			identifiers = ", ".join(identifiersOf(genericItem))
 			raise NotAChildError(
-				f"{genericItem.__class__.__name__} '{identifiers}' is not a generic of this {self.__class__.__name__}."
+				f"{getTypeName(genericItem)} '{identifiers}' is not a generic of this {getTypeName(self)}."
 			)
 
 		self._RemoveFromNamespace(genericItem)
@@ -368,15 +368,15 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 			raise ex
 		elif portItem._parent is not None:
 			identifiers = ", ".join(identifiersOf(portItem))
-			ex = AlreadyInDesignError(f"{portItem.__class__.__name__} '{identifiers}' already has a parent.")
-			ex.add_note(f"Remove it from its {portItem._parent.__class__.__name__} first.")
+			ex = AlreadyInDesignError(f"{getTypeName(portItem)} '{identifiers}' already has a parent.")
+			ex.add_note(f"Remove it from its {getTypeName(portItem._parent)} first.")
 			raise ex
 
 		existingIdentifiers = {name for item in self._portItems for name in normalizedIdentifiersOf(item)}
 		newIdentifiers = zip(identifiersOf(portItem), normalizedIdentifiersOf(portItem))
 		for identifier, normalizedIdentifier in newIdentifiers:
 			if normalizedIdentifier in existingIdentifiers:
-				raise DuplicatePortError(f"{self.__class__.__name__} already has a port '{identifier}'.")
+				raise DuplicatePortError(f"{getTypeName(self)} already has a port '{identifier}'.")
 
 		self._portItems.insert(index, portItem)
 		portItem.Parent = self
@@ -421,7 +421,7 @@ class WithPortsMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNamespa
 		else:
 			identifiers = ", ".join(identifiersOf(portItem))
 			raise NotAChildError(
-				f"{portItem.__class__.__name__} '{identifiers}' is not a port of this {self.__class__.__name__}."
+				f"{getTypeName(portItem)} '{identifiers}' is not a port of this {getTypeName(self)}."
 			)
 
 		self._RemoveFromNamespace(portItem)
@@ -549,15 +549,15 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 			raise ex
 		elif parameterItem._parent is not None:
 			identifiers = ", ".join(identifiersOf(parameterItem))
-			ex = AlreadyInDesignError(f"{parameterItem.__class__.__name__} '{identifiers}' already has a parent.")
-			ex.add_note(f"Remove it from its {parameterItem._parent.__class__.__name__} first.")
+			ex = AlreadyInDesignError(f"{getTypeName(parameterItem)} '{identifiers}' already has a parent.")
+			ex.add_note(f"Remove it from its {getTypeName(parameterItem._parent)} first.")
 			raise ex
 
 		existingIdentifiers = {name for item in self._parameterItems for name in normalizedIdentifiersOf(item)}
 		newIdentifiers = zip(identifiersOf(parameterItem), normalizedIdentifiersOf(parameterItem))
 		for identifier, normalizedIdentifier in newIdentifiers:
 			if normalizedIdentifier in existingIdentifiers:
-				raise DuplicateParameterError(f"{self.__class__.__name__} already has a parameter '{identifier}'.")
+				raise DuplicateParameterError(f"{getTypeName(self)} already has a parameter '{identifier}'.")
 
 		self._parameterItems.insert(index, parameterItem)
 		parameterItem.Parent = self
@@ -602,7 +602,7 @@ class WithParametersMixin(metaclass=ExtendedType, mixin=True, expects=("_AddToNa
 		else:
 			identifiers = ", ".join(identifiersOf(parameterItem))
 			raise NotAChildError(
-				f"{parameterItem.__class__.__name__} '{identifiers}' is not a parameter of this {self.__class__.__name__}."
+				f"{getTypeName(parameterItem)} '{identifiers}' is not a parameter of this {getTypeName(self)}."
 			)
 
 		self._RemoveFromNamespace(parameterItem)
@@ -908,15 +908,15 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		if declaredItem is None:
 			raise ValueError("Parameter 'declaredItem' is None.")
 		elif not isinstance(declaredItem, self._declaredItemTypes) or isinstance(declaredItem, InterfaceItemMixin):
-			ex = TypeError(f"Parameter 'declaredItem' is not a declaration allowed in {self.__class__.__name__}.")
+			ex = TypeError(f"Parameter 'declaredItem' is not a declaration allowed in {getTypeName(self)}.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(declaredItem)}'.")
 			raise ex
 		elif declaredItem._parent is not None:
 			identifiers = ""
 			if isinstance(declaredItem, (NamedEntityMixin, MultipleNamedEntityMixin)):
 				identifiers = f" '{', '.join(identifiersOf(declaredItem))}'"
-			ex = AlreadyInDesignError(f"{declaredItem.__class__.__name__}{identifiers} already has a parent.")
-			ex.add_note(f"Remove it from its {declaredItem._parent.__class__.__name__} first.")
+			ex = AlreadyInDesignError(f"{getTypeName(declaredItem)}{identifiers} already has a parent.")
+			ex.add_note(f"Remove it from its {getTypeName(declaredItem._parent)} first.")
 			raise ex
 
 		sharingItems = self._DeclaredItemsSharingIdentifiers(declaredItem)
@@ -953,7 +953,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 				errorClass = DuplicateComponentError
 			else:
 				errorClass = DuplicateDeclarationError
-			ex = errorClass(f"{self.__class__.__name__} already declares '{identifier}'.")
+			ex = errorClass(f"{getTypeName(self)} already declares '{identifier}'.")
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -1006,7 +1006,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			if isinstance(before, (NamedEntityMixin, MultipleNamedEntityMixin)):
 				identifiers = f" '{', '.join(identifiersOf(before))}'"
 			raise NotAChildError(
-				f"{before.__class__.__name__}{identifiers} is not a declared item of this {self.__class__.__name__}."
+				f"{getTypeName(before)}{identifiers} is not a declared item of this {getTypeName(self)}."
 			)
 
 		self.InsertDeclaredItem(index, declaredItem)
@@ -1052,7 +1052,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			if isinstance(after, (NamedEntityMixin, MultipleNamedEntityMixin)):
 				identifiers = f" '{', '.join(identifiersOf(after))}'"
 			raise NotAChildError(
-				f"{after.__class__.__name__}{identifiers} is not a declared item of this {self.__class__.__name__}."
+				f"{getTypeName(after)}{identifiers} is not a declared item of this {getTypeName(self)}."
 			)
 
 		self.InsertDeclaredItem(index + 1, declaredItem)
@@ -1103,7 +1103,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			if isinstance(declaredItem, (NamedEntityMixin, MultipleNamedEntityMixin)):
 				identifiers = f" '{', '.join(identifiersOf(declaredItem))}'"
 			raise NotAChildError(
-				f"{declaredItem.__class__.__name__}{identifiers} is not a declared item of this {self.__class__.__name__}."
+				f"{getTypeName(declaredItem)}{identifiers} is not a declared item of this {getTypeName(self)}."
 			)
 
 		reindex = False

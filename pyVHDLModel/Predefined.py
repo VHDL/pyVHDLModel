@@ -32,6 +32,7 @@
 """This module contains base-classes for predefined library and package declarations."""
 from typing                 import Iterable, Optional as Nullable
 
+from pyTooling.Common       import getTypeName
 from pyTooling.Decorators   import export
 from pyTooling.MetaClasses  import ExtendedType
 
@@ -65,7 +66,7 @@ class PredefinedLibrary(Library):
 		:param documentation: Documentation of this library, if the caller has one to supply. VHDL defines
 		                      none for a predefined library, so it is empty unless supplied from outside.
 		"""
-		super().__init__(self.__class__.__name__, documentation)
+		super().__init__(getTypeName(self), documentation)
 
 		self.AddPackages(packages)
 
@@ -130,7 +131,7 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 
 		:param identifier: The VHDL package name, or ``None`` to use the class name.
 		"""
-		super().__init__(self.__class__.__name__ if identifier is None else identifier)
+		super().__init__(getTypeName(self) if identifier is None else identifier)
 
 
 @export
@@ -149,6 +150,6 @@ class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 		:param packageIdentifier: The VHDL name of the package this body implements, or ``None`` to derive
 		                          it from the class name.
 		"""
-		identifier = self.__class__.__name__[:-5] if packageIdentifier is None else packageIdentifier
+		identifier = getTypeName(self)[:-5] if packageIdentifier is None else packageIdentifier
 		packageSymbol = PackageSymbol(SimpleName(identifier))
 		super().__init__(packageSymbol)

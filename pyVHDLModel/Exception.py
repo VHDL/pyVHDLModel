@@ -746,6 +746,7 @@ class DuplicateDeclarationError(VHDLModelException, DuplicateElementError):
 	   * :class:`Duplicate file error <pyVHDLModel.Exception.DuplicateFileError>`
 	   * :class:`Duplicate component error <pyVHDLModel.Exception.DuplicateComponentError>`
 	   * :class:`Duplicate subprogram error <pyVHDLModel.Exception.DuplicateSubprogramError>`
+	   * :class:`Duplicate label error <pyVHDLModel.Exception.DuplicateLabelError>`
 	"""
 
 
@@ -804,6 +805,16 @@ class DuplicateSubprogramError(DuplicateDeclarationError):
 	This exception is raised, when a declarative region already declares the identifier of a new subprogram.
 
 	Subprograms are overloadable, so only a declaration other than a subprogram is a duplicate.
+	"""
+
+
+@export
+class DuplicateLabelError(DuplicateDeclarationError):
+	"""
+	This exception is raised, when a declarative region already declares the label of a new statement.
+
+	A statement label is declared implicitly in the declarative region enclosing the statement, so it clashes with
+	another label and with a declaration of the same identifier.
 	"""
 
 

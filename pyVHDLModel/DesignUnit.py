@@ -673,6 +673,16 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 		"""
 		return (*self._genericItems, *super()._Declarations())
 
+	def _Labels(self) -> tuple[ModelEntity, ...]:
+		"""
+		Return the labeled statements, whose labels are declared in this package's declarative region.
+
+		A package contains no statements.
+
+		:returns: An empty tuple.
+		"""
+		return ()
+
 
 @export
 class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin):
@@ -750,6 +760,16 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		"""
 		package = self._package.Package
 		return () if package is None else (package, )
+
+	def _Labels(self) -> tuple[ModelEntity, ...]:
+		"""
+		Return the labeled statements, whose labels are declared in this package body's declarative region.
+
+		A package body contains no statements.
+
+		:returns: An empty tuple.
+		"""
+		return ()
 
 	def __str__(self) -> str:
 		"""

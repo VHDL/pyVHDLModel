@@ -850,6 +850,16 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin):
 
 		return [item for item in self._declaredItems if isinstance(item, (Function, Procedure))]
 
+	def _Labels(self) -> tuple[ModelEntity, ...]:
+		"""
+		Return the labeled statements, whose labels are declared in this protected type's declarative region.
+
+		A protected type contains no statements.
+
+		:returns: An empty tuple.
+		"""
+		return ()
+
 
 @export
 class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin):
@@ -907,6 +917,16 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin):
 		from pyVHDLModel.Subprogram import Function, Procedure
 
 		return [item for item in self._declaredItems if isinstance(item, (Function, Procedure))]
+
+	def _Labels(self) -> tuple[ModelEntity, ...]:
+		"""
+		Return the labeled statements, whose labels are declared in this protected type body's declarative region.
+
+		A protected type body contains no statements.
+
+		:returns: An empty tuple.
+		"""
+		return ()
 
 
 @export

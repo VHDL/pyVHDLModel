@@ -44,7 +44,7 @@ from pyTooling.MetaClasses   import ExtendedType
 from pyTooling.Warning       import WarningCollector
 
 from pyVHDLModel.Base        import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf
-from pyVHDLModel.Base        import normalizedIdentifiersOf
+from pyVHDLModel.Base        import normalizedIdentifiersOf, normalizedDeclaredNamesOf
 from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError
 from pyVHDLModel.Exception   import DuplicateGenericError, DuplicatePortError, DuplicateParameterError
 from pyVHDLModel.Exception   import DuplicateDeclarationError, DuplicateTypeError, DuplicateSubtypeError
@@ -644,7 +644,7 @@ class WithParametersMixin(
 
 
 @export
-class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
+class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labels", )):
 	"""
 	A base-class for the concurrent, sequential and protected type declaration region mixins.
 
@@ -666,6 +666,10 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Concurrent declaration region mixin <pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin>`
 	   * :class:`Sequential declaration region mixin <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	   * :class:`Protected type declaration region mixin <pyVHDLModel.Regions.ProtectedTypeDeclarationRegionMixin>`
+
+	A statement label is declared implicitly in the declarative region enclosing the statement, so the host provides the
+	labeled statements of the region by ``_Labels()``: a host with statements gets it from its statements mixin
+	(e.g. :class:`~pyVHDLModel.Concurrent.ConcurrentStatementsMixin`), a host without statements returns an empty tuple.
 	"""
 	_declaredItemTypes: ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
 	_isIndexed:         bool                        #: ``True`` if :meth:`IndexDeclaredItems` filled the namespace.
@@ -933,24 +937,24 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Return the declarations sharing an identifier with the given item, which may not share it.
 
-		The declarations (:meth:`_Declarations`) of this declarative region and of the language constructs sharing it
-		(:meth:`_SharedRegions`) are searched. Items imported into the namespace (e.g. by a use clause) are no declarations.
+		The declarations (:meth:`_Declarations`) and the labeled statements (``_Labels()``) of this declarative region and
+		of the language constructs sharing it (:meth:`_SharedRegions`) are searched: a statement label is declared
+		implicitly. Items imported into the namespace (e.g. by a use clause) are no declarations.
 
-		:param item: The new declaration.
-		:returns:    Tuple of clashing declarations, interface items first, then declared items in declaration order.
+		:param item: The new declaration, or the new labeled statement.
+		:returns:    Tuple of clashing declarations, interface items first, then declared items in declaration order, then
+		             labeled statements.
 		"""
-		if not isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
+		if len(names := set(normalizedDeclaredNamesOf(item))) == 0:
 			return ()
 
-		identifiers = set(normalizedIdentifiersOf(item))
 		return tuple(
 			declaration
 			for region in (self, *self._SharedRegions())
-			for declaration in region._Declarations()
+			for declaration in (*region._Declarations(), *region._Labels())
 			if (
 				declaration is not item
-				and isinstance(declaration, (NamedEntityMixin, MultipleNamedEntityMixin))
-				and not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
+				and not names.isdisjoint(normalizedDeclaredNamesOf(declaration))
 				and not self._MayShareIdentifier(item, declaration)
 			)
 		)
@@ -1066,7 +1070,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			raise ex
 
 		if len(clashes := self._ClashingDeclarations(declaredItem)) > 0:
-			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
+			existingIdentifiers = normalizedDeclaredNamesOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(declaredItem), normalizedIdentifiersOf(declaredItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
 			if isinstance(declaredItem, Subtype):
@@ -1087,7 +1091,10 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 				errorClass = DuplicateComponentError
 			else:
 				errorClass = DuplicateDeclarationError
-			ex = errorClass(f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.")
+			region = clashes[0]._parent
+			while not isinstance(region, DeclarationRegionMixin):
+				region = region._parent
+			ex = errorClass(f"{getTypeName(region)} already declares '{identifier}'.")
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 

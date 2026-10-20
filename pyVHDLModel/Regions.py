@@ -202,7 +202,7 @@ class WithGenericsMixin(
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(genericItem), normalizedIdentifiersOf(genericItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
-			ex = DuplicateGenericError(f"{clashes[0]._parent.__class__.__name__} already declares '{identifier}'.")
+			ex = DuplicateGenericError(f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.")
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
@@ -396,7 +396,7 @@ class WithPortsMixin(
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(portItem), normalizedIdentifiersOf(portItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
-			ex = DuplicatePortError(f"{clashes[0]._parent.__class__.__name__} already declares '{identifier}'.")
+			ex = DuplicatePortError(f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.")
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
@@ -588,7 +588,7 @@ class WithParametersMixin(
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(parameterItem), normalizedIdentifiersOf(parameterItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
-			ex = DuplicateParameterError(f"{clashes[0]._parent.__class__.__name__} already declares '{identifier}'.")
+			ex = DuplicateParameterError(f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.")
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
@@ -1087,7 +1087,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 				errorClass = DuplicateComponentError
 			else:
 				errorClass = DuplicateDeclarationError
-			ex = errorClass(f"{clashes[0]._parent.__class__.__name__} already declares '{identifier}'.")
+			ex = errorClass(f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.")
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 

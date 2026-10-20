@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from __future__                import annotations
 
-from typing                    import ClassVar, List, Dict, Union, Iterable, Optional as Nullable
+from typing                    import ClassVar, Union, Iterable, Optional as Nullable
 
 from pyTooling.Decorators      import export, readonly
 from pyTooling.MetaClasses     import ExtendedType, abstractmethod

@@ -40,6 +40,7 @@ one-line smoke test confirming the mixin is wired up.
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import VHDLModelException
+from pyVHDLModel.Exception  import BlackboxWarning
 from pyVHDLModel.Base       import ModelEntity
 from pyVHDLModel.Name       import SimpleName, SelectedName
 from pyVHDLModel.Symbol     import EntitySymbol, PackageSymbol, LibraryReferenceSymbol, SimpleSubtypeSymbol
@@ -359,6 +360,14 @@ class Components(Testcase):
 
 		self.assertIs(entity, component.Entity)
 		self.assertFalse(component.IsBlackbox)
+
+	def test_BlackboxWarning(self) -> None:
+		"""The warning about a component treated as a blackbox carries the component."""
+		component = Component("comp")
+		warning = BlackboxWarning("Blackbox caused by 'inst: comp'.", component=component)
+
+		self.assertIs(component, warning.Component)
+		self.assertIsNone(warning.Instance)
 
 
 class Configurations(Testcase):

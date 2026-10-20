@@ -353,6 +353,10 @@ class IndexDeclaredItems(Testcase):
 
 		self.assertEqual(1, len(collector))
 		self.assertIsInstance(collector[0], NotImplementedWarning)
+		self.assertIsInstance(collector[0].Item, Variable)
+
+	def test_NotImplementedWarning_MessageOnly(self) -> None:
+		self.assertIsNone(NotImplementedWarning("Not modelled yet.").Item)
 
 	def test_DoesNotCrash_WhenNoCollectorIsInScope(self) -> None:
 		"""

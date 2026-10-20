@@ -35,13 +35,21 @@ This module contains parts of an abstract document language model for VHDL.
 The module ``Exceptions`` contains all structured errors that are raised by pyVHDLModel. Besides a default error
 message in english, each exception object contains one or multiple references to the exception's context.
 """
-from __future__           import annotations
+from __future__               import annotations
 
-from pyTooling.Decorators import export, readonly
-from pyTooling.Exceptions import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError
-from pyTooling.Warning    import Warning, CriticalWarning
+from typing                   import TYPE_CHECKING, Optional as Nullable, Union
 
-from pyVHDLModel.Symbol   import Symbol
+from pyTooling.Decorators     import export, readonly
+from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError
+from pyTooling.Warning        import Warning, CriticalWarning
+
+from pyVHDLModel.Symbol       import Symbol
+
+if TYPE_CHECKING:  # pragma: no cover
+	from pyVHDLModel.Base       import ModelEntity
+	from pyVHDLModel.Concurrent import ComponentInstantiation
+	from pyVHDLModel.DesignUnit import Component as _Component
+	from pyVHDLModel.Namespace  import Namespace as _Namespace
 
 
 @export
@@ -61,7 +69,28 @@ class NotImplementedWarning(VHDLModelWarning):
 	"""
 	Raised when a language construct is recognised but not yet modelled.
 	"""
-	pass
+
+	_item: Nullable[Union[ModelEntity, Symbol]]  #: The model element or symbol of the construct.
+
+	def __init__(self, message: str, /, *, item: Nullable[Union[ModelEntity, Symbol]] = None) -> None:
+		"""
+		Initializes the warning with the construct that isn't modelled yet.
+
+		:param message: The warning's message.
+		:param item:    Optional, the model element or symbol of the construct - a declared item, an expression, a symbol
+		                or an instantiation.
+		"""
+		super().__init__(message)
+		self._item = item
+
+	@readonly
+	def Item(self) -> Nullable[Union[ModelEntity, Symbol]]:
+		"""
+		Read-only property to access the model element or symbol of the construct (:attr:`_item`).
+
+		:returns: The model element or symbol, or ``None`` if the construct has none or it wasn't recorded.
+		"""
+		return self._item
 
 
 @export
@@ -84,7 +113,71 @@ class DuplicateDeclarationWarning(VHDLModelCriticalWarning):
 	VHDL rejects this as *identifier already used for a declaration*. Overloadable declarations -
 	subprograms differing in signature - are not reported.
 	"""
-	pass
+
+	_identifier: Nullable[str]          #: The normalized identifier declared twice.
+	_namespace:  Nullable[_Namespace]   #: The namespace of the declarative region declaring it.
+	_element:    Nullable[ModelEntity]  #: The new declaration.
+	_existing:   Nullable[ModelEntity]  #: The earlier declaration.
+
+	def __init__(
+		self,
+		message: str,
+		/, *,
+		identifier: Nullable[str] = None,
+		namespace: Nullable[_Namespace] = None,
+		element: Nullable[ModelEntity] = None,
+		existing: Nullable[ModelEntity] = None
+	) -> None:
+		"""
+		Initializes the warning with the identifier, the namespace and both declarations.
+
+		:param message:    The warning's message.
+		:param identifier: Optional, the normalized identifier declared twice.
+		:param namespace:  Optional, the namespace of the declarative region declaring it.
+		:param element:    Optional, the new declaration.
+		:param existing:   Optional, the earlier declaration.
+		"""
+		super().__init__(message)
+		self._identifier = identifier
+		self._namespace =  namespace
+		self._element =    element
+		self._existing =   existing
+
+	@readonly
+	def Identifier(self) -> Nullable[str]:
+		"""
+		Read-only property to access the normalized identifier declared twice (:attr:`_identifier`).
+
+		:returns: The identifier, or ``None`` if it wasn't recorded.
+		"""
+		return self._identifier
+
+	@readonly
+	def Namespace(self) -> Nullable[_Namespace]:
+		"""
+		Read-only property to access the namespace of the declarative region declaring it (:attr:`_namespace`).
+
+		:returns: The namespace, or ``None`` if it wasn't recorded.
+		"""
+		return self._namespace
+
+	@readonly
+	def Element(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the new declaration (:attr:`_element`).
+
+		:returns: The declaration, or ``None`` if it wasn't recorded.
+		"""
+		return self._element
+
+	@readonly
+	def Existing(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the earlier declaration (:attr:`_existing`).
+
+		:returns: The declaration, or ``None`` if it wasn't recorded.
+		"""
+		return self._existing
 
 
 @export
@@ -92,7 +185,45 @@ class BlackboxWarning(VHDLModelCriticalWarning):
 	"""
 	Raised when a component could not be bound and is treated as a blackbox.
 	"""
-	pass
+
+	_instance:  Nullable[ComponentInstantiation]  #: The component instantiation treated as a blackbox.
+	_component: Nullable[_Component]              #: The component that couldn't be bound.
+
+	def __init__(
+		self,
+		message: str,
+		/, *,
+		instance: Nullable[ComponentInstantiation] = None,
+		component: Nullable[_Component] = None
+	) -> None:
+		"""
+		Initializes the warning with the instantiation and the component that couldn't be bound.
+
+		:param message:   The warning's message.
+		:param instance:  Optional, the component instantiation treated as a blackbox.
+		:param component: Optional, the component that couldn't be bound.
+		"""
+		super().__init__(message)
+		self._instance =  instance
+		self._component = component
+
+	@readonly
+	def Instance(self) -> Nullable[ComponentInstantiation]:
+		"""
+		Read-only property to access the component instantiation treated as a blackbox (:attr:`_instance`).
+
+		:returns: The instantiation, or ``None`` if it wasn't recorded.
+		"""
+		return self._instance
+
+	@readonly
+	def Component(self) -> Nullable[_Component]:
+		"""
+		Read-only property to access the component that couldn't be bound (:attr:`_component`).
+
+		:returns: The component, or ``None`` if it wasn't recorded.
+		"""
+		return self._component
 
 
 @export
@@ -218,7 +349,7 @@ class EntityExistsInLibraryError(VHDLModelException):
 	"""
 
 	_library: Library  #: The library involved in this error.
-	_entity: Entity    #: The entity involved in this error.
+	_entity:  Entity   #: The entity involved in this error.
 
 	def __init__(self, entity: Entity, library: Library) -> None:
 		"""
@@ -258,8 +389,8 @@ class ArchitectureExistsInLibraryError(VHDLModelException):
 	Message: :pycode:`f"Architecture '{architecture._identifier}' for entity '{entity._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
-	_library: Library            #: The library involved in this error.
-	_entity: Entity              #: The entity involved in this error.
+	_library:      Library       #: The library involved in this error.
+	_entity:       Entity        #: The entity involved in this error.
 	_architecture: Architecture  #: The architecture involved in this error.
 
 	def __init__(self, architecture: Architecture, entity: Entity, library: Library) -> None:
@@ -352,7 +483,7 @@ class PackageBodyExistsError(VHDLModelException):
 	Message: :pycode:`f"Package body '{packageBody._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
-	_library: Library          #: The library involved in this error.
+	_library:     Library      #: The library involved in this error.
 	_packageBody: PackageBody  #: The package body involved in this error.
 
 	def __init__(self, packageBody: PackageBody, library: Library) -> None:
@@ -393,7 +524,7 @@ class ConfigurationExistsInLibraryError(VHDLModelException):
 	Message: :pycode:`f"Configuration '{configuration._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
-	_library: Library              #: The library involved in this error.
+	_library:       Library        #: The library involved in this error.
 	_configuration: Configuration  #: The configuration involved in this error.
 
 	def __init__(self, configuration: Configuration, library: Library) -> None:
@@ -475,8 +606,8 @@ class ReferencedLibraryNotExistingError(VHDLModelException):
 	Message: :pycode:`f"Library '{librarySymbol.Name._identifier}' referenced by library clause of context '{context._identifier}' doesn't exist in design."`
 	"""
 
-	_librarySymbol: Symbol  #: The library symbol that could not be resolved.
-	_context: Context       #: The context involved in this error.
+	_librarySymbol: Symbol   #: The library symbol that could not be resolved.
+	_context:       Context  #: The context involved in this error.
 
 	def __init__(self, context: Context, librarySymbol: Symbol) -> None:
 		"""

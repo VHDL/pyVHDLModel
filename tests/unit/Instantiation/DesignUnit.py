@@ -37,10 +37,11 @@ Tests for pyVHDLModel.DesignUnit and pyVHDLModel.Regions.
 tested once here via ``Architecture`` as the canonical host; every other consumer below gets only a
 one-line smoke test confirming the mixin is wired up.
 """
+from pyTooling.Warning      import CriticalWarning
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import VHDLModelException
-from pyVHDLModel.Exception  import BlackboxWarning
+from pyVHDLModel.Exception  import BlackboxWarning, VHDLModelWarning
 from pyVHDLModel.Base       import ModelEntity
 from pyVHDLModel.Name       import SimpleName, SelectedName
 from pyVHDLModel.Symbol     import EntitySymbol, PackageSymbol, LibraryReferenceSymbol, SimpleSubtypeSymbol
@@ -368,6 +369,13 @@ class Components(Testcase):
 
 		self.assertIs(component, warning.Component)
 		self.assertIsNone(warning.Instance)
+
+	def test_BlackboxWarning_NotCritical(self) -> None:
+		"""A blackbox is a non-critical warning: the component records it in IsBlackbox."""
+		warning = BlackboxWarning("Blackbox caused by 'inst: comp'.")
+
+		self.assertIsInstance(warning, VHDLModelWarning)
+		self.assertNotIsInstance(warning, CriticalWarning)
 
 
 class Configurations(Testcase):

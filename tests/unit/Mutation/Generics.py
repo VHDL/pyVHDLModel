@@ -35,6 +35,7 @@ The mutators are tested on an entity and a subprogram (declarative regions with 
 namespace) and a generic group.
 """
 from pyTooling.MetaClasses  import UnfulfilledExpectationError
+from pyTooling.Warning      import WarningCollector
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import ModelEntity
@@ -403,7 +404,8 @@ class Generics(Testcase):
 		bits = _generic("BITS")
 		port = _port("bits")
 		entity = Entity("e", genericItems=[bits], portItems=[port])
-		entity.IndexDeclaredItems()
+		with WarningCollector():
+			entity.IndexDeclaredItems()
 
 		with self.assertRaises(NotInNamespaceError) as context:
 			entity.RemoveGenericItem(bits)

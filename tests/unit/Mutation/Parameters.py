@@ -34,6 +34,7 @@ Mutation tests for parameter lists (:class:`~pyVHDLModel.Regions.WithParametersM
 The mutators are tested on subprograms (declarative regions with a namespace) and a parameter group (no namespace).
 """
 from pyTooling.MetaClasses  import UnfulfilledExpectationError
+from pyTooling.Warning      import WarningCollector
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import ModelEntity
@@ -287,7 +288,8 @@ class Parameters(Testcase):
 		a = _parameter("a")
 		variable = Variable(["a"], _subtypeSymbol("integer"))
 		procedure = Procedure("p", parameterItems=[a], declaredItems=[variable])
-		procedure.IndexDeclaredItems()
+		with WarningCollector():
+			procedure.IndexDeclaredItems()
 
 		with self.assertRaises(NotInNamespaceError) as context:
 			procedure.RemoveParameterItem(a)

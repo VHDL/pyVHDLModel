@@ -35,6 +35,7 @@ The mutators are tested on an entity (a declarative region with a namespace), a 
 group.
 """
 from pyTooling.MetaClasses  import UnfulfilledExpectationError
+from pyTooling.Warning      import WarningCollector
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Mode, ModelEntity
@@ -286,7 +287,8 @@ class Ports(Testcase):
 		clock = _port("Clock")
 		signal = Signal(["clock"], _subtypeSymbol("std_logic"))
 		entity = Entity("e", portItems=[clock], declaredItems=[signal])
-		entity.IndexDeclaredItems()
+		with WarningCollector():
+			entity.IndexDeclaredItems()
 
 		with self.assertRaises(NotInNamespaceError) as context:
 			entity.RemovePortItem(clock)

@@ -55,11 +55,17 @@ if TYPE_CHECKING:  # pragma: no cover
 @export
 class VHDLModelWarning(Warning):
 	"""
-	Base-class for all warnings raised by pyVHDLModel.
+	Base-class for the non-critical warnings raised by pyVHDLModel.
+
+	.. attention::
+
+	   It's a non-critical warning: without a :class:`~pyTooling.Warning.WarningCollector` up the call-hierarchy, it's
+	   dropped silently.
 
 	.. seealso::
 
 	   * :class:`Not implemented warning <pyVHDLModel.Exception.NotImplementedWarning>`
+	   * :class:`Blackbox warning <pyVHDLModel.Exception.BlackboxWarning>`
 	"""
 	pass
 
@@ -68,6 +74,11 @@ class VHDLModelWarning(Warning):
 class NotImplementedWarning(VHDLModelWarning):
 	"""
 	Raised when a language construct is recognised but not yet modelled.
+
+	.. attention::
+
+	   It's a non-critical warning: without a :class:`~pyTooling.Warning.WarningCollector` up the call-hierarchy, it's
+	   dropped silently.
 	"""
 
 	_item: Nullable[Union[ModelEntity, Symbol]]  #: The model element or symbol of the construct.
@@ -94,13 +105,18 @@ class NotImplementedWarning(VHDLModelWarning):
 
 
 @export
-class VHDLModelCriticalWarning(Warning):
+class VHDLModelCriticalWarning(CriticalWarning):
 	"""
 	Base-class for critical warnings that likely indicate a defect in the model or its input.
 
+	.. important::
+
+	   As a critical warning, it must be collected by a :class:`~pyTooling.Warning.WarningCollector` up the
+	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
+
 	.. seealso::
 
-	   * :class:`Blackbox warning <pyVHDLModel.Exception.BlackboxWarning>`
+	   * :class:`Duplicate declaration warning <pyVHDLModel.Exception.DuplicateDeclarationWarning>`
 	"""
 	pass
 
@@ -111,7 +127,12 @@ class DuplicateDeclarationWarning(VHDLModelCriticalWarning):
 	Raised when two declarations in one declarative region share an identifier.
 
 	VHDL rejects this as *identifier already used for a declaration*. Overloadable declarations -
-	subprograms differing in signature - are not reported.
+	subprograms differing in signature - are not reported. Afterwards, the namespace refers to the later declaration.
+
+	.. important::
+
+	   As a critical warning, it must be collected by a :class:`~pyTooling.Warning.WarningCollector` up the
+	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
 	"""
 
 	_identifier: Nullable[str]          #: The normalized identifier declared twice.
@@ -181,9 +202,19 @@ class DuplicateDeclarationWarning(VHDLModelCriticalWarning):
 
 
 @export
-class BlackboxWarning(VHDLModelCriticalWarning):
+class BlackboxWarning(VHDLModelWarning):
 	"""
 	Raised when a component could not be bound and is treated as a blackbox.
+
+	Only a component allowing blackboxes - set on it or inherited, e.g. from its library or design
+	(:attr:`~pyVHDLModel.Common.AllowBlackboxMixin.AllowBlackbox`) - becomes a blackbox, recorded in
+	:attr:`Component.IsBlackbox <pyVHDLModel.DesignUnit.Component.IsBlackbox>`. For any other component without an
+	entity, analysis raises a :exc:`VHDLModelException`.
+
+	.. attention::
+
+	   It's a non-critical warning: without a :class:`~pyTooling.Warning.WarningCollector` up the call-hierarchy, it's
+	   dropped silently.
 	"""
 
 	_instance:  Nullable[ComponentInstantiation]  #: The component instantiation treated as a blackbox.

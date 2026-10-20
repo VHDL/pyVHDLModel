@@ -98,8 +98,10 @@ class EntityAndArchitecture(Testcase):
 		design.CreateDependencyGraph()
 		design.LinkArchitectures()
 
-		self._entity.IndexDeclaredItems()
-		self._architecture.IndexDeclaredItems()
+		# 'x' is declared in the entity and in the architecture: a duplicate
+		with WarningCollector():
+			self._entity.IndexDeclaredItems()
+			self._architecture.IndexDeclaredItems()
 
 	def test_ArchitectureNamespaceNestsInsideEntityNamespace(self) -> None:
 		self.assertIs(self._entity._namespace, self._architecture._namespace.ParentNamespace)

@@ -176,9 +176,12 @@ class Namespace(Generic[K, O]):
 		An item imported into a namespace (e.g. by a use clause) is no declaration of that namespace's region: a
 		declaration hides it.
 
-		:param normalizedIdentifier: The normalized (lower case) identifier being declared.
-		:param element:              The declared item.
-		:param overloadable:         ``True`` if this declaration may legally share its name.
+		:param normalizedIdentifier:           The normalized (lower case) identifier being declared.
+		:param element:                        The declared item.
+		:param overloadable:                   ``True`` if this declaration may legally share its name.
+		:raises UnhandledCriticalWarningError: If the identifier is already declared in the declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		from pyVHDLModel            import Library
 		from pyVHDLModel.Subprogram import Function, Procedure

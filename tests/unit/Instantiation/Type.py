@@ -31,7 +31,7 @@
 """Tests for pyVHDLModel.Type."""
 from pyTooling.Testing      import Testcase
 
-from pyVHDLModel.Base       import ModelEntity, Direction, RangeFromName, SimpleRange
+from pyVHDLModel.Base       import Direction, RangeFromName, SimpleRange
 from pyVHDLModel.Name       import SimpleName, AttributeName
 from pyVHDLModel.Symbol     import RangeAttributeSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import IntegerLiteral, EnumerationLiteral, PhysicalIntegerLiteral
@@ -44,7 +44,7 @@ from pyVHDLModel.Type       import (
 	AccessType, FileType,
 )
 
-from tests.unit             import _subtypeSymbol
+from tests.unit             import _Element, _subtypeSymbol
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -84,7 +84,7 @@ class ParentAndDocumentationWiringAcrossAllLeafTypes(Testcase):
 	positional forward - no ``parent=`` keyword workaround needed anymore."""
 
 	def test_AllLeafTypes(self) -> None:
-		parent = ModelEntity()
+		parent = _Element()
 		builders = (
 			("Subtype", lambda: Subtype("t", _subtypeSymbol("natural"), "doc", parent)),
 			("EnumeratedType", lambda: EnumeratedType("t", [], "doc", parent)),

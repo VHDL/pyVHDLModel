@@ -47,7 +47,7 @@ from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Association import AssociationItem
-from pyVHDLModel.Base        import ModelEntity
+from pyVHDLModel.Base        import ModelElementUnion, ModelEntity
 from pyVHDLModel.Exception   import VHDLWriterError
 from pyVHDLModel.Expression  import (
 	NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral,
@@ -156,7 +156,7 @@ class VHDLWriter(Visitor):
 		"""
 		return self._style
 
-	def Format(self, element: ModelEntity | Symbol) -> str:
+	def Format(self, element: ModelElementUnion) -> str:
 		"""
 		Format a model element as VHDL source text.
 
@@ -181,7 +181,7 @@ class VHDLWriter(Visitor):
 		element.Visit(self)
 		return "".join(self._buffer)
 
-	def VisitUnknown(self, element: ModelEntity | Symbol) -> None:
+	def VisitUnknown(self, element: ModelElementUnion) -> None:
 		"""
 		Reject a model element of a class without a walk of its own.
 

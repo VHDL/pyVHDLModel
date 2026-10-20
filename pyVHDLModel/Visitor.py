@@ -55,11 +55,11 @@ from __future__                import annotations
 from typing                    import TYPE_CHECKING
 
 from pyTooling.Decorators      import export
-from pyTooling.MetaClasses     import ExtendedType
+from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
 if TYPE_CHECKING:
 	from pyVHDLModel.Association import AssociationItem
-	from pyVHDLModel.Base        import ModelEntity
+	from pyVHDLModel.Base        import ModelElementUnion
 	from pyVHDLModel.Expression  import (
 		NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral,
 		PhysicalFloatingLiteral, CharacterLiteral, StringLiteral, BitStringLiteral
@@ -71,6 +71,7 @@ if TYPE_CHECKING:
 
 
 @export
+@abstractclass
 class Visitor(metaclass=ExtendedType, slots=True):
 	"""
 	Base-class of all visitors walking a VHDL language model.
@@ -79,14 +80,14 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	:mod:`pyVHDLModel.Visitor`.
 	"""
 
-	def VisitUnknown(self, element: ModelEntity | Symbol) -> None:
+	def VisitUnknown(self, element: ModelElementUnion) -> None:
 		"""
 		Visit a model element of a class without a walk of its own.
 
 		:param element: The model element.
 		"""
 
-	def DepartUnknown(self, element: ModelEntity | Symbol) -> None:
+	def DepartUnknown(self, element: ModelElementUnion) -> None:
 		"""
 		Depart from a model element of a class without a walk of its own.
 

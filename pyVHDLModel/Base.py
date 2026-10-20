@@ -41,12 +41,13 @@ from typing                import TYPE_CHECKING, Type, Iterable, Optional as Nul
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, readonly
-from pyTooling.MetaClasses import ExtendedType
+from pyTooling.MetaClasses import ExtendedType, abstractclass
 if TYPE_CHECKING:
+	from pyVHDLModel.Symbol  import Symbol
 	from pyVHDLModel.Visitor import Visitor
 
 
-__all__ = ["ExpressionUnion"]
+__all__ = ["ExpressionUnion", "ModelElementUnion"]
 
 
 ExpressionUnion = Union[
@@ -57,6 +58,12 @@ ExpressionUnion = Union[
 	# ConstantOrSymbol,     TODO: ObjectSymbol
 	'Literal',
 ]
+
+ModelElementUnion = Union['ModelEntity', 'Symbol']
+"""
+A model element a visitor walks or the VHDL writer writes: a :class:`ModelEntity` or a
+:class:`~pyVHDLModel.Symbol.Symbol`.
+"""
 
 
 @export
@@ -103,6 +110,7 @@ class Mode(Enum):
 
 
 @export
+@abstractclass
 class ModelEntity(metaclass=ExtendedType, slots=True):
 	"""
 	``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple

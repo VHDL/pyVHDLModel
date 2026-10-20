@@ -38,6 +38,10 @@ from pyTooling.Decorators import readonly
 from pyVHDLModel.Visitor  import Visitor
 
 
+class NoOverrides(Visitor):
+	"""A visitor overriding no event: :class:`~pyVHDLModel.Visitor.Visitor` is abstract."""
+
+
 class Recorder(Visitor):
 	"""A visitor recording the events of a walk as pairs of event name and element."""
 

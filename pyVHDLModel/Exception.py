@@ -46,7 +46,7 @@ from pyTooling.Warning        import Warning, CriticalWarning
 from pyVHDLModel.Symbol       import Symbol
 
 if TYPE_CHECKING:  # pragma: no cover
-	from pyVHDLModel.Base       import ModelEntity
+	from pyVHDLModel.Base       import ModelElementUnion, ModelEntity
 	from pyVHDLModel.Concurrent import ComponentInstantiation
 	from pyVHDLModel.DesignUnit import Component as _Component
 	from pyVHDLModel.Namespace  import Namespace as _Namespace
@@ -816,9 +816,9 @@ class VHDLWriterError(VHDLModelException):
 	literal containing a control character).
 	"""
 
-	_element: ModelEntity | Symbol  #: The model element the writer could not write.
+	_element: ModelElementUnion  #: The model element the writer could not write.
 
-	def __init__(self, message: str, element: ModelEntity | Symbol) -> None:
+	def __init__(self, message: str, element: ModelElementUnion) -> None:
 		"""
 		Initializes the exception with a message and the model element that could not be written.
 
@@ -829,7 +829,7 @@ class VHDLWriterError(VHDLModelException):
 		self._element = element
 
 	@readonly
-	def Element(self) -> ModelEntity | Symbol:
+	def Element(self) -> ModelElementUnion:
 		"""
 		Read-only property to access the model element that could not be written (:attr:`_element`).
 

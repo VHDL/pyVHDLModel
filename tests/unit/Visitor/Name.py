@@ -29,6 +29,7 @@
 # ==================================================================================================================== #
 #
 """Tests for the walk of names, symbols and association items (:mod:`pyVHDLModel.Visitor`)."""
+from pyTooling.MetaClasses   import AbstractClassError
 from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Association import ParameterAssociationItem
@@ -37,7 +38,7 @@ from pyVHDLModel.Name        import SimpleName, SelectedName, IndexedName, Paren
 from pyVHDLModel.Symbol      import ConstrainedArraySubtypeSymbol, IndexedObjectOrFunctionCallSymbol
 from pyVHDLModel.Visitor     import Visitor
 
-from tests.unit.Visitor      import Recorder
+from tests.unit.Visitor      import NoOverrides, Recorder
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -51,11 +52,16 @@ class ParserName(SimpleName):
 
 
 class Walks(Testcase):
+	def test_Abstract(self) -> None:
+		"""``Visitor`` is abstract: a visitor derives from it."""
+		with self.assertRaises(AbstractClassError):
+			Visitor()
+
 	def test_Default(self) -> None:
 		"""The events of the base-class do nothing."""
 		name = IndexedName(SelectedName("m", SimpleName("work")), [IntegerLiteral(0), FunctionCall()])
 
-		name.Visit(Visitor())
+		name.Visit(NoOverrides())
 
 	def test_SelectedName(self) -> None:
 		prefix =   SimpleName("ieee")

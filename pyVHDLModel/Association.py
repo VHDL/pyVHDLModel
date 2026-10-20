@@ -37,7 +37,7 @@ Associations are used in generic maps, port maps and parameter maps.
 from typing               import TYPE_CHECKING, Iterable, Optional as Nullable, Union
 
 from pyTooling.Decorators import export, readonly
-from pyTooling.MetaClasses import ExtendedType
+from pyTooling.MetaClasses import ExtendedType, abstractclass
 
 from pyVHDLModel.Base       import ModelEntity
 from pyVHDLModel.Symbol     import Symbol
@@ -57,6 +57,7 @@ ExpressionUnion = Union[
 
 
 @export
+@abstractclass
 class AssociationItem(ModelEntity):
 	"""
 	A base-class for all association items.

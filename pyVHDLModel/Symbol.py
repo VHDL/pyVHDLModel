@@ -41,7 +41,7 @@ from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iter
 
 from pyTooling.Common      import getTypeName
 from pyTooling.Decorators  import export, notimplemented, readonly
-from pyTooling.MetaClasses import ExtendedType
+from pyTooling.MetaClasses import ExtendedType, abstractclass
 
 from pyVHDLModel.Base      import Range
 from pyVHDLModel.Name      import Name, AllName
@@ -1033,6 +1033,7 @@ class RecordConstraint(Constraint, mixin=True):
 
 
 @export
+@abstractclass
 class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 	"""
 	Represents the base-class of references to constrained composite subtypes.

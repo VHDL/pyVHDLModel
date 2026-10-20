@@ -34,7 +34,7 @@ from typing                 import Iterable, Optional as Nullable
 
 from pyTooling.Common       import getTypeName
 from pyTooling.Decorators   import export
-from pyTooling.MetaClasses  import ExtendedType
+from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
 from pyVHDLModel            import Library, Package, PackageBody, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol
 from pyVHDLModel.Name       import SimpleName, SelectedName, AllName
@@ -43,6 +43,7 @@ from pyVHDLModel.DesignUnit import LibraryClause, UseClause
 
 
 @export
+@abstractclass
 class PredefinedLibrary(Library):
 	"""
 	A base-class for predefined VHDL libraries.
@@ -117,6 +118,7 @@ class PredefinedPackageMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
+@abstractclass
 class PredefinedPackage(Package, PredefinedPackageMixin):
 	"""
 	A base-class for predefined VHDL packages.
@@ -135,6 +137,7 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 
 
 @export
+@abstractclass
 class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 	"""
 	A base-class for predefined VHDL package bodies.

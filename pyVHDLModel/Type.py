@@ -39,7 +39,7 @@ from __future__             import annotations
 from typing                 import Union, Iterator, Iterable, Optional as Nullable, Mapping
 
 from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType
+from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyTooling.Graph        import Vertex
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
@@ -257,6 +257,7 @@ class Subtype(BaseType):
 
 
 @export
+@abstractclass
 class ScalarType(FullType):
 	"""
 	Represents a base-class for all scalar types: enumerated, integer, real and physical types.
@@ -269,6 +270,7 @@ class ScalarType(FullType):
 
 
 @export
+@abstractclass
 class RangedScalarType(ScalarType):
 	"""
 	Represents a base-class for all scalar types constrained by a range (:data:`Range`).
@@ -560,6 +562,7 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 
 
 @export
+@abstractclass
 class CompositeType(FullType):
 	"""
 	Represents a base-class for all composite types: array and record types.

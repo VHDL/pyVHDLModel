@@ -36,7 +36,7 @@ Concurrent defines all concurrent statements used in entities, architectures, ge
 """
 from __future__              import annotations
 
-from typing                  import List, Dict, Union, Iterable, Generator, Optional as Nullable
+from typing                  import Union, Iterable, Generator, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
@@ -105,11 +105,11 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 	   .. todo:: concurrent declaration region
 	"""
 
-	_statements:     List[ConcurrentStatement]                                      #: List of all concurrent statements in this construct.
+	_statements:     list[ConcurrentStatement]                                      #: List of all concurrent statements in this construct.
 
 	# TODO: add another instantiation class level for entity/configuration/component inst.
-	_instantiations: Dict[str, Instantiation]                                       #: All instantiations, indexed by label.
-	_hierarchy:      Dict[str, Union[ConcurrentBlockStatement, GenerateStatement]]  #: All elements creating a hierarchy level (blocks and generates), in declaration order.
+	_instantiations: dict[str, Instantiation]                                       #: All instantiations, indexed by label.
+	_hierarchy:      dict[str, Union[ConcurrentBlockStatement, GenerateStatement]]  #: All elements creating a hierarchy level (blocks and generates), in declaration order.
 
 	def __init__(self, statements: Nullable[Iterable[ConcurrentStatement]] = None) -> None:
 		"""
@@ -128,7 +128,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 				statement.Parent = self
 
 	@readonly
-	def Statements(self) -> List[ConcurrentStatement]:
+	def Statements(self) -> list[ConcurrentStatement]:
 		"""
 		Read-only property to access the statements (:attr:`_statements`).
 
@@ -383,7 +383,7 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 	"""
 
 	# TODO: implement a SignalSymbol
-	_sensitivityList: List[Name]  #: List of all signal names in the sensitivity list, or ``None`` if none was given.
+	_sensitivityList: list[Name]  #: List of all signal names in the sensitivity list, or ``None`` if none was given.
 
 	def __init__(
 		self,
@@ -426,7 +426,7 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 		self._namespace.ParentNamespace = parent._namespace
 
 	@readonly
-	def SensitivityList(self) -> List[Name]:
+	def SensitivityList(self) -> list[Name]:
 		"""
 		Read-only property to access the sensitivity list (:attr:`_sensitivityList`).
 
@@ -849,7 +849,7 @@ class IfGenerateStatement(GenerateStatement):
 	"""
 
 	_ifBranch:      IfGenerateBranch              #: The mandatory ``if`` branch.
-	_elsifBranches: List[ElsifGenerateBranch]     #: List of all ``elsif`` branches, in the order they were written.
+	_elsifBranches: list[ElsifGenerateBranch]     #: List of all ``elsif`` branches, in the order they were written.
 	_elseBranch:    Nullable[ElseGenerateBranch]  #: The optional ``else`` branch, or ``None`` if none was given.
 
 	def __init__(
@@ -916,7 +916,7 @@ class IfGenerateStatement(GenerateStatement):
 		return self._ifBranch
 
 	@readonly
-	def ElsifBranches(self) -> List[ElsifGenerateBranch]:
+	def ElsifBranches(self) -> list[ElsifGenerateBranch]:
 		"""
 		Read-only property to access the elsif branches (:attr:`_elsifBranches`).
 
@@ -1200,7 +1200,7 @@ class CaseGenerateStatement(GenerateStatement):
 	"""
 
 	_expression: ExpressionUnion     #: The expression being tested; it must be static.
-	_cases:      List[GenerateCase]  #: List of all alternatives, in the order they were written.
+	_cases:      list[GenerateCase]  #: List of all alternatives, in the order they were written.
 
 	def __init__(
 		self,
@@ -1249,7 +1249,7 @@ class CaseGenerateStatement(GenerateStatement):
 		return self._expression
 
 	@readonly
-	def Cases(self) -> List[GenerateCase]:
+	def Cases(self) -> list[GenerateCase]:
 		"""
 		Read-only property to access the cases (:attr:`_cases`).
 

@@ -36,7 +36,7 @@ Types.
 """
 from __future__             import annotations
 
-from typing                 import Union, List, Iterator, Iterable, Tuple, Optional as Nullable, Dict, Mapping
+from typing                 import Union, Iterator, Iterable, Optional as Nullable, Mapping
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
@@ -360,7 +360,7 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 	      --   ^^^^^                             <- Identifier
 	      --             ^^^^^^^^^^^^^^^^^^^     <- Literals
 	"""
-	_literals: List[EnumerationLiteral]  #: List of all enumeration literals, in declaration order.
+	_literals: list[EnumerationLiteral]  #: List of all enumeration literals, in declaration order.
 
 	def __init__(self, identifier: str, literals: Iterable[EnumerationLiteral], documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -380,7 +380,7 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 				literal.Parent = self
 
 	@readonly
-	def Literals(self) -> List[EnumerationLiteral]:
+	def Literals(self) -> list[EnumerationLiteral]:
 		"""
 		Read-only property to access the literals (:attr:`_literals`).
 
@@ -500,14 +500,14 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 	      end units;
 	"""
 	_primaryUnit:    str                                       #: The name of the type's primary unit.
-	_secondaryUnits: List[Tuple[str, PhysicalIntegerLiteral]]  #: Secondary units as (name, value) pairs.
+	_secondaryUnits: list[tuple[str, PhysicalIntegerLiteral]]  #: Secondary units as (name, value) pairs.
 
 	def __init__(
 		self,
 		identifier: str,
 		rng: Range,
 		primaryUnit: str,
-		units: Iterable[Tuple[str, PhysicalIntegerLiteral]],
+		units: Iterable[tuple[str, PhysicalIntegerLiteral]],
 		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
@@ -540,7 +540,7 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 		return self._primaryUnit
 
 	@readonly
-	def SecondaryUnits(self) -> List[Tuple[str, PhysicalIntegerLiteral]]:
+	def SecondaryUnits(self) -> list[tuple[str, PhysicalIntegerLiteral]]:
 		"""
 		Read-only property to access the secondary units (:attr:`_secondaryUnits`).
 
@@ -601,7 +601,7 @@ class ArrayType(CompositeType):
 
 	   * :class:`Reference to a constrained array subtype <pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol>`
 	"""
-	_dimensions:  List[Range]  #: List of all index ranges, one per dimension.
+	_dimensions:  list[Range]  #: List of all index ranges, one per dimension.
 	_elementType: Symbol       #: Reference to the subtype of the array's elements.
 
 	def __init__(
@@ -632,7 +632,7 @@ class ArrayType(CompositeType):
 		# elementSubtype.Parent = self   # FIXME: subtype is provided as None
 
 	@readonly
-	def Dimensions(self) -> List[Range]:
+	def Dimensions(self) -> list[Range]:
 		"""
 		Read-only property to access the dimensions (:attr:`_dimensions`).
 
@@ -754,7 +754,7 @@ class RecordType(CompositeType):
 	   * :class:`Record element <pyVHDLModel.Type.RecordTypeElement>`
 	   * :class:`Reference to a record element <pyVHDLModel.Symbol.RecordElementSymbol>`
 	"""
-	_elements: List[RecordTypeElement]  #: List of all element declarations, in declaration order.
+	_elements: list[RecordTypeElement]  #: List of all element declarations, in declaration order.
 
 	def __init__(self, identifier: str, elements: Nullable[Iterable[RecordTypeElement]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -774,7 +774,7 @@ class RecordType(CompositeType):
 				element.Parent = self
 
 	@readonly
-	def Elements(self) -> List[RecordTypeElement]:
+	def Elements(self) -> list[RecordTypeElement]:
 		"""
 		Read-only property to access the elements (:attr:`_elements`).
 
@@ -823,7 +823,7 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin):
 	   * :class:`Protected type body <pyVHDLModel.Type.ProtectedTypeBody>`
 	   * :class:`Method of a protected type <pyVHDLModel.Subprogram.ProcedureMethod>`
 	"""
-	def __init__(self, identifier: str, declaredItems: Union[List, Iterator] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, identifier: str, declaredItems: Union[list, Iterator] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a protected type declaration.
 
@@ -836,7 +836,7 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin):
 		ProtectedTypeDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
 
 	@readonly
-	def Methods(self) -> List[Union[Procedure, Function]]:
+	def Methods(self) -> list[Union[Procedure, Function]]:
 		"""
 		Read-only property to access the declared methods, in declaration order.
 
@@ -881,7 +881,7 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin):
 
 	   * :class:`Protected type declaration <pyVHDLModel.Type.ProtectedType>`
 	"""
-	def __init__(self, identifier: str, declaredItems: Union[List, Iterator] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, identifier: str, declaredItems: Union[list, Iterator] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a protected type body.
 
@@ -895,7 +895,7 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin):
 
 	# FIXME: needs to be declared items or so
 	@readonly
-	def Methods(self) -> List[Union[Procedure, Function]]:
+	def Methods(self) -> list[Union[Procedure, Function]]:
 		"""
 		Read-only property to access the implemented methods, in declaration order.
 

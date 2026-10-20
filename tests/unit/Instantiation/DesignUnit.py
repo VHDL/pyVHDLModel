@@ -298,7 +298,7 @@ class Architectures(Testcase):
 
 	def test_IndexDeclaredItems_Overloads(self) -> None:
 		"""Regression test: two overloads sharing a name used to silently collide into one entry (a
-		flat ``Dict[str, Function]``) - the second always overwrote the first, with no error or
+		flat ``dict[str, Function]``) - the second always overwrote the first, with no error or
 		warning. Fixed by collecting overloads into a list per name instead.
 
 		FIXME: this only *avoids the collision* - it doesn't actually resolve overloads by signature

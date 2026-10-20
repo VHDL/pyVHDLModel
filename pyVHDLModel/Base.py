@@ -37,7 +37,7 @@ Base-classes for the VHDL language model.
 from __future__            import annotations
 
 from enum                  import unique, Enum
-from typing                import Type, Tuple, List, Iterable, Optional as Nullable, Union, cast
+from typing                import Type, Iterable, Optional as Nullable, Union, cast
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, readonly
@@ -276,8 +276,8 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Record type element <pyVHDLModel.Type.RecordTypeElement>`
 	"""
 
-	_identifiers:           Tuple[str]  #: A list of identifiers.
-	_normalizedIdentifiers: Tuple[str]  #: A list of normalized (lower case) identifiers.
+	_identifiers:           tuple[str]  #: A list of identifiers.
+	_normalizedIdentifiers: tuple[str]  #: A list of normalized (lower case) identifiers.
 
 	def __init__(self, identifiers: Iterable[str]) -> None:
 		"""
@@ -289,7 +289,7 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		self._normalizedIdentifiers = tuple([identifier.lower() for identifier in self._identifiers])
 
 	@readonly
-	def Identifiers(self) -> Tuple[str]:
+	def Identifiers(self) -> tuple[str]:
 		"""
 		Read-only property to access the model entity's identifiers (:attr:`_identifiers`).
 
@@ -298,7 +298,7 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		return self._identifiers
 
 	@readonly
-	def NormalizedIdentifiers(self) -> Tuple[str]:
+	def NormalizedIdentifiers(self) -> tuple[str]:
 		"""
 		Read-only property to access the model entity's normalized identifiers (:attr:`_normalizedIdentifiers`).
 
@@ -308,7 +308,7 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
-def identifiersOf(item) -> Tuple[str, ...]:
+def identifiersOf(item) -> tuple[str, ...]:
 	"""
 	Return an item's identifier(s), regardless of how many names its declaration carries.
 
@@ -337,7 +337,7 @@ def identifiersOf(item) -> Tuple[str, ...]:
 
 
 @export
-def normalizedIdentifiersOf(item) -> Tuple[str, ...]:
+def normalizedIdentifiersOf(item) -> tuple[str, ...]:
 	"""
 	Return an item's normalized (lower case) identifier(s).
 
@@ -679,7 +679,7 @@ class ChoicesMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Sequential case <pyVHDLModel.Sequential.SequentialCase>`
 	"""
 
-	_choices: List[BaseChoice]  #: List of all choices selecting this alternative.
+	_choices: list[BaseChoice]  #: List of all choices selecting this alternative.
 
 	def __init__(self, choices: Nullable[Iterable[BaseChoice]] = None) -> None:
 		"""
@@ -694,7 +694,7 @@ class ChoicesMixin(metaclass=ExtendedType, mixin=True):
 				choice.Parent = self
 
 	@readonly
-	def Choices(self) -> List[BaseChoice]:
+	def Choices(self) -> list[BaseChoice]:
 		"""
 		Read-only property to access the choices (:attr:`_choices`).
 

@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 Interface items are used in generic, port and parameter declarations.
 """
-from typing                 import Iterable, Optional as Nullable, List, Iterator, Tuple
+from typing                 import Iterable, Optional as Nullable, Iterator
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType
@@ -204,7 +204,7 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""
 
 	_subtype:  SubtypeSymbol          #: Reference to the subtype this mode view applies to.
-	_elements: List[ModeViewElement]  #: List of all mode view elements, in declaration order.
+	_elements: list[ModeViewElement]  #: List of all mode view elements, in declaration order.
 
 	def __init__(
 		self,
@@ -246,7 +246,7 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._subtype
 
 	@readonly
-	def Elements(self) -> List[ModeViewElement]:
+	def Elements(self) -> list[ModeViewElement]:
 		"""
 		Read-only property to access the elements (:attr:`_elements`).
 

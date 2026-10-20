@@ -33,10 +33,10 @@ and :attr:`~pyVHDLModel.SyntaxModel.Design.Documents`. Each is a :class:`list`.
 
      # from Design
      @property
-     def Libraries(self) -> Dict[str, Library]:
+     def Libraries(self) -> dict[str, Library]:
 
      @property
-     def Documents(self) -> List[Document]:
+     def Documents(self) -> list[Document]:
 
      def GetLibrary(self, libraryName: str) -> Library:
 
@@ -65,16 +65,16 @@ is a *primary* design unit like: :class:`~pyVHDLModel.SyntaxModel.Configuration`
 
      # from Library
      @property
-     def Contexts(self) -> List[Context]:
+     def Contexts(self) -> list[Context]:
 
      @property
-     def Configurations(self) -> List[Configuration]:
+     def Configurations(self) -> list[Configuration]:
 
      @property
-     def Entities(self) -> List[Entity]:
+     def Entities(self) -> list[Entity]:
 
      @property
-     def Packages(self) -> List[Package]:
+     def Packages(self) -> list[Package]:
 
 
 
@@ -109,19 +109,19 @@ investigate the consumed contexts.
      def Path(self) -> Path:
 
      @property
-     def Contexts(self) -> List[Context]:
+     def Contexts(self) -> list[Context]:
 
      @property
-     def Configurations(self) -> List[Configuration]:
+     def Configurations(self) -> list[Configuration]:
 
      @property
-     def Entities(self) -> List[Entity]:
+     def Entities(self) -> list[Entity]:
 
      @property
-     def Architectures(self) -> List[Architecture]:
+     def Architectures(self) -> list[Architecture]:
 
      @property
-     def Packages(self) -> List[Package]:
+     def Packages(self) -> list[Package]:
 
      @property
-     def PackageBodies(self) -> List[PackageBody]:
+     def PackageBodies(self) -> list[PackageBody]:

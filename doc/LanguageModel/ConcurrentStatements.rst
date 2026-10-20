@@ -108,11 +108,11 @@ Concurrent Block Statement
 
      # inherited from ConcurrentStatements
      @property
-     def Statements(self) -> List[ConcurrentStatement]:
+     def Statements(self) -> list[ConcurrentStatement]:
 
      # from ConcurrentBlockStatement
      @property
-     def PortItems(self) -> List[PortInterfaceItem]:
+     def PortItems(self) -> list[PortInterfaceItem]:
 
 .. _vhdlmodel-instantiations:
 
@@ -171,7 +171,7 @@ If Generate
      def IfBranch(self) -> IfGenerateBranch:
 
      @property
-     def ElsifBranches(self) -> List[ElsifGenerateBranch]:
+     def ElsifBranches(self) -> list[ElsifGenerateBranch]:
 
      @property
      def ElseBranch(self) -> ElseGenerateBranch:
@@ -206,7 +206,7 @@ Case Generate
      def SelectExpression(self) -> BaseExpression:
 
      @property
-     def Cases(self) -> List[GenerateCase]:
+     def Cases(self) -> list[GenerateCase]:
 
 
 
@@ -239,7 +239,7 @@ For Generate
 
      # inherited from ConcurrentStatements
      @property
-     def Statements(self) -> List[ConcurrentStatement]:
+     def Statements(self) -> list[ConcurrentStatement]:
 
      # from ForGenerateStatement
      @property
@@ -287,8 +287,8 @@ Process
 
      # inherited from SequentialStatements
      @property
-     def Statements(self) -> List[SequentialStatement]:
+     def Statements(self) -> list[SequentialStatement]:
 
      # from ProcessStatement
      @property
-     def SensitivityList(self) -> List[Signal]:
+     def SensitivityList(self) -> list[Signal]:

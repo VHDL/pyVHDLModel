@@ -36,7 +36,7 @@ identical configuration specifications), and block configurations.
 """
 from __future__              import annotations
 
-from typing                  import List, Iterable, Union, Optional as Nullable
+from typing                  import Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
@@ -253,7 +253,7 @@ class OthersInstantiationList(ModelEntity):
 	"""
 
 
-InstantiationListUnion = Union[List[Name], AllInstantiationList, OthersInstantiationList]
+InstantiationListUnion = Union[list[Name], AllInstantiationList, OthersInstantiationList]
 
 
 @export
@@ -353,7 +353,7 @@ class BlockConfiguration(ModelEntity):
 	"""
 
 	_blockSpecification: Symbol                                                    #: The configured block.
-	_items:               List[Union[BlockConfiguration, ComponentConfiguration]]  #: Nested configurations.
+	_items:               list[Union[BlockConfiguration, ComponentConfiguration]]  #: Nested configurations.
 
 	def __init__(
 		self,
@@ -389,7 +389,7 @@ class BlockConfiguration(ModelEntity):
 		return self._blockSpecification
 
 	@readonly
-	def Items(self) -> List[Union[BlockConfiguration, ComponentConfiguration]]:
+	def Items(self) -> list[Union[BlockConfiguration, ComponentConfiguration]]:
 		"""
 		Read-only property to access the items (:attr:`_items`).
 

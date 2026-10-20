@@ -36,7 +36,7 @@ A helper class to implement namespaces and scopes.
 """
 from __future__            import annotations
 
-from typing                import TYPE_CHECKING, TypeVar, Generic, Dict, Optional as Nullable, Any, Tuple
+from typing                import TYPE_CHECKING, TypeVar, Generic, Optional as Nullable, Any
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import readonly
@@ -60,9 +60,9 @@ class ExtendedKeyError(KeyError):
 	visited while walking outwards (:data:`searchedNamespaces`).
 	"""
 	key: str                                   #: The key that was not found.
-	searchedNamespaces: Tuple[Namespace, ...]  #: The namespaces that were searched for the key.
+	searchedNamespaces: tuple[Namespace, ...]  #: The namespaces that were searched for the key.
 
-	def __init__(self, key: str, searchedNamespaces: Tuple[Namespace, ...], message: str) -> None:
+	def __init__(self, key: str, searchedNamespaces: tuple[Namespace, ...], message: str) -> None:
 		"""
 		Initializes an extended key error.
 
@@ -91,8 +91,8 @@ class Namespace(Generic[K, O]):
 	"""
 	_name:                   str                   #: The namespace's name.
 	_parentNamespace:        Namespace             #: Reference to the enclosing namespace, ``None`` if outermost.
-	_subNamespaces:          Dict[str, Namespace]  #: Dictionary of all nested namespaces, indexed by name.
-	_elements:               Dict[K, O]            #: All elements declared in this namespace, indexed by name.
+	_subNamespaces:          dict[str, Namespace]  #: Dictionary of all nested namespaces, indexed by name.
+	_elements:               dict[K, O]            #: All elements declared in this namespace, indexed by name.
 	_sharesRegionWithParent: bool                  #: ``True`` if the parent namespace is the same declarative region.
 
 	def __init__(
@@ -153,7 +153,7 @@ class Namespace(Generic[K, O]):
 		return self._sharesRegionWithParent
 
 	@readonly
-	def SubNamespaces(self) -> Dict[str, Namespace]:
+	def SubNamespaces(self) -> dict[str, Namespace]:
 		"""
 		Read-only property to access the sub namespaces (:attr:`_subNamespaces`).
 
@@ -222,7 +222,7 @@ class Namespace(Generic[K, O]):
 
 		del self._elements[normalizedIdentifier]
 
-	def Elements(self) -> Dict[K, O]:
+	def Elements(self) -> dict[K, O]:
 		return self._elements
 
 	def FindComponent(self, componentSymbol: ComponentInstantiationSymbol) -> Component:

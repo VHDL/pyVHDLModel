@@ -68,26 +68,26 @@ types). An entity's list of statements is called body items.
 
      # inherited from MixinDesignUnitWithContext
      @property
-     def LibraryReferences(self) -> List[LibraryClause]:
+     def LibraryReferences(self) -> list[LibraryClause]:
 
      @property
-     def PackageReferences(self) -> List[UseClause]:
+     def PackageReferences(self) -> list[UseClause]:
 
      @property
-     def ContextReferences(self) -> List[Context]:
+     def ContextReferences(self) -> list[Context]:
 
      # from Entity
      @property
-     def GenericItems(self) -> List[GenericInterfaceItem]:
+     def GenericItems(self) -> list[GenericInterfaceItem]:
 
      @property
-     def PortItems(self) -> List[PortInterfaceItem]:
+     def PortItems(self) -> list[PortInterfaceItem]:
 
      @property
      def DeclaredItems(self) -> List:
 
      @property
-     def BodyItems(self) -> List[ConcurrentStatement]:
+     def BodyItems(self) -> list[ConcurrentStatement]:
 
 
 
@@ -116,17 +116,17 @@ Package
 
      # inherited from MixinDesignUnitWithContext
      @property
-     def LibraryReferences(self) -> List[LibraryClause]:
+     def LibraryReferences(self) -> list[LibraryClause]:
 
      @property
-     def PackageReferences(self) -> List[UseClause]:
+     def PackageReferences(self) -> list[UseClause]:
 
      @property
-     def ContextReferences(self) -> List[Context]:
+     def ContextReferences(self) -> list[Context]:
 
      # from Package
      @property
-     def GenericItems(self) -> List[GenericInterfaceItem]:
+     def GenericItems(self) -> list[GenericInterfaceItem]:
 
      @property
      def DeclaredItems(self) -> List:
@@ -163,13 +163,13 @@ Architeture
 
      # inherited from MixinDesignUnitWithContext
      @property
-     def LibraryReferences(self) -> List[LibraryClause]:
+     def LibraryReferences(self) -> list[LibraryClause]:
 
      @property
-     def PackageReferences(self) -> List[UseClause]:
+     def PackageReferences(self) -> list[UseClause]:
 
      @property
-     def ContextReferences(self) -> List[Context]:
+     def ContextReferences(self) -> list[Context]:
 
      # from Architecture
      @property
@@ -179,7 +179,7 @@ Architeture
      def DeclaredItems(self) -> List:
 
      @property
-     def BodyItems(self) -> List[ConcurrentStatement]:
+     def BodyItems(self) -> list[ConcurrentStatement]:
 
 
 
@@ -208,13 +208,13 @@ Package Body
 
      # inherited from MixinDesignUnitWithContext
      @property
-     def LibraryReferences(self) -> List[LibraryClause]:
+     def LibraryReferences(self) -> list[LibraryClause]:
 
      @property
-     def PackageReferences(self) -> List[UseClause]:
+     def PackageReferences(self) -> list[UseClause]:
 
      @property
-     def ContextReferences(self) -> List[Context]:
+     def ContextReferences(self) -> list[Context]:
 
      # from Package Body
      @property

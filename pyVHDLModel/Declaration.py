@@ -35,7 +35,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 """
 from enum                   import unique, Enum
-from typing                 import List, Iterable, Union, Optional as Nullable
+from typing                 import Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators   import export, readonly
 
@@ -152,7 +152,7 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 	      attribute TotalBits of BusType : subtype is 32;
 	"""
 
-	_identifiers: List[Name]      #: List of all names the attribute is specified for.
+	_identifiers: list[Name]      #: List of all names the attribute is specified for.
 	_attribute: Name              #: Reference to the specified attribute.
 	_entityClass: EntityClass     #: The entity class the named items belong to.
 	_expression: ExpressionUnion  #: The value assigned to the attribute.
@@ -193,7 +193,7 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		expression.Parent = self
 
 	@readonly
-	def Identifiers(self) -> List[Name]:
+	def Identifiers(self) -> list[Name]:
 		"""
 		Read-only property to access the identifiers (:attr:`_identifiers`).
 

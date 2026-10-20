@@ -36,7 +36,7 @@ Building a model object needs a symbol, a subtype and often a name, which every 
 re-declaring. Names are always passed explicitly - a helper that defaults one hides what a test
 actually builds.
 """
-from typing import List, Type, TypeVar
+from typing import Type, TypeVar
 
 from pyVHDLModel.Name   import SimpleName
 from pyVHDLModel.Object import Signal, Variable
@@ -88,6 +88,6 @@ def _variable(identifier: str, subtypeName: str) -> Variable:
 	return Variable((identifier, ), _subtypeSymbol(subtypeName))
 
 
-def _warningsOfType(collector, warningType: Type[_Warning]) -> List[_Warning]:
+def _warningsOfType(collector, warningType: Type[_Warning]) -> list[_Warning]:
 	"""The warnings of one type collected by a :class:`~pyTooling.Warning.WarningCollector`."""
 	return [warning for warning in collector if isinstance(warning, warningType)]

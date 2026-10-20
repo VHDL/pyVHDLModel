@@ -60,7 +60,7 @@ __issue_tracker_url__ = "https://GitHub.com/VHDL/pyVHDLModel/issues"
 from enum                      import unique, Enum, Flag, auto
 from pathlib                   import Path
 
-from typing                    import Union, Dict, cast, List, Generator, Optional as Nullable
+from typing                    import Union, cast, Generator, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName
 from pyTooling.Decorators      import export, readonly
@@ -130,7 +130,7 @@ class VHDLVersion(Enum):
 	VHDL2019 =         2019  #: VHDL-2019
 	Latest =          10000  #: Latest VHDL (2019)
 
-	__VERSION_MAPPINGS__: Dict[Union[int, str], Enum] = {
+	__VERSION_MAPPINGS__: dict[Union[int, str], Enum] = {
 		-1:       Any,
 		87:       VHDL87,
 		93:       VHDL93,
@@ -527,8 +527,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	* :attr:`ObjectGraph`
 	"""
 	_name:              Nullable[str]         #: Name of the design.
-	_libraries:         Dict[str, Library]    #: List of all libraries defined for a design.
-	_documents:         List[Document]        #: List of all documents loaded for a design.
+	_libraries:         dict[str, Library]    #: List of all libraries defined for a design.
+	_documents:         list[Document]        #: List of all documents loaded for a design.
 	_dependencyGraph:   Graph                 #: The graph of all dependencies in the designs.
 	_compileOrderGraph: Graph                 #: A graph derived from dependency graph containing the order of documents for compilation.
 	_hierarchyGraph:    Graph                 #: A graph derived from dependency graph containing the design hierarchy.
@@ -570,7 +570,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		return self._name
 
 	@readonly
-	def Libraries(self) -> Dict[str, Library]:
+	def Libraries(self) -> dict[str, Library]:
 		"""
 		Read-only property to access the dictionary of library names and VHDL libraries (:attr:`_libraries`).
 
@@ -579,7 +579,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		return self._libraries
 
 	@readonly
-	def Documents(self) -> List[Document]:
+	def Documents(self) -> list[Document]:
 		"""
 		Read-only property to access the list of all documents (VHDL source files) loaded for this design (:attr:`_documents`).
 
@@ -2215,7 +2215,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for compileOrderNode in self._compileOrderGraph.IterateTopologically():
 			yield compileOrderNode.Value
 
-	def GetUnusedDesignUnits(self) -> List[DesignUnit]:
+	def GetUnusedDesignUnits(self) -> list[DesignUnit]:
 		WarningCollector.Raise(NotImplementedWarning("Compute unused design units."))
 
 	def __repr__(self) -> str:
@@ -2241,12 +2241,12 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 	   * :class:`Predefined library <pyVHDLModel.Predefined.PredefinedLibrary>`
 	"""
 
-	_contexts:       Dict[str, Context]                  #: Dictionary of all contexts defined in a library.
-	_configurations: Dict[str, Configuration]            #: Dictionary of all configurations defined in a library.
-	_entities:       Dict[str, Entity]                   #: Dictionary of all entities defined in a library.
-	_architectures:  Dict[str, Dict[str, Architecture]]  #: Dictionary of all architectures defined in a library.
-	_packages:       Dict[str, Package]                  #: Dictionary of all packages defined in a library.
-	_packageBodies:  Dict[str, PackageBody]              #: Dictionary of all package bodies defined in a library.
+	_contexts:       dict[str, Context]                  #: Dictionary of all contexts defined in a library.
+	_configurations: dict[str, Configuration]            #: Dictionary of all configurations defined in a library.
+	_entities:       dict[str, Entity]                   #: Dictionary of all entities defined in a library.
+	_architectures:  dict[str, dict[str, Architecture]]  #: Dictionary of all architectures defined in a library.
+	_packages:       dict[str, Package]                  #: Dictionary of all packages defined in a library.
+	_packageBodies:  dict[str, PackageBody]              #: Dictionary of all package bodies defined in a library.
 
 	_dependencyVertex: Vertex  #: Reference to the vertex in the dependency graph representing the library. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
 
@@ -2299,7 +2299,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		self._documentation = documentation
 
 	@readonly
-	def Contexts(self) -> Dict[str, Context]:
+	def Contexts(self) -> dict[str, Context]:
 		"""
 		Read-only property to access the dictionary of all context declarations in this library (:attr:`_contexts`).
 
@@ -2308,7 +2308,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		return self._contexts
 
 	@readonly
-	def Configurations(self) -> Dict[str, Configuration]:
+	def Configurations(self) -> dict[str, Configuration]:
 		"""
 		Read-only property to access the dictionary of all configuration declarations in this library (:attr:`_configurations`).
 
@@ -2317,7 +2317,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		return self._configurations
 
 	@readonly
-	def Entities(self) -> Dict[str, Entity]:
+	def Entities(self) -> dict[str, Entity]:
 		"""
 		Read-only property to access the dictionary of all entity declarations in this library (:attr:`_entities`).
 
@@ -2326,7 +2326,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		return self._entities
 
 	@readonly
-	def Architectures(self) -> Dict[str, Dict[str, Architecture]]:
+	def Architectures(self) -> dict[str, dict[str, Architecture]]:
 		"""
 		Read-only property to access the dictionary of all architecture declarations in this library (:attr:`_architectures`).
 
@@ -2336,7 +2336,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		return self._architectures
 
 	@readonly
-	def Packages(self) -> Dict[str, Package]:
+	def Packages(self) -> dict[str, Package]:
 		"""
 		Read-only property to access the dictionary of all package declarations in this library (:attr:`_packages`).
 
@@ -2345,7 +2345,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		return self._packages
 
 	@readonly
-	def PackageBodies(self) -> Dict[str, PackageBody]:
+	def PackageBodies(self) -> dict[str, PackageBody]:
 		"""
 		Read-only property to access the dictionary of all package body declarations in this library (:attr:`_packageBodies`).
 
@@ -2683,16 +2683,16 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	_path:                   Path                                #: Path to the document.
 	_vhdlVersion:            VHDLVersion                         #: VHDL version used for analyzing this source file.
 	_library:                Library                             #: VHDL library used for analyzing the source file's content into.
-	_designUnits:            List[DesignUnit]                    #: List of all design units defined in a document.
-	_contexts:               Dict[str, Context]                  #: Dictionary of all contexts defined in a document.
-	_configurations:         Dict[str, Configuration]            #: Dictionary of all configurations defined in a document.
-	_entities:               Dict[str, Entity]                   #: Dictionary of all entities defined in a document.
-	_architectures:          Dict[str, Dict[str, Architecture]]  #: Dictionary of all architectures defined in a document.
-	_packages:               Dict[str, Package]                  #: Dictionary of all packages defined in a document.
-	_packageBodies:          Dict[str, PackageBody]              #: Dictionary of all package bodies defined in a document.
-	_verificationUnits:      Dict[str, VerificationUnit]         #: Dictionary of all PSL verification units defined in a document.
-	_verificationProperties: Dict[str, VerificationProperty]     #: Dictionary of all PSL verification properties defined in a document.
-	_verificationModes:      Dict[str, VerificationMode]         #: Dictionary of all PSL verification modes defined in a document.
+	_designUnits:            list[DesignUnit]                    #: List of all design units defined in a document.
+	_contexts:               dict[str, Context]                  #: Dictionary of all contexts defined in a document.
+	_configurations:         dict[str, Configuration]            #: Dictionary of all configurations defined in a document.
+	_entities:               dict[str, Entity]                   #: Dictionary of all entities defined in a document.
+	_architectures:          dict[str, dict[str, Architecture]]  #: Dictionary of all architectures defined in a document.
+	_packages:               dict[str, Package]                  #: Dictionary of all packages defined in a document.
+	_packageBodies:          dict[str, PackageBody]              #: Dictionary of all package bodies defined in a document.
+	_verificationUnits:      dict[str, VerificationUnit]         #: Dictionary of all PSL verification units defined in a document.
+	_verificationProperties: dict[str, VerificationProperty]     #: Dictionary of all PSL verification properties defined in a document.
+	_verificationModes:      dict[str, VerificationMode]         #: Dictionary of all PSL verification modes defined in a document.
 
 	_dependencyVertex:       Vertex  #: Reference to the vertex in the dependency graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
 	_compileOrderVertex:     Vertex  #: Reference to the vertex in the compile-order graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
@@ -3015,7 +3015,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	# 	# TODO: check and set library to design unit?
 
 	@readonly
-	def DesignUnits(self) -> List[DesignUnit]:
+	def DesignUnits(self) -> list[DesignUnit]:
 		"""
 		Read-only property to access a list of all design units declarations found in this document (:attr:`_designUnits`).
 
@@ -3024,7 +3024,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._designUnits
 
 	@readonly
-	def Contexts(self) -> Dict[str, Context]:
+	def Contexts(self) -> dict[str, Context]:
 		"""
 		Read-only property to access the dictionary of all context declarations in this document (:attr:`_contexts`).
 
@@ -3033,7 +3033,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._contexts
 
 	@readonly
-	def Configurations(self) -> Dict[str, Configuration]:
+	def Configurations(self) -> dict[str, Configuration]:
 		"""
 		Read-only property to access the dictionary of all configuration declarations in this document (:attr:`_configurations`).
 
@@ -3042,7 +3042,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._configurations
 
 	@readonly
-	def Entities(self) -> Dict[str, Entity]:
+	def Entities(self) -> dict[str, Entity]:
 		"""
 		Read-only property to access the dictionary of all entity declarations in this document (:attr:`_entities`).
 
@@ -3051,7 +3051,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._entities
 
 	@readonly
-	def Architectures(self) -> Dict[str, Dict[str, Architecture]]:
+	def Architectures(self) -> dict[str, dict[str, Architecture]]:
 		"""
 		Read-only property to access the dictionary of all architecture declarations in this document (:attr:`_architectures`).
 
@@ -3061,7 +3061,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._architectures
 
 	@readonly
-	def Packages(self) -> Dict[str, Package]:
+	def Packages(self) -> dict[str, Package]:
 		"""
 		Read-only property to access the dictionary of all package declarations in this document (:attr:`_packages`).
 
@@ -3070,7 +3070,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._packages
 
 	@readonly
-	def PackageBodies(self) -> Dict[str, PackageBody]:
+	def PackageBodies(self) -> dict[str, PackageBody]:
 		"""
 		Read-only property to access the dictionary of all package body declarations in this document (:attr:`_packageBodies`).
 
@@ -3079,7 +3079,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._packageBodies
 
 	@readonly
-	def VerificationUnits(self) -> Dict[str, VerificationUnit]:
+	def VerificationUnits(self) -> dict[str, VerificationUnit]:
 		"""
 		Read-only property to access the dictionary of all verification unit declarations in this document (:attr:`_verificationUnits`).
 
@@ -3088,7 +3088,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._verificationUnits
 
 	@readonly
-	def VerificationProperties(self) -> Dict[str, VerificationProperty]:
+	def VerificationProperties(self) -> dict[str, VerificationProperty]:
 		"""
 		Read-only property to access the dictionary of all verification property declarations in this document (:attr:`_verificationProperties`).
 
@@ -3097,7 +3097,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._verificationProperties
 
 	@readonly
-	def VerificationModes(self) -> Dict[str, VerificationMode]:
+	def VerificationModes(self) -> dict[str, VerificationMode]:
 		"""
 		Read-only property to access the dictionary of all verification mode declarations in this document (:attr:`_verificationModes`).
 

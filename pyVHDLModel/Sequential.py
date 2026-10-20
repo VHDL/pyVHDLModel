@@ -38,11 +38,14 @@ from __future__              import annotations
 
 from typing                  import Iterable, Optional as Nullable
 
+from pyTooling.Common        import getFullyQualifiedName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity, ExpressionUnion, Range, BaseChoice, BaseCase, ConditionalMixin, IfBranchMixin, ElsifBranchMixin
 from pyVHDLModel.Base        import ElseBranchMixin, ReportStatementMixin, AssertStatementMixin, WaveformElement, ChoicesMixin
+from pyVHDLModel.Base        import LabeledEntityMixin
+from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
 from pyVHDLModel.Symbol      import Symbol, SignalSymbol, VariableSymbol
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin
 from pyVHDLModel.Common      import AssignmentMixin, SignalAssignmentMixin, VariableAssignmentMixin
@@ -65,7 +68,7 @@ class SequentialStatement(Statement):
 
 
 @export
-class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True):
+class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_LabelRegion", )):
 	"""
 	A mixin-class for language constructs containing sequential statements.
 
@@ -112,25 +115,251 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True):
 
 		:returns: Tuple of labeled statements, depth-first in statement order.
 		"""
-		labels: list[SequentialStatement] = []
-		for statement in self._statements:
-			if statement._normalizedLabel is not None:
-				labels.append(statement)
+		return tuple(label for statement in self._statements for label in self._LabelsOf(statement))
 
-			if isinstance(statement, SequentialStatementsMixin):
-				labels.extend(statement._Labels())
-			elif isinstance(statement, IfStatement):
-				labels.extend(statement._ifBranch._Labels())
-				for branch in statement._elsifBranches:
-					labels.extend(branch._Labels())
+	@staticmethod
+	def _LabelsOf(statement: SequentialStatement) -> tuple[SequentialStatement, ...]:
+		"""
+		Return a statement, if it's labeled, and the labeled statements nested in it.
 
-				if statement._elseBranch is not None:
-					labels.extend(statement._elseBranch._Labels())
-			elif isinstance(statement, CaseStatement):
-				for case in statement._cases:
-					labels.extend(case._Labels())
+		:param statement: The sequential statement.
+		:returns:         Tuple of labeled statements, depth-first in statement order.
+		"""
+		labels: list[SequentialStatement] = [] if statement._normalizedLabel is None else [statement]
+		if isinstance(statement, SequentialStatementsMixin):
+			labels.extend(statement._Labels())
+		elif isinstance(statement, IfStatement):
+			labels.extend(statement._ifBranch._Labels())
+			for branch in statement._elsifBranches:
+				labels.extend(branch._Labels())
+
+			if statement._elseBranch is not None:
+				labels.extend(statement._elseBranch._Labels())
+		elif isinstance(statement, CaseStatement):
+			for case in statement._cases:
+				labels.extend(case._Labels())
 
 		return tuple(labels)
+
+	def AddStatement(self, statement: SequentialStatement) -> None:
+		"""
+		Add a sequential statement at the end of this construct.
+
+		The statement's parent is set to this construct.
+
+		:param statement:             The sequential statement to add.
+		:raises ValueError:           If parameter 'statement' is ``None``.
+		:raises TypeError:            If parameter 'statement' is not of type :class:`SequentialStatement`.
+		:raises AlreadyInDesignError: If parameter 'statement' already has a parent.
+		:raises DuplicateLabelError:  If the declarative region already declares a label of the statement.
+
+		.. seealso::
+
+		   :meth:`InsertStatement`
+		      |rarr| Insert a sequential statement at a position of this construct.
+		   :meth:`RemoveStatement`
+		      |rarr| Remove a sequential statement from this construct.
+		"""
+		self.InsertStatement(len(self._statements), statement)
+
+	def InsertStatement(self, index: int, statement: SequentialStatement) -> None:
+		"""
+		Insert a sequential statement at a position of this construct.
+
+		The statement's parent is set to this construct.
+
+		Every label of a process or subprogram body is declared in the process' or subprogram's declarative region: the
+		statement's label and the labels of statements nested in it (in branches, case alternatives and loops) may neither
+		repeat another label of the body, nor an identifier declared in the region. A construct not in a process or
+		subprogram (yet) checks the labels of its own statements. An unlabeled statement declares nothing.
+
+		:param index:                 Position, from ``0`` (first) to the number of statements (append). A negative index
+		                              counts from the end, as for :meth:`list.insert`: ``-1`` inserts before the last
+		                              statement.
+		:param statement:             The sequential statement to insert.
+		:raises ValueError:           If parameter 'index' is ``None``.
+		:raises TypeError:            If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:           If parameter 'index' is out of range.
+		:raises ValueError:           If parameter 'statement' is ``None``.
+		:raises TypeError:            If parameter 'statement' is not of type :class:`SequentialStatement`.
+		:raises AlreadyInDesignError: If parameter 'statement' already has a parent.
+		:raises DuplicateLabelError:  If the declarative region already declares a label of the statement.
+
+		.. seealso::
+
+		   :meth:`AddStatement`
+		      |rarr| Add a sequential statement at the end of this construct.
+		   :meth:`InsertStatementBefore`
+		      |rarr| Insert a sequential statement before another statement.
+		   :meth:`InsertStatementAfter`
+		      |rarr| Insert a sequential statement after another statement.
+		   :meth:`RemoveStatement`
+		      |rarr| Remove a sequential statement from this construct.
+		"""
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif not (-len(self._statements) <= index <= len(self._statements)):
+			ex = ValueError(f"Parameter 'index' is out of range {-len(self._statements)}..{len(self._statements)}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		if statement is None:
+			raise ValueError("Parameter 'statement' is None.")
+		elif not isinstance(statement, SequentialStatement):
+			ex = TypeError("Parameter 'statement' is not of type 'SequentialStatement'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(statement)}'.")
+			raise ex
+		elif statement._parent is not None:
+			label = "" if statement._label is None else f" '{statement._label}'"
+			ex = AlreadyInDesignError(f"{statement.__class__.__name__}{label} already has a parent.")
+			ex.add_note(f"Remove it from its {statement._parent.__class__.__name__} first.")
+			raise ex
+
+		region = self._LabelRegion()
+		for labeled in self._LabelsOf(statement):
+			if region is None:
+				clashes = tuple(item for item in self._Labels() if item._normalizedLabel == labeled._normalizedLabel)
+			else:
+				clashes = region._ClashingDeclarations(labeled)
+
+			if len(clashes) > 0:
+				construct = self if region is None else region
+				ex = DuplicateLabelError(f"{construct.__class__.__name__} already declares '{labeled._label}'.")
+				ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
+				raise ex
+
+		self._statements.insert(index, statement)
+		statement.Parent = self
+
+	def InsertStatementBefore(self, statement: SequentialStatement, before: SequentialStatement) -> None:
+		"""
+		Insert a sequential statement before another statement of this construct.
+
+		The statement's parent is set to this construct.
+
+		:param statement:             The sequential statement to insert.
+		:param before:                The statement of this construct to insert before.
+		:raises ValueError:           If parameter 'before' is ``None``.
+		:raises TypeError:            If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:       If parameter 'before' is not a statement of this construct.
+		:raises ValueError:           If parameter 'statement' is ``None``.
+		:raises TypeError:            If parameter 'statement' is not of type :class:`SequentialStatement`.
+		:raises AlreadyInDesignError: If parameter 'statement' already has a parent.
+		:raises DuplicateLabelError:  If the declarative region already declares a label of the statement.
+
+		.. seealso::
+
+		   :meth:`InsertStatement`
+		      |rarr| Insert a sequential statement at a position of this construct.
+		   :meth:`InsertStatementAfter`
+		      |rarr| Insert a sequential statement after another statement.
+		"""
+		if before is None:
+			raise ValueError("Parameter 'before' is None.")
+		elif not isinstance(before, ModelEntity):
+			ex = TypeError("Parameter 'before' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(before)}'.")
+			raise ex
+
+		for index, item in enumerate(self._statements):
+			if item is before:
+				break
+		else:
+			label = ""
+			if isinstance(before, LabeledEntityMixin) and before._label is not None:
+				label = f" '{before._label}'"
+			raise NotAChildError(
+				f"{before.__class__.__name__}{label} is not a statement of this {self.__class__.__name__}."
+			)
+
+		self.InsertStatement(index, statement)
+
+	def InsertStatementAfter(self, statement: SequentialStatement, after: SequentialStatement) -> None:
+		"""
+		Insert a sequential statement after another statement of this construct.
+
+		The statement's parent is set to this construct.
+
+		:param statement:             The sequential statement to insert.
+		:param after:                 The statement of this construct to insert after.
+		:raises ValueError:           If parameter 'after' is ``None``.
+		:raises TypeError:            If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:       If parameter 'after' is not a statement of this construct.
+		:raises ValueError:           If parameter 'statement' is ``None``.
+		:raises TypeError:            If parameter 'statement' is not of type :class:`SequentialStatement`.
+		:raises AlreadyInDesignError: If parameter 'statement' already has a parent.
+		:raises DuplicateLabelError:  If the declarative region already declares a label of the statement.
+
+		.. seealso::
+
+		   :meth:`InsertStatement`
+		      |rarr| Insert a sequential statement at a position of this construct.
+		   :meth:`InsertStatementBefore`
+		      |rarr| Insert a sequential statement before another statement.
+		"""
+		if after is None:
+			raise ValueError("Parameter 'after' is None.")
+		elif not isinstance(after, ModelEntity):
+			ex = TypeError("Parameter 'after' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(after)}'.")
+			raise ex
+
+		for index, item in enumerate(self._statements):
+			if item is after:
+				break
+		else:
+			label = ""
+			if isinstance(after, LabeledEntityMixin) and after._label is not None:
+				label = f" '{after._label}'"
+			raise NotAChildError(
+				f"{after.__class__.__name__}{label} is not a statement of this {self.__class__.__name__}."
+			)
+
+		self.InsertStatement(index + 1, statement)
+
+	def RemoveStatement(self, statement: SequentialStatement) -> None:
+		"""
+		Remove a sequential statement from this construct.
+
+		The statement is detached: its parent is cleared. The statement itself is unchanged and can be added to another
+		construct, or inserted at another position; its labels are free again in this construct's declarative region.
+
+		:param statement:       The sequential statement to remove.
+		:raises ValueError:     If parameter 'statement' is ``None``.
+		:raises TypeError:      If parameter 'statement' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'statement' is not a statement of this construct.
+
+		.. seealso::
+
+		   :meth:`AddStatement`
+		      |rarr| Add a sequential statement at the end of this construct.
+		   :meth:`InsertStatement`
+		      |rarr| Insert a sequential statement at a position of this construct.
+		"""
+		if statement is None:
+			raise ValueError("Parameter 'statement' is None.")
+		elif not isinstance(statement, ModelEntity):
+			ex = TypeError("Parameter 'statement' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(statement)}'.")
+			raise ex
+
+		for index, item in enumerate(self._statements):
+			if item is statement:
+				break
+		else:
+			label = ""
+			if isinstance(statement, LabeledEntityMixin) and statement._label is not None:
+				label = f" '{statement._label}'"
+			raise NotAChildError(
+				f"{statement.__class__.__name__}{label} is not a statement of this {self.__class__.__name__}."
+			)
+
+		del self._statements[index]
+		statement._parent = None
 
 
 @export
@@ -631,6 +860,20 @@ class Branch(ModelEntity, SequentialStatementsMixin):
 		super().__init__(parent)
 		SequentialStatementsMixin.__init__(self, statements)
 
+	def _LabelRegion(self) -> Nullable[ModelEntity]:
+		"""
+		Return the process or subprogram declaring the labels of this branch's statements.
+
+		It's the region of the construct holding the if statement.
+
+		:returns: The process or subprogram, or ``None`` if the branch isn't part of one (yet).
+		"""
+		ifStatement = self._parent
+		if ifStatement is None or ifStatement._parent is None:
+			return None
+
+		return ifStatement._parent._LabelRegion()
+
 
 @export
 class IfBranch(Branch, IfBranchMixin):
@@ -978,6 +1221,20 @@ class SequentialCase(BaseCase, SequentialStatementsMixin, ChoicesMixin):
 		SequentialStatementsMixin.__init__(self, statements)
 		ChoicesMixin.__init__(self, choices)
 
+	def _LabelRegion(self) -> Nullable[ModelEntity]:
+		"""
+		Return the process or subprogram declaring the labels of this case alternative's statements.
+
+		It's the region of the construct holding the case statement.
+
+		:returns: The process or subprogram, or ``None`` if the case alternative isn't part of one (yet).
+		"""
+		caseStatement = self._parent
+		if caseStatement is None or caseStatement._parent is None:
+			return None
+
+		return caseStatement._parent._LabelRegion()
+
 
 @export
 class Case(SequentialCase):
@@ -1128,6 +1385,16 @@ class LoopStatement(CompoundStatement, SequentialStatementsMixin):
 		"""
 		super().__init__(label, parent)
 		SequentialStatementsMixin.__init__(self, statements)
+
+	def _LabelRegion(self) -> Nullable[ModelEntity]:
+		"""
+		Return the process or subprogram declaring the labels of this loop's statements.
+
+		It's the region of the construct holding the loop.
+
+		:returns: The process or subprogram, or ``None`` if the loop isn't part of one (yet).
+		"""
+		return None if self._parent is None else self._parent._LabelRegion()
 
 
 @export

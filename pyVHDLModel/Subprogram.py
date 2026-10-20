@@ -151,6 +151,14 @@ class Subprogram(
 		"""
 		return (*self._genericItems, *self._parameterItems, *super()._Declarations())
 
+	def _LabelRegion(self) -> Subprogram:
+		"""
+		Return the subprogram, whose declarative region declares the labels of its statements.
+
+		:returns: The subprogram itself.
+		"""
+		return self
+
 	def __str__(self) -> str:
 		"""
 		Formats the subprogram declaration.

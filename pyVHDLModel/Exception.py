@@ -46,7 +46,7 @@ from pyTooling.Warning        import Warning, CriticalWarning
 from pyVHDLModel.Symbol       import Symbol
 
 if TYPE_CHECKING:  # pragma: no cover
-	from pyVHDLModel.Base       import ModelEntity
+	from pyVHDLModel.Base       import ModelElementUnion, ModelEntity
 	from pyVHDLModel.Concurrent import ComponentInstantiation
 	from pyVHDLModel.DesignUnit import Component as _Component
 	from pyVHDLModel.Namespace  import Namespace as _Namespace
@@ -281,6 +281,7 @@ class VHDLModelException(ExceptionBase):
 	   * :class:`Duplicate parameter error <pyVHDLModel.Exception.DuplicateParameterError>`
 	   * :class:`Not in namespace error <pyVHDLModel.Exception.NotInNamespaceError>`
 	   * :class:`Duplicate declaration error <pyVHDLModel.Exception.DuplicateDeclarationError>`
+	   * :class:`VHDL writer error <pyVHDLModel.Exception.VHDLWriterError>`
 	"""
 
 
@@ -804,3 +805,33 @@ class DuplicateSubprogramError(DuplicateDeclarationError):
 
 	Subprograms are overloadable, so only a declaration other than a subprogram is a duplicate.
 	"""
+
+
+@export
+class VHDLWriterError(VHDLModelException):
+	"""
+	This exception is raised, when the VHDL writer can't write a model element as VHDL source text.
+
+	The element's content has no VHDL notation, e.g. a string literal containing a control character.
+	"""
+
+	_element: ModelElementUnion  #: The model element the writer could not write.
+
+	def __init__(self, message: str, element: ModelElementUnion) -> None:
+		"""
+		Initializes the exception with a message and the model element that could not be written.
+
+		:param message: The error message.
+		:param element: The model element that could not be written.
+		"""
+		super().__init__(message)
+		self._element = element
+
+	@readonly
+	def Element(self) -> ModelElementUnion:
+		"""
+		Read-only property to access the model element that could not be written (:attr:`_element`).
+
+		:returns: The model element.
+		"""
+		return self._element

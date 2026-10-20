@@ -43,8 +43,7 @@ Mixins already fully exercised elsewhere are intentionally not repeated here:
 - ``ChoicesMixin`` with a non-empty choice list - covered via tests/unit/Assignment.py
   (``SelectedWaveform`` et al.). Only the ``choices=None`` default path is added here.
 """
-from pyTooling.Testing       import Testcase
-
+from pyTooling.MetaClasses   import AbstractClassError
 from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Base        import Direction, Mode, ModelEntity, Range, RangeFromName, SimpleRange, WaveformElement
@@ -55,6 +54,8 @@ from pyVHDLModel.Concurrent  import ConcurrentBlockStatement
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Object      import Signal
 from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol, SimpleSubtypeSymbol
+
+from tests.unit              import _Element
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -88,20 +89,25 @@ class ModeEnum(Testcase):
 
 
 class ModelEntities(Testcase):
+	def test_Abstract(self) -> None:
+		"""``ModelEntity`` is abstract: only derived classes are instantiated."""
+		with self.assertRaises(AbstractClassError):
+			ModelEntity()
+
 	def test_NoParent(self) -> None:
-		entity = ModelEntity()
+		entity = _Element()
 
 		self.assertIsNone(entity.Parent)
 
 	def test_ConstructedWithParent(self) -> None:
-		parent = ModelEntity()
-		entity = ModelEntity(parent=parent)
+		parent = _Element()
+		entity = _Element(parent=parent)
 
 		self.assertIs(parent, entity.Parent)
 
 	def test_ParentSetter(self) -> None:
-		parent = ModelEntity()
-		entity = ModelEntity()
+		parent = _Element()
+		entity = _Element()
 		entity.Parent = parent
 
 		self.assertIs(parent, entity.Parent)
@@ -110,7 +116,7 @@ class ModelEntities(Testcase):
 		"""Unlike the constructor (where omitting ``parent`` is normal for a not-yet-attached root), the
 		``Parent`` setter rejects ``None`` outright - it's only ever used to attach an entity to a real
 		parent after the fact."""
-		entity = ModelEntity(parent=ModelEntity())
+		entity = _Element(parent=_Element())
 
 		with self.assertRaises(ValueError):
 			entity.Parent = None

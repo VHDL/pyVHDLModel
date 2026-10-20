@@ -36,13 +36,15 @@ VHDL uses *names* to express cross-references from *usage locations* to *declara
 combined identifiers. :mod:`Symbols <pyVHDLModel.Symbol>` are structures representing a *name* and a reference
 (pointer) to the referenced vhdl language entity.
 """
-from __future__           import annotations
+from __future__            import annotations
 
-from typing               import Iterable, Optional as Nullable
+from typing                import TYPE_CHECKING, Iterable, Optional as Nullable
 
-from pyTooling.Decorators import export, readonly
+from pyTooling.Decorators  import export, readonly
 
-from pyVHDLModel.Base     import ModelEntity, ExpressionUnion
+from pyVHDLModel.Base      import ModelEntity, ExpressionUnion
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor import Visitor
 
 
 @export
@@ -167,6 +169,15 @@ class SimpleName(Name):
 	reference other (already) declared language entities.
 	"""
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this simple name with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSimpleName(self)
+		visitor.DepartSimpleName(self)
+
 
 @export
 class ParenthesisName(Name):
@@ -200,6 +211,23 @@ class ParenthesisName(Name):
 		:returns: List of associations.
 		"""
 		return self._associations
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this parenthesis name, its prefix and its associations with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitParenthesisName(self)
+		self._prefix.Visit(visitor)
+		visitor.VisitLeftParenthesis(self)
+		for position, association in enumerate(self._associations):
+			if position > 0:
+				visitor.VisitComma(self)
+
+			association.Visit(visitor)
+
+		visitor.DepartParenthesisName(self)
 
 	def __str__(self) -> str:
 		"""
@@ -250,6 +278,23 @@ class IndexedName(Name):
 		"""
 		return self._indices
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this indexed name, its prefix and its indices with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIndexedName(self)
+		self._prefix.Visit(visitor)
+		visitor.VisitLeftParenthesis(self)
+		for position, index in enumerate(self._indices):
+			if position > 0:
+				visitor.VisitComma(self)
+
+			index.Visit(visitor)
+
+		visitor.DepartIndexedName(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the indexed name.
@@ -273,7 +318,17 @@ class SlicedName(Name):
 	      vres := v(3 downto 0);
 	      --      ^^^^^^^^^^^^^    <- the sliced name
 	"""
-	pass
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this sliced name and its prefix with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSlicedName(self)
+		if self._prefix is not None:
+			self._prefix.Visit(visitor)
+
+		visitor.DepartSlicedName(self)
 
 
 @export
@@ -299,6 +354,16 @@ class SelectedName(Name):
 		:param parent:     The parent model entity of this entity.
 		"""
 		super().__init__(identifier, prefix, parent)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this selected name and its prefix with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSelectedName(self)
+		self._prefix.Visit(visitor)
+		visitor.DepartSelectedName(self)
 
 	def __str__(self) -> str:
 		"""
@@ -333,6 +398,16 @@ class AttributeName(Name):
 		"""
 		super().__init__(identifier, prefix, parent)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this attribute name and its prefix with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAttributeName(self)
+		self._prefix.Visit(visitor)
+		visitor.DepartAttributeName(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the attribute name.
@@ -360,6 +435,16 @@ class AllName(SelectedName):
 		"""
 		super().__init__("all", prefix, parent)  # TODO: the case of 'ALL' is not preserved
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this ``all`` name and its prefix with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAllName(self)
+		self._prefix.Visit(visitor)
+		visitor.DepartAllName(self)
+
 
 @export
 class OpenName(Name):
@@ -375,6 +460,15 @@ class OpenName(Name):
 		:param parent: The parent model entity of this entity.
 		"""
 		super().__init__("open", parent=parent)  # TODO: the case of 'OPEN' is not preserved
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this ``open`` name with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitOpenName(self)
+		visitor.DepartOpenName(self)
 
 	def __str__(self) -> str:
 		"""

@@ -31,12 +31,13 @@
 """Tests for pyVHDLModel.Name."""
 from pyTooling.Testing       import Testcase
 
-from pyVHDLModel.Base        import ModelEntity
 from pyVHDLModel.Expression  import IntegerLiteral
 from pyVHDLModel.Association import GenericAssociationItem
 from pyVHDLModel.Name        import (
 	Name, SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, AttributeName, AllName, OpenName,
 )
+
+from tests.unit              import _Element
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -84,7 +85,7 @@ class Names(Testcase):
 		self.assertIs(middle, leaf.Prefix)
 
 	def test_WithParent(self) -> None:
-		parent = ModelEntity()
+		parent = _Element()
 		name = Name("foo", parent=parent)
 
 		self.assertIs(parent, name.Parent)
@@ -183,7 +184,7 @@ class OpenNames(Testcase):
 		self.assertEqual("open", str(name))
 
 	def test_ConstructionWithParent(self) -> None:
-		parent = ModelEntity()
+		parent = _Element()
 		name = OpenName(parent)
 
 		self.assertIs(parent, name.Parent)

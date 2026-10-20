@@ -270,6 +270,7 @@ The accompanying documentation is licensed under :ref:`Creative Commons - Attrib
    LanguageModel/index
    Analyze/index
    DataStructure/index
+   Writer/index
 
 .. raw:: latex
 

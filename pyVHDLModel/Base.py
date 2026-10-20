@@ -37,14 +37,17 @@ Base-classes for the VHDL language model.
 from __future__            import annotations
 
 from enum                  import unique, Enum
-from typing                import Type, Iterable, Optional as Nullable, Union, cast
+from typing                import TYPE_CHECKING, Type, Iterable, Optional as Nullable, Union, cast
 
 from pyTooling.Common      import getFullyQualifiedName
-from pyTooling.Decorators  import export, readonly
-from pyTooling.MetaClasses import ExtendedType
+from pyTooling.Decorators  import export, notimplemented, readonly
+from pyTooling.MetaClasses import ExtendedType, abstractclass
+if TYPE_CHECKING:
+	from pyVHDLModel.Symbol  import Symbol
+	from pyVHDLModel.Visitor import Visitor
 
 
-__all__ = ["ExpressionUnion"]
+__all__ = ["ExpressionUnion", "ModelElementUnion"]
 
 
 ExpressionUnion = Union[
@@ -55,6 +58,12 @@ ExpressionUnion = Union[
 	# ConstantOrSymbol,     TODO: ObjectSymbol
 	'Literal',
 ]
+
+ModelElementUnion = Union['ModelEntity', 'Symbol']
+"""
+A model element a visitor walks or the VHDL writer writes: a :class:`ModelEntity` or a
+:class:`~pyVHDLModel.Symbol.Symbol`.
+"""
 
 
 @export
@@ -101,6 +110,7 @@ class Mode(Enum):
 
 
 @export
+@abstractclass
 class ModelEntity(metaclass=ExtendedType, slots=True):
 	"""
 	``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
@@ -161,6 +171,17 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 			raise VHDLModelException(f"No ancestor of type '{type.__name__}' found for {self!r}.")
 
 		return parent
+
+	@notimplemented("Model element has no walk for a visitor.")
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this model element with a visitor.
+
+		A model class implements its walk; a class without one raises.
+
+		:param visitor:              The visitor receiving the events.
+		:raises NotImplementedError: Always, because the element's class has no walk of its own.
+		"""
 
 
 @export

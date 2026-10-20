@@ -38,12 +38,17 @@ actually builds.
 """
 from typing import Type, TypeVar
 
+from pyVHDLModel.Base   import ModelEntity
 from pyVHDLModel.Name   import SimpleName
 from pyVHDLModel.Object import Signal, Variable
 from pyVHDLModel.Symbol import EntitySymbol, SignalSymbol, SimpleSubtypeSymbol, VariableSymbol
 
 
 _Warning = TypeVar("_Warning", bound=BaseException)
+
+
+class _Element(ModelEntity):
+	"""A concrete model element: :class:`~pyVHDLModel.Base.ModelEntity` is abstract."""
 
 
 def _subtypeSymbol(name: str) -> SimpleSubtypeSymbol:

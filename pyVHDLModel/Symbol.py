@@ -37,14 +37,16 @@ Symbols are entity specific wrappers for names that reference VHDL language enti
 from __future__            import annotations
 
 from enum                  import Flag, auto
-from typing                import Any, Optional as Nullable, Iterable, Mapping
+from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping
 
 from pyTooling.Common      import getTypeName
-from pyTooling.Decorators  import export, readonly
+from pyTooling.Decorators  import export, notimplemented, readonly
 from pyTooling.MetaClasses import ExtendedType
 
 from pyVHDLModel.Base      import Range
 from pyVHDLModel.Name      import Name, AllName
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor import Visitor
 
 
 @export
@@ -151,6 +153,16 @@ class Symbol(metaclass=ExtendedType):
 		:returns: ``True`` if the symbol references a model entity.
 		"""
 		return self._reference is not None
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this symbol and its name with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSymbol(self)
+		self._name.Visit(visitor)
+		visitor.DepartSymbol(self)
 
 	def __repr__(self) -> str:
 		"""
@@ -946,6 +958,17 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol, ScalarConstraint):
 		super().__init__(name)
 		ScalarConstraint.__init__(self, constraint)
 
+	@notimplemented("Model element has no walk for a visitor.")
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this constrained scalar subtype symbol with a visitor.
+
+		The walk of its base class would drop the constraint.
+
+		:param visitor:              The visitor receiving the events.
+		:raises NotImplementedError: Always, because the constraint has no walk yet.
+		"""
+
 
 @export
 class ArrayConstraint(Constraint, mixin=True):
@@ -1021,7 +1044,16 @@ class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 	   * :class:`Constrained array subtype symbol <pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol>`
 	   * :class:`Constrained record subtype symbol <pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol>`
 	"""
-	pass
+	@notimplemented("Model element has no walk for a visitor.")
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this constrained composite subtype symbol with a visitor.
+
+		The walk of its base class would drop the constraint.
+
+		:param visitor:              The visitor receiving the events.
+		:raises NotImplementedError: Always, because the constraint has no walk yet.
+		"""
 
 
 @export

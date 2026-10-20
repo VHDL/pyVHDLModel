@@ -42,7 +42,6 @@ from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import VHDLModelException
 from pyVHDLModel.Exception  import BlackboxWarning, VHDLModelWarning
-from pyVHDLModel.Base       import ModelEntity
 from pyVHDLModel.Name       import SimpleName, SelectedName
 from pyVHDLModel.Symbol     import EntitySymbol, PackageSymbol, LibraryReferenceSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Object     import Constant, Signal, Variable, SharedVariable, File, DeferredConstant
@@ -54,7 +53,7 @@ from pyVHDLModel.DesignUnit import (
 	Package, PackageBody, Entity, Architecture, Component, Configuration,
 )
 
-from tests.unit             import _entitySymbol
+from tests.unit             import _Element, _entitySymbol
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -139,7 +138,7 @@ class DesignUnits(Testcase):
 		"""``Library`` is just a renamed view onto the same ``_parent`` field every ``ModelEntity``
 		has."""
 		unit = _ConcreteDesignUnit("u")
-		library = ModelEntity()
+		library = _Element()
 		unit.Library = library
 
 		self.assertIs(library, unit.Library)
@@ -183,7 +182,7 @@ class Contexts(Testcase):
 		``ModelEntity`` (not ``object()``) since the ``.Parent = self`` assignment a few lines above
 		the kind-check runs first and needs a real settable ``Parent``."""
 		with self.assertRaises(VHDLModelException) as context:
-			Context("ctx", [ModelEntity()])
+			Context("ctx", [_Element()])
 
 		self.assertIn("neither a library clause, use clause, nor context reference", str(context.exception))
 
@@ -343,8 +342,8 @@ class Components(Testcase):
 		append and set ``.Parent``, they don't care about the item's real type (real
 		``GenericInterfaceItemMixin``/``PortInterfaceItemMixin`` classes are covered in their own
 		slice)."""
-		genericItem = ModelEntity()
-		portItem = ModelEntity()
+		genericItem = _Element()
+		portItem = _Element()
 		component = Component("comp", genericItems=[genericItem], portItems=[portItem])
 
 		self.assertEqual(1, len(component.GenericItems))

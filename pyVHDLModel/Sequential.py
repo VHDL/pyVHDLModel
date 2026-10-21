@@ -103,6 +103,35 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return self._statements
 
+	def _Labels(self) -> tuple[SequentialStatement, ...]:
+		"""
+		Return the labeled statements of this construct, including the statements nested in compound statements.
+
+		Every label of a process or subprogram body is declared in the process' or subprogram's declarative region, also
+		a label inside an if branch, a case alternative or a loop.
+
+		:returns: Tuple of labeled statements, depth-first in statement order.
+		"""
+		labels: list[SequentialStatement] = []
+		for statement in self._statements:
+			if statement._normalizedLabel is not None:
+				labels.append(statement)
+
+			if isinstance(statement, SequentialStatementsMixin):
+				labels.extend(statement._Labels())
+			elif isinstance(statement, IfStatement):
+				labels.extend(statement._ifBranch._Labels())
+				for branch in statement._elsifBranches:
+					labels.extend(branch._Labels())
+
+				if statement._elseBranch is not None:
+					labels.extend(statement._elseBranch._Labels())
+			elif isinstance(statement, CaseStatement):
+				for case in statement._cases:
+					labels.extend(case._Labels())
+
+		return tuple(labels)
+
 
 @export
 class SequentialProcedureCall(SequentialStatement, ProcedureCallMixin):

@@ -44,7 +44,7 @@ from pyTooling.MetaClasses   import ExtendedType
 from pyTooling.Warning       import WarningCollector
 
 from pyVHDLModel.Base        import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf
-from pyVHDLModel.Base        import normalizedIdentifiersOf
+from pyVHDLModel.Base        import normalizedIdentifiersOf, normalizedDeclaredNamesOf
 from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError
 from pyVHDLModel.Exception   import DuplicateGenericError, DuplicatePortError, DuplicateParameterError
 from pyVHDLModel.Exception   import DuplicateDeclarationError, DuplicateTypeError, DuplicateSubtypeError
@@ -644,7 +644,7 @@ class WithParametersMixin(
 
 
 @export
-class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
+class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labels",)):
 	"""
 	A base-class for the concurrent, sequential and protected type declaration region mixins.
 
@@ -666,15 +666,20 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Concurrent declaration region mixin <pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin>`
 	   * :class:`Sequential declaration region mixin <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	   * :class:`Protected type declaration region mixin <pyVHDLModel.Regions.ProtectedTypeDeclarationRegionMixin>`
+
+	A statement label is declared implicitly in the declarative region enclosing the statement, so the host provides the
+	labeled statements of the region by ``_Labels()``: a host with statements gets it from its statements mixin
+	(e.g. :class:`~pyVHDLModel.Concurrent.ConcurrentStatementsMixin`), a host without statements from
+	:class:`WithoutStatementsMixin`.
 	"""
-	_declaredItemTypes: ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
-	_isIndexed:         bool                        #: ``True`` if :meth:`IndexDeclaredItems` filled the namespace.
+	_declaredItemTypes:       ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
+	_areDeclaredItemsIndexed: bool                        #: ``True`` if :meth:`IndexDeclaredItems` filled the namespace.
 
 	def __init__(self) -> None:
 		"""
 		Initializes a declaration region, which isn't indexed yet.
 		"""
-		self._isIndexed = False
+		self._areDeclaredItemsIndexed = False
 
 	def _IndexGenericItems(self) -> None:
 		"""Add this region's generics to its namespace; a generic subprogram is an overload."""
@@ -708,7 +713,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		from pyVHDLModel.Subprogram import Function, Procedure
 
-		if not self._isIndexed:
+		if not self._areDeclaredItemsIndexed:
 			return
 		elif isinstance(element, (Function, Procedure)):
 			self._AddOverloadToNamespace(element)
@@ -732,7 +737,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		from pyVHDLModel.Subprogram import Function, Procedure
 
-		if not self._isIndexed:
+		if not self._areDeclaredItemsIndexed:
 			return
 		elif isinstance(element, (Function, Procedure)):
 			self._RemoveOverloadFromNamespace(element)
@@ -933,24 +938,24 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Return the declarations sharing an identifier with the given item, which may not share it.
 
-		The declarations (:meth:`_Declarations`) of this declarative region and of the language constructs sharing it
-		(:meth:`_SharedRegions`) are searched. Items imported into the namespace (e.g. by a use clause) are no declarations.
+		The declarations (:meth:`_Declarations`) and the labeled statements (``_Labels()``) of this declarative region and
+		of the language constructs sharing it (:meth:`_SharedRegions`) are searched: a statement label is declared
+		implicitly. Items imported into the namespace (e.g. by a use clause) are no declarations.
 
-		:param item: The new declaration.
-		:returns:    Tuple of clashing declarations, interface items first, then declared items in declaration order.
+		:param item: The new declaration, or the new labeled statement.
+		:returns:    Tuple of clashing declarations, interface items first, then declared items in declaration order, then
+		             labeled statements.
 		"""
-		if not isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
+		if len(names := set(normalizedDeclaredNamesOf(item))) == 0:
 			return ()
 
-		identifiers = set(normalizedIdentifiersOf(item))
 		return tuple(
 			declaration
 			for region in (self, *self._SharedRegions())
-			for declaration in region._Declarations()
+			for declaration in (*region._Declarations(), *region._Labels())
 			if (
 				declaration is not item
-				and isinstance(declaration, (NamedEntityMixin, MultipleNamedEntityMixin))
-				and not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
+				and not names.isdisjoint(normalizedDeclaredNamesOf(declaration))
 				and not self._MayShareIdentifier(item, declaration)
 			)
 		)
@@ -1066,7 +1071,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			raise ex
 
 		if len(clashes := self._ClashingDeclarations(declaredItem)) > 0:
-			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
+			existingIdentifiers = normalizedDeclaredNamesOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(declaredItem), normalizedIdentifiersOf(declaredItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
 			if isinstance(declaredItem, Subtype):
@@ -1087,7 +1092,10 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 				errorClass = DuplicateComponentError
 			else:
 				errorClass = DuplicateDeclarationError
-			ex = errorClass(f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.")
+			region = clashes[0]._parent
+			while not isinstance(region, DeclarationRegionMixin):
+				region = region._parent
+			ex = errorClass(f"{getTypeName(region)} already declares '{identifier}'.")
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
@@ -1095,7 +1103,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 
 		self._declaredItems.insert(index, declaredItem)
 		declaredItem.Parent = self
-		if self._isIndexed:
+		if self._areDeclaredItemsIndexed:
 			if isinstance(declaredItem, (Function, Procedure)):
 				self._IndexOverload(declaredItem)
 			else:
@@ -1243,7 +1251,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 			)
 
 		reindex = False
-		if self._isIndexed:
+		if self._areDeclaredItemsIndexed:
 			isOverload = isinstance(declaredItem, (Function, Procedure))
 			reindex = any(
 				not (isOverload and isinstance(item, (Function, Procedure)))
@@ -1256,6 +1264,30 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True):
 
 		if reindex:
 			self.IndexDeclaredItems()
+
+
+@export
+class WithoutStatementsMixin(metaclass=ExtendedType, mixin=True):
+	"""
+	A mixin-class for language constructs with a declarative region, but without statements.
+
+	It provides the labeled statements ``_Labels()`` the declaration region expects from its host class: none.
+
+	.. seealso::
+
+	   * :class:`Package <pyVHDLModel.DesignUnit.Package>`
+	   * :class:`Package body <pyVHDLModel.DesignUnit.PackageBody>`
+	   * :class:`Protected type <pyVHDLModel.Type.ProtectedType>`
+	   * :class:`Protected type body <pyVHDLModel.Type.ProtectedTypeBody>`
+	"""
+
+	def _Labels(self) -> tuple[ModelEntity, ...]:
+		"""
+		Return the labeled statements, whose labels are declared in this declarative region.
+
+		:returns: An empty tuple.
+		"""
+		return ()
 
 
 @export
@@ -1487,7 +1519,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		for item in self._declaredItems:
 			self._IndexDeclaredItem(item)
 
-		self._isIndexed = True
+		self._areDeclaredItemsIndexed = True
 
 	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
 		"""
@@ -1761,7 +1793,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		for item in self._declaredItems:
 			self._IndexDeclaredItem(item)
 
-		self._isIndexed = True
+		self._areDeclaredItemsIndexed = True
 
 	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
 		"""
@@ -1938,7 +1970,7 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		for item in self._declaredItems:
 			self._IndexDeclaredItem(item)
 
-		self._isIndexed = True
+		self._areDeclaredItemsIndexed = True
 
 	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
 		"""

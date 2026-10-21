@@ -385,6 +385,31 @@ def normalizedIdentifiersOf(item) -> tuple[str, ...]:
 
 
 @export
+def normalizedDeclaredNamesOf(item: ModelEntity) -> tuple[str, ...]:
+	"""
+	Return the normalized (lower case) names an item declares in its declarative region.
+
+	A declaration declares its identifiers. A statement label is declared implicitly in the declarative region enclosing
+	the statement, so a labeled statement declares its label.
+
+	:param item: A model entity.
+	:returns:    The normalized identifiers of a singularly or plurally named entity, the normalized label of a labeled
+	             entity, or an empty tuple.
+
+	.. seealso::
+
+	   :func:`normalizedIdentifiersOf`
+	     The normalized identifiers of a singularly or plurally named entity.
+	"""
+	if isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
+		return normalizedIdentifiersOf(item)
+	elif isinstance(item, LabeledEntityMixin) and item._normalizedLabel is not None:
+		return (item._normalizedLabel, )
+
+	return ()
+
+
+@export
 class LabeledEntityMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A ``LabeledEntityMixin`` is a mixin class for all VHDL entities that can have labels.

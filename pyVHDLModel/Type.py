@@ -46,6 +46,7 @@ from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedE
 from pyVHDLModel.Symbol     import Symbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin
+from pyVHDLModel.Regions    import WithoutStatementsMixin
 
 
 @export
@@ -799,7 +800,7 @@ class RecordType(CompositeType):
 
 
 @export
-class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin):
+class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatementsMixin):
 	"""
 	Represents a protected type declaration.
 
@@ -857,7 +858,7 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin):
 
 
 @export
-class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin):
+class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutStatementsMixin):
 	"""
 	Represents a protected type body.
 

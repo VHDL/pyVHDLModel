@@ -48,6 +48,7 @@ from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNam
 from pyVHDLModel.Base          import normalizedIdentifiersOf
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin
+from pyVHDLModel.Regions       import WithoutStatementsMixin
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin
 from pyVHDLModel.Object        import DeferredConstant
@@ -507,7 +508,14 @@ class Context(PrimaryUnit):
 
 
 @export
-class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, ConcurrentDeclarationRegionMixin, AllowBlackboxMixin):
+class Package(
+	PrimaryUnit,
+	DesignUnitWithContextMixin,
+	WithGenericsMixin,
+	ConcurrentDeclarationRegionMixin,
+	WithoutStatementsMixin,
+	AllowBlackboxMixin
+):
 	"""
 	Represents a package declaration.
 
@@ -679,7 +687,7 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 
 
 @export
-class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin):
+class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, WithoutStatementsMixin):
 	"""
 	Represents a package body declaration.
 

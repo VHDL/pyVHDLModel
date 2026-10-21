@@ -29,14 +29,17 @@ a design has the two child nodes: :attr:`~pyVHDLModel.Design.Libraries`
 and :attr:`~pyVHDLModel.Design.Documents`. Libraries are a :class:`dict` indexed by library name,
 documents are a :class:`list`.
 
-A primary design unit is looked up by name with :meth:`~pyVHDLModel.Design.GetEntity`,
+A primary design unit is looked up by library name and design unit name with :meth:`~pyVHDLModel.Design.GetEntity`,
 :meth:`~pyVHDLModel.Design.GetPackage`, :meth:`~pyVHDLModel.Design.GetConfiguration` or
-:meth:`~pyVHDLModel.Design.GetContext`. The lookup is case-insensitive and searches one named library or all
-libraries. Unlike :meth:`~pyVHDLModel.Design.GetLibrary`, these methods create nothing: a missing library raises
+:meth:`~pyVHDLModel.Design.GetContext`, as VHDL references a design unit by a selected name (``lib.ent``). The lookup is
+case-insensitive. Unlike :meth:`~pyVHDLModel.Design.GetLibrary`, these methods create nothing: a missing library raises
 :exc:`~pyVHDLModel.Exception.LibraryNotFoundError`, a missing design unit raises a kind-specific error derived from
-:exc:`~pyVHDLModel.Exception.DesignUnitNotFoundError` (e.g. :exc:`~pyVHDLModel.Exception.EntityNotFoundError`), and a
-design unit found in several libraries raises a kind-specific error derived from
-:exc:`~pyVHDLModel.Exception.AmbiguousDesignUnitError` (e.g. :exc:`~pyVHDLModel.Exception.AmbiguousEntityError`).
+:exc:`~pyVHDLModel.Exception.DesignUnitNotFoundError` (e.g. :exc:`~pyVHDLModel.Exception.EntityNotFoundError`).
+
+:meth:`~pyVHDLModel.Design.SearchEntity`, :meth:`~pyVHDLModel.Design.SearchPackage`,
+:meth:`~pyVHDLModel.Design.SearchConfiguration` and :meth:`~pyVHDLModel.Design.SearchContext` return all design units of
+that kind and name from all libraries as a :class:`tuple`. Each design unit references its library by
+:attr:`~pyVHDLModel.DesignUnit.DesignUnit.Library`.
 
 **Condensed definition of class** :class:`~pyVHDLModel.Design`:
 

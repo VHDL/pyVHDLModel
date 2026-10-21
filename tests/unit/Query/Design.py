@@ -28,7 +28,7 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""Tests for design-unit lookup by name across the libraries of a design."""
+"""Tests for design-unit lookup by library and name, and for the search by name across the libraries of a design."""
 from pathlib                   import Path
 
 from pyTooling.Testing         import Testcase
@@ -36,9 +36,8 @@ from pyTooling.Testing         import Testcase
 from pyVHDLModel               import Design, Document, VHDLModelException
 from pyVHDLModel.Configuration import BlockConfiguration
 from pyVHDLModel.DesignUnit    import Configuration, Context, Entity, Package
-from pyVHDLModel.Exception     import LibraryNotFoundError, DesignUnitNotFoundError, AmbiguousDesignUnitError
-from pyVHDLModel.Exception     import EntityNotFoundError, PackageNotFoundError, ConfigurationNotFoundError
-from pyVHDLModel.Exception     import ContextNotFoundError, AmbiguousEntityError, AmbiguousPackageError
+from pyVHDLModel.Exception     import LibraryNotFoundError, DesignUnitNotFoundError, EntityNotFoundError
+from pyVHDLModel.Exception     import PackageNotFoundError, ConfigurationNotFoundError, ContextNotFoundError
 from pyVHDLModel.Name          import SimpleName
 from pyVHDLModel.Symbol        import EntitySymbol, PossibleReference, Symbol
 
@@ -81,7 +80,7 @@ class EntityLookup(Testcase):
 	def test_InLibrary(self) -> None:
 		design = _design()
 
-		entity = design.GetEntity("Counter", "lib_A")
+		entity = design.GetEntity("lib_A", "Counter")
 
 		self.assertIsInstance(entity, Entity)
 		self.assertIs(design.Libraries["lib_a"].Entities["counter"], entity)
@@ -89,36 +88,15 @@ class EntityLookup(Testcase):
 	def test_InLibrary_CaseInsensitive(self) -> None:
 		design = _design()
 
-		entity = design.GetEntity("COUNTER", "LIB_b")
+		entity = design.GetEntity("LIB_b", "COUNTER")
 
 		self.assertIs(design.Libraries["lib_b"].Entities["counter"], entity)
 
-	def test_AllLibraries(self) -> None:
-		"""Without a library, the only library containing the entity is used."""
-		design = _design()
-
-		entity = design.GetEntity("adder")
-
-		self.assertIs(design.Libraries["lib_b"].Entities["adder"], entity)
-
-	def test_AllLibraries_Ambiguous(self) -> None:
-		design = _design()
-
-		with self.assertRaises(AmbiguousEntityError) as context:
-			design.GetEntity("Counter")
-
-		self.assertEqual("Entity 'Counter' found in several libraries: lib_A, lib_B.", str(context.exception))
-		self.assertListEqual(["Pass parameter 'libraryName' to select a library."], context.exception.__notes__)
-		self.assertIsInstance(context.exception, VHDLModelException)
-		self.assertIsInstance(context.exception, AmbiguousDesignUnitError)
-		self.assertEqual("Counter", context.exception.DesignUnitName)
-		self.assertTupleEqual((design.Libraries["lib_a"], design.Libraries["lib_b"]), context.exception.Libraries)
-
-	def test_NotFound_InLibrary(self) -> None:
+	def test_NotFound(self) -> None:
 		design = _design()
 
 		with self.assertRaises(EntityNotFoundError) as context:
-			design.GetEntity("Adder", "lib_A")
+			design.GetEntity("lib_A", "Adder")
 
 		self.assertEqual("Entity 'Adder' not found in library 'lib_A'.", str(context.exception))
 		self.assertIsInstance(context.exception, VHDLModelException)
@@ -126,97 +104,150 @@ class EntityLookup(Testcase):
 		self.assertEqual("Adder", context.exception.DesignUnitName)
 		self.assertEqual("lib_A", context.exception.LibraryName)
 
-	def test_NotFound_AllLibraries(self) -> None:
-		design = _design()
-
-		with self.assertRaises(EntityNotFoundError) as context:
-			design.GetEntity("Multiplier")
-
-		self.assertEqual("Entity 'Multiplier' not found in design.", str(context.exception))
-		self.assertIsNone(context.exception.LibraryName)
-
 	def test_NotFound_OtherKind(self) -> None:
 		"""A package isn't returned as an entity."""
 		design = _design()
 
 		with self.assertRaises(EntityNotFoundError):
-			design.GetEntity("Utilities")
+			design.GetEntity("lib_A", "Utilities")
 
 	def test_LibraryNotFound(self) -> None:
 		"""A lookup in a missing library creates no library."""
 		design = _design()
 
 		with self.assertRaises(LibraryNotFoundError) as context:
-			design.GetEntity("Counter", "lib_C")
+			design.GetEntity("lib_C", "Counter")
 
 		self.assertEqual("Library 'lib_C' not found in design.", str(context.exception))
 		self.assertEqual("lib_C", context.exception.LibraryName)
 		self.assertListEqual(["lib_a", "lib_b"], list(design.Libraries.keys()))
 
 
-class PackageLookup(Testcase):
-	def test_AllLibraries(self) -> None:
+class EntitySearch(Testcase):
+	def test_SeveralLibraries(self) -> None:
 		design = _design()
 
-		package = design.GetPackage("utilities")
+		entities = design.SearchEntity("COUNTER")
+
+		libraryA = design.Libraries["lib_a"]
+		libraryB = design.Libraries["lib_b"]
+		self.assertTupleEqual((libraryA.Entities["counter"], libraryB.Entities["counter"]), entities)
+		self.assertIs(libraryA, entities[0].Library)
+		self.assertIs(libraryB, entities[1].Library)
+
+	def test_OneLibrary(self) -> None:
+		design = _design()
+
+		entities = design.SearchEntity("adder")
+
+		self.assertTupleEqual((design.Libraries["lib_b"].Entities["adder"], ), entities)
+
+	def test_NotFound(self) -> None:
+		design = _design()
+
+		self.assertTupleEqual((), design.SearchEntity("Multiplier"))
+
+	def test_NotFound_OtherKind(self) -> None:
+		"""A package isn't returned as an entity."""
+		design = _design()
+
+		self.assertTupleEqual((), design.SearchEntity("Utilities"))
+
+
+class PackageLookup(Testcase):
+	def test_InLibrary(self) -> None:
+		design = _design()
+
+		package = design.GetPackage("lib_a", "utilities")
 
 		self.assertIsInstance(package, Package)
 		self.assertIs(design.Libraries["lib_a"].Packages["utilities"], package)
-
-	def test_AllLibraries_Ambiguous(self) -> None:
-		design = _design()
-		document = Document(Path("c.vhdl"))
-		document._AddDesignUnit(Package("Utilities"))
-		design.AddDocument(document, design.Libraries["lib_b"])
-
-		with self.assertRaises(AmbiguousPackageError) as context:
-			design.GetPackage("utilities")
-
-		self.assertEqual("Package 'utilities' found in several libraries: lib_A, lib_B.", str(context.exception))
-		self.assertIsInstance(context.exception, AmbiguousDesignUnitError)
 
 	def test_PredefinedLibrary(self) -> None:
 		design = _design()
 		design.LoadIEEELibrary()
 
-		package = design.GetPackage("numeric_std")
+		package = design.GetPackage("ieee", "numeric_std")
 
 		self.assertIs(design.Libraries["ieee"].Packages["numeric_std"], package)
 
-	def test_NotFound_InLibrary(self) -> None:
+	def test_NotFound(self) -> None:
 		design = _design()
 
 		with self.assertRaises(PackageNotFoundError) as context:
-			design.GetPackage("Utilities", "lib_B")
+			design.GetPackage("lib_B", "Utilities")
 
 		self.assertEqual("Package 'Utilities' not found in library 'lib_B'.", str(context.exception))
 		self.assertEqual("lib_B", context.exception.LibraryName)
+
+
+class PackageSearch(Testcase):
+	def test_SeveralLibraries(self) -> None:
+		design = _design()
+		document = Document(Path("c.vhdl"))
+		document._AddDesignUnit(Package("Utilities"))
+		design.AddDocument(document, design.Libraries["lib_b"])
+
+		packages = design.SearchPackage("utilities")
+
+		libraryA = design.Libraries["lib_a"]
+		libraryB = design.Libraries["lib_b"]
+		self.assertTupleEqual((libraryA.Packages["utilities"], libraryB.Packages["utilities"]), packages)
+
+	def test_PredefinedLibrary(self) -> None:
+		"""A predefined library's package references its library."""
+		design = _design()
+		design.LoadIEEELibrary()
+
+		packages = design.SearchPackage("numeric_std")
+
+		self.assertTupleEqual((design.Libraries["ieee"].Packages["numeric_std"], ), packages)
+		self.assertIs(design.Libraries["ieee"], packages[0].Library)
+
+	def test_NotFound(self) -> None:
+		design = _design()
+
+		self.assertTupleEqual((), design.SearchPackage("Counter"))
 
 
 class ConfigurationLookup(Testcase):
 	def test_InLibrary(self) -> None:
 		design = _design()
 
-		configuration = design.GetConfiguration("CFG", "lib_a")
+		configuration = design.GetConfiguration("lib_a", "CFG")
 
 		self.assertIsInstance(configuration, Configuration)
 		self.assertIs(design.Libraries["lib_a"].Configurations["cfg"], configuration)
 
-	def test_NotFound_AllLibraries(self) -> None:
+	def test_NotFound(self) -> None:
 		design = _design()
 
 		with self.assertRaises(ConfigurationNotFoundError) as context:
-			design.GetConfiguration("Counter")
+			design.GetConfiguration("lib_b", "cfg")
 
-		self.assertEqual("Configuration 'Counter' not found in design.", str(context.exception))
-		self.assertIsNone(context.exception.LibraryName)
+		self.assertEqual("Configuration 'cfg' not found in library 'lib_b'.", str(context.exception))
+		self.assertEqual("lib_b", context.exception.LibraryName)
+
+
+class ConfigurationSearch(Testcase):
+	def test_OneLibrary(self) -> None:
+		design = _design()
+
+		configurations = design.SearchConfiguration("cfg")
+
+		self.assertTupleEqual((design.Libraries["lib_a"].Configurations["cfg"], ), configurations)
+
+	def test_NotFound(self) -> None:
+		design = _design()
+
+		self.assertTupleEqual((), design.SearchConfiguration("Counter"))
 
 
 class ContextLookup(Testcase):
-	def test_AllLibraries(self) -> None:
+	def test_InLibrary(self) -> None:
 		design = _design()
 
-		context = design.GetContext("ctx")
+		context = design.GetContext("lib_a", "ctx")
 
 		self.assertIsInstance(context, Context)
 		self.assertIs(design.Libraries["lib_a"].Contexts["ctx"], context)
@@ -225,47 +256,45 @@ class ContextLookup(Testcase):
 		design = _design()
 
 		with self.assertRaises(LibraryNotFoundError):
-			design.GetContext("ctx", "lib_C")
+			design.GetContext("lib_C", "ctx")
 
-	def test_NotFound_InLibrary(self) -> None:
+	def test_NotFound(self) -> None:
 		design = _design()
 
 		with self.assertRaises(ContextNotFoundError) as context:
-			design.GetContext("ctx", "lib_B")
+			design.GetContext("lib_B", "ctx")
 
 		self.assertEqual("Context 'ctx' not found in library 'lib_B'.", str(context.exception))
 
 
+class ContextSearch(Testcase):
+	def test_OneLibrary(self) -> None:
+		design = _design()
+
+		contexts = design.SearchContext("CTX")
+
+		self.assertTupleEqual((design.Libraries["lib_a"].Contexts["ctx"], ), contexts)
+
+	def test_NotFound(self) -> None:
+		design = _design()
+
+		self.assertTupleEqual((), design.SearchContext("cfg"))
+
+
 class LookupParameters(Testcase):
-	def test_Name_None(self) -> None:
+	def test_LibraryName_None(self) -> None:
 		design = _design()
 
 		with self.assertRaises(ValueError) as context:
-			design.GetEntity(None)
+			design.GetEntity(None, "Counter")
 
-		self.assertEqual("Parameter 'entityName' is None.", str(context.exception))
-
-	def test_Name_Type(self) -> None:
-		design = _design()
-
-		with self.assertRaises(TypeError) as context:
-			design.GetPackage(1)
-
-		self.assertEqual("Parameter 'packageName' is not of type 'str'.", str(context.exception))
-
-	def test_Name_Empty(self) -> None:
-		design = _design()
-
-		with self.assertRaises(ValueError) as context:
-			design.GetConfiguration("")
-
-		self.assertEqual("Parameter 'configurationName' is empty.", str(context.exception))
+		self.assertEqual("Parameter 'libraryName' is None.", str(context.exception))
 
 	def test_LibraryName_Type(self) -> None:
 		design = _design()
 
 		with self.assertRaises(TypeError) as context:
-			design.GetContext("ctx", design.Libraries["lib_a"])
+			design.GetContext(design.Libraries["lib_a"], "ctx")
 
 		self.assertEqual("Parameter 'libraryName' is not of type 'str'.", str(context.exception))
 
@@ -273,6 +302,56 @@ class LookupParameters(Testcase):
 		design = _design()
 
 		with self.assertRaises(ValueError) as context:
-			design.GetEntity("Counter", "")
+			design.GetEntity("", "Counter")
 
 		self.assertEqual("Parameter 'libraryName' is empty.", str(context.exception))
+
+	def test_Name_None(self) -> None:
+		design = _design()
+
+		with self.assertRaises(ValueError) as context:
+			design.GetEntity("lib_a", None)
+
+		self.assertEqual("Parameter 'entityName' is None.", str(context.exception))
+
+	def test_Name_Type(self) -> None:
+		design = _design()
+
+		with self.assertRaises(TypeError) as context:
+			design.GetPackage("lib_a", 1)
+
+		self.assertEqual("Parameter 'packageName' is not of type 'str'.", str(context.exception))
+
+	def test_Name_Empty(self) -> None:
+		design = _design()
+
+		with self.assertRaises(ValueError) as context:
+			design.GetConfiguration("lib_a", "")
+
+		self.assertEqual("Parameter 'configurationName' is empty.", str(context.exception))
+
+
+class SearchParameters(Testcase):
+	def test_Name_None(self) -> None:
+		design = _design()
+
+		with self.assertRaises(ValueError) as context:
+			design.SearchEntity(None)
+
+		self.assertEqual("Parameter 'entityName' is None.", str(context.exception))
+
+	def test_Name_Type(self) -> None:
+		design = _design()
+
+		with self.assertRaises(TypeError) as context:
+			design.SearchContext(1)
+
+		self.assertEqual("Parameter 'contextName' is not of type 'str'.", str(context.exception))
+
+	def test_Name_Empty(self) -> None:
+		design = _design()
+
+		with self.assertRaises(ValueError) as context:
+			design.SearchPackage("")
+
+		self.assertEqual("Parameter 'packageName' is empty.", str(context.exception))

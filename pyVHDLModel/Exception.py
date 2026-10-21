@@ -37,7 +37,7 @@ message in english, each exception object contains one or multiple references to
 """
 from __future__               import annotations
 
-from typing                   import TYPE_CHECKING, Iterable, Optional as Nullable, Union
+from typing                   import TYPE_CHECKING, Optional as Nullable, Union
 
 from pyTooling.Decorators     import export, readonly
 from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError
@@ -297,10 +297,6 @@ class VHDLModelException(ExceptionBase):
 	   * :class:`Package not found error <pyVHDLModel.Exception.PackageNotFoundError>`
 	   * :class:`Configuration not found error <pyVHDLModel.Exception.ConfigurationNotFoundError>`
 	   * :class:`Context not found error <pyVHDLModel.Exception.ContextNotFoundError>`
-	   * :class:`Ambiguous entity error <pyVHDLModel.Exception.AmbiguousEntityError>`
-	   * :class:`Ambiguous package error <pyVHDLModel.Exception.AmbiguousPackageError>`
-	   * :class:`Ambiguous configuration error <pyVHDLModel.Exception.AmbiguousConfigurationError>`
-	   * :class:`Ambiguous context error <pyVHDLModel.Exception.AmbiguousContextError>`
 	   * :class:`VHDL writer error <pyVHDLModel.Exception.VHDLWriterError>`
 	"""
 
@@ -1299,11 +1295,10 @@ class LibraryNotFoundError(VHDLModelException):
 		return self._libraryName
 
 
-
 @export
 class DesignUnitNotFoundError(Exception):
 	"""
-	The exception is raised when a design unit is looked up by name, but doesn't exist in the searched libraries.
+	The exception is raised when a design unit is looked up by name, but doesn't exist in the searched library.
 
 	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
 	``class EntityNotFoundError(VHDLModelException, DesignUnitNotFoundError)``. It has no initializer of its own; the
@@ -1321,8 +1316,8 @@ class DesignUnitNotFoundError(Exception):
 	      |rarr| Context not found.
 	"""
 
-	_designUnitName: str            #: The name of the design unit, which was not found.
-	_libraryName:    Nullable[str]  #: The name of the searched library, or ``None`` if all libraries were searched.
+	_designUnitName: str  #: The name of the design unit, which was not found.
+	_libraryName:    str  #: The name of the searched library.
 
 	@readonly
 	def DesignUnitName(self) -> str:
@@ -1334,248 +1329,97 @@ class DesignUnitNotFoundError(Exception):
 		return self._designUnitName
 
 	@readonly
-	def LibraryName(self) -> Nullable[str]:
+	def LibraryName(self) -> str:
 		"""
 		Read-only property to access the library name (:attr:`_libraryName`).
 
-		:returns: The name of the searched library, or ``None`` if all libraries were searched.
+		:returns: The name of the searched library.
 		"""
 		return self._libraryName
 
 
 @export
-class AmbiguousDesignUnitError(Exception):
-	"""
-	The exception is raised when a design unit is looked up by name in all libraries, but exists in several libraries.
-
-	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
-	``class AmbiguousEntityError(VHDLModelException, AmbiguousDesignUnitError)``. It has no initializer of its own; the
-	derived exception sets the fields.
-
-	.. seealso::
-
-	   :exc:`~pyVHDLModel.Exception.AmbiguousEntityError`
-	      |rarr| Entity found in several libraries.
-	   :exc:`~pyVHDLModel.Exception.AmbiguousPackageError`
-	      |rarr| Package found in several libraries.
-	   :exc:`~pyVHDLModel.Exception.AmbiguousConfigurationError`
-	      |rarr| Configuration found in several libraries.
-	   :exc:`~pyVHDLModel.Exception.AmbiguousContextError`
-	      |rarr| Context found in several libraries.
-	"""
-
-	_designUnitName: str                  #: The name of the design unit, which was found several times.
-	_libraries:      tuple[Library, ...]  #: The libraries containing a design unit of that name.
-
-	@readonly
-	def DesignUnitName(self) -> str:
-		"""
-		Read-only property to access the design unit name (:attr:`_designUnitName`).
-
-		:returns: The name of the design unit, which was found several times.
-		"""
-		return self._designUnitName
-
-	@readonly
-	def Libraries(self) -> tuple[Library, ...]:
-		"""
-		Read-only property to access the libraries (:attr:`_libraries`).
-
-		:returns: Tuple of libraries containing a design unit of that name.
-		"""
-		return self._libraries
-
-
-@export
 class EntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 	"""
-	This exception is raised, when an entity is looked up by name, but doesn't exist in the searched libraries.
+	This exception is raised, when an entity is looked up by name, but doesn't exist in the searched library.
 
-	Message: :pycode:`f"Entity '{entityName}' not found in library '{libraryName}'."` |br|
-	Message without library: :pycode:`f"Entity '{entityName}' not found in design."`
+	Message: :pycode:`f"Entity '{entityName}' not found in library '{libraryName}'."`
 	"""
 
-	def __init__(self, entityName: str, libraryName: Nullable[str] = None) -> None:
+	def __init__(self, entityName: str, libraryName: str) -> None:
 		"""
 		Initializes the exception message based on the given entity name and library name.
 
 		:param entityName:  The name of the entity, which was not found.
-		:param libraryName: Optional, the name of the searched library. Default: all libraries were searched.
+		:param libraryName: The name of the searched library.
 		"""
-		if libraryName is None:
-			super().__init__(f"Entity '{entityName}' not found in design.")
-		else:
-			super().__init__(f"Entity '{entityName}' not found in library '{libraryName}'.")
+		super().__init__(f"Entity '{entityName}' not found in library '{libraryName}'.")
 
 		self._designUnitName = entityName
 		self._libraryName =    libraryName
-
-
-@export
-class AmbiguousEntityError(VHDLModelException, AmbiguousDesignUnitError):
-	"""
-	This exception is raised, when an entity is looked up by name in all libraries, but exists in several libraries.
-
-	Message: :pycode:`f"Entity '{entityName}' found in several libraries: {libraryNames}."`
-	"""
-
-	def __init__(self, entityName: str, libraries: Iterable[Library]) -> None:
-		"""
-		Initializes the exception message based on the given entity name and libraries.
-
-		:param entityName: The name of the entity, which was found several times.
-		:param libraries:  The libraries containing an entity of that name.
-		"""
-		libraryTuple = tuple(libraries)
-		libraryNames = ", ".join(library._identifier for library in libraryTuple)
-		super().__init__(f"Entity '{entityName}' found in several libraries: {libraryNames}.")
-
-		self._designUnitName = entityName
-		self._libraries =      libraryTuple
 
 
 @export
 class PackageNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 	"""
-	This exception is raised, when a package is looked up by name, but doesn't exist in the searched libraries.
+	This exception is raised, when a package is looked up by name, but doesn't exist in the searched library.
 
-	Message: :pycode:`f"Package '{packageName}' not found in library '{libraryName}'."` |br|
-	Message without library: :pycode:`f"Package '{packageName}' not found in design."`
+	Message: :pycode:`f"Package '{packageName}' not found in library '{libraryName}'."`
 	"""
 
-	def __init__(self, packageName: str, libraryName: Nullable[str] = None) -> None:
+	def __init__(self, packageName: str, libraryName: str) -> None:
 		"""
 		Initializes the exception message based on the given package name and library name.
 
 		:param packageName: The name of the package, which was not found.
-		:param libraryName: Optional, the name of the searched library. Default: all libraries were searched.
+		:param libraryName: The name of the searched library.
 		"""
-		if libraryName is None:
-			super().__init__(f"Package '{packageName}' not found in design.")
-		else:
-			super().__init__(f"Package '{packageName}' not found in library '{libraryName}'.")
+		super().__init__(f"Package '{packageName}' not found in library '{libraryName}'.")
 
 		self._designUnitName = packageName
 		self._libraryName =    libraryName
-
-
-@export
-class AmbiguousPackageError(VHDLModelException, AmbiguousDesignUnitError):
-	"""
-	This exception is raised, when a package is looked up by name in all libraries, but exists in several libraries.
-
-	Message: :pycode:`f"Package '{packageName}' found in several libraries: {libraryNames}."`
-	"""
-
-	def __init__(self, packageName: str, libraries: Iterable[Library]) -> None:
-		"""
-		Initializes the exception message based on the given package name and libraries.
-
-		:param packageName: The name of the package, which was found several times.
-		:param libraries:   The libraries containing a package of that name.
-		"""
-		libraryTuple = tuple(libraries)
-		libraryNames = ", ".join(library._identifier for library in libraryTuple)
-		super().__init__(f"Package '{packageName}' found in several libraries: {libraryNames}.")
-
-		self._designUnitName = packageName
-		self._libraries =      libraryTuple
 
 
 @export
 class ConfigurationNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 	"""
-	This exception is raised, when a configuration is looked up by name, but doesn't exist in the searched libraries.
+	This exception is raised, when a configuration is looked up by name, but doesn't exist in the searched library.
 
-	Message: :pycode:`f"Configuration '{configurationName}' not found in library '{libraryName}'."` |br|
-	Message without library: :pycode:`f"Configuration '{configurationName}' not found in design."`
+	Message: :pycode:`f"Configuration '{configurationName}' not found in library '{libraryName}'."`
 	"""
 
-	def __init__(self, configurationName: str, libraryName: Nullable[str] = None) -> None:
+	def __init__(self, configurationName: str, libraryName: str) -> None:
 		"""
 		Initializes the exception message based on the given configuration name and library name.
 
 		:param configurationName: The name of the configuration, which was not found.
-		:param libraryName:       Optional, the name of the searched library. Default: all libraries were searched.
+		:param libraryName:       The name of the searched library.
 		"""
-		if libraryName is None:
-			super().__init__(f"Configuration '{configurationName}' not found in design.")
-		else:
-			super().__init__(f"Configuration '{configurationName}' not found in library '{libraryName}'.")
+		super().__init__(f"Configuration '{configurationName}' not found in library '{libraryName}'.")
 
 		self._designUnitName = configurationName
 		self._libraryName =    libraryName
-
-
-@export
-class AmbiguousConfigurationError(VHDLModelException, AmbiguousDesignUnitError):
-	"""
-	This exception is raised, when a configuration is looked up by name in all libraries, but exists in several libraries.
-
-	Message: :pycode:`f"Configuration '{configurationName}' found in several libraries: {libraryNames}."`
-	"""
-
-	def __init__(self, configurationName: str, libraries: Iterable[Library]) -> None:
-		"""
-		Initializes the exception message based on the given configuration name and libraries.
-
-		:param configurationName: The name of the configuration, which was found several times.
-		:param libraries:         The libraries containing a configuration of that name.
-		"""
-		libraryTuple = tuple(libraries)
-		libraryNames = ", ".join(library._identifier for library in libraryTuple)
-		super().__init__(f"Configuration '{configurationName}' found in several libraries: {libraryNames}.")
-
-		self._designUnitName = configurationName
-		self._libraries =      libraryTuple
 
 
 @export
 class ContextNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 	"""
-	This exception is raised, when a context is looked up by name, but doesn't exist in the searched libraries.
+	This exception is raised, when a context is looked up by name, but doesn't exist in the searched library.
 
-	Message: :pycode:`f"Context '{contextName}' not found in library '{libraryName}'."` |br|
-	Message without library: :pycode:`f"Context '{contextName}' not found in design."`
+	Message: :pycode:`f"Context '{contextName}' not found in library '{libraryName}'."`
 	"""
 
-	def __init__(self, contextName: str, libraryName: Nullable[str] = None) -> None:
+	def __init__(self, contextName: str, libraryName: str) -> None:
 		"""
 		Initializes the exception message based on the given context name and library name.
 
 		:param contextName: The name of the context, which was not found.
-		:param libraryName: Optional, the name of the searched library. Default: all libraries were searched.
+		:param libraryName: The name of the searched library.
 		"""
-		if libraryName is None:
-			super().__init__(f"Context '{contextName}' not found in design.")
-		else:
-			super().__init__(f"Context '{contextName}' not found in library '{libraryName}'.")
+		super().__init__(f"Context '{contextName}' not found in library '{libraryName}'.")
 
 		self._designUnitName = contextName
 		self._libraryName =    libraryName
-
-
-@export
-class AmbiguousContextError(VHDLModelException, AmbiguousDesignUnitError):
-	"""
-	This exception is raised, when a context is looked up by name in all libraries, but exists in several libraries.
-
-	Message: :pycode:`f"Context '{contextName}' found in several libraries: {libraryNames}."`
-	"""
-
-	def __init__(self, contextName: str, libraries: Iterable[Library]) -> None:
-		"""
-		Initializes the exception message based on the given context name and libraries.
-
-		:param contextName: The name of the context, which was found several times.
-		:param libraries:   The libraries containing a context of that name.
-		"""
-		libraryTuple = tuple(libraries)
-		libraryNames = ", ".join(library._identifier for library in libraryTuple)
-		super().__init__(f"Context '{contextName}' found in several libraries: {libraryNames}.")
-
-		self._designUnitName = contextName
-		self._libraries =      libraryTuple
 
 
 @export

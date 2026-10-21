@@ -511,7 +511,7 @@ class VHDLWriter(Visitor):
 		:raises VHDLWriterError: If a decimal bit string literal is signed or unsigned.
 		:raises VHDLWriterError: If the value contains a quotation mark or a non-graphic character.
 		"""
-		base = self._BASE_SPECIFIERS.get(literal._base)
+		base = self._BASE_SPECIFIERS.get(literal._BASE)
 		if base is None:
 			ex = VHDLWriterError("Model element is not supported by the VHDL writer.", literal)
 			ex.add_note(f"Got type '{getFullyQualifiedName(literal)}'.")
@@ -519,7 +519,7 @@ class VHDLWriter(Visitor):
 
 		if literal.IsSigned is None:
 			signedness = ""
-		elif literal._base is BitStringBase.Decimal:
+		elif literal._BASE is BitStringBase.Decimal:
 			raise VHDLWriterError("Decimal bit string literal can't be signed or unsigned.", literal)
 		elif literal.IsSigned:
 			signedness = "s"

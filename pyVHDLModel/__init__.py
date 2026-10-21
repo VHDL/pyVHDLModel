@@ -93,17 +93,17 @@ from pyVHDLModel.Interface     import ModeViewDeclaration
 from pyVHDLModel.Subprogram    import Subprogram
 
 
-# Classes of declared items each declarative region accepts (ClassVar _declaredItemTypes).
-ConcurrentDeclarationRegionMixin._declaredItemTypes = (
+# Classes of declared items each declarative region accepts (ClassVar _DECLARED_ITEM_TYPES).
+ConcurrentDeclarationRegionMixin._DECLARED_ITEM_TYPES = (
 	BaseType, Subprogram, Package, PackageBody, Constant, Signal, SharedVariable, File, Alias, Component, Attribute,
 	AttributeSpecification, ComponentConfiguration, ModeViewDeclaration, UseClause, PSLEntity
 )
-Package._declaredItemTypes = (*ConcurrentDeclarationRegionMixin._declaredItemTypes, DeferredConstant)
-SequentialDeclarationRegionMixin._declaredItemTypes = (
+Package._DECLARED_ITEM_TYPES = (*ConcurrentDeclarationRegionMixin._DECLARED_ITEM_TYPES, DeferredConstant)
+SequentialDeclarationRegionMixin._DECLARED_ITEM_TYPES = (
 	BaseType, Subprogram, Package, PackageBody, Constant, Variable, File, Alias, Attribute, AttributeSpecification,
 	UseClause
 )
-ProtectedTypeDeclarationRegionMixin._declaredItemTypes = (Subprogram, )
+ProtectedTypeDeclarationRegionMixin._DECLARED_ITEM_TYPES = (Subprogram, )
 
 
 @export

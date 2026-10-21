@@ -188,7 +188,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	     * :class:`Package body <pyVHDLModel.DesignUnit.PackageBody>`
 	"""
 
-	_continuesParentRegion: ClassVar[bool] = False         #: ``True`` if it continues its parent's declarative region.
+	_CONTINUES_PARENT_REGION: ClassVar[bool] = False       #: ``True`` if it continues its parent's declarative region.
 
 	_document: Document                                    #: The VHDL library, the design unit was analyzed into.
 
@@ -558,7 +558,7 @@ class Package(
 		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(
-			self, self._normalizedIdentifier, declaredItems, self._continuesParentRegion
+			self, self._normalizedIdentifier, declaredItems, self._CONTINUES_PARENT_REGION
 		)
 		WithGenericsMixin.__init__(self, genericItems)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
@@ -703,7 +703,7 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 	   * :class:`Package it implements <pyVHDLModel.DesignUnit.Package>`
 	"""
 
-	_continuesParentRegion: ClassVar[bool] = True   #: A package body continues its package's declarative region.
+	_CONTINUES_PARENT_REGION: ClassVar[bool] = True  #: A package body continues its package's declarative region.
 
 	_package:               PackageSymbol           #: Reference to the package this body implements.
 
@@ -727,7 +727,7 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		super().__init__(packageSymbol.Name.Identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(
-			self, self._normalizedIdentifier, declaredItems, self._continuesParentRegion
+			self, self._normalizedIdentifier, declaredItems, self._CONTINUES_PARENT_REGION
 		)
 
 		self._package = packageSymbol
@@ -838,7 +838,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(
-			self, self._normalizedIdentifier, declaredItems, self._continuesParentRegion
+			self, self._normalizedIdentifier, declaredItems, self._CONTINUES_PARENT_REGION
 		)
 		WithGenericsMixin.__init__(self, genericItems)
 		WithPortsMixin.__init__(self, portItems)
@@ -935,7 +935,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 	   * :class:`Entity it implements <pyVHDLModel.DesignUnit.Entity>`
 	"""
 
-	_continuesParentRegion: ClassVar[bool] = True  #: An architecture continues its entity's declarative region.
+	_CONTINUES_PARENT_REGION: ClassVar[bool] = True  #: An architecture continues its entity's declarative region.
 
 	_entity:                EntitySymbol           #: Reference to the entity this architecture implements.
 
@@ -965,7 +965,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(
-			self, self._normalizedIdentifier, declaredItems, self._continuesParentRegion
+			self, self._normalizedIdentifier, declaredItems, self._CONTINUES_PARENT_REGION
 		)
 		ConcurrentStatementsMixin.__init__(self, statements)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)

@@ -56,11 +56,12 @@ ExpressionUnion = Union[
 
 
 @export
-class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True):
+class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True, expects=("_parent",)):
 	"""
 	A mixin-class for language entities that may permit blackboxes.
 
-	The setting is inherited from the parent when not set locally (:data:`AllowBlackbox`).
+	The setting is inherited from the parent when not set locally (:data:`AllowBlackbox`). The host class provides the
+	reference to the parent ``_parent``.
 
 	.. seealso::
 

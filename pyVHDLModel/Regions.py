@@ -644,12 +644,30 @@ class WithParametersMixin(
 
 
 @export
-class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labels",)):
+class DeclarationRegionMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=(
+		"_namespace",
+		"_functions",
+		"_procedures",
+		"_declaredItems",
+		"_Declarations",
+		"_IndexDeclaredItem",
+		"_UnindexDeclaredItem",
+		"IndexDeclaredItems",
+		"_Labels"
+	)
+):
 	"""
 	A base-class for the concurrent, sequential and protected type declaration region mixins.
 
 	It carries what all regions share: adding interface items to the region's namespace, the mutators for declared items
 	(e.g. :meth:`AddDeclaredItem`), and the hooks for declared items no region handles itself.
+
+	The derived region mixin-class or the host class provides the namespace ``_namespace``, the declared items
+	``_declaredItems``, the lookup tables ``_functions`` and ``_procedures``, and the methods ``_Declarations()``,
+	``_IndexDeclaredItem(item)``, ``_UnindexDeclaredItem(item)`` and ``IndexDeclaredItems()``.
 
 	An interface item shares the declarative region of the declarative part beside it - VHDL rejects
 	``port (g : in bit)`` beside ``generic (g : integer)``, ``signal x`` beside ``port (x : in bit)``, and a
@@ -1299,6 +1317,8 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 	Entities, architectures, packages, blocks and generate bodies declare items concurrently. Beside
 	the namespace, the region keeps a lookup table per kind of declared item (:data:`Types`,
 	:data:`Signals`, :data:`Constants`, ...).
+
+	The host class provides the namespace ``_namespace``.
 
 	.. seealso::
 

@@ -84,9 +84,16 @@ class PredefinedLibrary(Library):
 
 
 @export
-class PredefinedPackageMixin(metaclass=ExtendedType, mixin=True):
+class PredefinedPackageMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=("_contextItems", "_libraryReferences", "_packageReferences")
+):
 	"""
 	A mixin-class for predefined VHDL packages and package bodies.
+
+	The host class provides the lists of context items ``_contextItems``, library clauses ``_libraryReferences`` and use
+	clauses ``_packageReferences``.
 
 	.. seealso::
 

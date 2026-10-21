@@ -292,6 +292,11 @@ class VHDLModelException(ExceptionBase):
 	   * :class:`Duplicate parameter error <pyVHDLModel.Exception.DuplicateParameterError>`
 	   * :class:`Not in namespace error <pyVHDLModel.Exception.NotInNamespaceError>`
 	   * :class:`Duplicate declaration error <pyVHDLModel.Exception.DuplicateDeclarationError>`
+	   * :class:`Library not found error <pyVHDLModel.Exception.LibraryNotFoundError>`
+	   * :class:`Entity not found error <pyVHDLModel.Exception.EntityNotFoundError>`
+	   * :class:`Package not found error <pyVHDLModel.Exception.PackageNotFoundError>`
+	   * :class:`Configuration not found error <pyVHDLModel.Exception.ConfigurationNotFoundError>`
+	   * :class:`Context not found error <pyVHDLModel.Exception.ContextNotFoundError>`
 	   * :class:`VHDL writer error <pyVHDLModel.Exception.VHDLWriterError>`
 	"""
 
@@ -1259,6 +1264,162 @@ class DuplicateLabelError(DuplicateDeclarationError):
 	A statement label is declared implicitly in the declarative region enclosing the statement, so it clashes with
 	another label and with a declaration of the same identifier.
 	"""
+
+
+@export
+class LibraryNotFoundError(VHDLModelException):
+	"""
+	This exception is raised, when a library is looked up by name, but doesn't exist in the design.
+
+	Message: :pycode:`f"Library '{libraryName}' not found in design."`
+	"""
+
+	_libraryName: str  #: The name of the library, which was not found.
+
+	def __init__(self, libraryName: str) -> None:
+		"""
+		Initializes the exception message based on the given library name.
+
+		:param libraryName: The name of the library, which was not found.
+		"""
+		super().__init__(f"Library '{libraryName}' not found in design.")
+		self._libraryName = libraryName
+
+	@readonly
+	def LibraryName(self) -> str:
+		"""
+		Read-only property to access the library name (:attr:`_libraryName`).
+
+		:returns: The name of the library, which was not found.
+		"""
+		return self._libraryName
+
+
+@export
+class DesignUnitNotFoundError(Exception):
+	"""
+	The exception is raised when a design unit is looked up by name, but doesn't exist in the searched library.
+
+	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
+	``class EntityNotFoundError(VHDLModelException, DesignUnitNotFoundError)``. It has no initializer of its own; the
+	derived exception sets the fields.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.EntityNotFoundError`
+	      |rarr| Entity not found.
+	   :exc:`~pyVHDLModel.Exception.PackageNotFoundError`
+	      |rarr| Package not found.
+	   :exc:`~pyVHDLModel.Exception.ConfigurationNotFoundError`
+	      |rarr| Configuration not found.
+	   :exc:`~pyVHDLModel.Exception.ContextNotFoundError`
+	      |rarr| Context not found.
+	"""
+
+	_designUnitName: str  #: The name of the design unit, which was not found.
+	_libraryName:    str  #: The name of the searched library.
+
+	@readonly
+	def DesignUnitName(self) -> str:
+		"""
+		Read-only property to access the design unit name (:attr:`_designUnitName`).
+
+		:returns: The name of the design unit, which was not found.
+		"""
+		return self._designUnitName
+
+	@readonly
+	def LibraryName(self) -> str:
+		"""
+		Read-only property to access the library name (:attr:`_libraryName`).
+
+		:returns: The name of the searched library.
+		"""
+		return self._libraryName
+
+
+@export
+class EntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+	"""
+	This exception is raised, when an entity is looked up by name, but doesn't exist in the searched library.
+
+	Message: :pycode:`f"Entity '{entityName}' not found in library '{libraryName}'."`
+	"""
+
+	def __init__(self, entityName: str, libraryName: str) -> None:
+		"""
+		Initializes the exception message based on the given entity name and library name.
+
+		:param entityName:  The name of the entity, which was not found.
+		:param libraryName: The name of the searched library.
+		"""
+		super().__init__(f"Entity '{entityName}' not found in library '{libraryName}'.")
+
+		self._designUnitName = entityName
+		self._libraryName =    libraryName
+
+
+@export
+class PackageNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+	"""
+	This exception is raised, when a package is looked up by name, but doesn't exist in the searched library.
+
+	Message: :pycode:`f"Package '{packageName}' not found in library '{libraryName}'."`
+	"""
+
+	def __init__(self, packageName: str, libraryName: str) -> None:
+		"""
+		Initializes the exception message based on the given package name and library name.
+
+		:param packageName: The name of the package, which was not found.
+		:param libraryName: The name of the searched library.
+		"""
+		super().__init__(f"Package '{packageName}' not found in library '{libraryName}'.")
+
+		self._designUnitName = packageName
+		self._libraryName =    libraryName
+
+
+@export
+class ConfigurationNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+	"""
+	This exception is raised, when a configuration is looked up by name, but doesn't exist in the searched library.
+
+	Message: :pycode:`f"Configuration '{configurationName}' not found in library '{libraryName}'."`
+	"""
+
+	def __init__(self, configurationName: str, libraryName: str) -> None:
+		"""
+		Initializes the exception message based on the given configuration name and library name.
+
+		:param configurationName: The name of the configuration, which was not found.
+		:param libraryName:       The name of the searched library.
+		"""
+		super().__init__(f"Configuration '{configurationName}' not found in library '{libraryName}'.")
+
+		self._designUnitName = configurationName
+		self._libraryName =    libraryName
+
+
+@export
+class ContextNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+	"""
+	This exception is raised, when a context is looked up by name, but doesn't exist in the searched library.
+
+	Message: :pycode:`f"Context '{contextName}' not found in library '{libraryName}'."`
+	"""
+
+	def __init__(self, contextName: str, libraryName: str) -> None:
+		"""
+		Initializes the exception message based on the given context name and library name.
+
+		:param contextName: The name of the context, which was not found.
+		:param libraryName: The name of the searched library.
+		"""
+		super().__init__(f"Context '{contextName}' not found in library '{libraryName}'.")
+
+		self._designUnitName = contextName
+		self._libraryName =    libraryName
 
 
 @export

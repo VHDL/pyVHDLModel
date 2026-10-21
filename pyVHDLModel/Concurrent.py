@@ -709,6 +709,14 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 		# inside the process hides a same-named one from the architecture, block or generate around it.
 		self._namespace.ParentNamespace = parent._namespace
 
+	def _LabelRegion(self) -> ProcessStatement:
+		"""
+		Return the process, whose declarative region declares the labels of its statements.
+
+		:returns: The process itself.
+		"""
+		return self
+
 	@readonly
 	def SensitivityList(self) -> list[Name]:
 		"""

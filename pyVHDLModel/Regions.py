@@ -671,14 +671,14 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 	labeled statements of the region by ``_Labels()``: a host with statements gets it from its statements mixin
 	(e.g. :class:`~pyVHDLModel.Concurrent.ConcurrentStatementsMixin`), a host without statements returns an empty tuple.
 	"""
-	_declaredItemTypes: ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
-	_isIndexed:         bool                        #: ``True`` if :meth:`IndexDeclaredItems` filled the namespace.
+	_declaredItemTypes:       ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
+	_areDeclaredItemsIndexed: bool                        #: ``True`` if :meth:`IndexDeclaredItems` filled the namespace.
 
 	def __init__(self) -> None:
 		"""
 		Initializes a declaration region, which isn't indexed yet.
 		"""
-		self._isIndexed = False
+		self._areDeclaredItemsIndexed = False
 
 	def _IndexGenericItems(self) -> None:
 		"""Add this region's generics to its namespace; a generic subprogram is an overload."""
@@ -712,7 +712,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 		"""
 		from pyVHDLModel.Subprogram import Function, Procedure
 
-		if not self._isIndexed:
+		if not self._areDeclaredItemsIndexed:
 			return
 		elif isinstance(element, (Function, Procedure)):
 			self._AddOverloadToNamespace(element)
@@ -736,7 +736,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 		"""
 		from pyVHDLModel.Subprogram import Function, Procedure
 
-		if not self._isIndexed:
+		if not self._areDeclaredItemsIndexed:
 			return
 		elif isinstance(element, (Function, Procedure)):
 			self._RemoveOverloadFromNamespace(element)
@@ -1102,7 +1102,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 
 		self._declaredItems.insert(index, declaredItem)
 		declaredItem.Parent = self
-		if self._isIndexed:
+		if self._areDeclaredItemsIndexed:
 			if isinstance(declaredItem, (Function, Procedure)):
 				self._IndexOverload(declaredItem)
 			else:
@@ -1250,7 +1250,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 			)
 
 		reindex = False
-		if self._isIndexed:
+		if self._areDeclaredItemsIndexed:
 			isOverload = isinstance(declaredItem, (Function, Procedure))
 			reindex = any(
 				not (isOverload and isinstance(item, (Function, Procedure)))
@@ -1494,7 +1494,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		for item in self._declaredItems:
 			self._IndexDeclaredItem(item)
 
-		self._isIndexed = True
+		self._areDeclaredItemsIndexed = True
 
 	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
 		"""
@@ -1768,7 +1768,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		for item in self._declaredItems:
 			self._IndexDeclaredItem(item)
 
-		self._isIndexed = True
+		self._areDeclaredItemsIndexed = True
 
 	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
 		"""
@@ -1945,7 +1945,7 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		for item in self._declaredItems:
 			self._IndexDeclaredItem(item)
 
-		self._isIndexed = True
+		self._areDeclaredItemsIndexed = True
 
 	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
 		"""

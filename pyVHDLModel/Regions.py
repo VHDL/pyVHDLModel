@@ -644,7 +644,7 @@ class WithParametersMixin(
 
 
 @export
-class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labels", )):
+class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labels",)):
 	"""
 	A base-class for the concurrent, sequential and protected type declaration region mixins.
 
@@ -669,7 +669,8 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 
 	A statement label is declared implicitly in the declarative region enclosing the statement, so the host provides the
 	labeled statements of the region by ``_Labels()``: a host with statements gets it from its statements mixin
-	(e.g. :class:`~pyVHDLModel.Concurrent.ConcurrentStatementsMixin`), a host without statements returns an empty tuple.
+	(e.g. :class:`~pyVHDLModel.Concurrent.ConcurrentStatementsMixin`), a host without statements from
+	:class:`WithoutStatementsMixin`.
 	"""
 	_declaredItemTypes:       ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
 	_areDeclaredItemsIndexed: bool                        #: ``True`` if :meth:`IndexDeclaredItems` filled the namespace.
@@ -1263,6 +1264,30 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 
 		if reindex:
 			self.IndexDeclaredItems()
+
+
+@export
+class WithoutStatementsMixin(metaclass=ExtendedType, mixin=True):
+	"""
+	A mixin-class for language constructs with a declarative region, but without statements.
+
+	It provides the labeled statements ``_Labels()`` the declaration region expects from its host class: none.
+
+	.. seealso::
+
+	   * :class:`Package <pyVHDLModel.DesignUnit.Package>`
+	   * :class:`Package body <pyVHDLModel.DesignUnit.PackageBody>`
+	   * :class:`Protected type <pyVHDLModel.Type.ProtectedType>`
+	   * :class:`Protected type body <pyVHDLModel.Type.ProtectedTypeBody>`
+	"""
+
+	def _Labels(self) -> tuple[ModelEntity, ...]:
+		"""
+		Return the labeled statements, whose labels are declared in this declarative region.
+
+		:returns: An empty tuple.
+		"""
+		return ()
 
 
 @export

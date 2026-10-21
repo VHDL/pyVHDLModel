@@ -48,6 +48,7 @@ from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNam
 from pyVHDLModel.Base          import normalizedIdentifiersOf
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin
+from pyVHDLModel.Regions       import WithoutStatementsMixin
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin
 from pyVHDLModel.Object        import DeferredConstant
@@ -503,7 +504,14 @@ class Context(PrimaryUnit):
 
 
 @export
-class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, ConcurrentDeclarationRegionMixin, AllowBlackboxMixin):
+class Package(
+	PrimaryUnit,
+	DesignUnitWithContextMixin,
+	WithGenericsMixin,
+	ConcurrentDeclarationRegionMixin,
+	WithoutStatementsMixin,
+	AllowBlackboxMixin
+):
 	"""
 	Represents a package declaration.
 
@@ -673,19 +681,9 @@ class Package(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, Concur
 		"""
 		return (*self._genericItems, *super()._Declarations())
 
-	def _Labels(self) -> tuple[ModelEntity, ...]:
-		"""
-		Return the labeled statements, whose labels are declared in this package's declarative region.
-
-		A package contains no statements.
-
-		:returns: An empty tuple.
-		"""
-		return ()
-
 
 @export
-class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin):
+class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarationRegionMixin, WithoutStatementsMixin):
 	"""
 	Represents a package body declaration.
 
@@ -760,16 +758,6 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		"""
 		package = self._package.Package
 		return () if package is None else (package, )
-
-	def _Labels(self) -> tuple[ModelEntity, ...]:
-		"""
-		Return the labeled statements, whose labels are declared in this package body's declarative region.
-
-		A package body contains no statements.
-
-		:returns: An empty tuple.
-		"""
-		return ()
 
 	def __str__(self) -> str:
 		"""

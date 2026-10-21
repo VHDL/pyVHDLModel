@@ -46,6 +46,7 @@ from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedE
 from pyVHDLModel.Symbol     import Symbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin
+from pyVHDLModel.Regions    import WithoutStatementsMixin
 
 
 @export
@@ -794,7 +795,7 @@ class RecordType(CompositeType):
 
 
 @export
-class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin):
+class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatementsMixin):
 	"""
 	Represents a protected type declaration.
 
@@ -850,19 +851,9 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin):
 
 		return [item for item in self._declaredItems if isinstance(item, (Function, Procedure))]
 
-	def _Labels(self) -> tuple[ModelEntity, ...]:
-		"""
-		Return the labeled statements, whose labels are declared in this protected type's declarative region.
-
-		A protected type contains no statements.
-
-		:returns: An empty tuple.
-		"""
-		return ()
-
 
 @export
-class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin):
+class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutStatementsMixin):
 	"""
 	Represents a protected type body.
 
@@ -917,16 +908,6 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin):
 		from pyVHDLModel.Subprogram import Function, Procedure
 
 		return [item for item in self._declaredItems if isinstance(item, (Function, Procedure))]
-
-	def _Labels(self) -> tuple[ModelEntity, ...]:
-		"""
-		Return the labeled statements, whose labels are declared in this protected type body's declarative region.
-
-		A protected type body contains no statements.
-
-		:returns: An empty tuple.
-		"""
-		return ()
 
 
 @export

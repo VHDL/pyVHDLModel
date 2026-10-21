@@ -110,7 +110,8 @@ def _packageBody(*declaredItems) -> PackageBody:
 
 class DeclaredItemVsInterfaceItems(Testcase):
 	def test_Port(self) -> None:
-		entity = Entity("ent", portItems=[_port("x")])
+		port = _port("x")
+		entity = Entity("ent", portItems=[port])
 		entity.IndexDeclaredItems()
 		before = _snapshot(entity)
 		signal = _signal("X")
@@ -123,11 +124,17 @@ class DeclaredItemVsInterfaceItems(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("X", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
+		self.assertIs(entity._namespace, context.exception.Namespace)
+		self.assertIs(signal, context.exception.Element)
+		self.assertIs(port, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(entity))
 		self.assertIsNone(signal.Parent)
 
 	def test_Generic(self) -> None:
-		package = Package("pkg", genericItems=[_generic("BITS")])
+		generic = _generic("BITS")
+		package = Package("pkg", genericItems=[generic])
 		package.IndexDeclaredItems()
 		before = _snapshot(package)
 		constant = _constant("bits")
@@ -136,12 +143,18 @@ class DeclaredItemVsInterfaceItems(Testcase):
 			package.AddDeclaredItem(constant)
 
 		self.assertEqual("Package already declares 'bits'.", str(context.exception))
+		self.assertEqual("bits", context.exception.Identifier)
+		self.assertEqual("bits", context.exception.NormalizedIdentifier)
+		self.assertIs(package._namespace, context.exception.Namespace)
+		self.assertIs(constant, context.exception.Element)
+		self.assertIs(generic, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(package))
 		self.assertIsNone(constant.Parent)
 
 	def test_Parameter(self) -> None:
 		function = _function("f")
-		function.AddParameterItem(_parameter("a"))
+		parameter = _parameter("a")
+		function.AddParameterItem(parameter)
 		function.IndexDeclaredItems()
 		before = _snapshot(function)
 		variable = _variable("A")
@@ -150,6 +163,11 @@ class DeclaredItemVsInterfaceItems(Testcase):
 			function.AddDeclaredItem(variable)
 
 		self.assertEqual("Function already declares 'A'.", str(context.exception))
+		self.assertEqual("A", context.exception.Identifier)
+		self.assertEqual("a", context.exception.NormalizedIdentifier)
+		self.assertIs(function._namespace, context.exception.Namespace)
+		self.assertIs(variable, context.exception.Element)
+		self.assertIs(parameter, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(function))
 		self.assertIsNone(variable.Parent)
 
@@ -168,7 +186,8 @@ class DeclaredItemVsInterfaceItems(Testcase):
 
 class DeclaredItemVsSharedRegion(Testcase):
 	def test_Architecture_EntityPort(self) -> None:
-		entity = Entity("ent", portItems=[_port("p")])
+		port = _port("p")
+		entity = Entity("ent", portItems=[port])
 		architecture = _architecture()
 		_link(entity, architecture, Package("pkg"), _packageBody())
 		before = _snapshot(architecture)
@@ -178,56 +197,89 @@ class DeclaredItemVsSharedRegion(Testcase):
 			architecture.AddDeclaredItem(signal)
 
 		self.assertEqual("Entity already declares 'p'.", str(context.exception))
+		self.assertEqual("p", context.exception.Identifier)
+		self.assertEqual("p", context.exception.NormalizedIdentifier)
+		self.assertIs(architecture._namespace, context.exception.Namespace)
+		self.assertIs(signal, context.exception.Element)
+		self.assertIs(port, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(architecture))
 		self.assertIsNone(signal.Parent)
 
 	def test_Architecture_EntityDeclaration(self) -> None:
-		entity = Entity("ent", declaredItems=[_signal("x")])
+		signal = _signal("x")
+		entity = Entity("ent", declaredItems=[signal])
 		architecture = _architecture()
 		_link(entity, architecture, Package("pkg"), _packageBody())
 		before = _snapshot(architecture)
+		constant = _constant("x")
 
 		with self.assertRaises(DuplicateConstantError) as context:
-			architecture.AddDeclaredItem(_constant("x"))
+			architecture.AddDeclaredItem(constant)
 
 		self.assertEqual("Entity already declares 'x'.", str(context.exception))
 		self.assertListEqual(["Existing declaration is of type 'pyVHDLModel.Object.Signal'."], context.exception.__notes__)
+		self.assertEqual("x", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
+		self.assertIs(architecture._namespace, context.exception.Namespace)
+		self.assertIs(constant, context.exception.Element)
+		self.assertIs(signal, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(architecture))
 
 	def test_Entity_ArchitectureDeclaration(self) -> None:
 		entity = Entity("ent")
-		architecture = _architecture(_signal("x"))
+		existing = _signal("x")
+		architecture = _architecture(existing)
 		_link(entity, architecture, Package("pkg"), _packageBody())
 		before = _snapshot(entity)
+		signal = _signal("x")
 
 		with self.assertRaises(DuplicateSignalError) as context:
-			entity.AddDeclaredItem(_signal("x"))
+			entity.AddDeclaredItem(signal)
 
 		self.assertEqual("Architecture already declares 'x'.", str(context.exception))
+		self.assertEqual("x", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
+		self.assertIs(entity._namespace, context.exception.Namespace)
+		self.assertIs(signal, context.exception.Element)
+		self.assertIs(existing, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(entity))
 
 	def test_PackageBody_PackageDeclaration(self) -> None:
-		package = Package("pkg", declaredItems=[_constant("c")])
+		existing = _constant("c")
+		package = Package("pkg", declaredItems=[existing])
 		packageBody = _packageBody()
 		_link(Entity("ent"), _architecture(), package, packageBody)
 		before = _snapshot(packageBody)
+		constant = _constant("C")
 
 		with self.assertRaises(DuplicateConstantError) as context:
-			packageBody.AddDeclaredItem(_constant("C"))
+			packageBody.AddDeclaredItem(constant)
 
 		self.assertEqual("Package already declares 'C'.", str(context.exception))
+		self.assertEqual("C", context.exception.Identifier)
+		self.assertEqual("c", context.exception.NormalizedIdentifier)
+		self.assertIs(packageBody._namespace, context.exception.Namespace)
+		self.assertIs(constant, context.exception.Element)
+		self.assertIs(existing, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(packageBody))
 
 	def test_Package_PackageBodyDeclaration(self) -> None:
 		package = Package("pkg")
-		packageBody = _packageBody(_constant("c"))
+		existing = _constant("c")
+		packageBody = _packageBody(existing)
 		_link(Entity("ent"), _architecture(), package, packageBody)
 		before = _snapshot(package)
+		constant = _constant("c")
 
 		with self.assertRaises(DuplicateConstantError) as context:
-			package.AddDeclaredItem(_constant("c"))
+			package.AddDeclaredItem(constant)
 
 		self.assertEqual("PackageBody already declares 'c'.", str(context.exception))
+		self.assertEqual("c", context.exception.Identifier)
+		self.assertEqual("c", context.exception.NormalizedIdentifier)
+		self.assertIs(package._namespace, context.exception.Namespace)
+		self.assertIs(constant, context.exception.Element)
+		self.assertIs(existing, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(package))
 
 	def test_PackageBody_DeferredConstant(self) -> None:
@@ -278,7 +330,8 @@ class DeclaredItemVsSharedRegion(Testcase):
 
 class InterfaceItemVsDeclarations(Testcase):
 	def test_Generic_DeclaredItem(self) -> None:
-		entity = Entity("ent", declaredItems=[_signal("G")])
+		signal = _signal("G")
+		entity = Entity("ent", declaredItems=[signal])
 		entity.IndexDeclaredItems()
 		before = _snapshot(entity)
 		generic = _generic("g")
@@ -288,11 +341,17 @@ class InterfaceItemVsDeclarations(Testcase):
 
 		self.assertEqual("Entity already declares 'g'.", str(context.exception))
 		self.assertListEqual(["Existing declaration is of type 'pyVHDLModel.Object.Signal'."], context.exception.__notes__)
+		self.assertEqual("g", context.exception.Identifier)
+		self.assertEqual("g", context.exception.NormalizedIdentifier)
+		self.assertIs(entity, context.exception.Parent)
+		self.assertIs(generic, context.exception.Element)
+		self.assertIs(signal, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(entity))
 		self.assertIsNone(generic.Parent)
 
 	def test_Port_Generic(self) -> None:
-		entity = Entity("ent", genericItems=[_generic("x")])
+		generic = _generic("x")
+		entity = Entity("ent", genericItems=[generic])
 		entity.IndexDeclaredItems()
 		before = _snapshot(entity)
 		port = _port("x")
@@ -305,36 +364,56 @@ class InterfaceItemVsDeclarations(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Interface.GenericConstantInterfaceItem'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("x", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
+		self.assertIs(entity, context.exception.Parent)
+		self.assertIs(port, context.exception.Element)
+		self.assertIs(generic, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(entity))
 		self.assertIsNone(port.Parent)
 
 	def test_Port_ArchitectureDeclaration(self) -> None:
 		entity = Entity("ent")
-		architecture = _architecture(_signal("x"))
+		signal = _signal("x")
+		architecture = _architecture(signal)
 		_link(entity, architecture, Package("pkg"), _packageBody())
 		before = _snapshot(entity)
+		port = _port("x")
 
 		with self.assertRaises(DuplicatePortError) as context:
-			entity.AddPortItem(_port("x"))
+			entity.AddPortItem(port)
 
 		self.assertEqual("Architecture already declares 'x'.", str(context.exception))
+		self.assertEqual("x", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
+		self.assertIs(entity, context.exception.Parent)
+		self.assertIs(port, context.exception.Element)
+		self.assertIs(signal, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(entity))
 
 	def test_Generic_PackageBodyDeclaration(self) -> None:
 		package = Package("pkg")
-		packageBody = _packageBody(_constant("BITS"))
+		constant = _constant("BITS")
+		packageBody = _packageBody(constant)
 		_link(Entity("ent"), _architecture(), package, packageBody)
 		before = _snapshot(package)
+		generic = _generic("bits")
 
 		with self.assertRaises(DuplicateGenericError) as context:
-			package.AddGenericItem(_generic("bits"))
+			package.AddGenericItem(generic)
 
 		self.assertEqual("PackageBody already declares 'bits'.", str(context.exception))
+		self.assertEqual("bits", context.exception.Identifier)
+		self.assertEqual("bits", context.exception.NormalizedIdentifier)
+		self.assertIs(package, context.exception.Parent)
+		self.assertIs(generic, context.exception.Element)
+		self.assertIs(constant, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(package))
 
 	def test_Parameter_DeclaredItem(self) -> None:
 		function = _function("f")
-		function.AddDeclaredItem(_variable("a"))
+		variable = _variable("a")
+		function.AddDeclaredItem(variable)
 		before = _snapshot(function)
 		parameter = _parameter("A")
 
@@ -346,18 +425,29 @@ class InterfaceItemVsDeclarations(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Object.Variable'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("A", context.exception.Identifier)
+		self.assertEqual("a", context.exception.NormalizedIdentifier)
+		self.assertIs(function, context.exception.Parent)
+		self.assertIs(parameter, context.exception.Element)
+		self.assertIs(variable, context.exception.Existing)
 		self.assertDictEqual(before, _snapshot(function))
 		self.assertIsNone(parameter.Parent)
 
 	def test_Component_PortVsGeneric(self) -> None:
 		"""A component's generics and ports share one declarative region."""
-		component = Component("comp", genericItems=[_generic("x")])
+		generic = _generic("x")
+		component = Component("comp", genericItems=[generic])
 		port = _port("X")
 
 		with self.assertRaises(DuplicatePortError) as context:
 			component.AddPortItem(port)
 
 		self.assertEqual("Component already declares 'X'.", str(context.exception))
+		self.assertEqual("X", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
+		self.assertIs(component, context.exception.Parent)
+		self.assertIs(port, context.exception.Element)
+		self.assertIs(generic, context.exception.Existing)
 		self.assertListEqual([], component.PortItems)
 		self.assertIsNone(port.Parent)
 

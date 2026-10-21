@@ -103,7 +103,7 @@ class Parameters(Testcase):
 
 	def test_Add_AlreadyInDesign(self) -> None:
 		a = _parameter("a")
-		ParameterGroup([a])
+		first = ParameterGroup([a])
 		group = ParameterGroup([])
 
 		with self.assertRaises(AlreadyInDesignError) as context:
@@ -111,9 +111,12 @@ class Parameters(Testcase):
 
 		self.assertEqual("ParameterConstantInterfaceItem 'a' already has a parent.", str(context.exception))
 		self.assertListEqual(["Remove it from its ParameterGroup first."], context.exception.__notes__)
+		self.assertIs(a, context.exception.Element)
+		self.assertIs(first, context.exception.Parent)
 
 	def test_Add_Duplicate(self) -> None:
-		group = ParameterGroup([_parameter("a")])
+		a = _parameter("a")
+		group = ParameterGroup([a])
 		duplicate = _parameter("A")
 
 		with self.assertRaises(DuplicateParameterError) as context:
@@ -124,6 +127,11 @@ class Parameters(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Interface.ParameterConstantInterfaceItem'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("A", context.exception.Identifier)
+		self.assertEqual("a", context.exception.NormalizedIdentifier)
+		self.assertIs(group, context.exception.Parent)
+		self.assertIs(duplicate, context.exception.Element)
+		self.assertIs(a, context.exception.Existing)
 		self.assertEqual(1, group.ParameterCount)
 		self.assertIsNone(duplicate.Parent)
 
@@ -244,6 +252,8 @@ class Parameters(Testcase):
 			"ParameterConstantInterfaceItem 'a' is not a parameter of this ParameterGroup.",
 			str(context.exception)
 		)
+		self.assertIs(a, context.exception.Element)
+		self.assertIs(group, context.exception.Parent)
 		self.assertEqual(1, group.ParameterCount)
 
 	def test_Move(self) -> None:
@@ -300,6 +310,9 @@ class Parameters(Testcase):
 
 		self.assertEqual("Namespace 'p' has another element for 'a'.", str(context.exception))
 		self.assertListEqual(["Found element of type 'pyVHDLModel.Object.Variable'."], context.exception.__notes__)
+		self.assertEqual("a", context.exception.Identifier)
+		self.assertEqual("a", context.exception.NormalizedIdentifier)
+		self.assertIs(procedure._namespace, context.exception.Namespace)
 		self.assertListEqual([a], procedure.ParameterItems)
 		self.assertIs(procedure, a.Parent)
 		self.assertIs(variable, procedure._namespace._elements["a"])

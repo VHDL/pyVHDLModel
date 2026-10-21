@@ -164,7 +164,7 @@ class SequentialDeclaredItems(Testcase):
 
 	def test_Add_AlreadyInDesign(self) -> None:
 		variable = _variable("v")
-		ProcessStatement("p1", declaredItems=[variable])
+		first = ProcessStatement("p1", declaredItems=[variable])
 		process = ProcessStatement("p2")
 
 		with self.assertRaises(AlreadyInDesignError) as context:
@@ -172,18 +172,27 @@ class SequentialDeclaredItems(Testcase):
 
 		self.assertEqual("Variable 'v' already has a parent.", str(context.exception))
 		self.assertListEqual(["Remove it from its ProcessStatement first."], context.exception.__notes__)
+		self.assertIs(variable, context.exception.Element)
+		self.assertIs(first, context.exception.Parent)
 
 	def test_Add_Duplicate(self) -> None:
-		process = ProcessStatement("proc", declaredItems=[_constant("x")])
+		constant = _constant("x")
+		process = ProcessStatement("proc", declaredItems=[constant])
+		variable = _variable("X")
 
 		with self.assertRaises(DuplicateVariableError) as context:
-			process.AddDeclaredItem(_variable("X"))
+			process.AddDeclaredItem(variable)
 
 		self.assertEqual("ProcessStatement already declares 'X'.", str(context.exception))
 		self.assertListEqual(
 			["Existing declaration is of type 'pyVHDLModel.Object.Constant'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("X", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
+		self.assertIs(process._namespace, context.exception.Namespace)
+		self.assertIs(variable, context.exception.Element)
+		self.assertIs(constant, context.exception.Existing)
 
 	def test_Insert_Middle(self) -> None:
 		first = _variable("a")
@@ -255,6 +264,9 @@ class SequentialDeclaredItems(Testcase):
 
 		self.assertEqual("Namespace 'proc' has another element for 'v'.", str(context.exception))
 		self.assertListEqual(["Found element of type 'pyVHDLModel.Object.Variable'."], context.exception.__notes__)
+		self.assertEqual("v", context.exception.Identifier)
+		self.assertEqual("v", context.exception.NormalizedIdentifier)
+		self.assertIs(process._namespace, context.exception.Namespace)
 		self.assertListEqual([variable1, variable2], process.DeclaredItems)
 		self.assertIs(process, variable1.Parent)
 		self.assertDictEqual({"v": variable2}, process.Variables)
@@ -273,8 +285,11 @@ class SequentialDeclaredItems(Testcase):
 
 	def test_Remove_NotAChild(self) -> None:
 		process = ProcessStatement("proc")
+		variable = _variable("v")
 
 		with self.assertRaises(NotAChildError) as context:
-			process.RemoveDeclaredItem(_variable("v"))
+			process.RemoveDeclaredItem(variable)
 
 		self.assertEqual("Variable 'v' is not a declared item of this ProcessStatement.", str(context.exception))
+		self.assertIs(variable, context.exception.Element)
+		self.assertIs(process, context.exception.Parent)

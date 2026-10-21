@@ -109,7 +109,7 @@ class Ports(Testcase):
 
 	def test_Add_AlreadyInDesign(self) -> None:
 		clock = _port("Clock")
-		Component("c", portItems=[clock])
+		component = Component("c", portItems=[clock])
 		entity = Entity("e")
 
 		with self.assertRaises(AlreadyInDesignError) as context:
@@ -117,10 +117,13 @@ class Ports(Testcase):
 
 		self.assertEqual("PortSimpleSignalInterfaceItem 'Clock' already has a parent.", str(context.exception))
 		self.assertListEqual(["Remove it from its Component first."], context.exception.__notes__)
+		self.assertIs(clock, context.exception.Element)
+		self.assertIs(component, context.exception.Parent)
 		self.assertEqual(0, entity.PortCount)
 
 	def test_Add_Duplicate(self) -> None:
-		entity = Entity("e", portItems=[_port("Clock")])
+		clock = _port("Clock")
+		entity = Entity("e", portItems=[clock])
 		duplicate = _port("CLOCK")
 
 		with self.assertRaises(DuplicatePortError) as context:
@@ -131,6 +134,11 @@ class Ports(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("CLOCK", context.exception.Identifier)
+		self.assertEqual("clock", context.exception.NormalizedIdentifier)
+		self.assertIs(entity, context.exception.Parent)
+		self.assertIs(duplicate, context.exception.Element)
+		self.assertIs(clock, context.exception.Existing)
 		self.assertEqual(1, entity.PortCount)
 		self.assertIsNone(duplicate.Parent)
 
@@ -246,6 +254,8 @@ class Ports(Testcase):
 			entity.RemovePortItem(clock)
 
 		self.assertEqual("PortSimpleSignalInterfaceItem 'Clock' is not a port of this Entity.", str(context.exception))
+		self.assertIs(clock, context.exception.Element)
+		self.assertIs(entity, context.exception.Parent)
 
 	def test_Move(self) -> None:
 		"""A move within one port clause is a remove followed by an insert."""
@@ -299,6 +309,9 @@ class Ports(Testcase):
 
 		self.assertEqual("Namespace 'e' has another element for 'clock'.", str(context.exception))
 		self.assertListEqual(["Found element of type 'pyVHDLModel.Object.Signal'."], context.exception.__notes__)
+		self.assertEqual("Clock", context.exception.Identifier)
+		self.assertEqual("clock", context.exception.NormalizedIdentifier)
+		self.assertIs(entity._namespace, context.exception.Namespace)
 		self.assertListEqual([clock], entity.PortItems)
 		self.assertIs(entity, clock.Parent)
 		self.assertIs(signal, entity._namespace._elements["clock"])

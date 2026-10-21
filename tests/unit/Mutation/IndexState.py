@@ -198,6 +198,9 @@ class Overloads(Testcase):
 
 		self.assertEqual("Namespace 'rtl' has another element for 'f'.", str(context.exception))
 		self.assertListEqual(["Found element of type 'pyVHDLModel.Object.Signal'."], context.exception.__notes__)
+		self.assertEqual("f", context.exception.Identifier)
+		self.assertEqual("f", context.exception.NormalizedIdentifier)
+		self.assertIs(architecture._namespace, context.exception.Namespace)
 		self.assertListEqual([function, signal], architecture.DeclaredItems)
 		self.assertIs(architecture, function.Parent)
 		self.assertDictEqual({"f": [function]}, architecture.Functions)
@@ -212,6 +215,9 @@ class Overloads(Testcase):
 			architecture.RemoveDeclaredItem(function)
 
 		self.assertEqual("Namespace 'rtl' has no element 'f'.", str(context.exception))
+		self.assertEqual("f", context.exception.Identifier)
+		self.assertEqual("f", context.exception.NormalizedIdentifier)
+		self.assertIs(architecture._namespace, context.exception.Namespace)
 		self.assertListEqual([function], architecture.DeclaredItems)
 		self.assertDictEqual({"f": [function]}, architecture.Functions)
 
@@ -227,6 +233,9 @@ class Objects(Testcase):
 			architecture.RemoveDeclaredItem(signal)
 
 		self.assertEqual("Namespace 'rtl' has no element 's'.", str(context.exception))
+		self.assertEqual("s", context.exception.Identifier)
+		self.assertEqual("s", context.exception.NormalizedIdentifier)
+		self.assertIs(architecture._namespace, context.exception.Namespace)
 		self.assertListEqual([signal], architecture.DeclaredItems)
 		self.assertIs(architecture, signal.Parent)
 		self.assertDictEqual({"s": signal}, architecture.Signals)
@@ -244,6 +253,9 @@ class Objects(Testcase):
 
 		self.assertEqual("Namespace 'rtl' has another element for 'b'.", str(context.exception))
 		self.assertListEqual(["Found element of type 'pyVHDLModel.Object.Constant'."], context.exception.__notes__)
+		self.assertEqual("b", context.exception.Identifier)
+		self.assertEqual("b", context.exception.NormalizedIdentifier)
+		self.assertIs(architecture._namespace, context.exception.Namespace)
 		self.assertIs(architecture, signal.Parent)
 		self.assertDictEqual({"a": signal, "b": signal}, architecture.Signals)
 		self.assertDictEqual({"a": signal, "b": duplicate}, architecture._namespace._elements)

@@ -194,7 +194,11 @@ class WithGenericsMixin(
 			raise ex
 		elif genericItem._parent is not None:
 			identifiers = ", ".join(identifiersOf(genericItem))
-			ex = AlreadyInDesignError(f"{getTypeName(genericItem)} '{identifiers}' already has a parent.")
+			ex = AlreadyInDesignError(
+				f"{getTypeName(genericItem)} '{identifiers}' already has a parent.",
+				element=genericItem,
+				parent=genericItem._parent
+			)
 			ex.add_note(f"Remove it from its {getTypeName(genericItem._parent)} first.")
 			raise ex
 
@@ -202,7 +206,13 @@ class WithGenericsMixin(
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(genericItem), normalizedIdentifiersOf(genericItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
-			ex = DuplicateGenericError(f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.")
+			ex = DuplicateGenericError(
+				f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.",
+				identifier=identifier,
+				parent=self,
+				element=genericItem,
+				existing=clashes[0]
+			)
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
@@ -249,7 +259,9 @@ class WithGenericsMixin(
 		else:
 			identifiers = ", ".join(identifiersOf(genericItem))
 			raise NotAChildError(
-				f"{getTypeName(genericItem)} '{identifiers}' is not a generic of this {getTypeName(self)}."
+				f"{getTypeName(genericItem)} '{identifiers}' is not a generic of this {getTypeName(self)}.",
+				element=genericItem,
+				parent=self
 			)
 
 		self._RemoveFromNamespace(genericItem)
@@ -388,7 +400,11 @@ class WithPortsMixin(
 			raise ex
 		elif portItem._parent is not None:
 			identifiers = ", ".join(identifiersOf(portItem))
-			ex = AlreadyInDesignError(f"{getTypeName(portItem)} '{identifiers}' already has a parent.")
+			ex = AlreadyInDesignError(
+				f"{getTypeName(portItem)} '{identifiers}' already has a parent.",
+				element=portItem,
+				parent=portItem._parent
+			)
 			ex.add_note(f"Remove it from its {getTypeName(portItem._parent)} first.")
 			raise ex
 
@@ -396,7 +412,13 @@ class WithPortsMixin(
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(portItem), normalizedIdentifiersOf(portItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
-			ex = DuplicatePortError(f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.")
+			ex = DuplicatePortError(
+				f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.",
+				identifier=identifier,
+				parent=self,
+				element=portItem,
+				existing=clashes[0]
+			)
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
@@ -443,7 +465,9 @@ class WithPortsMixin(
 		else:
 			identifiers = ", ".join(identifiersOf(portItem))
 			raise NotAChildError(
-				f"{getTypeName(portItem)} '{identifiers}' is not a port of this {getTypeName(self)}."
+				f"{getTypeName(portItem)} '{identifiers}' is not a port of this {getTypeName(self)}.",
+				element=portItem,
+				parent=self
 			)
 
 		self._RemoveFromNamespace(portItem)
@@ -580,7 +604,11 @@ class WithParametersMixin(
 			raise ex
 		elif parameterItem._parent is not None:
 			identifiers = ", ".join(identifiersOf(parameterItem))
-			ex = AlreadyInDesignError(f"{getTypeName(parameterItem)} '{identifiers}' already has a parent.")
+			ex = AlreadyInDesignError(
+				f"{getTypeName(parameterItem)} '{identifiers}' already has a parent.",
+				element=parameterItem,
+				parent=parameterItem._parent
+			)
 			ex.add_note(f"Remove it from its {getTypeName(parameterItem._parent)} first.")
 			raise ex
 
@@ -588,7 +616,13 @@ class WithParametersMixin(
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(parameterItem), normalizedIdentifiersOf(parameterItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
-			ex = DuplicateParameterError(f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.")
+			ex = DuplicateParameterError(
+				f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.",
+				identifier=identifier,
+				parent=self,
+				element=parameterItem,
+				existing=clashes[0]
+			)
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
@@ -635,7 +669,9 @@ class WithParametersMixin(
 		else:
 			identifiers = ", ".join(identifiersOf(parameterItem))
 			raise NotAChildError(
-				f"{getTypeName(parameterItem)} '{identifiers}' is not a parameter of this {getTypeName(self)}."
+				f"{getTypeName(parameterItem)} '{identifiers}' is not a parameter of this {getTypeName(self)}.",
+				element=parameterItem,
+				parent=self
 			)
 
 		self._RemoveFromNamespace(parameterItem)
@@ -1066,7 +1102,11 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 			identifiers = ""
 			if isinstance(declaredItem, (NamedEntityMixin, MultipleNamedEntityMixin)):
 				identifiers = f" '{', '.join(identifiersOf(declaredItem))}'"
-			ex = AlreadyInDesignError(f"{getTypeName(declaredItem)}{identifiers} already has a parent.")
+			ex = AlreadyInDesignError(
+				f"{getTypeName(declaredItem)}{identifiers} already has a parent.",
+				element=declaredItem,
+				parent=declaredItem._parent
+			)
 			ex.add_note(f"Remove it from its {getTypeName(declaredItem._parent)} first.")
 			raise ex
 
@@ -1074,6 +1114,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 			existingIdentifiers = normalizedDeclaredNamesOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(declaredItem), normalizedIdentifiersOf(declaredItem))
 			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
+
 			if isinstance(declaredItem, Subtype):
 				errorClass = DuplicateSubtypeError
 			elif isinstance(declaredItem, BaseType):
@@ -1095,7 +1136,13 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 			region = clashes[0]._parent
 			while not isinstance(region, DeclarationRegionMixin):
 				region = region._parent
-			ex = errorClass(f"{getTypeName(region)} already declares '{identifier}'.")
+			ex = errorClass(
+				f"{getTypeName(region)} already declares '{identifier}'.",
+				identifier=identifier,
+				namespace=self._namespace,
+				element=declaredItem,
+				existing=clashes[0]
+			)
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
@@ -1150,7 +1197,9 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 			if isinstance(before, (NamedEntityMixin, MultipleNamedEntityMixin)):
 				identifiers = f" '{', '.join(identifiersOf(before))}'"
 			raise NotAChildError(
-				f"{getTypeName(before)}{identifiers} is not a declared item of this {getTypeName(self)}."
+				f"{getTypeName(before)}{identifiers} is not a declared item of this {getTypeName(self)}.",
+				element=before,
+				parent=self
 			)
 
 		self.InsertDeclaredItem(index, declaredItem)
@@ -1196,7 +1245,9 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 			if isinstance(after, (NamedEntityMixin, MultipleNamedEntityMixin)):
 				identifiers = f" '{', '.join(identifiersOf(after))}'"
 			raise NotAChildError(
-				f"{getTypeName(after)}{identifiers} is not a declared item of this {getTypeName(self)}."
+				f"{getTypeName(after)}{identifiers} is not a declared item of this {getTypeName(self)}.",
+				element=after,
+				parent=self
 			)
 
 		self.InsertDeclaredItem(index + 1, declaredItem)
@@ -1247,7 +1298,9 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 			if isinstance(declaredItem, (NamedEntityMixin, MultipleNamedEntityMixin)):
 				identifiers = f" '{', '.join(identifiersOf(declaredItem))}'"
 			raise NotAChildError(
-				f"{getTypeName(declaredItem)}{identifiers} is not a declared item of this {getTypeName(self)}."
+				f"{getTypeName(declaredItem)}{identifiers} is not a declared item of this {getTypeName(self)}.",
+				element=declaredItem,
+				parent=self
 			)
 
 		reindex = False

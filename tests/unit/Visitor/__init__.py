@@ -66,6 +66,21 @@ class Recorder(Visitor):
 	def VisitArrow(self, element: Any) -> None:
 		self._events.append(("VisitArrow", element))
 
+	def VisitApostrophe(self, expression: Any) -> None:
+		self._events.append(("VisitApostrophe", expression))
+
+	def VisitWhen(self, expression: Any) -> None:
+		self._events.append(("VisitWhen", expression))
+
+	def VisitElse(self, expression: Any) -> None:
+		self._events.append(("VisitElse", expression))
+
+	def VisitOperator(self, expression: Any) -> None:
+		self._events.append(("VisitOperator", expression))
+
+	def VisitDirection(self, rng: Any) -> None:
+		self._events.append(("VisitDirection", rng))
+
 	def VisitIntegerLiteral(self, literal: Any) -> None:
 		self._events.append(("VisitIntegerLiteral", literal))
 
@@ -107,3 +122,45 @@ class Recorder(Visitor):
 
 	def DepartAssociationItem(self, item: Any) -> None:
 		self._events.append(("DepartAssociationItem", item))
+
+	def VisitAddingExpression(self, expression: Any) -> None:
+		self._events.append(("VisitAddingExpression", expression))
+
+	def DepartAddingExpression(self, expression: Any) -> None:
+		self._events.append(("DepartAddingExpression", expression))
+
+	def VisitMultiplyingExpression(self, expression: Any) -> None:
+		self._events.append(("VisitMultiplyingExpression", expression))
+
+	def DepartMultiplyingExpression(self, expression: Any) -> None:
+		self._events.append(("DepartMultiplyingExpression", expression))
+
+	def VisitWhenElseExpression(self, expression: Any) -> None:
+		self._events.append(("VisitWhenElseExpression", expression))
+
+	def DepartWhenElseExpression(self, expression: Any) -> None:
+		self._events.append(("DepartWhenElseExpression", expression))
+
+	def VisitAggregate(self, aggregate: Any) -> None:
+		self._events.append(("VisitAggregate", aggregate))
+
+	def DepartAggregate(self, aggregate: Any) -> None:
+		self._events.append(("DepartAggregate", aggregate))
+
+	def VisitIndexedAggregateElement(self, element: Any) -> None:
+		self._events.append(("VisitIndexedAggregateElement", element))
+
+	def DepartIndexedAggregateElement(self, element: Any) -> None:
+		self._events.append(("DepartIndexedAggregateElement", element))
+
+	def VisitOthersAggregateElement(self, element: Any) -> None:
+		self._events.append(("VisitOthersAggregateElement", element))
+
+	def DepartOthersAggregateElement(self, element: Any) -> None:
+		self._events.append(("DepartOthersAggregateElement", element))
+
+	def VisitSimpleRange(self, rng: Any) -> None:
+		self._events.append(("VisitSimpleRange", rng))
+
+	def DepartSimpleRange(self, rng: Any) -> None:
+		self._events.append(("DepartSimpleRange", rng))

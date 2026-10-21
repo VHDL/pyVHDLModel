@@ -32,12 +32,14 @@
 from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Base            import Direction, SimpleRange
-from pyVHDLModel.Expression      import EnumerationLiteral, FunctionCall, IntegerLiteral, NullLiteral
+from pyVHDLModel.Expression      import AndExpression, EnumerationLiteral, FunctionCall, IntegerLiteral
+from pyVHDLModel.Expression      import InverseExpression, ModuloExpression, NullLiteral, OrExpression
 from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, OpenName
 from pyVHDLModel.Symbol          import ConstrainedArraySubtypeSymbol
 from pyVHDLModel.Visitor         import Visitor
 
+from tests.unit.Writer           import _object
 
 if __name__ == "__main__":  # pragma: no cover
 	print("ERROR: you called a testcase declaration file as an executable module.")
@@ -46,6 +48,10 @@ if __name__ == "__main__":  # pragma: no cover
 
 
 class ParserName(SimpleName):
+	"""A parser's subclass of a model class, like the mirror classes of ``pyGHDL.dom``."""
+
+
+class ParserAndExpression(AndExpression):
 	"""A parser's subclass of a model class, like the mirror classes of ``pyGHDL.dom``."""
 
 
@@ -94,9 +100,10 @@ class Writers(Testcase):
 		self.assertEqual(["Got type 'pyVHDLModel.Formatting.VHDL.KeywordCase'."], context.exception.__notes__)
 
 	def test_Events(self) -> None:
-		"""The writer handles the events of every model class with a walk, except a symbol: it's written by its name."""
-		classNames = {name[len("Depart"):] for name in dir(Visitor) if name.startswith("Depart")}
-		for className in classNames - {"Symbol"}:
+		"""The writer handles the events of every model class with a walk, except those written by their children alone."""
+		classNames =        {name[len("Depart"):] for name in dir(Visitor) if name.startswith("Depart")}
+		writtenByChildren = {"Symbol", "SimpleAggregateElement", "RangedAggregateElement", "NamedAggregateElement"}
+		for className in classNames - writtenByChildren:
 			with self.subTest(className=className):
 				self.assertTrue(
 					getattr(VHDLWriter, f"Visit{className}") is not getattr(Visitor, f"Visit{className}") or
@@ -157,6 +164,12 @@ class Dispatch(Testcase):
 
 		self.assertEqual("clk", VHDLWriter().Format(name))
 
+	def test_ParserSubclass_Operator(self) -> None:
+		"""A parser's subclass is the same operator as its model class, so the chain needs no parentheses."""
+		expression = AndExpression(ParserAndExpression(_object("a"), _object("b")), _object("c"))
+
+		self.assertEqual("a and b and c", VHDLWriter().Format(expression))
+
 
 class Buffers(Testcase):
 	def test_Reset(self) -> None:
@@ -183,6 +196,16 @@ class KeywordCases(Testcase):
 
 	def test_Open(self) -> None:
 		self.assertEqual("OPEN", VHDLWriter(VHDLStyle(KeywordCase.Upper)).Format(OpenName()))
+
+	def test_Operator(self) -> None:
+		expression = ModuloExpression(_object("a"), _object("b"))
+
+		self.assertEqual("a MOD b", VHDLWriter(VHDLStyle(KeywordCase.Upper)).Format(expression))
+
+	def test_UnaryOperator(self) -> None:
+		expression = InverseExpression(OrExpression(_object("a"), _object("b")))
+
+		self.assertEqual("NOT (a OR b)", VHDLWriter(VHDLStyle(KeywordCase.Upper)).Format(expression))
 
 	def test_Identifier(self) -> None:
 		"""Identifiers keep their letter case."""

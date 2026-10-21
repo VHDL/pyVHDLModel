@@ -41,13 +41,11 @@ from pickle import dumps, loads
 
 from pyTooling.Testing      import Testcase
 
-from pyTooling.Testing      import Testcase
-
 from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
 from pyVHDLModel.Expression import (
-	BaseExpression, Literal,
+	OperatorPrecedence, BaseExpression, Literal,
 	NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral,
 	PhysicalIntegerLiteral, PhysicalFloatingLiteral, CharacterLiteral, StringLiteral,
 	BinaryBitStringLiteral, OctalBitStringLiteral, DecimalBitStringLiteral, HexadecimalBitStringLiteral,
@@ -517,6 +515,7 @@ class ClassVariables(Testcase):
 
 				self.assertNotIn("_FORMAT", slots)
 				self.assertNotIn("_direction", slots)
+				self.assertNotIn("_PRECEDENCE", slots)
 
 	def test_Picklable(self) -> None:
 		"""An expression of every arity round-trips through :mod:`pickle`."""
@@ -534,3 +533,64 @@ class ClassVariables(Testcase):
 		"""The two range expressions carry their direction as a class constant, readable without an instance."""
 		self.assertIs(Direction.To, AscendingRangeExpression._direction)
 		self.assertIs(Direction.DownTo, DescendingRangeExpression._direction)
+
+
+class Precedences(Testcase):
+	"""Each operator class names its precedence level of IEEE Std 1076-2008, clause 9.2."""
+
+	def test_Range(self) -> None:
+		for expressionClass in (AscendingRangeExpression, DescendingRangeExpression):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Range, expressionClass._PRECEDENCE)
+
+	def test_Conditional(self) -> None:
+		self.assertIs(OperatorPrecedence.Conditional, WhenElseExpression._PRECEDENCE)
+
+	def test_Logical(self) -> None:
+		for expressionClass in (AndExpression, NandExpression, OrExpression, NorExpression, XorExpression, XnorExpression):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Logical, expressionClass._PRECEDENCE)
+
+	def test_Relational(self) -> None:
+		for expressionClass in (
+			EqualExpression, UnequalExpression, GreaterThanExpression, GreaterEqualExpression, LessThanExpression,
+			LessEqualExpression, MatchingEqualExpression, MatchingUnequalExpression, MatchingGreaterThanExpression,
+			MatchingGreaterEqualExpression, MatchingLessThanExpression, MatchingLessEqualExpression
+		):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Relational, expressionClass._PRECEDENCE)
+
+	def test_Shift(self) -> None:
+		for expressionClass in (
+			ShiftRightLogicExpression, ShiftLeftLogicExpression, ShiftRightArithmeticExpression,
+			ShiftLeftArithmeticExpression, RotateRightExpression, RotateLeftExpression
+		):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Shift, expressionClass._PRECEDENCE)
+
+	def test_Adding(self) -> None:
+		"""The adding operators and the signs share a level."""
+		for expressionClass in (
+			AdditionExpression, SubtractionExpression, ConcatenationExpression, NegationExpression, IdentityExpression
+		):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Adding, expressionClass._PRECEDENCE)
+
+	def test_Multiplying(self) -> None:
+		for expressionClass in (MultiplyExpression, DivisionExpression, RemainderExpression, ModuloExpression):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Multiplying, expressionClass._PRECEDENCE)
+
+	def test_Miscellaneous(self) -> None:
+		for expressionClass in (
+			ExponentiationExpression, AbsoluteExpression, InverseExpression, UnaryAndExpression, UnaryNandExpression,
+			UnaryOrExpression, UnaryNorExpression, UnaryXorExpression, UnaryXnorExpression
+		):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Miscellaneous, expressionClass._PRECEDENCE)
+
+	def test_Primary(self) -> None:
+		"""A parenthesized sub-expression and a type conversion are primaries."""
+		for expressionClass in (SubExpression, TypeConversion):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Primary, expressionClass._PRECEDENCE)

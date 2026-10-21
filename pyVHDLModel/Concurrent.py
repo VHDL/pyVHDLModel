@@ -275,12 +275,22 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 			raise ex
 		elif statement._parent is not None:
 			label = "" if statement._label is None else f" '{statement._label}'"
-			ex = AlreadyInDesignError(f"{getTypeName(statement)}{label} already has a parent.")
+			ex = AlreadyInDesignError(
+				f"{getTypeName(statement)}{label} already has a parent.",
+				element=statement,
+				parent=statement._parent
+			)
 			ex.add_note(f"Remove it from its {getTypeName(statement._parent)} first.")
 			raise ex
 
 		if len(clashes := self._ClashingDeclarations(statement)) > 0:
-			ex = DuplicateLabelError(f"{getTypeName(clashes[0]._parent)} already declares '{statement._label}'.")
+			ex = DuplicateLabelError(
+				f"{getTypeName(clashes[0]._parent)} already declares '{statement._label}'.",
+				identifier=statement._label,
+				namespace=self._namespace,
+				element=statement,
+				existing=clashes[0]
+			)
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
@@ -328,7 +338,9 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 			if isinstance(before, LabeledEntityMixin) and before._label is not None:
 				label = f" '{before._label}'"
 			raise NotAChildError(
-				f"{getTypeName(before)}{label} is not a statement of this {getTypeName(self)}."
+				f"{getTypeName(before)}{label} is not a statement of this {getTypeName(self)}.",
+				element=before,
+				parent=self
 			)
 
 		self.InsertStatement(index, statement)
@@ -372,7 +384,9 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 			if isinstance(after, LabeledEntityMixin) and after._label is not None:
 				label = f" '{after._label}'"
 			raise NotAChildError(
-				f"{getTypeName(after)}{label} is not a statement of this {getTypeName(self)}."
+				f"{getTypeName(after)}{label} is not a statement of this {getTypeName(self)}.",
+				element=after,
+				parent=self
 			)
 
 		self.InsertStatement(index + 1, statement)
@@ -413,7 +427,9 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 			if isinstance(statement, LabeledEntityMixin) and statement._label is not None:
 				label = f" '{statement._label}'"
 			raise NotAChildError(
-				f"{getTypeName(statement)}{label} is not a statement of this {getTypeName(self)}."
+				f"{getTypeName(statement)}{label} is not a statement of this {getTypeName(self)}.",
+				element=statement,
+				parent=self
 			)
 
 		if self._areStatementsIndexed:

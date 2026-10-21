@@ -173,19 +173,25 @@ class Insert(Testcase):
 
 	def test_InsertBefore_NotAChild(self) -> None:
 		architecture = _architecture()
+		before = ProcessStatement("q")
 
 		with self.assertRaises(NotAChildError) as context:
-			architecture.InsertStatementBefore(ProcessStatement("p"), ProcessStatement("q"))
+			architecture.InsertStatementBefore(ProcessStatement("p"), before)
 
 		self.assertEqual("ProcessStatement 'q' is not a statement of this Architecture.", str(context.exception))
+		self.assertIs(before, context.exception.Element)
+		self.assertIs(architecture, context.exception.Parent)
 
 	def test_InsertAfter_NotAChild(self) -> None:
 		architecture = _architecture()
+		after = _assert()
 
 		with self.assertRaises(NotAChildError) as context:
-			architecture.InsertStatementAfter(ProcessStatement("p"), _assert())
+			architecture.InsertStatementAfter(ProcessStatement("p"), after)
 
 		self.assertEqual("ConcurrentAssertStatement is not a statement of this Architecture.", str(context.exception))
+		self.assertIs(after, context.exception.Element)
+		self.assertIs(architecture, context.exception.Parent)
 
 
 class Checks(Testcase):
@@ -224,18 +230,21 @@ class Checks(Testcase):
 
 	def test_Statement_HasParent(self) -> None:
 		process = ProcessStatement("p")
-		_architecture(process)
+		first = _architecture(process)
 
 		with self.assertRaises(AlreadyInDesignError) as context:
 			_architecture().AddStatement(process)
 
 		self.assertEqual("ProcessStatement 'p' already has a parent.", str(context.exception))
 		self.assertListEqual(["Remove it from its Architecture first."], context.exception.__notes__)
+		self.assertIs(process, context.exception.Element)
+		self.assertIs(first, context.exception.Parent)
 
 
 class Labels(Testcase):
 	def test_DuplicateLabel(self) -> None:
-		architecture = _architecture(ProcessStatement("p"))
+		process = ProcessStatement("p")
+		architecture = _architecture(process)
 		statement = _instance("P")
 
 		with self.assertRaises(DuplicateLabelError) as context:
@@ -246,6 +255,11 @@ class Labels(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Concurrent.ProcessStatement'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("P", context.exception.Identifier)
+		self.assertEqual("p", context.exception.NormalizedIdentifier)
+		self.assertIs(architecture._namespace, context.exception.Namespace)
+		self.assertIs(statement, context.exception.Element)
+		self.assertIs(process, context.exception.Existing)
 		self.assertEqual(1, len(architecture.Statements))
 		self.assertIsNone(statement.Parent)
 
@@ -333,10 +347,15 @@ class Remove(Testcase):
 		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
 
 	def test_Remove_NotAChild(self) -> None:
+		architecture = _architecture()
+		process = ProcessStatement("p")
+
 		with self.assertRaises(NotAChildError) as context:
-			_architecture().RemoveStatement(ProcessStatement("p"))
+			architecture.RemoveStatement(process)
 
 		self.assertEqual("ProcessStatement 'p' is not a statement of this Architecture.", str(context.exception))
+		self.assertIs(process, context.exception.Element)
+		self.assertIs(architecture, context.exception.Parent)
 
 
 class Index(Testcase):

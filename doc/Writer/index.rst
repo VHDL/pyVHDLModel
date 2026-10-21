@@ -96,7 +96,8 @@ Parentheses
 
 The model represents an expression as a tree, so it needs no parentheses. The writer adds the parentheses VHDL's
 grammar requires (IEEE Std 1076-2008, clauses 9.1 and 9.2). Parentheses from the source, represented by
-:class:`~pyVHDLModel.Expression.SubExpression`, are kept.
+:class:`~pyVHDLModel.Expression.SubExpression`, are kept. Each operator class names its precedence level
+(:class:`~pyVHDLModel.Expression.OperatorPrecedence`) in the class variable ``_PRECEDENCE``.
 
 .. code-block:: Python
 
@@ -111,7 +112,7 @@ grammar requires (IEEE Std 1076-2008, clauses 9.1 and 9.2). Parentheses from the
    expression = MultiplyExpression(AdditionExpression(obj("a"), obj("b")), obj("c"))
    print(VHDLWriter().Format(expression))   # (a + b) * c
 
-.. list-table:: Precedence levels (:class:`~pyVHDLModel.Formatting.VHDL.OperatorPrecedence`), loosest first
+.. list-table:: Precedence levels (:class:`~pyVHDLModel.Expression.OperatorPrecedence`), loosest first
    :header-rows: 1
 
    * - Level

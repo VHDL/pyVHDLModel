@@ -38,7 +38,7 @@ are not preserved.
 """
 from __future__              import annotations
 
-from enum                    import Enum, IntEnum, unique
+from enum                    import Enum, unique
 from math                    import copysign, isfinite
 from typing                  import ClassVar, Optional as Nullable
 
@@ -50,10 +50,11 @@ from pyVHDLModel.Association import AssociationItem
 from pyVHDLModel.Base        import ModelElementUnion, ModelEntity, Direction, SimpleRange, RangeFromName
 from pyVHDLModel.Exception   import VHDLWriterError
 from pyVHDLModel.Expression  import (
-	NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral,
-	PhysicalFloatingLiteral, CharacterLiteral, StringLiteral, BitStringBase, BitStringLiteral, UnaryExpression,
-	NegationExpression, IdentityExpression, TypeConversion, SubExpression, BinaryExpression, RangeExpression,
-	AddingExpression, MultiplyingExpression, ExponentiationExpression, LogicalExpression, RelationalExpression,
+	OperatorPrecedence, NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral,
+	PhysicalIntegerLiteral, PhysicalFloatingLiteral, CharacterLiteral, StringLiteral, BitStringBase,
+	BitStringLiteral, UnaryExpression, NegationExpression, IdentityExpression, TypeConversion, SubExpression,
+	BinaryExpression, RangeExpression, AddingExpression, MultiplyingExpression, ExponentiationExpression,
+	LogicalExpression, AndExpression, OrExpression, XorExpression, XnorExpression, RelationalExpression,
 	ShiftExpression, QualifiedExpression, WhenElseExpression, SubtypeAllocation, QualifiedExpressionAllocation,
 	SimpleAggregateElement, IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement,
 	OthersAggregateElement, Aggregate
@@ -62,27 +63,6 @@ from pyVHDLModel.Name        import SimpleName, ParenthesisName, IndexedName, Sl
 from pyVHDLModel.Name        import AllName, OpenName
 from pyVHDLModel.Symbol      import Symbol
 from pyVHDLModel.Visitor     import Visitor
-
-
-@export
-@unique
-class OperatorPrecedence(IntEnum):
-	"""
-	An enumeration of VHDL's operator precedence levels, from loosest to tightest binding.
-
-	The levels follow IEEE Std 1076-2008, clause 9.2. A range and a conditional expression are no operators, but bind
-	looser than every operator.
-	"""
-
-	Range =         0  #: Range with direction ``to`` or ``downto``.
-	Conditional =   1  #: Conditional expression (``when`` ... ``else``).
-	Logical =       2  #: Binary logical operators, e.g. ``and``.
-	Relational =    3  #: Relational operators, e.g. ``=`` or ``?=``.
-	Shift =         4  #: Shift and rotate operators, e.g. ``sll``.
-	Adding =        5  #: Adding operators (``+``, ``-``, ``&``) and signs (unary ``+``, ``-``).
-	Multiplying =   6  #: Multiplying operators, e.g. ``*`` or ``mod``.
-	Miscellaneous = 7  #: Exponentiation (``**``), ``abs``, ``not`` and unary logical operators.
-	Primary =       8  #: Primaries, e.g. names, literals, aggregates or parenthesized expressions.
 
 
 @export
@@ -562,7 +542,7 @@ class VHDLWriter(Visitor):
 
 		:param expression: The unary expression.
 		"""
-		self._Enter(OperatorPrecedence.Miscellaneous)
+		self._Enter(expression._PRECEDENCE)
 		self._Write(self._Keyword(expression._FORMAT[0]))
 		self._minimum = OperatorPrecedence.Primary
 
@@ -582,7 +562,7 @@ class VHDLWriter(Visitor):
 
 		:param expression: The negation.
 		"""
-		self._Enter(OperatorPrecedence.Adding)
+		self._Enter(expression._PRECEDENCE)
 		self._Write(expression._FORMAT[0])
 		self._minimum = OperatorPrecedence.Multiplying
 
@@ -602,7 +582,7 @@ class VHDLWriter(Visitor):
 
 		:param expression: The identity.
 		"""
-		self._Enter(OperatorPrecedence.Adding)
+		self._Enter(expression._PRECEDENCE)
 		self._Write(expression._FORMAT[0])
 		self._minimum = OperatorPrecedence.Multiplying
 
@@ -653,12 +633,11 @@ class VHDLWriter(Visitor):
 
 		:param expression: The logical expression.
 		"""
-		self._Enter(OperatorPrecedence.Logical)
-		operator = expression._FORMAT[1].strip()
-		left =     expression.LeftOperand
-		if (
-			operator in ("and", "or", "xor", "xnor") and isinstance(left, LogicalExpression) and
-			left._FORMAT[1].strip() == operator
+		self._Enter(expression._PRECEDENCE)
+		left = expression.LeftOperand
+		if any(
+			isinstance(expression, operator) and isinstance(left, operator)
+			for operator in (AndExpression, OrExpression, XorExpression, XnorExpression)
 		):
 			self._minimum = OperatorPrecedence.Logical
 		else:
@@ -680,7 +659,7 @@ class VHDLWriter(Visitor):
 
 		:param expression: The relational expression.
 		"""
-		self._Enter(OperatorPrecedence.Relational)
+		self._Enter(expression._PRECEDENCE)
 		self._minimum = OperatorPrecedence.Shift
 
 	def DepartRelationalExpression(self, expression: RelationalExpression) -> None:
@@ -699,7 +678,7 @@ class VHDLWriter(Visitor):
 
 		:param expression: The shift or rotate expression.
 		"""
-		self._Enter(OperatorPrecedence.Shift)
+		self._Enter(expression._PRECEDENCE)
 		self._minimum = OperatorPrecedence.Adding
 
 	def DepartShiftExpression(self, expression: ShiftExpression) -> None:
@@ -718,7 +697,7 @@ class VHDLWriter(Visitor):
 
 		:param expression: The adding expression.
 		"""
-		self._Enter(OperatorPrecedence.Adding)
+		self._Enter(expression._PRECEDENCE)
 		self._minimum = OperatorPrecedence.Adding
 
 	def DepartAddingExpression(self, expression: AddingExpression) -> None:
@@ -737,7 +716,7 @@ class VHDLWriter(Visitor):
 
 		:param expression: The multiplying expression.
 		"""
-		self._Enter(OperatorPrecedence.Multiplying)
+		self._Enter(expression._PRECEDENCE)
 		self._minimum = OperatorPrecedence.Multiplying
 
 	def DepartMultiplyingExpression(self, expression: MultiplyingExpression) -> None:
@@ -756,7 +735,7 @@ class VHDLWriter(Visitor):
 
 		:param expression: The exponentiation.
 		"""
-		self._Enter(OperatorPrecedence.Miscellaneous)
+		self._Enter(expression._PRECEDENCE)
 		self._minimum = OperatorPrecedence.Primary
 
 	def DepartExponentiationExpression(self, expression: ExponentiationExpression) -> None:
@@ -775,7 +754,7 @@ class VHDLWriter(Visitor):
 
 		:param expression: The range expression.
 		"""
-		self._Enter(OperatorPrecedence.Range)
+		self._Enter(expression._PRECEDENCE)
 		self._minimum = OperatorPrecedence.Adding
 
 	def DepartRangeExpression(self, expression: RangeExpression) -> None:
@@ -794,7 +773,7 @@ class VHDLWriter(Visitor):
 
 		:param expression: The conditional expression.
 		"""
-		self._Enter(OperatorPrecedence.Conditional)
+		self._Enter(expression._PRECEDENCE)
 		self._minimum = OperatorPrecedence.Logical
 
 	def DepartWhenElseExpression(self, expression: WhenElseExpression) -> None:

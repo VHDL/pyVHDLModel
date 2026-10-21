@@ -36,7 +36,7 @@ All declarations for literals, aggregates, operators forming an expressions.
 """
 from __future__            import annotations
 
-from enum                  import Flag
+from enum                  import Flag, IntEnum, unique
 from typing                import TYPE_CHECKING, Iterable, Union, ClassVar, Optional as Nullable
 
 from pyTooling.Common      import getFullyQualifiedName
@@ -57,6 +57,27 @@ ExpressionUnion = Union[
 	# ConstantOrSymbol,     TODO: ObjectSymbol
 	'Literal',
 ]
+
+
+@export
+@unique
+class OperatorPrecedence(IntEnum):
+	"""
+	An enumeration of VHDL's operator precedence levels, from loosest to tightest binding.
+
+	The levels follow IEEE Std 1076-2008, clause 9.2. A range and a conditional expression are no operators, but bind
+	looser than every operator.
+	"""
+
+	Range =         0  #: Range with direction ``to`` or ``downto``.
+	Conditional =   1  #: Conditional expression (``when`` ... ``else``).
+	Logical =       2  #: Binary logical operators, e.g. ``and``.
+	Relational =    3  #: Relational operators, e.g. ``=`` or ``?=``.
+	Shift =         4  #: Shift and rotate operators, e.g. ``sll``.
+	Adding =        5  #: Adding operators (``+``, ``-``, ``&``) and signs (unary ``+``, ``-``).
+	Multiplying =   6  #: Multiplying operators, e.g. ``*`` or ``mod``.
+	Miscellaneous = 7  #: Exponentiation (``**``), ``abs``, ``not`` and unary logical operators.
+	Primary =       8  #: Primaries, e.g. names, literals, aggregates or parenthesized expressions.
 
 
 @export
@@ -818,8 +839,9 @@ class UnaryExpression(BaseExpression):
 	The operand is available as :data:`Operand`.
 	"""
 
-	_FORMAT:  ClassVar[tuple[str, str]]  #: The operator's string representation as (prefix, suffix) around the operand.
-	_operand: ExpressionUnion            #: The expression the operator is applied to.
+	_FORMAT:     ClassVar[tuple[str, str]]     #: The operator's string representation as (prefix, suffix) of the operand.
+	_PRECEDENCE: ClassVar[OperatorPrecedence]  #: The operator's precedence level.
+	_operand:    ExpressionUnion               #: The expression the operator is applied to.
 
 	def __init__(self, operand: ExpressionUnion, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -878,7 +900,8 @@ class NegationExpression(UnaryExpression):
 	      --     ^^^^^^^^^    <- the expression
 	      --       ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[tuple[str, str]] = ("-", "")
+	_FORMAT:     ClassVar[tuple[str, str]] = ("-", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Adding  #: The operator's precedence level.
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -906,7 +929,8 @@ class IdentityExpression(UnaryExpression):
 	      --     ^^^^^^^^^    <- the expression
 	      --       ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[tuple[str, str]] = ("+", "")
+	_FORMAT:     ClassVar[tuple[str, str]] = ("+", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Adding  #: The operator's precedence level.
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -934,7 +958,8 @@ class InverseExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[tuple[str, str]] = ("not ", "")
+	_FORMAT:     ClassVar[tuple[str, str]] = ("not ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
 
 
 @export
@@ -953,7 +978,8 @@ class UnaryAndExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[tuple[str, str]] = ("and ", "")
+	_FORMAT:     ClassVar[tuple[str, str]] = ("and ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
 
 
 @export
@@ -972,7 +998,8 @@ class UnaryNandExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^^    <- the expression
 	      --          ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[tuple[str, str]] = ("nand ", "")
+	_FORMAT:     ClassVar[tuple[str, str]] = ("nand ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
 
 
 @export
@@ -991,7 +1018,8 @@ class UnaryOrExpression(UnaryExpression):
 	      --     ^^^^^^^^^^    <- the expression
 	      --        ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[tuple[str, str]] = ("or ", "")
+	_FORMAT:     ClassVar[tuple[str, str]] = ("or ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
 
 
 @export
@@ -1010,7 +1038,8 @@ class UnaryNorExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[tuple[str, str]] = ("nor ", "")
+	_FORMAT:     ClassVar[tuple[str, str]] = ("nor ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
 
 
 @export
@@ -1029,7 +1058,8 @@ class UnaryXorExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[tuple[str, str]] = ("xor ", "")
+	_FORMAT:     ClassVar[tuple[str, str]] = ("xor ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
 
 
 @export
@@ -1048,7 +1078,8 @@ class UnaryXnorExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^^    <- the expression
 	      --          ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[tuple[str, str]] = ("xnor ", "")
+	_FORMAT:     ClassVar[tuple[str, str]] = ("xnor ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
 
 
 @export
@@ -1066,7 +1097,8 @@ class AbsoluteExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[tuple[str, str]] = ("abs ", "")
+	_FORMAT:     ClassVar[tuple[str, str]] = ("abs ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
 
 
 @export
@@ -1086,6 +1118,7 @@ class TypeConversion(UnaryExpression):
 	      --     ^^^^^^^         <- TargetSubtype
 	      --             ^^^     <- Operand
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Primary  #: The operator's precedence level.
 
 	_targetSubtype: SubtypeSymbol  #: Reference to the subtype the expression is converted to.
 
@@ -1149,7 +1182,8 @@ class SubExpression(UnaryExpression, ParenthesisExpression):
 	      --     ^^^^^^^^^^^    <- the sub-expression
 	      --      ^^^^^^^^^     <- Operand
 	"""
-	_FORMAT: ClassVar[tuple[str, str]] = ("(", ")")
+	_FORMAT:     ClassVar[tuple[str, str]] = ("(", ")")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Primary  #: The operator's precedence level.
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1181,6 +1215,7 @@ class BinaryExpression(BaseExpression):
 	"""
 
 	_FORMAT:       ClassVar[tuple[str, str, str]]  #: The operator's string representation as (prefix, infix, suffix).
+	_PRECEDENCE:   ClassVar[OperatorPrecedence]    #: The operator's precedence level.
 	_leftOperand:  ExpressionUnion                 #: The expression left of the operator.
 	_rightOperand: ExpressionUnion                 #: The expression right of the operator.
 
@@ -1250,6 +1285,8 @@ class RangeExpression(BinaryExpression):
 	   * :class:`Descending range expression <pyVHDLModel.Expression.DescendingRangeExpression>`
 	"""
 	_direction: ClassVar[Direction]  #: The range's direction, either ascending (``to``) or descending (``downto``).
+
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Range  #: The operator's precedence level.
 
 	@readonly
 	def Direction(self) -> Direction:
@@ -1327,6 +1364,7 @@ class AddingExpression(BinaryExpression):
 	   * :class:`Subtraction expression <pyVHDLModel.Expression.SubtractionExpression>`
 	   * :class:`Concatenation expression <pyVHDLModel.Expression.ConcatenationExpression>`
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Adding  #: The operator's precedence level.
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1414,6 +1452,7 @@ class MultiplyingExpression(BinaryExpression):
 	   * :class:`Modulo expression <pyVHDLModel.Expression.ModuloExpression>`
 	   * :class:`Exponentiation expression <pyVHDLModel.Expression.ExponentiationExpression>`
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Multiplying  #: The operator's precedence level.
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1520,7 +1559,8 @@ class ExponentiationExpression(MultiplyingExpression):
 	      --     ^^^           <- LeftOperand
 	      --            ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", "**", "")
+	_FORMAT:     ClassVar[tuple[str, str, str]] = ("", "**", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1552,6 +1592,7 @@ class LogicalExpression(BinaryExpression):
 	   * :class:`Xor expression <pyVHDLModel.Expression.XorExpression>`
 	   * :class:`Xnor expression <pyVHDLModel.Expression.XnorExpression>`
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Logical  #: The operator's precedence level.
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1698,6 +1739,7 @@ class RelationalExpression(BinaryExpression):
 	   * :class:`Less equal expression <pyVHDLModel.Expression.LessEqualExpression>`
 	   * :class:`Matching relational expression <pyVHDLModel.Expression.MatchingRelationalExpression>`
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Relational  #: The operator's precedence level.
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1981,6 +2023,7 @@ class ShiftExpression(BinaryExpression):
 	   * :class:`Shift arithmetic expression <pyVHDLModel.Expression.ShiftArithmeticExpression>`
 	   * :class:`Rotate expression <pyVHDLModel.Expression.RotateExpression>`
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Shift  #: The operator's precedence level.
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -2245,6 +2288,7 @@ class TernaryExpression(BaseExpression):
 	"""
 
 	_FORMAT:        ClassVar[tuple[str, str, str, str]]  #: The operator's string representation as four fragments.
+	_PRECEDENCE:    ClassVar[OperatorPrecedence]         #: The operator's precedence level.
 	_firstOperand:  ExpressionUnion                      #: The operator's first operand.
 	_secondOperand: ExpressionUnion                      #: The operator's second operand.
 	_thirdOperand:  ExpressionUnion                      #: The operator's third operand.
@@ -2313,6 +2357,7 @@ class WhenElseExpression(TernaryExpression):
 	      --            ^           <- Condition
 	      --                   ^    <- ElseValue
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Conditional  #: The operator's precedence level.
 
 	_FORMAT: ClassVar[tuple[str, str, str, str]] = ("", " when ", " else ", "")
 

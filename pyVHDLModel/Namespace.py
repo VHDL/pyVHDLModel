@@ -221,9 +221,17 @@ class Namespace(Generic[K, O]):
 		:raises NotInNamespaceError: If the identifier refers to another element, e.g. a duplicate declaration.
 		"""
 		if (existing := self._elements.get(normalizedIdentifier)) is None:
-			raise NotInNamespaceError(f"Namespace '{self._name}' has no element '{normalizedIdentifier}'.")
+			raise NotInNamespaceError(
+				f"Namespace '{self._name}' has no element '{normalizedIdentifier}'.",
+				identifier=normalizedIdentifier,
+				namespace=self
+			)
 		elif existing is not element:
-			ex = NotInNamespaceError(f"Namespace '{self._name}' has another element for '{normalizedIdentifier}'.")
+			ex = NotInNamespaceError(
+				f"Namespace '{self._name}' has another element for '{normalizedIdentifier}'.",
+				identifier=normalizedIdentifier,
+				namespace=self
+			)
 			ex.add_note(f"Found element of type '{getFullyQualifiedName(existing)}'.")
 			raise ex
 

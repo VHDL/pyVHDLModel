@@ -79,14 +79,15 @@ class OneDeclarativePart(Testcase):
 
 	def test_WarningFields(self) -> None:
 		"""The warning carries the identifier, the namespace and both declarations."""
-		items = [_signal("s", "natural"), _signal("s", "natural")]
+		items = [_signal("s", "natural"), _signal("S", "natural")]
 		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=items)
 
 		with WarningCollector() as collector:
 			architecture.IndexDeclaredItems()
 
 		warning = _warningsOfType(collector, DuplicateDeclarationWarning)[0]
-		self.assertEqual("s", warning.Identifier)
+		self.assertEqual("S", warning.Identifier)
+		self.assertEqual("s", warning.NormalizedIdentifier)
 		self.assertIs(architecture._namespace, warning.Namespace)
 		self.assertIs(items[0], warning.Existing)
 		self.assertIs(items[1], warning.Element)
@@ -95,6 +96,7 @@ class OneDeclarativePart(Testcase):
 		warning = DuplicateDeclarationWarning("Identifier is already used for a declaration.")
 
 		self.assertIsNone(warning.Identifier)
+		self.assertIsNone(warning.NormalizedIdentifier)
 		self.assertIsNone(warning.Namespace)
 		self.assertIsNone(warning.Element)
 		self.assertIsNone(warning.Existing)

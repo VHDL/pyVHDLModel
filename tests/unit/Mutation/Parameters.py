@@ -127,7 +127,8 @@ class Parameters(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Interface.ParameterConstantInterfaceItem'."],
 			context.exception.__notes__
 		)
-		self.assertEqual("a", context.exception.Identifier)
+		self.assertEqual("A", context.exception.Identifier)
+		self.assertEqual("a", context.exception.NormalizedIdentifier)
 		self.assertIs(group, context.exception.Parent)
 		self.assertIs(duplicate, context.exception.Element)
 		self.assertIs(a, context.exception.Existing)
@@ -310,6 +311,7 @@ class Parameters(Testcase):
 		self.assertEqual("Namespace 'p' has another element for 'a'.", str(context.exception))
 		self.assertListEqual(["Found element of type 'pyVHDLModel.Object.Variable'."], context.exception.__notes__)
 		self.assertEqual("a", context.exception.Identifier)
+		self.assertEqual("a", context.exception.NormalizedIdentifier)
 		self.assertIs(procedure._namespace, context.exception.Namespace)
 		self.assertListEqual([a], procedure.ParameterItems)
 		self.assertIs(procedure, a.Parent)

@@ -135,10 +135,11 @@ class DuplicateDeclarationWarning(VHDLModelCriticalWarning):
 	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
 	"""
 
-	_identifier: Nullable[str]          #: The normalized identifier declared twice.
-	_namespace:  Nullable[_Namespace]   #: The namespace of the declarative region declaring it.
-	_element:    Nullable[ModelEntity]  #: The new declaration.
-	_existing:   Nullable[ModelEntity]  #: The earlier declaration.
+	_identifier:           Nullable[str]          #: The identifier declared twice.
+	_normalizedIdentifier: Nullable[str]          #: The normalized (lower case) identifier.
+	_namespace:            Nullable[_Namespace]   #: The namespace of the declarative region declaring it.
+	_element:              Nullable[ModelEntity]  #: The new declaration.
+	_existing:             Nullable[ModelEntity]  #: The earlier declaration.
 
 	def __init__(
 		self,
@@ -153,25 +154,35 @@ class DuplicateDeclarationWarning(VHDLModelCriticalWarning):
 		Initializes the warning with the identifier, the namespace and both declarations.
 
 		:param message:    The warning's message.
-		:param identifier: Optional, the normalized identifier declared twice.
+		:param identifier: Optional, the identifier declared twice.
 		:param namespace:  Optional, the namespace of the declarative region declaring it.
 		:param element:    Optional, the new declaration.
 		:param existing:   Optional, the earlier declaration.
 		"""
 		super().__init__(message)
-		self._identifier = identifier
-		self._namespace =  namespace
-		self._element =    element
-		self._existing =   existing
+		self._identifier =           identifier
+		self._normalizedIdentifier = identifier.lower() if identifier is not None else None
+		self._namespace =            namespace
+		self._element =              element
+		self._existing =             existing
 
 	@readonly
 	def Identifier(self) -> Nullable[str]:
 		"""
-		Read-only property to access the normalized identifier declared twice (:attr:`_identifier`).
+		Read-only property to access the identifier declared twice (:attr:`_identifier`).
 
 		:returns: The identifier, or ``None`` if it wasn't recorded.
 		"""
 		return self._identifier
+
+	@readonly
+	def NormalizedIdentifier(self) -> Nullable[str]:
+		"""
+		Read-only property to access the normalized (lower case) identifier (:attr:`_normalizedIdentifier`).
+
+		:returns: The normalized identifier, or ``None`` if it wasn't recorded.
+		"""
+		return self._normalizedIdentifier
 
 	@readonly
 	def Namespace(self) -> Nullable[_Namespace]:
@@ -776,8 +787,9 @@ class NotInNamespaceError(VHDLModelException, KeyError):
 	It's a :exc:`KeyError` too, like removing a missing key from a dictionary.
 	"""
 
-	_identifier: Nullable[str]         #: The normalized identifier looked up.
-	_namespace:  Nullable[_Namespace]  #: The namespace searched for the identifier.
+	_identifier:           Nullable[str]         #: The identifier looked up.
+	_normalizedIdentifier: Nullable[str]         #: The normalized (lower case) identifier.
+	_namespace:            Nullable[_Namespace]  #: The namespace searched for the identifier.
 
 	def __init__(
 		self,
@@ -790,21 +802,31 @@ class NotInNamespaceError(VHDLModelException, KeyError):
 		Initializes the exception with the identifier and the namespace searched for it.
 
 		:param message:    The error message.
-		:param identifier: Optional, the normalized identifier looked up.
+		:param identifier: Optional, the identifier looked up.
 		:param namespace:  Optional, the namespace searched for the identifier.
 		"""
 		super().__init__(message)
-		self._identifier = identifier
-		self._namespace =  namespace
+		self._identifier =           identifier
+		self._normalizedIdentifier = identifier.lower() if identifier is not None else None
+		self._namespace =            namespace
 
 	@readonly
 	def Identifier(self) -> Nullable[str]:
 		"""
-		Read-only property to access the normalized identifier looked up (:attr:`_identifier`).
+		Read-only property to access the identifier looked up (:attr:`_identifier`).
 
 		:returns: The identifier, or ``None`` if it wasn't recorded.
 		"""
 		return self._identifier
+
+	@readonly
+	def NormalizedIdentifier(self) -> Nullable[str]:
+		"""
+		Read-only property to access the normalized (lower case) identifier (:attr:`_normalizedIdentifier`).
+
+		:returns: The normalized identifier, or ``None`` if it wasn't recorded.
+		"""
+		return self._normalizedIdentifier
 
 	@readonly
 	def Namespace(self) -> Nullable[_Namespace]:
@@ -830,10 +852,11 @@ class DuplicateGenericError(VHDLModelException, DuplicateElementError):
 	This exception is raised, when a language construct already has a generic of the same identifier.
 	"""
 
-	_identifier: Nullable[str]          #: The normalized identifier declared twice.
-	_parent:     Nullable[ModelEntity]  #: The language construct owning the generic clause.
-	_element:    Nullable[ModelEntity]  #: The new generic.
-	_existing:   Nullable[ModelEntity]  #: The existing declaration.
+	_identifier:           Nullable[str]          #: The identifier declared twice.
+	_normalizedIdentifier: Nullable[str]          #: The normalized (lower case) identifier.
+	_parent:               Nullable[ModelEntity]  #: The language construct owning the generic clause.
+	_element:              Nullable[ModelEntity]  #: The new generic.
+	_existing:             Nullable[ModelEntity]  #: The existing declaration.
 
 	def __init__(
 		self,
@@ -848,25 +871,35 @@ class DuplicateGenericError(VHDLModelException, DuplicateElementError):
 		Initializes the exception with the identifier, the language construct and both declarations.
 
 		:param message:    The error message.
-		:param identifier: Optional, the normalized identifier declared twice.
+		:param identifier: Optional, the identifier declared twice.
 		:param parent:     Optional, the language construct owning the generic clause.
 		:param element:    Optional, the new generic.
 		:param existing:   Optional, the existing declaration.
 		"""
 		super().__init__(message)
-		self._identifier = identifier
-		self._parent =     parent
-		self._element =    element
-		self._existing =   existing
+		self._identifier =           identifier
+		self._normalizedIdentifier = identifier.lower() if identifier is not None else None
+		self._parent =               parent
+		self._element =              element
+		self._existing =             existing
 
 	@readonly
 	def Identifier(self) -> Nullable[str]:
 		"""
-		Read-only property to access the normalized identifier declared twice (:attr:`_identifier`).
+		Read-only property to access the identifier declared twice (:attr:`_identifier`).
 
 		:returns: The identifier, or ``None`` if it wasn't recorded.
 		"""
 		return self._identifier
+
+	@readonly
+	def NormalizedIdentifier(self) -> Nullable[str]:
+		"""
+		Read-only property to access the normalized (lower case) identifier (:attr:`_normalizedIdentifier`).
+
+		:returns: The normalized identifier, or ``None`` if it wasn't recorded.
+		"""
+		return self._normalizedIdentifier
 
 	@readonly
 	def Parent(self) -> Nullable[ModelEntity]:
@@ -902,10 +935,11 @@ class DuplicatePortError(VHDLModelException, DuplicateElementError):
 	This exception is raised, when a language construct already has a port of the same identifier.
 	"""
 
-	_identifier: Nullable[str]          #: The normalized identifier declared twice.
-	_parent:     Nullable[ModelEntity]  #: The language construct owning the port clause.
-	_element:    Nullable[ModelEntity]  #: The new port.
-	_existing:   Nullable[ModelEntity]  #: The existing declaration.
+	_identifier:           Nullable[str]          #: The identifier declared twice.
+	_normalizedIdentifier: Nullable[str]          #: The normalized (lower case) identifier.
+	_parent:               Nullable[ModelEntity]  #: The language construct owning the port clause.
+	_element:              Nullable[ModelEntity]  #: The new port.
+	_existing:             Nullable[ModelEntity]  #: The existing declaration.
 
 	def __init__(
 		self,
@@ -920,25 +954,35 @@ class DuplicatePortError(VHDLModelException, DuplicateElementError):
 		Initializes the exception with the identifier, the language construct and both declarations.
 
 		:param message:    The error message.
-		:param identifier: Optional, the normalized identifier declared twice.
+		:param identifier: Optional, the identifier declared twice.
 		:param parent:     Optional, the language construct owning the port clause.
 		:param element:    Optional, the new port.
 		:param existing:   Optional, the existing declaration.
 		"""
 		super().__init__(message)
-		self._identifier = identifier
-		self._parent =     parent
-		self._element =    element
-		self._existing =   existing
+		self._identifier =           identifier
+		self._normalizedIdentifier = identifier.lower() if identifier is not None else None
+		self._parent =               parent
+		self._element =              element
+		self._existing =             existing
 
 	@readonly
 	def Identifier(self) -> Nullable[str]:
 		"""
-		Read-only property to access the normalized identifier declared twice (:attr:`_identifier`).
+		Read-only property to access the identifier declared twice (:attr:`_identifier`).
 
 		:returns: The identifier, or ``None`` if it wasn't recorded.
 		"""
 		return self._identifier
+
+	@readonly
+	def NormalizedIdentifier(self) -> Nullable[str]:
+		"""
+		Read-only property to access the normalized (lower case) identifier (:attr:`_normalizedIdentifier`).
+
+		:returns: The normalized identifier, or ``None`` if it wasn't recorded.
+		"""
+		return self._normalizedIdentifier
 
 	@readonly
 	def Parent(self) -> Nullable[ModelEntity]:
@@ -974,10 +1018,11 @@ class DuplicateParameterError(VHDLModelException, DuplicateElementError):
 	This exception is raised, when a language construct already has a parameter of the same identifier.
 	"""
 
-	_identifier: Nullable[str]          #: The normalized identifier declared twice.
-	_parent:     Nullable[ModelEntity]  #: The language construct owning the parameter list.
-	_element:    Nullable[ModelEntity]  #: The new parameter.
-	_existing:   Nullable[ModelEntity]  #: The existing declaration.
+	_identifier:           Nullable[str]          #: The identifier declared twice.
+	_normalizedIdentifier: Nullable[str]          #: The normalized (lower case) identifier.
+	_parent:               Nullable[ModelEntity]  #: The language construct owning the parameter list.
+	_element:              Nullable[ModelEntity]  #: The new parameter.
+	_existing:             Nullable[ModelEntity]  #: The existing declaration.
 
 	def __init__(
 		self,
@@ -992,25 +1037,35 @@ class DuplicateParameterError(VHDLModelException, DuplicateElementError):
 		Initializes the exception with the identifier, the language construct and both declarations.
 
 		:param message:    The error message.
-		:param identifier: Optional, the normalized identifier declared twice.
+		:param identifier: Optional, the identifier declared twice.
 		:param parent:     Optional, the language construct owning the parameter list.
 		:param element:    Optional, the new parameter.
 		:param existing:   Optional, the existing declaration.
 		"""
 		super().__init__(message)
-		self._identifier = identifier
-		self._parent =     parent
-		self._element =    element
-		self._existing =   existing
+		self._identifier =           identifier
+		self._normalizedIdentifier = identifier.lower() if identifier is not None else None
+		self._parent =               parent
+		self._element =              element
+		self._existing =             existing
 
 	@readonly
 	def Identifier(self) -> Nullable[str]:
 		"""
-		Read-only property to access the normalized identifier declared twice (:attr:`_identifier`).
+		Read-only property to access the identifier declared twice (:attr:`_identifier`).
 
 		:returns: The identifier, or ``None`` if it wasn't recorded.
 		"""
 		return self._identifier
+
+	@readonly
+	def NormalizedIdentifier(self) -> Nullable[str]:
+		"""
+		Read-only property to access the normalized (lower case) identifier (:attr:`_normalizedIdentifier`).
+
+		:returns: The normalized identifier, or ``None`` if it wasn't recorded.
+		"""
+		return self._normalizedIdentifier
 
 	@readonly
 	def Parent(self) -> Nullable[ModelEntity]:
@@ -1061,10 +1116,11 @@ class DuplicateDeclarationError(VHDLModelException, DuplicateElementError):
 	   * :class:`Duplicate label error <pyVHDLModel.Exception.DuplicateLabelError>`
 	"""
 
-	_identifier: Nullable[str]          #: The normalized identifier declared twice.
-	_namespace:  Nullable[_Namespace]   #: The namespace of the declarative region declaring it.
-	_element:    Nullable[ModelEntity]  #: The new declaration.
-	_existing:   Nullable[ModelEntity]  #: The existing declaration.
+	_identifier:           Nullable[str]          #: The identifier declared twice.
+	_normalizedIdentifier: Nullable[str]          #: The normalized (lower case) identifier.
+	_namespace:            Nullable[_Namespace]   #: The namespace of the declarative region declaring it.
+	_element:              Nullable[ModelEntity]  #: The new declaration.
+	_existing:             Nullable[ModelEntity]  #: The existing declaration.
 
 	def __init__(
 		self,
@@ -1079,25 +1135,35 @@ class DuplicateDeclarationError(VHDLModelException, DuplicateElementError):
 		Initializes the exception with the identifier, the namespace and both declarations.
 
 		:param message:    The error message.
-		:param identifier: Optional, the normalized identifier declared twice.
+		:param identifier: Optional, the identifier declared twice.
 		:param namespace:  Optional, the namespace of the declarative region declaring it.
 		:param element:    Optional, the new declaration.
 		:param existing:   Optional, the existing declaration.
 		"""
 		super().__init__(message)
-		self._identifier = identifier
-		self._namespace =  namespace
-		self._element =    element
-		self._existing =   existing
+		self._identifier =           identifier
+		self._normalizedIdentifier = identifier.lower() if identifier is not None else None
+		self._namespace =            namespace
+		self._element =              element
+		self._existing =             existing
 
 	@readonly
 	def Identifier(self) -> Nullable[str]:
 		"""
-		Read-only property to access the normalized identifier declared twice (:attr:`_identifier`).
+		Read-only property to access the identifier declared twice (:attr:`_identifier`).
 
 		:returns: The identifier, or ``None`` if it wasn't recorded.
 		"""
 		return self._identifier
+
+	@readonly
+	def NormalizedIdentifier(self) -> Nullable[str]:
+		"""
+		Read-only property to access the normalized (lower case) identifier (:attr:`_normalizedIdentifier`).
+
+		:returns: The normalized identifier, or ``None`` if it wasn't recorded.
+		"""
+		return self._normalizedIdentifier
 
 	@readonly
 	def Namespace(self) -> Nullable[_Namespace]:

@@ -124,7 +124,8 @@ class DeclaredItemVsInterfaceItems(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
 			context.exception.__notes__
 		)
-		self.assertEqual("x", context.exception.Identifier)
+		self.assertEqual("X", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
 		self.assertIs(entity._namespace, context.exception.Namespace)
 		self.assertIs(signal, context.exception.Element)
 		self.assertIs(port, context.exception.Existing)
@@ -143,6 +144,7 @@ class DeclaredItemVsInterfaceItems(Testcase):
 
 		self.assertEqual("Package already declares 'bits'.", str(context.exception))
 		self.assertEqual("bits", context.exception.Identifier)
+		self.assertEqual("bits", context.exception.NormalizedIdentifier)
 		self.assertIs(package._namespace, context.exception.Namespace)
 		self.assertIs(constant, context.exception.Element)
 		self.assertIs(generic, context.exception.Existing)
@@ -161,7 +163,8 @@ class DeclaredItemVsInterfaceItems(Testcase):
 			function.AddDeclaredItem(variable)
 
 		self.assertEqual("Function already declares 'A'.", str(context.exception))
-		self.assertEqual("a", context.exception.Identifier)
+		self.assertEqual("A", context.exception.Identifier)
+		self.assertEqual("a", context.exception.NormalizedIdentifier)
 		self.assertIs(function._namespace, context.exception.Namespace)
 		self.assertIs(variable, context.exception.Element)
 		self.assertIs(parameter, context.exception.Existing)
@@ -195,6 +198,7 @@ class DeclaredItemVsSharedRegion(Testcase):
 
 		self.assertEqual("Entity already declares 'p'.", str(context.exception))
 		self.assertEqual("p", context.exception.Identifier)
+		self.assertEqual("p", context.exception.NormalizedIdentifier)
 		self.assertIs(architecture._namespace, context.exception.Namespace)
 		self.assertIs(signal, context.exception.Element)
 		self.assertIs(port, context.exception.Existing)
@@ -215,6 +219,7 @@ class DeclaredItemVsSharedRegion(Testcase):
 		self.assertEqual("Entity already declares 'x'.", str(context.exception))
 		self.assertListEqual(["Existing declaration is of type 'pyVHDLModel.Object.Signal'."], context.exception.__notes__)
 		self.assertEqual("x", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
 		self.assertIs(architecture._namespace, context.exception.Namespace)
 		self.assertIs(constant, context.exception.Element)
 		self.assertIs(signal, context.exception.Existing)
@@ -233,6 +238,7 @@ class DeclaredItemVsSharedRegion(Testcase):
 
 		self.assertEqual("Architecture already declares 'x'.", str(context.exception))
 		self.assertEqual("x", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
 		self.assertIs(entity._namespace, context.exception.Namespace)
 		self.assertIs(signal, context.exception.Element)
 		self.assertIs(existing, context.exception.Existing)
@@ -250,7 +256,8 @@ class DeclaredItemVsSharedRegion(Testcase):
 			packageBody.AddDeclaredItem(constant)
 
 		self.assertEqual("Package already declares 'C'.", str(context.exception))
-		self.assertEqual("c", context.exception.Identifier)
+		self.assertEqual("C", context.exception.Identifier)
+		self.assertEqual("c", context.exception.NormalizedIdentifier)
 		self.assertIs(packageBody._namespace, context.exception.Namespace)
 		self.assertIs(constant, context.exception.Element)
 		self.assertIs(existing, context.exception.Existing)
@@ -269,6 +276,7 @@ class DeclaredItemVsSharedRegion(Testcase):
 
 		self.assertEqual("PackageBody already declares 'c'.", str(context.exception))
 		self.assertEqual("c", context.exception.Identifier)
+		self.assertEqual("c", context.exception.NormalizedIdentifier)
 		self.assertIs(package._namespace, context.exception.Namespace)
 		self.assertIs(constant, context.exception.Element)
 		self.assertIs(existing, context.exception.Existing)
@@ -334,6 +342,7 @@ class InterfaceItemVsDeclarations(Testcase):
 		self.assertEqual("Entity already declares 'g'.", str(context.exception))
 		self.assertListEqual(["Existing declaration is of type 'pyVHDLModel.Object.Signal'."], context.exception.__notes__)
 		self.assertEqual("g", context.exception.Identifier)
+		self.assertEqual("g", context.exception.NormalizedIdentifier)
 		self.assertIs(entity, context.exception.Parent)
 		self.assertIs(generic, context.exception.Element)
 		self.assertIs(signal, context.exception.Existing)
@@ -356,6 +365,7 @@ class InterfaceItemVsDeclarations(Testcase):
 			context.exception.__notes__
 		)
 		self.assertEqual("x", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
 		self.assertIs(entity, context.exception.Parent)
 		self.assertIs(port, context.exception.Element)
 		self.assertIs(generic, context.exception.Existing)
@@ -375,6 +385,7 @@ class InterfaceItemVsDeclarations(Testcase):
 
 		self.assertEqual("Architecture already declares 'x'.", str(context.exception))
 		self.assertEqual("x", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
 		self.assertIs(entity, context.exception.Parent)
 		self.assertIs(port, context.exception.Element)
 		self.assertIs(signal, context.exception.Existing)
@@ -393,6 +404,7 @@ class InterfaceItemVsDeclarations(Testcase):
 
 		self.assertEqual("PackageBody already declares 'bits'.", str(context.exception))
 		self.assertEqual("bits", context.exception.Identifier)
+		self.assertEqual("bits", context.exception.NormalizedIdentifier)
 		self.assertIs(package, context.exception.Parent)
 		self.assertIs(generic, context.exception.Element)
 		self.assertIs(constant, context.exception.Existing)
@@ -413,7 +425,8 @@ class InterfaceItemVsDeclarations(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Object.Variable'."],
 			context.exception.__notes__
 		)
-		self.assertEqual("a", context.exception.Identifier)
+		self.assertEqual("A", context.exception.Identifier)
+		self.assertEqual("a", context.exception.NormalizedIdentifier)
 		self.assertIs(function, context.exception.Parent)
 		self.assertIs(parameter, context.exception.Element)
 		self.assertIs(variable, context.exception.Existing)
@@ -430,7 +443,8 @@ class InterfaceItemVsDeclarations(Testcase):
 			component.AddPortItem(port)
 
 		self.assertEqual("Component already declares 'X'.", str(context.exception))
-		self.assertEqual("x", context.exception.Identifier)
+		self.assertEqual("X", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
 		self.assertIs(component, context.exception.Parent)
 		self.assertIs(port, context.exception.Element)
 		self.assertIs(generic, context.exception.Existing)

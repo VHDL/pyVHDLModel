@@ -278,7 +278,8 @@ class Add(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Object.Signal'."],
 			context.exception.__notes__
 		)
-		self.assertEqual("b", context.exception.Identifier)
+		self.assertEqual("B", context.exception.Identifier)
+		self.assertEqual("b", context.exception.NormalizedIdentifier)
 		self.assertIs(architecture._namespace, context.exception.Namespace)
 		self.assertIs(duplicate, context.exception.Element)
 		self.assertIs(signal, context.exception.Existing)
@@ -331,7 +332,8 @@ class Add(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Subprogram.Function'."],
 			context.exception.__notes__
 		)
-		self.assertEqual("x", context.exception.Identifier)
+		self.assertEqual("X", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
 		self.assertIs(architecture._namespace, context.exception.Namespace)
 		self.assertIs(alias, context.exception.Element)
 		self.assertIs(function, context.exception.Existing)
@@ -538,6 +540,7 @@ class InsertBeforeAfter(Testcase):
 
 		self.assertEqual("Architecture already declares 'clock'.", str(context.exception))
 		self.assertEqual("clock", context.exception.Identifier)
+		self.assertEqual("clock", context.exception.NormalizedIdentifier)
 		self.assertIs(architecture._namespace, context.exception.Namespace)
 		self.assertIs(duplicate, context.exception.Element)
 		self.assertIs(clock, context.exception.Existing)

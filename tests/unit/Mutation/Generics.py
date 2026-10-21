@@ -176,6 +176,7 @@ class Generics(Testcase):
 			context.exception.__notes__
 		)
 		self.assertEqual("bits", context.exception.Identifier)
+		self.assertEqual("bits", context.exception.NormalizedIdentifier)
 		self.assertIs(entity, context.exception.Parent)
 		self.assertIs(duplicate, context.exception.Element)
 		self.assertIs(bits, context.exception.Existing)
@@ -428,7 +429,8 @@ class Generics(Testcase):
 			["Found element of type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
 			context.exception.__notes__
 		)
-		self.assertEqual("bits", context.exception.Identifier)
+		self.assertEqual("BITS", context.exception.Identifier)
+		self.assertEqual("bits", context.exception.NormalizedIdentifier)
 		self.assertIs(entity._namespace, context.exception.Namespace)
 		self.assertListEqual([bits], entity.GenericItems)
 		self.assertIs(entity, bits.Parent)

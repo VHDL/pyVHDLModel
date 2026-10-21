@@ -205,12 +205,10 @@ class WithGenericsMixin(
 		if len(clashes := self._ClashingDeclarations(genericItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(genericItem), normalizedIdentifiersOf(genericItem))
-			identifier, normalizedIdentifier = next(
-				(name, normalizedName) for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers
-			)
+			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
 			ex = DuplicateGenericError(
 				f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.",
-				identifier=normalizedIdentifier,
+				identifier=identifier,
 				parent=self,
 				element=genericItem,
 				existing=clashes[0]
@@ -413,12 +411,10 @@ class WithPortsMixin(
 		if len(clashes := self._ClashingDeclarations(portItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(portItem), normalizedIdentifiersOf(portItem))
-			identifier, normalizedIdentifier = next(
-				(name, normalizedName) for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers
-			)
+			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
 			ex = DuplicatePortError(
 				f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.",
-				identifier=normalizedIdentifier,
+				identifier=identifier,
 				parent=self,
 				element=portItem,
 				existing=clashes[0]
@@ -619,12 +615,10 @@ class WithParametersMixin(
 		if len(clashes := self._ClashingDeclarations(parameterItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(parameterItem), normalizedIdentifiersOf(parameterItem))
-			identifier, normalizedIdentifier = next(
-				(name, normalizedName) for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers
-			)
+			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
 			ex = DuplicateParameterError(
 				f"{getTypeName(clashes[0]._parent)} already declares '{identifier}'.",
-				identifier=normalizedIdentifier,
+				identifier=identifier,
 				parent=self,
 				element=parameterItem,
 				existing=clashes[0]
@@ -1119,9 +1113,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 		if len(clashes := self._ClashingDeclarations(declaredItem)) > 0:
 			existingIdentifiers = normalizedDeclaredNamesOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(declaredItem), normalizedIdentifiersOf(declaredItem))
-			identifier, normalizedIdentifier = next(
-				(name, normalizedName) for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers
-			)
+			identifier = next(name for name, normalizedName in newIdentifiers if normalizedName in existingIdentifiers)
 
 			if isinstance(declaredItem, Subtype):
 				errorClass = DuplicateSubtypeError
@@ -1146,7 +1138,7 @@ class DeclarationRegionMixin(metaclass=ExtendedType, mixin=True, expects=("_Labe
 				region = region._parent
 			ex = errorClass(
 				f"{getTypeName(region)} already declares '{identifier}'.",
-				identifier=normalizedIdentifier,
+				identifier=identifier,
 				namespace=self._namespace,
 				element=declaredItem,
 				existing=clashes[0]

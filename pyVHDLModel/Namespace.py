@@ -42,6 +42,7 @@ from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import readonly
 from pyTooling.Warning     import WarningCollector
 
+from pyVHDLModel.Base      import identifiersOf, normalizedIdentifiersOf
 from pyVHDLModel.Object    import Obj, Signal, Constant, Variable
 from pyVHDLModel.Symbol    import ComponentInstantiationSymbol, Symbol, PossibleReference
 from pyVHDLModel.Exception import DuplicateDeclarationWarning, NotInNamespaceError
@@ -200,7 +201,7 @@ class Namespace(Generic[K, O]):
 			if existing is not None and not isReindex and not isOverload and not isImport:
 				WarningCollector.Raise(DuplicateDeclarationWarning(
 					f"Identifier '{normalizedIdentifier}' is already used for a declaration in '{namespace._name}'.",
-					identifier=normalizedIdentifier,
+					identifier=self._IdentifierOf(element, normalizedIdentifier),
 					namespace=namespace,
 					element=element,
 					existing=existing
@@ -223,19 +224,34 @@ class Namespace(Generic[K, O]):
 		if (existing := self._elements.get(normalizedIdentifier)) is None:
 			raise NotInNamespaceError(
 				f"Namespace '{self._name}' has no element '{normalizedIdentifier}'.",
-				identifier=normalizedIdentifier,
+				identifier=self._IdentifierOf(element, normalizedIdentifier),
 				namespace=self
 			)
 		elif existing is not element:
 			ex = NotInNamespaceError(
 				f"Namespace '{self._name}' has another element for '{normalizedIdentifier}'.",
-				identifier=normalizedIdentifier,
+				identifier=self._IdentifierOf(element, normalizedIdentifier),
 				namespace=self
 			)
 			ex.add_note(f"Found element of type '{getFullyQualifiedName(existing)}'.")
 			raise ex
 
 		del self._elements[normalizedIdentifier]
+
+	@staticmethod
+	def _IdentifierOf(element: O, normalizedIdentifier: K) -> str:
+		"""
+		Return the identifier of an element as declared, for its normalized identifier.
+
+		:param element:              The named element.
+		:param normalizedIdentifier: One of the element's normalized (lower case) identifiers.
+		:returns:                    The identifier in its declared spelling.
+		"""
+		return next(
+			identifier
+			for identifier, normalized in zip(identifiersOf(element), normalizedIdentifiersOf(element))
+			if normalized == normalizedIdentifier
+		)
 
 	def Elements(self) -> dict[K, O]:
 		return self._elements

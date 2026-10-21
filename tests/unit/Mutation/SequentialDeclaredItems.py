@@ -188,7 +188,8 @@ class SequentialDeclaredItems(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Object.Constant'."],
 			context.exception.__notes__
 		)
-		self.assertEqual("x", context.exception.Identifier)
+		self.assertEqual("X", context.exception.Identifier)
+		self.assertEqual("x", context.exception.NormalizedIdentifier)
 		self.assertIs(process._namespace, context.exception.Namespace)
 		self.assertIs(variable, context.exception.Element)
 		self.assertIs(constant, context.exception.Existing)
@@ -264,6 +265,7 @@ class SequentialDeclaredItems(Testcase):
 		self.assertEqual("Namespace 'proc' has another element for 'v'.", str(context.exception))
 		self.assertListEqual(["Found element of type 'pyVHDLModel.Object.Variable'."], context.exception.__notes__)
 		self.assertEqual("v", context.exception.Identifier)
+		self.assertEqual("v", context.exception.NormalizedIdentifier)
 		self.assertIs(process._namespace, context.exception.Namespace)
 		self.assertListEqual([variable1, variable2], process.DeclaredItems)
 		self.assertIs(process, variable1.Parent)

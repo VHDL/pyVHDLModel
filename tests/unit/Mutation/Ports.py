@@ -134,7 +134,8 @@ class Ports(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
 			context.exception.__notes__
 		)
-		self.assertEqual("clock", context.exception.Identifier)
+		self.assertEqual("CLOCK", context.exception.Identifier)
+		self.assertEqual("clock", context.exception.NormalizedIdentifier)
 		self.assertIs(entity, context.exception.Parent)
 		self.assertIs(duplicate, context.exception.Element)
 		self.assertIs(clock, context.exception.Existing)
@@ -308,7 +309,8 @@ class Ports(Testcase):
 
 		self.assertEqual("Namespace 'e' has another element for 'clock'.", str(context.exception))
 		self.assertListEqual(["Found element of type 'pyVHDLModel.Object.Signal'."], context.exception.__notes__)
-		self.assertEqual("clock", context.exception.Identifier)
+		self.assertEqual("Clock", context.exception.Identifier)
+		self.assertEqual("clock", context.exception.NormalizedIdentifier)
 		self.assertIs(entity._namespace, context.exception.Namespace)
 		self.assertListEqual([clock], entity.PortItems)
 		self.assertIs(entity, clock.Parent)

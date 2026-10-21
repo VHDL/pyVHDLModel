@@ -65,7 +65,8 @@ class Namespaces(Testcase):
 
 		self.assertEqual("Namespace 'rtl' has no element 'bits'.", str(context.exception))
 		self.assertFalse(context.exception.HasNotes)
-		self.assertEqual("bits", context.exception.Identifier)
+		self.assertEqual("BITS", context.exception.Identifier)
+		self.assertEqual("bits", context.exception.NormalizedIdentifier)
 		self.assertIs(namespace, context.exception.Namespace)
 
 	def test_RemoveElement_OtherElement(self) -> None:
@@ -81,7 +82,8 @@ class Namespaces(Testcase):
 			["Found element of type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
 			context.exception.__notes__
 		)
-		self.assertEqual("bits", context.exception.Identifier)
+		self.assertEqual("BITS", context.exception.Identifier)
+		self.assertEqual("bits", context.exception.NormalizedIdentifier)
 		self.assertIs(namespace, context.exception.Namespace)
 		self.assertDictEqual({"bits": clock}, namespace.Elements())
 

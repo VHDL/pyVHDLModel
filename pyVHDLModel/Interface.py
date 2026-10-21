@@ -349,10 +349,20 @@ class GenericInterfaceItemMixin(InterfaceItemMixin, mixin=True):
 
 	   * :class:`Generic constant interface item <pyVHDLModel.Interface.GenericConstantInterfaceItem>`
 	   * :class:`Generic type interface item <pyVHDLModel.Interface.GenericTypeInterfaceItem>`
-	   * :class:`Generic subprogram interface item <pyVHDLModel.Interface.GenericSubprogramInterfaceItem>`
+	   * :class:`Generic subprogram interface item mixin <pyVHDLModel.Interface.GenericSubprogramInterfaceItemMixin>`
+	   * :class:`Generic package interface item <pyVHDLModel.Interface.GenericPackageInterfaceItem>`
+	"""
+
+
+@export
+class GenericSubprogramInterfaceItemMixin(GenericInterfaceItemMixin, mixin=True):
+	"""
+	A mixin-class for subprograms in a generic clause.
+
+	.. seealso::
+
 	   * :class:`Generic procedure interface item <pyVHDLModel.Interface.GenericProcedureInterfaceItem>`
 	   * :class:`Generic function interface item <pyVHDLModel.Interface.GenericFunctionInterfaceItem>`
-	   * :class:`Generic package interface item <pyVHDLModel.Interface.GenericPackageInterfaceItem>`
 	"""
 
 
@@ -461,15 +471,7 @@ class GenericTypeInterfaceItem(Type, GenericInterfaceItemMixin):
 
 
 @export
-class GenericSubprogramInterfaceItem(GenericInterfaceItemMixin):
-	"""
-	Represents the base-class of subprograms in a generic clause.
-	"""
-	pass
-
-
-@export
-class GenericProcedureInterfaceItem(Procedure, GenericInterfaceItemMixin):
+class GenericProcedureInterfaceItem(Procedure, GenericSubprogramInterfaceItemMixin):
 	"""
 	Represents a procedure in a generic clause.
 
@@ -490,11 +492,11 @@ class GenericProcedureInterfaceItem(Procedure, GenericInterfaceItemMixin):
 		:param parent:        The parent model entity of this entity.
 		"""
 		super().__init__(identifier, documentation=documentation, parent=parent)
-		GenericInterfaceItemMixin.__init__(self)
+		GenericSubprogramInterfaceItemMixin.__init__(self)
 
 
 @export
-class GenericFunctionInterfaceItem(Function, GenericInterfaceItemMixin):
+class GenericFunctionInterfaceItem(Function, GenericSubprogramInterfaceItemMixin):
 	"""
 	Represents a function in a generic clause.
 
@@ -523,7 +525,7 @@ class GenericFunctionInterfaceItem(Function, GenericInterfaceItemMixin):
 		:param parent:        The parent model entity of this entity.
 		"""
 		super().__init__(identifier, returnType, documentation=documentation, parent=parent)
-		GenericInterfaceItemMixin.__init__(self)
+		GenericSubprogramInterfaceItemMixin.__init__(self)
 
 
 @export

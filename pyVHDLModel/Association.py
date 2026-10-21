@@ -34,6 +34,8 @@ This module contains parts of an abstract document language model for VHDL.
 
 Associations are used in generic maps, port maps and parameter maps.
 """
+from __future__           import annotations
+
 from typing               import TYPE_CHECKING, Iterable, Optional as Nullable, Union
 
 from pyTooling.Decorators import export, readonly
@@ -106,7 +108,7 @@ class AssociationItem(ModelEntity):
 		"""
 		return self._actual
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this association item, its formal and its actual with a visitor.
 

@@ -34,6 +34,8 @@ This module contains parts of an abstract document language model for VHDL.
 
 All declarations for literals, aggregates, operators forming an expressions.
 """
+from __future__            import annotations
+
 from enum                  import Flag
 from typing                import TYPE_CHECKING, Iterable, Union, ClassVar, Optional as Nullable
 
@@ -109,7 +111,7 @@ class NullLiteral(Literal):
 	      p := null;
 	      --   ^^^^    <- the literal
 	"""
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this null literal with a visitor.
 
@@ -165,7 +167,7 @@ class EnumerationLiteral(Literal):
 		"""
 		return self._value
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this enumeration literal with a visitor.
 
@@ -235,7 +237,7 @@ class IntegerLiteral(NumericLiteral):
 		"""
 		return self._value
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this integer literal with a visitor.
 
@@ -289,7 +291,7 @@ class FloatingPointLiteral(NumericLiteral):
 		"""
 		return self._value
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this floating-point literal with a visitor.
 
@@ -397,7 +399,7 @@ class PhysicalIntegerLiteral(PhysicalLiteral):
 		"""
 		return self._value
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this physical literal with an integer value with a visitor.
 
@@ -443,7 +445,7 @@ class PhysicalFloatingLiteral(PhysicalLiteral):
 		"""
 		return self._value
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this physical literal with a floating-point value with a visitor.
 
@@ -504,7 +506,7 @@ class CharacterLiteral(Literal):
 		"""
 		return self._value
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this character literal with a visitor.
 
@@ -558,7 +560,7 @@ class StringLiteral(Literal):
 		"""
 		return self._value
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this string literal with a visitor.
 
@@ -685,7 +687,7 @@ class BitStringLiteral(Literal):
 		"""
 		return self._isSigned
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this bit string literal with a visitor.
 
@@ -840,7 +842,7 @@ class UnaryExpression(BaseExpression):
 		"""
 		return self._operand
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this unary expression and its operand with a visitor.
 
@@ -878,7 +880,7 @@ class NegationExpression(UnaryExpression):
 	"""
 	_FORMAT: ClassVar[tuple[str, str]] = ("-", "")
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this negation and its operand with a visitor.
 
@@ -906,7 +908,7 @@ class IdentityExpression(UnaryExpression):
 	"""
 	_FORMAT: ClassVar[tuple[str, str]] = ("+", "")
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this identity and its operand with a visitor.
 
@@ -1109,7 +1111,7 @@ class TypeConversion(UnaryExpression):
 		"""
 		return self._targetSubtype
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this type conversion, its target subtype and its operand with a visitor.
 
@@ -1149,7 +1151,7 @@ class SubExpression(UnaryExpression, ParenthesisExpression):
 	"""
 	_FORMAT: ClassVar[tuple[str, str]] = ("(", ")")
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this sub-expression and its operand with a visitor.
 
@@ -1258,7 +1260,7 @@ class RangeExpression(BinaryExpression):
 		"""
 		return self._direction
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this range expression and its bounds with a visitor.
 
@@ -1326,7 +1328,7 @@ class AddingExpression(BinaryExpression):
 	   * :class:`Concatenation expression <pyVHDLModel.Expression.ConcatenationExpression>`
 	"""
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this adding expression and its operands with a visitor.
 
@@ -1413,7 +1415,7 @@ class MultiplyingExpression(BinaryExpression):
 	   * :class:`Exponentiation expression <pyVHDLModel.Expression.ExponentiationExpression>`
 	"""
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this multiplying expression and its operands with a visitor.
 
@@ -1520,7 +1522,7 @@ class ExponentiationExpression(MultiplyingExpression):
 	"""
 	_FORMAT: ClassVar[tuple[str, str, str]] = ("", "**", "")
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this exponentiation and its operands with a visitor.
 
@@ -1551,7 +1553,7 @@ class LogicalExpression(BinaryExpression):
 	   * :class:`Xnor expression <pyVHDLModel.Expression.XnorExpression>`
 	"""
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this logical expression and its operands with a visitor.
 
@@ -1697,7 +1699,7 @@ class RelationalExpression(BinaryExpression):
 	   * :class:`Matching relational expression <pyVHDLModel.Expression.MatchingRelationalExpression>`
 	"""
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this relational expression and its operands with a visitor.
 
@@ -1980,7 +1982,7 @@ class ShiftExpression(BinaryExpression):
 	   * :class:`Rotate expression <pyVHDLModel.Expression.RotateExpression>`
 	"""
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this shift or rotate expression and its operands with a visitor.
 
@@ -2208,7 +2210,7 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 		"""
 		return self._subtype
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this qualified expression, its subtype and its operand with a visitor.
 
@@ -2358,7 +2360,7 @@ class WhenElseExpression(TernaryExpression):
 		"""
 		return self._thirdOperand
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this conditional expression, its value, condition and alternative value with a visitor.
 
@@ -2439,7 +2441,7 @@ class SubtypeAllocation(Allocation):
 		"""
 		return self._subtype
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this allocation and its subtype with a visitor.
 
@@ -2497,7 +2499,7 @@ class QualifiedExpressionAllocation(Allocation):
 		"""
 		return self._qualifiedExpression
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this allocation and its qualified expression with a visitor.
 
@@ -2573,7 +2575,7 @@ class SimpleAggregateElement(AggregateElement):
 	      res := ('1', '0', '1', '0', '1', '0', '1', '0');
 	      --      ^^^                                        <- Expression
 	"""
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this positional aggregate element and its expression with a visitor.
 
@@ -2632,7 +2634,7 @@ class IndexedAggregateElement(AggregateElement):
 		"""
 		return self._index
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this aggregate element, its index and its expression with a visitor.
 
@@ -2694,7 +2696,7 @@ class RangedAggregateElement(AggregateElement):
 		"""
 		return self._range
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this aggregate element, its range and its expression with a visitor.
 
@@ -2756,7 +2758,7 @@ class NamedAggregateElement(AggregateElement):
 		"""
 		return self._name
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this aggregate element, its name and its expression with a visitor.
 
@@ -2797,7 +2799,7 @@ class OthersAggregateElement(AggregateElement):
 	      --                ^^^^^^            <- the choice
 	      --                          ^^^     <- Expression
 	"""
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this ``others`` aggregate element and its expression with a visitor.
 
@@ -2860,7 +2862,7 @@ class Aggregate(BaseExpression):
 		"""
 		return self._elements
 
-	def Visit(self, visitor: "Visitor") -> None:
+	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this aggregate and its elements with a visitor.
 

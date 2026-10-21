@@ -138,16 +138,26 @@ class Insert(Testcase):
 		self.assertListEqual([first, statement, last], process.Statements)
 
 	def test_InsertBefore_NotAChild(self) -> None:
+		process = ProcessStatement("p")
+		before = _null("l9")
+
 		with self.assertRaises(NotAChildError) as context:
-			ProcessStatement("p").InsertStatementBefore(_null(), _null("l9"))
+			process.InsertStatementBefore(_null(), before)
 
 		self.assertEqual("NullStatement 'l9' is not a statement of this ProcessStatement.", str(context.exception))
+		self.assertIs(before, context.exception.Element)
+		self.assertIs(process, context.exception.Parent)
 
 	def test_InsertAfter_NotAChild(self) -> None:
+		process = ProcessStatement("p")
+		after = _null()
+
 		with self.assertRaises(NotAChildError) as context:
-			ProcessStatement("p").InsertStatementAfter(_null(), _null())
+			process.InsertStatementAfter(_null(), after)
 
 		self.assertEqual("NullStatement is not a statement of this ProcessStatement.", str(context.exception))
+		self.assertIs(after, context.exception.Element)
+		self.assertIs(process, context.exception.Parent)
 
 
 class Checks(Testcase):
@@ -186,18 +196,21 @@ class Checks(Testcase):
 
 	def test_Statement_HasParent(self) -> None:
 		statement = _null("l1")
-		ProcessStatement("p", statements=[statement])
+		first = ProcessStatement("p", statements=[statement])
 
 		with self.assertRaises(AlreadyInDesignError) as context:
 			ProcessStatement("q").AddStatement(statement)
 
 		self.assertEqual("NullStatement 'l1' already has a parent.", str(context.exception))
 		self.assertListEqual(["Remove it from its ProcessStatement first."], context.exception.__notes__)
+		self.assertIs(statement, context.exception.Element)
+		self.assertIs(first, context.exception.Parent)
 
 
 class Labels(Testcase):
 	def test_DuplicateLabel(self) -> None:
-		process = ProcessStatement("p", statements=[_null("l1")])
+		existing = _null("l1")
+		process = ProcessStatement("p", statements=[existing])
 		statement = _null("L1")
 
 		with self.assertRaises(DuplicateLabelError) as context:
@@ -208,6 +221,11 @@ class Labels(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Sequential.NullStatement'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("L1", context.exception.Identifier)
+		self.assertEqual("l1", context.exception.NormalizedIdentifier)
+		self.assertIs(process._namespace, context.exception.Namespace)
+		self.assertIs(statement, context.exception.Element)
+		self.assertIs(existing, context.exception.Existing)
 		self.assertIsNone(statement.Parent)
 
 	def test_LabelInBranchVsBody(self) -> None:
@@ -282,12 +300,15 @@ class Labels(Testcase):
 
 	def test_DetachedBranch(self) -> None:
 		"""A branch not in a process checks the labels of its own statements."""
-		branch = IfBranch(EnumerationLiteral("true"), [_null("l1")])
+		existing = _null("l1")
+		branch = IfBranch(EnumerationLiteral("true"), [existing])
 
 		with self.assertRaises(DuplicateLabelError) as context:
 			branch.AddStatement(_null("l1"))
 
 		self.assertEqual("IfBranch already declares 'l1'.", str(context.exception))
+		self.assertIsNone(context.exception.Namespace)
+		self.assertIs(existing, context.exception.Existing)
 
 
 class Remove(Testcase):
@@ -324,7 +345,12 @@ class Remove(Testcase):
 		self.assertListEqual(["Got type 'int'."], context.exception.__notes__)
 
 	def test_Remove_NotAChild(self) -> None:
+		process = ProcessStatement("p")
+		statement = _null("l1")
+
 		with self.assertRaises(NotAChildError) as context:
-			ProcessStatement("p").RemoveStatement(_null("l1"))
+			process.RemoveStatement(statement)
 
 		self.assertEqual("NullStatement 'l1' is not a statement of this ProcessStatement.", str(context.exception))
+		self.assertIs(statement, context.exception.Element)
+		self.assertIs(process, context.exception.Parent)

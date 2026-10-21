@@ -205,8 +205,6 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	_dependencyVertex:    Vertex  #: Reference to the vertex in the dependency graph representing the design unit. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
 	_hierarchyVertex:     Vertex  #: The vertex in the hierarchy graph
 
-	_namespace:           Namespace    #: The namespace of this design unit's declarative region.
-
 	def __init__(self, identifier: str, contextItems: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a design unit.
@@ -243,8 +241,6 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		self._dependencyVertex = None
 		self._hierarchyVertex = None
-
-		self._namespace = Namespace(self._normalizedIdentifier, sharesRegionWithParent=self._continuesParentRegion)
 
 	@property
 	def Document(self) -> Document:
@@ -561,8 +557,10 @@ class Package(
 		"""
 		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
+		ConcurrentDeclarationRegionMixin.__init__(
+			self, self._normalizedIdentifier, declaredItems, self._continuesParentRegion
+		)
 		WithGenericsMixin.__init__(self, genericItems)
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
 		self._packageBody = None
@@ -728,7 +726,9 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		"""
 		super().__init__(packageSymbol.Name.Identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
+		ConcurrentDeclarationRegionMixin.__init__(
+			self, self._normalizedIdentifier, declaredItems, self._continuesParentRegion
+		)
 
 		self._package = packageSymbol
 		packageSymbol.Parent = self
@@ -837,9 +837,11 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		"""
 		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
+		ConcurrentDeclarationRegionMixin.__init__(
+			self, self._normalizedIdentifier, declaredItems, self._continuesParentRegion
+		)
 		WithGenericsMixin.__init__(self, genericItems)
 		WithPortsMixin.__init__(self, portItems)
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
@@ -962,7 +964,9 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		"""
 		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
+		ConcurrentDeclarationRegionMixin.__init__(
+			self, self._normalizedIdentifier, declaredItems, self._continuesParentRegion
+		)
 		ConcurrentStatementsMixin.__init__(self, statements)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
@@ -1167,8 +1171,9 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 	   * :class:`Block configuration <pyVHDLModel.Configuration.BlockConfiguration>`
 	"""
 
-	_entity:            EntitySymbol         #: Reference to the entity this configuration configures.
+	_entity:             EntitySymbol        #: Reference to the entity this configuration configures.
 	_blockConfiguration: BlockConfiguration  #: The configuration of the entity's architecture.
+	_namespace:          Namespace           #: The namespace of this configuration's declarative region.
 
 	def __init__(
 		self,
@@ -1191,6 +1196,8 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 		"""
 		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
+
+		self._namespace = Namespace(self._normalizedIdentifier)
 
 		self._entity = entity
 		entity.Parent = self

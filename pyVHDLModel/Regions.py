@@ -40,7 +40,7 @@ from typing                  import TYPE_CHECKING, Any, ClassVar, Iterable, Opti
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType
+from pyTooling.MetaClasses   import ExtendedType, expects
 from pyTooling.Warning       import WarningCollector
 
 from pyVHDLModel.Base        import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf
@@ -77,6 +77,9 @@ class WithGenericsMixin(
 
 	The host class also provides ``_ClashingDeclarations(item)``, called before a generic is inserted: it returns the
 	declarations sharing an identifier with the new item.
+
+	Indexing the generics (``_IndexGenericItems()``) needs the host's namespace ``_namespace``; a host without one, e.g.
+	a component, can't index them.
 
 	.. seealso::
 
@@ -256,6 +259,16 @@ class WithGenericsMixin(
 		del self._genericItems[index]
 		genericItem._parent = None
 
+	@expects("_namespace")
+	def _IndexGenericItems(self) -> None:
+		"""Add the generics to the host's namespace; a generic subprogram is an overload."""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
+		for item in self._genericItems:
+			overloadable = isinstance(item, (Function, Procedure))
+			for normalizedIdentifier in normalizedIdentifiersOf(item):
+				self._namespace.AddElement(normalizedIdentifier, item, overloadable=overloadable)
+
 
 @export
 class WithPortsMixin(
@@ -272,6 +285,9 @@ class WithPortsMixin(
 
 	The host class also provides ``_ClashingDeclarations(item)``, called before a port is inserted: it returns the
 	declarations sharing an identifier with the new item.
+
+	Indexing the ports (``_IndexPortItems()``) needs the host's namespace ``_namespace``; a host without one, e.g.
+	a component, can't index them.
 
 	.. seealso::
 
@@ -450,6 +466,13 @@ class WithPortsMixin(
 		del self._portItems[index]
 		portItem._parent = None
 
+	@expects("_namespace")
+	def _IndexPortItems(self) -> None:
+		"""Add the ports to the host's namespace."""
+		for item in self._portItems:
+			for normalizedIdentifier in normalizedIdentifiersOf(item):
+				self._namespace.AddElement(normalizedIdentifier, item)
+
 
 @export
 class WithParametersMixin(
@@ -466,6 +489,9 @@ class WithParametersMixin(
 
 	The host class also provides ``_ClashingDeclarations(item)``, called before a parameter is inserted: it returns the
 	declarations sharing an identifier with the new item.
+
+	Indexing the parameters (``_IndexParameterItems()``) needs the host's namespace ``_namespace``; a host without one,
+	e.g. a parameter group, can't index them.
 
 	.. seealso::
 
@@ -642,6 +668,13 @@ class WithParametersMixin(
 		del self._parameterItems[index]
 		parameterItem._parent = None
 
+	@expects("_namespace")
+	def _IndexParameterItems(self) -> None:
+		"""Add the parameters to the host's namespace."""
+		for item in self._parameterItems:
+			for normalizedIdentifier in normalizedIdentifiersOf(item):
+				self._namespace.AddElement(normalizedIdentifier, item)
+
 
 @export
 class DeclarationRegionMixin(
@@ -665,8 +698,8 @@ class DeclarationRegionMixin(
 	It carries what all regions share: adding interface items to the region's namespace, the mutators for declared items
 	(e.g. :meth:`AddDeclaredItem`), and the hooks for declared items no region handles itself.
 
-	The derived region mixin-class or the host class provides the namespace ``_namespace``, the declared items
-	``_declaredItems``, the lookup tables ``_functions`` and ``_procedures``, and the methods ``_Declarations()``,
+	The derived region mixin-class provides the namespace ``_namespace``, the declared items ``_declaredItems`` and the
+	lookup tables ``_functions`` and ``_procedures``; it or the host class provides the methods ``_Declarations()``,
 	``_IndexDeclaredItem(item)``, ``_UnindexDeclaredItem(item)`` and ``IndexDeclaredItems()``.
 
 	An interface item shares the declarative region of the declarative part beside it - VHDL rejects
@@ -698,27 +731,6 @@ class DeclarationRegionMixin(
 		Initializes a declaration region, which isn't indexed yet.
 		"""
 		self._areDeclaredItemsIndexed = False
-
-	def _IndexGenericItems(self) -> None:
-		"""Add this region's generics to its namespace; a generic subprogram is an overload."""
-		from pyVHDLModel.Subprogram import Function, Procedure
-
-		for item in self._genericItems:
-			overloadable = isinstance(item, (Function, Procedure))
-			for normalizedIdentifier in normalizedIdentifiersOf(item):
-				self._namespace.AddElement(normalizedIdentifier, item, overloadable=overloadable)
-
-	def _IndexPortItems(self) -> None:
-		"""Add this region's ports to its namespace."""
-		for item in self._portItems:
-			for normalizedIdentifier in normalizedIdentifiersOf(item):
-				self._namespace.AddElement(normalizedIdentifier, item)
-
-	def _IndexParameterItems(self) -> None:
-		"""Add this region's parameters to its namespace."""
-		for item in self._parameterItems:
-			for normalizedIdentifier in normalizedIdentifiersOf(item):
-				self._namespace.AddElement(normalizedIdentifier, item)
 
 	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""
@@ -1318,8 +1330,6 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 	the namespace, the region keeps a lookup table per kind of declared item (:data:`Types`,
 	:data:`Signals`, :data:`Constants`, ...).
 
-	The host class provides the namespace ``_namespace``.
-
 	.. seealso::
 
 	   * :class:`Concurrent block statement <pyVHDLModel.Concurrent.ConcurrentBlockStatement>`
@@ -1334,6 +1344,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 	   * :class:`Namespace <pyVHDLModel.Namespace.Namespace>`
 	"""
 	_declaredItems:   list                        #: List of all declared items in this concurrent declaration region.
+	_namespace:       Namespace                   #: The namespace of this concurrent declaration region.
 
 	# _attributes:     dict[str, Attribute]
 	# _aliases:        dict[str, Alias]
@@ -1350,14 +1361,24 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 	_procedures:      dict[str, list[Procedure]]  #: Dictionary of all procedures declared in this concurrent declaration region, indexed by name; each entry is a list of overloads.
 	_components:      dict[str, Any]              #: Dictionary of all components declared in this concurrent declaration region.
 
-	def __init__(self, declaredItems: Nullable[Iterable] = None) -> None:
+	def __init__(
+		self,
+		namespaceName:          Nullable[str] = None,
+		declaredItems:          Nullable[Iterable] = None,
+		sharesRegionWithParent: bool = False
+	) -> None:
 		# TODO: extract to mixin
 		"""
 		Initializes a concurrent declaration region.
 
-		:param declaredItems: List of all declared items in this concurrent declaration region.
+		:param namespaceName:          Name of this region's namespace, usually the host's label or identifier.
+		:param declaredItems:          List of all declared items in this concurrent declaration region.
+		:param sharesRegionWithParent: Optional, ``True`` if this region continues its parent's declarative region (an
+		                               architecture its entity's, a package body its package's). Default: ``False``.
 		"""
 		DeclarationRegionMixin.__init__(self)
+
+		self._namespace = Namespace(namespaceName, sharesRegionWithParent=sharesRegionWithParent)
 
 		self._declaredItems = []  # TODO: convert to dict
 		if declaredItems is not None:

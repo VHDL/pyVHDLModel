@@ -37,7 +37,7 @@ message in english, each exception object contains one or multiple references to
 """
 from __future__               import annotations
 
-from typing                   import TYPE_CHECKING, Iterable, Optional as Nullable, Tuple, Union
+from typing                   import TYPE_CHECKING, Iterable, Optional as Nullable, Union
 
 from pyTooling.Decorators     import export, readonly
 from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError
@@ -1365,7 +1365,7 @@ class AmbiguousDesignUnitError(Exception):
 	"""
 
 	_designUnitName: str                  #: The name of the design unit, which was found several times.
-	_libraries:      Tuple[Library, ...]  #: The libraries containing a design unit of that name.
+	_libraries:      tuple[Library, ...]  #: The libraries containing a design unit of that name.
 
 	@readonly
 	def DesignUnitName(self) -> str:
@@ -1377,7 +1377,7 @@ class AmbiguousDesignUnitError(Exception):
 		return self._designUnitName
 
 	@readonly
-	def Libraries(self) -> Tuple[Library, ...]:
+	def Libraries(self) -> tuple[Library, ...]:
 		"""
 		Read-only property to access the libraries (:attr:`_libraries`).
 

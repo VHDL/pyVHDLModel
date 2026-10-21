@@ -297,8 +297,7 @@ pyTooling_DocCoverage_Packages = {
 # ==============================================================================
 pyTooling_Dependency_Requirements = {
 	"package":       {"file": "../requirements.txt"},
-	# both files of tests/requirements.txt: pyTooling v10.0.0rc3 reads a file included twice as a circular include
-	"testing":       {"files": ["../tests/unit/requirements.txt", "../tests/typing/requirements.txt"]},
+	"testing":       {"file": "../tests/requirements.txt"},
 	"documentation": {"file": "requirements.txt"},
 	"publishing":    {"file": "../dist/requirements.txt"},
 }

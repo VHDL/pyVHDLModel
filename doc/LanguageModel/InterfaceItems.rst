@@ -1,7 +1,7 @@
 .. _vhdlmodel-inter:
 
 Interface Items
-###################
+###############
 
 Interface items are used in generic, port and parameter declarations.
 
@@ -10,7 +10,18 @@ Interface items are used in generic, port and parameter declarations.
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.GenericConstantInterfaceItem pyVHDLModel.SyntaxModel.GenericTypeInterfaceItem pyVHDLModel.SyntaxModel.GenericProcedureInterfaceItem pyVHDLModel.SyntaxModel.GenericFunctionInterfaceItem pyVHDLModel.SyntaxModel.PortSimpleSignalInterfaceItem pyVHDLModel.SyntaxModel.PortViewSignalInterfaceItem pyVHDLModel.SyntaxModel.ParameterConstantInterfaceItem pyVHDLModel.SyntaxModel.ParameterVariableInterfaceItem pyVHDLModel.SyntaxModel.ParameterSimpleSignalInterfaceItem pyVHDLModel.SyntaxModel.ParameterViewSignalInterfaceItem pyVHDLModel.SyntaxModel.ParameterFileInterfaceItem
+.. inheritance-diagram:: pyVHDLModel.Interface.GenericConstantInterfaceItem
+                         pyVHDLModel.Interface.GenericTypeInterfaceItem
+                         pyVHDLModel.Interface.GenericProcedureInterfaceItem
+                         pyVHDLModel.Interface.GenericFunctionInterfaceItem
+                         pyVHDLModel.Interface.GenericPackageInterfaceItem
+                         pyVHDLModel.Interface.PortSimpleSignalInterfaceItem
+                         pyVHDLModel.Interface.PortViewSignalInterfaceItem
+                         pyVHDLModel.Interface.ParameterConstantInterfaceItem
+                         pyVHDLModel.Interface.ParameterVariableInterfaceItem
+                         pyVHDLModel.Interface.ParameterSimpleSignalInterfaceItem
+                         pyVHDLModel.Interface.ParameterViewSignalInterfaceItem
+                         pyVHDLModel.Interface.ParameterFileInterfaceItem
    :parts: 1
 
 
@@ -18,6 +29,9 @@ Interface items are used in generic, port and parameter declarations.
 
 Generic Interface Items
 =======================
+
+All items of a generic clause derive from :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`. Generic procedures
+and functions also derive from :class:`~pyVHDLModel.Interface.GenericSubprogramInterfaceItemMixin`.
 
 .. _vhdlmodel-genericconstant:
 
@@ -28,32 +42,41 @@ GenericConstantInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.GenericConstantInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.GenericConstantInterfaceItem`:
 
 .. code-block:: Python
 
    @export
-   class GenericConstantInterfaceItem(Constant, GenericInterfaceItem):
+   class GenericConstantInterfaceItem(Constant, GenericInterfaceItemMixin, InterfaceItemWithModeMixin):
+     # inherited from Obj
+     @property
+     def Subtype(self) -> Symbol:
+
+     @property
+     def ObjectVertex(self) -> Nullable[Vertex]:
+
      # inherited from ModelEntity
      @property
      def Parent(self) -> ModelEntity:
 
-     # inherited from NamedEntity
+     # inherited from MultipleNamedEntityMixin
      @property
-     def Name(self) -> str:
+     def Identifiers(self) -> tuple[str]:
 
-     # inherited from Object
      @property
-     def Subtype(self) -> Subtype:
+     def NormalizedIdentifiers(self) -> tuple[str]:
+
+     # inherited from DocumentedEntityMixin
+     @property
+     def Documentation(self) -> Nullable[str]:
 
      # inherited from WithDefaultExpressionMixin
      @property
-     def DefaultExpression(self) -> BaseExpression:
+     def DefaultExpression(self) -> Nullable[ExpressionUnion]:
 
-     # inherited from InterfaceItem
+     # inherited from InterfaceItemWithModeMixin
      @property
      def Mode(self) -> Mode:
-
 
 
 .. _vhdlmodel-generictype:
@@ -65,12 +88,26 @@ GenericTypeInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.GenericTypeInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.GenericTypeInterfaceItem`:
 
 .. code-block:: Python
 
-   @Export
-   class GenericTypeInterfaceItem(GenericInterfaceItem):
+   @export
+   class GenericTypeInterfaceItem(Type, GenericInterfaceItemMixin):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> ModelEntity:
+
+     # inherited from NamedEntityMixin
+     @property
+     def Identifier(self) -> str:
+
+     @property
+     def NormalizedIdentifier(self) -> str:
+
+     # inherited from DocumentedEntityMixin
+     @property
+     def Documentation(self) -> Nullable[str]:
 
 
 .. _vhdlmodel-genericprocedure:
@@ -82,13 +119,75 @@ GenericProcedureInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.GenericProcedureInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.GenericProcedureInterfaceItem`:
 
 .. code-block:: Python
 
-   @Export
-   class GenericProcedureInterfaceItem(GenericSubprogramInterfaceItem):
+   @export
+   class GenericProcedureInterfaceItem(Procedure, GenericSubprogramInterfaceItemMixin):
+     # inherited from Subprogram
+     @property
+     def Parent(self) -> ModelEntity:
 
+     @property
+     def IsPure(self) -> bool:
+
+     # inherited from NamedEntityMixin
+     @property
+     def Identifier(self) -> str:
+
+     @property
+     def NormalizedIdentifier(self) -> str:
+
+     # inherited from DocumentedEntityMixin
+     @property
+     def Documentation(self) -> Nullable[str]:
+
+     # inherited from WithGenericsMixin
+     @property
+     def GenericItems(self) -> list[GenericInterfaceItemMixin]:
+
+     @property
+     def GenericCount(self) -> int:
+
+     # inherited from WithParametersMixin
+     @property
+     def ParameterItems(self) -> list[ParameterInterfaceItemMixin]:
+
+     @property
+     def ParameterCount(self) -> int:
+
+     # inherited from SequentialDeclarationRegionMixin
+     @property
+     def DeclaredItems(self) -> list:
+
+     @property
+     def Namespace(self) -> Namespace:
+
+     @property
+     def Types(self) -> dict[str, FullType]:
+
+     @property
+     def Subtypes(self) -> dict[str, Subtype]:
+
+     @property
+     def Constants(self) -> dict[str, Constant]:
+
+     @property
+     def Variables(self) -> dict[str, Variable]:
+
+     @property
+     def Files(self) -> dict[str, File]:
+
+     @property
+     def Functions(self) -> dict[str, list[Function]]:
+
+     @property
+     def Procedures(self) -> dict[str, list[Procedure]]:
+
+     # inherited from SequentialStatementsMixin
+     @property
+     def Statements(self) -> list[SequentialStatement]:
 
 
 .. _vhdlmodel-genericfunction:
@@ -100,13 +199,79 @@ GenericFunctionInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.GenericFunctionInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.GenericFunctionInterfaceItem`:
 
 .. code-block:: Python
 
-   @Export
-   class GenericFunctionInterfaceItem(GenericSubprogramInterfaceItem):
+   @export
+   class GenericFunctionInterfaceItem(Function, GenericSubprogramInterfaceItemMixin):
+     # inherited from Function
+     @property
+     def ReturnType(self) -> SubtypeSymbol:
 
+     # inherited from Subprogram
+     @property
+     def Parent(self) -> ModelEntity:
+
+     @property
+     def IsPure(self) -> bool:
+
+     # inherited from NamedEntityMixin
+     @property
+     def Identifier(self) -> str:
+
+     @property
+     def NormalizedIdentifier(self) -> str:
+
+     # inherited from DocumentedEntityMixin
+     @property
+     def Documentation(self) -> Nullable[str]:
+
+     # inherited from WithGenericsMixin
+     @property
+     def GenericItems(self) -> list[GenericInterfaceItemMixin]:
+
+     @property
+     def GenericCount(self) -> int:
+
+     # inherited from WithParametersMixin
+     @property
+     def ParameterItems(self) -> list[ParameterInterfaceItemMixin]:
+
+     @property
+     def ParameterCount(self) -> int:
+
+     # inherited from SequentialDeclarationRegionMixin
+     @property
+     def DeclaredItems(self) -> list:
+
+     @property
+     def Namespace(self) -> Namespace:
+
+     @property
+     def Types(self) -> dict[str, FullType]:
+
+     @property
+     def Subtypes(self) -> dict[str, Subtype]:
+
+     @property
+     def Constants(self) -> dict[str, Constant]:
+
+     @property
+     def Variables(self) -> dict[str, Variable]:
+
+     @property
+     def Files(self) -> dict[str, File]:
+
+     @property
+     def Functions(self) -> dict[str, list[Function]]:
+
+     @property
+     def Procedures(self) -> dict[str, list[Procedure]]:
+
+     # inherited from SequentialStatementsMixin
+     @property
+     def Statements(self) -> list[SequentialStatement]:
 
 
 .. _vhdlmodel-genericpackage:
@@ -118,58 +283,82 @@ GenericPackageInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.GenericPackageInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.GenericPackageInterfaceItem`:
 
 .. code-block:: Python
 
-   @Export
-   class GenericPackageInterfaceItem(GenericInterfaceItem):
+   @export
+   class GenericPackageInterfaceItem(InterfacePackage, GenericInterfaceItemMixin):
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> ModelEntity:
+
+     # inherited from NamedEntityMixin
+     @property
+     def Identifier(self) -> str:
+
+     @property
+     def NormalizedIdentifier(self) -> str:
+
+     # inherited from DocumentedEntityMixin
+     @property
+     def Documentation(self) -> Nullable[str]:
 
 
 .. _vhdlmodel-ports:
 
-Port Interface Item
-===================
+Port Interface Items
+====================
 
 .. _vhdlmodel-portsignal:
 
 PortSignalInterfaceItem
 -----------------------
 
-``PortSignalInterfaceItem`` is now an abstract base-class for :class:`PortSimpleSignalInterfaceItem`
-(``port (p : in bit);``) and :class:`PortViewSignalInterfaceItem` (``port (p : view MyView);``,
+``PortSignalInterfaceItem`` is an abstract base-class for :class:`~pyVHDLModel.Interface.PortSimpleSignalInterfaceItem`
+(``port (p : in bit);``) and :class:`~pyVHDLModel.Interface.PortViewSignalInterfaceItem` (``port (p : view MyView);``,
 VHDL-2019 mode views) - see below. It is not meant to be instantiated directly.
 
 .. _vhdlmodel-portsimplesignal:
 
 PortSimpleSignalInterfaceItem
-------------------------------
+-----------------------------
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.PortSimpleSignalInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.PortSimpleSignalInterfaceItem`:
 
 .. code-block:: Python
 
    @export
-   class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem):
+   class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem, InterfaceItemWithModeMixin):
+     # inherited from Obj
+     @property
+     def Subtype(self) -> Symbol:
+
+     @property
+     def ObjectVertex(self) -> Nullable[Vertex]:
+
      # inherited from ModelEntity
      @property
      def Parent(self) -> ModelEntity:
 
-     # inherited from NamedEntity
+     # inherited from MultipleNamedEntityMixin
      @property
-     def Name(self) -> str:
+     def Identifiers(self) -> tuple[str]:
 
-     # inherited from Object
      @property
-     def Subtype(self) -> Subtype:
+     def NormalizedIdentifiers(self) -> tuple[str]:
+
+     # inherited from DocumentedEntityMixin
+     @property
+     def Documentation(self) -> Nullable[str]:
 
      # inherited from WithDefaultExpressionMixin
      @property
-     def DefaultExpression(self) -> BaseExpression:
+     def DefaultExpression(self) -> Nullable[ExpressionUnion]:
 
      # inherited from InterfaceItemWithModeMixin
      @property
@@ -179,39 +368,52 @@ PortSimpleSignalInterfaceItem
 .. _vhdlmodel-portviewsignal:
 
 PortViewSignalInterfaceItem
------------------------------
+---------------------------
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.PortViewSignalInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.PortViewSignalInterfaceItem`:
 
 .. code-block:: Python
 
    @export
    class PortViewSignalInterfaceItem(PortSignalInterfaceItem):
-     # inherited from ModelEntity
+     # defined in PortViewSignalInterfaceItem
      @property
-     def Parent(self) -> ModelEntity:
+     def ModeViewIndication(self) -> ModeViewSymbol:
 
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from Object; aliased as ModeViewIndication (a mode view reference occupies the
-     # same structural position as an ordinary subtype indication)
+     # inherited from Obj
      @property
      def Subtype(self) -> Symbol:
 
      @property
-     def ModeViewIndication(self) -> ModeViewSymbol:
+     def ObjectVertex(self) -> Nullable[Vertex]:
 
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> ModelEntity:
+
+     # inherited from MultipleNamedEntityMixin
+     @property
+     def Identifiers(self) -> tuple[str]:
+
+     @property
+     def NormalizedIdentifiers(self) -> tuple[str]:
+
+     # inherited from DocumentedEntityMixin
+     @property
+     def Documentation(self) -> Nullable[str]:
+
+     # inherited from WithDefaultExpressionMixin
+     @property
+     def DefaultExpression(self) -> Nullable[ExpressionUnion]:
 
 
 .. _vhdlmodel-parameters:
 
-Parameter Interface Item
+Parameter Interface Items
 =========================
 
 .. _vhdlmodel-parameterconstant:
@@ -223,32 +425,41 @@ ParameterConstantInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ParameterConstantInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.ParameterConstantInterfaceItem`:
 
 .. code-block:: Python
 
    @export
-   class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItem):
+   class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItemMixin, InterfaceItemWithModeMixin):
+     # inherited from Obj
+     @property
+     def Subtype(self) -> Symbol:
+
+     @property
+     def ObjectVertex(self) -> Nullable[Vertex]:
+
      # inherited from ModelEntity
      @property
      def Parent(self) -> ModelEntity:
 
-     # inherited from NamedEntity
+     # inherited from MultipleNamedEntityMixin
      @property
-     def Name(self) -> str:
+     def Identifiers(self) -> tuple[str]:
 
-     # inherited from Object
      @property
-     def Subtype(self) -> Subtype:
+     def NormalizedIdentifiers(self) -> tuple[str]:
+
+     # inherited from DocumentedEntityMixin
+     @property
+     def Documentation(self) -> Nullable[str]:
 
      # inherited from WithDefaultExpressionMixin
      @property
-     def DefaultExpression(self) -> BaseExpression:
+     def DefaultExpression(self) -> Nullable[ExpressionUnion]:
 
-     # inherited from InterfaceItem
+     # inherited from InterfaceItemWithModeMixin
      @property
      def Mode(self) -> Mode:
-
 
 
 .. _vhdlmodel-parametervariable:
@@ -260,32 +471,41 @@ ParameterVariableInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ParameterVariableInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.ParameterVariableInterfaceItem`:
 
 .. code-block:: Python
 
    @export
-   class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItem):
+   class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItemMixin, InterfaceItemWithModeMixin):
+     # inherited from Obj
+     @property
+     def Subtype(self) -> Symbol:
+
+     @property
+     def ObjectVertex(self) -> Nullable[Vertex]:
+
      # inherited from ModelEntity
      @property
      def Parent(self) -> ModelEntity:
 
-     # inherited from NamedEntity
+     # inherited from MultipleNamedEntityMixin
      @property
-     def Name(self) -> str:
+     def Identifiers(self) -> tuple[str]:
 
-     # inherited from Object
      @property
-     def Subtype(self) -> Subtype:
+     def NormalizedIdentifiers(self) -> tuple[str]:
+
+     # inherited from DocumentedEntityMixin
+     @property
+     def Documentation(self) -> Nullable[str]:
 
      # inherited from WithDefaultExpressionMixin
      @property
-     def DefaultExpression(self) -> BaseExpression:
+     def DefaultExpression(self) -> Nullable[ExpressionUnion]:
 
-     # inherited from InterfaceItem
+     # inherited from InterfaceItemWithModeMixin
      @property
      def Mode(self) -> Mode:
-
 
 
 .. _vhdlmodel-parametersignal:
@@ -293,41 +513,51 @@ ParameterVariableInterfaceItem
 ParameterSignalInterfaceItem
 ----------------------------
 
-``ParameterSignalInterfaceItem`` is now an abstract base-class for
-:class:`ParameterSimpleSignalInterfaceItem` (``procedure p(signal s : in bit);``) and
-:class:`ParameterViewSignalInterfaceItem` (``procedure p(signal s : view MyView);``, VHDL-2019 mode
-views) - see below. It is not meant to be instantiated directly.
+``ParameterSignalInterfaceItem`` is an abstract base-class for
+:class:`~pyVHDLModel.Interface.ParameterSimpleSignalInterfaceItem` (``procedure p(signal s : in bit);``) and
+:class:`~pyVHDLModel.Interface.ParameterViewSignalInterfaceItem` (``procedure p(signal s : view MyView);``, VHDL-2019
+mode views) - see below. It is not meant to be instantiated directly.
 
 .. _vhdlmodel-parametersimplesignal:
 
 ParameterSimpleSignalInterfaceItem
------------------------------------
+----------------------------------
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ParameterSimpleSignalInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.ParameterSimpleSignalInterfaceItem`:
 
 .. code-block:: Python
 
    @export
-   class ParameterSimpleSignalInterfaceItem(ParameterSignalInterfaceItem):
+   class ParameterSimpleSignalInterfaceItem(ParameterSignalInterfaceItem, InterfaceItemWithModeMixin):
+     # inherited from Obj
+     @property
+     def Subtype(self) -> Symbol:
+
+     @property
+     def ObjectVertex(self) -> Nullable[Vertex]:
+
      # inherited from ModelEntity
      @property
      def Parent(self) -> ModelEntity:
 
-     # inherited from NamedEntity
+     # inherited from MultipleNamedEntityMixin
      @property
-     def Name(self) -> str:
+     def Identifiers(self) -> tuple[str]:
 
-     # inherited from Object
      @property
-     def Subtype(self) -> Subtype:
+     def NormalizedIdentifiers(self) -> tuple[str]:
+
+     # inherited from DocumentedEntityMixin
+     @property
+     def Documentation(self) -> Nullable[str]:
 
      # inherited from WithDefaultExpressionMixin
      @property
-     def DefaultExpression(self) -> BaseExpression:
+     def DefaultExpression(self) -> Nullable[ExpressionUnion]:
 
      # inherited from InterfaceItemWithModeMixin
      @property
@@ -337,34 +567,47 @@ ParameterSimpleSignalInterfaceItem
 .. _vhdlmodel-parameterviewsignal:
 
 ParameterViewSignalInterfaceItem
------------------------------------
+--------------------------------
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ParameterViewSignalInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.ParameterViewSignalInterfaceItem`:
 
 .. code-block:: Python
 
    @export
    class ParameterViewSignalInterfaceItem(ParameterSignalInterfaceItem):
-     # inherited from ModelEntity
+     # defined in ParameterViewSignalInterfaceItem
      @property
-     def Parent(self) -> ModelEntity:
+     def ModeViewIndication(self) -> ModeViewSymbol:
 
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from Object; aliased as ModeViewIndication (a mode view reference occupies the
-     # same structural position as an ordinary subtype indication)
+     # inherited from Obj
      @property
      def Subtype(self) -> Symbol:
 
      @property
-     def ModeViewIndication(self) -> ModeViewSymbol:
+     def ObjectVertex(self) -> Nullable[Vertex]:
 
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> ModelEntity:
+
+     # inherited from MultipleNamedEntityMixin
+     @property
+     def Identifiers(self) -> tuple[str]:
+
+     @property
+     def NormalizedIdentifiers(self) -> tuple[str]:
+
+     # inherited from DocumentedEntityMixin
+     @property
+     def Documentation(self) -> Nullable[str]:
+
+     # inherited from WithDefaultExpressionMixin
+     @property
+     def DefaultExpression(self) -> Nullable[ExpressionUnion]:
 
 
 .. _vhdlmodel-parameterfile:
@@ -376,9 +619,30 @@ ParameterFileInterfaceItem
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ParameterFileInterfaceItem`:
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.ParameterFileInterfaceItem`:
 
 .. code-block:: Python
 
-   @Export
-   class ParameterFileInterfaceItem(ParameterInterfaceItem):
+   @export
+   class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
+     # inherited from Obj
+     @property
+     def Subtype(self) -> Symbol:
+
+     @property
+     def ObjectVertex(self) -> Nullable[Vertex]:
+
+     # inherited from ModelEntity
+     @property
+     def Parent(self) -> ModelEntity:
+
+     # inherited from MultipleNamedEntityMixin
+     @property
+     def Identifiers(self) -> tuple[str]:
+
+     @property
+     def NormalizedIdentifiers(self) -> tuple[str]:
+
+     # inherited from DocumentedEntityMixin
+     @property
+     def Documentation(self) -> Nullable[str]:

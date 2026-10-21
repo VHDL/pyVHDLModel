@@ -40,6 +40,7 @@ from pyVHDLModel.Interface  import ModeViewDeclaration, SimpleModeViewElement, C
 from pyVHDLModel.Interface  import PortSignalInterfaceItem, PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem
 from pyVHDLModel.Interface  import ParameterSignalInterfaceItem, ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem
 from pyVHDLModel.Interface  import (
+	GenericInterfaceItemMixin, GenericSubprogramInterfaceItemMixin,
 	GenericConstantInterfaceItem, GenericTypeInterfaceItem,
 	GenericProcedureInterfaceItem, GenericFunctionInterfaceItem,
 	InterfacePackage, GenericPackageInterfaceItem,
@@ -206,6 +207,13 @@ class GenericInterfaceItems(Testcase):
 		self.assertEqual("proc", item.Identifier)
 		self.assertEqual("some documentation", item.Documentation)
 
+	def test_GenericProcedureInterfaceItem_Mixin(self) -> None:
+		"""A generic procedure is a generic subprogram and a generic interface item."""
+		item = GenericProcedureInterfaceItem("proc")
+
+		self.assertIsInstance(item, GenericSubprogramInterfaceItemMixin)
+		self.assertIsInstance(item, GenericInterfaceItemMixin)
+
 	def test_GenericFunctionInterfaceItem(self) -> None:
 		"""``generic (function func return boolean);`` (VHDL-2008) - regression test (HIGH PRIORITY,
 		confirmed live via pyGHDL.dom's actual translation dispatch, not just a landmine):
@@ -222,6 +230,13 @@ class GenericInterfaceItems(Testcase):
 		self.assertEqual("func", item.Identifier)
 		self.assertIs(returnType, item.ReturnType)
 		self.assertIs(item, returnType.Parent)
+
+	def test_GenericFunctionInterfaceItem_Mixin(self) -> None:
+		"""A generic function is a generic subprogram and a generic interface item."""
+		item = GenericFunctionInterfaceItem("func", _subtypeSymbol("boolean"))
+
+		self.assertIsInstance(item, GenericSubprogramInterfaceItemMixin)
+		self.assertIsInstance(item, GenericInterfaceItemMixin)
 
 	def test_GenericPackageInterfaceItem(self) -> None:
 		"""``generic (package p is new q generic map (<>));`` (VHDL-2008)"""

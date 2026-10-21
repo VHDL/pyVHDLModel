@@ -72,8 +72,8 @@ class Subprogram(
 	   * :class:`Procedure <pyVHDLModel.Subprogram.Procedure>`
 	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
 	"""
-	_subprogramKeyword: ClassVar[str] = "subprogram"  #: The VHDL keyword introducing this subprogram kind.
-	_isPure:            bool                          #: ``True`` if the subprogram was declared pure.
+	_SUBPROGRAM_KEYWORD: ClassVar[str] = "subprogram"  #: The VHDL keyword introducing this subprogram kind.
+	_isPure:             bool                          #: ``True`` if the subprogram was declared pure.
 
 	def __init__(
 		self,
@@ -168,7 +168,7 @@ class Subprogram(
 		:returns: Formatted subprogram declaration.
 		"""
 		parameters = ", ".join(name for item in self._parameterItems for name in identifiersOf(item))
-		return f"{self._subprogramKeyword} {self._identifier}({parameters})"
+		return f"{self._SUBPROGRAM_KEYWORD} {self._identifier}({parameters})"
 
 
 @export
@@ -202,7 +202,8 @@ class Procedure(Subprogram):
 	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
 	"""
 
-	_subprogramKeyword: ClassVar[str] = "procedure"
+	_SUBPROGRAM_KEYWORD: ClassVar[str] = "procedure"  #: The VHDL keyword introducing this subprogram kind.
+
 	def __init__(
 		self,
 		identifier:     str,
@@ -260,8 +261,8 @@ class Function(Subprogram):
 	   * :class:`Procedure <pyVHDLModel.Subprogram.Procedure>`
 	"""
 
-	_subprogramKeyword: ClassVar[str] = "function"
-	_returnType: SubtypeSymbol  #: Reference to the subtype of the function's return value.
+	_SUBPROGRAM_KEYWORD: ClassVar[str] = "function"  #: The VHDL keyword introducing this subprogram kind.
+	_returnType:         SubtypeSymbol               #: Reference to the subtype of the function's return value.
 
 	def __init__(
 		self,

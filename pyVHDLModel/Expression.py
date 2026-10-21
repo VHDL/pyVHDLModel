@@ -639,7 +639,7 @@ class BitStringLiteral(Literal):
 	   * :class:`Decimal bit string literal <pyVHDLModel.Expression.DecimalBitStringLiteral>`
 	   * :class:`Hexadecimal bit string literal <pyVHDLModel.Expression.HexadecimalBitStringLiteral>`
 	"""
-	_base:        ClassVar[BitStringBase] = BitStringBase.NoBase  #: The base this literal is written in.
+	_BASE:        ClassVar[BitStringBase] = BitStringBase.NoBase  #: The base this literal is written in.
 
 	_value:       str             #: The literal as written in the source, without the enclosing double quotes.
 	_binaryValue: str             #: The literal's value expanded to base 2, one character per bit.
@@ -728,15 +728,15 @@ class BitStringLiteral(Literal):
 		:returns: Formatted bit string literal.
 		"""
 		signed = "" if self._isSigned is None else "s" if self._isSigned is True else "u"
-		if self._base is BitStringBase.NoBase:
+		if self._BASE is BitStringBase.NoBase:
 			base = ""
-		elif self._base is BitStringBase.Binary:
+		elif self._BASE is BitStringBase.Binary:
 			base = "b"
-		elif self._base is BitStringBase.Octal:
+		elif self._BASE is BitStringBase.Octal:
 			base = "o"
-		elif self._base is BitStringBase.Decimal:
+		elif self._BASE is BitStringBase.Decimal:
 			base = "d"
-		elif self._base is BitStringBase.Hexadecimal:
+		elif self._BASE is BitStringBase.Hexadecimal:
 			base = "x"
 		length = "" if self._length is None else str(self._length)
 		return length + signed + base + "\"" + self._value + "\""
@@ -754,7 +754,7 @@ class BinaryBitStringLiteral(BitStringLiteral):
 	      res := b"10100000";
 	      --     ^^^^^^^^^^^    <- Value
 	"""
-	_base: ClassVar[BitStringBase] = BitStringBase.Binary  #: The base this literal is written in.
+	_BASE: ClassVar[BitStringBase] = BitStringBase.Binary  #: The base this literal is written in.
 
 
 @export
@@ -771,7 +771,7 @@ class OctalBitStringLiteral(BitStringLiteral):
 	      nine := o"240";
 	      --      ^^^^^^    <- Value
 	"""
-	_base: ClassVar[BitStringBase] = BitStringBase.Octal  #: The base this literal is written in.
+	_BASE: ClassVar[BitStringBase] = BitStringBase.Octal  #: The base this literal is written in.
 
 
 @export
@@ -786,7 +786,7 @@ class DecimalBitStringLiteral(BitStringLiteral):
 	      res := d"160";
 	      --     ^^^^^^    <- Value
 	"""
-	_base: ClassVar[BitStringBase] = BitStringBase.Decimal  #: The base this literal is written in.
+	_BASE: ClassVar[BitStringBase] = BitStringBase.Decimal  #: The base this literal is written in.
 
 
 @export
@@ -803,7 +803,7 @@ class HexadecimalBitStringLiteral(BitStringLiteral):
 	      res := x"A0";
 	      --     ^^^^^    <- Value
 	"""
-	_base: ClassVar[BitStringBase] = BitStringBase.Hexadecimal  #: The base this literal is written in.
+	_BASE: ClassVar[BitStringBase] = BitStringBase.Hexadecimal  #: The base this literal is written in.
 
 
 @export
@@ -1285,16 +1285,16 @@ class RangeExpression(BinaryExpression):
 	   * :class:`Descending range expression <pyVHDLModel.Expression.DescendingRangeExpression>`
 	"""
 	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Range  #: The operator's precedence level.
-	_direction:  ClassVar[Direction]                                      #: The range's direction (``to`` or ``downto``).
+	_DIRECTION:  ClassVar[Direction]                                      #: The range's direction (``to`` or ``downto``).
 
 	@readonly
 	def Direction(self) -> Direction:
 		"""
-		Read-only property to access the direction (:attr:`_direction`).
+		Read-only property to access the direction (:attr:`_DIRECTION`).
 
 		:returns: The direction.
 		"""
-		return self._direction
+		return self._DIRECTION
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1325,7 +1325,7 @@ class AscendingRangeExpression(RangeExpression):
 	      --       ^          <- LeftOperand
 	      --            ^     <- RightOperand
 	"""
-	_direction: ClassVar[Direction]            = Direction.To      #: The range's direction.
+	_DIRECTION: ClassVar[Direction]            = Direction.To      #: The range's direction.
 	_FORMAT:    ClassVar[tuple[str, str, str]] = ("", " to ", "")  #: The operator's string fragments.
 
 
@@ -1345,7 +1345,7 @@ class DescendingRangeExpression(RangeExpression):
 	      --       ^              <- LeftOperand
 	      --                ^     <- RightOperand
 	"""
-	_direction: ClassVar[Direction]            = Direction.DownTo      #: The range's direction.
+	_DIRECTION: ClassVar[Direction]            = Direction.DownTo      #: The range's direction.
 	_FORMAT:    ClassVar[tuple[str, str, str]] = ("", " downto ", "")  #: The operator's string fragments.
 
 

@@ -282,7 +282,7 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Port signal interface item <pyVHDLModel.Interface.PortSignalInterfaceItem>`
 	"""
 
-	@expects("_objectKeyword", "_identifiers", "_subtype")
+	@expects("_OBJECT_KEYWORD", "_identifiers", "_subtype")
 	def _FormatInterfaceItem(self, mode: Nullable[Mode] = None, isModeView: bool = False) -> str:
 		"""
 		Format this interface item as a single-line declaration.
@@ -290,7 +290,7 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 		Interface items are objects, so they render like one (``signal p : bit``), but an object's own
 		rendering cannot show the interface *mode* - a mode is not part of an object declaration. This
 		adds it, for the derived class's :meth:`__str__` to return. The host class provides the object's keyword
-		``_objectKeyword``, identifiers ``_identifiers`` and subtype ``_subtype``.
+		``_OBJECT_KEYWORD``, identifiers ``_identifiers`` and subtype ``_subtype``.
 
 		:param mode:       This item's mode, or ``None`` when it declares none.
 		:param isModeView: ``True`` if the subtype position holds a mode view (VHDL-2019), not a subtype.
@@ -300,7 +300,7 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 		if isModeView:
 			prefix = "view "
 
-		return f"{self._objectKeyword} {', '.join(self._identifiers)} : {prefix}{self._subtype}"
+		return f"{self._OBJECT_KEYWORD} {', '.join(self._identifiers)} : {prefix}{self._subtype}"
 
 
 @export

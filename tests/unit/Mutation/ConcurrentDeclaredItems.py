@@ -212,8 +212,8 @@ class Add(Testcase):
 
 	def test_DeclaredItemTypes(self) -> None:
 		"""The accepted classes are class variables: a package accepts deferred constants, an architecture doesn't."""
-		self.assertIn(DeferredConstant, Package._declaredItemTypes)
-		self.assertNotIn(DeferredConstant, Architecture._declaredItemTypes)
+		self.assertIn(DeferredConstant, Package._DECLARED_ITEM_TYPES)
+		self.assertNotIn(DeferredConstant, Architecture._DECLARED_ITEM_TYPES)
 
 	def test_Add_WrongType_DeferredConstant(self) -> None:
 		"""Only a package declares deferred constants."""

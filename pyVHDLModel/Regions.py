@@ -759,7 +759,7 @@ class DeclarationRegionMixin(
 	(e.g. :class:`~pyVHDLModel.Concurrent.ConcurrentStatementsMixin`), a host without statements from
 	:class:`WithoutStatementsMixin`.
 	"""
-	_declaredItemTypes:       ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
+	_DECLARED_ITEM_TYPES:     ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
 	_areDeclaredItemsIndexed: bool                        #: ``True`` if :meth:`IndexDeclaredItems` filled the namespace.
 
 	def __init__(self) -> None:
@@ -1124,7 +1124,7 @@ class DeclarationRegionMixin(
 
 		if declaredItem is None:
 			raise ValueError("Parameter 'declaredItem' is None.")
-		elif not isinstance(declaredItem, self._declaredItemTypes) or isinstance(declaredItem, InterfaceItemMixin):
+		elif not isinstance(declaredItem, self._DECLARED_ITEM_TYPES) or isinstance(declaredItem, InterfaceItemMixin):
 			ex = TypeError(f"Parameter 'declaredItem' is not a declaration allowed in {getTypeName(self)}.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(declaredItem)}'.")
 			raise ex

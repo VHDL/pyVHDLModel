@@ -172,7 +172,7 @@ class PhysicalLiterals(Testcase):
 
 
 class BitStringLiterals(Testcase):
-	"""``BitStringLiteral`` itself is abstract in practice (``_base`` is only set by its four concrete
+	"""``BitStringLiteral`` itself is abstract in practice (``_BASE`` is only set by its four concrete
 	subclasses as a ``ClassVar``); ``Length``/``Signed``/``BinaryValue``/``Bits`` are all still-open
 	gaps beyond ``Value`` itself for ``BinaryValue``/``Bits`` (see the class's own ``.. todo``-less but
 	clearly unfinished state - both always stay ``None``, there's no code anywhere that computes
@@ -492,7 +492,7 @@ class Aggregates(Testcase):
 
 class ClassVariables(Testcase):
 	"""
-	``_FORMAT`` and ``_direction`` are constants of the concrete expression class, not object fields.
+	``_FORMAT`` and ``_DIRECTION`` are constants of the concrete expression class, not object fields.
 
 	They used to be declared as bare annotations, so ``ExtendedType`` made them slots and the concrete
 	subclasses' class-level assignment shadowed the slot descriptor. Reading worked, but assigning on an
@@ -514,7 +514,7 @@ class ClassVariables(Testcase):
 					slots.update(getattr(cls, "__slots__", ()))
 
 				self.assertNotIn("_FORMAT", slots)
-				self.assertNotIn("_direction", slots)
+				self.assertNotIn("_DIRECTION", slots)
 				self.assertNotIn("_PRECEDENCE", slots)
 
 	def test_Picklable(self) -> None:
@@ -531,8 +531,8 @@ class ClassVariables(Testcase):
 
 	def test_DirectionIsPerClass(self) -> None:
 		"""The two range expressions carry their direction as a class constant, readable without an instance."""
-		self.assertIs(Direction.To, AscendingRangeExpression._direction)
-		self.assertIs(Direction.DownTo, DescendingRangeExpression._direction)
+		self.assertIs(Direction.To, AscendingRangeExpression._DIRECTION)
+		self.assertIs(Direction.DownTo, DescendingRangeExpression._DIRECTION)
 
 
 class Precedences(Testcase):

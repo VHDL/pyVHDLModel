@@ -56,6 +56,7 @@ from pyVHDLModel.Configuration import BlockConfiguration
 
 
 @export
+@abstractclass
 class Reference(ModelEntity):
 	"""
 	A base-class for all references.
@@ -368,6 +369,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 
 @export
+@abstractclass
 class PrimaryUnit(DesignUnit):
 	"""
 	A base-class for all primary design units.

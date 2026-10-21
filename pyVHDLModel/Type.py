@@ -49,6 +49,7 @@ from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, Sequenti
 
 
 @export
+@abstractclass
 class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""
 	Represents the base-class of all type entities: full types, subtypes and anonymous types.
@@ -91,6 +92,7 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 
 @export
+@abstractclass
 class Type(BaseType):
 	"""
 	Represents a base-class for types introduced by a type declaration.

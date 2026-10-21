@@ -792,6 +792,7 @@ class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 
 
 @export
+@abstractclass
 class GenerateStatement(ConcurrentStatement, AllowBlackboxMixin):
 	"""
 	Represents the base-class of all generate statements.

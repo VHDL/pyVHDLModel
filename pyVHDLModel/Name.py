@@ -41,6 +41,7 @@ from __future__            import annotations
 from typing                import TYPE_CHECKING, Iterable, Optional as Nullable
 
 from pyTooling.Decorators  import export, readonly
+from pyTooling.MetaClasses import abstractclass
 
 from pyVHDLModel.Base      import ModelEntity, ExpressionUnion
 if TYPE_CHECKING:
@@ -48,6 +49,7 @@ if TYPE_CHECKING:
 
 
 @export
+@abstractclass
 class Name(ModelEntity):
 	"""
 	``Name`` is the base-class for all *names* in the VHDL language model.

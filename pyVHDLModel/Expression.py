@@ -2227,6 +2227,7 @@ class FunctionCall(BaseExpression):
 
 
 @export
+@abstractclass
 class Allocation(BaseExpression):
 	"""
 	Represents the base-class of all allocations via ``new``.

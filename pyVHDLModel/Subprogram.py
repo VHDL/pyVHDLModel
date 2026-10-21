@@ -39,7 +39,7 @@ from __future__             import annotations
 from typing                 import ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType
+from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf
 from pyVHDLModel.Symbol     import SubtypeSymbol
@@ -50,6 +50,7 @@ from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixi
 
 
 @export
+@abstractclass
 class Subprogram(
 	ModelEntity,
 	NamedEntityMixin,

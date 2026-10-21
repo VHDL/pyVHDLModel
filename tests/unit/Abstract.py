@@ -31,33 +31,37 @@
 """
 Base-classes of the model are abstract: only their derived classes are instantiated.
 """
-from pyTooling.MetaClasses   import AbstractClassError
-from pyTooling.Testing       import Testcase
+from pyTooling.MetaClasses     import AbstractClassError
+from pyTooling.Testing         import Testcase
 
-from pyVHDLModel.Association import AssociationItem
-from pyVHDLModel.Base        import BaseCase, BaseChoice
-from pyVHDLModel.Common      import Statement
-from pyVHDLModel.Concurrent  import (
-	ConcurrentCase, ConcurrentChoice, ConcurrentSignalAssignment, ConcurrentStatement, GenerateBranch, Instantiation,
+from pyVHDLModel.Association   import AssociationItem
+from pyVHDLModel.Base          import BaseCase, BaseChoice
+from pyVHDLModel.Common        import Statement
+from pyVHDLModel.Concurrent    import (
+	ConcurrentCase, ConcurrentChoice, ConcurrentSignalAssignment, ConcurrentStatement, GenerateBranch, GenerateStatement,
+	Instantiation,
 )
-from pyVHDLModel.DesignUnit  import DesignUnit, SecondaryUnit
-from pyVHDLModel.Expression  import (
-	AddingExpression, AggregateElement, BaseExpression, BinaryExpression, BitStringLiteral, Literal, LogicalExpression,
-	MatchingRelationalExpression, MultiplyingExpression, NumericLiteral, PhysicalLiteral, RangeExpression,
-	RelationalExpression, RotateExpression, ShiftArithmeticExpression, ShiftExpression, ShiftLogicExpression,
-	TernaryExpression, UnaryExpression,
+from pyVHDLModel.Configuration import EntityAspect
+from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Reference, SecondaryUnit
+from pyVHDLModel.Expression    import (
+	AddingExpression, AggregateElement, Allocation, BaseExpression, BinaryExpression, BitStringLiteral, Literal,
+	LogicalExpression, MatchingRelationalExpression, MultiplyingExpression, NumericLiteral, PhysicalLiteral,
+	RangeExpression, RelationalExpression, RotateExpression, ShiftArithmeticExpression, ShiftExpression,
+	ShiftLogicExpression, TernaryExpression, UnaryExpression,
 )
-from pyVHDLModel.Interface   import (
+from pyVHDLModel.Interface     import (
 	InterfacePackage, ModeViewElement, ParameterSignalInterfaceItem, PortSignalInterfaceItem,
 )
-from pyVHDLModel.Object      import BaseConstant, Obj
-from pyVHDLModel.PSLModel    import PSLEntity, PSLPrimaryUnit
-from pyVHDLModel.Predefined  import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
-from pyVHDLModel.Sequential  import (
+from pyVHDLModel.Name          import Name
+from pyVHDLModel.Object        import BaseConstant, Obj
+from pyVHDLModel.PSLModel      import PSLEntity, PSLPrimaryUnit
+from pyVHDLModel.Predefined    import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
+from pyVHDLModel.Sequential    import (
 	Branch, CompoundStatement, LoopControlStatement, LoopStatement, SequentialChoice, SequentialStatement,
 )
-from pyVHDLModel.Symbol      import ConstrainedCompositeSubtypeSymbol
-from pyVHDLModel.Type        import CompositeType, RangedScalarType, ScalarType
+from pyVHDLModel.Subprogram    import Subprogram
+from pyVHDLModel.Symbol        import ConstrainedCompositeSubtypeSymbol
+from pyVHDLModel.Type          import BaseType, CompositeType, RangedScalarType, ScalarType, Type
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -117,9 +121,21 @@ class ConcurrentClasses(Testcase):
 		with self.assertRaises(AbstractClassError):
 			GenerateBranch()
 
+	def test_GenerateStatement(self) -> None:
+		with self.assertRaises(AbstractClassError):
+			GenerateStatement()
+
 	def test_Instantiation(self) -> None:
 		with self.assertRaises(AbstractClassError):
 			Instantiation()
+
+
+class ConfigurationClasses(Testcase):
+	"""Abstract base-classes of :mod:`pyVHDLModel.Configuration`."""
+
+	def test_EntityAspect(self) -> None:
+		with self.assertRaises(AbstractClassError):
+			EntityAspect()
 
 
 class DesignUnitClasses(Testcase):
@@ -128,6 +144,14 @@ class DesignUnitClasses(Testcase):
 	def test_DesignUnit(self) -> None:
 		with self.assertRaises(AbstractClassError):
 			DesignUnit()
+
+	def test_PrimaryUnit(self) -> None:
+		with self.assertRaises(AbstractClassError):
+			PrimaryUnit()
+
+	def test_Reference(self) -> None:
+		with self.assertRaises(AbstractClassError):
+			Reference()
 
 	def test_SecondaryUnit(self) -> None:
 		with self.assertRaises(AbstractClassError):
@@ -144,6 +168,10 @@ class ExpressionClasses(Testcase):
 	def test_AggregateElement(self) -> None:
 		with self.assertRaises(AbstractClassError):
 			AggregateElement()
+
+	def test_Allocation(self) -> None:
+		with self.assertRaises(AbstractClassError):
+			Allocation()
 
 	def test_BaseExpression(self) -> None:
 		with self.assertRaises(AbstractClassError):
@@ -234,6 +262,14 @@ class InterfaceClasses(Testcase):
 			PortSignalInterfaceItem()
 
 
+class NameClasses(Testcase):
+	"""Abstract base-classes of :mod:`pyVHDLModel.Name`."""
+
+	def test_Name(self) -> None:
+		with self.assertRaises(AbstractClassError):
+			Name()
+
+
 class ObjectClasses(Testcase):
 	"""Abstract base-classes of :mod:`pyVHDLModel.Object`."""
 
@@ -302,6 +338,14 @@ class SequentialClasses(Testcase):
 			SequentialStatement()
 
 
+class SubprogramClasses(Testcase):
+	"""Abstract base-classes of :mod:`pyVHDLModel.Subprogram`."""
+
+	def test_Subprogram(self) -> None:
+		with self.assertRaises(AbstractClassError):
+			Subprogram()
+
+
 class SymbolClasses(Testcase):
 	"""Abstract base-classes of :mod:`pyVHDLModel.Symbol`."""
 
@@ -312,6 +356,10 @@ class SymbolClasses(Testcase):
 
 class TypeClasses(Testcase):
 	"""Abstract base-classes of :mod:`pyVHDLModel.Type`."""
+
+	def test_BaseType(self) -> None:
+		with self.assertRaises(AbstractClassError):
+			BaseType()
 
 	def test_CompositeType(self) -> None:
 		with self.assertRaises(AbstractClassError):
@@ -324,3 +372,7 @@ class TypeClasses(Testcase):
 	def test_ScalarType(self) -> None:
 		with self.assertRaises(AbstractClassError):
 			ScalarType()
+
+	def test_Type(self) -> None:
+		with self.assertRaises(AbstractClassError):
+			Type()

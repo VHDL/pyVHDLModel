@@ -39,7 +39,7 @@ from __future__                import annotations
 from typing                    import ClassVar, Union, Iterable, Optional as Nullable
 
 from pyTooling.Decorators      import export, readonly
-from pyTooling.MetaClasses     import ExtendedType, abstractmethod
+from pyTooling.MetaClasses     import ExtendedType, abstractmethod, abstractclass
 from pyTooling.Graph           import Vertex
 
 from pyVHDLModel.Common        import AllowBlackboxMixin
@@ -56,6 +56,7 @@ from pyVHDLModel.Configuration import BlockConfiguration
 
 
 @export
+@abstractclass
 class Reference(ModelEntity):
 	"""
 	A base-class for all references.
@@ -163,6 +164,7 @@ class DesignUnitWithContextMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
+@abstractclass
 class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""
 	A base-class for all design units.
@@ -367,6 +369,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 
 @export
+@abstractclass
 class PrimaryUnit(DesignUnit):
 	"""
 	A base-class for all primary design units.
@@ -382,6 +385,7 @@ class PrimaryUnit(DesignUnit):
 
 
 @export
+@abstractclass
 class SecondaryUnit(DesignUnit):
 	"""
 	A base-class for all secondary design units.

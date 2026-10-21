@@ -37,7 +37,7 @@ Interface items are used in generic, port and parameter declarations.
 from typing                 import Iterable, Optional as Nullable, Iterator
 
 from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType
+from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin
@@ -50,6 +50,7 @@ from pyVHDLModel.Type       import Type
 
 
 @export
+@abstractclass
 class ModeViewElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	"""
 	Base-class for one element definition inside a mode view declaration (VHDL-2019).
@@ -524,6 +525,7 @@ class GenericFunctionInterfaceItem(Function, GenericInterfaceItemMixin):
 
 
 @export
+@abstractclass
 class InterfacePackage(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""
 	Represents a package as a generic of a design unit.
@@ -577,6 +579,7 @@ class GenericPackageInterfaceItem(InterfacePackage, GenericInterfaceItemMixin):
 
 
 @export
+@abstractclass
 class PortSignalInterfaceItem(Signal, InterfaceItemMixin):
 	"""
 	Represents the base-class of all signals in a port clause.
@@ -801,6 +804,7 @@ class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItemMixin, Inte
 
 
 @export
+@abstractclass
 class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItemMixin):
 	"""
 	Represents a signal parameter of a subprogram.

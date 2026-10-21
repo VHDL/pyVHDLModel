@@ -37,7 +37,7 @@ Objects are constants, variables, signals and files.
 from typing                import ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Decorators  import export, readonly
-from pyTooling.MetaClasses import ExtendedType
+from pyTooling.MetaClasses import ExtendedType, abstractclass
 from pyTooling.Graph       import Vertex
 
 from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
@@ -45,6 +45,7 @@ from pyVHDLModel.Symbol    import Symbol
 
 
 @export
+@abstractclass
 class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	"""
 	Base-class for all objects (constants, signals, variables and files) in VHDL.
@@ -159,6 +160,7 @@ class WithDefaultExpressionMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
+@abstractclass
 class BaseConstant(Obj):
 	"""
 	Base-class for all constants (normal and deferred constants) in VHDL.

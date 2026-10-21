@@ -39,7 +39,7 @@ from __future__              import annotations
 from typing                  import Union, Iterable, Generator, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType
+from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, BaseCase, IfBranchMixin
 from pyVHDLModel.Base        import ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement, ChoicesMixin
@@ -72,6 +72,7 @@ ExpressionUnion = Union[
 
 
 @export
+@abstractclass
 class ConcurrentStatement(Statement):
 	"""
 	A base-class for all concurrent statements.
@@ -157,6 +158,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
+@abstractclass
 class Instantiation(ConcurrentStatement, GenericMapAspectMixin, PortMapAspectMixin):
 	"""
 	A base-class for all (component) instantiations.
@@ -596,6 +598,7 @@ class ConcurrentBlockStatement(
 
 
 @export
+@abstractclass
 class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin, AllowBlackboxMixin):
 	"""
 	A base-class for all branches in a generate statements.
@@ -789,6 +792,7 @@ class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 
 
 @export
+@abstractclass
 class GenerateStatement(ConcurrentStatement, AllowBlackboxMixin):
 	"""
 	Represents the base-class of all generate statements.
@@ -963,6 +967,7 @@ class IfGenerateStatement(GenerateStatement):
 
 
 @export
+@abstractclass
 class ConcurrentChoice(BaseChoice):
 	"""
 	A base-class for all concurrent choices (in case...generate statements).
@@ -1071,6 +1076,7 @@ class RangedGenerateChoice(ConcurrentChoice):
 
 
 @export
+@abstractclass
 class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin, AllowBlackboxMixin, ChoicesMixin):
 	"""
 	Represents the base-class of all alternatives of a case-generate statement.
@@ -1383,6 +1389,7 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 
 
 @export
+@abstractclass
 class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignmentMixin):
 	"""
 	Represents the base-class of all concurrent signal assignments.

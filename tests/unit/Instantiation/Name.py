@@ -46,9 +46,13 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
+class _Name(Name):
+	"""A name of no specific kind: :class:`~pyVHDLModel.Name.Name` is abstract."""
+
+
 class Names(Testcase):
 	def test_NoPrefixNoParent(self) -> None:
-		name = Name("foo")
+		name = _Name("foo")
 
 		self.assertEqual("foo", name.Identifier)
 		self.assertEqual("foo", name.NormalizedIdentifier)
@@ -60,7 +64,7 @@ class Names(Testcase):
 		self.assertEqual("Name: 'foo'", repr(name))
 
 	def test_IdentifierIsNormalized(self) -> None:
-		name = Name("FOO")
+		name = _Name("FOO")
 
 		self.assertEqual("FOO", name.Identifier)
 		self.assertEqual("foo", name.NormalizedIdentifier)
@@ -68,17 +72,17 @@ class Names(Testcase):
 	def test_WithPrefix(self) -> None:
 		"""``Root`` is inherited from the prefix's own root, so for a two-element chain it's simply the
 		prefix itself; see ``test_RootIsTransitiveAcrossAChain`` for a longer chain."""
-		prefix = Name("pkg")
-		name = Name("member", prefix)
+		prefix = _Name("pkg")
+		name = _Name("member", prefix)
 
 		self.assertIs(prefix, name.Prefix)
 		self.assertTrue(name.HasPrefix)
 		self.assertIs(prefix, name.Root)
 
 	def test_RootIsTransitiveAcrossAChain(self) -> None:
-		root = Name("a")
-		middle = Name("b", root)
-		leaf = Name("c", middle)
+		root = _Name("a")
+		middle = _Name("b", root)
+		leaf = _Name("c", middle)
 
 		self.assertIs(root, middle.Root)
 		self.assertIs(root, leaf.Root)
@@ -86,7 +90,7 @@ class Names(Testcase):
 
 	def test_WithParent(self) -> None:
 		parent = _Element()
-		name = Name("foo", parent=parent)
+		name = _Name("foo", parent=parent)
 
 		self.assertIs(parent, name.Parent)
 

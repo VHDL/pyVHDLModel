@@ -35,8 +35,6 @@ tests/unit/Assignment.py (conditional/selected signal assignments) or tests/unit
 """
 from pyTooling.Testing       import Testcase
 
-from pyTooling.Testing       import Testcase
-
 from pyVHDLModel.Base        import Direction, Mode, SimpleRange
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import (
@@ -213,13 +211,15 @@ class GenerateBranches(Testcase):
 		self.assertEqual(0, len(branch.Statements))
 
 
+class _GenerateStatement(GenerateStatement):
+	"""A generate statement overriding nothing: :class:`~pyVHDLModel.Concurrent.GenerateStatement` is abstract."""
+
+
 class GenerateStatements(Testcase):
 	def test_AbstractMethodsRaise(self) -> None:
-		"""``GenerateStatement`` itself is meant to always be used through a concrete subclass -
-		``IterateInstantiations``/``IndexStatement`` are placeholders raising ``NotImplementedError``
-		if a subclass doesn't override them (none of the three real subclasses omit them, so this only
-		matters if constructed directly, as done here)."""
-		statement = GenerateStatement("gen")
+		"""``IterateInstantiations``/``IndexStatement`` of ``GenerateStatement`` (abstract) are placeholders raising
+		``NotImplementedError`` for a subclass that doesn't override them."""
+		statement = _GenerateStatement("gen")
 
 		with self.assertRaises(NotImplementedError):
 			next(statement.IterateInstantiations())

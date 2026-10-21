@@ -660,6 +660,7 @@ class BlockStatementMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
+@abstractclass
 class BaseChoice(ModelEntity):
 	"""
 	A ``Choice`` is a base-class for all choices.
@@ -672,6 +673,7 @@ class BaseChoice(ModelEntity):
 
 
 @export
+@abstractclass
 class BaseCase(ModelEntity):
 	"""
 	A ``Case`` is a base-class for all cases.

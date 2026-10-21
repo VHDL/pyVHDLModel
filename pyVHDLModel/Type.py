@@ -39,7 +39,7 @@ from __future__             import annotations
 from typing                 import Union, Iterator, Iterable, Optional as Nullable, Mapping
 
 from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType
+from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyTooling.Graph        import Vertex
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
@@ -49,6 +49,7 @@ from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, Sequenti
 
 
 @export
+@abstractclass
 class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""
 	Represents the base-class of all type entities: full types, subtypes and anonymous types.
@@ -91,6 +92,7 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 
 @export
+@abstractclass
 class Type(BaseType):
 	"""
 	Represents a base-class for types introduced by a type declaration.
@@ -257,6 +259,7 @@ class Subtype(BaseType):
 
 
 @export
+@abstractclass
 class ScalarType(FullType):
 	"""
 	Represents a base-class for all scalar types: enumerated, integer, real and physical types.
@@ -269,6 +272,7 @@ class ScalarType(FullType):
 
 
 @export
+@abstractclass
 class RangedScalarType(ScalarType):
 	"""
 	Represents a base-class for all scalar types constrained by a range (:data:`Range`).
@@ -560,6 +564,7 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 
 
 @export
+@abstractclass
 class CompositeType(FullType):
 	"""
 	Represents a base-class for all composite types: array and record types.

@@ -39,7 +39,7 @@ from __future__              import annotations
 from typing                  import Iterable, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType
+from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity, ExpressionUnion, Range, BaseChoice, BaseCase, ConditionalMixin, IfBranchMixin, ElsifBranchMixin
 from pyVHDLModel.Base        import ElseBranchMixin, ReportStatementMixin, AssertStatementMixin, WaveformElement, ChoicesMixin
@@ -55,6 +55,7 @@ from pyVHDLModel.Association import ParameterAssociationItem
 
 
 @export
+@abstractclass
 class SequentialStatement(Statement):
 	"""
 	Represents the base-class of all sequential statements.
@@ -563,6 +564,7 @@ class SequentialAssertStatement(SequentialStatement, AssertStatementMixin):
 
 
 @export
+@abstractclass
 class CompoundStatement(SequentialStatement):
 	"""
 	Represents the base-class of all compound statements.
@@ -578,6 +580,7 @@ class CompoundStatement(SequentialStatement):
 
 
 @export
+@abstractclass
 class Branch(ModelEntity, SequentialStatementsMixin):
 	"""
 	Represents the base-class of all branches of an if statement.
@@ -811,6 +814,7 @@ class IfStatement(CompoundStatement):
 
 
 @export
+@abstractclass
 class SequentialChoice(BaseChoice):
 	"""
 	Represents the base-class of all choices in a sequential case statement.
@@ -1073,6 +1077,7 @@ class CaseStatement(CompoundStatement):
 
 
 @export
+@abstractclass
 class LoopStatement(CompoundStatement, SequentialStatementsMixin):
 	"""
 	Represents the base-class of all loop statements.
@@ -1230,6 +1235,7 @@ class WhileLoopStatement(LoopStatement, ConditionalMixin):
 
 
 @export
+@abstractclass
 class LoopControlStatement(SequentialStatement, ConditionalMixin):
 	"""
 	Represents the base-class of the loop control statements ``next`` and ``exit``.

@@ -37,7 +37,7 @@ Common definitions and Mixins are used by many classes in the model as base-clas
 from typing                  import Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType
+from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, BaseCase, BaseChoice, WaveformElement, ConditionalMixin, ChoicesMixin
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
@@ -115,6 +115,7 @@ class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
+@abstractclass
 class Statement(ModelEntity, LabeledEntityMixin):
 	"""
 	A ``Statement`` is a base-class for all statements.

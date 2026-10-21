@@ -39,6 +39,7 @@ from typing                import TYPE_CHECKING, Iterable, Union, ClassVar, Opti
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, readonly
+from pyTooling.MetaClasses import abstractclass
 
 from pyVHDLModel.Base      import ModelEntity, Direction, Range
 from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
@@ -57,6 +58,7 @@ ExpressionUnion = Union[
 
 
 @export
+@abstractclass
 class BaseExpression(ModelEntity):
 	"""
 	Represents the base-class of all expressions.
@@ -75,6 +77,7 @@ class BaseExpression(ModelEntity):
 
 
 @export
+@abstractclass
 class Literal(BaseExpression):
 	"""
 	Represents the base-class of all literals.
@@ -183,6 +186,7 @@ class EnumerationLiteral(Literal):
 
 
 @export
+@abstractclass
 class NumericLiteral(Literal):
 	"""
 	Represents the base-class of all numeric literals.
@@ -306,6 +310,7 @@ class FloatingPointLiteral(NumericLiteral):
 
 
 @export
+@abstractclass
 class PhysicalLiteral(NumericLiteral):
 	"""
 	Represents the base-class of all physical literals.
@@ -588,6 +593,7 @@ class BitStringBase(Flag):
 
 
 @export
+@abstractclass
 class BitStringLiteral(Literal):
 	"""
 	Represents the base-class of all bit string literals.
@@ -802,6 +808,7 @@ class ParenthesisExpression: #(Protocol):
 
 
 @export
+@abstractclass
 class UnaryExpression(BaseExpression):
 	"""
 	Represents the base-class of all unary expressions.
@@ -1102,6 +1109,7 @@ class SubExpression(UnaryExpression, ParenthesisExpression):
 
 
 @export
+@abstractclass
 class BinaryExpression(BaseExpression):
 	"""
 	Represents the base-class of all binary expressions.
@@ -1174,6 +1182,7 @@ class BinaryExpression(BaseExpression):
 
 
 @export
+@abstractclass
 class RangeExpression(BinaryExpression):
 	"""
 	Represents the base-class of range expressions.
@@ -1239,6 +1248,7 @@ class DescendingRangeExpression(RangeExpression):
 
 
 @export
+@abstractclass
 class AddingExpression(BinaryExpression):
 	"""
 	Represents the base-class of all adding expressions: ``+``, ``-`` and ``&``.
@@ -1311,6 +1321,7 @@ class ConcatenationExpression(AddingExpression):
 
 
 @export
+@abstractclass
 class MultiplyingExpression(BinaryExpression):
 	"""
 	Represents the base-class of all multiplying expressions: ``*``, ``/``, ``rem``, ``mod`` and ``**``.
@@ -1423,6 +1434,7 @@ class ExponentiationExpression(MultiplyingExpression):
 
 
 @export
+@abstractclass
 class LogicalExpression(BinaryExpression):
 	"""
 	Represents the base-class of all binary logical expressions.
@@ -1555,6 +1567,7 @@ class XnorExpression(LogicalExpression):
 
 
 @export
+@abstractclass
 class RelationalExpression(BinaryExpression):
 	"""
 	Represents the base-class of all relational expressions.
@@ -1688,6 +1701,7 @@ class LessEqualExpression(RelationalExpression):
 
 
 @export
+@abstractclass
 class MatchingRelationalExpression(RelationalExpression):
 	"""
 	Represents the base-class of all matching relational expressions.
@@ -1828,6 +1842,7 @@ class MatchingLessEqualExpression(MatchingRelationalExpression):
 
 
 @export
+@abstractclass
 class ShiftExpression(BinaryExpression):
 	"""
 	Represents the base-class of all shift and rotate expressions.
@@ -1843,6 +1858,7 @@ class ShiftExpression(BinaryExpression):
 
 
 @export
+@abstractclass
 class ShiftLogicExpression(ShiftExpression):
 	"""
 	Represents the base-class of the logical shift expressions ``srl`` and ``sll``.
@@ -1858,6 +1874,7 @@ class ShiftLogicExpression(ShiftExpression):
 
 
 @export
+@abstractclass
 class ShiftArithmeticExpression(ShiftExpression):
 	"""
 	Represents the base-class of the arithmetic shift expressions ``sra`` and ``sla``.
@@ -1873,6 +1890,7 @@ class ShiftArithmeticExpression(ShiftExpression):
 
 
 @export
+@abstractclass
 class RotateExpression(ShiftExpression):
 	"""
 	Represents the base-class of the rotate expressions ``ror`` and ``rol``.
@@ -2066,6 +2084,7 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 
 
 @export
+@abstractclass
 class TernaryExpression(BaseExpression):
 	"""
 	Represents the base-class of all ternary expressions.
@@ -2208,6 +2227,7 @@ class FunctionCall(BaseExpression):
 
 
 @export
+@abstractclass
 class Allocation(BaseExpression):
 	"""
 	Represents the base-class of all allocations via ``new``.
@@ -2317,6 +2337,7 @@ class QualifiedExpressionAllocation(Allocation):
 
 
 @export
+@abstractclass
 class AggregateElement(ModelEntity):
 	"""
 	Represents the base-class of all aggregate elements.

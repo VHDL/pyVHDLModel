@@ -37,7 +37,7 @@ Interface items are used in generic, port and parameter declarations.
 from typing                 import Iterable, Optional as Nullable, Iterator
 
 from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType, abstractclass
+from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
 
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin
@@ -282,13 +282,15 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Port signal interface item <pyVHDLModel.Interface.PortSignalInterfaceItem>`
 	"""
 
+	@expects("_objectKeyword", "_identifiers", "_subtype")
 	def _FormatInterfaceItem(self, mode: Nullable[Mode] = None, isModeView: bool = False) -> str:
 		"""
 		Format this interface item as a single-line declaration.
 
 		Interface items are objects, so they render like one (``signal p : bit``), but an object's own
 		rendering cannot show the interface *mode* - a mode is not part of an object declaration. This
-		adds it, for the derived class's :meth:`__str__` to return.
+		adds it, for the derived class's :meth:`__str__` to return. The host class provides the object's keyword
+		``_objectKeyword``, identifiers ``_identifiers`` and subtype ``_subtype``.
 
 		:param mode:       This item's mode, or ``None`` when it declares none.
 		:param isModeView: ``True`` if the subtype position holds a mode view (VHDL-2019), not a subtype.

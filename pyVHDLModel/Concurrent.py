@@ -813,8 +813,6 @@ class ConcurrentBlockStatement(
 
 	   * :class:`Generate statement <pyVHDLModel.Concurrent.GenerateStatement>`
 	"""
-	_namespace: Namespace  #: The namespace of this block's declarative region.
-
 	def __init__(
 		self,
 		label:                   str,
@@ -844,17 +842,16 @@ class ConcurrentBlockStatement(
 		"""
 		super().__init__(label, parent)
 
-		self._namespace = Namespace(self._normalizedLabel)
+		BlockStatementMixin.__init__(self)
+		LabeledEntityMixin.__init__(self, label)
+		ConcurrentDeclarationRegionMixin.__init__(self, self._normalizedLabel, declaredItems)
 		if parent is not None:
 			self._namespace.ParentNamespace = parent._namespace
 
-		BlockStatementMixin.__init__(self)
-		LabeledEntityMixin.__init__(self, label)
 		WithGenericsMixin.__init__(self, genericItems)
 		WithPortsMixin.__init__(self, portItems)
 		GenericMapAspectMixin.__init__(self, genericAssociationItems)
 		PortMapAspectMixin.__init__(self, portAssociationItems)
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
@@ -903,8 +900,6 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentSt
 	_alternativeLabel:           Nullable[str]  #: The branch's alternative label, if one was given.
 	_normalizedAlternativeLabel: Nullable[str]  #: The normalized (lower case) alternative label.
 
-	_namespace:                  Namespace      #: The namespace of this branch's declarative region.
-
 	def __init__(
 		self,
 		declaredItems:    Nullable[Iterable] = None,
@@ -927,11 +922,10 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentSt
 		self._alternativeLabel = alternativeLabel
 		self._normalizedAlternativeLabel = alternativeLabel.lower() if alternativeLabel is not None else None
 
-		self._namespace = Namespace(self._normalizedAlternativeLabel)
+		ConcurrentDeclarationRegionMixin.__init__(self, self._normalizedAlternativeLabel, declaredItems)
 		if parent is not None:
 			self._namespace.ParentNamespace = parent._namespace
 
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
@@ -1376,8 +1370,6 @@ class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMi
 	   * :class:`Generate case <pyVHDLModel.Concurrent.GenerateCase>`
 	   * :class:`Others generate case <pyVHDLModel.Concurrent.OthersGenerateCase>`
 	"""
-	_namespace: Namespace  #: The namespace of this alternative's declarative region.
-
 	def __init__(
 		self,
 		declaredItems:    Nullable[Iterable] = None,
@@ -1402,12 +1394,10 @@ class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMi
 
 		# TODO: Why not handover self?
 		#       This allows access to Label and NormalizedLabel, also to create a full instance path in case a lookup goes wrong.
-		# TODO: How about a WithNamespaceMixin class?
-		self._namespace = Namespace(self._normalizedLabel)
+		ConcurrentDeclarationRegionMixin.__init__(self, self._normalizedLabel, declaredItems)
 		if parent is not None:
 			self._namespace.ParentNamespace = parent._namespace
 
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 		ChoicesMixin.__init__(self, choices)
@@ -1602,10 +1592,8 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 	   * :class:`Case-generate statement <pyVHDLModel.Concurrent.CaseGenerateStatement>`
 	"""
 
-	_loopIndex: str        #: The name of the generate loop's index.
-	_range:     Range      #: The range the generate loop iterates over.
-
-	_namespace: Namespace  #: The namespace of the generate loop's declarative region.
+	_loopIndex: str    #: The name of the generate loop's index.
+	_range:     Range  #: The range the generate loop iterates over.
 
 	def __init__(
 		self,
@@ -1630,11 +1618,10 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 		"""
 		super().__init__(label, allowBlackbox, parent)
 
-		self._namespace = Namespace(self._normalizedLabel)
+		ConcurrentDeclarationRegionMixin.__init__(self, self._normalizedLabel, declaredItems)
 		if parent is not None:
 			self._namespace.ParentNamespace = parent._namespace
 
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
 
 		self._loopIndex = loopIndex

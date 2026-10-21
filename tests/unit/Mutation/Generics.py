@@ -140,7 +140,7 @@ class Generics(Testcase):
 
 	def test_Add_AlreadyInDesign(self) -> None:
 		bits = _generic("BITS")
-		Entity("e1", genericItems=[bits])
+		first = Entity("e1", genericItems=[bits])
 		entity = Entity("e2")
 
 		with self.assertRaises(AlreadyInDesignError) as context:
@@ -148,6 +148,8 @@ class Generics(Testcase):
 
 		self.assertEqual("GenericConstantInterfaceItem 'BITS' already has a parent.", str(context.exception))
 		self.assertListEqual(["Remove it from its Entity first."], context.exception.__notes__)
+		self.assertIs(bits, context.exception.Element)
+		self.assertIs(first, context.exception.Parent)
 		self.assertEqual(0, entity.GenericCount)
 
 	def test_Add_Twice(self) -> None:
@@ -161,7 +163,8 @@ class Generics(Testcase):
 		self.assertListEqual([bits], entity.GenericItems)
 
 	def test_Add_Duplicate(self) -> None:
-		entity = Entity("e", genericItems=[_generic("BITS")])
+		bits = _generic("BITS")
+		entity = Entity("e", genericItems=[bits])
 		duplicate = _generic("Depth", "bits")
 
 		with self.assertRaises(DuplicateGenericError) as context:
@@ -172,6 +175,10 @@ class Generics(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Interface.GenericConstantInterfaceItem'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("bits", context.exception.Identifier)
+		self.assertIs(entity, context.exception.Parent)
+		self.assertIs(duplicate, context.exception.Element)
+		self.assertIs(bits, context.exception.Existing)
 		self.assertEqual(1, entity.GenericCount)
 		self.assertIsNone(duplicate.Parent)
 		self.assertNotIn("depth", entity._namespace._elements)
@@ -322,6 +329,8 @@ class Generics(Testcase):
 			entity.RemoveGenericItem(bits)
 
 		self.assertEqual("GenericConstantInterfaceItem 'BITS' is not a generic of this Entity.", str(context.exception))
+		self.assertIs(bits, context.exception.Element)
+		self.assertIs(entity, context.exception.Parent)
 		self.assertEqual(1, entity.GenericCount)
 		self.assertIsNotNone(bits.Parent)
 
@@ -419,6 +428,8 @@ class Generics(Testcase):
 			["Found element of type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("bits", context.exception.Identifier)
+		self.assertIs(entity._namespace, context.exception.Namespace)
 		self.assertListEqual([bits], entity.GenericItems)
 		self.assertIs(entity, bits.Parent)
 		self.assertIs(port, entity._namespace._elements["bits"])

@@ -238,7 +238,7 @@ class Add(Testcase):
 
 	def test_Add_AlreadyInDesign(self) -> None:
 		signal = _signal("a", "b")
-		_architecture(signal)
+		other = _architecture(signal)
 		architecture = _architecture()
 
 		with self.assertRaises(AlreadyInDesignError) as context:
@@ -246,11 +246,13 @@ class Add(Testcase):
 
 		self.assertEqual("Signal 'a, b' already has a parent.", str(context.exception))
 		self.assertListEqual(["Remove it from its Architecture first."], context.exception.__notes__)
+		self.assertIs(signal, context.exception.Element)
+		self.assertIs(other, context.exception.Parent)
 		self.assertListEqual([], architecture.DeclaredItems)
 
 	def test_Add_AlreadyInDesign_Unnamed(self) -> None:
 		useClause = UseClause([])
-		Package("pkg", declaredItems=[useClause])
+		package = Package("pkg", declaredItems=[useClause])
 		architecture = _architecture()
 
 		with self.assertRaises(AlreadyInDesignError) as context:
@@ -258,6 +260,8 @@ class Add(Testcase):
 
 		self.assertEqual("UseClause already has a parent.", str(context.exception))
 		self.assertListEqual(["Remove it from its Package first."], context.exception.__notes__)
+		self.assertIs(useClause, context.exception.Element)
+		self.assertIs(package, context.exception.Parent)
 
 	def test_Add_Duplicate(self) -> None:
 		signal = _signal("a", "b")
@@ -274,6 +278,10 @@ class Add(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Object.Signal'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("b", context.exception.Identifier)
+		self.assertIs(architecture._namespace, context.exception.Namespace)
+		self.assertIs(duplicate, context.exception.Element)
+		self.assertIs(signal, context.exception.Existing)
 		self.assertListEqual([signal], architecture.DeclaredItems)
 		self.assertDictEqual({}, architecture.Constants)
 		self.assertIsNone(duplicate.Parent)
@@ -309,11 +317,13 @@ class Add(Testcase):
 		self.assertEqual(1, len(architecture.DeclaredItems))
 
 	def test_Add_Duplicate_OtherKind(self) -> None:
-		architecture = _architecture(_function("x"))
+		function = _function("x")
+		architecture = _architecture(function)
+		alias = Alias("X", _signalSymbol("s"))
 
 
 		with self.assertRaises(DuplicateDeclarationError) as context:
-			architecture.AddDeclaredItem(Alias("X", _signalSymbol("s")))
+			architecture.AddDeclaredItem(alias)
 
 		self.assertIs(DuplicateDeclarationError, type(context.exception))
 		self.assertEqual("Architecture already declares 'X'.", str(context.exception))
@@ -321,6 +331,10 @@ class Add(Testcase):
 			["Existing declaration is of type 'pyVHDLModel.Subprogram.Function'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("x", context.exception.Identifier)
+		self.assertIs(architecture._namespace, context.exception.Namespace)
+		self.assertIs(alias, context.exception.Element)
+		self.assertIs(function, context.exception.Existing)
 
 	def test_Add_Duplicate_ProtectedTypeBody(self) -> None:
 		architecture = _architecture(ProtectedType("counter"), ProtectedTypeBody("counter"))
@@ -462,6 +476,8 @@ class InsertBeforeAfter(Testcase):
 			architecture.InsertDeclaredItemBefore(_signal("Enable"), clock)
 
 		self.assertEqual("Signal 'Clock' is not a declared item of this Architecture.", str(context.exception))
+		self.assertIs(clock, context.exception.Element)
+		self.assertIs(architecture, context.exception.Parent)
 
 	def test_InsertAfter(self) -> None:
 		clock = _signal("Clock")
@@ -508,16 +524,23 @@ class InsertBeforeAfter(Testcase):
 			architecture.InsertDeclaredItemAfter(_signal("Enable"), useClause)
 
 		self.assertEqual("UseClause is not a declared item of this Architecture.", str(context.exception))
+		self.assertIs(useClause, context.exception.Element)
+		self.assertIs(architecture, context.exception.Parent)
 
 	def test_InsertAfter_Duplicate(self) -> None:
 		clock = _signal("Clock")
 		architecture = _architecture(clock)
+		duplicate = _signal("clock")
 
 
 		with self.assertRaises(DuplicateSignalError) as context:
-			architecture.InsertDeclaredItemAfter(_signal("clock"), clock)
+			architecture.InsertDeclaredItemAfter(duplicate, clock)
 
 		self.assertEqual("Architecture already declares 'clock'.", str(context.exception))
+		self.assertEqual("clock", context.exception.Identifier)
+		self.assertIs(architecture._namespace, context.exception.Namespace)
+		self.assertIs(duplicate, context.exception.Element)
+		self.assertIs(clock, context.exception.Existing)
 
 
 class Remove(Testcase):
@@ -637,6 +660,8 @@ class Remove(Testcase):
 			architecture.RemoveDeclaredItem(signal)
 
 		self.assertEqual("Signal 'a, b' is not a declared item of this Architecture.", str(context.exception))
+		self.assertIs(signal, context.exception.Element)
+		self.assertIs(architecture, context.exception.Parent)
 		self.assertIs(other, signal.Parent)
 
 

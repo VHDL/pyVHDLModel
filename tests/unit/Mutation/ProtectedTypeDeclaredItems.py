@@ -86,13 +86,15 @@ class ProtectedTypeDeclaredItems(Testcase):
 
 	def test_Add_AlreadyInDesign(self) -> None:
 		procedure = _procedure("increment")
-		ProtectedType("counter1", [procedure])
+		first = ProtectedType("counter1", [procedure])
 		protectedType = ProtectedType("counter2")
 
 		with self.assertRaises(AlreadyInDesignError) as context:
 			protectedType.AddDeclaredItem(procedure)
 
 		self.assertEqual("Procedure 'increment' already has a parent.", str(context.exception))
+		self.assertIs(procedure, context.exception.Element)
+		self.assertIs(first, context.exception.Parent)
 
 	def test_Insert_Start(self) -> None:
 		procedure = _procedure("increment")
@@ -127,8 +129,11 @@ class ProtectedTypeDeclaredItems(Testcase):
 
 	def test_Remove_NotAChild(self) -> None:
 		protectedType = ProtectedType("counter")
+		function = _function("get")
 
 		with self.assertRaises(NotAChildError) as context:
-			protectedType.RemoveDeclaredItem(_function("get"))
+			protectedType.RemoveDeclaredItem(function)
 
 		self.assertEqual("Function 'get' is not a declared item of this ProtectedType.", str(context.exception))
+		self.assertIs(function, context.exception.Element)
+		self.assertIs(protectedType, context.exception.Parent)

@@ -46,7 +46,7 @@ from pyVHDLModel.Instantiation   import PackageInstantiation
 from pyVHDLModel.Interface       import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name            import SimpleName, SelectedName, AllName
 from pyVHDLModel.Object          import Constant, Signal
-from pyVHDLModel.Subprogram      import Function
+from pyVHDLModel.Subprogram      import Function, Procedure
 from pyVHDLModel.Symbol          import LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, ContextReferenceSymbol
 from pyVHDLModel.Symbol          import PackageMemberReferenceSymbol, PackageSymbol, PackageReferenceSymbol
 
@@ -186,6 +186,20 @@ class DesignUnits(Testcase):
 			package body utilities is
 			  constant ZERO : natural := 0;
 			end package body utilities;
+			"""), VHDLWriter().Format(body))
+
+	def test_Subprograms(self) -> None:
+		"""An empty subprogram is a subprogram declaration in a package, but an empty subprogram body in a package body."""
+		package = Package("p", declaredItems=[Procedure("stub")])
+		body =    PackageBody(PackageSymbol(SimpleName("p")), declaredItems=[Procedure("stub")])
+
+		self.assertEqual("package p is\n  procedure stub;\nend package p;\n", VHDLWriter().Format(package))
+		self.assertEqual(dedent("""\
+			package body p is
+			  procedure stub is
+			  begin
+			  end procedure stub;
+			end package body p;
 			"""), VHDLWriter().Format(body))
 
 	def test_PackageInstantiation(self) -> None:

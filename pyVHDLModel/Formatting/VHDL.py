@@ -36,22 +36,22 @@ source text of each event to a buffer. A parser's subclass of a model class (e.g
 that model class. Writing is a re-format: comments, blank lines and the letter case of reserved words in a parsed source
 are not preserved.
 """
-from __future__              import annotations
+from __future__                import annotations
 
-from enum                    import Enum, unique
-from math                    import copysign, isfinite
-from typing                  import ClassVar, Optional as Nullable
+from enum                      import Enum, unique
+from math                      import copysign, isfinite
+from typing                    import ClassVar, Optional as Nullable
 
-from pyTooling.Common        import getFullyQualifiedName
-from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType
+from pyTooling.Common          import getFullyQualifiedName
+from pyTooling.Decorators      import export, readonly
+from pyTooling.MetaClasses     import ExtendedType
 
-from pyVHDLModel.Association import AssociationItem
-from pyVHDLModel.Base        import ModelElementUnion, ModelEntity, Direction, Mode, SimpleRange, RangeFromName
-from pyVHDLModel.Declaration import EntityClass, Attribute, AttributeSpecification, Alias
-from pyVHDLModel.DesignUnit  import Component
-from pyVHDLModel.Exception   import VHDLWriterError
-from pyVHDLModel.Expression  import (
+from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin
+from pyVHDLModel.Base          import ModelElementUnion, ModelEntity, Direction, Mode, SimpleRange, RangeFromName
+from pyVHDLModel.Declaration   import EntityClass, Attribute, AttributeSpecification, Alias
+from pyVHDLModel.DesignUnit    import Component
+from pyVHDLModel.Exception     import VHDLWriterError
+from pyVHDLModel.Expression    import (
 	OperatorPrecedence, NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral,
 	PhysicalIntegerLiteral, PhysicalFloatingLiteral, CharacterLiteral, StringLiteral, BitStringBase,
 	BitStringLiteral, UnaryExpression, NegationExpression, IdentityExpression, TypeConversion, SubExpression,
@@ -61,25 +61,28 @@ from pyVHDLModel.Expression  import (
 	SimpleAggregateElement, IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement,
 	OthersAggregateElement, Aggregate
 )
-from pyVHDLModel.Name        import SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, AttributeName
-from pyVHDLModel.Interface   import (
+from pyVHDLModel.Name          import SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, AttributeName
+from pyVHDLModel.Interface     import (
 	ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, GenericConstantInterfaceItem,
 	GenericTypeInterfaceItem, PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem,
 	ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, ParameterSimpleSignalInterfaceItem,
-	ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem
+	ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem, GenericProcedureInterfaceItem,
+	GenericFunctionInterfaceItem
 )
-from pyVHDLModel.Name        import AllName, OpenName
-from pyVHDLModel.Object      import Obj, WithDefaultExpressionMixin, Constant, DeferredConstant, Variable
-from pyVHDLModel.Object      import SharedVariable, Signal, File
-from pyVHDLModel.Regions     import WithGenericsMixin, WithPortsMixin
-from pyVHDLModel.Symbol      import (
+from pyVHDLModel.Instantiation import ProcedureInstantiation, FunctionInstantiation
+from pyVHDLModel.Name          import AllName, OpenName
+from pyVHDLModel.Object        import Obj, WithDefaultExpressionMixin, Constant, DeferredConstant, Variable
+from pyVHDLModel.Object        import SharedVariable, Signal, File
+from pyVHDLModel.Regions       import WithGenericsMixin, WithPortsMixin, WithParametersMixin
+from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
+from pyVHDLModel.Symbol        import (
 	Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol
 )
-from pyVHDLModel.Type        import (
+from pyVHDLModel.Type          import (
 	AnonymousType, FullType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, ArrayType, RecordTypeElement,
-	RecordType, AccessType, FileType
+	RecordType, AccessType, FileType, ProtectedType, ProtectedTypeBody
 )
-from pyVHDLModel.Visitor     import Visitor
+from pyVHDLModel.Visitor       import Visitor
 
 
 @export
@@ -299,14 +302,22 @@ class VHDLWriter(Visitor):
 	def VisitComma(
 		self,
 		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol |
-		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification
+		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification |
+		         GenericMapAspectMixin
 	) -> None:
 		"""
 		Write the comma between two items of a list.
 
+		In a map aspect, the next association starts on a new line.
+
 		:param element: The element containing the list.
 		"""
-		self._Write(", ")
+		if isinstance(element, GenericMapAspectMixin):
+			self._Write(",\n")
+			self._WriteIndentation()
+		else:
+			self._Write(", ")
+
 		self._minimum = OperatorPrecedence.Range
 
 	def VisitArrow(
@@ -1085,7 +1096,7 @@ class VHDLWriter(Visitor):
 		if item.Actual is None:
 			raise VHDLWriterError("Association item has no actual.", item)
 
-	def VisitSemicolon(self, element: WithGenericsMixin | WithPortsMixin) -> None:
+	def VisitSemicolon(self, element: WithGenericsMixin | WithPortsMixin | WithParametersMixin) -> None:
 		"""
 		Write the semicolon between two items of an interface list; the next item starts on a new line.
 
@@ -1112,17 +1123,20 @@ class VHDLWriter(Visitor):
 		self._Write(" := ")
 		self._minimum = OperatorPrecedence.Range
 
-	def VisitIs(self, element: ModeViewDeclaration | Alias | AttributeSpecification) -> None:
+	def VisitIs(self, element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram) -> None:
 		"""
 		Write the reserved word ``is`` ending the header of a declaration; its body is indented.
 
-		In an alias declaration and an attribute specification, the name or the expression follows on the same line.
+		In an alias declaration and an attribute specification, the name or the expression follows on the same line. A
+		subprogram without declared items and statements is a subprogram declaration, which has no ``is``.
 
 		:param element: The declaration.
 		"""
 		if isinstance(element, (Alias, AttributeSpecification)):
 			self._Write(f" {self._Keyword('is')} ")
 			self._minimum = OperatorPrecedence.Range
+		elif isinstance(element, Subprogram) and not self._IsSubprogramBody(element):
+			return
 		else:
 			self._Write(f" {self._Keyword('is')}\n")
 			self._indentation += 1
@@ -1187,9 +1201,15 @@ class VHDLWriter(Visitor):
 
 		**Format:** ``generic (`` ... ``);``
 
+		The generic clause of a subprogram follows its designator on the same line and ends without a semicolon.
+
 		:param element: The element with generics.
 		"""
-		self._WriteIndentation()
+		if isinstance(element, Subprogram):
+			self._Write(" ")
+		else:
+			self._WriteIndentation()
+
 		self._Write(f"{self._Keyword('generic')} (\n")
 		self._indentation += 1
 		self._WriteIndentation()
@@ -1200,16 +1220,21 @@ class VHDLWriter(Visitor):
 
 		:param element: The element with generics.
 		"""
-		self._WriteClosingParenthesis()
+		if isinstance(element, Subprogram):
+			self._WriteClosingParenthesis("")
+		else:
+			self._WriteClosingParenthesis(";\n")
 
-	def _WriteClosingParenthesis(self) -> None:
+	def _WriteClosingParenthesis(self, terminator: str) -> None:
 		"""
-		Write the right parenthesis and semicolon closing a generic or port clause on its own line.
+		Write the right parenthesis closing a list on its own line, one indentation level up.
+
+		:param terminator: The text following the right parenthesis.
 		"""
 		self._Write("\n")
 		self._indentation -= 1
 		self._WriteIndentation()
-		self._Write(");\n")
+		self._Write(f"){terminator}")
 
 	def VisitPortClause(self, element: WithPortsMixin) -> None:
 		"""
@@ -1230,7 +1255,7 @@ class VHDLWriter(Visitor):
 
 		:param element: The element with ports.
 		"""
-		self._WriteClosingParenthesis()
+		self._WriteClosingParenthesis(";\n")
 
 	def VisitConstant(self, constant: Constant) -> None:
 		"""
@@ -1891,3 +1916,246 @@ class VHDLWriter(Visitor):
 		:param specification: The attribute specification.
 		"""
 		self._Write(";\n")
+
+	def VisitBegin(self, element: Subprogram) -> None:
+		"""
+		Write the reserved word ``begin`` of a subprogram body on its own line.
+
+		:param element: The subprogram.
+		"""
+		if not self._IsSubprogramBody(element):
+			return
+
+		self._indentation -= 1
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('begin')}\n")
+		self._indentation += 1
+
+	@staticmethod
+	def _IsSubprogramBody(subprogram: Subprogram) -> bool:
+		"""
+		Check if a subprogram is written as a subprogram body: it has declared items or statements.
+
+		:param subprogram: The subprogram.
+		:returns:          ``True``, if the subprogram has declared items or statements.
+		"""
+		return len(subprogram.DeclaredItems) > 0 or len(subprogram.Statements) > 0
+
+	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem) -> None:
+		"""
+		Write the reserved word ``return`` before the return type of a function.
+
+		:param function: The function.
+		"""
+		self._Write(f" {self._Keyword('return')} ")
+
+	def VisitFormalParameterList(self, element: WithParametersMixin) -> None:
+		"""
+		Write the left parenthesis of a formal parameter list; each parameter is on its own line.
+
+		**Format:** ``procedure p (`` ... ``)``
+
+		After a generic clause, the reserved word ``parameter`` precedes the left parenthesis.
+
+		:param element: The element with parameters.
+		"""
+		if isinstance(element, WithGenericsMixin) and len(element.GenericItems) > 0:
+			self._Write(f" {self._Keyword('parameter')} (\n")
+		else:
+			self._Write(" (\n")
+
+		self._indentation += 1
+		self._WriteIndentation()
+
+	def DepartFormalParameterList(self, element: WithParametersMixin) -> None:
+		"""
+		Write the right parenthesis of a formal parameter list on its own line.
+
+		:param element: The element with parameters.
+		"""
+		self._WriteClosingParenthesis("")
+
+	def VisitGenericMapAspect(self, element: GenericMapAspectMixin) -> None:
+		"""
+		Write the reserved words ``generic map`` and the left parenthesis on a new line; each association is on its own
+		line.
+
+		**Format:** ``generic map (`` ... ``)``
+
+		:param element: The element with a generic map aspect.
+		"""
+		self._Write("\n")
+		self._indentation += 1
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('generic')} {self._Keyword('map')} (\n")
+		self._indentation += 1
+		self._WriteIndentation()
+
+	def DepartGenericMapAspect(self, element: GenericMapAspectMixin) -> None:
+		"""
+		Write the right parenthesis of a generic map aspect on its own line.
+
+		:param element: The element with a generic map aspect.
+		"""
+		self._WriteClosingParenthesis("")
+		self._indentation -= 1
+
+	def VisitProcedure(self, procedure: Procedure) -> None:
+		"""
+		Write the reserved word ``procedure`` and the designator of a procedure declaration or body.
+
+		**Format:** ``procedure reset;`` or ``procedure reset is`` ... ``begin`` ... ``end procedure reset;``
+
+		A procedure without declared items and statements is written as a procedure declaration.
+
+		:param procedure: The procedure.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('procedure')} {procedure.Identifier}")
+
+	def DepartProcedure(self, procedure: Procedure) -> None:
+		"""
+		Write the semicolon ending a procedure declaration, or the end of a procedure body.
+
+		:param procedure: The procedure.
+		"""
+		if self._IsSubprogramBody(procedure):
+			self._WriteEnd("procedure", procedure.Identifier)
+		else:
+			self._Write(";\n")
+
+	def VisitFunction(self, function: Function) -> None:
+		"""
+		Write the reserved word ``impure``, if impure, ``function`` and the designator of a function declaration or body.
+
+		**Format:** ``function parity return bit;`` or ``function parity return bit is`` ... ``end function parity;``
+
+		A function without declared items and statements is written as a function declaration.
+
+		:param function: The function.
+		"""
+		self._WriteIndentation()
+		self._WriteFunctionDesignator(function)
+
+	def _WriteFunctionDesignator(self, function: Function) -> None:
+		"""
+		Write the reserved word ``impure``, if impure, the reserved word ``function`` and the designator of a function.
+
+		:param function: The function.
+		"""
+		if not function.IsPure:
+			self._Write(f"{self._Keyword('impure')} ")
+
+		self._Write(f"{self._Keyword('function')} {function.Identifier}")
+
+	def DepartFunction(self, function: Function) -> None:
+		"""
+		Write the semicolon ending a function declaration, or the end of a function body.
+
+		:param function: The function.
+		"""
+		if self._IsSubprogramBody(function):
+			self._WriteEnd("function", function.Identifier)
+		else:
+			self._Write(";\n")
+
+	def VisitGenericProcedureInterfaceItem(self, item: GenericProcedureInterfaceItem) -> None:
+		"""
+		Write the reserved word ``procedure`` and the designator of a generic procedure.
+
+		**Format:** ``procedure log (`` ... ``)``
+
+		:param item: The generic procedure.
+		"""
+		self._Write(f"{self._Keyword('procedure')} {item.Identifier}")
+
+	def VisitGenericFunctionInterfaceItem(self, item: GenericFunctionInterfaceItem) -> None:
+		"""
+		Write the reserved word ``impure``, if impure, ``function`` and the designator of a generic function.
+
+		**Format:** ``function compare (`` ... ``) return boolean``
+
+		:param item: The generic function.
+		"""
+		self._WriteFunctionDesignator(item)
+
+	def VisitProcedureInstantiation(self, instantiation: ProcedureInstantiation) -> None:
+		"""
+		Write the reserved word ``procedure``, the designator and the reserved words ``is new`` of a procedure
+		instantiation.
+
+		**Format:** ``procedure log_byte is new log`` ... ``;``
+
+		:param instantiation: The procedure instantiation.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('procedure')} {instantiation.Identifier} ")
+		self._Write(f"{self._Keyword('is')} {self._Keyword('new')} ")
+
+	def DepartProcedureInstantiation(self, instantiation: ProcedureInstantiation) -> None:
+		"""
+		Write the semicolon ending a procedure instantiation.
+
+		:param instantiation: The procedure instantiation.
+		"""
+		self._Write(";\n")
+
+	def VisitFunctionInstantiation(self, instantiation: FunctionInstantiation) -> None:
+		"""
+		Write the reserved word ``function``, the designator and the reserved words ``is new`` of a function instantiation.
+
+		**Format:** ``function maximum_byte is new maximum`` ... ``;``
+
+		:param instantiation: The function instantiation.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('function')} {instantiation.Identifier} ")
+		self._Write(f"{self._Keyword('is')} {self._Keyword('new')} ")
+
+	def DepartFunctionInstantiation(self, instantiation: FunctionInstantiation) -> None:
+		"""
+		Write the semicolon ending a function instantiation.
+
+		:param instantiation: The function instantiation.
+		"""
+		self._Write(";\n")
+
+	def VisitProtectedType(self, protectedType: ProtectedType) -> None:
+		"""
+		Write the header of a protected type declaration; its methods are indented.
+
+		**Format:** ``type counter is protected`` ... ``end protected counter;``
+
+		:param protectedType: The protected type.
+		"""
+		self._WriteTypeHeader(protectedType)
+		self._Write(f"{self._Keyword('protected')}\n")
+		self._indentation += 1
+
+	def DepartProtectedType(self, protectedType: ProtectedType) -> None:
+		"""
+		Write the end of a protected type declaration.
+
+		:param protectedType: The protected type.
+		"""
+		self._WriteEnd("protected", protectedType.Identifier)
+
+	def VisitProtectedTypeBody(self, body: ProtectedTypeBody) -> None:
+		"""
+		Write the header of a protected type body; its declared items are indented.
+
+		**Format:** ``type counter is protected body`` ... ``end protected body counter;``
+
+		:param body: The protected type body.
+		"""
+		self._WriteTypeHeader(body)
+		self._Write(f"{self._Keyword('protected')} {self._Keyword('body')}\n")
+		self._indentation += 1
+
+	def DepartProtectedTypeBody(self, body: ProtectedTypeBody) -> None:
+		"""
+		Write the end of a protected type body.
+
+		:param body: The protected type body.
+		"""
+		self._WriteEnd("protected body", body.Identifier)

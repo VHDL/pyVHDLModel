@@ -34,7 +34,9 @@ This module contains parts of an abstract document language model for VHDL.
 
 Instantiations of packages, procedures, functions and protected types.
 """
-from typing import Iterable, Optional as Nullable
+from __future__              import annotations
+
+from typing                  import TYPE_CHECKING, Iterable, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
@@ -45,6 +47,9 @@ from pyVHDLModel.DesignUnit  import Package, ContextUnion
 from pyVHDLModel.Association import GenericAssociationItem, GenericMapAspectMixin
 from pyVHDLModel.Subprogram  import Procedure, Function, Subprogram
 from pyVHDLModel.Symbol      import PackageReferenceSymbol, SubprogramReferenceSymbol, SubtypeSymbol
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor   import Visitor
 
 
 @export
@@ -159,6 +164,17 @@ class ProcedureInstantiation(Procedure, SubprogramInstantiationMixin):
 		super().__init__(identifier, genericItems, parameterItems, declaredItems, statements, documentation, parent)
 		SubprogramInstantiationMixin.__init__(self, subprogramReference, genericAssociationItems)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this procedure instantiation, its generic procedure and its generic map aspect with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitProcedureInstantiation(self)
+		self._subprogramReference.Visit(visitor)
+		self._VisitGenericMapAspect(visitor)
+		visitor.DepartProcedureInstantiation(self)
+
 
 @export
 class FunctionInstantiation(Function, SubprogramInstantiationMixin):
@@ -208,6 +224,17 @@ class FunctionInstantiation(Function, SubprogramInstantiationMixin):
 		SubprogramInstantiationMixin.__init__(self, subprogramReference, genericAssociationItems)
 
 		self._returnType = None
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this function instantiation, its generic function and its generic map aspect with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitFunctionInstantiation(self)
+		self._subprogramReference.Visit(visitor)
+		self._VisitGenericMapAspect(visitor)
+		visitor.DepartFunctionInstantiation(self)
 
 	@readonly
 	def ReturnType(self) -> Nullable[SubtypeSymbol]:

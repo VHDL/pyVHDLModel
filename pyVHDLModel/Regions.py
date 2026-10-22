@@ -967,6 +967,26 @@ class WithParametersMixin(
 			for normalizedIdentifier in normalizedIdentifiersOf(item):
 				self._namespace.AddElement(normalizedIdentifier, item)
 
+	def _VisitFormalParameterList(self, visitor: Visitor) -> None:
+		"""
+		Walk the formal parameter list, if there are parameters, with a visitor.
+
+		The parameters are separated by semicolons.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if len(self._parameterItems) == 0:
+			return
+
+		visitor.VisitFormalParameterList(self)
+		for index, item in enumerate(self._parameterItems):
+			if index > 0:
+				visitor.VisitSemicolon(self)
+
+			item.Visit(visitor)
+
+		visitor.DepartFormalParameterList(self)
+
 
 @export
 class DeclarationRegionMixin(
@@ -1787,6 +1807,15 @@ class DeclarationRegionMixin(
 
 		precedes = any(item is declaredItem for item in self._declaredItems[:index + 1])
 		self.MoveDeclaredItem(declaredItem, index if precedes else index + 1)
+
+	def _VisitDeclaredItems(self, visitor: Visitor) -> None:
+		"""
+		Walk the declared items in declaration order with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		for item in self._declaredItems:
+			item.Visit(visitor)
 
 
 @export

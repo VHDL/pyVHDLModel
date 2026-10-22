@@ -966,6 +966,16 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 		super().__init__(identifier, documentation, parent)
 		ProtectedTypeDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this protected type declaration and its methods with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitProtectedType(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.DepartProtectedType(self)
+
 	@readonly
 	def Methods(self) -> list[Union[Procedure, Function]]:
 		"""
@@ -1023,6 +1033,16 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 		"""
 		super().__init__(identifier, documentation, parent)
 		SequentialDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this protected type body and its declared items with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitProtectedTypeBody(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.DepartProtectedTypeBody(self)
 
 	# FIXME: needs to be declared items or so
 	@readonly

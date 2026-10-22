@@ -39,7 +39,7 @@ from unittest                    import skipIf
 
 from pyTooling.Testing           import Testcase
 
-from pyVHDLModel.Association     import ParameterAssociationItem
+from pyVHDLModel.Association     import ParameterAssociationItem, GenericAssociationItem
 from pyVHDLModel.Base            import Direction, Mode, SimpleRange
 from pyVHDLModel.Declaration     import EntityClass, Alias, Attribute, AttributeSpecification
 from pyVHDLModel.DesignUnit      import Component
@@ -55,19 +55,22 @@ from pyVHDLModel.Expression      import (
 	NamedAggregateElement, OthersAggregateElement, Aggregate
 )
 from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
+from pyVHDLModel.Instantiation   import ProcedureInstantiation, FunctionInstantiation
 from pyVHDLModel.Interface       import (
 	GenericConstantInterfaceItem, GenericTypeInterfaceItem, PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem,
 	ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, ParameterSimpleSignalInterfaceItem,
 	ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem, ModeViewDeclaration, SimpleModeViewElement,
-	CompositeModeViewElement
+	CompositeModeViewElement, GenericProcedureInterfaceItem, GenericFunctionInterfaceItem
 )
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, AttributeName
 from pyVHDLModel.Object          import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
+from pyVHDLModel.Subprogram      import Procedure, Function, ProcedureMethod, FunctionMethod
 from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol, IndexedObjectOrFunctionCallSymbol
 from pyVHDLModel.Symbol          import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol
-from pyVHDLModel.Symbol          import ConstrainedRecordSubtypeSymbol, ModeViewSymbol
+from pyVHDLModel.Symbol          import ConstrainedRecordSubtypeSymbol, ModeViewSymbol, SubprogramReferenceSymbol
 from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType
-from pyVHDLModel.Type            import ArrayType, RecordTypeElement, RecordType, AccessType, FileType
+from pyVHDLModel.Type            import ArrayType, RecordTypeElement, RecordType, AccessType, FileType, ProtectedType
+from pyVHDLModel.Type            import ProtectedTypeBody
 
 from tests.unit.Writer           import _GHDL, _analyze, _object
 
@@ -498,3 +501,97 @@ class GHDLOracleDeclarations(Testcase):
 		result = _analyze(source)
 
 		self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)
+
+	def test_Subprograms(self) -> None:
+		def parameters() -> list:
+			"""Nested function returning a constant and a variable parameter."""
+			return [
+				ParameterConstantInterfaceItem(["a"], Mode.In, _integer("integer")),
+				ParameterVariableInterfaceItem(["b"], Mode.Out, _integer("integer"))
+			]
+
+		def body() -> list:
+			"""Nested function returning the declared items of a subprogram body."""
+			return [Constant(["ONE"], _integer("integer"), IntegerLiteral(1))]
+
+		def genericProcedure() -> Procedure:
+			"""Nested function returning a generic procedure."""
+			return Procedure(
+				"tick",
+				genericItems=[GenericConstantInterfaceItem(["N"], Mode.Default, _integer("natural"))],
+				parameterItems=[ParameterConstantInterfaceItem(["x"], Mode.Default, _integer("integer"))]
+			)
+
+		def genericFunction() -> Function:
+			"""Nested function returning a generic function with a generic type and a generic function."""
+			greater = GenericFunctionInterfaceItem("greater", _integer("boolean"))
+			greater.AddParameterItem(ParameterConstantInterfaceItem(["l", "r"], Mode.Default, _integer("T")))
+			return Function(
+				"largest",
+				_integer("T"),
+				genericItems=[GenericTypeInterfaceItem("T"), greater],
+				parameterItems=[ParameterConstantInterfaceItem(["l", "r"], Mode.Default, _integer("T"))]
+			)
+
+		def withBody(subprogram: Procedure | Function) -> Procedure | Function:
+			"""Nested function adding the declared items of a body to a subprogram."""
+			for item in body():
+				subprogram.AddDeclaredItem(item)
+
+			return subprogram
+
+		def reporter() -> Procedure:
+			"""Nested function returning a procedure with a generic procedure."""
+			logger = GenericProcedureInterfaceItem("log")
+			logger.AddParameterItem(ParameterConstantInterfaceItem(["message"], Mode.In, _integer("string")))
+			return Procedure("report_all", genericItems=[logger])
+
+		declarations = (
+			Procedure("reset"),
+			Procedure("p", parameterItems=parameters()),
+			Function("parity", _integer("bit"), parameterItems=[
+				ParameterSimpleSignalInterfaceItem(["data"], Mode.In, _integer("bit_vector"))
+			]),
+			Function("value", _integer("natural"), False),
+			genericProcedure(),
+			genericFunction(),
+			reporter(),
+			ProtectedType("counter", [ProcedureMethod("increment"), FunctionMethod("count", _integer("natural"), False)]),
+		)
+		bodies = (
+			Procedure("reset", declaredItems=body()),
+			Procedure("p", parameterItems=parameters(), declaredItems=[
+				Procedure("inner", declaredItems=[Variable(["v"], _integer("bit"))])
+			]),
+			Function("parity", _integer("bit"), declaredItems=body(), parameterItems=[
+				ParameterSimpleSignalInterfaceItem(["data"], Mode.In, _integer("bit_vector"))
+			]),
+			Function("value", _integer("natural"), False, declaredItems=body()),
+			withBody(genericProcedure()),
+			withBody(genericFunction()),
+			withBody(reporter()),
+			ProcedureInstantiation("tick_8", SubprogramReferenceSymbol(SimpleName("tick")), [
+				GenericAssociationItem(SimpleName("N"), IntegerLiteral(8))
+			]),
+			FunctionInstantiation("largest_int", SubprogramReferenceSymbol(SimpleName("largest")), genericAssociationItems=[
+				GenericAssociationItem(SimpleName("T"), _integer("integer")),
+				GenericAssociationItem(SimpleName("greater"), _object('">"'))
+			]),
+			ProtectedTypeBody("counter", [
+				Variable(["counter"], _integer("natural"), IntegerLiteral(0)),
+				ProcedureMethod("increment", declaredItems=body()),
+				FunctionMethod("count", _integer("natural"), False, declaredItems=body())
+			]),
+		)
+
+		for style in (VHDLStyle(), VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs)):
+			with self.subTest(style=style.KeywordCase):
+				writer = VHDLWriter(style)
+				source = (
+					f"package subprograms is\n{''.join(writer.Format(d) for d in declarations)}end package;\n\n"
+					f"package body subprograms is\n{''.join(writer.Format(b) for b in bodies)}end package body;\n"
+				)
+
+				result = _analyze(source)
+
+				self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)

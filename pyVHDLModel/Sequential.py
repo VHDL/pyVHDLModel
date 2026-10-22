@@ -36,7 +36,7 @@ Declarations for sequential statements.
 """
 from __future__              import annotations
 
-from typing                  import Iterable, Optional as Nullable
+from typing                  import TYPE_CHECKING, Iterable, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
@@ -55,6 +55,9 @@ from pyVHDLModel.Common      import ExpressionMixin, SelectedWaveformsMixin, Sel
 from pyVHDLModel.Common      import SelectedWaveform, OthersSelectedWaveform
 from pyVHDLModel.Common      import SelectedExpression, OthersSelectedExpression
 from pyVHDLModel.Association import ParameterAssociationItem
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor   import Visitor
 
 
 @export
@@ -105,6 +108,15 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_L
 		:returns: A list of sequential statements.
 		"""
 		return self._statements
+
+	def _VisitStatements(self, visitor: Visitor) -> None:
+		"""
+		Walk the sequential statements in statement order with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		for statement in self._statements:
+			statement.Visit(visitor)
 
 	def _Labels(self) -> tuple[SequentialStatement, ...]:
 		"""

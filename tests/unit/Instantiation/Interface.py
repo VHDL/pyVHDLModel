@@ -331,6 +331,9 @@ class WithGenericsPortsParametersMixins(Testcase):
 			def _ClashingDeclarations(self, item) -> list:
 				return []
 
+			def _ParameterItemsChanged(self) -> None:
+				pass
+
 		item = ParameterFileInterfaceItem(["f"], _subtypeSymbol("text"))
 		host = _Host([item])
 

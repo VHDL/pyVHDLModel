@@ -645,7 +645,7 @@ class WithPortsMixin(
 class WithParametersMixin(
 	metaclass=ExtendedType,
 	mixin=True,
-	expects=("_AddToNamespace", "_RemoveFromNamespace", "_ClashingDeclarations")
+	expects=("_AddToNamespace", "_RemoveFromNamespace", "_ClashingDeclarations", "_ParameterItemsChanged")
 ):
 	"""
 	A mixin-class for language constructs with a parameter list.
@@ -656,6 +656,9 @@ class WithParametersMixin(
 
 	The host class also provides ``_ClashingDeclarations(item)``, called before a parameter is inserted: it returns the
 	declarations sharing an identifier with the new item.
+
+	The host class provides ``_ParameterItemsChanged()`` too, called after a parameter is inserted, removed or moved:
+	:class:`~pyVHDLModel.Subprogram.Subprogram` clears its signature, a parameter group does nothing.
 
 	Indexing the parameters (``_IndexParameterItems()``) needs the host's namespace ``_namespace``; a host without one,
 	e.g. a parameter group, can't index them.
@@ -800,6 +803,7 @@ class WithParametersMixin(
 		self._parameterItems.insert(index, parameterItem)
 		parameterItem.Parent = self
 		self._AddToNamespace(parameterItem)
+		self._ParameterItemsChanged()
 
 	def RemoveParameterItem(self, parameterItem: ParameterInterfaceItemMixin) -> None:
 		"""
@@ -850,6 +854,7 @@ class WithParametersMixin(
 		self._RemoveFromNamespace(parameterItem)
 		del self._parameterItems[index]
 		parameterItem._parent = None
+		self._ParameterItemsChanged()
 
 	def MoveParameterItem(self, parameterItem: ParameterInterfaceItemMixin, index: int) -> None:
 		"""
@@ -912,6 +917,7 @@ class WithParametersMixin(
 		newIndex = index if index >= 0 else len(self._parameterItems) + index
 		del self._parameterItems[currentIndex]
 		self._parameterItems.insert(newIndex, parameterItem)
+		self._ParameterItemsChanged()
 
 	@expects("_namespace")
 	def _IndexParameterItems(self) -> None:

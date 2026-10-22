@@ -344,6 +344,7 @@ class Parameters(Testcase):
 				"Missing '_AddToNamespace', expected by 'WithParametersMixin'.",
 				"Missing '_RemoveFromNamespace', expected by 'WithParametersMixin'.",
 				"Missing '_ClashingDeclarations', expected by 'WithParametersMixin'.",
+				"Missing '_ParameterItemsChanged', expected by 'WithParametersMixin'.",
 			],
 			context.exception.__notes__
 		)

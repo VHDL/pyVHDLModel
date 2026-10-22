@@ -1238,3 +1238,6 @@ class ParameterGroup(InterfaceGroup, WithParametersMixin):
 			declaration for declaration in self._parameterItems
 			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
 		)
+
+	def _ParameterItemsChanged(self) -> None:
+		"""Do nothing, because a parameter group keeps nothing derived from its parameters."""

@@ -846,6 +846,25 @@ class SubtypeSymbol(Symbol):
 		"""
 		super().__init__(name, PossibleReference.Type | PossibleReference.Subtype)
 
+	@readonly
+	def TypeMark(self) -> str:
+		"""
+		Read-only property to return the type mark's name, as written: its identifiers joined by dots.
+
+		A simple name gives its identifier (``natural``), a selected name the identifiers of its prefixes too
+		(``ieee.numeric_std.unsigned``). The model doesn't resolve type marks yet, so this isn't the fully qualified name of
+		the denoted type.
+
+		:returns: The type mark's name.
+		"""
+		name = self._name
+		identifiers = [name._identifier]
+		while name._prefix is not None:
+			name = name._prefix
+			identifiers.append(name._identifier)
+
+		return ".".join(reversed(identifiers))
+
 	@property
 	def Subtype(self) -> Subtype:
 		"""

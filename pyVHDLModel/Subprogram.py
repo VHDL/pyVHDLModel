@@ -51,7 +51,7 @@ from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixi
 
 
 @export
-class SubprogramSignature(metaclass=ExtendedType, slots=True):
+class SubprogramSignature(ModelEntity):
 	"""
 	Represents a subprogram's signature: the type marks of its parameters and of a function's return value.
 
@@ -59,6 +59,9 @@ class SubprogramSignature(metaclass=ExtendedType, slots=True):
 	natural`` - contributes its type mark once per identifier. The string form is VHDL's notation of a signature
 	(IEEE Std 1076-2019, 4.5.3), as an alias declaration or attribute specification writes it:
 	``[natural, natural return boolean]``.
+
+	The parent of a signature is the subprogram declaring it (:data:`Subprogram.Signature`). The type marks stay children
+	of the parameters and of the function declaring them.
 
 	.. admonition:: Example
 
@@ -71,18 +74,33 @@ class SubprogramSignature(metaclass=ExtendedType, slots=True):
 	_parameterTypes: tuple[SubtypeSymbol, ...]  #: The type marks of the parameters, one per parameter identifier.
 	_returnType:     Nullable[SubtypeSymbol]    #: The type mark of a function's return value, if a function.
 
-	def __init__(self, parameterTypes: Iterable[SubtypeSymbol], returnType: Nullable[SubtypeSymbol] = None) -> None:
+	def __init__(
+		self,
+		parameterTypes: Iterable[SubtypeSymbol],
+		returnType:     Nullable[SubtypeSymbol] = None,
+		*,
+		parent:         Nullable[Subprogram] =    None
+	) -> None:
 		"""
 		Initializes a subprogram signature.
 
 		:param parameterTypes: The type marks of the parameters, one per parameter identifier.
 		:param returnType:     Optional, the type mark of a function's return value. Default: ``None``, a procedure.
+		:param parent:         Optional, the subprogram declaring this signature. Default: ``None``.
+		:raises TypeError:     If parameter 'parent' is not of type :class:`~pyVHDLModel.Subprogram.Subprogram`.
 		:raises ValueError:    If parameter 'parameterTypes' is ``None``.
 		:raises TypeError:     If parameter 'parameterTypes' is not iterable.
 		:raises TypeError:     If an element of parameter 'parameterTypes' is not of type
 		                       :class:`~pyVHDLModel.Symbol.SubtypeSymbol`.
 		:raises TypeError:     If parameter 'returnType' is not of type :class:`~pyVHDLModel.Symbol.SubtypeSymbol`.
 		"""
+		super().__init__(parent)
+
+		if parent is not None and not isinstance(parent, Subprogram):
+			ex = TypeError("Parameter 'parent' is not of type 'Subprogram'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parent)}'.")
+			raise ex
+
 		if parameterTypes is None:
 			raise ValueError("Parameter 'parameterTypes' is None.")
 		elif not isinstance(parameterTypes, Iterable):
@@ -125,40 +143,25 @@ class SubprogramSignature(metaclass=ExtendedType, slots=True):
 		"""
 		return self._returnType
 
-	@staticmethod
-	def _TypeName(symbol: SubtypeSymbol) -> str:
+	@readonly
+	def ParameterTypeNames(self) -> tuple[str, ...]:
 		"""
-		Return a type mark's name, as written: a simple name, or a selected name with its prefixes.
+		Read-only property to return the names of the parameters' type marks, as written.
 
-		:param symbol: The type mark.
-		:returns:      The name, e.g. ``natural`` or ``ieee.numeric_std.unsigned``.
+		Each name is a type mark's :data:`~pyVHDLModel.Symbol.SubtypeSymbol.TypeMark`.
+
+		:returns: Tuple of the type marks' names, one per parameter identifier, in declaration order.
 		"""
-		name = symbol.Name
-		parts = [name.Identifier]
-		while name.HasPrefix:
-			name = name.Prefix
-			parts.insert(0, name.Identifier)
+		return tuple(parameterType.TypeMark for parameterType in self._parameterTypes)
 
-		return ".".join(parts)
-
-	def ParameterTypeNames(self) -> list[str]:
-		"""
-		Return the names of the parameters' type marks, as written.
-
-		A type mark's name is written as in the source - ``natural`` or ``ieee.numeric_std.unsigned`` -: the model doesn't
-		resolve type marks yet, so the fully qualified name of the denoted type isn't known.
-
-		:returns: List of the type marks' names, one per parameter identifier, in declaration order.
-		"""
-		return [self._TypeName(parameterType) for parameterType in self._parameterTypes]
-
+	@readonly
 	def ReturnTypeName(self) -> Nullable[str]:
 		"""
-		Return the name of a function's return type mark, as written.
+		Read-only property to return the name of a function's return type mark, as written.
 
 		:returns: The return type mark's name, or ``None`` for a procedure.
 		"""
-		return None if self._returnType is None else self._TypeName(self._returnType)
+		return None if self._returnType is None else self._returnType.TypeMark
 
 	def __str__(self) -> str:
 		"""
@@ -167,9 +170,9 @@ class SubprogramSignature(metaclass=ExtendedType, slots=True):
 
 		:returns: The signature, e.g. ``[unsigned, positive, positive return natural]`` or ``[natural]``.
 		"""
-		signature = ", ".join(self.ParameterTypeNames())
+		signature = ", ".join(parameterType.TypeMark for parameterType in self._parameterTypes)
 		if self._returnType is not None:
-			returnType = f"return {self.ReturnTypeName()}"
+			returnType = f"return {self._returnType.TypeMark}"
 			signature = returnType if signature == "" else f"{signature} {returnType}"
 
 		return f"[{signature}]"
@@ -198,8 +201,9 @@ class Subprogram(
 	   * :class:`Procedure <pyVHDLModel.Subprogram.Procedure>`
 	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
 	"""
-	_SUBPROGRAM_KEYWORD: ClassVar[str] = "subprogram"  #: The VHDL keyword introducing this subprogram kind.
-	_isPure:             bool                          #: ``True`` if the subprogram was declared pure.
+	_SUBPROGRAM_KEYWORD: ClassVar[str] = "subprogram"   #: The VHDL keyword introducing this subprogram kind.
+	_isPure:             bool                           #: ``True`` if the subprogram was declared pure.
+	_signature:          Nullable[SubprogramSignature]  #: The kept signature, or ``None`` until computed.
 
 	def __init__(
 		self,
@@ -232,7 +236,8 @@ class Subprogram(
 		WithParametersMixin.__init__(self, parameterItems)
 		SequentialStatementsMixin.__init__(self, statements)
 
-		self._isPure = isPure
+		self._isPure =    isPure
+		self._signature = None
 
 	@ModelEntity.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
@@ -258,21 +263,24 @@ class Subprogram(
 	@readonly
 	def Signature(self) -> SubprogramSignature:
 		"""
-		Read-only property to return the subprogram's signature: the type marks of its parameters, and of a function's
-		return value.
+		Read-only property to access the subprogram's signature (:attr:`_signature`): the type marks of its parameters,
+		and of a function's return value.
+
+		The signature is computed on the first access and kept, until a parameter is added, inserted, removed or moved.
 
 		:returns: The signature.
 		"""
-		return SubprogramSignature(self._ParameterTypes(), None)
+		if self._signature is None:
+			self._signature = SubprogramSignature(
+				(item._subtype for item in self._parameterItems for _ in identifiersOf(item)),
+				parent=self
+			)
 
-	def _ParameterTypes(self) -> list[SubtypeSymbol]:
-		"""
-		Return the type marks of the parameters, one per parameter identifier.
+		return self._signature
 
-		:returns: List of the type marks, in declaration order.
-		"""
-		return [item._subtype for item in self._parameterItems for _ in identifiersOf(item)]
-
+	def _ParameterItemsChanged(self) -> None:
+		"""Clear the kept signature (:attr:`_signature`), because the parameter list changed."""
+		self._signature = None
 
 	def IndexDeclaredItems(self) -> None:
 		"""
@@ -450,11 +458,21 @@ class Function(Subprogram):
 	@readonly
 	def Signature(self) -> SubprogramSignature:
 		"""
-		Read-only property to return the function's signature: the type marks of its parameters and of its return value.
+		Read-only property to access the function's signature (:attr:`_signature`): the type marks of its parameters and
+		of its return value.
+
+		The signature is computed on the first access and kept, until a parameter is added, inserted, removed or moved.
 
 		:returns: The signature.
 		"""
-		return SubprogramSignature(self._ParameterTypes(), self._returnType)
+		if self._signature is None:
+			self._signature = SubprogramSignature(
+				(item._subtype for item in self._parameterItems for _ in identifiersOf(item)),
+				self._returnType,
+				parent=self
+			)
+
+		return self._signature
 
 
 @export

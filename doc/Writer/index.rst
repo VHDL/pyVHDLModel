@@ -32,8 +32,7 @@ declarations, interface items, component declarations, mode view declarations, t
 declarations, attribute declarations and attribute specifications, subprograms, subprogram instantiations and protected
 types (:ref:`WRITER/declarations`), context items, design units and documents (:ref:`WRITER/designunits`),
 concurrent signal assignments, concurrent procedure calls, concurrent assertions, processes, instantiations, block
-statements and generate statements (:ref:`WRITER/concurrent`), sequential assignments, procedure calls, report,
-assertion, null, return and wait statements (:ref:`WRITER/sequential`). Compound sequential statements follow.
+statements and generate statements (:ref:`WRITER/concurrent`), and sequential statements (:ref:`WRITER/sequential`).
 
 
 .. _WRITER/visitor:
@@ -359,6 +358,12 @@ Other statements
    statements with their sensitivity clause (``on``), condition clause (``until``) and timeout clause (``for``), if
    given.
 
+Compound statements
+   If statements with their branches, case statements with their alternatives, and loops (for, while and without
+   iteration scheme) write the statements they contain on their own lines, indented one level deeper, and end with
+   ``end if``, ``end case`` or ``end loop`` and the label, if any. Next and exit statements are written with their
+   condition, if any; the model keeps no loop label for them, so none is written.
+
 .. code-block:: VHDL
 
    p : process is
@@ -366,5 +371,11 @@ Other statements
    begin
      increment : v := v + 1;
      q <= d after 1 ns;
+     outer : for i in 0 to 3 loop
+       next when skip;
+       if v = 0 then
+         null;
+       end if;
+     end loop outer;
      wait on d until d = '1' for 10 ns;
    end process p;

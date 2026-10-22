@@ -49,7 +49,7 @@ from pyTooling.MetaClasses     import ExtendedType
 from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin
 from pyVHDLModel.Base          import ModelElementUnion, ModelEntity, Direction, Mode, SimpleRange, RangeFromName
 from pyVHDLModel.Declaration   import EntityClass, Attribute, AttributeSpecification, Alias
-from pyVHDLModel.DesignUnit    import Component
+from pyVHDLModel.DesignUnit    import Package, Component
 from pyVHDLModel.Exception     import VHDLWriterError
 from pyVHDLModel.Expression    import (
 	OperatorPrecedence, NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral,
@@ -1934,12 +1934,18 @@ class VHDLWriter(Visitor):
 	@staticmethod
 	def _IsSubprogramBody(subprogram: Subprogram) -> bool:
 		"""
-		Check if a subprogram is written as a subprogram body: it has declared items or statements.
+		Check if a subprogram is written as a subprogram body.
+
+		A subprogram is a body, if it has declared items or statements, or if its parent is neither a package declaration
+		nor a protected type declaration (e.g. a package body or an architecture).
 
 		:param subprogram: The subprogram.
-		:returns:          ``True``, if the subprogram has declared items or statements.
+		:returns:          ``True``, if the subprogram is written as a subprogram body.
 		"""
-		return len(subprogram.DeclaredItems) > 0 or len(subprogram.Statements) > 0
+		if len(subprogram.DeclaredItems) > 0 or len(subprogram.Statements) > 0:
+			return True
+
+		return subprogram.Parent is not None and not isinstance(subprogram.Parent, (Package, ProtectedType))
 
 	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem) -> None:
 		"""

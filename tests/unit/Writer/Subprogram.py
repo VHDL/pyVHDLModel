@@ -173,6 +173,30 @@ class Bodies(Testcase):
 			end procedure outer;
 			"""), VHDLWriter().Format(procedure))
 
+	def test_Empty_InBody(self) -> None:
+		"""A subprogram without declared items and statements in a body is an empty subprogram body."""
+		body = ProtectedTypeBody("counter", [ProcedureMethod("stub")])
+
+		self.assertEqual(dedent("""\
+			type counter is protected body
+			  procedure stub is
+			  begin
+			  end procedure stub;
+			end protected body counter;
+			"""), VHDLWriter().Format(body))
+
+	def test_Empty_InSubprogram(self) -> None:
+		procedure = Procedure("outer", declaredItems=[Procedure("inner")])
+
+		self.assertEqual(dedent("""\
+			procedure outer is
+			  procedure inner is
+			  begin
+			  end procedure inner;
+			begin
+			end procedure outer;
+			"""), VHDLWriter().Format(procedure))
+
 	def test_Statements(self) -> None:
 		"""Sequential statements have no walk yet: a subprogram body with statements raises, nothing is skipped."""
 		procedure = Procedure("p", statements=[NullStatement()])

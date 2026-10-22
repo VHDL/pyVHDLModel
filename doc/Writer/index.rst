@@ -217,8 +217,10 @@ Alias and attribute declarations
    :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
 
 Subprograms
-   A procedure or function without declared items and statements is written as a subprogram declaration
-   (``procedure reset;``), any other as a subprogram body, because the model doesn't distinguish both. A subprogram
+   The model doesn't distinguish a subprogram declaration from a subprogram body. A procedure or function with declared
+   items or statements is written as a subprogram body. One without them is written as a subprogram declaration
+   (``procedure reset;``), if its parent is a package declaration, a protected type declaration or none, otherwise as
+   an empty subprogram body (e.g. in a package body or an architecture). A subprogram
    body has a declarative part and a statement part; statements have no walk yet, so a subprogram with statements raises
    :exc:`NotImplementedError`. Each parameter is written on its own line. A generic clause of a subprogram is followed
    by the reserved word ``parameter`` before the parameter list. Generic procedures and functions are written in a

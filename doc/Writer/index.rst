@@ -32,7 +32,8 @@ declarations, interface items, component declarations, mode view declarations, t
 declarations, attribute declarations and attribute specifications, subprograms, subprogram instantiations and protected
 types (:ref:`WRITER/declarations`), context items, design units and documents (:ref:`WRITER/designunits`),
 concurrent signal assignments, concurrent procedure calls, concurrent assertions, processes, instantiations, block
-statements and generate statements (:ref:`WRITER/concurrent`). Sequential statements follow.
+statements and generate statements (:ref:`WRITER/concurrent`), sequential assignments, procedure calls, report,
+assertion, null, return and wait statements (:ref:`WRITER/sequential`). Compound sequential statements follow.
 
 
 .. _WRITER/visitor:
@@ -225,11 +226,10 @@ Subprograms
    The model doesn't distinguish a subprogram declaration from a subprogram body. A procedure or function with declared
    items or statements is written as a subprogram body. One without them is written as a subprogram declaration
    (``procedure reset;``), if its parent is a package declaration, a protected type declaration or none, otherwise as
-   an empty subprogram body (e.g. in a package body or an architecture). A subprogram
-   body has a declarative part and a statement part; statements have no walk yet, so a subprogram with statements raises
-   :exc:`NotImplementedError`. Each parameter is written on its own line. A generic clause of a subprogram is followed
-   by the reserved word ``parameter`` before the parameter list. Generic procedures and functions are written in a
-   generic clause like any other generic. A method of a protected type is written like a procedure or function.
+   an empty subprogram body (e.g. in a package body or an architecture). A subprogram body has a declarative part and a
+   statement part. Each parameter is written on its own line. A generic clause of a subprogram is followed by the
+   reserved word ``parameter`` before the parameter list. Generic procedures and functions are written in a generic
+   clause like any other generic. A method of a protected type is written like a procedure or function.
 
 Subprogram instantiations
    Procedure and function instantiations are written with their generic map aspect, one association per line.
@@ -306,8 +306,7 @@ Procedure calls and assertions
 Processes
    A process is written with its sensitivity list, if any, the reserved word ``is``, its declared items, ``begin`` and
    its statements. A sensitivity list consisting of a single :class:`~pyVHDLModel.Name.AllName` without prefix is
-   written as ``process (all)``. Sequential statements have no walk yet, so a process with statements raises
-   :exc:`NotImplementedError`.
+   written as ``process (all)``.
 
 .. code-block:: VHDL
 
@@ -341,3 +340,31 @@ Generate statements
      begin
        q <= t;
    end generate gen;
+
+
+.. _WRITER/sequential:
+
+Sequential Statements
+*********************
+
+A sequential statement is written on its own line in the statement part of a process or subprogram body, starting
+with its label, if any.
+
+Assignments
+   Simple, conditional and selected signal and variable assignments, force assignments (``q <= force '1';``) and
+   release assignments (``q <= release;``). The alternatives are written as for concurrent signal assignments.
+
+Other statements
+   Procedure calls, report statements, assertions, null statements, return statements with and without value, and wait
+   statements with their sensitivity clause (``on``), condition clause (``until``) and timeout clause (``for``), if
+   given.
+
+.. code-block:: VHDL
+
+   p : process is
+     variable v : natural := 0;
+   begin
+     increment : v := v + 1;
+     q <= d after 1 ns;
+     wait on d until d = '1' for 10 ns;
+   end process p;

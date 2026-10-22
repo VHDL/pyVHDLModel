@@ -36,7 +36,7 @@ Associations are used in generic maps, port maps and parameter maps.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, Iterable, Optional as Nullable, Union
+from typing                  import TYPE_CHECKING, Iterable, Optional as Nullable, Union, Self
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
@@ -115,6 +115,18 @@ class AssociationItem(ModelEntity):
 		:returns: The actual.
 		"""
 		return self._actual
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this association item.
+
+		The copy has no parent. Its formal and actual are copies of this item's formal and actual.
+
+		:returns: The new association item.
+		"""
+		formal = None if self._formal is None else self._formal.Copy()
+		actual = None if self._actual is None else self._actual.Copy()
+		return self.__class__(formal, actual)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

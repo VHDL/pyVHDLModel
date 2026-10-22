@@ -1307,13 +1307,20 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		Analyze the whole design.
 
+		The analysis can be repeated, e.g. after the design was changed: the previous analysis is reset first.
+
 		.. rubric:: Algorithm
 
-		1. Analyze dependencies of design units. |br|
+		1. Reset a previous analysis. |br|
+		   |rarr| :meth:`ResetAnalysis`
+		2. Analyze dependencies of design units. |br|
 		   This will also yield the design hierarchy and the compiler order.
-		2. Analyze dependencies of types and objects.
+		3. Analyze dependencies of types and objects.
 
 		.. seealso::
+
+		   :meth:`ResetAnalysis`
+		     Reset everything an analysis derived.
 
 		   :meth:`AnalyzeDependencies`
 		     Analyze the dependencies of design units.
@@ -1325,8 +1332,88 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
+		self.ResetAnalysis()
 		self.AnalyzeDependencies()
 		# self.AnalyzeObjects()
+
+	def ResetAnalysis(self) -> None:
+		"""
+		Reset everything an analysis (:meth:`Analyze`) derived, so the design can be analyzed again.
+
+		Everything built by the user is kept: libraries, documents, design units, declarations and the declarations in
+		namespaces. Lookup tables built by indexing (e.g. :meth:`IndexPackages`) are kept too, as indexing again yields
+		the same lookup tables. Resetting a design, which wasn't analyzed, changes nothing.
+
+		.. rubric:: Algorithm
+
+		1. Replace the dependency, compile-order, hierarchy and object graph by empty graphs, and forget the top-level.
+		2. Clear the references to vertices of all libraries, documents and design units.
+		3. Clear the references of all design units: referenced libraries, packages and contexts, the symbols of library
+		   clauses, use clauses and context references, and the items imported into namespaces.
+		4. Unlink architectures from entities and package bodies from packages: an entity's architectures, a package's
+		   body, the symbols referencing the entity or package, and the link to the parent namespace.
+		5. Unlink package instantiations from their generic package: the symbol and the components copied from it.
+		6. Unbind all components: their entity and blackbox state.
+		7. Clear the symbols of entity and component instantiations.
+		"""
+		self._dependencyGraph =   Graph()
+		self._compileOrderGraph = Graph()
+		self._hierarchyGraph =    Graph()
+		self._objectGraph =       Graph()
+		self._toplevel =          None
+
+		for library in self._libraries.values():
+			library._dependencyVertex = None
+
+		for document in self._documents:
+			document._dependencyVertex =   None
+			document._compileOrderVertex = None
+
+		for designUnit in self.IterateDesignUnits():
+			designUnit._dependencyVertex = None
+			designUnit._hierarchyVertex =  None
+			designUnit._referencedLibraries.clear()
+			designUnit._referencedPackages.clear()
+			designUnit._referencedContexts.clear()
+			references = (*designUnit._libraryReferences, *designUnit._packageReferences, *designUnit._contextReferences)
+			for reference in references:
+				for symbol in reference._symbols:
+					symbol._reference = None
+
+		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):
+			designUnit._namespace.ClearImports()
+
+		for entity in self.IterateDesignUnits(DesignUnitKind.Entity):  # type: Entity
+			for architecture in entity._architectures.values():
+				architecture._namespace.ParentNamespace = None
+
+			entity._architectures.clear()
+
+		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):  # type: Architecture
+			architecture._entity._reference = None
+			architecture._namespace.ParentNamespace = None
+			for instance in architecture.IterateInstantiations():
+				if isinstance(instance, EntityInstantiation):
+					instance._entity._reference = None
+				elif isinstance(instance, ComponentInstantiation):
+					instance._component._reference = None
+
+		for package in self.IterateDesignUnits(DesignUnitKind.Package):  # type: Package
+			if package._packageBody is not None:
+				package._packageBody._namespace.ParentNamespace = None
+				package._packageBody = None
+
+			if isinstance(package, PackageInstantiation):
+				package._packageReference._reference = None
+				package._components.clear()
+
+		for packageBody in self.IterateDesignUnits(DesignUnitKind.PackageBody):  # type: PackageBody
+			packageBody._package._reference = None
+			packageBody._namespace.ParentNamespace = None
+
+		for _, component in self._IterateComponents():
+			component._entity =     None
+			component._isBlackbox = None
 
 	def AnalyzeDependencies(self) -> None:
 		"""
@@ -1340,29 +1427,31 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`CreateCompileOrderGraph`
 		3. Index all packages. |br|
 		   |rarr| :meth:`IndexPackages`
-		4. Index all architectures. |br|
+		4. Index all entities. |br|
+		   |rarr| :meth:`IndexEntities`
+		5. Index all architectures. |br|
 		   |rarr| :meth:`IndexArchitectures`
-		5. Link all contexts |br|
+		6. Link all contexts |br|
 		   |rarr| :meth:`LinkContexts`
-		6. Link all architectures. |br|
+		7. Link all architectures. |br|
 		   |rarr| :meth:`LinkArchitectures`
-		7. Link all package bodies. |br|
+		8. Link all package bodies. |br|
 		   |rarr| :meth:`LinkPackageBodies`
-		8. Link all package instances. |br|
+		9. Link all package instances. |br|
 		   |rarr| :meth:`LinkPackageInstances`
-		9. Link all library references. |br|
-		   |rarr| :meth:`LinkLibraryReferences`
-		10. Link all package references. |br|
+		10. Link all library references. |br|
+		    |rarr| :meth:`LinkLibraryReferences`
+		11. Link all package references. |br|
 		    |rarr| :meth:`LinkPackageReferences`
-		11. Link all context references. |br|
+		12. Link all context references. |br|
 		    |rarr| :meth:`LinkContextReferences`
-		12. Link all components. |br|
+		13. Link all components. |br|
 		    |rarr| :meth:`LinkComponents`
-		13. Link all instantiations. |br|
+		14. Link all instantiations. |br|
 		    |rarr| :meth:`LinkInstantiations`
-		14. Create the hierarchy graph. |br|
+		15. Create the hierarchy graph. |br|
 		    |rarr| :meth:`CreateHierarchyGraph`
-		15. Compute the compile order. |br|
+		16. Compute the compile order. |br|
 		    |rarr| :meth:`ComputeCompileOrder`
 
 		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
@@ -1373,6 +1462,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		self.CreateCompileOrderGraph()
 
 		self.IndexPackages()
+		self.IndexEntities()
 		self.IndexArchitectures()
 
 		self.LinkContexts()
@@ -2336,6 +2426,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		        1. Iterate declared components.
 		        2. Iterate
 
+		:raises VHDLModelException: If no entity is found for a component, which doesn't allow blackboxes.
+
 		.. seealso::
 
 		   :meth:`LinkInstantiations`
@@ -2343,29 +2435,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   :meth:`AnalyzeDependencies`
 		     Analyze dependencies in a design (calls this method).
 		"""
-		def linkStatements(library: Library, concurrent: ConcurrentStatementsMixin) -> None:
-			for statement in concurrent._statements:
-				if isinstance(statement, IfGenerateStatement):
-					linkComponents(library, statement._ifBranch)
-					linkStatements(library, statement._ifBranch)
-					for branch in statement._elsifBranches:
-						linkComponents(library, branch)
-						linkStatements(library, branch)
-					if (branch := statement._elseBranch) is not None:
-						linkComponents(library, branch)
-						linkStatements(library, branch)
-				elif isinstance(statement, ForGenerateStatement):
-					linkComponents(library, statement)
-					linkStatements(library, statement)
-				elif isinstance(statement, CaseGenerateStatement):
-					for case in statement._cases:
-						linkComponents(library, case)
-						linkStatements(library, case)
-				elif isinstance(statement, ConcurrentBlockStatement):
-					linkComponents(library, statement)
-					linkStatements(library, statement)
-
-		def searchEntityAndLinkComponent(library: Library, component: Component) -> None:
+		for library, component in self._IterateComponents():
 			# QUESTION: Add link in dependency graph as dashed line from component to entity?
 			#           Currently, component has no _dependencyVertex field
 			try:
@@ -2373,25 +2443,68 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			except KeyError:
 				if component.AllowBlackbox:
 					component._isBlackbox = True
-					return
+					continue
 				else:
 					raise VHDLModelException(
 						f"Entity '{component.Identifier}' not found for component '{component.Identifier}' in library '{library.Identifier}'.")
 
 			component.Entity = entity
 
-		def linkComponents(library: Library, declarationRegion: ConcurrentDeclarationRegionMixin) -> None:
+	def _IterateComponents(self) -> Generator[tuple[Library, Component], None, None]:
+		"""
+		Iterate all components of packages and architectures, including the components declared in blocks and generate
+		statements nested in architectures.
+
+		:returns: A generator to iterate tuples of the library of the design unit and a component.
+		"""
+		def iterateStatements(concurrent: ConcurrentStatementsMixin) -> Generator[Component, None, None]:
+			"""
+			Nested function for recursion.
+
+			:param concurrent: The language construct containing concurrent statements.
+			:returns:          A generator to iterate the components declared in the nested statements.
+			"""
+			for statement in concurrent._statements:
+				if isinstance(statement, IfGenerateStatement):
+					yield from iterateDeclaredItems(statement._ifBranch)
+					yield from iterateStatements(statement._ifBranch)
+					for branch in statement._elsifBranches:
+						yield from iterateDeclaredItems(branch)
+						yield from iterateStatements(branch)
+
+					if (branch := statement._elseBranch) is not None:
+						yield from iterateDeclaredItems(branch)
+						yield from iterateStatements(branch)
+				elif isinstance(statement, ForGenerateStatement):
+					yield from iterateDeclaredItems(statement)
+					yield from iterateStatements(statement)
+				elif isinstance(statement, CaseGenerateStatement):
+					for case in statement._cases:
+						yield from iterateDeclaredItems(case)
+						yield from iterateStatements(case)
+				elif isinstance(statement, ConcurrentBlockStatement):
+					yield from iterateDeclaredItems(statement)
+					yield from iterateStatements(statement)
+
+		def iterateDeclaredItems(declarationRegion: ConcurrentDeclarationRegionMixin) -> Generator[Component, None, None]:
+			"""
+			Nested function iterating the components declared in a declaration region.
+
+			:param declarationRegion: The declaration region.
+			:returns:                 A generator to iterate the declared components.
+			"""
 			for item in declarationRegion._declaredItems:
 				if isinstance(item, Component):
-					searchEntityAndLinkComponent(library, item)
+					yield item
 
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.Package | DesignUnitKind.Architecture):  # type: Union[Package, Architecture]
 			library = designUnit._parent
 			for component in designUnit._components.values():
-				searchEntityAndLinkComponent(library, component)
+				yield library, component
 
 			if isinstance(designUnit, Architecture):
-				linkStatements(library, designUnit)
+				for component in iterateStatements(designUnit):
+					yield library, component
 
 	def LinkInstantiations(self) -> None:
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):  # type: Architecture

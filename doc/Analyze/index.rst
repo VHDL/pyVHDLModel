@@ -5,6 +5,11 @@ Analyze
 
 1. Dependency analysis
 
+:meth:`Design.Analyze <pyVHDLModel.Design.Analyze>` can be called again, e.g. after documents or design units were added
+to or removed from the design: it resets the previous analysis first (:meth:`~pyVHDLModel.Design.ResetAnalysis`). The
+reset replaces the graphs and clears everything the analysis derived from the design units, while libraries, documents,
+design units and their declarations are kept.
+
 Dependency Analysis
 *******************
 
@@ -67,37 +72,40 @@ there is a double reference from graph's vertex via ``Value`` to the DOM object 
 3. Index Packages
 =================
 
-4. Index Architectures
+4. Index Entities
+=================
+
+5. Index Architectures
 ======================
 
-5. Link Contexts
+6. Link Contexts
 ================
 
-6. Link Architectures
+7. Link Architectures
 =====================
 
-7. Link Package Bodies
+8. Link Package Bodies
 ======================
 
-8. Link Library References
+9. Link Library References
 ==========================
 
-9. Link Package References
-==========================
-
-10. Link Context References
+10. Link Package References
 ===========================
 
-11. Link Components
+11. Link Context References
+===========================
+
+12. Link Components
 ===================
 
-12. Link Instantiations
+13. Link Instantiations
 =======================
 
-13. Create Hierarchy Graph
+14. Create Hierarchy Graph
 ==========================
 
-14. Compute Compile Order
+15. Compute Compile Order
 =========================
 
 

@@ -34,7 +34,9 @@ This module contains parts of an abstract document language model for VHDL.
 
 Common definitions and Mixins are used by many classes in the model as base-classes.
 """
-from typing                  import Iterable, Union, Optional as Nullable
+from __future__              import annotations
+
+from typing                  import TYPE_CHECKING, Iterable, Union, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
@@ -48,6 +50,9 @@ from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, Functio
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import Symbol, SignalSymbol, VariableSymbol
 from pyVHDLModel.Association import ParameterAssociationItem
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor   import Visitor
 
 
 ExpressionUnion = Union[
@@ -178,6 +183,25 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 			for parameterMapping in parameterAssociationItems:
 				self._parameterAssociationItems.append(parameterMapping)
 				parameterMapping.Parent = self
+
+	def _VisitProcedureCall(self, visitor: Visitor) -> None:
+		"""
+		Walk the called procedure and the actual parameter part, if there are parameters, with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		self._procedure.Visit(visitor)
+		if len(self._parameterAssociationItems) == 0:
+			return
+
+		visitor.VisitActualParameterPart(self)
+		for index, item in enumerate(self._parameterAssociationItems):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			item.Visit(visitor)
+
+		visitor.DepartActualParameterPart(self)
 
 	@readonly
 	def Procedure(self) -> Symbol:
@@ -501,6 +525,18 @@ class WaveformMixin(metaclass=ExtendedType, mixin=True):
 			self._waveform.append(waveformElement)
 			waveformElement.Parent = self
 
+	def _VisitWaveform(self, visitor: Visitor) -> None:
+		"""
+		Walk the waveform elements, separated by commas, with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		for index, element in enumerate(self._waveform):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			element.Visit(visitor)
+
 	@readonly
 	def Waveform(self) -> list[WaveformElement]:
 		"""
@@ -587,6 +623,20 @@ class ConditionalWaveform(ModelEntity, WaveformMixin, ConditionalMixin):
 		WaveformMixin.__init__(self, waveform)
 		ConditionalMixin.__init__(self, condition)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this conditional waveform, its waveform and its condition (if any) with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConditionalWaveform(self)
+		self._VisitWaveform(visitor)
+		if self._condition is not None:
+			visitor.VisitWhen(self)
+			self._condition.Visit(visitor)
+
+		visitor.DepartConditionalWaveform(self)
+
 
 @export
 class ConditionalExpression(ModelEntity, ExpressionMixin, ConditionalMixin):
@@ -651,6 +701,18 @@ class ConditionalWaveformsMixin(metaclass=ExtendedType, mixin=True):
 			self._conditionalWaveforms.append(conditionalWaveform)
 			conditionalWaveform.Parent = self
 
+	def _VisitConditionalWaveforms(self, visitor: Visitor) -> None:
+		"""
+		Walk the conditional waveforms, separated by the reserved word ``else``, with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		for index, conditionalWaveform in enumerate(self._conditionalWaveforms):
+			if index > 0:
+				visitor.VisitElse(self)
+
+			conditionalWaveform.Visit(visitor)
+
 	@readonly
 	def ConditionalWaveforms(self) -> list[ConditionalWaveform]:
 		"""
@@ -699,6 +761,23 @@ class SelectedWaveform(BaseCase, WaveformMixin, ChoicesMixin):
 		WaveformMixin.__init__(self, waveform)
 		ChoicesMixin.__init__(self, choices)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this selected waveform, its waveform and its choices with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSelectedWaveform(self)
+		self._VisitWaveform(visitor)
+		visitor.VisitWhen(self)
+		for index, choice in enumerate(self._choices):
+			if index > 0:
+				visitor.VisitBar(self)
+
+			choice.Visit(visitor)
+
+		visitor.DepartSelectedWaveform(self)
+
 
 @export
 class OthersSelectedWaveform(BaseCase, WaveformMixin):
@@ -724,6 +803,17 @@ class OthersSelectedWaveform(BaseCase, WaveformMixin):
 		"""
 		super().__init__(parent)
 		WaveformMixin.__init__(self, waveform)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this ``others`` selected waveform and its waveform with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitOthersSelectedWaveform(self)
+		self._VisitWaveform(visitor)
+		visitor.VisitWhen(self)
+		visitor.DepartOthersSelectedWaveform(self)
 
 
 @export
@@ -815,6 +905,18 @@ class SelectedWaveformsMixin(metaclass=ExtendedType, mixin=True):
 		for selectedWaveform in selectedWaveforms:
 			self._selectedWaveforms.append(selectedWaveform)
 			selectedWaveform.Parent = self
+
+	def _VisitSelectedWaveforms(self, visitor: Visitor) -> None:
+		"""
+		Walk the selected waveforms, separated by commas, with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		for index, selectedWaveform in enumerate(self._selectedWaveforms):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			selectedWaveform.Visit(visitor)
 
 	@readonly
 	def SelectedWaveforms(self) -> list[Union[SelectedWaveform, OthersSelectedWaveform]]:

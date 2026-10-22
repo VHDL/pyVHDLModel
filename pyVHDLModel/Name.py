@@ -500,12 +500,14 @@ class AllName(SelectedName):
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this ``all`` name and its prefix with a visitor.
+		Walk this ``all`` name and its prefix (if any) with a visitor.
 
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitAllName(self)
-		self._prefix.Visit(visitor)
+		if self._prefix is not None:
+			self._prefix.Visit(visitor)
+
 		visitor.DepartAllName(self)
 
 

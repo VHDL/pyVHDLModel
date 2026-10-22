@@ -42,7 +42,11 @@ from pyTooling.Testing           import Testcase
 
 from pyVHDLModel                 import Document
 from pyVHDLModel.Association     import ParameterAssociationItem, GenericAssociationItem, PortAssociationItem
-from pyVHDLModel.Base            import Direction, Mode, SimpleRange
+from pyVHDLModel.Base            import Direction, Mode, SimpleRange, WaveformElement
+from pyVHDLModel.Common          import ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform
+from pyVHDLModel.Concurrent      import ProcessStatement, ConcurrentProcedureCall, ConcurrentSimpleSignalAssignment, \
+                                        ConcurrentSelectedSignalAssignment, ConcurrentConditionalSignalAssignment, \
+                                        ConcurrentAssertStatement
 from pyVHDLModel.Declaration     import EntityClass, Alias, Attribute, AttributeSpecification
 from pyVHDLModel.Configuration   import EntityAspectEntity, EntityAspectOpen, BindingIndication, AllInstantiationList, \
                                         OthersInstantiationList, ComponentConfiguration, BlockConfiguration
@@ -73,13 +77,14 @@ from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTyp
                                         GenericFunctionInterfaceItem
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, AttributeName, SelectedName, AllName, OpenName
 from pyVHDLModel.Object          import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
+from pyVHDLModel.Sequential      import IndexedChoice, RangedChoice
 from pyVHDLModel.Subprogram      import Procedure, Function, ProcedureMethod, FunctionMethod
 from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol, IndexedObjectOrFunctionCallSymbol, \
                                         ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
                                         ConstrainedRecordSubtypeSymbol, ModeViewSymbol, SubprogramReferenceSymbol, \
                                         LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, \
                                         ContextReferenceSymbol, EntitySymbol, ArchitectureSymbol, PackageSymbol, \
-                                        PackageReferenceSymbol, ComponentInstantiationSymbol
+                                        PackageReferenceSymbol, ComponentInstantiationSymbol, SignalSymbol
 from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
                                         ArrayType, RecordTypeElement, RecordType, AccessType, FileType, ProtectedType, \
                                         ProtectedTypeBody
@@ -687,6 +692,80 @@ class GHDLOracleDesignUnits(Testcase):
 					document._AddDesignUnit(designUnit)
 
 				source = VHDLWriter(style).Format(document)
+
+				result = _analyze(source)
+
+				self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)
+
+
+@skipIf(_GHDL is None, "GHDL is not on PATH.")
+class GHDLOracleConcurrentStatements(Testcase):
+	def test_Statements(self) -> None:
+		def target(name: str) -> SignalSymbol:
+			"""Nested function returning a reference to a signal as assignment target."""
+			return SignalSymbol(SimpleName(name))
+
+		def waveform(name: str) -> list:
+			"""Nested function returning a waveform of one object."""
+			return [WaveformElement(_object(name))]
+
+		statements = (
+			ConcurrentSimpleSignalAssignment(None, target("q1"), [
+				WaveformElement(_object("a"), PhysicalIntegerLiteral(1, "ns")),
+				WaveformElement(CharacterLiteral("0"), PhysicalIntegerLiteral(2, "ns"))
+			]),
+			ConcurrentConditionalSignalAssignment("cond", target("q2"), [
+				ConditionalWaveform(waveform("a"), EqualExpression(_object("sel"), IntegerLiteral(0))),
+				ConditionalWaveform(waveform("b"), AndExpression(_object("en"), _object("en"))),
+				ConditionalWaveform([WaveformElement(CharacterLiteral("0"))])
+			]),
+			ConcurrentSelectedSignalAssignment("mux", target("q3"), _object("sel"), [
+				SelectedWaveform([IndexedChoice(IntegerLiteral(0))], waveform("a")),
+				SelectedWaveform(
+					[
+					IndexedChoice(IntegerLiteral(1)),
+					RangedChoice(SimpleRange(IntegerLiteral(2), IntegerLiteral(3), Direction.To))
+				],
+					waveform("b")
+				),
+				OthersSelectedWaveform([WaveformElement(CharacterLiteral("1"))])
+			]),
+			ConcurrentProcedureCall(None, _object("check"), [ParameterAssociationItem(None, _object("a"))]),
+			ConcurrentProcedureCall("tick", _object("tock")),
+			ConcurrentAssertStatement(_object("en"), StringLiteral("disabled"), _object("note"), "check_en"),
+			ProcessStatement("p", [Variable(["v"], _integer("bit"))], sensitivityList=[SimpleName("a"), SimpleName("b")]),
+			ProcessStatement(sensitivityList=[AllName(None)]),
+		)
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("e")), declaredItems=[
+			Signal(["a", "b", "q1", "q2", "q3"], _integer("bit")),
+			Signal(["en"], _integer("boolean"), EnumerationLiteral("true")),
+			Signal(["sel"], _integer("natural"), IntegerLiteral(0)),
+		], statements=statements)
+		header = dedent("""\
+			entity e is
+			end entity;
+
+			package checks is
+				procedure check(signal s : in bit);
+				procedure tock;
+			end package;
+
+			package body checks is
+				procedure check(signal s : in bit) is
+				begin
+				end procedure;
+				procedure tock is
+				begin
+				end procedure;
+			end package body;
+
+			use work.checks.all;
+
+			""")
+
+		for style in (VHDLStyle(), VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs)):
+			with self.subTest(style=style.KeywordCase):
+				source = header + VHDLWriter(style).Format(architecture)
 
 				result = _analyze(source)
 

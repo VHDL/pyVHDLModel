@@ -36,11 +36,15 @@ Common definitions and Mixins are used by many classes in the model as base-clas
 """
 from typing                  import Iterable, Union, Optional as Nullable
 
+from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, BaseCase, BaseChoice, WaveformElement, ConditionalMixin, ChoicesMixin
+from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError
+from pyVHDLModel.Exception   import DuplicateParameterAssociationError
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
+from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import Symbol, SignalSymbol, VariableSymbol
 from pyVHDLModel.Association import ParameterAssociationItem
 
@@ -145,6 +149,9 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 	The called procedure is available as :data:`Procedure`, its actual parameters as
 	:data:`ParameterAssociationItems`.
 
+	An association declares nothing: the mutators update neither a namespace nor a lookup table of the host class, so the
+	mixin expects nothing from its host.
+
 	.. seealso::
 
 	   * :class:`Concurrent procedure call <pyVHDLModel.Concurrent.ConcurrentProcedureCall>`
@@ -188,6 +195,178 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 		:returns: List of parameter association items.
 		"""
 		return self._parameterAssociationItems
+
+	def AddParameterAssociationItem(self, parameterAssociationItem: ParameterAssociationItem) -> None:
+		"""
+		Add a parameter association at the end of the parameter association list.
+
+		The association's parent is set to this procedure call.
+
+		:param parameterAssociationItem:            The parameter association to add.
+		:raises ValueError:                         If parameter 'parameterAssociationItem' is ``None``.
+		:raises TypeError:                          If parameter 'parameterAssociationItem' is not of type
+		                                            :class:`~pyVHDLModel.Association.ParameterAssociationItem`.
+		:raises AlreadyInDesignError:               If parameter 'parameterAssociationItem' already has a parent.
+		:raises DuplicateParameterAssociationError: If the association is named, and another named association of the
+		                                            parameter association list has the same formal.
+		:raises AssociationOrderError:              If the association is positional, and the parameter association list has
+		                                            a named association.
+
+		.. seealso::
+
+		   :meth:`InsertParameterAssociationItem`
+		      |rarr| Insert a parameter association at a position of the parameter association list.
+		   :meth:`RemoveParameterAssociationItem`
+		      |rarr| Remove a parameter association from the parameter association list.
+		"""
+		self.InsertParameterAssociationItem(len(self._parameterAssociationItems), parameterAssociationItem)
+
+	def InsertParameterAssociationItem(self, index: int, parameterAssociationItem: ParameterAssociationItem) -> None:
+		"""
+		Insert a parameter association at a position of the parameter association list.
+
+		The association's parent is set to this procedure call.
+
+		A named association (``formal => actual``) can't repeat the formal of another named association of the parameter
+		association list. Only formals given as a simple name are compared: a partial association (``a(0) => x``) or a
+		conversion function (``to_integer(a) => x``) is accepted. All positional associations precede the named
+		associations.
+
+		:param index:                               Position, from ``0`` (first) to the number of parameter associations
+		                                            (append). A negative index counts from the end, as for
+		                                            :meth:`list.insert`: ``-1`` inserts before the last parameter
+		                                            association.
+		:param parameterAssociationItem:            The parameter association to insert.
+		:raises ValueError:                         If parameter 'index' is ``None``.
+		:raises TypeError:                          If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:                         If parameter 'index' is out of range.
+		:raises ValueError:                         If parameter 'parameterAssociationItem' is ``None``.
+		:raises TypeError:                          If parameter 'parameterAssociationItem' is not of type
+		                                            :class:`~pyVHDLModel.Association.ParameterAssociationItem`.
+		:raises AlreadyInDesignError:               If parameter 'parameterAssociationItem' already has a parent.
+		:raises DuplicateParameterAssociationError: If the association is named, and another named association of the
+		                                            parameter association list has the same formal.
+		:raises AssociationOrderError:              If the association is positional, and a named association precedes the
+		                                            position.
+		:raises AssociationOrderError:              If the association is named, and a positional association follows the
+		                                            position.
+
+		.. seealso::
+
+		   :meth:`AddParameterAssociationItem`
+		      |rarr| Add a parameter association at the end of the parameter association list.
+		   :meth:`RemoveParameterAssociationItem`
+		      |rarr| Remove a parameter association from the parameter association list.
+		"""
+		count = len(self._parameterAssociationItems)
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif not (-count <= index <= count):
+			ex = ValueError(f"Parameter 'index' is out of range {-count}..{count}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		if parameterAssociationItem is None:
+			raise ValueError("Parameter 'parameterAssociationItem' is None.")
+		elif not isinstance(parameterAssociationItem, ParameterAssociationItem):
+			ex = TypeError("Parameter 'parameterAssociationItem' is not of type 'ParameterAssociationItem'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parameterAssociationItem)}'.")
+			raise ex
+		elif parameterAssociationItem._parent is not None:
+			ex = AlreadyInDesignError(
+				f"{getTypeName(parameterAssociationItem)} already has a parent.",
+				element=parameterAssociationItem,
+				parent=parameterAssociationItem._parent
+			)
+			ex.add_note(f"Remove it from its {getTypeName(parameterAssociationItem._parent)} first.")
+			raise ex
+
+		formal = parameterAssociationItem._formal
+		if isinstance(formal, SimpleName):
+			normalizedFormal = formal._normalizedIdentifier
+			for existing in self._parameterAssociationItems:
+				if isinstance(existing._formal, SimpleName) and existing._formal._normalizedIdentifier == normalizedFormal:
+					ex = DuplicateParameterAssociationError(
+						f"{getTypeName(self)} already associates parameter '{formal._identifier}'.",
+						identifier=formal._identifier,
+						parent=self,
+						element=parameterAssociationItem,
+						existing=existing
+					)
+					ex.add_note(f"Existing association is '{existing!s}'.")
+					raise ex
+
+		position = index if index >= 0 else count + index
+		if formal is None:
+			for existing in self._parameterAssociationItems[:position]:
+				if existing._formal is not None:
+					ex = AssociationOrderError(
+						f"Positional parameter association can't follow named association '{existing!s}'.",
+						parent=self,
+						element=parameterAssociationItem,
+						existing=existing
+					)
+					ex.add_note("Insert it before the first named association, or name its formal.")
+					raise ex
+		else:
+			for existing in self._parameterAssociationItems[position:]:
+				if existing._formal is None:
+					ex = AssociationOrderError(
+						f"Named parameter association can't precede positional association '{existing!s}'.",
+						parent=self,
+						element=parameterAssociationItem,
+						existing=existing
+					)
+					ex.add_note("Insert it after the last positional association.")
+					raise ex
+
+		self._parameterAssociationItems.insert(index, parameterAssociationItem)
+		parameterAssociationItem.Parent = self
+
+	def RemoveParameterAssociationItem(self, parameterAssociationItem: ParameterAssociationItem) -> None:
+		"""
+		Remove a parameter association from the parameter association list.
+
+		The association is detached: its parent is cleared. The association itself is unchanged and can be added to another
+		procedure call, or inserted at another position.
+
+		:param parameterAssociationItem: The parameter association to remove.
+		:raises ValueError:              If parameter 'parameterAssociationItem' is ``None``.
+		:raises TypeError:               If parameter 'parameterAssociationItem' is not of type
+		                                 :class:`~pyVHDLModel.Association.ParameterAssociationItem`.
+		:raises NotAChildError:          If parameter 'parameterAssociationItem' is not a parameter association of this
+		                                 procedure call.
+
+		.. seealso::
+
+		   :meth:`AddParameterAssociationItem`
+		      |rarr| Add a parameter association at the end of the parameter association list.
+		   :meth:`InsertParameterAssociationItem`
+		      |rarr| Insert a parameter association at a position of the parameter association list.
+		"""
+		if parameterAssociationItem is None:
+			raise ValueError("Parameter 'parameterAssociationItem' is None.")
+		elif not isinstance(parameterAssociationItem, ParameterAssociationItem):
+			ex = TypeError("Parameter 'parameterAssociationItem' is not of type 'ParameterAssociationItem'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parameterAssociationItem)}'.")
+			raise ex
+
+		for index, item in enumerate(self._parameterAssociationItems):
+			if item is parameterAssociationItem:
+				break
+		else:
+			raise NotAChildError(
+				f"{getTypeName(parameterAssociationItem)} is not a parameter association of this {getTypeName(self)}.",
+				element=parameterAssociationItem,
+				parent=self
+			)
+
+		del self._parameterAssociationItems[index]
+		parameterAssociationItem._parent = None
 
 
 @export

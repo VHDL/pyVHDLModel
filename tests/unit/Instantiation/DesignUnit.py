@@ -126,6 +126,9 @@ class DesignUnits(Testcase):
 		self.assertEqual([library], unit.LibraryReferences)
 		self.assertEqual([use], unit.PackageReferences)
 		self.assertEqual([context], unit.ContextReferences)
+		self.assertIs(unit, library.Parent)
+		self.assertIs(unit, use.Parent)
+		self.assertIs(unit, context.Parent)
 
 	def test_DocumentSetter(self) -> None:
 		unit = _ConcreteDesignUnit("u")
@@ -171,6 +174,7 @@ class Contexts(Testcase):
 		contextReference = ContextReference([])
 		context = Context("ctx", [library, use, contextReference])
 
+		self.assertEqual([library, use, contextReference], context.ContextItems)
 		self.assertEqual([library], context.LibraryReferences)
 		self.assertEqual([use], context.PackageReferences)
 		self.assertEqual([contextReference], context.ContextReferences)

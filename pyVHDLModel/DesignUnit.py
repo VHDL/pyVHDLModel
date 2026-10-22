@@ -38,12 +38,13 @@ from __future__                import annotations
 
 from typing                    import ClassVar, Union, Iterable, Optional as Nullable
 
+from pyTooling.Common          import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators      import export, readonly
 from pyTooling.MetaClasses     import ExtendedType, abstractmethod, abstractclass
 from pyTooling.Graph           import Vertex
 
 from pyVHDLModel.Common        import AllowBlackboxMixin
-from pyVHDLModel.Exception     import VHDLModelException
+from pyVHDLModel.Exception     import VHDLModelException, AlreadyInDesignError, NotAChildError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Base          import normalizedIdentifiersOf
 from pyVHDLModel.Namespace     import Namespace
@@ -228,6 +229,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		if contextItems is not None:
 			for item in contextItems:
 				self._contextItems.append(item)
+				item.Parent = self
 				if isinstance(item, UseClause):
 					self._packageReferences.append(item)
 				elif isinstance(item, LibraryClause):
@@ -304,6 +306,170 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:returns: Sequence of use clauses.
 		"""
 		return self._packageReferences
+
+	def AddContextItem(self, contextItem: ContextUnion) -> None:
+		"""
+		Add a context item at the end of the context clause.
+
+		The context item's parent is set to this design unit. A library clause is also added to :data:`LibraryReferences`, a
+		use clause to :data:`PackageReferences` and a context reference to :data:`ContextReferences`, in the order of
+		:data:`ContextItems`. A context item may repeat an earlier one.
+
+		:param contextItem:           The library clause, use clause or context reference to add.
+		:raises ValueError:           If parameter 'contextItem' is ``None``.
+		:raises TypeError:            If parameter 'contextItem' is not of type :class:`LibraryClause`, :class:`UseClause`
+		                              or :class:`ContextReference`.
+		:raises AlreadyInDesignError: If parameter 'contextItem' already has a parent.
+
+		.. attention::
+
+		   The mutator doesn't update what :meth:`~pyVHDLModel.Design.Analyze` derived from the context items: the
+		   referenced libraries, packages and contexts (:data:`ReferencedLibraries`, :data:`ReferencedPackages`,
+		   :data:`ReferencedContexts`), the namespace entries of a use clause, the edges of the dependency graph, and the
+		   references of the symbols. A design changed after its analysis needs a new analysis.
+
+		.. seealso::
+
+		   :meth:`InsertContextItem`
+		      |rarr| Insert a context item at a position of the context clause.
+		   :meth:`RemoveContextItem`
+		      |rarr| Remove a context item from the context clause.
+		"""
+		self.InsertContextItem(len(self._contextItems), contextItem)
+
+	def InsertContextItem(self, index: int, contextItem: ContextUnion) -> None:
+		"""
+		Insert a context item at a position of the context clause.
+
+		The context item's parent is set to this design unit. A library clause is also added to :data:`LibraryReferences`, a
+		use clause to :data:`PackageReferences` and a context reference to :data:`ContextReferences`, in the order of
+		:data:`ContextItems`. A context item may repeat an earlier one.
+
+		:param index:                 Position, from ``0`` (first) to the number of context items (append). A negative index
+		                              counts from the end, as for :meth:`list.insert`: ``-1`` inserts before the last
+		                              context item.
+		:param contextItem:           The library clause, use clause or context reference to insert.
+		:raises ValueError:           If parameter 'index' is ``None``.
+		:raises TypeError:            If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:           If parameter 'index' is out of range.
+		:raises ValueError:           If parameter 'contextItem' is ``None``.
+		:raises TypeError:            If parameter 'contextItem' is not of type :class:`LibraryClause`, :class:`UseClause`
+		                              or :class:`ContextReference`.
+		:raises AlreadyInDesignError: If parameter 'contextItem' already has a parent.
+
+		.. attention::
+
+		   The mutator doesn't update what :meth:`~pyVHDLModel.Design.Analyze` derived from the context items: the
+		   referenced libraries, packages and contexts (:data:`ReferencedLibraries`, :data:`ReferencedPackages`,
+		   :data:`ReferencedContexts`), the namespace entries of a use clause, the edges of the dependency graph, and the
+		   references of the symbols. A design changed after its analysis needs a new analysis.
+
+		.. seealso::
+
+		   :meth:`AddContextItem`
+		      |rarr| Add a context item at the end of the context clause.
+		   :meth:`RemoveContextItem`
+		      |rarr| Remove a context item from the context clause.
+		"""
+		count = len(self._contextItems)
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif not (-count <= index <= count):
+			ex = ValueError(f"Parameter 'index' is out of range {-count}..{count}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		if contextItem is None:
+			raise ValueError("Parameter 'contextItem' is None.")
+		elif not isinstance(contextItem, (LibraryClause, UseClause, ContextReference)):
+			ex = TypeError("Parameter 'contextItem' is not of type 'LibraryClause', 'UseClause' or 'ContextReference'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(contextItem)}'.")
+			raise ex
+		elif contextItem._parent is not None:
+			ex = AlreadyInDesignError(
+				f"{getTypeName(contextItem)} already has a parent.",
+				element=contextItem,
+				parent=contextItem._parent
+			)
+			ex.add_note(f"Remove it from its {getTypeName(contextItem._parent)} first.")
+			raise ex
+
+		if isinstance(contextItem, LibraryClause):
+			references =    self._libraryReferences
+			referenceType = LibraryClause
+		elif isinstance(contextItem, UseClause):
+			references =    self._packageReferences
+			referenceType = UseClause
+		else:
+			references =    self._contextReferences
+			referenceType = ContextReference
+
+		position =       index if index >= 0 else count + index
+		referenceIndex = sum(1 for item in self._contextItems[:position] if isinstance(item, referenceType))
+
+		self._contextItems.insert(position, contextItem)
+		references.insert(referenceIndex, contextItem)
+		contextItem.Parent = self
+
+	def RemoveContextItem(self, contextItem: ContextUnion) -> None:
+		"""
+		Remove a context item from the context clause.
+
+		The context item is detached: its parent is cleared, and it's removed from :data:`ContextItems` and from
+		:data:`LibraryReferences`, :data:`PackageReferences` or :data:`ContextReferences`. The context item itself is
+		unchanged and can be added to another design unit, or inserted at another position.
+
+		:param contextItem:     The library clause, use clause or context reference to remove.
+		:raises ValueError:     If parameter 'contextItem' is ``None``.
+		:raises TypeError:      If parameter 'contextItem' is not of type :class:`LibraryClause`, :class:`UseClause` or
+		                        :class:`ContextReference`.
+		:raises NotAChildError: If parameter 'contextItem' is not a context item of this design unit.
+
+		.. attention::
+
+		   The mutator doesn't update what :meth:`~pyVHDLModel.Design.Analyze` derived from the context items: the
+		   referenced libraries, packages and contexts (:data:`ReferencedLibraries`, :data:`ReferencedPackages`,
+		   :data:`ReferencedContexts`), the namespace entries of a use clause, the edges of the dependency graph, and the
+		   references of the symbols. A design changed after its analysis needs a new analysis.
+
+		.. seealso::
+
+		   :meth:`AddContextItem`
+		      |rarr| Add a context item at the end of the context clause.
+		   :meth:`InsertContextItem`
+		      |rarr| Insert a context item at a position of the context clause.
+		"""
+		if contextItem is None:
+			raise ValueError("Parameter 'contextItem' is None.")
+		elif not isinstance(contextItem, (LibraryClause, UseClause, ContextReference)):
+			ex = TypeError("Parameter 'contextItem' is not of type 'LibraryClause', 'UseClause' or 'ContextReference'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(contextItem)}'.")
+			raise ex
+
+		for index, item in enumerate(self._contextItems):
+			if item is contextItem:
+				break
+		else:
+			raise NotAChildError(
+				f"{getTypeName(contextItem)} is not a context item of this {getTypeName(self)}.",
+				element=contextItem,
+				parent=self
+			)
+
+		if isinstance(contextItem, LibraryClause):
+			references = self._libraryReferences
+		elif isinstance(contextItem, UseClause):
+			references = self._packageReferences
+		else:
+			references = self._contextReferences
+
+		del self._contextItems[index]
+		references.remove(contextItem)
+		contextItem._parent = None
 
 	@readonly
 	def ReferencedLibraries(self) -> dict[str, Library]:
@@ -400,7 +566,7 @@ class Context(PrimaryUnit):
 	Represents a context declaration.
 
 	A context contains a generic list of all its items (library clauses, use clauses and context references) in
-	:data:`_references`.
+	:data:`_contextItems`.
 
 	Furthermore, when a context gets initialized, the item kinds get separated into individual lists:
 
@@ -430,8 +596,6 @@ class Context(PrimaryUnit):
 	   * :class:`Use clause <pyVHDLModel.DesignUnit.UseClause>`
 	"""
 
-	_references:        list[ContextUnion]  #: All context items, in declaration order.
-
 	def __init__(self, identifier: str, references: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a context declaration.
@@ -444,14 +608,9 @@ class Context(PrimaryUnit):
 		"""
 		super().__init__(identifier, None, documentation, parent)
 
-		self._references = []
-		self._libraryReferences = []
-		self._packageReferences = []
-		self._contextReferences = []
-
 		if references is not None:
 			for reference in references:
-				self._references.append(reference)
+				self._contextItems.append(reference)
 				reference.Parent = self
 
 				if isinstance(reference, LibraryClause):

@@ -31,11 +31,13 @@
 """Tests for pyVHDLModel.Subprogram."""
 from pyTooling.Testing       import Testcase
 
-from pyVHDLModel.Name        import SimpleName
+from pyVHDLModel.Base        import Mode
+from pyVHDLModel.Interface   import ParameterConstantInterfaceItem
+from pyVHDLModel.Name        import SelectedName, SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
 from pyVHDLModel.Sequential  import NullStatement
 from pyVHDLModel.Type        import ProtectedType
-from pyVHDLModel.Subprogram  import Procedure, Function, ProcedureMethod, FunctionMethod
+from pyVHDLModel.Subprogram  import Procedure, Function, ProcedureMethod, FunctionMethod, SubprogramSignature
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -133,3 +135,99 @@ class MethodMixinHosts(Testcase):
 
 		self.assertIs(protectedType, method.ProtectedType)
 		self.assertIs(method, protectedType.Parent)
+
+
+def _parameter(identifiers: tuple[str, ...], typeMark: SimpleSubtypeSymbol) -> ParameterConstantInterfaceItem:
+	return ParameterConstantInterfaceItem(identifiers, Mode.In, typeMark)
+
+
+class Signatures(Testcase):
+	def test_Procedure(self) -> None:
+		natural = _returnType("natural")
+		procedure = Procedure("reset", parameterItems=[_parameter(("value", ), natural)])
+
+		signature = procedure.Signature
+
+		self.assertIsInstance(signature, SubprogramSignature)
+		self.assertIs(procedure, signature.Parent)
+		self.assertEqual((natural, ), signature.ParameterTypes)
+		self.assertIsNone(signature.ReturnType)
+		self.assertEqual(("natural", ), signature.ParameterTypeNames)
+		self.assertIsNone(signature.ReturnTypeName)
+		self.assertEqual("[natural]", str(signature))
+
+	def test_Procedure_WithoutParameters(self) -> None:
+		self.assertEqual("[]", str(Procedure("reset").Signature))
+
+	def test_Function(self) -> None:
+		"""A parameter with an identifier list contributes its type mark per identifier."""
+		unsigned = SimpleSubtypeSymbol(SelectedName("unsigned", SelectedName("numeric_std", SimpleName("ieee"))))
+		positive = _returnType("positive")
+		natural =  _returnType("natural")
+		function = Function("to_index", natural, parameterItems=[
+			_parameter(("value", ), unsigned),
+			_parameter(("low", "high"), positive),
+		])
+
+		signature = function.Signature
+
+		self.assertIs(function, signature.Parent)
+		self.assertEqual((unsigned, positive, positive), signature.ParameterTypes)
+		self.assertIs(natural, signature.ReturnType)
+		self.assertEqual(("ieee.numeric_std.unsigned", "positive", "positive"), signature.ParameterTypeNames)
+		self.assertEqual("natural", signature.ReturnTypeName)
+		self.assertEqual("[ieee.numeric_std.unsigned, positive, positive return natural]", str(signature))
+
+	def test_Function_WithoutParameters(self) -> None:
+		self.assertEqual("[return integer]", str(Function("random", _returnType()).Signature))
+
+	def test_Kept(self) -> None:
+		value =    _parameter(("value", ), _returnType("unsigned"))
+		function = Function("to_index", _returnType("natural"), parameterItems=[value])
+
+		self.assertIs(function.Signature, function.Signature)
+
+	def test_ParameterItemsChanged(self) -> None:
+		"""Adding, inserting, moving and removing a parameter clears the kept signature."""
+		value = _parameter(("value", ), _returnType("unsigned"))
+		low =   _parameter(("low", ), _returnType("positive"))
+		high =  _parameter(("high", ), _returnType("natural"))
+		function = Function("to_index", _returnType("natural"), parameterItems=[value])
+
+		signature = function.Signature
+		function.AddParameterItem(low)
+		self.assertIsNot(signature, function.Signature)
+		self.assertEqual("[unsigned, positive return natural]", str(function.Signature))
+
+		signature = function.Signature
+		function.InsertParameterItem(0, high)
+		self.assertIsNot(signature, function.Signature)
+		self.assertEqual("[natural, unsigned, positive return natural]", str(function.Signature))
+
+		signature = function.Signature
+		function.MoveParameterItem(high, -1)
+		self.assertIsNot(signature, function.Signature)
+		self.assertEqual("[unsigned, positive, natural return natural]", str(function.Signature))
+
+		signature = function.Signature
+		function.RemoveParameterItem(value)
+		self.assertIsNot(signature, function.Signature)
+		self.assertEqual("[positive, natural return natural]", str(function.Signature))
+
+	def test_Parent(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			SubprogramSignature([], parent=ProtectedType("pt"))
+
+		self.assertEqual("Parameter 'parent' is not of type 'Subprogram'.", str(context.exception))
+
+	def test_Checks(self) -> None:
+		for parameterTypes, returnType, exception in (
+			(None,          None,      ValueError),
+			(1,             None,      TypeError),
+			(["natural"],   None,      TypeError),
+			([],            "natural", TypeError),
+		):
+			with self.subTest(parameterTypes=parameterTypes, returnType=returnType):
+				with self.assertRaises(exception):
+					SubprogramSignature(parameterTypes, returnType)
+

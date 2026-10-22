@@ -240,3 +240,18 @@ A generic function is a *regular* function.
 .. seealso::
 
    See :ref:`vhdlmodel-genericfunction` for details.
+
+
+.. _vhdlmodel-signature:
+
+Signatures
+==========
+
+A subprogram's signature (:attr:`Subprogram.Signature <pyVHDLModel.Subprogram.Subprogram.Signature>`) holds the type
+marks of its parameters - one per parameter identifier - and of a function's return value; the overloads of a
+subprogram differ in it. Its string form is VHDL's notation of a signature (IEEE Std 1076-2019, 4.5.3), e.g.
+``[unsigned, positive, positive return natural]``. A type mark's name is given as written
+(:attr:`SubtypeSymbol.TypeMark <pyVHDLModel.Symbol.SubtypeSymbol.TypeMark>`): the model doesn't resolve type marks yet.
+The signature's parent is its subprogram, which keeps the signature until its parameter list changes.
+
+.. condensed-class:: pyVHDLModel.Subprogram.SubprogramSignature

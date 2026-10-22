@@ -43,6 +43,7 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyTooling.Graph        import Vertex
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
+from pyVHDLModel.Base       import modelClassOf
 from pyVHDLModel.Symbol     import Symbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin
@@ -722,6 +723,16 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		:returns: The subtype.
 		"""
 		return self._subtype
+
+	def Copy(self) -> RecordTypeElement:
+		"""
+		Create a copy of this record type element.
+
+		The copy has no parent. Its subtype is a copy of this element's subtype.
+
+		:returns: The new record type element.
+		"""
+		return modelClassOf(self)(self._identifiers, self._subtype.Copy(), self._documentation)
 
 	def __str__(self) -> str:
 		"""

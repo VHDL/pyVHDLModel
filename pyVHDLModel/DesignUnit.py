@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from __future__                import annotations
 
-from typing                    import ClassVar, Union, Iterable, Optional as Nullable
+from typing                    import TYPE_CHECKING, ClassVar, Union, Iterable, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators      import export, readonly
@@ -55,6 +55,9 @@ from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceIt
 from pyVHDLModel.Object        import DeferredConstant
 from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor     import Visitor
 
 
 @export
@@ -1234,6 +1237,17 @@ class Component(
 
 		self._isBlackbox = None
 		self._entity =     None
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this component declaration, its generic clause and its port clause with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitComponent(self)
+		self._VisitGenericClause(visitor)
+		self._VisitPortClause(visitor)
+		visitor.DepartComponent(self)
 
 	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""

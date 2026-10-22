@@ -43,6 +43,10 @@ element and then its children in source order as events to the visitor. A parser
 ``Depart<Class>(element)``
    The walk leaves an element of class ``<Class>``, after its last child.
 
+``Visit<Part>(element)`` and ``Depart<Part>(element)``
+   The walk enters or leaves a part of the element, which is not a model element itself, e.g. the generic clause of a
+   component. The events are named after the part's production in IEEE Std 1076-2008 (e.g. ``VisitGenericClause``).
+
 ``Visit<Token>(element)``
    The walk passes a token of the element between two of its parts, which is not a model element itself. The event is
    named after the token: a delimiter as IEEE Std 1076-2008 names it in clauses 15.2 and 15.3 (e.g. ``VisitArrow`` for
@@ -59,6 +63,7 @@ from pyTooling.MetaClasses     import ExtendedType, abstractclass
 if TYPE_CHECKING:
 	from pyVHDLModel.Association import AssociationItem
 	from pyVHDLModel.Base        import SimpleRange, RangeFromName
+	from pyVHDLModel.DesignUnit  import Component
 	from pyVHDLModel.Expression  import (
 		NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral,
 		PhysicalFloatingLiteral, CharacterLiteral, StringLiteral, BitStringLiteral, UnaryExpression, NegationExpression,
@@ -67,10 +72,22 @@ if TYPE_CHECKING:
 		QualifiedExpression, WhenElseExpression, SubtypeAllocation, QualifiedExpressionAllocation, SimpleAggregateElement,
 		IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, OthersAggregateElement, Aggregate
 	)
+	from pyVHDLModel.Interface   import (
+		ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, GenericConstantInterfaceItem,
+		GenericTypeInterfaceItem, PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem,
+		ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, ParameterSimpleSignalInterfaceItem,
+		ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem
+	)
 	from pyVHDLModel.Name        import (
 		SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, AttributeName, AllName, OpenName
 	)
-	from pyVHDLModel.Symbol      import Symbol
+	from pyVHDLModel.Object      import (
+		WithDefaultExpressionMixin, Constant, DeferredConstant, Variable, SharedVariable, Signal, File
+	)
+	from pyVHDLModel.Regions     import WithGenericsMixin, WithPortsMixin
+	from pyVHDLModel.Symbol      import (
+		Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol
+	)
 
 
 @export
@@ -90,7 +107,10 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The element enclosing the list.
 		"""
 
-	def VisitComma(self, element: IndexedName | ParenthesisName | Aggregate) -> None:
+	def VisitComma(
+		self,
+		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol
+	) -> None:
 		"""
 		Visit the comma between two items of a list.
 
@@ -140,6 +160,27 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Visit the direction (``to`` or ``downto``) between the bounds of a range.
 
 		:param rng: The range.
+		"""
+
+	def VisitSemicolon(self, element: WithGenericsMixin | WithPortsMixin) -> None:
+		"""
+		Visit the semicolon between two items of an interface list.
+
+		:param element: The element containing the interface list.
+		"""
+
+	def VisitVariableAssignment(self, element: WithDefaultExpressionMixin) -> None:
+		"""
+		Visit the variable assignment delimiter (``:=``) before a default expression.
+
+		:param element: The element with the default expression.
+		"""
+
+	def VisitIs(self, element: ModeViewDeclaration) -> None:
+		"""
+		Visit the reserved word ``is`` between the header and the body of a declaration.
+
+		:param element: The declaration.
 		"""
 
 	def VisitNullLiteral(self, literal: NullLiteral) -> None:
@@ -746,4 +787,382 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from a range denoted by a name, after its name.
 
 		:param rng: The range.
+		"""
+
+	def VisitRangeConstraint(self, symbol: ConstrainedScalarSubtypeSymbol) -> None:
+		"""
+		Visit the range constraint of a subtype indication, before its range.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+
+	def DepartRangeConstraint(self, symbol: ConstrainedScalarSubtypeSymbol) -> None:
+		"""
+		Depart from the range constraint of a subtype indication, after its range.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+
+	def VisitIndexConstraint(self, symbol: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol) -> None:
+		"""
+		Visit the index constraint of a subtype indication or of a record element, before its first range.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+
+	def DepartIndexConstraint(self, symbol: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol) -> None:
+		"""
+		Depart from the index constraint of a subtype indication or of a record element, after its last range.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+
+	def VisitRecordConstraint(self, symbol: ConstrainedRecordSubtypeSymbol) -> None:
+		"""
+		Visit the record constraint of a subtype indication, before its first record element constraint.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+
+	def DepartRecordConstraint(self, symbol: ConstrainedRecordSubtypeSymbol) -> None:
+		"""
+		Depart from the record constraint of a subtype indication, after its last record element constraint.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+
+	def VisitGenericClause(self, element: WithGenericsMixin) -> None:
+		"""
+		Visit the generic clause of an element, before its first generic.
+
+		:param element: The element with generics.
+		"""
+
+	def DepartGenericClause(self, element: WithGenericsMixin) -> None:
+		"""
+		Depart from the generic clause of an element, after its last generic.
+
+		:param element: The element with generics.
+		"""
+
+	def VisitPortClause(self, element: WithPortsMixin) -> None:
+		"""
+		Visit the port clause of an element, before its first port.
+
+		:param element: The element with ports.
+		"""
+
+	def DepartPortClause(self, element: WithPortsMixin) -> None:
+		"""
+		Depart from the port clause of an element, after its last port.
+
+		:param element: The element with ports.
+		"""
+
+	def VisitConstrainedScalarSubtypeSymbol(self, symbol: ConstrainedScalarSubtypeSymbol) -> None:
+		"""
+		Visit a constrained scalar subtype symbol, before its name.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+
+	def DepartConstrainedScalarSubtypeSymbol(self, symbol: ConstrainedScalarSubtypeSymbol) -> None:
+		"""
+		Depart from a constrained scalar subtype symbol, after its range constraint.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+
+	def VisitConstrainedArraySubtypeSymbol(self, symbol: ConstrainedArraySubtypeSymbol) -> None:
+		"""
+		Visit a constrained array subtype symbol, before its name.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+
+	def DepartConstrainedArraySubtypeSymbol(self, symbol: ConstrainedArraySubtypeSymbol) -> None:
+		"""
+		Depart from a constrained array subtype symbol, after its index constraint.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+
+	def VisitConstrainedRecordSubtypeSymbol(self, symbol: ConstrainedRecordSubtypeSymbol) -> None:
+		"""
+		Visit a constrained record subtype symbol, before its name.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+
+	def DepartConstrainedRecordSubtypeSymbol(self, symbol: ConstrainedRecordSubtypeSymbol) -> None:
+		"""
+		Depart from a constrained record subtype symbol, after its record constraint.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+
+	def VisitConstant(self, constant: Constant) -> None:
+		"""
+		Visit a constant declaration, before its subtype.
+
+		:param constant: The constant declaration.
+		"""
+
+	def DepartConstant(self, constant: Constant) -> None:
+		"""
+		Depart from a constant declaration, after its default expression.
+
+		:param constant: The constant declaration.
+		"""
+
+	def VisitDeferredConstant(self, constant: DeferredConstant) -> None:
+		"""
+		Visit a deferred constant declaration, before its subtype.
+
+		:param constant: The deferred constant declaration.
+		"""
+
+	def DepartDeferredConstant(self, constant: DeferredConstant) -> None:
+		"""
+		Depart from a deferred constant declaration, after its subtype.
+
+		:param constant: The deferred constant declaration.
+		"""
+
+	def VisitVariable(self, variable: Variable) -> None:
+		"""
+		Visit a variable declaration, before its subtype.
+
+		:param variable: The variable declaration.
+		"""
+
+	def DepartVariable(self, variable: Variable) -> None:
+		"""
+		Depart from a variable declaration, after its default expression.
+
+		:param variable: The variable declaration.
+		"""
+
+	def VisitSharedVariable(self, variable: SharedVariable) -> None:
+		"""
+		Visit a shared variable declaration, before its subtype.
+
+		:param variable: The shared variable declaration.
+		"""
+
+	def DepartSharedVariable(self, variable: SharedVariable) -> None:
+		"""
+		Depart from a shared variable declaration, after its subtype.
+
+		:param variable: The shared variable declaration.
+		"""
+
+	def VisitSignal(self, signal: Signal) -> None:
+		"""
+		Visit a signal declaration, before its subtype.
+
+		:param signal: The signal declaration.
+		"""
+
+	def DepartSignal(self, signal: Signal) -> None:
+		"""
+		Depart from a signal declaration, after its default expression.
+
+		:param signal: The signal declaration.
+		"""
+
+	def VisitFile(self, file: File) -> None:
+		"""
+		Visit a file declaration, before its subtype.
+
+		:param file: The file declaration.
+		"""
+
+	def DepartFile(self, file: File) -> None:
+		"""
+		Depart from a file declaration, after its subtype.
+
+		:param file: The file declaration.
+		"""
+
+	def VisitGenericConstantInterfaceItem(self, item: GenericConstantInterfaceItem) -> None:
+		"""
+		Visit a generic constant, before its subtype.
+
+		:param item: The generic constant.
+		"""
+
+	def DepartGenericConstantInterfaceItem(self, item: GenericConstantInterfaceItem) -> None:
+		"""
+		Depart from a generic constant, after its default expression.
+
+		:param item: The generic constant.
+		"""
+
+	def VisitGenericTypeInterfaceItem(self, item: GenericTypeInterfaceItem) -> None:
+		"""
+		Visit a generic type.
+
+		:param item: The generic type.
+		"""
+
+	def DepartGenericTypeInterfaceItem(self, item: GenericTypeInterfaceItem) -> None:
+		"""
+		Depart from a generic type.
+
+		:param item: The generic type.
+		"""
+
+	def VisitPortSimpleSignalInterfaceItem(self, item: PortSimpleSignalInterfaceItem) -> None:
+		"""
+		Visit a port with a mode, before its subtype.
+
+		:param item: The port.
+		"""
+
+	def DepartPortSimpleSignalInterfaceItem(self, item: PortSimpleSignalInterfaceItem) -> None:
+		"""
+		Depart from a port with a mode, after its default expression.
+
+		:param item: The port.
+		"""
+
+	def VisitPortViewSignalInterfaceItem(self, item: PortViewSignalInterfaceItem) -> None:
+		"""
+		Visit a port with a mode view, before its mode view indication.
+
+		:param item: The port.
+		"""
+
+	def DepartPortViewSignalInterfaceItem(self, item: PortViewSignalInterfaceItem) -> None:
+		"""
+		Depart from a port with a mode view, after its mode view indication.
+
+		:param item: The port.
+		"""
+
+	def VisitParameterConstantInterfaceItem(self, item: ParameterConstantInterfaceItem) -> None:
+		"""
+		Visit a constant parameter, before its subtype.
+
+		:param item: The constant parameter.
+		"""
+
+	def DepartParameterConstantInterfaceItem(self, item: ParameterConstantInterfaceItem) -> None:
+		"""
+		Depart from a constant parameter, after its default expression.
+
+		:param item: The constant parameter.
+		"""
+
+	def VisitParameterVariableInterfaceItem(self, item: ParameterVariableInterfaceItem) -> None:
+		"""
+		Visit a variable parameter, before its subtype.
+
+		:param item: The variable parameter.
+		"""
+
+	def DepartParameterVariableInterfaceItem(self, item: ParameterVariableInterfaceItem) -> None:
+		"""
+		Depart from a variable parameter, after its default expression.
+
+		:param item: The variable parameter.
+		"""
+
+	def VisitParameterSimpleSignalInterfaceItem(self, item: ParameterSimpleSignalInterfaceItem) -> None:
+		"""
+		Visit a signal parameter with a mode, before its subtype.
+
+		:param item: The signal parameter.
+		"""
+
+	def DepartParameterSimpleSignalInterfaceItem(self, item: ParameterSimpleSignalInterfaceItem) -> None:
+		"""
+		Depart from a signal parameter with a mode, after its default expression.
+
+		:param item: The signal parameter.
+		"""
+
+	def VisitParameterViewSignalInterfaceItem(self, item: ParameterViewSignalInterfaceItem) -> None:
+		"""
+		Visit a signal parameter with a mode view, before its mode view indication.
+
+		:param item: The signal parameter.
+		"""
+
+	def DepartParameterViewSignalInterfaceItem(self, item: ParameterViewSignalInterfaceItem) -> None:
+		"""
+		Depart from a signal parameter with a mode view, after its mode view indication.
+
+		:param item: The signal parameter.
+		"""
+
+	def VisitParameterFileInterfaceItem(self, item: ParameterFileInterfaceItem) -> None:
+		"""
+		Visit a file parameter, before its subtype.
+
+		:param item: The file parameter.
+		"""
+
+	def DepartParameterFileInterfaceItem(self, item: ParameterFileInterfaceItem) -> None:
+		"""
+		Depart from a file parameter, after its subtype.
+
+		:param item: The file parameter.
+		"""
+
+	def VisitModeViewDeclaration(self, declaration: ModeViewDeclaration) -> None:
+		"""
+		Visit a mode view declaration, before its subtype.
+
+		:param declaration: The mode view declaration.
+		"""
+
+	def DepartModeViewDeclaration(self, declaration: ModeViewDeclaration) -> None:
+		"""
+		Depart from a mode view declaration, after its last element.
+
+		:param declaration: The mode view declaration.
+		"""
+
+	def VisitSimpleModeViewElement(self, element: SimpleModeViewElement) -> None:
+		"""
+		Visit an element of a mode view with a mode.
+
+		:param element: The mode view element.
+		"""
+
+	def DepartSimpleModeViewElement(self, element: SimpleModeViewElement) -> None:
+		"""
+		Depart from an element of a mode view with a mode.
+
+		:param element: The mode view element.
+		"""
+
+	def VisitCompositeModeViewElement(self, element: CompositeModeViewElement) -> None:
+		"""
+		Visit an element of a mode view with a mode view, before its mode view name.
+
+		:param element: The mode view element.
+		"""
+
+	def DepartCompositeModeViewElement(self, element: CompositeModeViewElement) -> None:
+		"""
+		Depart from an element of a mode view with a mode view, after its mode view name.
+
+		:param element: The mode view element.
+		"""
+
+	def VisitComponent(self, component: Component) -> None:
+		"""
+		Visit a component declaration, before its generic clause.
+
+		:param component: The component declaration.
+		"""
+
+	def DepartComponent(self, component: Component) -> None:
+		"""
+		Depart from a component declaration, after its port clause.
+
+		:param component: The component declaration.
 		"""

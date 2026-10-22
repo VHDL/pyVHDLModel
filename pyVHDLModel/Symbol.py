@@ -1229,16 +1229,18 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol, ScalarConstraint):
 		copy._reference = self._reference
 		return copy
 
-	@notimplemented("Model element has no walk for a visitor.")
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this constrained scalar subtype symbol with a visitor.
+		Walk this constrained scalar subtype symbol, its name and its range constraint with a visitor.
 
-		The walk of its base class would drop the constraint.
-
-		:param visitor:              The visitor receiving the events.
-		:raises NotImplementedError: Always, because the constraint has no walk yet.
+		:param visitor: The visitor receiving the events.
 		"""
+		visitor.VisitConstrainedScalarSubtypeSymbol(self)
+		self._name.Visit(visitor)
+		visitor.VisitRangeConstraint(self)
+		self._constraint.Visit(visitor)
+		visitor.DepartRangeConstraint(self)
+		visitor.DepartConstrainedScalarSubtypeSymbol(self)
 
 
 @export
@@ -1321,10 +1323,10 @@ class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 		"""
 		Walk this constrained composite subtype symbol with a visitor.
 
-		The walk of its base class would drop the constraint.
+		The walk of its base class would drop the constraint; the array and record subclasses walk their constraint.
 
 		:param visitor:              The visitor receiving the events.
-		:raises NotImplementedError: Always, because the constraint has no walk yet.
+		:raises NotImplementedError: Always, because a subclass without a walk of its own can't walk its constraint.
 		"""
 
 
@@ -1367,6 +1369,24 @@ class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol, ArrayCons
 		copy._reference = self._reference
 		return copy
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this constrained array subtype symbol, its name and its index constraint with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConstrainedArraySubtypeSymbol(self)
+		self._name.Visit(visitor)
+		visitor.VisitIndexConstraint(self)
+		for index, constraint in enumerate(self._constraints):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			constraint.Visit(visitor)
+
+		visitor.DepartIndexConstraint(self)
+		visitor.DepartConstrainedArraySubtypeSymbol(self)
+
 
 @export
 class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordConstraint):
@@ -1402,6 +1422,29 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 		copy = self.__class__(self._name.Copy(), constraints)
 		copy._reference = self._reference
 		return copy
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this constrained record subtype symbol, its name and its record constraint with a visitor.
+
+		Each record element constraint is walked as the element's name followed by an index constraint.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConstrainedRecordSubtypeSymbol(self)
+		self._name.Visit(visitor)
+		visitor.VisitRecordConstraint(self)
+		for index, (element, constraint) in enumerate(self._constraints.items()):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			element.Visit(visitor)
+			visitor.VisitIndexConstraint(self)
+			constraint.Visit(visitor)
+			visitor.DepartIndexConstraint(self)
+
+		visitor.DepartRecordConstraint(self)
+		visitor.DepartConstrainedRecordSubtypeSymbol(self)
 
 
 @export

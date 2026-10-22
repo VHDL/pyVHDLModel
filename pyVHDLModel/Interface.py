@@ -36,7 +36,7 @@ Interface items are used in generic, port and parameter declarations.
 """
 from __future__             import annotations
 
-from typing                 import Iterable, Optional as Nullable, Iterator, Self
+from typing                 import TYPE_CHECKING, Iterable, Optional as Nullable, Iterator, Self
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
@@ -49,6 +49,9 @@ from pyVHDLModel.Object     import Constant, Signal, Variable, File
 from pyVHDLModel.Regions    import WithGenericsMixin, WithPortsMixin, WithParametersMixin
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor  import Visitor
 
 
 @export
@@ -129,6 +132,15 @@ class SimpleModeViewElement(ModeViewElement):
 		super().__init__(identifiers, documentation, parent)
 		self._mode = mode
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this simple mode view element with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSimpleModeViewElement(self)
+		visitor.DepartSimpleModeViewElement(self)
+
 	@readonly
 	def Mode(self) -> Mode:
 		"""
@@ -184,6 +196,16 @@ class CompositeModeViewElement(ModeViewElement):
 
 		self._modeViewName = modeViewName
 		modeViewName.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this composite mode view element and its mode view name with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitCompositeModeViewElement(self)
+		self._modeViewName.Visit(visitor)
+		visitor.DepartCompositeModeViewElement(self)
 
 	@readonly
 	def ModeViewName(self) -> ModeViewSymbol:
@@ -258,6 +280,20 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 			for element in elements:
 				self._elements.append(element)
 				element.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this mode view declaration, its subtype and its elements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitModeViewDeclaration(self)
+		self._subtype.Visit(visitor)
+		visitor.VisitIs(self)
+		for element in self._elements:
+			element.Visit(visitor)
+
+		visitor.DepartModeViewDeclaration(self)
 
 	@readonly
 	def Subtype(self) -> SubtypeSymbol:
@@ -473,6 +509,17 @@ class GenericConstantInterfaceItem(Constant, GenericInterfaceItemMixin, Interfac
 			self._documentation
 		)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this generic constant, its subtype and its default expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitGenericConstantInterfaceItem(self)
+		self._subtype.Visit(visitor)
+		self._VisitDefaultExpression(visitor)
+		visitor.DepartGenericConstantInterfaceItem(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the generic constant.
@@ -518,6 +565,15 @@ class GenericTypeInterfaceItem(Type, GenericInterfaceItemMixin):
 		:returns: The new generic type.
 		"""
 		return self.__class__(self._identifier, self._documentation)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this generic type with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitGenericTypeInterfaceItem(self)
+		visitor.DepartGenericTypeInterfaceItem(self)
 
 
 @export
@@ -747,6 +803,17 @@ class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem, InterfaceItemWithMo
 			self._documentation
 		)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this port, its subtype and its default expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitPortSimpleSignalInterfaceItem(self)
+		self._subtype.Visit(visitor)
+		self._VisitDefaultExpression(visitor)
+		visitor.DepartPortSimpleSignalInterfaceItem(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the port.
@@ -796,6 +863,16 @@ class PortViewSignalInterfaceItem(PortSignalInterfaceItem):
 		:param parent:             The parent model entity of this entity.
 		"""
 		super().__init__(identifiers, modeViewIndication, None, documentation, parent)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this port and its mode view indication with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitPortViewSignalInterfaceItem(self)
+		self._subtype.Visit(visitor)
+		visitor.DepartPortViewSignalInterfaceItem(self)
 
 	@readonly
 	def ModeViewIndication(self) -> ModeViewSymbol:
@@ -883,6 +960,17 @@ class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItemMixin, Inte
 			self._documentation
 		)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this constant parameter, its subtype and its default expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitParameterConstantInterfaceItem(self)
+		self._subtype.Visit(visitor)
+		self._VisitDefaultExpression(visitor)
+		visitor.DepartParameterConstantInterfaceItem(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the constant parameter.
@@ -948,6 +1036,17 @@ class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItemMixin, Inte
 			defaultExpression,
 			self._documentation
 		)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this variable parameter, its subtype and its default expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitParameterVariableInterfaceItem(self)
+		self._subtype.Visit(visitor)
+		self._VisitDefaultExpression(visitor)
+		visitor.DepartParameterVariableInterfaceItem(self)
 
 	def __str__(self) -> str:
 		"""
@@ -1040,6 +1139,17 @@ class ParameterSimpleSignalInterfaceItem(ParameterSignalInterfaceItem, Interface
 			self._documentation
 		)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this signal parameter, its subtype and its default expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitParameterSimpleSignalInterfaceItem(self)
+		self._subtype.Visit(visitor)
+		self._VisitDefaultExpression(visitor)
+		visitor.DepartParameterSimpleSignalInterfaceItem(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the signal parameter.
@@ -1090,6 +1200,16 @@ class ParameterViewSignalInterfaceItem(ParameterSignalInterfaceItem):
 		"""
 		super().__init__(identifiers, modeViewIndication, None, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this signal parameter and its mode view indication with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitParameterViewSignalInterfaceItem(self)
+		self._subtype.Visit(visitor)
+		visitor.DepartParameterViewSignalInterfaceItem(self)
 
 	@readonly
 	def ModeViewIndication(self) -> ModeViewSymbol:
@@ -1162,6 +1282,16 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
 		:returns: The new file parameter.
 		"""
 		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this file parameter and its subtype with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitParameterFileInterfaceItem(self)
+		self._subtype.Visit(visitor)
+		visitor.DepartParameterFileInterfaceItem(self)
 
 	def __str__(self) -> str:
 		"""

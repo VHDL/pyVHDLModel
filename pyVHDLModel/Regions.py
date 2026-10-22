@@ -56,6 +56,7 @@ if TYPE_CHECKING:
 	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin
 	from pyVHDLModel.Interface import PortSignalInterfaceItem
 	from pyVHDLModel.Type      import Subtype, FullType
+	from pyVHDLModel.Visitor   import Visitor
 
 # `pyVHDLModel.Subprogram` imports this module (Subprogram is a sequential declaration region), so
 # `Function`/`Procedure` are quoted in annotations and imported lazily where they're needed at runtime.
@@ -360,6 +361,26 @@ class WithGenericsMixin(
 			for normalizedIdentifier in normalizedIdentifiersOf(item):
 				self._namespace.AddElement(normalizedIdentifier, item, overloadable=overloadable)
 
+	def _VisitGenericClause(self, visitor: Visitor) -> None:
+		"""
+		Walk the generic clause, if there are generics, with a visitor.
+
+		The generics are separated by semicolons.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if len(self._genericItems) == 0:
+			return
+
+		visitor.VisitGenericClause(self)
+		for index, item in enumerate(self._genericItems):
+			if index > 0:
+				visitor.VisitSemicolon(self)
+
+			item.Visit(visitor)
+
+		visitor.DepartGenericClause(self)
+
 
 @export
 class WithPortsMixin(
@@ -639,6 +660,26 @@ class WithPortsMixin(
 		for item in self._portItems:
 			for normalizedIdentifier in normalizedIdentifiersOf(item):
 				self._namespace.AddElement(normalizedIdentifier, item)
+
+	def _VisitPortClause(self, visitor: Visitor) -> None:
+		"""
+		Walk the port clause, if there are ports, with a visitor.
+
+		The ports are separated by semicolons.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if len(self._portItems) == 0:
+			return
+
+		visitor.VisitPortClause(self)
+		for index, item in enumerate(self._portItems):
+			if index > 0:
+				visitor.VisitSemicolon(self)
+
+			item.Visit(visitor)
+
+		visitor.DepartPortClause(self)
 
 
 @export

@@ -40,7 +40,8 @@ from unittest                    import skipIf
 from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Association     import ParameterAssociationItem
-from pyVHDLModel.Base            import Direction, SimpleRange
+from pyVHDLModel.Base            import Direction, Mode, SimpleRange
+from pyVHDLModel.DesignUnit      import Component
 from pyVHDLModel.Expression      import (
 	IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral, PhysicalFloatingLiteral, CharacterLiteral,
 	StringLiteral, BinaryBitStringLiteral, DecimalBitStringLiteral, HexadecimalBitStringLiteral,
@@ -52,9 +53,18 @@ from pyVHDLModel.Expression      import (
 	SimpleAggregateElement, IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement,
 	OthersAggregateElement, Aggregate
 )
-from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
+from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
+from pyVHDLModel.Interface       import (
+	GenericConstantInterfaceItem, GenericTypeInterfaceItem, PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem,
+	ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, ParameterSimpleSignalInterfaceItem,
+	ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem, ModeViewDeclaration, SimpleModeViewElement,
+	CompositeModeViewElement
+)
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, AttributeName
+from pyVHDLModel.Object          import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
 from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol, IndexedObjectOrFunctionCallSymbol
+from pyVHDLModel.Symbol          import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol
+from pyVHDLModel.Symbol          import ConstrainedRecordSubtypeSymbol, ModeViewSymbol
 
 from tests.unit.Writer           import _GHDL, _analyze, _object
 
@@ -270,3 +280,145 @@ class GHDLOracle(Testcase):
 		for value in ("not not p", "p and q or r", "p nand q nand r", "a = b = p"):
 			with self.subTest(value=value):
 				self.assertNotEqual(0, _analyze(_package([("boolean", value)])).returncode)
+
+
+@skipIf(_GHDL is None, "GHDL is not on PATH.")
+class GHDLOracleDeclarations(Testcase):
+	def test_Objects(self) -> None:
+		writer =   VHDLWriter()
+		byte =     ConstrainedArraySubtypeSymbol(SimpleName("bit_vector"), [
+			DescendingRangeExpression(IntegerLiteral(7), IntegerLiteral(0))
+		])
+		count =    ConstrainedScalarSubtypeSymbol(
+			SimpleName("integer"),
+			SimpleRange(IntegerLiteral(0), IntegerLiteral(15), Direction.To)
+		)
+		frame =    ConstrainedRecordSubtypeSymbol(SimpleName("frame_t"), {
+			RecordElementSymbol(SimpleName("data")): DescendingRangeExpression(IntegerLiteral(7), IntegerLiteral(0))
+		})
+		package =  "".join(writer.Format(declaration) for declaration in (
+			Constant(["A", "B"], _integer("natural"), IntegerLiteral(1)),
+			DeferredConstant(["C"], _integer("natural")),
+			Signal(["s1", "s2"], byte, _object("v")),
+			Signal(["s3"], count),
+			Signal(["s4"], frame),
+			SharedVariable(["counter"], _integer("counter_t")),
+			File(["log"], _integer("text_file")),
+		))
+		variables = "".join(writer.Format(declaration) for declaration in (
+			Variable(["v1"], count, IntegerLiteral(3)),
+			Variable(["v2"], byte),
+		))
+		source =   dedent("""\
+			package objects is
+				constant v : bit_vector(7 downto 0) := x"A5";
+				type frame_t is record
+					data : bit_vector;
+				end record;
+				type text_file is file of string;
+				type counter_t is protected
+				end protected;
+			{package}end package;
+
+			package body objects is
+				constant C : natural := 2;
+				type counter_t is protected body
+				end protected body;
+			end package body;
+
+			entity tb is
+			end entity;
+
+			architecture sim of tb is
+			begin
+				process
+			{variables}	begin
+					wait;
+				end process;
+			end architecture;
+			""").format(package=package, variables=variables)
+
+		result = _analyze(source)
+
+		self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)
+
+	def test_Component(self) -> None:
+		component = Component(
+			"counter",
+			[
+				GenericConstantInterfaceItem(["BITS"], Mode.Default, _integer("positive"), IntegerLiteral(8)),
+				GenericConstantInterfaceItem(["INIT"], Mode.In, _integer("natural")),
+				GenericTypeInterfaceItem("element_t")
+			],
+			[
+				PortSimpleSignalInterfaceItem(["clk", "rst"], Mode.In, _integer("bit")),
+				PortSimpleSignalInterfaceItem(["enable"], Mode.Default, _integer("bit"), CharacterLiteral("1")),
+				PortSimpleSignalInterfaceItem(["value"], Mode.Out, _integer("element_t")),
+				PortSimpleSignalInterfaceItem(["data"], Mode.InOut, _integer("bit")),
+				PortSimpleSignalInterfaceItem(["last"], Mode.Buffer, _integer("bit"))
+			]
+		)
+
+		for style in (VHDLStyle(), VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs)):
+			with self.subTest(style=style.KeywordCase):
+				source = f"package components is\n{VHDLWriter(style).Format(component)}end package;\n"
+
+				result = _analyze(source)
+
+				self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)
+
+	def test_Parameters(self) -> None:
+		writer =     VHDLWriter()
+		parameters = "; ".join(writer.Format(item) for item in (
+			ParameterConstantInterfaceItem(["a"], Mode.In, _integer("integer"), IntegerLiteral(0)),
+			ParameterVariableInterfaceItem(["b"], Mode.InOut, _integer("integer")),
+			ParameterSimpleSignalInterfaceItem(["c"], Mode.Out, _integer("bit")),
+			ParameterSimpleSignalInterfaceItem(["d"], Mode.Default, _integer("bit")),
+			ParameterFileInterfaceItem(["e"], _integer("text_file"))
+		))
+		source =     dedent("""\
+			package parameters is
+				type text_file is file of string;
+				procedure p({parameters});
+			end package;
+			""").format(parameters=parameters)
+
+		result = _analyze(source)
+
+		self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)
+
+	def test_ModeView(self) -> None:
+		"""Mode views are VHDL-2019."""
+		writer =      VHDLWriter()
+		declaration = ModeViewDeclaration("master", _integer("bus_t"), [
+			SimpleModeViewElement(["valid", "data"], Mode.Out),
+			SimpleModeViewElement(["ready"], Mode.In),
+			CompositeModeViewElement(["request"], ModeViewSymbol(SimpleName("request_master")))
+		])
+		port =        writer.Format(PortViewSignalInterfaceItem(["link"], ModeViewSymbol(SimpleName("master"))))
+		parameter =   writer.Format(ParameterViewSignalInterfaceItem(["link"], ModeViewSymbol(SimpleName("master"))))
+		source =      dedent("""\
+			package views is
+				type request_t is record
+					address : bit_vector(7 downto 0);
+				end record;
+				view request_master of request_t is
+					address : out;
+				end view;
+				type bus_t is record
+					valid, data, ready : bit;
+					request : request_t;
+				end record;
+			{declaration}	procedure p({parameter});
+			end package;
+
+			use work.views.all;
+
+			entity e is
+				port ({port});
+			end entity;
+			""").format(declaration=writer.Format(declaration), parameter=parameter, port=port)
+
+		result = _analyze(source, std="19")
+
+		self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)

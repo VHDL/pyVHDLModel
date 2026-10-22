@@ -42,7 +42,7 @@ from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
-from pyVHDLModel.Base        import ModelEntity
+from pyVHDLModel.Base        import ModelEntity, modelClassOf
 from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError
 from pyVHDLModel.Exception   import DuplicateGenericAssociationError, DuplicatePortAssociationError
 from pyVHDLModel.Name        import Name, SimpleName
@@ -115,6 +115,18 @@ class AssociationItem(ModelEntity):
 		:returns: The actual.
 		"""
 		return self._actual
+
+	def Copy(self) -> AssociationItem:
+		"""
+		Create a copy of this association item.
+
+		The copy has no parent. Its formal and actual are copies of this item's formal and actual.
+
+		:returns: The new association item.
+		"""
+		formal = None if self._formal is None else self._formal.Copy()
+		actual = None if self._actual is None else self._actual.Copy()
+		return modelClassOf(self)(formal, actual)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

@@ -43,7 +43,7 @@ from typing                import TYPE_CHECKING, Iterable, Optional as Nullable
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import abstractclass
 
-from pyVHDLModel.Base      import ModelEntity, ExpressionUnion
+from pyVHDLModel.Base      import ModelEntity, ExpressionUnion, modelClassOf
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor import Visitor
 
@@ -140,6 +140,17 @@ class Name(ModelEntity):
 		"""
 		return self._prefix is not None
 
+	def Copy(self) -> Name:
+		"""
+		Create a copy of this name.
+
+		The copy has no parent. Its prefix, if any, is a copy of this name's prefix.
+
+		:returns: The new name.
+		"""
+		prefix = None if self._prefix is None else self._prefix.Copy()
+		return modelClassOf(self)(self._identifier, prefix)
+
 	def __repr__(self) -> str:
 		"""
 		Formats a representation of the name.
@@ -214,6 +225,16 @@ class ParenthesisName(Name):
 		"""
 		return self._associations
 
+	def Copy(self) -> ParenthesisName:
+		"""
+		Create a copy of this parenthesis name.
+
+		The copy has no parent. Its prefix and associations are copies of this name's prefix and associations.
+
+		:returns: The new parenthesis name.
+		"""
+		return modelClassOf(self)(self._prefix.Copy(), [association.Copy() for association in self._associations])
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this parenthesis name, its prefix and its associations with a visitor.
@@ -279,6 +300,16 @@ class IndexedName(Name):
 		:returns: List of indices.
 		"""
 		return self._indices
+
+	def Copy(self) -> IndexedName:
+		"""
+		Create a copy of this indexed name.
+
+		The copy has no parent. Its prefix and indices are copies of this name's prefix and indices.
+
+		:returns: The new indexed name.
+		"""
+		return modelClassOf(self)(self._prefix.Copy(), [index.Copy() for index in self._indices])
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -357,6 +388,16 @@ class SelectedName(Name):
 		"""
 		super().__init__(identifier, prefix, parent)
 
+	def Copy(self) -> SelectedName:
+		"""
+		Create a copy of this selected name.
+
+		The copy has no parent. Its prefix is a copy of this name's prefix.
+
+		:returns: The new selected name.
+		"""
+		return modelClassOf(self)(self._identifier, self._prefix.Copy())
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this selected name and its prefix with a visitor.
@@ -400,6 +441,16 @@ class AttributeName(Name):
 		"""
 		super().__init__(identifier, prefix, parent)
 
+	def Copy(self) -> AttributeName:
+		"""
+		Create a copy of this attribute name.
+
+		The copy has no parent. Its prefix is a copy of this name's prefix.
+
+		:returns: The new attribute name.
+		"""
+		return modelClassOf(self)(self._identifier, self._prefix.Copy())
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this attribute name and its prefix with a visitor.
@@ -437,6 +488,16 @@ class AllName(SelectedName):
 		"""
 		super().__init__("all", prefix, parent)  # TODO: the case of 'ALL' is not preserved
 
+	def Copy(self) -> AllName:
+		"""
+		Create a copy of this ``all`` name.
+
+		The copy has no parent. Its prefix is a copy of this name's prefix.
+
+		:returns: The new ``all`` name.
+		"""
+		return modelClassOf(self)(self._prefix.Copy())
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this ``all`` name and its prefix with a visitor.
@@ -462,6 +523,16 @@ class OpenName(Name):
 		:param parent: The parent model entity of this entity.
 		"""
 		super().__init__("open", parent=parent)  # TODO: the case of 'OPEN' is not preserved
+
+	def Copy(self) -> OpenName:
+		"""
+		Create a copy of this ``open`` name.
+
+		The copy has no parent.
+
+		:returns: The new ``open`` name.
+		"""
+		return modelClassOf(self)()
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

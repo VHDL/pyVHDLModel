@@ -185,6 +185,24 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 
 
 @export
+def modelClassOf(element: ModelElementUnion) -> type:
+	"""
+	Return the class a copy of a model element is constructed from.
+
+	It is the element's own class, if pyVHDLModel defines it, otherwise the nearest base-class pyVHDLModel defines. So a
+	copy of a :mod:`pyGHDL.dom` element is an instance of the pyVHDLModel class it derives from.
+
+	:param element: The model element to copy.
+	:returns:       The nearest class of the element defined in a module of pyVHDLModel.
+	"""
+	for cls in type(element).__mro__:
+		if cls.__module__ == "pyVHDLModel" or cls.__module__.startswith("pyVHDLModel."):
+			break
+
+	return cls
+
+
+@export
 class NamedEntityMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A ``NamedEntityMixin`` is a mixin class for all VHDL entities that have an identifier.
@@ -824,6 +842,16 @@ class SimpleRange(Range):
 		"""
 		return self._direction
 
+	def Copy(self) -> SimpleRange:
+		"""
+		Create a copy of this simple range.
+
+		The copy has no parent. Its bounds are copies of this range's bounds.
+
+		:returns: The new simple range.
+		"""
+		return modelClassOf(self)(self._leftBound.Copy(), self._rightBound.Copy(), self._direction)
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this range, its left bound and its right bound with a visitor.
@@ -890,6 +918,16 @@ class RangeFromName(Range):
 		:returns: The symbol.
 		"""
 		return self._symbol
+
+	def Copy(self) -> RangeFromName:
+		"""
+		Create a copy of this range denoted by a name.
+
+		The copy has no parent. Its symbol is a copy of this range's symbol.
+
+		:returns: The new range denoted by a name.
+		"""
+		return modelClassOf(self)(self._symbol.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

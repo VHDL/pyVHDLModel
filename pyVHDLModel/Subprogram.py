@@ -38,6 +38,7 @@ from __future__             import annotations
 
 from typing                 import ClassVar, Iterable, Optional as Nullable
 
+from pyTooling.Common       import getFullyQualifiedName
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
@@ -47,6 +48,131 @@ from pyVHDLModel.Type       import ProtectedType
 from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
 from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, WithGenericsMixin, WithParametersMixin
 from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixin
+
+
+@export
+class SubprogramSignature(metaclass=ExtendedType, slots=True):
+	"""
+	Represents a subprogram's signature: the type marks of its parameters and of a function's return value.
+
+	The overloads of a subprogram differ in their signature. A parameter declaring several identifiers - ``a, b : in
+	natural`` - contributes its type mark once per identifier. The string form is VHDL's notation of a signature
+	(IEEE Std 1076-2019, 4.5.3), as an alias declaration or attribute specification writes it:
+	``[natural, natural return boolean]``.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      function to_index(value : unsigned; low, high : positive) return natural;
+	      --                        ^^^^^^^^              ^^^^^^^^        ^^^^^^^   <- ParameterTypes and ReturnType
+	      --                                         (twice)
+	"""
+	_parameterTypes: tuple[SubtypeSymbol, ...]  #: The type marks of the parameters, one per parameter identifier.
+	_returnType:     Nullable[SubtypeSymbol]    #: The type mark of a function's return value, if a function.
+
+	def __init__(self, parameterTypes: Iterable[SubtypeSymbol], returnType: Nullable[SubtypeSymbol] = None) -> None:
+		"""
+		Initializes a subprogram signature.
+
+		:param parameterTypes: The type marks of the parameters, one per parameter identifier.
+		:param returnType:     Optional, the type mark of a function's return value. Default: ``None``, a procedure.
+		:raises ValueError:    If parameter 'parameterTypes' is ``None``.
+		:raises TypeError:     If parameter 'parameterTypes' is not iterable.
+		:raises TypeError:     If an element of parameter 'parameterTypes' is not of type
+		                       :class:`~pyVHDLModel.Symbol.SubtypeSymbol`.
+		:raises TypeError:     If parameter 'returnType' is not of type :class:`~pyVHDLModel.Symbol.SubtypeSymbol`.
+		"""
+		if parameterTypes is None:
+			raise ValueError("Parameter 'parameterTypes' is None.")
+		elif not isinstance(parameterTypes, Iterable):
+			ex = TypeError("Parameter 'parameterTypes' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parameterTypes)}'.")
+			raise ex
+
+		types = []
+		for parameterType in parameterTypes:
+			if not isinstance(parameterType, SubtypeSymbol):
+				ex = TypeError("Element of parameter 'parameterTypes' is not of type 'SubtypeSymbol'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(parameterType)}'.")
+				raise ex
+
+			types.append(parameterType)
+
+		if returnType is not None and not isinstance(returnType, SubtypeSymbol):
+			ex = TypeError("Parameter 'returnType' is not of type 'SubtypeSymbol'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(returnType)}'.")
+			raise ex
+
+		self._parameterTypes = tuple(types)
+		self._returnType =     returnType
+
+	@readonly
+	def ParameterTypes(self) -> tuple[SubtypeSymbol, ...]:
+		"""
+		Read-only property to access the type marks of the parameters (:attr:`_parameterTypes`).
+
+		:returns: Tuple of the parameters' type marks, one per parameter identifier, in declaration order.
+		"""
+		return self._parameterTypes
+
+	@readonly
+	def ReturnType(self) -> Nullable[SubtypeSymbol]:
+		"""
+		Read-only property to access the type mark of a function's return value (:attr:`_returnType`).
+
+		:returns: The return value's type mark, or ``None`` for a procedure.
+		"""
+		return self._returnType
+
+	@staticmethod
+	def _TypeName(symbol: SubtypeSymbol) -> str:
+		"""
+		Return a type mark's name, as written: a simple name, or a selected name with its prefixes.
+
+		:param symbol: The type mark.
+		:returns:      The name, e.g. ``natural`` or ``ieee.numeric_std.unsigned``.
+		"""
+		name = symbol.Name
+		parts = [name.Identifier]
+		while name.HasPrefix:
+			name = name.Prefix
+			parts.insert(0, name.Identifier)
+
+		return ".".join(parts)
+
+	def ParameterTypeNames(self) -> list[str]:
+		"""
+		Return the names of the parameters' type marks, as written.
+
+		A type mark's name is written as in the source - ``natural`` or ``ieee.numeric_std.unsigned`` -: the model doesn't
+		resolve type marks yet, so the fully qualified name of the denoted type isn't known.
+
+		:returns: List of the type marks' names, one per parameter identifier, in declaration order.
+		"""
+		return [self._TypeName(parameterType) for parameterType in self._parameterTypes]
+
+	def ReturnTypeName(self) -> Nullable[str]:
+		"""
+		Return the name of a function's return type mark, as written.
+
+		:returns: The return type mark's name, or ``None`` for a procedure.
+		"""
+		return None if self._returnType is None else self._TypeName(self._returnType)
+
+	def __str__(self) -> str:
+		"""
+		Return the signature in VHDL's notation: the parameters' type marks, comma separated, and a function's return type
+		mark, in brackets.
+
+		:returns: The signature, e.g. ``[unsigned, positive, positive return natural]`` or ``[natural]``.
+		"""
+		signature = ", ".join(self.ParameterTypeNames())
+		if self._returnType is not None:
+			returnType = f"return {self.ReturnTypeName()}"
+			signature = returnType if signature == "" else f"{signature} {returnType}"
+
+		return f"[{signature}]"
 
 
 @export
@@ -128,6 +254,24 @@ class Subprogram(
 		:returns: ``True``, if the subprogram is pure.
 		"""
 		return self._isPure
+
+	@readonly
+	def Signature(self) -> SubprogramSignature:
+		"""
+		Read-only property to return the subprogram's signature: the type marks of its parameters, and of a function's
+		return value.
+
+		:returns: The signature.
+		"""
+		return SubprogramSignature(self._ParameterTypes(), None)
+
+	def _ParameterTypes(self) -> list[SubtypeSymbol]:
+		"""
+		Return the type marks of the parameters, one per parameter identifier.
+
+		:returns: List of the type marks, in declaration order.
+		"""
+		return [item._subtype for item in self._parameterItems for _ in identifiersOf(item)]
 
 
 	def IndexDeclaredItems(self) -> None:
@@ -302,6 +446,15 @@ class Function(Subprogram):
 		:returns: The return type.
 		"""
 		return self._returnType
+
+	@readonly
+	def Signature(self) -> SubprogramSignature:
+		"""
+		Read-only property to return the function's signature: the type marks of its parameters and of its return value.
+
+		:returns: The signature.
+		"""
+		return SubprogramSignature(self._ParameterTypes(), self._returnType)
 
 
 @export

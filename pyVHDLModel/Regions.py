@@ -175,6 +175,8 @@ class WithGenericsMixin(
 		      |rarr| Add a generic at the end of the generic clause.
 		   :meth:`RemoveGenericItem`
 		      |rarr| Remove a generic from the generic clause.
+		   :meth:`MoveGenericItem`
+		      |rarr| Move a generic to a position of the generic clause.
 		"""
 		from pyVHDLModel.Interface import GenericInterfaceItemMixin
 
@@ -246,6 +248,8 @@ class WithGenericsMixin(
 		      |rarr| Add a generic at the end of the generic clause.
 		   :meth:`InsertGenericItem`
 		      |rarr| Insert a generic at a position of the generic clause.
+		   :meth:`MoveGenericItem`
+		      |rarr| Move a generic to a position of the generic clause.
 		"""
 		from pyVHDLModel.Interface import GenericInterfaceItemMixin
 
@@ -270,6 +274,81 @@ class WithGenericsMixin(
 		self._RemoveFromNamespace(genericItem)
 		del self._genericItems[index]
 		genericItem._parent = None
+
+	def MoveGenericItem(self, genericItem: GenericInterfaceItemMixin, index: int) -> None:
+		"""
+		Move a generic to a position of the generic clause.
+
+		The generic stays a generic of this language construct: only the order of the generic clause changes. A generic
+		subprogram is an overload: if the language construct's namespace is indexed, it refers to the overload declared
+		last afterwards.
+
+		:param genericItem:          The generic to move.
+		:param index:                Position of the generic after the move, from ``0`` (first) to :data:`GenericCount`
+		                             minus one (last). A negative index counts from the end, as for a :class:`list`
+		                             index: ``-1`` moves the generic to the end.
+		:raises ValueError:          If parameter 'genericItem' is ``None``.
+		:raises TypeError:           If parameter 'genericItem' is not of type
+		                             :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises NotAChildError:      If parameter 'genericItem' is not a generic of this language construct.
+		:raises ValueError:          If parameter 'index' is ``None``.
+		:raises TypeError:           If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:          If parameter 'index' is out of range.
+		:raises NotInNamespaceError: If the namespace is indexed, and the identifier of a generic subprogram refers to an
+		                             element, which is no overload, e.g. a duplicate declaration.
+
+		.. seealso::
+
+		   :meth:`InsertGenericItem`
+		      |rarr| Insert a generic at a position of the generic clause.
+		   :meth:`RemoveGenericItem`
+		      |rarr| Remove a generic from the generic clause.
+		"""
+		from pyVHDLModel.Interface  import GenericInterfaceItemMixin
+		from pyVHDLModel.Subprogram import Function, Procedure
+
+		if genericItem is None:
+			raise ValueError("Parameter 'genericItem' is None.")
+		elif not isinstance(genericItem, GenericInterfaceItemMixin):
+			ex = TypeError("Parameter 'genericItem' is not of type 'GenericInterfaceItemMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(genericItem)}'.")
+			raise ex
+
+		for currentIndex, item in enumerate(self._genericItems):
+			if item is genericItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(genericItem))
+			raise NotAChildError(
+				f"{getTypeName(genericItem)} '{identifiers}' is not a generic of this {getTypeName(self)}.",
+				element=genericItem,
+				parent=self
+			)
+
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif not (-len(self._genericItems) <= index < len(self._genericItems)):
+			ex = ValueError(f"Parameter 'index' is out of range {-len(self._genericItems)}..{len(self._genericItems) - 1}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		newIndex = index if index >= 0 else len(self._genericItems) + index
+		if newIndex == currentIndex:
+			return
+
+		isOverload = isinstance(genericItem, (Function, Procedure))
+		if isOverload:
+			self._RemoveFromNamespace(genericItem)
+
+		del self._genericItems[currentIndex]
+		self._genericItems.insert(newIndex, genericItem)
+
+		if isOverload:
+			self._AddToNamespace(genericItem)
 
 	@expects("_namespace")
 	def _IndexGenericItems(self) -> None:
@@ -394,6 +473,8 @@ class WithPortsMixin(
 		      |rarr| Add a port at the end of the port clause.
 		   :meth:`RemovePortItem`
 		      |rarr| Remove a port from the port clause.
+		   :meth:`MovePortItem`
+		      |rarr| Move a port to a position of the port clause.
 		"""
 		from pyVHDLModel.Interface import PortSignalInterfaceItem
 
@@ -465,6 +546,8 @@ class WithPortsMixin(
 		      |rarr| Add a port at the end of the port clause.
 		   :meth:`InsertPortItem`
 		      |rarr| Insert a port at a position of the port clause.
+		   :meth:`MovePortItem`
+		      |rarr| Move a port to a position of the port clause.
 		"""
 		from pyVHDLModel.Interface import PortSignalInterfaceItem
 
@@ -489,6 +572,66 @@ class WithPortsMixin(
 		self._RemoveFromNamespace(portItem)
 		del self._portItems[index]
 		portItem._parent = None
+
+	def MovePortItem(self, portItem: PortSignalInterfaceItem, index: int) -> None:
+		"""
+		Move a port to a position of the port clause.
+
+		The port stays a port of this language construct: only the order of the port clause changes.
+
+		:param portItem:        The port to move.
+		:param index:           Position of the port after the move, from ``0`` (first) to :data:`PortCount` minus one
+		                        (last). A negative index counts from the end, as for a :class:`list` index: ``-1`` moves the
+		                        port to the end.
+		:raises ValueError:     If parameter 'portItem' is ``None``.
+		:raises TypeError:      If parameter 'portItem' is not of type
+		                        :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises NotAChildError: If parameter 'portItem' is not a port of this language construct.
+		:raises ValueError:     If parameter 'index' is ``None``.
+		:raises TypeError:      If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:     If parameter 'index' is out of range.
+
+		.. seealso::
+
+		   :meth:`InsertPortItem`
+		      |rarr| Insert a port at a position of the port clause.
+		   :meth:`RemovePortItem`
+		      |rarr| Remove a port from the port clause.
+		"""
+		from pyVHDLModel.Interface import PortSignalInterfaceItem
+
+		if portItem is None:
+			raise ValueError("Parameter 'portItem' is None.")
+		elif not isinstance(portItem, PortSignalInterfaceItem):
+			ex = TypeError("Parameter 'portItem' is not of type 'PortSignalInterfaceItem'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(portItem)}'.")
+			raise ex
+
+		for currentIndex, item in enumerate(self._portItems):
+			if item is portItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(portItem))
+			raise NotAChildError(
+				f"{getTypeName(portItem)} '{identifiers}' is not a port of this {getTypeName(self)}.",
+				element=portItem,
+				parent=self
+			)
+
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif not (-len(self._portItems) <= index < len(self._portItems)):
+			ex = ValueError(f"Parameter 'index' is out of range {-len(self._portItems)}..{len(self._portItems) - 1}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		newIndex = index if index >= 0 else len(self._portItems) + index
+		del self._portItems[currentIndex]
+		self._portItems.insert(newIndex, portItem)
 
 	@expects("_namespace")
 	def _IndexPortItems(self) -> None:
@@ -608,6 +751,8 @@ class WithParametersMixin(
 		      |rarr| Add a parameter at the end of the parameter list.
 		   :meth:`RemoveParameterItem`
 		      |rarr| Remove a parameter from the parameter list.
+		   :meth:`MoveParameterItem`
+		      |rarr| Move a parameter to a position of the parameter list.
 		"""
 		from pyVHDLModel.Interface import ParameterInterfaceItemMixin
 
@@ -679,6 +824,8 @@ class WithParametersMixin(
 		      |rarr| Add a parameter at the end of the parameter list.
 		   :meth:`InsertParameterItem`
 		      |rarr| Insert a parameter at a position of the parameter list.
+		   :meth:`MoveParameterItem`
+		      |rarr| Move a parameter to a position of the parameter list.
 		"""
 		from pyVHDLModel.Interface import ParameterInterfaceItemMixin
 
@@ -703,6 +850,68 @@ class WithParametersMixin(
 		self._RemoveFromNamespace(parameterItem)
 		del self._parameterItems[index]
 		parameterItem._parent = None
+
+	def MoveParameterItem(self, parameterItem: ParameterInterfaceItemMixin, index: int) -> None:
+		"""
+		Move a parameter to a position of the parameter list.
+
+		The parameter stays a parameter of this language construct: only the order of the parameter list changes.
+
+		:param parameterItem:   The parameter to move.
+		:param index:           Position of the parameter after the move, from ``0`` (first) to :data:`ParameterCount`
+		                        minus one (last). A negative index counts from the end, as for a :class:`list` index:
+		                        ``-1`` moves the parameter to the end.
+		:raises ValueError:     If parameter 'parameterItem' is ``None``.
+		:raises TypeError:      If parameter 'parameterItem' is not of type
+		                        :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises NotAChildError: If parameter 'parameterItem' is not a parameter of this language construct.
+		:raises ValueError:     If parameter 'index' is ``None``.
+		:raises TypeError:      If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:     If parameter 'index' is out of range.
+
+		.. seealso::
+
+		   :meth:`InsertParameterItem`
+		      |rarr| Insert a parameter at a position of the parameter list.
+		   :meth:`RemoveParameterItem`
+		      |rarr| Remove a parameter from the parameter list.
+		"""
+		from pyVHDLModel.Interface import ParameterInterfaceItemMixin
+
+		if parameterItem is None:
+			raise ValueError("Parameter 'parameterItem' is None.")
+		elif not isinstance(parameterItem, ParameterInterfaceItemMixin):
+			ex = TypeError("Parameter 'parameterItem' is not of type 'ParameterInterfaceItemMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parameterItem)}'.")
+			raise ex
+
+		for currentIndex, item in enumerate(self._parameterItems):
+			if item is parameterItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(parameterItem))
+			raise NotAChildError(
+				f"{getTypeName(parameterItem)} '{identifiers}' is not a parameter of this {getTypeName(self)}.",
+				element=parameterItem,
+				parent=self
+			)
+
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif not (-len(self._parameterItems) <= index < len(self._parameterItems)):
+			ex = ValueError(
+				f"Parameter 'index' is out of range {-len(self._parameterItems)}..{len(self._parameterItems) - 1}."
+			)
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		newIndex = index if index >= 0 else len(self._parameterItems) + index
+		del self._parameterItems[currentIndex]
+		self._parameterItems.insert(newIndex, parameterItem)
 
 	@expects("_namespace")
 	def _IndexParameterItems(self) -> None:
@@ -1105,6 +1314,8 @@ class DeclarationRegionMixin(
 		      |rarr| Insert a declared item after another declared item.
 		   :meth:`RemoveDeclaredItem`
 		      |rarr| Remove a declared item from the declarative region.
+		   :meth:`MoveDeclaredItem`
+		      |rarr| Move a declared item to a position of the declarative region.
 		"""
 		from pyVHDLModel.DesignUnit import Component
 		from pyVHDLModel.Interface  import InterfaceItemMixin
@@ -1310,6 +1521,8 @@ class DeclarationRegionMixin(
 		      |rarr| Add a declared item at the end of the declarative region.
 		   :meth:`InsertDeclaredItem`
 		      |rarr| Insert a declared item at a position of the declarative region.
+		   :meth:`MoveDeclaredItem`
+		      |rarr| Move a declared item to a position of the declarative region.
 		"""
 		from pyVHDLModel.Subprogram import Function, Procedure
 
@@ -1347,6 +1560,186 @@ class DeclarationRegionMixin(
 
 		if reindex:
 			self.IndexDeclaredItems()
+
+	def MoveDeclaredItem(self, declaredItem: ModelEntity, index: int) -> None:
+		"""
+		Move a declared item to a position of the declarative region.
+
+		The declared item stays a declared item of this declarative region: only the order of the declared items changes.
+
+		If the region is indexed, the lookup tables and the namespace follow the new order: a list of overloads (e.g. in
+		``Functions``) follows the declaration order, and the namespace refers to the overload declared last. If
+		another declaration shares an identifier with the declared item (e.g. a duplicate declaration read by a parser),
+		the region is indexed again (:meth:`IndexDeclaredItems`) after the move.
+
+		:param declaredItem:    The declared item to move.
+		:param index:           Position of the declared item after the move, from ``0`` (first) to the number of
+		                        declared items minus one (last). A negative index counts from the end, as for a
+		                        :class:`list` index: ``-1`` moves the declared item to the end.
+		:raises ValueError:     If parameter 'declaredItem' is ``None``.
+		:raises TypeError:      If parameter 'declaredItem' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'declaredItem' is not a declared item of this declarative region.
+		:raises ValueError:     If parameter 'index' is ``None``.
+		:raises TypeError:      If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:     If parameter 'index' is out of range.
+
+		.. seealso::
+
+		   :meth:`MoveDeclaredItemBefore`
+		      |rarr| Move a declared item before another declared item.
+		   :meth:`MoveDeclaredItemAfter`
+		      |rarr| Move a declared item after another declared item.
+		   :meth:`InsertDeclaredItem`
+		      |rarr| Insert a declared item at a position of the declarative region.
+		   :meth:`RemoveDeclaredItem`
+		      |rarr| Remove a declared item from the declarative region.
+		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
+		if declaredItem is None:
+			raise ValueError("Parameter 'declaredItem' is None.")
+		elif not isinstance(declaredItem, ModelEntity):
+			ex = TypeError("Parameter 'declaredItem' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(declaredItem)}'.")
+			raise ex
+
+		for currentIndex, item in enumerate(self._declaredItems):
+			if item is declaredItem:
+				break
+		else:
+			identifiers = ""
+			if isinstance(declaredItem, (NamedEntityMixin, MultipleNamedEntityMixin)):
+				identifiers = f" '{', '.join(identifiersOf(declaredItem))}'"
+			raise NotAChildError(
+				f"{getTypeName(declaredItem)}{identifiers} is not a declared item of this {getTypeName(self)}.",
+				element=declaredItem,
+				parent=self
+			)
+
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif not (-len(self._declaredItems) <= index < len(self._declaredItems)):
+			ex = ValueError(f"Parameter 'index' is out of range {-len(self._declaredItems)}..{len(self._declaredItems) - 1}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		newIndex = index if index >= 0 else len(self._declaredItems) + index
+		if newIndex == currentIndex:
+			return
+
+		reindex =   False
+		overloads = False
+		if self._areDeclaredItemsIndexed and len(sharingItems := self._DeclaredItemsSharingIdentifiers(declaredItem)) > 0:
+			isOverload = isinstance(declaredItem, (Function, Procedure))
+			reindex =    any(not (isOverload and isinstance(item, (Function, Procedure))) for item in sharingItems)
+			overloads =  not reindex
+
+		if overloads:
+			self._RemoveOverloadFromNamespace(declaredItem)
+
+		del self._declaredItems[currentIndex]
+		self._declaredItems.insert(newIndex, declaredItem)
+
+		if reindex:
+			self.IndexDeclaredItems()
+		elif overloads:
+			self._IndexOverload(declaredItem)
+
+	def MoveDeclaredItemBefore(self, declaredItem: ModelEntity, before: ModelEntity) -> None:
+		"""
+		Move a declared item before another declared item.
+
+		The declared item stays a declared item of this declarative region: only the order of the declared items changes,
+		as for :meth:`MoveDeclaredItem`. Moving a declared item before itself keeps it in place.
+
+		:param declaredItem:    The declared item to move.
+		:param before:          The declared item of this declarative region to move before.
+		:raises ValueError:     If parameter 'before' is ``None``.
+		:raises TypeError:      If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'before' is not a declared item of this declarative region.
+		:raises ValueError:     If parameter 'declaredItem' is ``None``.
+		:raises TypeError:      If parameter 'declaredItem' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'declaredItem' is not a declared item of this declarative region.
+
+		.. seealso::
+
+		   :meth:`MoveDeclaredItem`
+		      |rarr| Move a declared item to a position of the declarative region.
+		   :meth:`MoveDeclaredItemAfter`
+		      |rarr| Move a declared item after another declared item.
+		"""
+		if before is None:
+			raise ValueError("Parameter 'before' is None.")
+		elif not isinstance(before, ModelEntity):
+			ex = TypeError("Parameter 'before' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(before)}'.")
+			raise ex
+
+		for index, item in enumerate(self._declaredItems):
+			if item is before:
+				break
+		else:
+			identifiers = ""
+			if isinstance(before, (NamedEntityMixin, MultipleNamedEntityMixin)):
+				identifiers = f" '{', '.join(identifiersOf(before))}'"
+			raise NotAChildError(
+				f"{getTypeName(before)}{identifiers} is not a declared item of this {getTypeName(self)}.",
+				element=before,
+				parent=self
+			)
+
+		precedes = any(item is declaredItem for item in self._declaredItems[:index])
+		self.MoveDeclaredItem(declaredItem, index - 1 if precedes else index)
+
+	def MoveDeclaredItemAfter(self, declaredItem: ModelEntity, after: ModelEntity) -> None:
+		"""
+		Move a declared item after another declared item.
+
+		The declared item stays a declared item of this declarative region: only the order of the declared items changes,
+		as for :meth:`MoveDeclaredItem`. Moving a declared item after itself keeps it in place.
+
+		:param declaredItem:    The declared item to move.
+		:param after:           The declared item of this declarative region to move after.
+		:raises ValueError:     If parameter 'after' is ``None``.
+		:raises TypeError:      If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'after' is not a declared item of this declarative region.
+		:raises ValueError:     If parameter 'declaredItem' is ``None``.
+		:raises TypeError:      If parameter 'declaredItem' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'declaredItem' is not a declared item of this declarative region.
+
+		.. seealso::
+
+		   :meth:`MoveDeclaredItem`
+		      |rarr| Move a declared item to a position of the declarative region.
+		   :meth:`MoveDeclaredItemBefore`
+		      |rarr| Move a declared item before another declared item.
+		"""
+		if after is None:
+			raise ValueError("Parameter 'after' is None.")
+		elif not isinstance(after, ModelEntity):
+			ex = TypeError("Parameter 'after' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(after)}'.")
+			raise ex
+
+		for index, item in enumerate(self._declaredItems):
+			if item is after:
+				break
+		else:
+			identifiers = ""
+			if isinstance(after, (NamedEntityMixin, MultipleNamedEntityMixin)):
+				identifiers = f" '{', '.join(identifiersOf(after))}'"
+			raise NotAChildError(
+				f"{getTypeName(after)}{identifiers} is not a declared item of this {getTypeName(self)}.",
+				element=after,
+				parent=self
+			)
+
+		precedes = any(item is declaredItem for item in self._declaredItems[:index + 1])
+		self.MoveDeclaredItem(declaredItem, index if precedes else index + 1)
 
 
 @export

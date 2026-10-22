@@ -195,6 +195,8 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_L
 		      |rarr| Insert a sequential statement after another statement.
 		   :meth:`RemoveStatement`
 		      |rarr| Remove a sequential statement from this construct.
+		   :meth:`MoveStatement`
+		      |rarr| Move a sequential statement to a position of this construct.
 		"""
 		if index is None:
 			raise ValueError("Parameter 'index' is None.")
@@ -353,6 +355,8 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_L
 		      |rarr| Add a sequential statement at the end of this construct.
 		   :meth:`InsertStatement`
 		      |rarr| Insert a sequential statement at a position of this construct.
+		   :meth:`MoveStatement`
+		      |rarr| Move a sequential statement to a position of this construct.
 		"""
 		if statement is None:
 			raise ValueError("Parameter 'statement' is None.")
@@ -376,6 +380,161 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_L
 
 		del self._statements[index]
 		statement._parent = None
+
+	def MoveStatement(self, statement: SequentialStatement, index: int) -> None:
+		"""
+		Move a sequential statement to a position of this construct.
+
+		The statement stays a statement of this construct: only the order of the statements changes.
+
+		:param statement:       The sequential statement to move.
+		:param index:           Position of the statement after the move, from ``0`` (first) to the number of statements
+		                        minus one (last). A negative index counts from the end, as for a :class:`list` index: ``-1``
+		                        moves the statement to the end.
+		:raises ValueError:     If parameter 'statement' is ``None``.
+		:raises TypeError:      If parameter 'statement' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'statement' is not a statement of this construct.
+		:raises ValueError:     If parameter 'index' is ``None``.
+		:raises TypeError:      If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:     If parameter 'index' is out of range.
+
+		.. seealso::
+
+		   :meth:`MoveStatementBefore`
+		      |rarr| Move a sequential statement before another statement.
+		   :meth:`MoveStatementAfter`
+		      |rarr| Move a sequential statement after another statement.
+		   :meth:`InsertStatement`
+		      |rarr| Insert a sequential statement at a position of this construct.
+		   :meth:`RemoveStatement`
+		      |rarr| Remove a sequential statement from this construct.
+		"""
+		if statement is None:
+			raise ValueError("Parameter 'statement' is None.")
+		elif not isinstance(statement, ModelEntity):
+			ex = TypeError("Parameter 'statement' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(statement)}'.")
+			raise ex
+
+		for currentIndex, item in enumerate(self._statements):
+			if item is statement:
+				break
+		else:
+			label = ""
+			if isinstance(statement, LabeledEntityMixin) and statement._label is not None:
+				label = f" '{statement._label}'"
+			raise NotAChildError(
+				f"{getTypeName(statement)}{label} is not a statement of this {getTypeName(self)}.",
+				element=statement,
+				parent=self
+			)
+
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif not (-len(self._statements) <= index < len(self._statements)):
+			ex = ValueError(f"Parameter 'index' is out of range {-len(self._statements)}..{len(self._statements) - 1}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		newIndex = index if index >= 0 else len(self._statements) + index
+		del self._statements[currentIndex]
+		self._statements.insert(newIndex, statement)
+
+	def MoveStatementBefore(self, statement: SequentialStatement, before: SequentialStatement) -> None:
+		"""
+		Move a sequential statement before another statement of this construct.
+
+		The statement stays a statement of this construct: only the order of the statements changes, as for
+		:meth:`MoveStatement`. Moving a statement before itself keeps it in place.
+
+		:param statement:       The sequential statement to move.
+		:param before:          The statement of this construct to move before.
+		:raises ValueError:     If parameter 'before' is ``None``.
+		:raises TypeError:      If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'before' is not a statement of this construct.
+		:raises ValueError:     If parameter 'statement' is ``None``.
+		:raises TypeError:      If parameter 'statement' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'statement' is not a statement of this construct.
+
+		.. seealso::
+
+		   :meth:`MoveStatement`
+		      |rarr| Move a sequential statement to a position of this construct.
+		   :meth:`MoveStatementAfter`
+		      |rarr| Move a sequential statement after another statement.
+		"""
+		if before is None:
+			raise ValueError("Parameter 'before' is None.")
+		elif not isinstance(before, ModelEntity):
+			ex = TypeError("Parameter 'before' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(before)}'.")
+			raise ex
+
+		for index, item in enumerate(self._statements):
+			if item is before:
+				break
+		else:
+			label = ""
+			if isinstance(before, LabeledEntityMixin) and before._label is not None:
+				label = f" '{before._label}'"
+			raise NotAChildError(
+				f"{getTypeName(before)}{label} is not a statement of this {getTypeName(self)}.",
+				element=before,
+				parent=self
+			)
+
+		precedes = any(item is statement for item in self._statements[:index])
+		self.MoveStatement(statement, index - 1 if precedes else index)
+
+	def MoveStatementAfter(self, statement: SequentialStatement, after: SequentialStatement) -> None:
+		"""
+		Move a sequential statement after another statement of this construct.
+
+		The statement stays a statement of this construct: only the order of the statements changes, as for
+		:meth:`MoveStatement`. Moving a statement after itself keeps it in place.
+
+		:param statement:       The sequential statement to move.
+		:param after:           The statement of this construct to move after.
+		:raises ValueError:     If parameter 'after' is ``None``.
+		:raises TypeError:      If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'after' is not a statement of this construct.
+		:raises ValueError:     If parameter 'statement' is ``None``.
+		:raises TypeError:      If parameter 'statement' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'statement' is not a statement of this construct.
+
+		.. seealso::
+
+		   :meth:`MoveStatement`
+		      |rarr| Move a sequential statement to a position of this construct.
+		   :meth:`MoveStatementBefore`
+		      |rarr| Move a sequential statement before another statement.
+		"""
+		if after is None:
+			raise ValueError("Parameter 'after' is None.")
+		elif not isinstance(after, ModelEntity):
+			ex = TypeError("Parameter 'after' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(after)}'.")
+			raise ex
+
+		for index, item in enumerate(self._statements):
+			if item is after:
+				break
+		else:
+			label = ""
+			if isinstance(after, LabeledEntityMixin) and after._label is not None:
+				label = f" '{after._label}'"
+			raise NotAChildError(
+				f"{getTypeName(after)}{label} is not a statement of this {getTypeName(self)}.",
+				element=after,
+				parent=self
+			)
+
+		precedes = any(item is statement for item in self._statements[:index + 1])
+		self.MoveStatement(statement, index if precedes else index + 1)
 
 
 @export

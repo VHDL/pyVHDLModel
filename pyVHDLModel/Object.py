@@ -36,14 +36,13 @@ Objects are constants, variables, signals and files.
 """
 from __future__            import annotations
 
-from typing                import ClassVar, Iterable, Optional as Nullable
+from typing                import ClassVar, Iterable, Optional as Nullable, Self
 
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType, abstractclass
 from pyTooling.Graph       import Vertex
 
 from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
-from pyVHDLModel.Base      import modelClassOf
 from pyVHDLModel.Symbol    import Symbol
 
 
@@ -114,7 +113,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 		"""
 		return self._objectVertex
 
-	def Copy(self) -> Obj:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this object declaration.
 
@@ -122,7 +121,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 
 		:returns: The new object declaration.
 		"""
-		return modelClassOf(self)(self._identifiers, self._subtype.Copy(), self._documentation)
+		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
 	def __str__(self) -> str:
 		"""
@@ -226,7 +225,7 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 		super().__init__(identifiers, subtype, documentation, parent)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
-	def Copy(self) -> Constant:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this constant.
 
@@ -236,7 +235,7 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 		:returns: The new constant.
 		"""
 		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
-		return modelClassOf(self)(self._identifiers, self._subtype.Copy(), defaultExpression, self._documentation)
+		return self.__class__(self._identifiers, self._subtype.Copy(), defaultExpression, self._documentation)
 
 
 @export
@@ -283,7 +282,7 @@ class DeferredConstant(BaseConstant):
 		"""
 		return self._constantReference
 
-	def Copy(self) -> DeferredConstant:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this deferred constant.
 
@@ -292,7 +291,7 @@ class DeferredConstant(BaseConstant):
 
 		:returns: The new deferred constant.
 		"""
-		copy = modelClassOf(self)(self._identifiers, self._subtype.Copy(), self._documentation)
+		copy = self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 		copy._constantReference = self._constantReference
 		return copy
 
@@ -337,7 +336,7 @@ class Variable(Obj, WithDefaultExpressionMixin):
 		super().__init__(identifiers, subtype, documentation, parent)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
-	def Copy(self) -> Variable:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this variable.
 
@@ -347,7 +346,7 @@ class Variable(Obj, WithDefaultExpressionMixin):
 		:returns: The new variable.
 		"""
 		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
-		return modelClassOf(self)(self._identifiers, self._subtype.Copy(), defaultExpression, self._documentation)
+		return self.__class__(self._identifiers, self._subtype.Copy(), defaultExpression, self._documentation)
 
 
 @export
@@ -403,7 +402,7 @@ class Signal(Obj, WithDefaultExpressionMixin):
 		super().__init__(identifiers, subtype, documentation, parent)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
 
-	def Copy(self) -> Signal:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this signal.
 
@@ -413,7 +412,7 @@ class Signal(Obj, WithDefaultExpressionMixin):
 		:returns: The new signal.
 		"""
 		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
-		return modelClassOf(self)(self._identifiers, self._subtype.Copy(), defaultExpression, self._documentation)
+		return self.__class__(self._identifiers, self._subtype.Copy(), defaultExpression, self._documentation)
 
 
 @export

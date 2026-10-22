@@ -36,7 +36,7 @@ Interface items are used in generic, port and parameter declarations.
 """
 from __future__             import annotations
 
-from typing                 import Iterable, Optional as Nullable, Iterator
+from typing                 import Iterable, Optional as Nullable, Iterator, Self
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
@@ -44,7 +44,7 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin
 from pyVHDLModel.Base       import MultipleNamedEntityMixin, identifiersOf, normalizedIdentifiersOf
-from pyVHDLModel.Base       import ExpressionUnion, Mode, modelClassOf
+from pyVHDLModel.Base       import ExpressionUnion, Mode
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
 from pyVHDLModel.Regions    import WithGenericsMixin, WithPortsMixin, WithParametersMixin
 from pyVHDLModel.Subprogram import Procedure, Function
@@ -138,7 +138,7 @@ class SimpleModeViewElement(ModeViewElement):
 		"""
 		return self._mode
 
-	def Copy(self) -> SimpleModeViewElement:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this simple mode view element.
 
@@ -146,7 +146,7 @@ class SimpleModeViewElement(ModeViewElement):
 
 		:returns: The new simple mode view element.
 		"""
-		return modelClassOf(self)(self._identifiers, self._mode, self._documentation)
+		return self.__class__(self._identifiers, self._mode, self._documentation)
 
 
 @export
@@ -194,7 +194,7 @@ class CompositeModeViewElement(ModeViewElement):
 		"""
 		return self._modeViewName
 
-	def Copy(self) -> CompositeModeViewElement:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this composite mode view element.
 
@@ -202,7 +202,7 @@ class CompositeModeViewElement(ModeViewElement):
 
 		:returns: The new composite mode view element.
 		"""
-		return modelClassOf(self)(self._identifiers, self._modeViewName.Copy(), self._documentation)
+		return self.__class__(self._identifiers, self._modeViewName.Copy(), self._documentation)
 
 
 @export
@@ -455,7 +455,7 @@ class GenericConstantInterfaceItem(Constant, GenericInterfaceItemMixin, Interfac
 		GenericInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
-	def Copy(self) -> GenericConstantInterfaceItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this generic constant.
 
@@ -465,7 +465,7 @@ class GenericConstantInterfaceItem(Constant, GenericInterfaceItemMixin, Interfac
 		:returns: The new generic constant.
 		"""
 		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
-		return modelClassOf(self)(
+		return self.__class__(
 			self._identifiers,
 			self._mode,
 			self._subtype.Copy(),
@@ -509,7 +509,7 @@ class GenericTypeInterfaceItem(Type, GenericInterfaceItemMixin):
 		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
 
-	def Copy(self) -> GenericTypeInterfaceItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this generic type.
 
@@ -517,7 +517,7 @@ class GenericTypeInterfaceItem(Type, GenericInterfaceItemMixin):
 
 		:returns: The new generic type.
 		"""
-		return modelClassOf(self)(self._identifier, self._documentation)
+		return self.__class__(self._identifier, self._documentation)
 
 
 @export
@@ -544,7 +544,7 @@ class GenericProcedureInterfaceItem(Procedure, GenericSubprogramInterfaceItemMix
 		super().__init__(identifier, documentation=documentation, parent=parent)
 		GenericSubprogramInterfaceItemMixin.__init__(self)
 
-	def Copy(self) -> GenericProcedureInterfaceItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this generic procedure.
 
@@ -552,7 +552,7 @@ class GenericProcedureInterfaceItem(Procedure, GenericSubprogramInterfaceItemMix
 
 		:returns: The new generic procedure.
 		"""
-		copy = modelClassOf(self)(self._identifier, self._documentation)
+		copy = self.__class__(self._identifier, self._documentation)
 		for parameterItem in self._parameterItems:
 			copy.AddParameterItem(parameterItem.Copy())
 
@@ -591,7 +591,7 @@ class GenericFunctionInterfaceItem(Function, GenericSubprogramInterfaceItemMixin
 		super().__init__(identifier, returnType, documentation=documentation, parent=parent)
 		GenericSubprogramInterfaceItemMixin.__init__(self)
 
-	def Copy(self) -> GenericFunctionInterfaceItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this generic function.
 
@@ -599,7 +599,7 @@ class GenericFunctionInterfaceItem(Function, GenericSubprogramInterfaceItemMixin
 
 		:returns: The new generic function.
 		"""
-		copy = modelClassOf(self)(self._identifier, self._returnType.Copy(), self._documentation)
+		copy = self.__class__(self._identifier, self._returnType.Copy(), self._documentation)
 		for parameterItem in self._parameterItems:
 			copy.AddParameterItem(parameterItem.Copy())
 
@@ -659,7 +659,7 @@ class GenericPackageInterfaceItem(InterfacePackage, GenericInterfaceItemMixin):
 		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
 
-	def Copy(self) -> GenericPackageInterfaceItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this generic package.
 
@@ -667,7 +667,7 @@ class GenericPackageInterfaceItem(InterfacePackage, GenericInterfaceItemMixin):
 
 		:returns: The new generic package.
 		"""
-		return modelClassOf(self)(self._identifier, self._documentation)
+		return self.__class__(self._identifier, self._documentation)
 
 
 @export
@@ -729,7 +729,7 @@ class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem, InterfaceItemWithMo
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
-	def Copy(self) -> PortSimpleSignalInterfaceItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this port.
 
@@ -739,7 +739,7 @@ class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem, InterfaceItemWithMo
 		:returns: The new port.
 		"""
 		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
-		return modelClassOf(self)(
+		return self.__class__(
 			self._identifiers,
 			self._mode,
 			self._subtype.Copy(),
@@ -806,7 +806,7 @@ class PortViewSignalInterfaceItem(PortSignalInterfaceItem):
 		"""
 		return self._subtype
 
-	def Copy(self) -> PortViewSignalInterfaceItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this port declared with a mode view.
 
@@ -815,7 +815,7 @@ class PortViewSignalInterfaceItem(PortSignalInterfaceItem):
 
 		:returns: The new port declared with a mode view.
 		"""
-		return modelClassOf(self)(self._identifiers, self._subtype.Copy(), self._documentation)
+		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
 	def __str__(self) -> str:
 		"""
@@ -865,7 +865,7 @@ class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItemMixin, Inte
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
-	def Copy(self) -> ParameterConstantInterfaceItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this constant parameter.
 
@@ -875,7 +875,7 @@ class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItemMixin, Inte
 		:returns: The new constant parameter.
 		"""
 		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
-		return modelClassOf(self)(
+		return self.__class__(
 			self._identifiers,
 			self._mode,
 			self._subtype.Copy(),
@@ -931,7 +931,7 @@ class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItemMixin, Inte
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
-	def Copy(self) -> ParameterVariableInterfaceItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this variable parameter.
 
@@ -941,7 +941,7 @@ class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItemMixin, Inte
 		:returns: The new variable parameter.
 		"""
 		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
-		return modelClassOf(self)(
+		return self.__class__(
 			self._identifiers,
 			self._mode,
 			self._subtype.Copy(),
@@ -1022,7 +1022,7 @@ class ParameterSimpleSignalInterfaceItem(ParameterSignalInterfaceItem, Interface
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
-	def Copy(self) -> ParameterSimpleSignalInterfaceItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this signal parameter.
 
@@ -1032,7 +1032,7 @@ class ParameterSimpleSignalInterfaceItem(ParameterSignalInterfaceItem, Interface
 		:returns: The new signal parameter.
 		"""
 		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
-		return modelClassOf(self)(
+		return self.__class__(
 			self._identifiers,
 			self._mode,
 			self._subtype.Copy(),
@@ -1100,7 +1100,7 @@ class ParameterViewSignalInterfaceItem(ParameterSignalInterfaceItem):
 		"""
 		return self._subtype
 
-	def Copy(self) -> ParameterViewSignalInterfaceItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this signal parameter declared with a mode view.
 
@@ -1109,7 +1109,7 @@ class ParameterViewSignalInterfaceItem(ParameterSignalInterfaceItem):
 
 		:returns: The new signal parameter declared with a mode view.
 		"""
-		return modelClassOf(self)(self._identifiers, self._subtype.Copy(), self._documentation)
+		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
 	def __str__(self) -> str:
 		"""
@@ -1153,7 +1153,7 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
 		super().__init__(identifiers, subtype, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
 
-	def Copy(self) -> ParameterFileInterfaceItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this file parameter.
 
@@ -1161,7 +1161,7 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
 
 		:returns: The new file parameter.
 		"""
-		return modelClassOf(self)(self._identifiers, self._subtype.Copy(), self._documentation)
+		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
 	def __str__(self) -> str:
 		"""

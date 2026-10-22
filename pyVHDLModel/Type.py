@@ -36,14 +36,13 @@ Types.
 """
 from __future__             import annotations
 
-from typing                 import Union, Iterator, Iterable, Optional as Nullable, Mapping
+from typing                 import Union, Iterator, Iterable, Optional as Nullable, Mapping, Self
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyTooling.Graph        import Vertex
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
-from pyVHDLModel.Base       import modelClassOf
 from pyVHDLModel.Symbol     import Symbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin
@@ -724,7 +723,7 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		"""
 		return self._subtype
 
-	def Copy(self) -> RecordTypeElement:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this record type element.
 
@@ -732,7 +731,7 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 
 		:returns: The new record type element.
 		"""
-		return modelClassOf(self)(self._identifiers, self._subtype.Copy(), self._documentation)
+		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
 	def __str__(self) -> str:
 		"""

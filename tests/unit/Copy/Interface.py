@@ -59,14 +59,8 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class _MirrorPortSimpleSignalInterfaceItem(PortSimpleSignalInterfaceItem):
-	"""A port of another package, constructed from an extra parameter (like a :mod:`pyGHDL.dom` class)."""
-
-	_node: int  #: The extra constructor parameter.
-
-	def __init__(self, node: int, identifiers: tuple[str, ...], mode: Mode, subtype: ModeViewSymbol) -> None:
-		super().__init__(identifiers, mode, subtype)
-		self._node = node
+class _DerivedPortSimpleSignalInterfaceItem(PortSimpleSignalInterfaceItem):
+	"""A port of a class derived outside pyVHDLModel, with the constructor of its base-class."""
 
 
 class CopyMethods(Testcase):
@@ -116,12 +110,12 @@ class InterfaceItemsWithMode(Testcase):
 		self.assertIsNone(copy.DefaultExpression)
 
 	def test_Copy_Derived(self) -> None:
-		"""A copy of a port of a class derived outside pyVHDLModel is a port of the pyVHDLModel class."""
-		original = _MirrorPortSimpleSignalInterfaceItem(42, ("Clock", ), Mode.In, _subtypeSymbol("std_logic"))
+		"""A copy of a port of a derived class is an instance of that class."""
+		original = _DerivedPortSimpleSignalInterfaceItem(("Clock", ), Mode.In, _subtypeSymbol("std_logic"))
 
 		copy = original.Copy()
 
-		self.assertIs(PortSimpleSignalInterfaceItem, type(copy))
+		self.assertIs(_DerivedPortSimpleSignalInterfaceItem, type(copy))
 		self.assertEqual("signal Clock : in std_logic?", str(copy))
 
 

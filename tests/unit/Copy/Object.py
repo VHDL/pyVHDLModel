@@ -56,14 +56,8 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class _MirrorSignal(Signal):
-	"""A signal of another package, constructed from an extra parameter (like a :mod:`pyGHDL.dom` class)."""
-
-	_node: int  #: The extra constructor parameter.
-
-	def __init__(self, node: int, identifiers: tuple[str, ...], subtype: ConstrainedScalarSubtypeSymbol) -> None:
-		super().__init__(identifiers, subtype)
-		self._node = node
+class _DerivedSignal(Signal):
+	"""A signal of a class derived outside pyVHDLModel, with the constructor of its base-class."""
 
 
 class CopyMethods(Testcase):
@@ -161,13 +155,13 @@ class ObjectsWithDefaultExpression(Testcase):
 		self.assertIsNot(original.Subtype, second.Subtype)
 
 	def test_Copy_Derived(self) -> None:
-		"""A copy of a signal of a class derived outside pyVHDLModel is a signal of the pyVHDLModel class."""
+		"""A copy of a signal of a derived class is an instance of that class."""
 		constraint = SimpleRange(IntegerLiteral(0), IntegerLiteral(7), Direction.To)
-		original = _MirrorSignal(42, ("s", ), ConstrainedScalarSubtypeSymbol(SimpleName("integer"), constraint))
+		original = _DerivedSignal(("s", ), ConstrainedScalarSubtypeSymbol(SimpleName("integer"), constraint))
 
 		copy = original.Copy()
 
-		self.assertIs(Signal, type(copy))
+		self.assertIs(_DerivedSignal, type(copy))
 		self.assertIs(ConstrainedScalarSubtypeSymbol, type(copy.Subtype))
 
 

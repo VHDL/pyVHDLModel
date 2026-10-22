@@ -152,7 +152,7 @@ class OneDeclarativePart(Testcase):
 		package = Package("pkg")
 		package.Library = Library("lib")
 		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[_signal("pkg", "natural")])
-		architecture._namespace._elements["pkg"] = package
+		architecture._namespace.AddImport("pkg", package)
 
 		with WarningCollector() as collector:
 			architecture.IndexDeclaredItems()
@@ -165,7 +165,7 @@ class OneDeclarativePart(Testcase):
 		imported = Constant(["s"], _subtypeSymbol("bit"))
 		Package("other", declaredItems=[imported])
 		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[_signal("s", "natural")])
-		architecture._namespace._elements["s"] = imported
+		architecture._namespace.AddImport("s", imported)
 
 		with WarningCollector() as collector:
 			architecture.IndexDeclaredItems()

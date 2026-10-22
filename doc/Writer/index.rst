@@ -27,8 +27,9 @@ abstract literals (e.g. ``16#FF#`` becomes ``255``) are not preserved.
 
 .. rubric:: Supported language constructs
 
-The writer formats names, symbols, literals, expressions and association items. Declarations, design units and
-statements follow.
+The writer formats names, symbols, literals, expressions, association items, subtype indications, object
+declarations, interface items, component declarations and mode view declarations
+(:ref:`WRITER/declarations`). Further declarations, design units and statements follow.
 
 
 .. _WRITER/visitor:
@@ -39,7 +40,9 @@ Visitor
 The writer is a :class:`~pyVHDLModel.Visitor.Visitor`. A model element walks itself
 (:meth:`~pyVHDLModel.Base.ModelEntity.Visit`): it reports ``Visit<Class>`` to the visitor, walks its children in source
 order and reports ``Depart<Class>``. A token between two parts, which is not a model element itself, is reported by an
-event named after the token, e.g. ``VisitArrow`` for ``=>`` or ``VisitComma`` for ``,``. The writer appends the text of
+event named after the token, e.g. ``VisitArrow`` for ``=>`` or ``VisitComma`` for ``,``. A part of an element, which is
+not a model element itself, is reported by an event pair named after its production in IEEE Std 1076-2008, e.g.
+``VisitGenericClause`` and ``DepartGenericClause`` around the generics of a component. The writer appends the text of
 each event to a buffer, which :meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format` returns. A parser's subclass of a
 model class inherits the walk of that model class, so it's written like that model class.
 
@@ -82,11 +85,20 @@ Formatting Options
    Letter case of reserved words: :attr:`~pyVHDLModel.Formatting.VHDL.KeywordCase.Lower` (default) or
    :attr:`~pyVHDLModel.Formatting.VHDL.KeywordCase.Upper`. Identifiers keep their letter case.
 
+``indentStyle``
+   Indentation style, as vhdl-style-guide's option ``indent_style``:
+   :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.Spaces` (default, ``spaces``) or
+   :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.SmartTabs` (``smart_tabs``: one tab per indentation level).
+
+``indentSize``
+   Number of spaces per indentation level, as vhdl-style-guide's option ``indent_size`` (default: ``2``). It applies to
+   :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.Spaces`.
+
 .. code-block:: Python
 
-   from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
+   from pyVHDLModel.Formatting.VHDL import IndentStyle, KeywordCase, VHDLStyle, VHDLWriter
 
-   writer = VHDLWriter(VHDLStyle(KeywordCase.Upper))
+   writer = VHDLWriter(VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs))
 
 
 .. _WRITER/parentheses:
@@ -145,3 +157,50 @@ Examples:
 * ``(a and b) or c``, because different logical operators can't be mixed
 * ``a + (-b)``, because a sign can only start a simple expression; a negative number literal is written with a sign,
   too: ``a - (-1)``
+
+
+.. _WRITER/declarations:
+
+Declarations
+************
+
+A declaration is written on its own line, indented by its nesting level, and ends with a newline. A declaration
+containing other items (e.g. a component declaration) writes each item on its own line, indented one level deeper, and
+ends with ``end``, the reserved word of the declaration and its identifier:
+
+.. code-block:: VHDL
+
+   component counter is
+     generic (
+       BITS : positive := 8;
+       type T
+     );
+     port (
+       clk, rst : in bit;
+       q : out T
+     );
+   end component counter;
+
+Subtype indications
+   A constrained subtype symbol is written with its constraint: a range constraint
+   (:class:`~pyVHDLModel.Symbol.ConstrainedScalarSubtypeSymbol`, ``integer range 0 to 7``), an index constraint
+   (:class:`~pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol`, ``bit_vector(7 downto 0)``) or a record constraint
+   (:class:`~pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol`, ``frame_t(data(7 downto 0))``).
+
+Object declarations
+   Constants, deferred constants, variables, shared variables, signals and files are written with their identifiers,
+   their subtype indication and, if present, their default expression. The model has no file open information, so a
+   file declaration is written without one.
+
+Interface items
+   Each item of a generic clause or a port clause is written on its own line; the items are separated by semicolons.
+   A clause without items is not written. Generic constants and ports are written without an object class reserved word
+   (``BITS : positive``, ``clk : in bit``), parameters with one (``signal clk : in bit``). An item with
+   :attr:`Mode.Default <pyVHDLModel.Base.Mode.Default>` is written without a mode. Ports and parameters with a mode view
+   (VHDL-2019) are written with the reserved word ``view`` (``link : view master``).
+
+Mode view declarations
+   A mode view declaration (VHDL-2019) is written with one element per line. An element without a mode raises
+   :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
+
+Documentation comments of the model (:attr:`~pyVHDLModel.Base.DocumentedEntityMixin.Documentation`) are not written.

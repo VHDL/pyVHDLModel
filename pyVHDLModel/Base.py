@@ -34,15 +34,20 @@ This module contains parts of an abstract document language model for VHDL.
 
 Base-classes for the VHDL language model.
 """
+from __future__            import annotations
+
 from enum                  import unique, Enum
-from typing                import Type, Tuple, List, Iterable, Optional as Nullable, Union, cast
+from typing                import TYPE_CHECKING, Type, Iterable, Optional as Nullable, Union, cast
 
 from pyTooling.Common      import getFullyQualifiedName
-from pyTooling.Decorators  import export, readonly
-from pyTooling.MetaClasses import ExtendedType
+from pyTooling.Decorators  import export, notimplemented, readonly
+from pyTooling.MetaClasses import ExtendedType, abstractclass
+if TYPE_CHECKING:
+	from pyVHDLModel.Symbol  import Symbol
+	from pyVHDLModel.Visitor import Visitor
 
 
-__all__ = ["ExpressionUnion"]
+__all__ = ["ExpressionUnion", "ModelElementUnion"]
 
 
 ExpressionUnion = Union[
@@ -53,6 +58,12 @@ ExpressionUnion = Union[
 	# ConstantOrSymbol,     TODO: ObjectSymbol
 	'Literal',
 ]
+
+ModelElementUnion = Union['ModelEntity', 'Symbol']
+"""
+A model element a visitor walks or the VHDL writer writes: a :class:`ModelEntity` or a
+:class:`~pyVHDLModel.Symbol.Symbol`.
+"""
 
 
 @export
@@ -99,6 +110,7 @@ class Mode(Enum):
 
 
 @export
+@abstractclass
 class ModelEntity(metaclass=ExtendedType, slots=True):
 	"""
 	``ModelEntity`` is the base-class for all classes in the VHDL language model, except for mixin classes (see multiple
@@ -108,9 +120,9 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 	available and a readonly property :attr:`Parent`.
 	"""
 
-	_parent: 'ModelEntity'      #: Reference to a parent entity in the logical model hierarchy.
+	_parent: ModelEntity      #: Reference to a parent entity in the logical model hierarchy.
 
-	def __init__(self, parent: Nullable["ModelEntity"] = None) -> None:
+	def __init__(self, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a VHDL model entity.
 
@@ -119,7 +131,7 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		self._parent = parent
 
 	@property
-	def Parent(self) -> 'ModelEntity':
+	def Parent(self) -> ModelEntity:
 		"""
 		Property to access the model entity's parent element reference in a logical hierarchy (:attr:`_parent`).
 
@@ -128,13 +140,13 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		return self._parent
 
 	@Parent.setter
-	def Parent(self, parent: 'ModelEntity') -> None:
+	def Parent(self, parent: ModelEntity) -> None:
 		if parent is None:
 			raise ValueError("Parameter 'parent' is None.")
 
 		self._parent = parent
 
-	def GetAncestor(self, type: Type) -> 'ModelEntity':
+	def GetAncestor(self, type: Type) -> ModelEntity:
 		"""
 		Return the closest ancestor of the given ``type`` found by walking the parent chain upwards.
 
@@ -159,6 +171,17 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 			raise VHDLModelException(f"No ancestor of type '{type.__name__}' found for {self!r}.")
 
 		return parent
+
+	@notimplemented("Model element has no walk for a visitor.")
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this model element with a visitor.
+
+		A model class implements its walk; a class without one raises.
+
+		:param visitor:              The visitor receiving the events.
+		:raises NotImplementedError: Always, because the element's class has no walk of its own.
+		"""
 
 
 @export
@@ -274,8 +297,8 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Record type element <pyVHDLModel.Type.RecordTypeElement>`
 	"""
 
-	_identifiers:           Tuple[str]  #: A list of identifiers.
-	_normalizedIdentifiers: Tuple[str]  #: A list of normalized (lower case) identifiers.
+	_identifiers:           tuple[str]  #: A list of identifiers.
+	_normalizedIdentifiers: tuple[str]  #: A list of normalized (lower case) identifiers.
 
 	def __init__(self, identifiers: Iterable[str]) -> None:
 		"""
@@ -283,11 +306,11 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 
 		:param identifiers: Sequence of identifiers (names) of the model entity.
 		"""
-		self._identifiers = tuple(identifiers)
-		self._normalizedIdentifiers = tuple([identifier.lower() for identifier in identifiers])
+		self._identifiers =           tuple(identifiers)
+		self._normalizedIdentifiers = tuple([identifier.lower() for identifier in self._identifiers])
 
 	@readonly
-	def Identifiers(self) -> Tuple[str]:
+	def Identifiers(self) -> tuple[str]:
 		"""
 		Read-only property to access the model entity's identifiers (:attr:`_identifiers`).
 
@@ -296,7 +319,7 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		return self._identifiers
 
 	@readonly
-	def NormalizedIdentifiers(self) -> Tuple[str]:
+	def NormalizedIdentifiers(self) -> tuple[str]:
 		"""
 		Read-only property to access the model entity's normalized identifiers (:attr:`_normalizedIdentifiers`).
 
@@ -306,7 +329,7 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
-def identifiersOf(item) -> Tuple[str, ...]:
+def identifiersOf(item) -> tuple[str, ...]:
 	"""
 	Return an item's identifier(s), regardless of how many names its declaration carries.
 
@@ -335,7 +358,7 @@ def identifiersOf(item) -> Tuple[str, ...]:
 
 
 @export
-def normalizedIdentifiersOf(item) -> Tuple[str, ...]:
+def normalizedIdentifiersOf(item) -> tuple[str, ...]:
 	"""
 	Return an item's normalized (lower case) identifier(s).
 
@@ -359,6 +382,31 @@ def normalizedIdentifiersOf(item) -> Tuple[str, ...]:
 	ex = TypeError(f"Item '{item}' is neither a NamedEntityMixin nor a MultipleNamedEntityMixin.")
 	ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 	raise ex
+
+
+@export
+def normalizedDeclaredNamesOf(item: ModelEntity) -> tuple[str, ...]:
+	"""
+	Return the normalized (lower case) names an item declares in its declarative region.
+
+	A declaration declares its identifiers. A statement label is declared implicitly in the declarative region enclosing
+	the statement, so a labeled statement declares its label.
+
+	:param item: A model entity.
+	:returns:    The normalized identifiers of a singularly or plurally named entity, the normalized label of a labeled
+	             entity, or an empty tuple.
+
+	.. seealso::
+
+	   :func:`normalizedIdentifiersOf`
+	     The normalized identifiers of a singularly or plurally named entity.
+	"""
+	if isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
+		return normalizedIdentifiersOf(item)
+	elif isinstance(item, LabeledEntityMixin) and item._normalizedLabel is not None:
+		return (item._normalizedLabel, )
+
+	return ()
 
 
 @export
@@ -637,6 +685,7 @@ class BlockStatementMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
+@abstractclass
 class BaseChoice(ModelEntity):
 	"""
 	A ``Choice`` is a base-class for all choices.
@@ -649,6 +698,7 @@ class BaseChoice(ModelEntity):
 
 
 @export
+@abstractclass
 class BaseCase(ModelEntity):
 	"""
 	A ``Case`` is a base-class for all cases.
@@ -677,7 +727,7 @@ class ChoicesMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Sequential case <pyVHDLModel.Sequential.SequentialCase>`
 	"""
 
-	_choices: List[BaseChoice]  #: List of all choices selecting this alternative.
+	_choices: list[BaseChoice]  #: List of all choices selecting this alternative.
 
 	def __init__(self, choices: Nullable[Iterable[BaseChoice]] = None) -> None:
 		"""
@@ -692,7 +742,7 @@ class ChoicesMixin(metaclass=ExtendedType, mixin=True):
 				choice.Parent = self
 
 	@readonly
-	def Choices(self) -> List[BaseChoice]:
+	def Choices(self) -> list[BaseChoice]:
 		"""
 		Read-only property to access the choices (:attr:`_choices`).
 
@@ -719,7 +769,9 @@ class Range(ModelEntity):
 @export
 class SimpleRange(Range):
 	"""
-	A range with both bounds given as expressions, e.g. ``0 to 7``.
+	A range with both bounds given as expressions.
+
+	``0 to 7`` is such a range.
 	"""
 
 	_leftBound:  ExpressionUnion  #: The range's left bound.
@@ -772,6 +824,18 @@ class SimpleRange(Range):
 		"""
 		return self._direction
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this range, its left bound and its right bound with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSimpleRange(self)
+		self._leftBound.Visit(visitor)
+		visitor.VisitDirection(self)
+		self._rightBound.Visit(visitor)
+		visitor.DepartSimpleRange(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the simple range.
@@ -804,9 +868,9 @@ class RangeFromName(Range):
 	   range``), so representing both as a range deviates from the rule split deliberately.
 	"""
 
-	_symbol: 'Symbol'  #: Reference to the name the range's bounds are inferred from.
+	_symbol: Symbol  #: Reference to the name the range's bounds are inferred from.
 
-	def __init__(self, symbol: 'Symbol', parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, symbol: Symbol, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initialize a range denoted by a name.
 
@@ -819,13 +883,23 @@ class RangeFromName(Range):
 		symbol.Parent = self
 
 	@readonly
-	def Symbol(self) -> 'Symbol':
+	def Symbol(self) -> Symbol:
 		"""
 		Read-only property to access the referenced symbol (:attr:`_symbol`).
 
 		:returns: The symbol.
 		"""
 		return self._symbol
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this range and its name with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRangeFromName(self)
+		self._symbol.Visit(visitor)
+		visitor.DepartRangeFromName(self)
 
 	def __str__(self) -> str:
 		"""

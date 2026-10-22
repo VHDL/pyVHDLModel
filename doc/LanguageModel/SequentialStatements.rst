@@ -126,7 +126,7 @@ Case Statement
      def SelectExpression(self) -> BaseExpression:
 
      @property
-     def Cases(self) -> List[SequentialCase]:
+     def Cases(self) -> list[SequentialCase]:
 
 
 
@@ -160,7 +160,7 @@ Endless Loop
 
      # inherited from SequentialStatements
      @property
-     def Statements(self) -> List[SequentialStatement]:
+     def Statements(self) -> list[SequentialStatement]:
 
 
 
@@ -189,7 +189,7 @@ For Loop
 
      # inherited from SequentialStatements
      @property
-     def Statements(self) -> List[SequentialStatement]:
+     def Statements(self) -> list[SequentialStatement]:
 
      # from ForLoopStatement
      @property
@@ -225,7 +225,7 @@ While Loop
 
      # inherited from SequentialStatements
      @property
-     def Statements(self) -> List[SequentialStatement]:
+     def Statements(self) -> list[SequentialStatement]:
 
      # inherited from BaseConditional
      @property
@@ -412,7 +412,7 @@ Wait Statement
 
      # from WaitStatement
      @property
-     def SensitivityList(self) -> List[Signal]:
+     def SensitivityList(self) -> list[Signal]:
 
      @property
      def Timeout(self) -> BaseExpression:

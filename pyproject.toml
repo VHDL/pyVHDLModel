@@ -1,7 +1,7 @@
 [build-system]
 requires = [
-  "setuptools >= 83.0",
-  "pyTooling ~= 8.19"
+  "setuptools >= 84.0.0",
+  "pyTooling >= 10.0.0rc3, < 11.0"
 ]
 build-backend = "setuptools.build_meta"
 
@@ -25,7 +25,7 @@ variable-naming-style = "camelCase"
 
 [tool.mypy]
 packages = ["pyVHDLModel"]
-python_version = "3.14"
+python_version = "3.15"
 #ignore_missing_imports = true
 strict = true
 pretty = true
@@ -67,6 +67,7 @@ ignore-nested-functions = true   # Nested helper functions are implementation-in
 [tool.coverage.run]
 branch = true
 relative_files = true
+patch = ["subprocess"]
 omit = [
 	"*site-packages*",
 	"setup.py",

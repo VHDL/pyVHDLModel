@@ -182,8 +182,8 @@ extensions = [
 	"sphinx_copybutton",
 	"sphinx_autodoc_typehints",
 	"autoapi.sphinx",
-	"sphinx_reports",
 # User defined extensions
+	"pyTooling.Sphinx",
 ]
 
 
@@ -218,12 +218,12 @@ autodoc_typehints = "both"
 # Sphinx.Ext.ExtLinks
 # ==============================================================================
 extlinks = {
-	"gh":          (f"https://GitHub.com/%s", "%s"),
+	"gh":          ("https://GitHub.com/%s", "%s"),
 	"ghissue":     (f"https://GitHub.com/{githubNamespace}/{project}/issues/%s", "issue #%s"),
 	"ghpull":      (f"https://GitHub.com/{githubNamespace}/{project}/pull/%s", "pull request #%s"),
 	"ghsrc":       (f"https://GitHub.com/{githubNamespace}/{project}/blob/main/%s", None),
 	"pypi":        ("https://PyPI.org/project/%s", "%s"),
-	"wiki":        (f"https://en.wikipedia.org/wiki/%s", None),
+	"wiki":        ("https://en.wikipedia.org/wiki/%s", None),
 }
 
 
@@ -263,38 +263,45 @@ todo_link_only = True
 
 
 # ==============================================================================
-# Sphinx-reports
+# pyTooling.Sphinx - reports of domain 'report'
 # ==============================================================================
-report_dep_dependencies = {
-	"src":     ["../requirements.txt"],
-	"doc":     ["requirements.txt"],
-	"unit":    ["../tests/unit/requirements.txt"],
-	"build":   ["../build/requirements.txt"],
-	"publish": ["../dist/requirements.txt"],
-}
-
-report_unittest_testsuites = {
+pyTooling_Unittest_Testsuites = {
 	"src": {
 		"name":        f"{project}",
 		"xml_report":  "../report/unit/unittest.xml",
 	}
 }
-report_codecov_packages = {
+pyTooling_CodeCoverage_Packages = {
 	"src": {
 		"name":        f"{project}",
 		"json_report": "../report/coverage/coverage.json",
+		"sources":     "..",
+		"pages":       "coverage/src",
 		"fail_below":  80,
 		"levels":      "default"
 	}
 }
-report_doccov_packages = {
+pyTooling_DocCoverage_Packages = {
 	"src": {
 		"name":       f"{project}",
 		"directory":  f"../{directoryName}",
+		"pages":      "doccoverage/src",
 		"fail_below": 80,
 		"levels":     "default"
 	}
 }
+
+
+# ==============================================================================
+# pyTooling.Sphinx - dependency tables
+# ==============================================================================
+pyTooling_Dependency_Requirements = {
+	"package":       {"file": "../requirements.txt"},
+	"testing":       {"file": "../tests/requirements.txt"},
+	"documentation": {"file": "requirements.txt"},
+	"publishing":    {"file": "../dist/requirements.txt"},
+}
+pyTooling_Dependency_PackageOverrides = "Dependency.PackageOverrides.yaml"
 
 
 # ==============================================================================

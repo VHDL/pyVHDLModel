@@ -30,12 +30,12 @@
 # ==================================================================================================================== #
 #
 """Instantiation tests for the model's top-level composition: names, symbols, design, library and document."""
-from pathlib  import Path
-from unittest import TestCase
+from pathlib import Path
 
-from pyTooling.Graph import Graph
+from pyTooling.Graph           import Graph
+from pyTooling.Testing         import Testcase
 
-from pyVHDLModel import Design, Library, Document, IEEEFlavor, LibraryExistsInDesignError
+from pyVHDLModel import Design, Library, Document, IEEEFlavor, LibraryExistsInDesignError, VHDLModelException
 from pyVHDLModel.Base import Direction, SimpleRange
 from pyVHDLModel.Name import SelectedName, SimpleName, AllName, AttributeName
 from pyVHDLModel.Object import Constant, Signal
@@ -62,7 +62,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class Names(TestCase):
+class Names(Testcase):
 	def test_SimpleName(self) -> None:
 		name = SimpleName("Lib")
 
@@ -138,7 +138,7 @@ class Names(TestCase):
 		self.assertEqual("Sig'Length", str(name))
 
 
-class Symbols(TestCase):
+class Symbols(Testcase):
 	def test_LibraryReferenceSymbol(self) -> None:
 		name = SimpleName("Lib")
 		symbol = LibraryReferenceSymbol(name)
@@ -370,7 +370,7 @@ class Symbols(TestCase):
 			ConstrainedScalarSubtypeSymbol(SimpleName("integer"))
 
 
-class PSLEntities(TestCase):
+class PSLEntities(Testcase):
 	"""PSL is not otherwise modelled, but its declarations are still model entities."""
 
 	def test_DefaultClockWithDocumentation(self) -> None:
@@ -386,7 +386,7 @@ class PSLEntities(TestCase):
 		self.assertIsNone(clock.Documentation)
 
 
-class SimpleInstance(TestCase):
+class SimpleInstance(Testcase):
 	def test_Design(self) -> None:
 		design = Design()
 		# design.Analyze()
@@ -557,7 +557,7 @@ class SimpleInstance(TestCase):
 		self.assertEqual("rec", record.Identifier)
 
 
-class VHDLDocument(TestCase):
+class VHDLDocument(Testcase):
 	def test_Documentation(self) -> None:
 		path = Path("tests.vhdl")
 		document = Document(path, documentation="Testing 'Document' class.", parent=None)
@@ -669,7 +669,59 @@ class VHDLDocument(TestCase):
 		self.assertEqual(6, len(document.DesignUnits))
 
 
-class VHDLLibrary(TestCase):
+class VHDLDocumentPath(Testcase):
+	def test_Path(self) -> None:
+		path = Path("tests.vhdl")
+		document = Document(path)
+
+		self.assertIs(path, document.Path)
+
+	def test_Path_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			Document(None)
+
+		self.assertEqual("Parameter 'path' is None.", str(context.exception))
+
+	def test_Path_String(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			Document("tests.vhdl")
+
+		self.assertEqual("Parameter 'path' is not of type 'Path'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
+
+class VHDLDocumentArchitectures(Testcase):
+	def test_Architecture_MixedCase(self) -> None:
+		"""Architectures are indexed by normalized entity and architecture identifiers."""
+		document = Document(Path("tests.vhdl"), parent=None)
+
+		architecture1 = Architecture("RTL", EntitySymbol(SimpleName("Entity_1")), parent=None)
+		document._AddArchitecture(architecture1)
+		architecture2 = Architecture("Behav", EntitySymbol(SimpleName("ENTITY_1")), parent=None)
+		document._AddArchitecture(architecture2)
+
+		self.assertEqual(["entity_1"], list(document.Architectures.keys()))
+		self.assertEqual(["rtl", "behav"], list(document.Architectures["entity_1"].keys()))
+		self.assertIs(architecture1, document.Architectures["entity_1"]["rtl"])
+		self.assertIs(architecture2, document.Architectures["entity_1"]["behav"])
+
+	def test_Architecture_DuplicateMixedCase(self) -> None:
+		"""A second architecture differing only in case is a duplicate."""
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddArchitecture(Architecture("RTL", EntitySymbol(SimpleName("entity_1")), parent=None))
+
+		with self.assertRaises(VHDLModelException) as context:
+			document._AddArchitecture(Architecture("rtl", EntitySymbol(SimpleName("entity_1")), parent=None))
+
+		self.assertEqual(
+			"An architecture 'rtl' for entity 'entity_1' already exists in this document.",
+			str(context.exception)
+		)
+		self.assertEqual(1, len(document.Architectures["entity_1"]))
+		self.assertEqual(1, len(document.DesignUnits))
+
+
+class VHDLLibrary(Testcase):
 	def test_DocumentationFromInitializer(self) -> None:
 		"""VHDL has no library declaration to hang a comment on, so a caller supplies one."""
 		library = Library("lib_1", "--! From a compile-order file.")

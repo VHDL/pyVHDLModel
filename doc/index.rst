@@ -209,7 +209,7 @@ News
 * Enhanced class documentation.
 * Changed test runner to ``pytest``.
 * Dependency check and license clearance. |br|
-  See :ref:`dependency` for details.
+  See :ref:`DEP` for details.
 
 
 .. only:: html
@@ -270,6 +270,7 @@ The accompanying documentation is licensed under :ref:`Creative Commons - Attrib
    LanguageModel/index
    Analyze/index
    DataStructure/index
+   Writer/index
 
 .. raw:: latex
 
@@ -282,8 +283,7 @@ The accompanying documentation is licensed under :ref:`Creative Commons - Attrib
    Python Class Reference <pyVHDLModel/pyVHDLModel>
    unittests/index
    coverage/index
-   CodeCoverage
-   Doc. Coverage Report <DocCoverage>
+   Doc. Coverage Report <doccoverage/index>
    Static Type Check Report ➚ <typing/index>
 
 

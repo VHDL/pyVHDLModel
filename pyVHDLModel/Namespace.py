@@ -34,15 +34,18 @@ This module contains parts of an abstract document language model for VHDL.
 
 A helper class to implement namespaces and scopes.
 """
-from typing import TYPE_CHECKING, TypeVar, Generic, Dict, Optional as Nullable, Any, Tuple
+from __future__            import annotations
 
-from pyTooling.Common     import getFullyQualifiedName
-from pyTooling.Decorators import readonly
-from pyTooling.Warning    import WarningCollector
+from typing                import TYPE_CHECKING, TypeVar, Generic, Optional as Nullable, Any
 
-from pyVHDLModel.Object   import Obj, Signal, Constant, Variable
-from pyVHDLModel.Symbol   import ComponentInstantiationSymbol, Symbol, PossibleReference
-from pyVHDLModel.Exception import DuplicateDeclarationWarning
+from pyTooling.Common      import getFullyQualifiedName
+from pyTooling.Decorators  import readonly
+from pyTooling.Warning     import WarningCollector
+
+from pyVHDLModel.Base      import identifiersOf, normalizedIdentifiersOf
+from pyVHDLModel.Object    import Obj, Signal, Constant, Variable
+from pyVHDLModel.Symbol    import ComponentInstantiationSymbol, Symbol, PossibleReference
+from pyVHDLModel.Exception import DuplicateDeclarationWarning, NotInNamespaceError
 if TYPE_CHECKING:
 	from pyVHDLModel.Type   import Subtype, FullType, BaseType
 
@@ -57,10 +60,10 @@ class ExtendedKeyError(KeyError):
 	Raised when a name cannot be resolved. Besides the key (:data:`key`), it carries every namespace
 	visited while walking outwards (:data:`searchedNamespaces`).
 	"""
-	key: str                                     #: The key that was not found.
-	searchedNamespaces: Tuple["Namespace", ...]  #: The namespaces that were searched for the key.
+	key: str                                   #: The key that was not found.
+	searchedNamespaces: tuple[Namespace, ...]  #: The namespaces that were searched for the key.
 
-	def __init__(self, key: str, searchedNamespaces: Tuple["Namespace", ...], message: str) -> None:
+	def __init__(self, key: str, searchedNamespaces: tuple[Namespace, ...], message: str) -> None:
 		"""
 		Initializes an extended key error.
 
@@ -87,16 +90,16 @@ class Namespace(Generic[K, O]):
 	   * :class:`Concurrent declaration region <pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin>`
 	   * :class:`Sequential declaration region <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	"""
-	_name:                   str                     #: The namespace's name.
-	_parentNamespace:        "Namespace"             #: Reference to the enclosing namespace, ``None`` if outermost.
-	_subNamespaces:          Dict[str, "Namespace"]  #: Dictionary of all nested namespaces, indexed by name.
-	_elements:               Dict[K, O]              #: All elements declared in this namespace, indexed by name.
-	_sharesRegionWithParent: bool                    #: ``True`` if the parent namespace is the same declarative region.
+	_name:                   str                   #: The namespace's name.
+	_parentNamespace:        Namespace             #: Reference to the enclosing namespace, ``None`` if outermost.
+	_subNamespaces:          dict[str, Namespace]  #: Dictionary of all nested namespaces, indexed by name.
+	_elements:               dict[K, O]            #: All elements declared in this namespace, indexed by name.
+	_sharesRegionWithParent: bool                  #: ``True`` if the parent namespace is the same declarative region.
 
 	def __init__(
 		self,
 		name: str,
-		parentNamespace: Nullable["Namespace"] = None,
+		parentNamespace: Nullable[Namespace] = None,
 		sharesRegionWithParent: bool = False
 	) -> None:
 		"""
@@ -121,7 +124,7 @@ class Namespace(Generic[K, O]):
 		return self._name
 
 	@property
-	def ParentNamespace(self) -> 'Namespace':
+	def ParentNamespace(self) -> Namespace:
 		"""
 		Property to access the parent namespace (:attr:`_parentNamespace`).
 
@@ -130,7 +133,7 @@ class Namespace(Generic[K, O]):
 		return self._parentNamespace
 
 	@ParentNamespace.setter
-	def ParentNamespace(self, value: 'Namespace') -> None:
+	def ParentNamespace(self, value: Namespace) -> None:
 		self._parentNamespace = value
 		value._subNamespaces[self._name] = self
 
@@ -151,7 +154,7 @@ class Namespace(Generic[K, O]):
 		return self._sharesRegionWithParent
 
 	@readonly
-	def SubNamespaces(self) -> Dict[str, 'Namespace']:
+	def SubNamespaces(self) -> dict[str, Namespace]:
 		"""
 		Read-only property to access the sub namespaces (:attr:`_subNamespaces`).
 
@@ -171,10 +174,17 @@ class Namespace(Generic[K, O]):
 		signatures differ. Signatures are not compared yet, so two subprograms sharing a name are always
 		accepted (see the overload-resolution finding).
 
-		:param normalizedIdentifier: The normalized (lower case) identifier being declared.
-		:param element:              The declared item.
-		:param overloadable:         ``True`` if this declaration may legally share its name.
+		An item imported into a namespace (e.g. by a use clause) is no declaration of that namespace's region: a
+		declaration hides it.
+
+		:param normalizedIdentifier:           The normalized (lower case) identifier being declared.
+		:param element:                        The declared item.
+		:param overloadable:                   ``True`` if this declaration may legally share its name.
+		:raises UnhandledCriticalWarningError: If the identifier is already declared in the declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
+		from pyVHDLModel            import Library
 		from pyVHDLModel.Subprogram import Function, Procedure
 
 		namespace = self
@@ -183,9 +193,18 @@ class Namespace(Generic[K, O]):
 			# `existing is element` means the region is being re-indexed, not that the name is declared twice.
 			isReindex = existing is element
 			isOverload = overloadable and isinstance(existing, (Function, Procedure))
-			if existing is not None and not isReindex and not isOverload:
+			# An item made visible by a use clause is declared elsewhere: 'use lib.pkg;' adds the package, whose parent is
+			# a library (without namespace); 'use lib.pkg.all;' adds the package's items, whose parent is the package.
+			isImport = existing is not None and (
+				isinstance(existing._parent, Library) or existing._parent._namespace is not namespace
+			)
+			if existing is not None and not isReindex and not isOverload and not isImport:
 				WarningCollector.Raise(DuplicateDeclarationWarning(
-					f"Identifier '{normalizedIdentifier}' is already used for a declaration in '{namespace._name}'."
+					f"Identifier '{normalizedIdentifier}' is already used for a declaration in '{namespace._name}'.",
+					identifier=self._IdentifierOf(element, normalizedIdentifier),
+					namespace=namespace,
+					element=element,
+					existing=existing
 				))
 				break
 
@@ -193,10 +212,51 @@ class Namespace(Generic[K, O]):
 
 		self._elements[normalizedIdentifier] = element
 
-	def Elements(self) -> Dict[K, O]:
+	def RemoveElement(self, normalizedIdentifier: K, element: O) -> None:
+		"""
+		Remove a declared item from this namespace.
+
+		:param normalizedIdentifier: The normalized (lower case) identifier of the declared item.
+		:param element:              The declared item.
+		:raises NotInNamespaceError: If the identifier isn't declared in this namespace.
+		:raises NotInNamespaceError: If the identifier refers to another element, e.g. a duplicate declaration.
+		"""
+		if (existing := self._elements.get(normalizedIdentifier)) is None:
+			raise NotInNamespaceError(
+				f"Namespace '{self._name}' has no element '{normalizedIdentifier}'.",
+				identifier=self._IdentifierOf(element, normalizedIdentifier),
+				namespace=self
+			)
+		elif existing is not element:
+			ex = NotInNamespaceError(
+				f"Namespace '{self._name}' has another element for '{normalizedIdentifier}'.",
+				identifier=self._IdentifierOf(element, normalizedIdentifier),
+				namespace=self
+			)
+			ex.add_note(f"Found element of type '{getFullyQualifiedName(existing)}'.")
+			raise ex
+
+		del self._elements[normalizedIdentifier]
+
+	@staticmethod
+	def _IdentifierOf(element: O, normalizedIdentifier: K) -> str:
+		"""
+		Return the identifier of an element as declared, for its normalized identifier.
+
+		:param element:              The named element.
+		:param normalizedIdentifier: One of the element's normalized (lower case) identifiers.
+		:returns:                    The identifier in its declared spelling.
+		"""
+		return next(
+			identifier
+			for identifier, normalized in zip(identifiersOf(element), normalizedIdentifiersOf(element))
+			if normalized == normalizedIdentifier
+		)
+
+	def Elements(self) -> dict[K, O]:
 		return self._elements
 
-	def FindComponent(self, componentSymbol: ComponentInstantiationSymbol) -> 'Component':
+	def FindComponent(self, componentSymbol: ComponentInstantiationSymbol) -> Component:
 		from pyVHDLModel.DesignUnit import Component
 
 		try:
@@ -219,7 +279,7 @@ class Namespace(Generic[K, O]):
 				searchedNamespaces = (self, *ex.searchedNamespaces)
 				raise ExtendedKeyError(key, searchedNamespaces, f"Component '{key}' not found in: {', '.join(ns._name for ns in searchedNamespaces)}.") from ex
 
-	def FindSubtype(self, subtypeSymbol: Symbol) -> 'BaseType':
+	def FindSubtype(self, subtypeSymbol: Symbol) -> BaseType:
 		from pyVHDLModel.Type import Subtype, FullType
 
 		try:

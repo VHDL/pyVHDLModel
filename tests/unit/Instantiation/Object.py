@@ -29,7 +29,7 @@
 # ==================================================================================================================== #
 #
 """Tests for pyVHDLModel.Object."""
-from unittest import TestCase
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
@@ -45,7 +45,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class ObjBaseBehaviour(TestCase):
+class ObjBaseBehaviour(Testcase):
 	"""``Obj`` itself has no public subclass without a more specific meaning, so its shared behaviour
 	(multiple identifiers, subtype parent-wiring, the object-graph vertex) is tested once here via
 	``Signal`` - any ``Obj`` subclass would do equally well, since none of this is overridden."""
@@ -84,7 +84,7 @@ class ObjBaseBehaviour(TestCase):
 		self.assertIsNone(signal.Documentation)
 
 
-class WithDefaultExpression(TestCase):
+class WithDefaultExpression(Testcase):
 	"""``WithDefaultExpressionMixin`` is shared by ``Constant``, ``Variable`` and ``Signal`` - tested
 	once via ``Signal`` for the parent-wiring behaviour, plus one smoke test per consumer below to
 	confirm each is actually wired up."""
@@ -102,7 +102,7 @@ class WithDefaultExpression(TestCase):
 		self.assertIsNone(signal.DefaultExpression)
 
 
-class Constants(TestCase):
+class Constants(Testcase):
 	def test_WithDefault(self) -> None:
 		default = IntegerLiteral(8)
 		constant = Constant(["BITS"], _subtypeSymbol("positive"), defaultExpression=default)
@@ -118,7 +118,7 @@ class Constants(TestCase):
 		self.assertIsNone(constant.DefaultExpression)
 
 
-class DeferredConstants(TestCase):
+class DeferredConstants(Testcase):
 	"""``constant BITS : positive;`` (in a package declaration, completed later in the package body)."""
 
 	def test_Construction(self) -> None:
@@ -131,7 +131,7 @@ class DeferredConstants(TestCase):
 		self.assertEqual("constant BITS : positive?", str(constant))
 
 
-class Variables(TestCase):
+class Variables(Testcase):
 	def test_WithDefault(self) -> None:
 		default = IntegerLiteral(0)
 		variable = Variable(["result"], _subtypeSymbol("natural"), defaultExpression=default)
@@ -144,7 +144,7 @@ class Variables(TestCase):
 		self.assertIsNone(variable.DefaultExpression)
 
 
-class Signals(TestCase):
+class Signals(Testcase):
 	def test_WithDefault(self) -> None:
 		default = IntegerLiteral(0)
 		signal = Signal(["counter"], _subtypeSymbol("unsigned"), defaultExpression=default)
@@ -157,7 +157,7 @@ class Signals(TestCase):
 		self.assertIsNone(signal.DefaultExpression)
 
 
-class SharedVariables(TestCase):
+class SharedVariables(Testcase):
 	"""``shared variable`` - not implemented beyond the base ``Obj`` shape (see the ``.. todo::`` in
 	the class docstring)."""
 
@@ -168,7 +168,7 @@ class SharedVariables(TestCase):
 		self.assertIs(SharedVariable, type(variable))
 
 
-class Files(TestCase):
+class Files(Testcase):
 	"""``file`` - not implemented beyond the base ``Obj`` shape (see the ``.. todo::`` in the class
 	docstring); open-mode/logical-name are not modelled at all yet."""
 

@@ -44,11 +44,13 @@ on such a model, while supporting multiple frontends.
    :copyright: Copyright 2016-2017 Patrick Lehmann - Dresden, Germany
    :license: Apache License, Version 2.0
 """
+from __future__ import annotations
+
 __author__ =            "Patrick Lehmann"
 __email__ =             "Paebbels@gmail.com"
 __copyright__ =         "2016-2026, Patrick Lehmann"
 __license__ =           "Apache License, Version 2.0"
-__version__ =           "0.39.0"
+__version__ =           "0.40.0rc1"
 # __keywords__ =          []
 __project_url__ =       "https://github.com/VHDL/pyVHDLModel"
 __documentation_url__ = "https://vhdl.github.io/pyVHDLModel"
@@ -58,7 +60,7 @@ __issue_tracker_url__ = "https://GitHub.com/VHDL/pyVHDLModel/issues"
 from enum                      import unique, Enum, Flag, auto
 from pathlib                   import Path
 
-from typing                    import Union, Dict, cast, List, Generator, Optional as Nullable
+from typing                    import Union, cast, Generator, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName
 from pyTooling.Decorators      import export, readonly
@@ -69,20 +71,41 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
 from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegisteredToForeignDesignError, LibraryNotRegisteredError, EntityExistsInLibraryError
 from pyVHDLModel.Exception     import ArchitectureExistsInLibraryError, PackageExistsInLibraryError, PackageBodyExistsError, ConfigurationExistsInLibraryError
 from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLibraryNotExistingError
+from pyVHDLModel.Exception     import LibraryNotFoundError, EntityNotFoundError, PackageNotFoundError
+from pyVHDLModel.Exception     import ConfigurationNotFoundError, ContextNotFoundError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
 from pyVHDLModel.Namespace     import Namespace
-from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant
+from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant, SharedVariable, Variable, File
 from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Common        import AllowBlackboxMixin
-from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin
+from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
+from pyVHDLModel.Regions       import ProtectedTypeDeclarationRegionMixin
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation
 from pyVHDLModel.Concurrent    import GenerateStatement, IfGenerateStatement, ForGenerateStatement, CaseGenerateStatement
 from pyVHDLModel.Concurrent    import GenerateBranch, ConcurrentStatementsMixin, ConcurrentBlockStatement
 from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, Configuration, Package, Component
-from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode
+from pyVHDLModel.DesignUnit    import UseClause
+from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode, PSLEntity
 from pyVHDLModel.Instantiation import PackageInstantiation
-from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType
+from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType, BaseType
+from pyVHDLModel.Configuration import ComponentConfiguration
+from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
+from pyVHDLModel.Interface     import ModeViewDeclaration
+from pyVHDLModel.Subprogram    import Subprogram
+
+
+# Classes of declared items each declarative region accepts (ClassVar _DECLARED_ITEM_TYPES).
+ConcurrentDeclarationRegionMixin._DECLARED_ITEM_TYPES = (
+	BaseType, Subprogram, Package, PackageBody, Constant, Signal, SharedVariable, File, Alias, Component, Attribute,
+	AttributeSpecification, ComponentConfiguration, ModeViewDeclaration, UseClause, PSLEntity
+)
+Package._DECLARED_ITEM_TYPES = (*ConcurrentDeclarationRegionMixin._DECLARED_ITEM_TYPES, DeferredConstant)
+SequentialDeclarationRegionMixin._DECLARED_ITEM_TYPES = (
+	BaseType, Subprogram, Package, PackageBody, Constant, Variable, File, Alias, Attribute, AttributeSpecification,
+	UseClause
+)
+ProtectedTypeDeclarationRegionMixin._DECLARED_ITEM_TYPES = (Subprogram, )
 
 
 @export
@@ -109,7 +132,7 @@ class VHDLVersion(Enum):
 	VHDL2019 =         2019  #: VHDL-2019
 	Latest =          10000  #: Latest VHDL (2019)
 
-	__VERSION_MAPPINGS__: Dict[Union[int, str], Enum] = {
+	__VERSION_MAPPINGS__: dict[Union[int, str], Enum] = {
 		-1:       Any,
 		87:       VHDL87,
 		93:       VHDL93,
@@ -159,7 +182,7 @@ class VHDLVersion(Enum):
 				self.__class__.__VERSION_MAPPINGS__[k] = self
 
 	@classmethod
-	def Parse(cls, value: Union[int, str]) -> "VHDLVersion":
+	def Parse(cls, value: Union[int, str]) -> VHDLVersion:
 		"""
 		Parses a VHDL or VHDL-AMS year code as integer or string to an enum value.
 
@@ -506,13 +529,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	* :attr:`ObjectGraph`
 	"""
 	_name:              Nullable[str]         #: Name of the design.
-	_allowBlackbox:     bool                  #: Allow blackboxes after linking the design.
-	_libraries:         Dict[str, 'Library']  #: List of all libraries defined for a design.
-	_documents:         List['Document']      #: List of all documents loaded for a design.
-	_dependencyGraph:   Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: The graph of all dependencies in the designs.
-	_compileOrderGraph: Graph[None, None, None, None, None, None, None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: A graph derived from dependency graph containing the order of documents for compilation.
-	_hierarchyGraph:    Graph[None, None, None, None, None, None, None, None, str, DesignUnit, None, None, None, None, None, None, None, None, None, None, None, None, None]   #: A graph derived from dependency graph containing the design hierarchy.
-	_objectGraph:       Graph[None, None, None, None, None, None, None, None, str, Obj, None, None, None, None, None, None, None, None, None, None, None, None, None]          #: The graph of all types and objects in the design.
+	_libraries:         dict[str, Library]    #: List of all libraries defined for a design.
+	_documents:         list[Document]        #: List of all documents loaded for a design.
+	_dependencyGraph:   Graph                 #: The graph of all dependencies in the designs.
+	_compileOrderGraph: Graph                 #: A graph derived from dependency graph containing the order of documents for compilation.
+	_hierarchyGraph:    Graph                 #: A graph derived from dependency graph containing the design hierarchy.
+	_objectGraph:       Graph                 #: The graph of all types and objects in the design.
 	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
 
 	def __init__(
@@ -550,7 +572,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		return self._name
 
 	@readonly
-	def Libraries(self) -> Dict[str, 'Library']:
+	def Libraries(self) -> dict[str, Library]:
 		"""
 		Read-only property to access the dictionary of library names and VHDL libraries (:attr:`_libraries`).
 
@@ -559,7 +581,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		return self._libraries
 
 	@readonly
-	def Documents(self) -> List['Document']:
+	def Documents(self) -> list[Document]:
 		"""
 		Read-only property to access the list of all documents (VHDL source files) loaded for this design (:attr:`_documents`).
 
@@ -620,7 +642,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			return self._toplevel
 
 		if self._hierarchyGraph.VertexCount == 0:
-			raise VHDLModelException(f"Hierarchy is not yet computed from dependency graph.")
+			raise VHDLModelException("Hierarchy is not yet computed from dependency graph.")
 
 		roots = tuple(self._hierarchyGraph.IterateRoots())
 		if len(roots) == 1:
@@ -632,7 +654,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		else:
 			raise VHDLModelException(f"Found more than one toplevel: {', '.join(str(r) for r in roots)}")
 
-	def LoadStdLibrary(self) -> 'Library':
+	def LoadStdLibrary(self) -> Library:
 		"""
 		Load the predefined VHDL library ``std`` into the design.
 
@@ -652,7 +674,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		return library
 
-	def LoadIEEELibrary(self, flavor: Nullable[IEEEFlavor] = None) -> 'Library':
+	def LoadIEEELibrary(self, flavor: Nullable[IEEEFlavor] = None) -> Library:
 		"""
 		Load the predefined VHDL library ``ieee`` into the design.
 
@@ -673,7 +695,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		return library
 
-	def AddLibrary(self, library: 'Library') -> None:
+	def AddLibrary(self, library: Library) -> None:
 		"""
 		Add a VHDL library to the design.
 
@@ -694,7 +716,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		self._libraries[libraryIdentifier] = library
 		library.Parent = self
 
-	def GetLibrary(self, libraryName: str) -> 'Library':
+	def GetLibrary(self, libraryName: str) -> Library:
 		"""
 		Return an (existing) VHDL library object of name ``libraryName``.
 
@@ -712,8 +734,301 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			lib.Parent = self
 			return lib
 
+	def GetEntity(self, libraryName: str, entityName: str) -> Entity:
+		"""
+		Return the entity named ``entityName`` from the library named ``libraryName``.
+
+		The lookup is case-insensitive. Nothing is created, if the library or entity doesn't exist.
+
+		:param libraryName:           Name of the library containing the entity.
+		:param entityName:            Name of the requested entity.
+		:returns:                     The entity.
+		:raises ValueError:           If parameter 'libraryName' is None or empty.
+		:raises TypeError:            If parameter 'libraryName' is not of type :class:`str`.
+		:raises ValueError:           If parameter 'entityName' is None or empty.
+		:raises TypeError:            If parameter 'entityName' is not of type :class:`str`.
+		:raises LibraryNotFoundError: If the library doesn't exist in the design.
+		:raises EntityNotFoundError:  If the entity doesn't exist in the library.
+		"""
+		if libraryName is None:
+			raise ValueError("Parameter 'libraryName' is None.")
+		elif not isinstance(libraryName, str):
+			ex = TypeError("Parameter 'libraryName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(libraryName)}'.")
+			raise ex
+		elif libraryName == "":
+			raise ValueError("Parameter 'libraryName' is empty.")
+
+		if entityName is None:
+			raise ValueError("Parameter 'entityName' is None.")
+		elif not isinstance(entityName, str):
+			ex = TypeError("Parameter 'entityName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(entityName)}'.")
+			raise ex
+		elif entityName == "":
+			raise ValueError("Parameter 'entityName' is empty.")
+
+		libraryIdentifier = libraryName.lower()
+		if libraryIdentifier not in self._libraries:
+			raise LibraryNotFoundError(libraryName)
+
+		library =          self._libraries[libraryIdentifier]
+		entityIdentifier = entityName.lower()
+		if entityIdentifier not in library._entities:
+			raise EntityNotFoundError(entityName, libraryName)
+
+		return library._entities[entityIdentifier]
+
+	def SearchEntity(self, entityName: str) -> tuple[Entity, ...]:
+		"""
+		Return all entities named ``entityName`` from the libraries of the design.
+
+		The search is case-insensitive. Each entity references its library by
+		:attr:`~pyVHDLModel.DesignUnit.DesignUnit.Library`.
+
+		:param entityName:  Name of the searched entity.
+		:returns:           Tuple of entities in the order of the design's libraries, empty if no library contains one.
+		:raises ValueError: If parameter 'entityName' is None or empty.
+		:raises TypeError:  If parameter 'entityName' is not of type :class:`str`.
+		"""
+		if entityName is None:
+			raise ValueError("Parameter 'entityName' is None.")
+		elif not isinstance(entityName, str):
+			ex = TypeError("Parameter 'entityName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(entityName)}'.")
+			raise ex
+		elif entityName == "":
+			raise ValueError("Parameter 'entityName' is empty.")
+
+		entityIdentifier = entityName.lower()
+		return tuple(
+			library._entities[entityIdentifier]
+			for library in self._libraries.values()
+			if entityIdentifier in library._entities
+		)
+
+	def GetPackage(self, libraryName: str, packageName: str) -> Package:
+		"""
+		Return the package named ``packageName`` from the library named ``libraryName``.
+
+		The lookup is case-insensitive. Nothing is created, if the library or package doesn't exist.
+
+		:param libraryName:           Name of the library containing the package.
+		:param packageName:           Name of the requested package.
+		:returns:                     The package.
+		:raises ValueError:           If parameter 'libraryName' is None or empty.
+		:raises TypeError:            If parameter 'libraryName' is not of type :class:`str`.
+		:raises ValueError:           If parameter 'packageName' is None or empty.
+		:raises TypeError:            If parameter 'packageName' is not of type :class:`str`.
+		:raises LibraryNotFoundError: If the library doesn't exist in the design.
+		:raises PackageNotFoundError: If the package doesn't exist in the library.
+		"""
+		if libraryName is None:
+			raise ValueError("Parameter 'libraryName' is None.")
+		elif not isinstance(libraryName, str):
+			ex = TypeError("Parameter 'libraryName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(libraryName)}'.")
+			raise ex
+		elif libraryName == "":
+			raise ValueError("Parameter 'libraryName' is empty.")
+
+		if packageName is None:
+			raise ValueError("Parameter 'packageName' is None.")
+		elif not isinstance(packageName, str):
+			ex = TypeError("Parameter 'packageName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(packageName)}'.")
+			raise ex
+		elif packageName == "":
+			raise ValueError("Parameter 'packageName' is empty.")
+
+		libraryIdentifier = libraryName.lower()
+		if libraryIdentifier not in self._libraries:
+			raise LibraryNotFoundError(libraryName)
+
+		library =           self._libraries[libraryIdentifier]
+		packageIdentifier = packageName.lower()
+		if packageIdentifier not in library._packages:
+			raise PackageNotFoundError(packageName, libraryName)
+
+		return library._packages[packageIdentifier]
+
+	def SearchPackage(self, packageName: str) -> tuple[Package, ...]:
+		"""
+		Return all packages named ``packageName`` from the libraries of the design.
+
+		The search is case-insensitive. Each package references its library by
+		:attr:`~pyVHDLModel.DesignUnit.DesignUnit.Library`.
+
+		:param packageName: Name of the searched package.
+		:returns:           Tuple of packages in the order of the design's libraries, empty if no library contains one.
+		:raises ValueError: If parameter 'packageName' is None or empty.
+		:raises TypeError:  If parameter 'packageName' is not of type :class:`str`.
+		"""
+		if packageName is None:
+			raise ValueError("Parameter 'packageName' is None.")
+		elif not isinstance(packageName, str):
+			ex = TypeError("Parameter 'packageName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(packageName)}'.")
+			raise ex
+		elif packageName == "":
+			raise ValueError("Parameter 'packageName' is empty.")
+
+		packageIdentifier = packageName.lower()
+		return tuple(
+			library._packages[packageIdentifier]
+			for library in self._libraries.values()
+			if packageIdentifier in library._packages
+		)
+
+	def GetConfiguration(self, libraryName: str, configurationName: str) -> Configuration:
+		"""
+		Return the configuration named ``configurationName`` from the library named ``libraryName``.
+
+		The lookup is case-insensitive. Nothing is created, if the library or configuration doesn't exist.
+
+		:param libraryName:                 Name of the library containing the configuration.
+		:param configurationName:           Name of the requested configuration.
+		:returns:                           The configuration.
+		:raises ValueError:                 If parameter 'libraryName' is None or empty.
+		:raises TypeError:                  If parameter 'libraryName' is not of type :class:`str`.
+		:raises ValueError:                 If parameter 'configurationName' is None or empty.
+		:raises TypeError:                  If parameter 'configurationName' is not of type :class:`str`.
+		:raises LibraryNotFoundError:       If the library doesn't exist in the design.
+		:raises ConfigurationNotFoundError: If the configuration doesn't exist in the library.
+		"""
+		if libraryName is None:
+			raise ValueError("Parameter 'libraryName' is None.")
+		elif not isinstance(libraryName, str):
+			ex = TypeError("Parameter 'libraryName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(libraryName)}'.")
+			raise ex
+		elif libraryName == "":
+			raise ValueError("Parameter 'libraryName' is empty.")
+
+		if configurationName is None:
+			raise ValueError("Parameter 'configurationName' is None.")
+		elif not isinstance(configurationName, str):
+			ex = TypeError("Parameter 'configurationName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(configurationName)}'.")
+			raise ex
+		elif configurationName == "":
+			raise ValueError("Parameter 'configurationName' is empty.")
+
+		libraryIdentifier = libraryName.lower()
+		if libraryIdentifier not in self._libraries:
+			raise LibraryNotFoundError(libraryName)
+
+		library =                 self._libraries[libraryIdentifier]
+		configurationIdentifier = configurationName.lower()
+		if configurationIdentifier not in library._configurations:
+			raise ConfigurationNotFoundError(configurationName, libraryName)
+
+		return library._configurations[configurationIdentifier]
+
+	def SearchConfiguration(self, configurationName: str) -> tuple[Configuration, ...]:
+		"""
+		Return all configurations named ``configurationName`` from the libraries of the design.
+
+		The search is case-insensitive. Each configuration references its library by
+		:attr:`~pyVHDLModel.DesignUnit.DesignUnit.Library`.
+
+		:param configurationName: Name of the searched configuration.
+		:returns:                 Tuple of configurations in the order of the design's libraries, empty if no library
+		                          contains one.
+		:raises ValueError:       If parameter 'configurationName' is None or empty.
+		:raises TypeError:        If parameter 'configurationName' is not of type :class:`str`.
+		"""
+		if configurationName is None:
+			raise ValueError("Parameter 'configurationName' is None.")
+		elif not isinstance(configurationName, str):
+			ex = TypeError("Parameter 'configurationName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(configurationName)}'.")
+			raise ex
+		elif configurationName == "":
+			raise ValueError("Parameter 'configurationName' is empty.")
+
+		configurationIdentifier = configurationName.lower()
+		return tuple(
+			library._configurations[configurationIdentifier]
+			for library in self._libraries.values()
+			if configurationIdentifier in library._configurations
+		)
+
+	def GetContext(self, libraryName: str, contextName: str) -> Context:
+		"""
+		Return the context named ``contextName`` from the library named ``libraryName``.
+
+		The lookup is case-insensitive. Nothing is created, if the library or context doesn't exist.
+
+		:param libraryName:           Name of the library containing the context.
+		:param contextName:           Name of the requested context.
+		:returns:                     The context.
+		:raises ValueError:           If parameter 'libraryName' is None or empty.
+		:raises TypeError:            If parameter 'libraryName' is not of type :class:`str`.
+		:raises ValueError:           If parameter 'contextName' is None or empty.
+		:raises TypeError:            If parameter 'contextName' is not of type :class:`str`.
+		:raises LibraryNotFoundError: If the library doesn't exist in the design.
+		:raises ContextNotFoundError: If the context doesn't exist in the library.
+		"""
+		if libraryName is None:
+			raise ValueError("Parameter 'libraryName' is None.")
+		elif not isinstance(libraryName, str):
+			ex = TypeError("Parameter 'libraryName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(libraryName)}'.")
+			raise ex
+		elif libraryName == "":
+			raise ValueError("Parameter 'libraryName' is empty.")
+
+		if contextName is None:
+			raise ValueError("Parameter 'contextName' is None.")
+		elif not isinstance(contextName, str):
+			ex = TypeError("Parameter 'contextName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(contextName)}'.")
+			raise ex
+		elif contextName == "":
+			raise ValueError("Parameter 'contextName' is empty.")
+
+		libraryIdentifier = libraryName.lower()
+		if libraryIdentifier not in self._libraries:
+			raise LibraryNotFoundError(libraryName)
+
+		library =           self._libraries[libraryIdentifier]
+		contextIdentifier = contextName.lower()
+		if contextIdentifier not in library._contexts:
+			raise ContextNotFoundError(contextName, libraryName)
+
+		return library._contexts[contextIdentifier]
+
+	def SearchContext(self, contextName: str) -> tuple[Context, ...]:
+		"""
+		Return all contexts named ``contextName`` from the libraries of the design.
+
+		The search is case-insensitive. Each context references its library by
+		:attr:`~pyVHDLModel.DesignUnit.DesignUnit.Library`.
+
+		:param contextName: Name of the searched context.
+		:returns:           Tuple of contexts in the order of the design's libraries, empty if no library contains one.
+		:raises ValueError: If parameter 'contextName' is None or empty.
+		:raises TypeError:  If parameter 'contextName' is not of type :class:`str`.
+		"""
+		if contextName is None:
+			raise ValueError("Parameter 'contextName' is None.")
+		elif not isinstance(contextName, str):
+			ex = TypeError("Parameter 'contextName' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(contextName)}'.")
+			raise ex
+		elif contextName == "":
+			raise ValueError("Parameter 'contextName' is empty.")
+
+		contextIdentifier = contextName.lower()
+		return tuple(
+			library._contexts[contextIdentifier]
+			for library in self._libraries.values()
+			if contextIdentifier in library._contexts
+		)
+
 	# TODO: allow overloaded parameter library to be str?
-	def AddDocument(self, document: 'Document', library: 'Library') -> None:
+	def AddDocument(self, document: Document, library: Library) -> None:
 		"""
 		Add a document (VHDL source file) to the design and register all embedded design units to the given VHDL library.
 
@@ -868,6 +1183,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		   :meth:`AnalyzeObjects`
 		     Analyze the dependencies of types and objects.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		self.AnalyzeDependencies()
 		# self.AnalyzeObjects()
@@ -908,6 +1227,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		    |rarr| :meth:`CreateHierarchyGraph`
 		15. Compute the compile order. |br|
 		    |rarr| :meth:`ComputeCompileOrder`
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		self.CreateDependencyGraph()
 		self.CreateCompileOrderGraph()
@@ -942,6 +1265,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`ImportObjects`
 		4. Create the type and object graph. |br|
 		   |rarr| :meth:`CreateTypeAndObjectGraph`
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		self.IndexEntities()
 		self.IndexPackageBodies()
@@ -1066,7 +1393,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		1. Iterate all documents in the design.
 
-		   * Create a vertex for that document and reference the document by the vertex' value field. |br|
+		   * Create a vertex for that document with the document's path as vertex ID and reference the document by the
+		     vertex' value field. |br|
 		     In return, set the documents's :attr:`~pyVHDLModel.Document._dependencyVertex` field to reference the created vertex.
 		   * Copy the vertex from dependency graph to compile-order graph and link both vertices bidirectionally. |br|
 		     In addition, set the documents's :attr:`~pyVHDLModel.Document._dependencyVertex` field to reference the copied vertex.
@@ -1080,7 +1408,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		      * Add a key-value-pair called `kind`` denoting the edge's kind as an enumeration value of type :class:`DependencyGraphEdgeKind`.
 		"""
 		for document in self._documents:
-			dependencyVertex = Vertex(vertexID=document.Path.name, value=document, graph=self._dependencyGraph)
+			dependencyVertex = Vertex(vertexID=str(document._path), value=document, graph=self._dependencyGraph)
 			dependencyVertex["kind"] = DependencyGraphVertexKind.Document
 			document._dependencyVertex = dependencyVertex
 
@@ -1110,10 +1438,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							package._namespace._elements[declaredItem._normalizedIdentifier] = declaredItem
 						elif isinstance(declaredItem, AttributeSpecification):
 							# FIXME: actually, this is not a declared item, but a application of an attribute to named entities
-							WarningCollector.Raise(NotImplementedWarning(f"Attribute specification."))
+							WarningCollector.Raise(NotImplementedWarning("Attribute specification.", item=declaredItem))
 
 						else:
-							raise VHDLModelException(f"Unexpected declared item.")
+							raise VHDLModelException("Unexpected declared item.")
 
 		for libraryName in ("std", "ieee"):
 			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
@@ -1204,7 +1532,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				_LinkSymbolsInExpression(expression.LeftOperand, namespace, typeVertex)
 				_LinkSymbolsInExpression(expression.RightOperand, namespace, typeVertex)
 			elif isinstance(expression, TernaryExpression):
-				WarningCollector.Raise(NotImplementedWarning(f"Handling of ternary expression."))
+				WarningCollector.Raise(NotImplementedWarning("Handling of ternary expression.", item=expression))
 			elif isinstance(expression, SimpleObjectOrFunctionCallSymbol):
 				obj = namespace.FindObject(expression)
 				expression._reference = obj
@@ -1212,7 +1540,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				edge = obj._objectVertex.EdgeToVertex(typeVertex)
 				edge["kind"] = ObjectGraphEdgeKind.ReferenceInExpression
 			else:
-				WarningCollector.Raise(NotImplementedWarning(f"Unhandled else-branch"))
+				WarningCollector.Raise(NotImplementedWarning("Unhandled else-branch", item=expression))
 
 		def _LinkItems(package: Package) -> None:
 			for item in package._declaredItems:
@@ -1352,10 +1680,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					# TODO: update the namespace with visible members
 					if isinstance(symbol, AllPackageMembersReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.all'."))
+						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.all'.", item=symbol))
 
 					elif isinstance(symbol, PackageMemberReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.mySymbol'."))
+						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.mySymbol'.", item=symbol))
 
 					else:
 						raise VHDLModelException()
@@ -1714,16 +2042,22 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						designUnit._namespace._elements[packageIdentifier] = package
 
 					elif isinstance(packageMemberSymbol, AllPackageMembersReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.all'. Exception: components are handled."))
+						WarningCollector.Raise(NotImplementedWarning(
+							"Handling of 'myLib.myPackage.all'. Exception: components are handled.",
+							item=packageMemberSymbol
+						))
 
 						for componentIdentifier, component in package._components.items():
 							designUnit._namespace._elements[componentIdentifier] = component
 
 					elif isinstance(packageMemberSymbol, PackageMemberReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning(f"Handling of 'myLib.myPackage.mySymbol'."))
+						WarningCollector.Raise(NotImplementedWarning(
+							"Handling of 'myLib.myPackage.mySymbol'.",
+							item=packageMemberSymbol
+						))
 
 					else:
-						ex = VHDLModelException(f"Unknown package reference symbol type.")
+						ex = VHDLModelException("Unknown package reference symbol type.")
 						ex.add_note(f"Got type '{getFullyQualifiedName(packageMemberSymbol)}'.")
 						raise ex
 
@@ -1925,21 +2259,34 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):  # type: Architecture
 			for instance in architecture.IterateInstantiations():
 				if isinstance(instance, EntityInstantiation):
-					libraryName = instance.Entity.Name.Prefix
+					entityName =  instance.Entity.Name
+					libraryName = entityName.Prefix
+					if libraryName is None:
+						ex = VHDLModelException(f"Direct entity instantiation '{instance.Label}' has no library prefix.")
+						ex.add_note(f"Use a selected name like 'work.{entityName.Identifier}'.")
+						ex.add_note("Entities made visible by a use clause aren't supported.")
+						raise ex
+
 					libraryIdentifier = libraryName.Identifier
 					normalizedLibraryIdentifier = libraryName.NormalizedIdentifier
 					if normalizedLibraryIdentifier == "work":
 						libraryIdentifier = architecture.Library.Identifier
 						normalizedLibraryIdentifier = architecture.Library.NormalizedIdentifier
 					elif normalizedLibraryIdentifier not in architecture._referencedLibraries:
-						ex = VHDLModelException(f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in architecture '{architecture!r}'.")
+						ex = VHDLModelException(
+							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in architecture '{architecture!r}'."
+						)
 						ex.add_note(f"Add a library reference to the architecture or entity using a library clause like: 'library {libraryIdentifier};'.")
 						raise ex
 
 					try:
 						library = self._libraries[normalizedLibraryIdentifier]
 					except KeyError:
-						ex = VHDLModelException(f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Prefix.Identifier}.{instance.Entity.Identifier}' not found in design.")
+						ex = VHDLModelException(
+							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in design."
+						)
 						ex.add_note(f"No design units were parsed into library '{libraryIdentifier}'. Thus it doesn't exist in design.")
 						raise ex
 
@@ -1966,10 +2313,17 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						dependency = architecture._dependencyVertex.EdgeToVertex(component.Entity._dependencyVertex, edgeValue=instance)
 						dependency["kind"] = DependencyGraphEdgeKind.ComponentInstantiation
 					else:
-						WarningCollector.Raise(BlackboxWarning(f"Blackbox caused by '{instance.Label}: {instance.Component.Name}'."))
+						WarningCollector.Raise(BlackboxWarning(
+							f"Blackbox caused by '{instance.Label}: {instance.Component.Name}'.",
+							instance=instance,
+							component=component
+						))
 
 				elif isinstance(instance, ConfigurationInstantiation):
-					WarningCollector.Raise(NotImplementedWarning(f"Configuration instantiation of '{instance.Label}: {instance.Configuration}'."))
+					WarningCollector.Raise(NotImplementedWarning(
+						f"Configuration instantiation of '{instance.Label}: {instance.Configuration}'.",
+						item=instance
+					))
 
 	def IndexPackages(self) -> None:
 		"""
@@ -1993,6 +2347,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Index all declared items in all entities in all libraries.
 		   :meth:`IndexArchitectures`
 		     Index all declared items in all architectures in all libraries.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for library in self._libraries.values():
 			library.IndexPackages()
@@ -2019,6 +2377,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Index all declared items in all entities in all libraries.
 		   :meth:`IndexArchitectures`
 		     Index all declared items in all architectures in all libraries.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for library in self._libraries.values():
 			library.IndexPackageBodies()
@@ -2045,6 +2407,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Index all declared items in all package bodies in all libraries.
 		   :meth:`IndexArchitectures`
 		     Index all declared items in all architectures in all libraries.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for library in self._libraries.values():
 			library.IndexEntities()
@@ -2071,6 +2437,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Index all declared items in all package bodies in all libraries.
 		   :meth:`IndexEntities`
 		     Index all declared items in all entities in all libraries.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for library in self._libraries.values():
 			library.IndexArchitectures()
@@ -2152,7 +2522,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			e = sourceVertex["dependencyVertex"].EdgeToVertex(destinationVertex["dependencyVertex"])
 			e["kind"] = DependencyGraphEdgeKind.CompileOrder
 
-	def IterateDocumentsInCompileOrder(self) -> Generator['Document', None, None]:
+	def IterateDocumentsInCompileOrder(self) -> Generator[Document, None, None]:
 		"""
 		Iterate all document in compile-order.
 
@@ -2176,13 +2546,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		"""
 		if self._compileOrderGraph.EdgeCount < self._compileOrderGraph.VertexCount - 1:
-			raise VHDLModelException(f"Compile order is not yet computed from dependency graph.")
+			raise VHDLModelException("Compile order is not yet computed from dependency graph.")
 
 		for compileOrderNode in self._compileOrderGraph.IterateTopologically():
 			yield compileOrderNode.Value
 
-	def GetUnusedDesignUnits(self) -> List[DesignUnit]:
-		WarningCollector.Raise(NotImplementedWarning(f"Compute unused design units."))
+	def GetUnusedDesignUnits(self) -> list[DesignUnit]:
+		WarningCollector.Raise(NotImplementedWarning("Compute unused design units."))
 
 	def __repr__(self) -> str:
 		"""
@@ -2207,15 +2577,14 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 	   * :class:`Predefined library <pyVHDLModel.Predefined.PredefinedLibrary>`
 	"""
 
-	_allowBlackbox:  Nullable[bool]                      #: Allow blackboxes for components in this library.
-	_contexts:       Dict[str, Context]                  #: Dictionary of all contexts defined in a library.
-	_configurations: Dict[str, Configuration]            #: Dictionary of all configurations defined in a library.
-	_entities:       Dict[str, Entity]                   #: Dictionary of all entities defined in a library.
-	_architectures:  Dict[str, Dict[str, Architecture]]  #: Dictionary of all architectures defined in a library.
-	_packages:       Dict[str, Package]                  #: Dictionary of all packages defined in a library.
-	_packageBodies:  Dict[str, PackageBody]              #: Dictionary of all package bodies defined in a library.
+	_contexts:       dict[str, Context]                  #: Dictionary of all contexts defined in a library.
+	_configurations: dict[str, Configuration]            #: Dictionary of all configurations defined in a library.
+	_entities:       dict[str, Entity]                   #: Dictionary of all entities defined in a library.
+	_architectures:  dict[str, dict[str, Architecture]]  #: Dictionary of all architectures defined in a library.
+	_packages:       dict[str, Package]                  #: Dictionary of all packages defined in a library.
+	_packageBodies:  dict[str, PackageBody]              #: Dictionary of all package bodies defined in a library.
 
-	_dependencyVertex: Vertex[None, None, str, Union['Library', DesignUnit], None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the library. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
+	_dependencyVertex: Vertex  #: Reference to the vertex in the dependency graph representing the library. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateDependencyGraph`.
 
 	def __init__(
 		self,
@@ -2266,7 +2635,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		self._documentation = documentation
 
 	@readonly
-	def Contexts(self) -> Dict[str, Context]:
+	def Contexts(self) -> dict[str, Context]:
 		"""
 		Read-only property to access the dictionary of all context declarations in this library (:attr:`_contexts`).
 
@@ -2275,7 +2644,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		return self._contexts
 
 	@readonly
-	def Configurations(self) -> Dict[str, Configuration]:
+	def Configurations(self) -> dict[str, Configuration]:
 		"""
 		Read-only property to access the dictionary of all configuration declarations in this library (:attr:`_configurations`).
 
@@ -2284,7 +2653,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		return self._configurations
 
 	@readonly
-	def Entities(self) -> Dict[str, Entity]:
+	def Entities(self) -> dict[str, Entity]:
 		"""
 		Read-only property to access the dictionary of all entity declarations in this library (:attr:`_entities`).
 
@@ -2293,7 +2662,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		return self._entities
 
 	@readonly
-	def Architectures(self) -> Dict[str, Dict[str, Architecture]]:
+	def Architectures(self) -> dict[str, dict[str, Architecture]]:
 		"""
 		Read-only property to access the dictionary of all architecture declarations in this library (:attr:`_architectures`).
 
@@ -2303,7 +2672,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		return self._architectures
 
 	@readonly
-	def Packages(self) -> Dict[str, Package]:
+	def Packages(self) -> dict[str, Package]:
 		"""
 		Read-only property to access the dictionary of all package declarations in this library (:attr:`_packages`).
 
@@ -2312,7 +2681,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		return self._packages
 
 	@readonly
-	def PackageBodies(self) -> Dict[str, PackageBody]:
+	def PackageBodies(self) -> dict[str, PackageBody]:
 		"""
 		Read-only property to access the dictionary of all package body declarations in this library (:attr:`_packageBodies`).
 
@@ -2554,6 +2923,10 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		     Index all declared items in an entity.
 		   :meth:`IndexArchitectures`
 		     Index all declared items in an architecture.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for package in self._packages.values():
 			if isinstance(package, Package):
@@ -2578,6 +2951,10 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		     Index all declared items in an entity.
 		   :meth:`IndexArchitectures`
 		     Index all declared items in an architecture.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for packageBody in self._packageBodies.values():
 			packageBody.IndexDeclaredItems()
@@ -2601,6 +2978,10 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		     Index all declared items in a package body.
 		   :meth:`IndexArchitectures`
 		     Index all declared items in an architecture.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for entity in self._entities.values():
 			entity.IndexDeclaredItems()
@@ -2624,6 +3005,10 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		     Index all declared items in a package body.
 		   :meth:`IndexEntities`
 		     Index all declared items in an entity.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		for architectures in self._architectures.values():
 			for architecture in architectures.values():
@@ -2647,22 +3032,22 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 class Document(ModelEntity, DocumentedEntityMixin):
 	"""A ``Document`` represents a sourcefile. It contains *primary* and *secondary* design units."""
 
-	_path:                   Path                                #: Path to the document. ``None`` if in-memory document.
+	_path:                   Path                                #: Path to the document.
 	_vhdlVersion:            VHDLVersion                         #: VHDL version used for analyzing this source file.
 	_library:                Library                             #: VHDL library used for analyzing the source file's content into.
-	_designUnits:            List[DesignUnit]                    #: List of all design units defined in a document.
-	_contexts:               Dict[str, Context]                  #: Dictionary of all contexts defined in a document.
-	_configurations:         Dict[str, Configuration]            #: Dictionary of all configurations defined in a document.
-	_entities:               Dict[str, Entity]                   #: Dictionary of all entities defined in a document.
-	_architectures:          Dict[str, Dict[str, Architecture]]  #: Dictionary of all architectures defined in a document.
-	_packages:               Dict[str, Package]                  #: Dictionary of all packages defined in a document.
-	_packageBodies:          Dict[str, PackageBody]              #: Dictionary of all package bodies defined in a document.
-	_verificationUnits:      Dict[str, VerificationUnit]         #: Dictionary of all PSL verification units defined in a document.
-	_verificationProperties: Dict[str, VerificationProperty]     #: Dictionary of all PSL verification properties defined in a document.
-	_verificationModes:      Dict[str, VerificationMode]         #: Dictionary of all PSL verification modes defined in a document.
+	_designUnits:            list[DesignUnit]                    #: List of all design units defined in a document.
+	_contexts:               dict[str, Context]                  #: Dictionary of all contexts defined in a document.
+	_configurations:         dict[str, Configuration]            #: Dictionary of all configurations defined in a document.
+	_entities:               dict[str, Entity]                   #: Dictionary of all entities defined in a document.
+	_architectures:          dict[str, dict[str, Architecture]]  #: Dictionary of all architectures defined in a document.
+	_packages:               dict[str, Package]                  #: Dictionary of all packages defined in a document.
+	_packageBodies:          dict[str, PackageBody]              #: Dictionary of all package bodies defined in a document.
+	_verificationUnits:      dict[str, VerificationUnit]         #: Dictionary of all PSL verification units defined in a document.
+	_verificationProperties: dict[str, VerificationProperty]     #: Dictionary of all PSL verification properties defined in a document.
+	_verificationModes:      dict[str, VerificationMode]         #: Dictionary of all PSL verification modes defined in a document.
 
-	_dependencyVertex:       Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the dependency graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
-	_compileOrderVertex:     Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]  #: Reference to the vertex in the compile-order graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
+	_dependencyVertex:       Vertex  #: Reference to the vertex in the dependency graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
+	_compileOrderVertex:     Vertex  #: Reference to the vertex in the compile-order graph representing the document. |br| This reference is set by :meth:`~pyVHDLModel.Design.CreateCompileOrderGraph`.
 
 	def __init__(
 		self,
@@ -2675,14 +3060,23 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Initializes a VHDL document.
 
-		:param path:          Path to the document. ``None`` if in-memory document.
+		:param path:          Path to the document.
 		:param documentation: The documentation comment associated with this declaration.
 		:param vhdlVersion:   VHDL version used for analyzing this source file.
 		:param library:       VHDL library used for analyzing the source file's content into.
 		:param parent:        The parent model entity of this entity.
+		:raises ValueError:   If parameter 'path' is None.
+		:raises TypeError:    If parameter 'path' is not of type :class:`~pathlib.Path`.
 		"""
 		super().__init__(parent)
 		DocumentedEntityMixin.__init__(self, documentation)
+
+		if path is None:
+			raise ValueError("Parameter 'path' is None.")
+		elif not isinstance(path, Path):
+			ex = TypeError("Parameter 'path' is not of type 'Path'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(path)}'.")
+			raise ex
 
 		self._path =                   path
 		self._vhdlVersion =            vhdlVersion
@@ -2710,7 +3104,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If entity name already exists in document.
 		"""
 		if not isinstance(item, Entity):
-			ex = TypeError(f"Parameter 'item' is not of type 'Entity'.")
+			ex = TypeError("Parameter 'item' is not of type 'Entity'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2734,22 +3128,23 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If architecture name already exists for the referenced entity name in document.
 		"""
 		if not isinstance(item, Architecture):
-			ex = TypeError(f"Parameter 'item' is not of type 'Architecture'.")
+			ex = TypeError("Parameter 'item' is not of type 'Architecture'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
-		entity = item._entity.Name
+		entity =           item._entity.Name
 		entityIdentifier = entity._normalizedIdentifier
+		identifier =       item._normalizedIdentifier
 		try:
 			architectures = self._architectures[entityIdentifier]
-			if item._normalizedIdentifier in architectures:
+			if identifier in architectures:
 				# TODO: use a more specific exception
 				# FIXME: this is allowed and should be a warning or a strict mode.
 				raise VHDLModelException(f"An architecture '{item._identifier}' for entity '{entity._identifier}' already exists in this document.")
 
-			architectures[item.Identifier] = item
+			architectures[identifier] = item
 		except KeyError:
-			self._architectures[entityIdentifier] = {item._identifier: item}
+			self._architectures[entityIdentifier] = {identifier: item}
 
 		self._designUnits.append(item)
 		item._document = self
@@ -2765,7 +3160,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If package name already exists in document.
 		"""
 		if not isinstance(item, (Package, PackageInstantiation)):
-			ex = TypeError(f"Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
+			ex = TypeError("Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2789,7 +3184,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If package body name already exists in document.
 		"""
 		if not isinstance(item, PackageBody):
-			ex = TypeError(f"Parameter 'item' is not of type 'PackageBody'.")
+			ex = TypeError("Parameter 'item' is not of type 'PackageBody'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2813,7 +3208,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If context name already exists in document.
 		"""
 		if not isinstance(item, Context):
-			ex = TypeError(f"Parameter 'item' is not of type 'Context'.")
+			ex = TypeError("Parameter 'item' is not of type 'Context'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2837,7 +3232,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If configuration name already exists in document.
 		"""
 		if not isinstance(item, Configuration):
-			ex = TypeError(f"Parameter 'item' is not of type 'Configuration'.")
+			ex = TypeError("Parameter 'item' is not of type 'Configuration'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2854,7 +3249,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddVerificationUnit(self, item: VerificationUnit) -> None:
 		if not isinstance(item, VerificationUnit):
-			ex = TypeError(f"Parameter 'item' is not of type 'VerificationUnit'.")
+			ex = TypeError("Parameter 'item' is not of type 'VerificationUnit'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2870,7 +3265,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddVerificationProperty(self, item: VerificationProperty) -> None:
 		if not isinstance(item, VerificationProperty):
-			ex = TypeError(f"Parameter 'item' is not of type 'VerificationProperty'.")
+			ex = TypeError("Parameter 'item' is not of type 'VerificationProperty'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2886,7 +3281,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 	def _AddVerificationMode(self, item: VerificationMode) -> None:
 		if not isinstance(item, VerificationMode):
-			ex = TypeError(f"Parameter 'item' is not of type 'VerificationMode'.")
+			ex = TypeError("Parameter 'item' is not of type 'VerificationMode'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2910,7 +3305,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:raises VHDLModelException: If configuration name already exists in document.
 		"""
 		if not isinstance(item, DesignUnit):
-			ex = TypeError(f"Parameter 'item' is not of type 'DesignUnit'.")
+			ex = TypeError("Parameter 'item' is not of type 'DesignUnit'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2933,7 +3328,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		elif isinstance(item, VerificationMode):
 			self._AddVerificationMode(item)
 		else:
-			ex = ValueError(f"Parameter 'item' is an unknown 'DesignUnit'.")
+			ex = ValueError("Parameter 'item' is an unknown 'DesignUnit'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
 
@@ -2972,7 +3367,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 	# 	# TODO: check and set library to design unit?
 
 	@readonly
-	def DesignUnits(self) -> List[DesignUnit]:
+	def DesignUnits(self) -> list[DesignUnit]:
 		"""
 		Read-only property to access a list of all design units declarations found in this document (:attr:`_designUnits`).
 
@@ -2981,7 +3376,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._designUnits
 
 	@readonly
-	def Contexts(self) -> Dict[str, Context]:
+	def Contexts(self) -> dict[str, Context]:
 		"""
 		Read-only property to access the dictionary of all context declarations in this document (:attr:`_contexts`).
 
@@ -2990,7 +3385,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._contexts
 
 	@readonly
-	def Configurations(self) -> Dict[str, Configuration]:
+	def Configurations(self) -> dict[str, Configuration]:
 		"""
 		Read-only property to access the dictionary of all configuration declarations in this document (:attr:`_configurations`).
 
@@ -2999,7 +3394,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._configurations
 
 	@readonly
-	def Entities(self) -> Dict[str, Entity]:
+	def Entities(self) -> dict[str, Entity]:
 		"""
 		Read-only property to access the dictionary of all entity declarations in this document (:attr:`_entities`).
 
@@ -3008,7 +3403,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._entities
 
 	@readonly
-	def Architectures(self) -> Dict[str, Dict[str, Architecture]]:
+	def Architectures(self) -> dict[str, dict[str, Architecture]]:
 		"""
 		Read-only property to access the dictionary of all architecture declarations in this document (:attr:`_architectures`).
 
@@ -3018,7 +3413,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._architectures
 
 	@readonly
-	def Packages(self) -> Dict[str, Package]:
+	def Packages(self) -> dict[str, Package]:
 		"""
 		Read-only property to access the dictionary of all package declarations in this document (:attr:`_packages`).
 
@@ -3027,7 +3422,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._packages
 
 	@readonly
-	def PackageBodies(self) -> Dict[str, PackageBody]:
+	def PackageBodies(self) -> dict[str, PackageBody]:
 		"""
 		Read-only property to access the dictionary of all package body declarations in this document (:attr:`_packageBodies`).
 
@@ -3036,7 +3431,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._packageBodies
 
 	@readonly
-	def VerificationUnits(self) -> Dict[str, VerificationUnit]:
+	def VerificationUnits(self) -> dict[str, VerificationUnit]:
 		"""
 		Read-only property to access the dictionary of all verification unit declarations in this document (:attr:`_verificationUnits`).
 
@@ -3045,7 +3440,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._verificationUnits
 
 	@readonly
-	def VerificationProperties(self) -> Dict[str, VerificationProperty]:
+	def VerificationProperties(self) -> dict[str, VerificationProperty]:
 		"""
 		Read-only property to access the dictionary of all verification property declarations in this document (:attr:`_verificationProperties`).
 
@@ -3054,7 +3449,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._verificationProperties
 
 	@readonly
-	def VerificationModes(self) -> Dict[str, VerificationMode]:
+	def VerificationModes(self) -> dict[str, VerificationMode]:
 		"""
 		Read-only property to access the dictionary of all verification mode declarations in this document (:attr:`_verificationModes`).
 
@@ -3063,7 +3458,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		return self._verificationModes
 
 	@readonly
-	def CompileOrderVertex(self) -> Vertex[None, None, None, 'Document', None, None, None, None, None, None, None, None, None, None, None, None, None]:
+	def CompileOrderVertex(self) -> Vertex:
 		"""
 		Read-only property to access the corresponding compile-order vertex (:attr:`_compileOrderVertex`).
 

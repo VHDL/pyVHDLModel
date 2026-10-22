@@ -32,15 +32,17 @@
 """
 This module contains an abstract document language model for PSL in VHDL.
 """
-from pyTooling.Decorators import export
+from pyTooling.Decorators   import export
+from pyTooling.MetaClasses  import abstractclass
 
-from typing import Optional as Nullable
+from typing                 import Optional as Nullable
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.DesignUnit import PrimaryUnit
 
 
 @export
+@abstractclass
 class PSLEntity(ModelEntity):
 	"""
 	Represents the base-class of all PSL entities.
@@ -56,6 +58,7 @@ class PSLEntity(ModelEntity):
 
 
 @export
+@abstractclass
 class PSLPrimaryUnit(PrimaryUnit):
 	"""
 	Represents the base-class of all PSL primary units.

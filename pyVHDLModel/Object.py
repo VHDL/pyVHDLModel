@@ -37,7 +37,7 @@ Objects are constants, variables, signals and files.
 from typing                import ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Decorators  import export, readonly
-from pyTooling.MetaClasses import ExtendedType
+from pyTooling.MetaClasses import ExtendedType, abstractclass
 from pyTooling.Graph       import Vertex
 
 from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
@@ -45,6 +45,7 @@ from pyVHDLModel.Symbol    import Symbol
 
 
 @export
+@abstractclass
 class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	"""
 	Base-class for all objects (constants, signals, variables and files) in VHDL.
@@ -67,7 +68,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	   * :class:`File <pyVHDLModel.Object.File>`
 	"""
 
-	_objectKeyword: ClassVar[str] = "object"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[str] = "object"  #: The VHDL keyword introducing this object class.
 
 	_subtype:      Symbol            #: Reference to the object's subtype.
 	_objectVertex: Nullable[Vertex]  #: The vertex representing this object in the design's object graph.
@@ -118,7 +119,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 
 		:returns: Formatted object declaration.
 		"""
-		return f"{self._objectKeyword} {', '.join(self._identifiers)} : {self._subtype}"
+		return f"{self._OBJECT_KEYWORD} {', '.join(self._identifiers)} : {self._subtype}"
 
 
 @export
@@ -159,6 +160,7 @@ class WithDefaultExpressionMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
+@abstractclass
 class BaseConstant(Obj):
 	"""
 	Base-class for all constants (normal and deferred constants) in VHDL.
@@ -169,7 +171,7 @@ class BaseConstant(Obj):
 	   * :class:`Deferred constant <pyVHDLModel.Object.DeferredConstant>`
 	"""
 
-	_objectKeyword: ClassVar[str] = "constant"
+	_OBJECT_KEYWORD: ClassVar[str] = "constant"  #: The VHDL keyword introducing this object class.
 
 
 @export
@@ -275,7 +277,7 @@ class Variable(Obj, WithDefaultExpressionMixin):
 	   * :class:`Parameter variable interface item <pyVHDLModel.Interface.ParameterVariableInterfaceItem>`
 	"""
 
-	_objectKeyword: ClassVar[str] = "variable"
+	_OBJECT_KEYWORD: ClassVar[str] = "variable"  #: The VHDL keyword introducing this object class.
 
 	def __init__(
 		self,
@@ -306,7 +308,7 @@ class SharedVariable(Obj):
 	.. todo:: Shared variable object not implemented.
 	"""
 
-	_objectKeyword: ClassVar[str] = "shared variable"
+	_OBJECT_KEYWORD: ClassVar[str] = "shared variable"  #: The VHDL keyword introducing this object class.
 
 
 
@@ -329,7 +331,7 @@ class Signal(Obj, WithDefaultExpressionMixin):
 	   * :class:`Parameter signal interface item <pyVHDLModel.Interface.ParameterSignalInterfaceItem>`
 	"""
 
-	_objectKeyword: ClassVar[str] = "signal"
+	_OBJECT_KEYWORD: ClassVar[str] = "signal"  #: The VHDL keyword introducing this object class.
 
 	def __init__(
 		self,
@@ -364,4 +366,4 @@ class File(Obj):
 	   * :class:`Parameter file interface item <pyVHDLModel.Interface.ParameterFileInterfaceItem>`
 	"""
 
-	_objectKeyword: ClassVar[str] = "file"
+	_OBJECT_KEYWORD: ClassVar[str] = "file"  #: The VHDL keyword introducing this object class.

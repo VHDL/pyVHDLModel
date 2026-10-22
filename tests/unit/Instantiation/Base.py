@@ -43,7 +43,8 @@ Mixins already fully exercised elsewhere are intentionally not repeated here:
 - ``ChoicesMixin`` with a non-empty choice list - covered via tests/unit/Assignment.py
   (``SelectedWaveform`` et al.). Only the ``choices=None`` default path is added here.
 """
-from unittest import TestCase
+from pyTooling.MetaClasses   import AbstractClassError
+from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Base        import Direction, Mode, ModelEntity, Range, RangeFromName, SimpleRange, WaveformElement
 from pyVHDLModel.Expression  import IntegerLiteral, CharacterLiteral
@@ -51,7 +52,10 @@ from pyVHDLModel.Interface   import InterfaceGroup
 from pyVHDLModel.Sequential  import IfBranch, ElsifBranch, ElseBranch, SequentialReportStatement, SequentialAssertStatement, SequentialCase
 from pyVHDLModel.Concurrent  import ConcurrentBlockStatement
 from pyVHDLModel.Name        import SimpleName
+from pyVHDLModel.Object      import Signal
 from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol, SimpleSubtypeSymbol
+
+from tests.unit              import _Element
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -60,7 +64,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class DirectionEnum(TestCase):
+class DirectionEnum(Testcase):
 	def test_To(self) -> None:
 		self.assertEqual("to", str(Direction.To))
 
@@ -68,7 +72,7 @@ class DirectionEnum(TestCase):
 		self.assertEqual("downto", str(Direction.DownTo))
 
 
-class ModeEnum(TestCase):
+class ModeEnum(Testcase):
 	def test_AllValues(self) -> None:
 		"""Every ``Mode`` value has a dedicated formatting slot in ``Mode.__str__``'s lookup tuple."""
 		expected = {
@@ -84,21 +88,26 @@ class ModeEnum(TestCase):
 			self.assertEqual(text, str(mode))
 
 
-class ModelEntities(TestCase):
+class ModelEntities(Testcase):
+	def test_Abstract(self) -> None:
+		"""``ModelEntity`` is abstract: only derived classes are instantiated."""
+		with self.assertRaises(AbstractClassError):
+			ModelEntity()
+
 	def test_NoParent(self) -> None:
-		entity = ModelEntity()
+		entity = _Element()
 
 		self.assertIsNone(entity.Parent)
 
 	def test_ConstructedWithParent(self) -> None:
-		parent = ModelEntity()
-		entity = ModelEntity(parent=parent)
+		parent = _Element()
+		entity = _Element(parent=parent)
 
 		self.assertIs(parent, entity.Parent)
 
 	def test_ParentSetter(self) -> None:
-		parent = ModelEntity()
-		entity = ModelEntity()
+		parent = _Element()
+		entity = _Element()
 		entity.Parent = parent
 
 		self.assertIs(parent, entity.Parent)
@@ -107,13 +116,13 @@ class ModelEntities(TestCase):
 		"""Unlike the constructor (where omitting ``parent`` is normal for a not-yet-attached root), the
 		``Parent`` setter rejects ``None`` outright - it's only ever used to attach an entity to a real
 		parent after the fact."""
-		entity = ModelEntity(parent=ModelEntity())
+		entity = _Element(parent=_Element())
 
 		with self.assertRaises(ValueError):
 			entity.Parent = None
 
 
-class OptionallyNamedEntity(TestCase):
+class OptionallyNamedEntity(Testcase):
 	"""``InterfaceGroup`` is the only current consumer of ``OptionallyNamedEntityMixin``."""
 
 	def test_WithName(self) -> None:
@@ -134,7 +143,18 @@ class OptionallyNamedEntity(TestCase):
 		self.assertEqual("generics", group.NormalizedIdentifier)
 
 
-class BranchMixins(TestCase):
+class MultipleNamedEntity(Testcase):
+	"""``Signal`` is tested as a consumer of ``MultipleNamedEntityMixin``."""
+
+	def test_Identifiers_Iterator(self) -> None:
+		"""Identifiers from a single-pass iterable are normalized too."""
+		signal = Signal(iter(("a", "B")), SimpleSubtypeSymbol(SimpleName("bit")))
+
+		self.assertEqual(("a", "B"), signal.Identifiers)
+		self.assertEqual(("a", "b"), signal.NormalizedIdentifiers)
+
+
+class BranchMixins(Testcase):
 	"""``IfBranch``/``ElsifBranch``/``ElseBranch`` are the only consumers of ``BranchMixin``,
 	``ConditionalBranchMixin`` and the ``If-``/``Elsif-``/``ElseBranchMixin`` variants."""
 
@@ -159,9 +179,9 @@ class BranchMixins(TestCase):
 		self.assertEqual(0, len(branch.Statements))
 
 
-class ReportAndAssertStatementMixins(TestCase):
+class ReportAndAssertStatementMixins(Testcase):
 	def test_ReportStatement_MessageAndSeverity(self) -> None:
-		message = CharacterLiteral("'a'")
+		message = CharacterLiteral("a")
 		severity = IntegerLiteral(1)
 		statement = SequentialReportStatement(message, severity)
 
@@ -171,7 +191,7 @@ class ReportAndAssertStatementMixins(TestCase):
 	def test_ReportStatement_MessageOnly(self) -> None:
 		"""``severity`` genuinely defaults to omitted in the grammar (``report "msg";`` without a
 		``severity`` clause)."""
-		message = CharacterLiteral("'a'")
+		message = CharacterLiteral("a")
 		statement = SequentialReportStatement(message)
 
 		self.assertIs(message, statement.Message)
@@ -181,7 +201,7 @@ class ReportAndAssertStatementMixins(TestCase):
 		"""``AssertStatementMixin`` adds a required ``Condition`` on top of ``ReportStatementMixin``'s
 		optional message/severity."""
 		condition = IntegerLiteral(1)
-		message = CharacterLiteral("'a'")
+		message = CharacterLiteral("a")
 		statement = SequentialAssertStatement(condition, message)
 
 		self.assertIs(condition, statement.Condition)
@@ -189,7 +209,7 @@ class ReportAndAssertStatementMixins(TestCase):
 		self.assertIsNone(statement.Severity)
 
 
-class BlockStatementMixinHost(TestCase):
+class BlockStatementMixinHost(Testcase):
 	"""``ConcurrentBlockStatement`` is the only consumer of ``BlockStatementMixin``. Also covers
 	``LabeledEntityMixin.NormalizedLabel``, which no other current test reads (only ``.Label``)."""
 
@@ -200,7 +220,7 @@ class BlockStatementMixinHost(TestCase):
 		self.assertEqual("blk", block.NormalizedLabel)
 
 
-class ChoicesMixinHost(TestCase):
+class ChoicesMixinHost(Testcase):
 	def test_NoChoices(self) -> None:
 		"""``choices=None`` (the default) - the non-empty-list path is already covered via
 		tests/unit/Assignment.py's ``SelectedWaveform``/``SelectedExpression`` tests."""
@@ -209,7 +229,7 @@ class ChoicesMixinHost(TestCase):
 		self.assertEqual(0, len(case.Choices))
 
 
-class Ranges(TestCase):
+class Ranges(Testcase):
 	"""``SimpleRange`` (``3 downto 0``) - a concrete class defined directly in Base.py, not a mixin."""
 
 	def test_Construction(self) -> None:
@@ -234,7 +254,7 @@ class Ranges(TestCase):
 		self.assertIsInstance(rng, Range)
 
 
-class RangesFromName(TestCase):
+class RangesFromName(Testcase):
 	"""``RangeFromName`` (``vector'range``, ``bit``) - a range whose bounds come from a referenced symbol."""
 
 	def test_Construction(self) -> None:
@@ -262,20 +282,20 @@ class RangesFromName(TestCase):
 		self.assertEqual("integer", rng.Symbol.Name.Identifier)
 
 
-class WaveformElements(TestCase):
+class WaveformElements(Testcase):
 	"""``WaveformElement`` (``'1' after 5 ns``) - a concrete class defined directly in Base.py, not a
 	mixin. tests/unit/Assignment.py already constructs these but never reads ``.Expression``/
 	``.After``."""
 
 	def test_WithoutAfter(self) -> None:
-		expression = CharacterLiteral("'1'")
+		expression = CharacterLiteral("1")
 		element = WaveformElement(expression)
 
 		self.assertIs(expression, element.Expression)
 		self.assertIsNone(element.After)
 
 	def test_WithAfter(self) -> None:
-		expression = CharacterLiteral("'1'")
+		expression = CharacterLiteral("1")
 		after = IntegerLiteral(5)
 		element = WaveformElement(expression, after)
 

@@ -36,8 +36,9 @@ Building a model object needs a symbol, a subtype and often a name, which every 
 re-declaring. Names are always passed explicitly - a helper that defaults one hides what a test
 actually builds.
 """
-from typing import List, Type, TypeVar
+from typing import Type, TypeVar
 
+from pyVHDLModel.Base   import ModelEntity
 from pyVHDLModel.Name   import SimpleName
 from pyVHDLModel.Object import Signal, Variable
 from pyVHDLModel.Symbol import EntitySymbol, SignalSymbol, SimpleSubtypeSymbol, VariableSymbol
@@ -46,23 +47,39 @@ from pyVHDLModel.Symbol import EntitySymbol, SignalSymbol, SimpleSubtypeSymbol, 
 _Warning = TypeVar("_Warning", bound=BaseException)
 
 
+class _Element(ModelEntity):
+	"""A concrete model element: :class:`~pyVHDLModel.Base.ModelEntity` is abstract."""
+
+
 def _subtypeSymbol(name: str) -> SimpleSubtypeSymbol:
 	"""Reference to a subtype, for anything needing a subtype indication."""
 	return SimpleSubtypeSymbol(SimpleName(name))
 
 
 def _entitySymbol(name: str) -> EntitySymbol:
-	"""Reference to an entity, e.g. for an architecture."""
+	"""
+	Reference to an entity.
+
+	An architecture references its entity.
+	"""
 	return EntitySymbol(SimpleName(name))
 
 
 def _signalSymbol(name: str) -> SignalSymbol:
-	"""Reference to a signal, e.g. as an assignment target."""
+	"""
+	Reference to a signal.
+
+	An assignment target is such a reference.
+	"""
 	return SignalSymbol(SimpleName(name))
 
 
 def _variableSymbol(name: str) -> VariableSymbol:
-	"""Reference to a variable, e.g. as an assignment target."""
+	"""
+	Reference to a variable.
+
+	An assignment target is such a reference.
+	"""
 	return VariableSymbol(SimpleName(name))
 
 
@@ -76,6 +93,6 @@ def _variable(identifier: str, subtypeName: str) -> Variable:
 	return Variable((identifier, ), _subtypeSymbol(subtypeName))
 
 
-def _warningsOfType(collector, warningType: Type[_Warning]) -> List[_Warning]:
+def _warningsOfType(collector, warningType: Type[_Warning]) -> list[_Warning]:
 	"""The warnings of one type collected by a :class:`~pyTooling.Warning.WarningCollector`."""
 	return [warning for warning in collector if isinstance(warning, warningType)]

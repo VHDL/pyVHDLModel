@@ -36,14 +36,20 @@ VHDL uses *names* to express cross-references from *usage locations* to *declara
 combined identifiers. :mod:`Symbols <pyVHDLModel.Symbol>` are structures representing a *name* and a reference
 (pointer) to the referenced vhdl language entity.
 """
-from typing import List, Iterable, Optional as Nullable
+from __future__            import annotations
 
-from pyTooling.Decorators import export, readonly
+from typing                import TYPE_CHECKING, Iterable, Optional as Nullable
 
-from pyVHDLModel.Base import ModelEntity, ExpressionUnion
+from pyTooling.Decorators  import export, readonly
+from pyTooling.MetaClasses import abstractclass
+
+from pyVHDLModel.Base      import ModelEntity, ExpressionUnion
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor import Visitor
 
 
 @export
+@abstractclass
 class Name(ModelEntity):
 	"""
 	``Name`` is the base-class for all *names* in the VHDL language model.
@@ -62,10 +68,10 @@ class Name(ModelEntity):
 	_identifier: str            #: The name's identifier.
 	_normalizedIdentifier: str  #: The normalized (lower case) identifier.
 	# TODO: seams to be unused. There is no reverse linking, or?
-	_root: Nullable['Name']  #: Reference to the root of the name chain.
-	_prefix: Nullable['Name']   #: Reference to the name's prefix, or ``None`` for a simple name.
+	_root: Nullable[Name]       #: Reference to the root of the name chain.
+	_prefix: Nullable[Name]     #: Reference to the name's prefix, or ``None`` for a simple name.
 
-	def __init__(self, identifier: str, prefix: Nullable["Name"] = None, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, identifier: str, prefix: Nullable[Name] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a name.
 
@@ -104,7 +110,7 @@ class Name(ModelEntity):
 		return self._normalizedIdentifier
 
 	@readonly
-	def Root(self) -> 'Name':
+	def Root(self) -> Name:
 		"""
 		Read-only property to access the root (left-most) element in a chain of names (:attr:`_root`).
 
@@ -115,7 +121,7 @@ class Name(ModelEntity):
 		return self._root
 
 	@readonly
-	def Prefix(self) -> Nullable['Name']:
+	def Prefix(self) -> Nullable[Name]:
 		"""
 		Read-only property to access the name's prefix in a chain of names (:attr:`_prefix`).
 
@@ -165,6 +171,15 @@ class SimpleName(Name):
 	reference other (already) declared language entities.
 	"""
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this simple name with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSimpleName(self)
+		visitor.DepartSimpleName(self)
+
 
 @export
 class ParenthesisName(Name):
@@ -173,7 +188,7 @@ class ParenthesisName(Name):
 
 	Used where indexing and a function call are indistinguishable before resolution.
 	"""
-	_associations: List  #: List of all associations in the parenthesis.
+	_associations: list  #: List of all associations in the parenthesis.
 
 	def __init__(self, prefix: Name, associations: Iterable, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -191,13 +206,30 @@ class ParenthesisName(Name):
 			association.Parent = self
 
 	@readonly
-	def Associations(self) -> List:
+	def Associations(self) -> list:
 		"""
 		Read-only property to access the associations (:attr:`_associations`).
 
 		:returns: List of associations.
 		"""
 		return self._associations
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this parenthesis name, its prefix and its associations with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitParenthesisName(self)
+		self._prefix.Visit(visitor)
+		visitor.VisitLeftParenthesis(self)
+		for position, association in enumerate(self._associations):
+			if position > 0:
+				visitor.VisitComma(self)
+
+			association.Visit(visitor)
+
+		visitor.DepartParenthesisName(self)
 
 	def __str__(self) -> str:
 		"""
@@ -222,7 +254,7 @@ class IndexedName(Name):
 	      s <= v(0);
 	      --   ^^^^    <- the indexed name
 	"""
-	_indices: List[ExpressionUnion]  #: List of all index expressions, one per dimension.
+	_indices: list[ExpressionUnion]  #: List of all index expressions, one per dimension.
 
 	def __init__(self, prefix: Name, indices: Iterable[ExpressionUnion], parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -240,13 +272,30 @@ class IndexedName(Name):
 			index.Parent = self
 
 	@readonly
-	def Indices(self) -> List[ExpressionUnion]:
+	def Indices(self) -> list[ExpressionUnion]:
 		"""
 		Read-only property to access the indices (:attr:`_indices`).
 
 		:returns: List of indices.
 		"""
 		return self._indices
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this indexed name, its prefix and its indices with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIndexedName(self)
+		self._prefix.Visit(visitor)
+		visitor.VisitLeftParenthesis(self)
+		for position, index in enumerate(self._indices):
+			if position > 0:
+				visitor.VisitComma(self)
+
+			index.Visit(visitor)
+
+		visitor.DepartIndexedName(self)
 
 	def __str__(self) -> str:
 		"""
@@ -271,7 +320,17 @@ class SlicedName(Name):
 	      vres := v(3 downto 0);
 	      --      ^^^^^^^^^^^^^    <- the sliced name
 	"""
-	pass
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this sliced name and its prefix with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSlicedName(self)
+		if self._prefix is not None:
+			self._prefix.Visit(visitor)
+
+		visitor.DepartSlicedName(self)
 
 
 @export
@@ -297,6 +356,16 @@ class SelectedName(Name):
 		:param parent:     The parent model entity of this entity.
 		"""
 		super().__init__(identifier, prefix, parent)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this selected name and its prefix with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSelectedName(self)
+		self._prefix.Visit(visitor)
+		visitor.DepartSelectedName(self)
 
 	def __str__(self) -> str:
 		"""
@@ -331,6 +400,16 @@ class AttributeName(Name):
 		"""
 		super().__init__(identifier, prefix, parent)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this attribute name and its prefix with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAttributeName(self)
+		self._prefix.Visit(visitor)
+		visitor.DepartAttributeName(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the attribute name.
@@ -358,6 +437,16 @@ class AllName(SelectedName):
 		"""
 		super().__init__("all", prefix, parent)  # TODO: the case of 'ALL' is not preserved
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this ``all`` name and its prefix with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAllName(self)
+		self._prefix.Visit(visitor)
+		visitor.DepartAllName(self)
+
 
 @export
 class OpenName(Name):
@@ -373,6 +462,15 @@ class OpenName(Name):
 		:param parent: The parent model entity of this entity.
 		"""
 		super().__init__("open", parent=parent)  # TODO: the case of 'OPEN' is not preserved
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this ``open`` name with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitOpenName(self)
+		visitor.DepartOpenName(self)
 
 	def __str__(self) -> str:
 		"""

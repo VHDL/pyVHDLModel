@@ -27,7 +27,7 @@ details.
 
       .. code-block:: bash
 
-         # Basic sphinx-reports package
+         # Basic pyVHDLModel package
          pip3 install pyVHDLModel
 
    .. tab-item:: Windows
@@ -35,7 +35,7 @@ details.
 
       .. code-block:: powershell
 
-         # Basic sphinx-reports package
+         # Basic pyVHDLModel package
          pip install pyVHDLModel
 
 Developers can install the |PackageName| package itself or the package with further dependencies for documentation
@@ -170,8 +170,8 @@ Local Packaging and Installation via PIP
 
 For development and bug fixing it might be handy to create a local wheel package and also install it locally on the
 development machine. The following instructions will create a local wheel package (``*.whl``) and then use PIP to
-install it. As a user might have a sphinx-reports installation from PyPI, it's recommended to uninstall any previous
-sphinx-reports packages. (This step is also needed if installing an updated local wheel file with same version number. PIP
+install it. As a user might have a pyVHDLModel installation from PyPI, it's recommended to uninstall any previous
+pyVHDLModel packages. (This step is also needed if installing an updated local wheel file with same version number. PIP
 will not detect a new version and thus not overwrite/reinstall the updated package contents.)
 
 Ensure :ref:`packaging requirements <DEP/packaging>` are installed.
@@ -183,7 +183,7 @@ Ensure :ref:`packaging requirements <DEP/packaging>` are installed.
 
       .. code-block:: bash
 
-         cd <sphinx-reports>
+         cd <pyVHDLModel>
 
          # Package the code in a wheel (*.whl)
          python -m build --wheel
@@ -199,7 +199,7 @@ Ensure :ref:`packaging requirements <DEP/packaging>` are installed.
 
       .. code-block:: powershell
 
-         cd <sphinx-reports>
+         cd <pyVHDLModel>
 
          # Package the code in a wheel (*.whl)
          py -m build --wheel

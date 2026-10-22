@@ -34,10 +34,12 @@ This module contains parts of an abstract document language model for VHDL.
 Configurations: entity aspects, binding indications, component configurations (and the structurally
 identical configuration specifications), and block configurations.
 """
-from typing import List, Iterable, Union, Optional as Nullable
+from __future__              import annotations
+
+from typing                  import Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType
+from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity
 from pyVHDLModel.Name        import Name
@@ -48,6 +50,7 @@ from pyVHDLModel.Association import GenericMapAspectMixin, PortMapAspectMixin
 
 
 @export
+@abstractclass
 class EntityAspect(ModelEntity):
 	"""
 	Base-class for the three forms an entity aspect can take in a binding indication: an entity
@@ -251,7 +254,7 @@ class OthersInstantiationList(ModelEntity):
 	"""
 
 
-InstantiationListUnion = Union[List[Name], AllInstantiationList, OthersInstantiationList]
+InstantiationListUnion = Union[list[Name], AllInstantiationList, OthersInstantiationList]
 
 
 @export
@@ -295,7 +298,7 @@ class ComponentConfiguration(ModelEntity):
 			self._instantiationList = instantiationList
 			instantiationList.Parent = self
 		else:
-			self._instantiationList = [label for label in instantiationList]
+			self._instantiationList = list(instantiationList)
 			for label in self._instantiationList:
 				label.Parent = self
 
@@ -350,13 +353,13 @@ class BlockConfiguration(ModelEntity):
 	      end for;
 	"""
 
-	_blockSpecification: Symbol                                                      #: The configured block.
-	_items:               List[Union["BlockConfiguration", ComponentConfiguration]]  #: Nested configurations.
+	_blockSpecification: Symbol                                                    #: The configured block.
+	_items:               list[Union[BlockConfiguration, ComponentConfiguration]]  #: Nested configurations.
 
 	def __init__(
 		self,
 		blockSpecification: Symbol,
-		items: Nullable[Iterable[Union["BlockConfiguration", ComponentConfiguration]]] = None,
+		items: Nullable[Iterable[Union[BlockConfiguration, ComponentConfiguration]]] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -387,7 +390,7 @@ class BlockConfiguration(ModelEntity):
 		return self._blockSpecification
 
 	@readonly
-	def Items(self) -> List[Union["BlockConfiguration", ComponentConfiguration]]:
+	def Items(self) -> list[Union[BlockConfiguration, ComponentConfiguration]]:
 		"""
 		Read-only property to access the items (:attr:`_items`).
 

@@ -1,0 +1,348 @@
+# ==================================================================================================================== #
+#             __     ___   _ ____  _     __  __           _      _                                                     #
+#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #
+#  | '_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #
+#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #
+#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #
+#  |_|    |___/                                                                                                        #
+# ==================================================================================================================== #
+# Authors:                                                                                                             #
+#   Patrick Lehmann                                                                                                    #
+#                                                                                                                      #
+# License:                                                                                                             #
+# ==================================================================================================================== #
+# Copyright 2026-2026 Patrick Lehmann - Bötzingen, Germany                                                             #
+#                                                                                                                      #
+# Licensed under the Apache License, Version 2.0 (the "License");                                                      #
+# you may not use this file except in compliance with the License.                                                     #
+# You may obtain a copy of the License at                                                                              #
+#                                                                                                                      #
+#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #
+#                                                                                                                      #
+# Unless required by applicable law or agreed to in writing, software                                                  #
+# distributed under the License is distributed on an "AS IS" BASIS,                                                    #
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #
+# See the License for the specific language governing permissions and                                                  #
+# limitations under the License.                                                                                       #
+#                                                                                                                      #
+# SPDX-License-Identifier: Apache-2.0                                                                                  #
+# ==================================================================================================================== #
+#
+"""
+Mutation tests for port clauses (:class:`~pyVHDLModel.Regions.WithPortsMixin`).
+
+The mutators are tested on an entity (a declarative region with a namespace), a component (no namespace) and a port
+group.
+"""
+from pyTooling.MetaClasses  import UnfulfilledExpectationError
+from pyTooling.Warning      import WarningCollector
+from pyTooling.Testing      import Testcase
+
+from pyVHDLModel.Base       import Mode, ModelEntity
+from pyVHDLModel.DesignUnit import Component, Entity
+from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicatePortError, NotInNamespaceError
+from pyVHDLModel.Interface  import PortGroup
+from pyVHDLModel.Object     import Signal
+from pyVHDLModel.Regions    import WithPortsMixin
+
+from tests.unit             import _subtypeSymbol
+from tests.unit.Mutation    import _generic, _port
+
+
+if __name__ == "__main__":  # pragma: no cover
+	print("ERROR: you called a testcase declaration file as an executable module.")
+	print("Use: 'python -m unitest <testcase module>'")
+	exit(1)
+
+
+class Ports(Testcase):
+	def test_Add(self) -> None:
+		entity = Entity("e")
+		clock = _port("Clock")
+		reset = _port("Reset")
+
+		entity.AddPortItem(clock)
+		entity.AddPortItem(reset)
+
+		self.assertListEqual([clock, reset], entity.PortItems)
+		self.assertEqual(2, entity.PortCount)
+		self.assertIs(entity, clock.Parent)
+		self.assertIs(entity, reset.Parent)
+
+	def test_Add_Component(self) -> None:
+		component = Component("c")
+		clock = _port("Clock")
+
+		component.AddPortItem(clock)
+
+		self.assertListEqual([clock], component.PortItems)
+		self.assertIs(component, clock.Parent)
+
+	def test_Add_Group(self) -> None:
+		group = PortGroup([])
+		clock = _port("Clock")
+
+		group.AddPortItem(clock)
+
+		self.assertListEqual([clock], group.PortItems)
+		self.assertIs(group, clock.Parent)
+
+	def test_Add_None(self) -> None:
+		entity = Entity("e")
+
+		with self.assertRaises(ValueError) as context:
+			entity.AddPortItem(None)
+
+		self.assertEqual("Parameter 'portItem' is None.", str(context.exception))
+
+	def test_Add_WrongType(self) -> None:
+		entity = Entity("e")
+
+		with self.assertRaises(TypeError) as context:
+			entity.AddPortItem(_generic("BITS"))
+
+		self.assertEqual("Parameter 'portItem' is not of type 'PortSignalInterfaceItem'.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Interface.GenericConstantInterfaceItem'."],
+			context.exception.__notes__
+		)
+
+	def test_Add_AlreadyInDesign(self) -> None:
+		clock = _port("Clock")
+		component = Component("c", portItems=[clock])
+		entity = Entity("e")
+
+		with self.assertRaises(AlreadyInDesignError) as context:
+			entity.AddPortItem(clock)
+
+		self.assertEqual("PortSimpleSignalInterfaceItem 'Clock' already has a parent.", str(context.exception))
+		self.assertListEqual(["Remove it from its Component first."], context.exception.__notes__)
+		self.assertIs(clock, context.exception.Element)
+		self.assertIs(component, context.exception.Parent)
+		self.assertEqual(0, entity.PortCount)
+
+	def test_Add_Duplicate(self) -> None:
+		clock = _port("Clock")
+		entity = Entity("e", portItems=[clock])
+		duplicate = _port("CLOCK")
+
+		with self.assertRaises(DuplicatePortError) as context:
+			entity.AddPortItem(duplicate)
+
+		self.assertEqual("Entity already declares 'CLOCK'.", str(context.exception))
+		self.assertListEqual(
+			["Existing declaration is of type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
+			context.exception.__notes__
+		)
+		self.assertEqual("CLOCK", context.exception.Identifier)
+		self.assertEqual("clock", context.exception.NormalizedIdentifier)
+		self.assertIs(entity, context.exception.Parent)
+		self.assertIs(duplicate, context.exception.Element)
+		self.assertIs(clock, context.exception.Existing)
+		self.assertEqual(1, entity.PortCount)
+		self.assertIsNone(duplicate.Parent)
+
+	def test_Insert_Start(self) -> None:
+		clock = _port("Clock")
+		reset = _port("Reset")
+		entity = Entity("e", portItems=[clock, reset])
+		enable = _port("Enable")
+
+		entity.InsertPortItem(0, enable)
+
+		self.assertListEqual([enable, clock, reset], entity.PortItems)
+		self.assertIs(entity, enable.Parent)
+
+	def test_Insert_Middle(self) -> None:
+		clock = _port("Clock")
+		reset = _port("Reset")
+		entity = Entity("e", portItems=[clock, reset])
+		enable = _port("Enable")
+
+		entity.InsertPortItem(1, enable)
+
+		self.assertListEqual([clock, enable, reset], entity.PortItems)
+
+	def test_Insert_End(self) -> None:
+		clock = _port("Clock")
+		reset = _port("Reset")
+		entity = Entity("e", portItems=[clock, reset])
+		enable = _port("Enable")
+
+		entity.InsertPortItem(2, enable)
+
+		self.assertListEqual([clock, reset, enable], entity.PortItems)
+
+	def test_Insert_OutOfRange(self) -> None:
+		entity = Entity("e")
+		enable = _port("Enable")
+
+		with self.assertRaises(ValueError) as context:
+			entity.InsertPortItem(1, enable)
+
+		self.assertEqual("Parameter 'index' is out of range 0..0.", str(context.exception))
+		self.assertListEqual(["Got value '1'."], context.exception.__notes__)
+		self.assertIsNone(enable.Parent)
+
+	def test_Insert_Negative(self) -> None:
+		clock = _port("Clock")
+		enable = _port("Enable")
+		entity = Entity("e", portItems=[clock, enable])
+		reset = _port("Reset")
+
+		entity.InsertPortItem(-1, reset)
+
+		self.assertListEqual([clock, reset, enable], entity.PortItems)
+		self.assertIs(entity, reset.Parent)
+
+	def test_Insert_Negative_OutOfRange(self) -> None:
+		entity = Entity("e", portItems=[_port("Clock")])
+		enable = _port("Enable")
+
+		with self.assertRaises(ValueError) as context:
+			entity.InsertPortItem(-2, enable)
+
+		self.assertEqual("Parameter 'index' is out of range -1..1.", str(context.exception))
+		self.assertListEqual(["Got value '-2'."], context.exception.__notes__)
+		self.assertIsNone(enable.Parent)
+
+	def test_Remove(self) -> None:
+		clock = _port("Clock")
+		reset = _port("Reset")
+		entity = Entity("e", portItems=[clock, reset])
+
+		entity.RemovePortItem(clock)
+
+		self.assertListEqual([reset], entity.PortItems)
+		self.assertIsNone(clock.Parent)
+		self.assertTupleEqual(("Clock", ), clock.Identifiers)
+		self.assertIs(Mode.In, clock.Mode)
+
+	def test_Remove_AddElsewhere(self) -> None:
+		clock = _port("Clock")
+		entity = Entity("e", portItems=[clock])
+		component = Component("c")
+
+		entity.RemovePortItem(clock)
+		component.AddPortItem(clock)
+
+		self.assertEqual(0, entity.PortCount)
+		self.assertListEqual([clock], component.PortItems)
+		self.assertIs(component, clock.Parent)
+
+	def test_Remove_None(self) -> None:
+		entity = Entity("e")
+
+		with self.assertRaises(ValueError) as context:
+			entity.RemovePortItem(None)
+
+		self.assertEqual("Parameter 'portItem' is None.", str(context.exception))
+
+	def test_Remove_WrongType(self) -> None:
+		entity = Entity("e")
+
+		with self.assertRaises(TypeError) as context:
+			entity.RemovePortItem(_generic("BITS"))
+
+		self.assertEqual("Parameter 'portItem' is not of type 'PortSignalInterfaceItem'.", str(context.exception))
+
+	def test_Remove_NotAChild(self) -> None:
+		entity = Entity("e")
+		clock = _port("Clock")
+
+		with self.assertRaises(NotAChildError) as context:
+			entity.RemovePortItem(clock)
+
+		self.assertEqual("PortSimpleSignalInterfaceItem 'Clock' is not a port of this Entity.", str(context.exception))
+		self.assertIs(clock, context.exception.Element)
+		self.assertIs(entity, context.exception.Parent)
+
+	def test_Move(self) -> None:
+		"""A move within one port clause is a remove followed by an insert."""
+		clock = _port("Clock")
+		reset = _port("Reset")
+		enable = _port("Enable")
+		entity = Entity("e", portItems=[clock, reset, enable])
+
+		entity.RemovePortItem(clock)
+		entity.InsertPortItem(2, clock)
+
+		self.assertListEqual([reset, enable, clock], entity.PortItems)
+		self.assertIs(entity, clock.Parent)
+
+	def test_Namespace(self) -> None:
+		entity = Entity("e")
+		entity.IndexDeclaredItems()
+		clock = _port("Clock")
+
+		entity.AddPortItem(clock)
+
+		self.assertIs(clock, entity._namespace._elements["clock"])
+
+		entity.RemovePortItem(clock)
+
+		self.assertNotIn("clock", entity._namespace._elements)
+
+	def test_Namespace_AddNotIndexed(self) -> None:
+		"""A port added to a region, which wasn't indexed yet, enters the namespace when the region is indexed."""
+		entity = Entity("e")
+		clock = _port("Clock")
+
+		entity.AddPortItem(clock)
+
+		self.assertDictEqual({}, entity._namespace._elements)
+
+		entity.IndexDeclaredItems()
+
+		self.assertDictEqual({"clock": clock}, entity._namespace._elements)
+
+	def test_Namespace_OtherElement(self) -> None:
+		"""Removing a port, whose identifier refers to a duplicate declaration in the namespace, is rejected."""
+		clock = _port("Clock")
+		signal = Signal(["clock"], _subtypeSymbol("std_logic"))
+		entity = Entity("e", portItems=[clock], declaredItems=[signal])
+		with WarningCollector():
+			entity.IndexDeclaredItems()
+
+		with self.assertRaises(NotInNamespaceError) as context:
+			entity.RemovePortItem(clock)
+
+		self.assertEqual("Namespace 'e' has another element for 'clock'.", str(context.exception))
+		self.assertListEqual(["Found element of type 'pyVHDLModel.Object.Signal'."], context.exception.__notes__)
+		self.assertEqual("Clock", context.exception.Identifier)
+		self.assertEqual("clock", context.exception.NormalizedIdentifier)
+		self.assertIs(entity._namespace, context.exception.Namespace)
+		self.assertListEqual([clock], entity.PortItems)
+		self.assertIs(entity, clock.Parent)
+		self.assertIs(signal, entity._namespace._elements["clock"])
+
+	def test_Namespace_NotIndexed(self) -> None:
+		"""Removing a port of a region, which wasn't indexed yet, leaves the namespace as is."""
+		clock = _port("Clock")
+		entity = Entity("e", portItems=[clock])
+
+		entity.RemovePortItem(clock)
+
+		self.assertEqual(0, entity.PortCount)
+		self.assertIsNone(clock.Parent)
+		self.assertDictEqual({}, entity._namespace._elements)
+
+	def test_Contract(self) -> None:
+		"""A host class without the methods expected by the mixin can't be instantiated."""
+		class Host(ModelEntity, WithPortsMixin):
+			def __init__(self) -> None:
+				super().__init__()
+				WithPortsMixin.__init__(self)
+
+		with self.assertRaises(UnfulfilledExpectationError) as context:
+			Host()
+
+		self.assertEqual("Class 'Host' doesn't provide every expected member.", str(context.exception))
+		self.assertListEqual(
+			[
+				"Missing '_AddToNamespace', expected by 'WithPortsMixin'.",
+				"Missing '_RemoveFromNamespace', expected by 'WithPortsMixin'.",
+				"Missing '_ClashingDeclarations', expected by 'WithPortsMixin'.",
+			],
+			context.exception.__notes__
+		)

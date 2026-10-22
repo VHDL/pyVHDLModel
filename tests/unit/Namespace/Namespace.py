@@ -36,7 +36,7 @@ Standalone tests for ``pyVHDLModel.Namespace``.
 keyed by *normalized* identifier exactly as the ``Find*`` methods look them up, so the resolution logic
 can be exercised without building a whole design.
 """
-from unittest import TestCase
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.DesignUnit import Component
@@ -67,7 +67,7 @@ def _integerType(identifier: str = "myInteger") -> IntegerType:
 	return IntegerType(identifier, SimpleRange(IntegerLiteral(0), IntegerLiteral(7), Direction.To))
 
 
-class Namespaces(TestCase):
+class Namespaces(Testcase):
 	"""Construction and the parent/sub-namespace wiring."""
 
 	def test_Construction(self) -> None:
@@ -95,7 +95,7 @@ class Namespaces(TestCase):
 		self.assertIs(namespace, parent.SubNamespaces["architecture"])
 
 
-class FindComponent(TestCase):
+class FindComponent(Testcase):
 	"""``FindComponent`` - the reference implementation of the ``ExtendedKeyError`` chaining pattern."""
 
 	def test_Found(self) -> None:
@@ -160,7 +160,7 @@ class FindComponent(TestCase):
 		self.assertIsInstance(exception.__cause__, ExtendedKeyError)
 
 
-class FindSubtype(TestCase):
+class FindSubtype(Testcase):
 	"""``FindSubtype`` - resolves both subtypes and full types, filtered by the symbol's possible references."""
 
 	def test_FoundSubtype(self) -> None:
@@ -256,7 +256,7 @@ class FindSubtype(TestCase):
 		self.assertIsInstance(exception.__cause__, ExtendedKeyError)
 
 
-class FindObject(TestCase):
+class FindObject(Testcase):
 	"""``FindObject`` - resolves signals, constants and variables."""
 
 	def test_FoundSignal(self) -> None:

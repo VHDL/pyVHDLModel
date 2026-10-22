@@ -37,10 +37,11 @@ Tests for pyVHDLModel.DesignUnit and pyVHDLModel.Regions.
 tested once here via ``Architecture`` as the canonical host; every other consumer below gets only a
 one-line smoke test confirming the mixin is wired up.
 """
-from unittest import TestCase
+from pyTooling.Warning      import CriticalWarning
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import VHDLModelException
-from pyVHDLModel.Base       import ModelEntity
+from pyVHDLModel.Exception  import BlackboxWarning, VHDLModelWarning
 from pyVHDLModel.Name       import SimpleName, SelectedName
 from pyVHDLModel.Symbol     import EntitySymbol, PackageSymbol, LibraryReferenceSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Object     import Constant, Signal, Variable, SharedVariable, File, DeferredConstant
@@ -52,7 +53,7 @@ from pyVHDLModel.DesignUnit import (
 	Package, PackageBody, Entity, Architecture, Component, Configuration,
 )
 
-from tests.unit             import _entitySymbol
+from tests.unit             import _Element, _entitySymbol
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -61,7 +62,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class References(TestCase):
+class References(Testcase):
 	def test_LibraryClause(self) -> None:
 		symbol = LibraryReferenceSymbol(SimpleName("ieee"))
 		clause = LibraryClause([symbol])
@@ -101,7 +102,7 @@ class _ConcreteSecondaryUnit(SecondaryUnit):
 		return self._identifier
 
 
-class DesignUnits(TestCase):
+class DesignUnits(Testcase):
 
 	def test_NoContextItems(self) -> None:
 		unit = _ConcreteDesignUnit("u")
@@ -137,14 +138,14 @@ class DesignUnits(TestCase):
 		"""``Library`` is just a renamed view onto the same ``_parent`` field every ``ModelEntity``
 		has."""
 		unit = _ConcreteDesignUnit("u")
-		library = ModelEntity()
+		library = _Element()
 		unit.Library = library
 
 		self.assertIs(library, unit.Library)
 		self.assertIs(library, unit.Parent)
 
 
-class MarkerSubclasses(TestCase):
+class MarkerSubclasses(Testcase):
 	def test_PrimaryUnit(self) -> None:
 		unit = _ConcretePrimaryUnit("u")
 
@@ -156,7 +157,7 @@ class MarkerSubclasses(TestCase):
 		self.assertEqual("u", unit.Identifier)
 
 
-class Contexts(TestCase):
+class Contexts(Testcase):
 	def test_NoReferences(self) -> None:
 		context = Context("ctx")
 
@@ -181,12 +182,12 @@ class Contexts(TestCase):
 		``ModelEntity`` (not ``object()``) since the ``.Parent = self`` assignment a few lines above
 		the kind-check runs first and needs a real settable ``Parent``."""
 		with self.assertRaises(VHDLModelException) as context:
-			Context("ctx", [ModelEntity()])
+			Context("ctx", [_Element()])
 
 		self.assertIn("neither a library clause, use clause, nor context reference", str(context.exception))
 
 
-class Packages(TestCase):
+class Packages(Testcase):
 	def test_Minimal(self) -> None:
 		package = Package("pkg")
 
@@ -213,7 +214,7 @@ class Packages(TestCase):
 		self.assertIs(component, package.Components["comp"])
 
 
-class PackageBodies(TestCase):
+class PackageBodies(Testcase):
 	def test_Minimal(self) -> None:
 		packageSymbol = PackageSymbol(SimpleName("pkg"))
 		body = PackageBody(packageSymbol)
@@ -228,7 +229,7 @@ class PackageBodies(TestCase):
 		self.assertIsNone(body.LinkDeclaredItemsToPackage())
 
 
-class Entities(TestCase):
+class Entities(Testcase):
 	def test_Minimal(self) -> None:
 		entity = Entity("ent")
 
@@ -237,7 +238,7 @@ class Entities(TestCase):
 		self.assertEqual(0, len(entity.Architectures))
 
 
-class Architectures(TestCase):
+class Architectures(Testcase):
 	def test_Minimal(self) -> None:
 		entitySymbol = _entitySymbol("ent")
 		architecture = Architecture("rtl", entitySymbol)
@@ -298,7 +299,7 @@ class Architectures(TestCase):
 
 	def test_IndexDeclaredItems_Overloads(self) -> None:
 		"""Regression test: two overloads sharing a name used to silently collide into one entry (a
-		flat ``Dict[str, Function]``) - the second always overwrote the first, with no error or
+		flat ``dict[str, Function]``) - the second always overwrote the first, with no error or
 		warning. Fixed by collecting overloads into a list per name instead.
 
 		FIXME: this only *avoids the collision* - it doesn't actually resolve overloads by signature
@@ -326,7 +327,7 @@ class Architectures(TestCase):
 		self.assertEqual([overload1, overload2], architecture.Procedures["p"])
 
 
-class Components(TestCase):
+class Components(Testcase):
 	def test_Minimal(self) -> None:
 		component = Component("comp")
 
@@ -341,8 +342,8 @@ class Components(TestCase):
 		append and set ``.Parent``, they don't care about the item's real type (real
 		``GenericInterfaceItemMixin``/``PortInterfaceItemMixin`` classes are covered in their own
 		slice)."""
-		genericItem = ModelEntity()
-		portItem = ModelEntity()
+		genericItem = _Element()
+		portItem = _Element()
 		component = Component("comp", genericItems=[genericItem], portItems=[portItem])
 
 		self.assertEqual(1, len(component.GenericItems))
@@ -360,8 +361,23 @@ class Components(TestCase):
 		self.assertIs(entity, component.Entity)
 		self.assertFalse(component.IsBlackbox)
 
+	def test_BlackboxWarning(self) -> None:
+		"""The warning about a component treated as a blackbox carries the component."""
+		component = Component("comp")
+		warning = BlackboxWarning("Blackbox caused by 'inst: comp'.", component=component)
 
-class Configurations(TestCase):
+		self.assertIs(component, warning.Component)
+		self.assertIsNone(warning.Instance)
+
+	def test_BlackboxWarning_NotCritical(self) -> None:
+		"""A blackbox is a non-critical warning: the component records it in IsBlackbox."""
+		warning = BlackboxWarning("Blackbox caused by 'inst: comp'.")
+
+		self.assertIsInstance(warning, VHDLModelWarning)
+		self.assertNotIsInstance(warning, CriticalWarning)
+
+
+class Configurations(Testcase):
 	"""The *design-unit* ``configuration cfg of ent is ... end configuration;`` - not to be confused
 	with ``pyVHDLModel.Configuration.ComponentConfiguration``/``BlockConfiguration``, which are tested
 	in tests/unit/Configuration.py."""

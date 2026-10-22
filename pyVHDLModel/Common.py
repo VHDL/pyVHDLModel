@@ -34,10 +34,10 @@ This module contains parts of an abstract document language model for VHDL.
 
 Common definitions and Mixins are used by many classes in the model as base-classes.
 """
-from typing                  import List, Iterable, Union, Optional as Nullable
+from typing                  import Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType
+from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, BaseCase, BaseChoice, WaveformElement, ConditionalMixin, ChoicesMixin
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
@@ -56,11 +56,12 @@ ExpressionUnion = Union[
 
 
 @export
-class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True):
+class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True, expects=("_parent",)):
 	"""
 	A mixin-class for language entities that may permit blackboxes.
 
-	The setting is inherited from the parent when not set locally (:data:`AllowBlackbox`).
+	The setting is inherited from the parent when not set locally (:data:`AllowBlackbox`). The host class provides the
+	reference to the parent ``_parent``.
 
 	.. seealso::
 
@@ -75,7 +76,7 @@ class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Design <pyVHDLModel.Design>`
 	   * :class:`Library <pyVHDLModel.Library>`
 	"""
-	_allowBlackbox: Nullable[bool]  #: Allow blackboxes for components in language entity.
+	_allowBlackbox: Nullable[bool]  #: Allow blackboxes for components; ``None`` inherits the parent's setting.
 
 	def __init__(self, allowBlackbox: Nullable[bool] = None) -> None:
 		"""
@@ -115,6 +116,7 @@ class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
+@abstractclass
 class Statement(ModelEntity, LabeledEntityMixin):
 	"""
 	A ``Statement`` is a base-class for all statements.
@@ -150,7 +152,7 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	# TODO: implement a ProcedureSymbol
 	_procedure:                 Symbol  #: Reference to the called procedure.
-	_parameterAssociationItems: List[ParameterAssociationItem]  #: List of all parameter associations of the call.
+	_parameterAssociationItems: list[ParameterAssociationItem]  #: List of all parameter associations of the call.
 
 	def __init__(self, procedureName: Symbol, parameterAssociationItems: Nullable[Iterable[ParameterAssociationItem]] = None) -> None:
 		"""
@@ -179,7 +181,7 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 		return self._procedure
 
 	@readonly
-	def ParameterAssociationItems(self) -> List[ParameterAssociationItem]:
+	def ParameterAssociationItems(self) -> list[ParameterAssociationItem]:
 		"""
 		Read-only property to access the parameter association items (:attr:`_parameterAssociationItems`).
 
@@ -306,7 +308,7 @@ class WaveformMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Waveform element <pyVHDLModel.Base.WaveformElement>`
 	"""
 
-	_waveform: List[WaveformElement]  #: List of all waveform elements, in the order they were written.
+	_waveform: list[WaveformElement]  #: List of all waveform elements, in the order they were written.
 
 	def __init__(self, waveform: Iterable[WaveformElement]) -> None:
 		"""
@@ -320,7 +322,7 @@ class WaveformMixin(metaclass=ExtendedType, mixin=True):
 			waveformElement.Parent = self
 
 	@readonly
-	def Waveform(self) -> List[WaveformElement]:
+	def Waveform(self) -> list[WaveformElement]:
 		"""
 		Read-only property to access the waveform (:attr:`_waveform`).
 
@@ -456,7 +458,7 @@ class ConditionalWaveformsMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Conditional signal assignment <pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment>`
 	   * :class:`Conditional signal assignment <pyVHDLModel.Sequential.SequentialConditionalSignalAssignment>`	"""
 
-	_conditionalWaveforms: List[ConditionalWaveform]  #: All alternatives, in order.
+	_conditionalWaveforms: list[ConditionalWaveform]  #: All alternatives, in order.
 
 	def __init__(self, conditionalWaveforms: Iterable[ConditionalWaveform]) -> None:
 		"""
@@ -470,7 +472,7 @@ class ConditionalWaveformsMixin(metaclass=ExtendedType, mixin=True):
 			conditionalWaveform.Parent = self
 
 	@readonly
-	def ConditionalWaveforms(self) -> List[ConditionalWaveform]:
+	def ConditionalWaveforms(self) -> list[ConditionalWaveform]:
 		"""
 		Read-only property to access the conditional waveforms (:attr:`_conditionalWaveforms`).
 
@@ -621,7 +623,7 @@ class SelectedWaveformsMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Sequential selected signal assignment <pyVHDLModel.Sequential.SequentialSelectedSignalAssignment>`
 	"""
 
-	_selectedWaveforms: List[Union[SelectedWaveform, OthersSelectedWaveform]]  #: All alternatives, in order.
+	_selectedWaveforms: list[Union[SelectedWaveform, OthersSelectedWaveform]]  #: All alternatives, in order.
 
 	def __init__(self, selectedWaveforms: Iterable[Union[SelectedWaveform, OthersSelectedWaveform]]) -> None:
 		"""
@@ -635,7 +637,7 @@ class SelectedWaveformsMixin(metaclass=ExtendedType, mixin=True):
 			selectedWaveform.Parent = self
 
 	@readonly
-	def SelectedWaveforms(self) -> List[Union[SelectedWaveform, OthersSelectedWaveform]]:
+	def SelectedWaveforms(self) -> list[Union[SelectedWaveform, OthersSelectedWaveform]]:
 		"""
 		Read-only property to access the selected waveforms (:attr:`_selectedWaveforms`).
 
@@ -655,7 +657,7 @@ class SelectedExpressionsMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Sequential selected variable assignment <pyVHDLModel.Sequential.SequentialSelectedVariableAssignment>`
 	"""
 
-	_selectedExpressions: List[Union[SelectedExpression, OthersSelectedExpression]]  #: All alternatives, in order.
+	_selectedExpressions: list[Union[SelectedExpression, OthersSelectedExpression]]  #: All alternatives, in order.
 
 	def __init__(self, selectedExpressions: Iterable[Union[SelectedExpression, OthersSelectedExpression]]) -> None:
 		"""
@@ -669,7 +671,7 @@ class SelectedExpressionsMixin(metaclass=ExtendedType, mixin=True):
 			selectedExpression.Parent = self
 
 	@readonly
-	def SelectedExpressions(self) -> List[Union[SelectedExpression, OthersSelectedExpression]]:
+	def SelectedExpressions(self) -> list[Union[SelectedExpression, OthersSelectedExpression]]:
 		"""
 		Read-only property to access the selected expressions (:attr:`_selectedExpressions`).
 

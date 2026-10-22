@@ -32,8 +32,9 @@
 """This module contains base-classes for predefined library and package declarations."""
 from typing                 import Iterable, Optional as Nullable
 
+from pyTooling.Common       import getTypeName
 from pyTooling.Decorators   import export
-from pyTooling.MetaClasses  import ExtendedType
+from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
 from pyVHDLModel            import Library, Package, PackageBody, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol
 from pyVHDLModel.Name       import SimpleName, SelectedName, AllName
@@ -42,6 +43,7 @@ from pyVHDLModel.DesignUnit import LibraryClause, UseClause
 
 
 @export
+@abstractclass
 class PredefinedLibrary(Library):
 	"""
 	A base-class for predefined VHDL libraries.
@@ -65,7 +67,7 @@ class PredefinedLibrary(Library):
 		:param documentation: Documentation of this library, if the caller has one to supply. VHDL defines
 		                      none for a predefined library, so it is empty unless supplied from outside.
 		"""
-		super().__init__(self.__class__.__name__, documentation)
+		super().__init__(getTypeName(self), documentation)
 
 		self.AddPackages(packages)
 
@@ -82,9 +84,16 @@ class PredefinedLibrary(Library):
 
 
 @export
-class PredefinedPackageMixin(metaclass=ExtendedType, mixin=True):
+class PredefinedPackageMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=("_contextItems", "_libraryReferences", "_packageReferences")
+):
 	"""
 	A mixin-class for predefined VHDL packages and package bodies.
+
+	The host class provides the lists of context items ``_contextItems``, library clauses ``_libraryReferences`` and use
+	clauses ``_packageReferences``.
 
 	.. seealso::
 
@@ -116,6 +125,7 @@ class PredefinedPackageMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
+@abstractclass
 class PredefinedPackage(Package, PredefinedPackageMixin):
 	"""
 	A base-class for predefined VHDL packages.
@@ -130,10 +140,11 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 
 		:param identifier: The VHDL package name, or ``None`` to use the class name.
 		"""
-		super().__init__(self.__class__.__name__ if identifier is None else identifier)
+		super().__init__(getTypeName(self) if identifier is None else identifier)
 
 
 @export
+@abstractclass
 class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 	"""
 	A base-class for predefined VHDL package bodies.
@@ -149,6 +160,6 @@ class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 		:param packageIdentifier: The VHDL name of the package this body implements, or ``None`` to derive
 		                          it from the class name.
 		"""
-		identifier = self.__class__.__name__[:-5] if packageIdentifier is None else packageIdentifier
+		identifier = getTypeName(self)[:-5] if packageIdentifier is None else packageIdentifier
 		packageSymbol = PackageSymbol(SimpleName(identifier))
 		super().__init__(packageSymbol)

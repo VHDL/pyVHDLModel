@@ -34,25 +34,28 @@ This module contains parts of an abstract document language model for VHDL.
 
 Interface items are used in generic, port and parameter declarations.
 """
-from typing                 import Iterable, Optional as Nullable, List, Iterator, Tuple
+from typing                 import Iterable, Optional as Nullable, Iterator
 
 from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType
+from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
 
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin
-from pyVHDLModel.Base       import MultipleNamedEntityMixin, identifiersOf
+from pyVHDLModel.Base       import MultipleNamedEntityMixin, identifiersOf, normalizedIdentifiersOf
 from pyVHDLModel.Base       import ExpressionUnion, Mode
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
+from pyVHDLModel.Regions    import WithGenericsMixin, WithPortsMixin, WithParametersMixin
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
 
 
 @export
+@abstractclass
 class ModeViewElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	"""
-	Base-class for one element definition inside a mode view declaration (VHDL-2019). An element may name
-	several fields sharing the same specification (e.g. ``a, b : out;``), hence
+	Base-class for one element definition inside a mode view declaration (VHDL-2019).
+
+	An element may name several fields sharing the same specification (e.g. ``a, b : out;``), hence
 	:class:`~pyVHDLModel.Base.MultipleNamedEntityMixin` is inherited.
 
 	.. seealso::
@@ -202,7 +205,7 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""
 
 	_subtype:  SubtypeSymbol          #: Reference to the subtype this mode view applies to.
-	_elements: List[ModeViewElement]  #: List of all mode view elements, in declaration order.
+	_elements: list[ModeViewElement]  #: List of all mode view elements, in declaration order.
 
 	def __init__(
 		self,
@@ -244,7 +247,7 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._subtype
 
 	@readonly
-	def Elements(self) -> List[ModeViewElement]:
+	def Elements(self) -> list[ModeViewElement]:
 		"""
 		Read-only property to access the elements (:attr:`_elements`).
 
@@ -279,13 +282,15 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Port signal interface item <pyVHDLModel.Interface.PortSignalInterfaceItem>`
 	"""
 
+	@expects("_OBJECT_KEYWORD", "_identifiers", "_subtype")
 	def _FormatInterfaceItem(self, mode: Nullable[Mode] = None, isModeView: bool = False) -> str:
 		"""
 		Format this interface item as a single-line declaration.
 
 		Interface items are objects, so they render like one (``signal p : bit``), but an object's own
 		rendering cannot show the interface *mode* - a mode is not part of an object declaration. This
-		adds it, for the derived class's :meth:`__str__` to return.
+		adds it, for the derived class's :meth:`__str__` to return. The host class provides the object's keyword
+		``_OBJECT_KEYWORD``, identifiers ``_identifiers`` and subtype ``_subtype``.
 
 		:param mode:       This item's mode, or ``None`` when it declares none.
 		:param isModeView: ``True`` if the subtype position holds a mode view (VHDL-2019), not a subtype.
@@ -295,7 +300,7 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 		if isModeView:
 			prefix = "view "
 
-		return f"{self._objectKeyword} {', '.join(self._identifiers)} : {prefix}{self._subtype}"
+		return f"{self._OBJECT_KEYWORD} {', '.join(self._identifiers)} : {prefix}{self._subtype}"
 
 
 @export
@@ -344,10 +349,20 @@ class GenericInterfaceItemMixin(InterfaceItemMixin, mixin=True):
 
 	   * :class:`Generic constant interface item <pyVHDLModel.Interface.GenericConstantInterfaceItem>`
 	   * :class:`Generic type interface item <pyVHDLModel.Interface.GenericTypeInterfaceItem>`
-	   * :class:`Generic subprogram interface item <pyVHDLModel.Interface.GenericSubprogramInterfaceItem>`
+	   * :class:`Generic subprogram interface item mixin <pyVHDLModel.Interface.GenericSubprogramInterfaceItemMixin>`
+	   * :class:`Generic package interface item <pyVHDLModel.Interface.GenericPackageInterfaceItem>`
+	"""
+
+
+@export
+class GenericSubprogramInterfaceItemMixin(GenericInterfaceItemMixin, mixin=True):
+	"""
+	A mixin-class for subprograms in a generic clause.
+
+	.. seealso::
+
 	   * :class:`Generic procedure interface item <pyVHDLModel.Interface.GenericProcedureInterfaceItem>`
 	   * :class:`Generic function interface item <pyVHDLModel.Interface.GenericFunctionInterfaceItem>`
-	   * :class:`Generic package interface item <pyVHDLModel.Interface.GenericPackageInterfaceItem>`
 	"""
 
 
@@ -456,15 +471,7 @@ class GenericTypeInterfaceItem(Type, GenericInterfaceItemMixin):
 
 
 @export
-class GenericSubprogramInterfaceItem(GenericInterfaceItemMixin):
-	"""
-	Represents the base-class of subprograms in a generic clause.
-	"""
-	pass
-
-
-@export
-class GenericProcedureInterfaceItem(Procedure, GenericInterfaceItemMixin):
+class GenericProcedureInterfaceItem(Procedure, GenericSubprogramInterfaceItemMixin):
 	"""
 	Represents a procedure in a generic clause.
 
@@ -485,11 +492,11 @@ class GenericProcedureInterfaceItem(Procedure, GenericInterfaceItemMixin):
 		:param parent:        The parent model entity of this entity.
 		"""
 		super().__init__(identifier, documentation=documentation, parent=parent)
-		GenericInterfaceItemMixin.__init__(self)
+		GenericSubprogramInterfaceItemMixin.__init__(self)
 
 
 @export
-class GenericFunctionInterfaceItem(Function, GenericInterfaceItemMixin):
+class GenericFunctionInterfaceItem(Function, GenericSubprogramInterfaceItemMixin):
 	"""
 	Represents a function in a generic clause.
 
@@ -518,10 +525,11 @@ class GenericFunctionInterfaceItem(Function, GenericInterfaceItemMixin):
 		:param parent:        The parent model entity of this entity.
 		"""
 		super().__init__(identifier, returnType, documentation=documentation, parent=parent)
-		GenericInterfaceItemMixin.__init__(self)
+		GenericSubprogramInterfaceItemMixin.__init__(self)
 
 
 @export
+@abstractclass
 class InterfacePackage(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""
 	Represents a package as a generic of a design unit.
@@ -575,6 +583,7 @@ class GenericPackageInterfaceItem(InterfacePackage, GenericInterfaceItemMixin):
 
 
 @export
+@abstractclass
 class PortSignalInterfaceItem(Signal, InterfaceItemMixin):
 	"""
 	Represents the base-class of all signals in a port clause.
@@ -799,6 +808,7 @@ class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItemMixin, Inte
 
 
 @export
+@abstractclass
 class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItemMixin):
 	"""
 	Represents a signal parameter of a subprogram.
@@ -973,145 +983,6 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
 
 
 @export
-class WithGenericsMixin(metaclass=ExtendedType, mixin=True):
-	"""
-	A mixin-class for language constructs with a generic clause.
-
-	.. seealso::
-
-	   * :class:`Package <pyVHDLModel.DesignUnit.Package>`
-	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
-	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
-	"""
-	_genericItems: List[GenericInterfaceItemMixin]  #: List of all generics, in declaration order.
-
-	def __init__(
-		self,
-		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
- 	) -> None:
-		"""
-		Initializes a language construct with a generic clause.
-
-		:param genericItems: List of all generics, in declaration order.
-		"""
-		self._genericItems = []
-		if genericItems is not None:
-			for item in genericItems:
-				self._genericItems.append(item)
-				item.Parent = self
-
-	@readonly
-	def GenericItems(self) -> List[GenericInterfaceItemMixin]:
-		"""
-		Read-only property to access the generic items (:attr:`_genericItems`).
-
-		:returns: List of generic items.
-		"""
-		return self._genericItems
-
-	@readonly
-	def GenericCount(self) -> int:
-		"""
-		Read-only property to return the number of generics in :attr:`_genericItems`.
-
-		:returns: The generic count.
-		"""
-		return len(self._genericItems)
-
-
-@export
-class WithPortsMixin(metaclass=ExtendedType, mixin=True):
-	"""
-	A mixin-class for language constructs with a port clause.
-
-	.. seealso::
-
-	   * :class:`Concurrent block statement <pyVHDLModel.Concurrent.ConcurrentBlockStatement>`
-	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
-	   * :class:`Port group <pyVHDLModel.Interface.PortGroup>`
-	"""
-	_portItems: List[PortInterfaceItemMixin]  #: List of all ports, in declaration order.
-
-	def __init__(
-		self,
-		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
-	) -> None:
-		"""
-		Initializes a language construct with a port clause.
-
-		:param portItems: List of all ports, in declaration order.
-		"""
-		self._portItems = []
-		if portItems is not None:
-			for item in portItems:
-				self._portItems.append(item)
-				item.Parent = self
-
-	@readonly
-	def PortItems(self) -> List[PortInterfaceItemMixin]:
-		"""
-		Read-only property to access the port items (:attr:`_portItems`).
-
-		:returns: List of port items.
-		"""
-		return self._portItems
-
-	@readonly
-	def PortCount(self) -> int:
-		"""
-		Read-only property to return the number of ports in :attr:`_portItems`.
-
-		:returns: The port count.
-		"""
-		return len(self._portItems)
-
-
-@export
-class WithParametersMixin(metaclass=ExtendedType, mixin=True):
-	"""
-	A mixin-class for language constructs with a parameter list.
-
-	.. seealso::
-
-	   * :class:`Parameter group <pyVHDLModel.Interface.ParameterGroup>`
-	"""
-	_parameterItems: List[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.
-
-	def __init__(
-		self,
-		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
-	) -> None:
-		"""
-		Initializes a language construct with a parameter list.
-
-		:param parameterItems: List of all parameters, in declaration order.
-		"""
-		self._parameterItems = []
-		if parameterItems is not None:
-			for item in parameterItems:
-				self._parameterItems.append(item)
-				item.Parent = self
-
-	@readonly
-	def ParameterItems(self) -> List[ParameterInterfaceItemMixin]:
-		"""
-		Read-only property to access the parameter items (:attr:`_parameterItems`).
-
-		:returns: List of parameter items.
-		"""
-		return self._parameterItems
-
-	@readonly
-	def ParameterCount(self) -> int:
-		"""
-		Read-only property to return the number of parameters in :attr:`_parameterItems`.
-
-		:returns: The parameter count.
-		"""
-		return len(self._parameterItems)
-
-
-@export
 class InterfaceGroup(ModelEntity, OptionallyNamedEntityMixin, DocumentedEntityMixin):
 	"""
 	Represents a group of interface items sharing one clause.
@@ -1140,6 +1011,20 @@ class InterfaceGroup(ModelEntity, OptionallyNamedEntityMixin, DocumentedEntityMi
 		super().__init__(parent)
 		OptionallyNamedEntityMixin.__init__(self, name)
 		DocumentedEntityMixin.__init__(self, documentation)
+
+	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Add nothing, because an interface group has no namespace.
+
+		:param element: The named element, e.g. an interface item.
+		"""
+
+	def _RemoveFromNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Remove nothing, because an interface group has no namespace.
+
+		:param element: The named element, e.g. an interface item.
+		"""
 
 
 @export
@@ -1199,6 +1084,19 @@ class GenericGroup(InterfaceGroup, WithGenericsMixin):
 		names = ", ".join(name for item in self._genericItems for name in identifiersOf(item))
 		return f"GenericGroup: {self._identifier} ({len(self._genericItems)}): {names}"
 
+	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
+		"""
+		Return the generics of this group sharing an identifier with the given item.
+
+		:param item: The new generic.
+		:returns:    Tuple of clashing generics.
+		"""
+		identifiers = set(normalizedIdentifiersOf(item))
+		return tuple(
+			declaration for declaration in self._genericItems
+			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
+		)
+
 
 @export
 class PortGroup(InterfaceGroup, WithPortsMixin):
@@ -1257,6 +1155,19 @@ class PortGroup(InterfaceGroup, WithPortsMixin):
 		names = ", ".join(name for item in self._portItems for name in identifiersOf(item))
 		return f"PortGroup: {self._identifier} ({len(self._portItems)}): {names}"
 
+	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
+		"""
+		Return the ports of this group sharing an identifier with the given item.
+
+		:param item: The new port.
+		:returns:    Tuple of clashing ports.
+		"""
+		identifiers = set(normalizedIdentifiersOf(item))
+		return tuple(
+			declaration for declaration in self._portItems
+			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
+		)
+
 
 @export
 class ParameterGroup(InterfaceGroup, WithParametersMixin):
@@ -1314,3 +1225,16 @@ class ParameterGroup(InterfaceGroup, WithParametersMixin):
 		"""
 		names = ", ".join(name for item in self._parameterItems for name in identifiersOf(item))
 		return f"ParameterGroup: {self._identifier} ({len(self._parameterItems)}): {names}"
+
+	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
+		"""
+		Return the parameters of this group sharing an identifier with the given item.
+
+		:param item: The new parameter.
+		:returns:    Tuple of clashing parameters.
+		"""
+		identifiers = set(normalizedIdentifiersOf(item))
+		return tuple(
+			declaration for declaration in self._parameterItems
+			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
+		)

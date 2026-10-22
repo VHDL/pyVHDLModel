@@ -34,14 +34,19 @@ This module contains parts of an abstract document language model for VHDL.
 
 Symbols are entity specific wrappers for names that reference VHDL language entities.
 """
-from enum                  import Flag, auto
-from typing                import Any, Optional as Nullable, Iterable, List, Dict, Mapping
+from __future__            import annotations
 
-from pyTooling.Decorators  import export, readonly
-from pyTooling.MetaClasses import ExtendedType
+from enum                  import Flag, auto
+from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping
+
+from pyTooling.Common      import getTypeName
+from pyTooling.Decorators  import export, notimplemented, readonly
+from pyTooling.MetaClasses import ExtendedType, abstractclass
 
 from pyVHDLModel.Base      import Range
 from pyVHDLModel.Name      import Name, AllName
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor import Visitor
 
 
 @export
@@ -149,6 +154,16 @@ class Symbol(metaclass=ExtendedType):
 		"""
 		return self._reference is not None
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this symbol and its name with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSymbol(self)
+		self._name.Visit(visitor)
+		visitor.DepartSymbol(self)
+
 	def __repr__(self) -> str:
 		"""
 		Formats a representation of the symbol.
@@ -158,9 +173,9 @@ class Symbol(metaclass=ExtendedType):
 		:returns: String representation of the symbol.
 		"""
 		if self._reference is not None:
-			return f"{self.__class__.__name__}: '{self._name!s}' -> {self._reference!s}"
+			return f"{getTypeName(self)}: '{self._name!s}' -> {self._reference!s}"
 
-		return f"{self.__class__.__name__}: '{self._name!s}' -> unresolved"
+		return f"{getTypeName(self)}: '{self._name!s}' -> unresolved"
 
 	def __str__(self) -> str:
 		"""
@@ -200,7 +215,7 @@ class LibraryReferenceSymbol(Symbol):
 		super().__init__(name, PossibleReference.Library)
 
 	@property
-	def Library(self) -> Nullable['Library']:
+	def Library(self) -> Nullable[Library]:
 		"""
 		Property to access the library (:attr:`_reference`).
 
@@ -209,7 +224,7 @@ class LibraryReferenceSymbol(Symbol):
 		return self._reference
 
 	@Library.setter
-	def Library(self, value: 'Library') -> None:
+	def Library(self, value: Library) -> None:
 		self._reference = value
 
 
@@ -237,7 +252,7 @@ class PackageReferenceSymbol(Symbol):
 		super().__init__(name, PossibleReference.Package)
 
 	@property
-	def Package(self) -> Nullable['Package']:
+	def Package(self) -> Nullable[Package]:
 		"""
 		Property to access the package (:attr:`_reference`).
 
@@ -246,7 +261,7 @@ class PackageReferenceSymbol(Symbol):
 		return self._reference
 
 	@Package.setter
-	def Package(self, value: 'Package') -> None:
+	def Package(self, value: Package) -> None:
 		self._reference = value
 
 
@@ -284,7 +299,7 @@ class ModeViewSymbol(Symbol):
 		super().__init__(name, PossibleReference.View)
 
 	@property
-	def ModeView(self) -> Nullable['ModeViewDeclaration']:
+	def ModeView(self) -> Nullable[ModeViewDeclaration]:
 		"""
 		Property to access the mode view (:attr:`_reference`).
 
@@ -293,7 +308,7 @@ class ModeViewSymbol(Symbol):
 		return self._reference
 
 	@ModeView.setter
-	def ModeView(self, value: 'ModeViewDeclaration') -> None:
+	def ModeView(self, value: ModeViewDeclaration) -> None:
 		self._reference = value
 
 
@@ -321,7 +336,7 @@ class SubprogramReferenceSymbol(Symbol):
 		super().__init__(name, PossibleReference.SubProgram)
 
 	@property
-	def Subprogram(self) -> Nullable['Subprogram']:
+	def Subprogram(self) -> Nullable[Subprogram]:
 		"""
 		Property to access the subprogram (:attr:`_reference`).
 
@@ -330,7 +345,7 @@ class SubprogramReferenceSymbol(Symbol):
 		return self._reference
 
 	@Subprogram.setter
-	def Subprogram(self, value: 'Subprogram') -> None:
+	def Subprogram(self, value: Subprogram) -> None:
 		self._reference = value
 
 
@@ -358,7 +373,7 @@ class ConfigurationSymbol(Symbol):
 		super().__init__(name, PossibleReference.Configuration)
 
 	@property
-	def Configuration(self) -> Nullable['Configuration']:
+	def Configuration(self) -> Nullable[Configuration]:
 		"""
 		Property to access the configuration (:attr:`_reference`).
 
@@ -367,14 +382,16 @@ class ConfigurationSymbol(Symbol):
 		return self._reference
 
 	@Configuration.setter
-	def Configuration(self, value: 'Configuration') -> None:
+	def Configuration(self, value: Configuration) -> None:
 		self._reference = value
 
 
 @export
 class VariableSymbol(Symbol):
 	"""
-	Represents a reference (name) to a variable, e.g. the target of a variable assignment.
+	Represents a reference (name) to a variable.
+
+	The target of a variable assignment is such a reference.
 
 	.. admonition:: Example
 
@@ -393,7 +410,7 @@ class VariableSymbol(Symbol):
 		super().__init__(name, PossibleReference.Variable)
 
 	@property
-	def Variable(self) -> Nullable['Variable']:
+	def Variable(self) -> Nullable[Variable]:
 		"""
 		Property to access the variable (:attr:`_reference`).
 
@@ -402,14 +419,16 @@ class VariableSymbol(Symbol):
 		return self._reference
 
 	@Variable.setter
-	def Variable(self, value: 'Variable') -> None:
+	def Variable(self, value: Variable) -> None:
 		self._reference = value
 
 
 @export
 class SignalSymbol(Symbol):
 	"""
-	Represents a reference (name) to a signal, e.g. the target of a signal assignment.
+	Represents a reference (name) to a signal.
+
+	The target of a signal assignment is such a reference.
 
 	.. admonition:: Example
 
@@ -428,7 +447,7 @@ class SignalSymbol(Symbol):
 		super().__init__(name, PossibleReference.Signal)
 
 	@property
-	def Signal(self) -> Nullable['Signal']:
+	def Signal(self) -> Nullable[Signal]:
 		"""
 		Property to access the signal (:attr:`_reference`).
 
@@ -437,7 +456,7 @@ class SignalSymbol(Symbol):
 		return self._reference
 
 	@Signal.setter
-	def Signal(self, value: 'Signal') -> None:
+	def Signal(self, value: Signal) -> None:
 		self._reference = value
 
 
@@ -465,7 +484,7 @@ class ContextReferenceSymbol(Symbol):
 		super().__init__(name, PossibleReference.Context)
 
 	@property
-	def Context(self) -> 'Context':
+	def Context(self) -> Context:
 		"""
 		Property to access the context (:attr:`_reference`).
 
@@ -474,7 +493,7 @@ class ContextReferenceSymbol(Symbol):
 		return self._reference
 
 	@Context.setter
-	def Context(self, value: 'Context') -> None:
+	def Context(self, value: Context) -> None:
 		self._reference = value
 
 
@@ -502,7 +521,7 @@ class PackageMemberReferenceSymbol(Symbol):
 		super().__init__(name, PossibleReference.PackageMember)
 
 	@property
-	def Member(self) -> Nullable['Package']:  # TODO: typehint
+	def Member(self) -> Nullable[Package]:  # TODO: typehint
 		"""
 		Property to access the member (:attr:`_reference`).
 
@@ -511,7 +530,7 @@ class PackageMemberReferenceSymbol(Symbol):
 		return self._reference
 
 	@Member.setter
-	def Member(self, value: 'Package') -> None:  # TODO: typehint
+	def Member(self, value: Package) -> None:  # TODO: typehint
 		self._reference = value
 
 
@@ -539,7 +558,7 @@ class AllPackageMembersReferenceSymbol(Symbol):
 		super().__init__(name, PossibleReference.PackageMember)
 
 	@property
-	def Members(self) -> 'Package':  # TODO: typehint
+	def Members(self) -> Package:  # TODO: typehint
 		"""
 		Property to access the members (:attr:`_reference`).
 
@@ -548,7 +567,7 @@ class AllPackageMembersReferenceSymbol(Symbol):
 		return self._reference
 
 	@Members.setter
-	def Members(self, value: 'Package') -> None:  # TODO: typehint
+	def Members(self, value: Package) -> None:  # TODO: typehint
 		self._reference = value
 
 
@@ -576,7 +595,7 @@ class EntityInstantiationSymbol(Symbol):
 		super().__init__(name, PossibleReference.Entity)
 
 	@property
-	def Entity(self) -> 'Entity':
+	def Entity(self) -> Entity:
 		"""
 		Property to access the entity (:attr:`_reference`).
 
@@ -585,7 +604,7 @@ class EntityInstantiationSymbol(Symbol):
 		return self._reference
 
 	@Entity.setter
-	def Entity(self, value: 'Entity') -> None:
+	def Entity(self, value: Entity) -> None:
 		self._reference = value
 
 
@@ -613,7 +632,7 @@ class ComponentInstantiationSymbol(Symbol):
 		super().__init__(name, PossibleReference.Component)
 
 	@property
-	def Component(self) -> 'Component':
+	def Component(self) -> Component:
 		"""
 		Property to access the component (:attr:`_reference`).
 
@@ -622,7 +641,7 @@ class ComponentInstantiationSymbol(Symbol):
 		return self._reference
 
 	@Component.setter
-	def Component(self, value: 'Component') -> None:
+	def Component(self, value: Component) -> None:
 		self._reference = value
 
 
@@ -650,7 +669,7 @@ class ConfigurationInstantiationSymbol(Symbol):
 		super().__init__(name, PossibleReference.Configuration)
 
 	@property
-	def Configuration(self) -> 'Configuration':
+	def Configuration(self) -> Configuration:
 		"""
 		Property to access the configuration (:attr:`_reference`).
 
@@ -659,7 +678,7 @@ class ConfigurationInstantiationSymbol(Symbol):
 		return self._reference
 
 	@Configuration.setter
-	def Configuration(self, value: 'Configuration') -> None:
+	def Configuration(self, value: Configuration) -> None:
 		self._reference = value
 
 
@@ -689,7 +708,7 @@ class EntitySymbol(Symbol):
 		super().__init__(name, PossibleReference.Entity)
 
 	@property
-	def Entity(self) -> 'Entity':
+	def Entity(self) -> Entity:
 		"""
 		Property to access the entity (:attr:`_reference`).
 
@@ -698,7 +717,7 @@ class EntitySymbol(Symbol):
 		return self._reference
 
 	@Entity.setter
-	def Entity(self, value: 'Entity') -> None:
+	def Entity(self, value: Entity) -> None:
 		self._reference = value
 
 
@@ -715,7 +734,7 @@ class ArchitectureSymbol(Symbol):
 		super().__init__(name, PossibleReference.Architecture)
 
 	@property
-	def Architecture(self) -> 'Architecture':
+	def Architecture(self) -> Architecture:
 		"""
 		Property to access the architecture (:attr:`_reference`).
 
@@ -724,7 +743,7 @@ class ArchitectureSymbol(Symbol):
 		return self._reference
 
 	@Architecture.setter
-	def Architecture(self, value: 'Architecture') -> None:
+	def Architecture(self, value: Architecture) -> None:
 		self._reference = value
 
 
@@ -753,7 +772,7 @@ class PackageSymbol(Symbol):
 		super().__init__(name, PossibleReference.Package)
 
 	@property
-	def Package(self) -> 'Package':
+	def Package(self) -> Package:
 		"""
 		Property to access the package (:attr:`_reference`).
 
@@ -762,7 +781,7 @@ class PackageSymbol(Symbol):
 		return self._reference
 
 	@Package.setter
-	def Package(self, value: 'Package') -> None:
+	def Package(self, value: Package) -> None:
 		self._reference = value
 
 
@@ -791,7 +810,11 @@ class RecordElementSymbol(Symbol):
 
 @export
 class RangeAttributeSymbol(Symbol):
-	"""A symbol referencing a range attribute, e.g. ``vector'range``."""
+	"""
+	A symbol referencing a range attribute.
+
+	``vector'range`` is such a reference.
+	"""
 
 	def __init__(self, name: Name) -> None:
 		"""
@@ -824,7 +847,7 @@ class SubtypeSymbol(Symbol):
 		super().__init__(name, PossibleReference.Type | PossibleReference.Subtype)
 
 	@property
-	def Subtype(self) -> 'Subtype':
+	def Subtype(self) -> Subtype:
 		"""
 		Property to access the subtype (:attr:`_reference`).
 
@@ -833,7 +856,7 @@ class SubtypeSymbol(Symbol):
 		return self._reference
 
 	@Subtype.setter
-	def Subtype(self, value: 'Subtype') -> None:
+	def Subtype(self, value: Subtype) -> None:
 		self._reference = value
 
 
@@ -935,6 +958,17 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol, ScalarConstraint):
 		super().__init__(name)
 		ScalarConstraint.__init__(self, constraint)
 
+	@notimplemented("Model element has no walk for a visitor.")
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this constrained scalar subtype symbol with a visitor.
+
+		The walk of its base class would drop the constraint.
+
+		:param visitor:              The visitor receiving the events.
+		:raises NotImplementedError: Always, because the constraint has no walk yet.
+		"""
+
 
 @export
 class ArrayConstraint(Constraint, mixin=True):
@@ -947,7 +981,7 @@ class ArrayConstraint(Constraint, mixin=True):
 
 	   * :class:`Constrained array subtype symbol <pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol>`
 	"""
-	_constraints: List[Range]  #: List of all index ranges, one per dimension.
+	_constraints: list[Range]  #: List of all index ranges, one per dimension.
 
 	def __init__(self, constraints: Iterable[Range]) -> None:
 		"""
@@ -955,10 +989,10 @@ class ArrayConstraint(Constraint, mixin=True):
 
 		:param constraints: List of all index ranges, one per dimension.
 		"""
-		self._constraints = [constraint for constraint in constraints]
+		self._constraints = list(constraints)
 
 	@readonly
-	def Constraints(self) -> List[Range]:
+	def Constraints(self) -> list[Range]:
 		"""
 		Read-only property to access the constraints (:attr:`_constraints`).
 
@@ -978,7 +1012,7 @@ class RecordConstraint(Constraint, mixin=True):
 
 	   * :class:`Constrained record subtype symbol <pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol>`
 	"""
-	_constraints: Dict[RecordElementSymbol, Range]  #: Dictionary of the constraint per constrained record element.
+	_constraints: dict[RecordElementSymbol, Range]  #: Dictionary of the constraint per constrained record element.
 
 	def __init__(self, constraints: Mapping[RecordElementSymbol, Range]) -> None:
 		"""
@@ -986,10 +1020,10 @@ class RecordConstraint(Constraint, mixin=True):
 
 		:param constraints: Dictionary of the constraint per constrained record element.
 		"""
-		self._constraints = {key: value for key, value in constraints.items()}
+		self._constraints = dict(constraints)
 
 	@readonly
-	def Constraints(self) -> Dict[RecordElementSymbol, Range]:
+	def Constraints(self) -> dict[RecordElementSymbol, Range]:
 		"""
 		Read-only property to access the constraints (:attr:`_constraints`).
 
@@ -999,6 +1033,7 @@ class RecordConstraint(Constraint, mixin=True):
 
 
 @export
+@abstractclass
 class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 	"""
 	Represents the base-class of references to constrained composite subtypes.
@@ -1010,7 +1045,16 @@ class ConstrainedCompositeSubtypeSymbol(SubtypeSymbol):
 	   * :class:`Constrained array subtype symbol <pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol>`
 	   * :class:`Constrained record subtype symbol <pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol>`
 	"""
-	pass
+	@notimplemented("Model element has no walk for a visitor.")
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this constrained composite subtype symbol with a visitor.
+
+		The walk of its base class would drop the constraint.
+
+		:param visitor:              The visitor receiving the events.
+		:raises NotImplementedError: Always, because the constraint has no walk yet.
+		"""
 
 
 @export
@@ -1028,7 +1072,7 @@ class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol, ArrayCons
 	      --         ^^^^^^^^^^                <- Name
 	      --                    ^^^^^^^^^^     <- Constraints
 	"""
-	_constraints: List  #: List of all index ranges, one per dimension.
+	_constraints: list  #: List of all index ranges, one per dimension.
 
 	def __init__(self, name: Name, constraints: Iterable) -> None:
 		"""
@@ -1048,7 +1092,7 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 
 	The referenced language entity is available as :data:`Reference` once resolved.
 	"""
-	_constraints: Dict[RecordElementSymbol, Any]  #: Dictionary of the constraint per constrained record element.
+	_constraints: dict[RecordElementSymbol, Any]  #: Dictionary of the constraint per constrained record element.
 
 	def __init__(self, name: Name, constraints: Mapping) -> None:
 		"""

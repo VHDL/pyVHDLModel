@@ -34,7 +34,7 @@ This module contains parts of an abstract document language model for VHDL.
 
 Instantiations of packages, procedures, functions and protected types.
 """
-from typing import List, Iterable, Optional as Nullable
+from typing import Iterable, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType

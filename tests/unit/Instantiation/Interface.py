@@ -30,7 +30,7 @@
 #
 """Tests for mode views (VHDL-2019), the Port/Parameter signal interface item split, generic/
 parameter interface item kinds, and the With*Mixin/*Group classes."""
-from unittest import TestCase
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Name       import SimpleName
@@ -40,6 +40,7 @@ from pyVHDLModel.Interface  import ModeViewDeclaration, SimpleModeViewElement, C
 from pyVHDLModel.Interface  import PortSignalInterfaceItem, PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem
 from pyVHDLModel.Interface  import ParameterSignalInterfaceItem, ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem
 from pyVHDLModel.Interface  import (
+	GenericInterfaceItemMixin, GenericSubprogramInterfaceItemMixin,
 	GenericConstantInterfaceItem, GenericTypeInterfaceItem,
 	GenericProcedureInterfaceItem, GenericFunctionInterfaceItem,
 	InterfacePackage, GenericPackageInterfaceItem,
@@ -57,7 +58,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class ModeViewSymbols(TestCase):
+class ModeViewSymbols(Testcase):
 	def test_Unresolved(self) -> None:
 		name = SimpleName("MyView")
 		symbol = ModeViewSymbol(name)
@@ -79,7 +80,7 @@ class ModeViewSymbols(TestCase):
 		self.assertIs(modeView, symbol.Reference)
 
 
-class ModeViewDeclarations(TestCase):
+class ModeViewDeclarations(Testcase):
 	def test_SimpleElements(self) -> None:
 		subtype = SimpleSubtypeSymbol(SimpleName("RecordType"))
 		elements = [
@@ -140,7 +141,7 @@ class ModeViewDeclarations(TestCase):
 		self.assertIsNone(element.Documentation)
 
 
-class PortSignalInterfaceItems(TestCase):
+class PortSignalInterfaceItems(Testcase):
 	def test_SimpleMode(self) -> None:
 		port = PortSimpleSignalInterfaceItem(["p"], Mode.In, SimpleSubtypeSymbol(SimpleName("bit")))
 
@@ -157,7 +158,7 @@ class PortSignalInterfaceItems(TestCase):
 		self.assertIs(modeViewIndication, port.Subtype)
 
 
-class ParameterSignalInterfaceItems(TestCase):
+class ParameterSignalInterfaceItems(Testcase):
 	def test_SimpleMode(self) -> None:
 		parameter = ParameterSimpleSignalInterfaceItem(["s"], Mode.In, SimpleSubtypeSymbol(SimpleName("bit")))
 
@@ -173,7 +174,7 @@ class ParameterSignalInterfaceItems(TestCase):
 		self.assertIs(modeViewIndication, parameter.Subtype)
 
 
-class GenericInterfaceItems(TestCase):
+class GenericInterfaceItems(Testcase):
 	def test_GenericConstantInterfaceItem(self) -> None:
 		"""``generic (G : positive := 8);``"""
 		default = IntegerLiteral(8)
@@ -206,6 +207,13 @@ class GenericInterfaceItems(TestCase):
 		self.assertEqual("proc", item.Identifier)
 		self.assertEqual("some documentation", item.Documentation)
 
+	def test_GenericProcedureInterfaceItem_Mixin(self) -> None:
+		"""A generic procedure is a generic subprogram and a generic interface item."""
+		item = GenericProcedureInterfaceItem("proc")
+
+		self.assertIsInstance(item, GenericSubprogramInterfaceItemMixin)
+		self.assertIsInstance(item, GenericInterfaceItemMixin)
+
 	def test_GenericFunctionInterfaceItem(self) -> None:
 		"""``generic (function func return boolean);`` (VHDL-2008) - regression test (HIGH PRIORITY,
 		confirmed live via pyGHDL.dom's actual translation dispatch, not just a landmine):
@@ -223,6 +231,13 @@ class GenericInterfaceItems(TestCase):
 		self.assertIs(returnType, item.ReturnType)
 		self.assertIs(item, returnType.Parent)
 
+	def test_GenericFunctionInterfaceItem_Mixin(self) -> None:
+		"""A generic function is a generic subprogram and a generic interface item."""
+		item = GenericFunctionInterfaceItem("func", _subtypeSymbol("boolean"))
+
+		self.assertIsInstance(item, GenericSubprogramInterfaceItemMixin)
+		self.assertIsInstance(item, GenericInterfaceItemMixin)
+
 	def test_GenericPackageInterfaceItem(self) -> None:
 		"""``generic (package p is new q generic map (<>));`` (VHDL-2008)"""
 		item = GenericPackageInterfaceItem("p")
@@ -231,7 +246,7 @@ class GenericInterfaceItems(TestCase):
 		self.assertEqual("p", item.Identifier)
 
 
-class ParameterInterfaceItems(TestCase):
+class ParameterInterfaceItems(Testcase):
 	def test_ParameterConstantInterfaceItem(self) -> None:
 		"""``procedure proc(constant c : in natural);``"""
 		item = ParameterConstantInterfaceItem(["c"], Mode.In, _subtypeSymbol("natural"))
@@ -266,7 +281,7 @@ class ParameterInterfaceItems(TestCase):
 		self.assertEqual("some documentation", item.Documentation)
 
 
-class WithGenericsPortsParametersMixins(TestCase):
+class WithGenericsPortsParametersMixins(Testcase):
 	"""Tested via a minimal local host combining each mixin with itself (mixins can't be
 	instantiated standalone - see the design note in tests/unit/Base.py); real design-unit/
 	subprogram hosts already exercise these mixins incidentally in their own slices, but nothing
@@ -274,7 +289,14 @@ class WithGenericsPortsParametersMixins(TestCase):
 
 	def test_WithGenericsMixin(self) -> None:
 		class _Host(WithGenericsMixin):
-			pass
+			def _AddToNamespace(self, element) -> None:
+				pass
+
+			def _RemoveFromNamespace(self, element) -> None:
+				pass
+
+			def _ClashingDeclarations(self, item) -> list:
+				return []
 
 		item = GenericTypeInterfaceItem("T")
 		host = _Host([item])
@@ -284,7 +306,14 @@ class WithGenericsPortsParametersMixins(TestCase):
 
 	def test_WithPortsMixin(self) -> None:
 		class _Host(WithPortsMixin):
-			pass
+			def _AddToNamespace(self, element) -> None:
+				pass
+
+			def _RemoveFromNamespace(self, element) -> None:
+				pass
+
+			def _ClashingDeclarations(self, item) -> list:
+				return []
 
 		item = PortSimpleSignalInterfaceItem(["p"], Mode.In, _subtypeSymbol("bit"))
 		host = _Host([item])
@@ -293,7 +322,14 @@ class WithGenericsPortsParametersMixins(TestCase):
 
 	def test_WithParametersMixin(self) -> None:
 		class _Host(WithParametersMixin):
-			pass
+			def _AddToNamespace(self, element) -> None:
+				pass
+
+			def _RemoveFromNamespace(self, element) -> None:
+				pass
+
+			def _ClashingDeclarations(self, item) -> list:
+				return []
 
 		item = ParameterFileInterfaceItem(["f"], _subtypeSymbol("text"))
 		host = _Host([item])
@@ -301,7 +337,7 @@ class WithGenericsPortsParametersMixins(TestCase):
 		self.assertEqual(1, host.ParameterCount)
 
 
-class InterfaceItemRendering(TestCase):
+class InterfaceItemRendering(Testcase):
 	"""An interface item renders as an object declaration plus its interface mode - an object's own
 	rendering cannot show the mode, since it is not part of an object declaration.
 
@@ -345,7 +381,7 @@ class InterfaceItemRendering(TestCase):
 		self.assertEqual("signal p : view myView?", str(port))
 
 
-class Groups(TestCase):
+class Groups(Testcase):
 	"""Regression test (missing base class): ``GenericGroup``/``ParameterGroup`` didn't list
 	``WithGenericsMixin``/``WithParametersMixin`` as base classes at all (unlike ``PortGroup``, which
 	correctly lists ``WithPortsMixin``), so the slots-based metaclass never allocated storage for

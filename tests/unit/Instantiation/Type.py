@@ -29,9 +29,9 @@
 # ==================================================================================================================== #
 #
 """Tests for pyVHDLModel.Type."""
-from unittest import TestCase
+from pyTooling.Testing      import Testcase
 
-from pyVHDLModel.Base       import ModelEntity, Direction, RangeFromName, SimpleRange
+from pyVHDLModel.Base       import Direction, RangeFromName, SimpleRange
 from pyVHDLModel.Name       import SimpleName, AttributeName
 from pyVHDLModel.Symbol     import RangeAttributeSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import IntegerLiteral, EnumerationLiteral, PhysicalIntegerLiteral
@@ -44,7 +44,7 @@ from pyVHDLModel.Type       import (
 	AccessType, FileType,
 )
 
-from tests.unit             import _subtypeSymbol
+from tests.unit             import _Element, _subtypeSymbol
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -57,7 +57,7 @@ def _range(left: int = 0, right: int = 15, direction: Direction = Direction.To) 
 	return SimpleRange(IntegerLiteral(left), IntegerLiteral(right), direction)
 
 
-class ParentAndDocumentationWiringAcrossAllLeafTypes(TestCase):
+class ParentAndDocumentationWiringAcrossAllLeafTypes(Testcase):
 	"""``BaseType`` provides identifier/documentation/parent handling and the (private,
 	regression-tested-here) ``_objectVertex`` slot to every type class - but ``Type``, ``AnonymousType``,
 	``FullType``, ``ScalarType``, ``CompositeType`` and ``RangedScalarType`` are pure taxonomy markers
@@ -84,7 +84,7 @@ class ParentAndDocumentationWiringAcrossAllLeafTypes(TestCase):
 	positional forward - no ``parent=`` keyword workaround needed anymore."""
 
 	def test_AllLeafTypes(self) -> None:
-		parent = ModelEntity()
+		parent = _Element()
 		builders = (
 			("Subtype", lambda: Subtype("t", _subtypeSymbol("natural"), "doc", parent)),
 			("EnumeratedType", lambda: EnumeratedType("t", [], "doc", parent)),
@@ -118,7 +118,7 @@ class ParentAndDocumentationWiringAcrossAllLeafTypes(TestCase):
 		self.assertIsNone(enumType._objectVertex)
 
 
-class Subtypes(TestCase):
+class Subtypes(Testcase):
 	def test_Construction(self) -> None:
 		symbol = _subtypeSymbol("std_logic")
 		subtype = Subtype("my_std_logic", symbol)
@@ -131,7 +131,7 @@ class Subtypes(TestCase):
 		self.assertEqual("subtype my_std_logic is None", str(subtype))
 
 
-class EnumeratedTypes(TestCase):
+class EnumeratedTypes(Testcase):
 	def test_Construction(self) -> None:
 		literal0 = EnumerationLiteral("'0'")
 		literal1 = EnumerationLiteral("'1'")
@@ -150,7 +150,7 @@ class EnumeratedTypes(TestCase):
 		self.assertEqual(0, len(enumType.Literals))
 
 
-class IntegerTypes(TestCase):
+class IntegerTypes(Testcase):
 	"""Also covers ``RangedScalarType.Range`` (shared, unmodified, by ``IntegerType``/``RealType``/
 	``PhysicalType``): it accepts any ``Range``, so either a ``SimpleRange`` or a ``RangeFromName`` for an
 	attribute-based range like ``type t is range r'range;`` - checked once here since this behaviour
@@ -170,7 +170,7 @@ class IntegerTypes(TestCase):
 		self.assertIs(rng, integerType.Range)
 
 
-class RealTypes(TestCase):
+class RealTypes(Testcase):
 	def test_Construction(self) -> None:
 		rng = _range(0, 1)
 		realType = RealType("fraction", rng)
@@ -179,7 +179,7 @@ class RealTypes(TestCase):
 		self.assertEqual("fraction is range 0 to 1", str(realType))
 
 
-class PhysicalTypes(TestCase):
+class PhysicalTypes(Testcase):
 	def test_Construction(self) -> None:
 		rng = _range(0, 1000)
 		femtoSeconds = PhysicalIntegerLiteral(1000, "fs")
@@ -199,7 +199,7 @@ class PhysicalTypes(TestCase):
 		self.assertEqual(0, len(physicalType.SecondaryUnits))
 
 
-class ArrayTypes(TestCase):
+class ArrayTypes(Testcase):
 	"""Regression-tracking test, not a regression fix: still-open gap, already confirmed and
 	documented in the gap analysis - ``ArrayType.__init__`` deliberately (if unfortunately) never
 	wires up ``Parent`` for its indices or element subtype (both ``.Parent = self`` lines are
@@ -229,7 +229,7 @@ class ArrayTypes(TestCase):
 		self.assertFalse(hasattr(elementSubtype, "Parent"))
 
 
-class RecordTypeElements(TestCase):
+class RecordTypeElements(Testcase):
 	def test_Construction(self) -> None:
 		subtype = _subtypeSymbol("natural")
 		element = RecordTypeElement(["a", "b"], subtype)
@@ -247,7 +247,7 @@ class RecordTypeElements(TestCase):
 		self.assertEqual("--! The first field.", element.Documentation)
 
 
-class RecordTypes(TestCase):
+class RecordTypes(Testcase):
 	def test_WithElements(self) -> None:
 		element = RecordTypeElement(["a"], _subtypeSymbol("natural"))
 		recordType = RecordType("my_record", [element])
@@ -263,7 +263,7 @@ class RecordTypes(TestCase):
 		self.assertEqual(0, len(recordType.Elements))
 
 
-class ProtectedTypes(TestCase):
+class ProtectedTypes(Testcase):
 	"""A protected type declaration admits subprogram declarations only, so ``DeclaredItems`` and
 	``Methods`` hold the same items. Real ``Procedure`` instances are needed because ``Methods`` is
 	defined by type, not by position."""
@@ -292,7 +292,7 @@ class ProtectedTypes(TestCase):
 		self.assertIn("increment", protectedType._namespace._elements)
 
 
-class ProtectedTypeBodies(TestCase):
+class ProtectedTypeBodies(Testcase):
 	"""A protected type body's declarative part matches a subprogram's, so it may declare more than
 	methods. ``Methods`` is the subprogram subset of ``DeclaredItems``, not all of them."""
 
@@ -325,7 +325,7 @@ class ProtectedTypeBodies(TestCase):
 		self.assertIn("increment", body._namespace._elements)
 
 
-class AccessTypes(TestCase):
+class AccessTypes(Testcase):
 	def test_Construction(self) -> None:
 		designated = _subtypeSymbol("natural")
 		accessType = AccessType("my_pointer", designated)
@@ -335,7 +335,7 @@ class AccessTypes(TestCase):
 		self.assertEqual("my_pointer is access natural?", str(accessType))
 
 
-class FileTypes(TestCase):
+class FileTypes(Testcase):
 	"""Regression test: ``__str__`` previously read ``"...is access ..."`` - copy-pasted from
 	``AccessType`` - instead of the correct ``"...is file of ..."``."""
 

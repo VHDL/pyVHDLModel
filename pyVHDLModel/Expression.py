@@ -34,13 +34,19 @@ This module contains parts of an abstract document language model for VHDL.
 
 All declarations for literals, aggregates, operators forming an expressions.
 """
-from enum                 import Flag
-from typing               import Tuple, List, Iterable, Union, ClassVar, Optional as Nullable
+from __future__            import annotations
 
-from pyTooling.Decorators import export, readonly
+from enum                  import Flag, IntEnum, unique
+from typing                import TYPE_CHECKING, Iterable, Union, ClassVar, Optional as Nullable
 
-from pyVHDLModel.Base     import ModelEntity, Direction, Range
-from pyVHDLModel.Symbol   import Symbol, SubtypeSymbol
+from pyTooling.Common      import getFullyQualifiedName
+from pyTooling.Decorators  import export, readonly
+from pyTooling.MetaClasses import abstractclass
+
+from pyVHDLModel.Base      import ModelEntity, Direction, Range
+from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor import Visitor
 
 
 ExpressionUnion = Union[
@@ -54,6 +60,28 @@ ExpressionUnion = Union[
 
 
 @export
+@unique
+class OperatorPrecedence(IntEnum):
+	"""
+	An enumeration of VHDL's operator precedence levels, from loosest to tightest binding.
+
+	The levels follow IEEE Std 1076-2008, clause 9.2. A range and a conditional expression are no operators, but bind
+	looser than every operator.
+	"""
+
+	Range =         0  #: Range with direction ``to`` or ``downto``.
+	Conditional =   1  #: Conditional expression (``when`` ... ``else``).
+	Logical =       2  #: Binary logical operators, e.g. ``and``.
+	Relational =    3  #: Relational operators, e.g. ``=`` or ``?=``.
+	Shift =         4  #: Shift and rotate operators, e.g. ``sll``.
+	Adding =        5  #: Adding operators (``+``, ``-``, ``&``) and signs (unary ``+``, ``-``).
+	Multiplying =   6  #: Multiplying operators, e.g. ``*`` or ``mod``.
+	Miscellaneous = 7  #: Exponentiation (``**``), ``abs``, ``not`` and unary logical operators.
+	Primary =       8  #: Primaries, e.g. names, literals, aggregates or parenthesized expressions.
+
+
+@export
+@abstractclass
 class BaseExpression(ModelEntity):
 	"""
 	Represents the base-class of all expressions.
@@ -72,6 +100,7 @@ class BaseExpression(ModelEntity):
 
 
 @export
+@abstractclass
 class Literal(BaseExpression):
 	"""
 	Represents the base-class of all literals.
@@ -103,6 +132,15 @@ class NullLiteral(Literal):
 	      p := null;
 	      --   ^^^^    <- the literal
 	"""
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this null literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitNullLiteral(self)
+		visitor.DepartNullLiteral(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the null literal.
@@ -150,6 +188,15 @@ class EnumerationLiteral(Literal):
 		"""
 		return self._value
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this enumeration literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitEnumerationLiteral(self)
+		visitor.DepartEnumerationLiteral(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the enumeration literal.
@@ -162,6 +209,7 @@ class EnumerationLiteral(Literal):
 
 
 @export
+@abstractclass
 class NumericLiteral(Literal):
 	"""
 	Represents the base-class of all numeric literals.
@@ -210,6 +258,15 @@ class IntegerLiteral(NumericLiteral):
 		"""
 		return self._value
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this integer literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIntegerLiteral(self)
+		visitor.DepartIntegerLiteral(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the integer literal.
@@ -255,6 +312,15 @@ class FloatingPointLiteral(NumericLiteral):
 		"""
 		return self._value
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this floating-point literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitFloatingPointLiteral(self)
+		visitor.DepartFloatingPointLiteral(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the floating-point literal.
@@ -267,6 +333,7 @@ class FloatingPointLiteral(NumericLiteral):
 
 
 @export
+@abstractclass
 class PhysicalLiteral(NumericLiteral):
 	"""
 	Represents the base-class of all physical literals.
@@ -353,6 +420,15 @@ class PhysicalIntegerLiteral(PhysicalLiteral):
 		"""
 		return self._value
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this physical literal with an integer value with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitPhysicalIntegerLiteral(self)
+		visitor.DepartPhysicalIntegerLiteral(self)
+
 
 @export
 class PhysicalFloatingLiteral(PhysicalLiteral):
@@ -390,30 +466,56 @@ class PhysicalFloatingLiteral(PhysicalLiteral):
 		"""
 		return self._value
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this physical literal with a floating-point value with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitPhysicalFloatingLiteral(self)
+		visitor.DepartPhysicalFloatingLiteral(self)
+
 
 @export
 class CharacterLiteral(Literal):
 	"""
 	Represents a character literal.
 
-	The literal's character is available as :data:`Value`.
+	The literal's character is available as :data:`Value`. It is the bare character without the enclosing apostrophes:
+	``a`` for the character literal ``'a'``.
 
 	.. admonition:: Example
 
 	   .. code-block:: VHDL
 
 	      ch <= 'a';
-	      --    ^^^    <- Value
+	      --     ^     <- Value
 	"""
-	_value: str  #: The literal's character value.
+	_value: str  #: The literal's character value without apostrophes.
 
 	def __init__(self, value: str) -> None:
 		"""
 		Initializes a character literal.
 
-		:param value: The literal's character value.
+		:param value:       The literal's character value without apostrophes.
+		:raises ValueError: If parameter 'value' is None.
+		:raises TypeError:  If parameter 'value' is not of type :class:`str`.
+		:raises ValueError: If parameter 'value' is not a single character.
 		"""
 		super().__init__()
+
+		if value is None:
+			raise ValueError("Parameter 'value' is None.")
+		elif not isinstance(value, str):
+			ex = TypeError("Parameter 'value' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(value)}'.")
+			raise ex
+		elif len(value) != 1:
+			ex = ValueError("Parameter 'value' is not a single character.")
+			ex.add_note(f"Got value '{value}'.")
+			ex.add_note("Pass the character without apostrophes.")
+			raise ex
+
 		self._value = value
 
 	@readonly
@@ -424,6 +526,15 @@ class CharacterLiteral(Literal):
 		:returns: The value.
 		"""
 		return self._value
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this character literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitCharacterLiteral(self)
+		visitor.DepartCharacterLiteral(self)
 
 	def __str__(self) -> str:
 		"""
@@ -470,6 +581,15 @@ class StringLiteral(Literal):
 		"""
 		return self._value
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this string literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitStringLiteral(self)
+		visitor.DepartStringLiteral(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the string literal.
@@ -496,6 +616,7 @@ class BitStringBase(Flag):
 
 
 @export
+@abstractclass
 class BitStringLiteral(Literal):
 	"""
 	Represents the base-class of all bit string literals.
@@ -518,7 +639,7 @@ class BitStringLiteral(Literal):
 	   * :class:`Decimal bit string literal <pyVHDLModel.Expression.DecimalBitStringLiteral>`
 	   * :class:`Hexadecimal bit string literal <pyVHDLModel.Expression.HexadecimalBitStringLiteral>`
 	"""
-	_base:        ClassVar[BitStringBase] = BitStringBase.NoBase  #: The base this literal is written in.
+	_BASE:        ClassVar[BitStringBase] = BitStringBase.NoBase  #: The base this literal is written in.
 
 	_value:       str             #: The literal as written in the source, without the enclosing double quotes.
 	_binaryValue: str             #: The literal's value expanded to base 2, one character per bit.
@@ -587,6 +708,15 @@ class BitStringLiteral(Literal):
 		"""
 		return self._isSigned
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this bit string literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitBitStringLiteral(self)
+		visitor.DepartBitStringLiteral(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the bit string literal.
@@ -598,15 +728,15 @@ class BitStringLiteral(Literal):
 		:returns: Formatted bit string literal.
 		"""
 		signed = "" if self._isSigned is None else "s" if self._isSigned is True else "u"
-		if self._base is BitStringBase.NoBase:
+		if self._BASE is BitStringBase.NoBase:
 			base = ""
-		elif self._base is BitStringBase.Binary:
+		elif self._BASE is BitStringBase.Binary:
 			base = "b"
-		elif self._base is BitStringBase.Octal:
+		elif self._BASE is BitStringBase.Octal:
 			base = "o"
-		elif self._base is BitStringBase.Decimal:
+		elif self._BASE is BitStringBase.Decimal:
 			base = "d"
-		elif self._base is BitStringBase.Hexadecimal:
+		elif self._BASE is BitStringBase.Hexadecimal:
 			base = "x"
 		length = "" if self._length is None else str(self._length)
 		return length + signed + base + "\"" + self._value + "\""
@@ -624,7 +754,7 @@ class BinaryBitStringLiteral(BitStringLiteral):
 	      res := b"10100000";
 	      --     ^^^^^^^^^^^    <- Value
 	"""
-	_base: ClassVar[BitStringBase] = BitStringBase.Binary  #: The base this literal is written in.
+	_BASE: ClassVar[BitStringBase] = BitStringBase.Binary  #: The base this literal is written in.
 
 
 @export
@@ -641,7 +771,7 @@ class OctalBitStringLiteral(BitStringLiteral):
 	      nine := o"240";
 	      --      ^^^^^^    <- Value
 	"""
-	_base: ClassVar[BitStringBase] = BitStringBase.Octal  #: The base this literal is written in.
+	_BASE: ClassVar[BitStringBase] = BitStringBase.Octal  #: The base this literal is written in.
 
 
 @export
@@ -656,7 +786,7 @@ class DecimalBitStringLiteral(BitStringLiteral):
 	      res := d"160";
 	      --     ^^^^^^    <- Value
 	"""
-	_base: ClassVar[BitStringBase] = BitStringBase.Decimal  #: The base this literal is written in.
+	_BASE: ClassVar[BitStringBase] = BitStringBase.Decimal  #: The base this literal is written in.
 
 
 @export
@@ -673,7 +803,7 @@ class HexadecimalBitStringLiteral(BitStringLiteral):
 	      res := x"A0";
 	      --     ^^^^^    <- Value
 	"""
-	_base: ClassVar[BitStringBase] = BitStringBase.Hexadecimal  #: The base this literal is written in.
+	_BASE: ClassVar[BitStringBase] = BitStringBase.Hexadecimal  #: The base this literal is written in.
 
 
 @export
@@ -701,6 +831,7 @@ class ParenthesisExpression: #(Protocol):
 
 
 @export
+@abstractclass
 class UnaryExpression(BaseExpression):
 	"""
 	Represents the base-class of all unary expressions.
@@ -708,8 +839,9 @@ class UnaryExpression(BaseExpression):
 	The operand is available as :data:`Operand`.
 	"""
 
-	_FORMAT:  ClassVar[Tuple[str, str]]  #: The operator's string representation as (prefix, suffix) around the operand.
-	_operand: ExpressionUnion            #: The expression the operator is applied to.
+	_PRECEDENCE: ClassVar[OperatorPrecedence]  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]     #: The operator's string representation as (prefix, suffix) of the operand.
+	_operand:    ExpressionUnion               #: The expression the operator is applied to.
 
 	def __init__(self, operand: ExpressionUnion, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -731,6 +863,16 @@ class UnaryExpression(BaseExpression):
 		:returns: The operand.
 		"""
 		return self._operand
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this unary expression and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitUnaryExpression(self)
+		self._operand.Visit(visitor)
+		visitor.DepartUnaryExpression(self)
 
 	def __str__(self) -> str:
 		"""
@@ -758,7 +900,18 @@ class NegationExpression(UnaryExpression):
 	      --     ^^^^^^^^^    <- the expression
 	      --       ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str]] = ("-", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Adding  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("-", "")                  #: The operator's string fragments.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this negation and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitNegationExpression(self)
+		self._operand.Visit(visitor)
+		visitor.DepartNegationExpression(self)
 
 
 @export
@@ -776,7 +929,18 @@ class IdentityExpression(UnaryExpression):
 	      --     ^^^^^^^^^    <- the expression
 	      --       ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str]] = ("+", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Adding  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("+", "")                  #: The operator's string fragments.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this identity and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIdentityExpression(self)
+		self._operand.Visit(visitor)
+		visitor.DepartIdentityExpression(self)
 
 
 @export
@@ -794,7 +958,8 @@ class InverseExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str]] = ("not ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("not ", "")                      #: The operator's string fragments.
 
 
 @export
@@ -813,7 +978,8 @@ class UnaryAndExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str]] = ("and ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("and ", "")                      #: The operator's string fragments.
 
 
 @export
@@ -832,7 +998,8 @@ class UnaryNandExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^^    <- the expression
 	      --          ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str]] = ("nand ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("nand ", "")                     #: The operator's string fragments.
 
 
 @export
@@ -851,7 +1018,8 @@ class UnaryOrExpression(UnaryExpression):
 	      --     ^^^^^^^^^^    <- the expression
 	      --        ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str]] = ("or ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("or ", "")                       #: The operator's string fragments.
 
 
 @export
@@ -870,7 +1038,8 @@ class UnaryNorExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str]] = ("nor ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("nor ", "")                      #: The operator's string fragments.
 
 
 @export
@@ -889,7 +1058,8 @@ class UnaryXorExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str]] = ("xor ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("xor ", "")                      #: The operator's string fragments.
 
 
 @export
@@ -908,7 +1078,8 @@ class UnaryXnorExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^^    <- the expression
 	      --          ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str]] = ("xnor ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("xnor ", "")                     #: The operator's string fragments.
 
 
 @export
@@ -926,7 +1097,8 @@ class AbsoluteExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str]] = ("abs ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("abs ", "")                      #: The operator's string fragments.
 
 
 @export
@@ -946,6 +1118,7 @@ class TypeConversion(UnaryExpression):
 	      --     ^^^^^^^         <- TargetSubtype
 	      --             ^^^     <- Operand
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Primary  #: The operator's precedence level.
 
 	_targetSubtype: SubtypeSymbol  #: Reference to the subtype the expression is converted to.
 
@@ -970,6 +1143,18 @@ class TypeConversion(UnaryExpression):
 		:returns: The target subtype.
 		"""
 		return self._targetSubtype
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this type conversion, its target subtype and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitTypeConversion(self)
+		self._targetSubtype.Visit(visitor)
+		visitor.VisitLeftParenthesis(self)
+		self._operand.Visit(visitor)
+		visitor.DepartTypeConversion(self)
 
 	def __str__(self) -> str:
 		"""
@@ -997,10 +1182,22 @@ class SubExpression(UnaryExpression, ParenthesisExpression):
 	      --     ^^^^^^^^^^^    <- the sub-expression
 	      --      ^^^^^^^^^     <- Operand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str]] = ("(", ")")
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Primary  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("(", ")")                  #: The operator's string fragments.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this sub-expression and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSubExpression(self)
+		self._operand.Visit(visitor)
+		visitor.DepartSubExpression(self)
 
 
 @export
+@abstractclass
 class BinaryExpression(BaseExpression):
 	"""
 	Represents the base-class of all binary expressions.
@@ -1017,7 +1214,8 @@ class BinaryExpression(BaseExpression):
 	   * :class:`Shift expression <pyVHDLModel.Expression.ShiftExpression>`
 	"""
 
-	_FORMAT:       ClassVar[Tuple[str, str, str]]  #: The operator's string representation as (prefix, infix, suffix).
+	_PRECEDENCE:   ClassVar[OperatorPrecedence]    #: The operator's precedence level.
+	_FORMAT:       ClassVar[tuple[str, str, str]]  #: The operator's string representation as (prefix, infix, suffix).
 	_leftOperand:  ExpressionUnion                 #: The expression left of the operator.
 	_rightOperand: ExpressionUnion                 #: The expression right of the operator.
 
@@ -1073,6 +1271,7 @@ class BinaryExpression(BaseExpression):
 
 
 @export
+@abstractclass
 class RangeExpression(BinaryExpression):
 	"""
 	Represents the base-class of range expressions.
@@ -1085,16 +1284,29 @@ class RangeExpression(BinaryExpression):
 	   * :class:`Ascending range expression <pyVHDLModel.Expression.AscendingRangeExpression>`
 	   * :class:`Descending range expression <pyVHDLModel.Expression.DescendingRangeExpression>`
 	"""
-	_direction: ClassVar[Direction]  #: The range's direction, either ascending (``to``) or descending (``downto``).
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Range  #: The operator's precedence level.
+	_DIRECTION:  ClassVar[Direction]                                      #: The range's direction (``to`` or ``downto``).
 
 	@readonly
 	def Direction(self) -> Direction:
 		"""
-		Read-only property to access the direction (:attr:`_direction`).
+		Read-only property to access the direction (:attr:`_DIRECTION`).
 
 		:returns: The direction.
 		"""
-		return self._direction
+		return self._DIRECTION
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this range expression and its bounds with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRangeExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitDirection(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartRangeExpression(self)
 
 
 @export
@@ -1113,8 +1325,8 @@ class AscendingRangeExpression(RangeExpression):
 	      --       ^          <- LeftOperand
 	      --            ^     <- RightOperand
 	"""
-	_direction: ClassVar[Direction] = Direction.To
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " to ", "")
+	_DIRECTION: ClassVar[Direction]            = Direction.To      #: The range's direction.
+	_FORMAT:    ClassVar[tuple[str, str, str]] = ("", " to ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1133,11 +1345,12 @@ class DescendingRangeExpression(RangeExpression):
 	      --       ^              <- LeftOperand
 	      --                ^     <- RightOperand
 	"""
-	_direction: ClassVar[Direction] = Direction.DownTo
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " downto ", "")
+	_DIRECTION: ClassVar[Direction]            = Direction.DownTo      #: The range's direction.
+	_FORMAT:    ClassVar[tuple[str, str, str]] = ("", " downto ", "")  #: The operator's string fragments.
 
 
 @export
+@abstractclass
 class AddingExpression(BinaryExpression):
 	"""
 	Represents the base-class of all adding expressions: ``+``, ``-`` and ``&``.
@@ -1150,6 +1363,19 @@ class AddingExpression(BinaryExpression):
 	   * :class:`Subtraction expression <pyVHDLModel.Expression.SubtractionExpression>`
 	   * :class:`Concatenation expression <pyVHDLModel.Expression.ConcatenationExpression>`
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Adding  #: The operator's precedence level.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this adding expression and its operands with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAddingExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitOperator(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartAddingExpression(self)
 
 
 @export
@@ -1168,7 +1394,7 @@ class AdditionExpression(AddingExpression):
 	      --     ^^^          <- LeftOperand
 	      --           ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " + ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " + ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1187,7 +1413,7 @@ class SubtractionExpression(AddingExpression):
 	      --     ^^^          <- LeftOperand
 	      --           ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " - ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " - ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1206,10 +1432,11 @@ class ConcatenationExpression(AddingExpression):
 	      --     ^^^          <- LeftOperand
 	      --           ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " & ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " & ", "")  #: The operator's string fragments.
 
 
 @export
+@abstractclass
 class MultiplyingExpression(BinaryExpression):
 	"""
 	Represents the base-class of all multiplying expressions: ``*``, ``/``, ``rem``, ``mod`` and ``**``.
@@ -1224,6 +1451,19 @@ class MultiplyingExpression(BinaryExpression):
 	   * :class:`Modulo expression <pyVHDLModel.Expression.ModuloExpression>`
 	   * :class:`Exponentiation expression <pyVHDLModel.Expression.ExponentiationExpression>`
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Multiplying  #: The operator's precedence level.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this multiplying expression and its operands with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitMultiplyingExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitOperator(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartMultiplyingExpression(self)
 
 
 @export
@@ -1242,7 +1482,7 @@ class MultiplyExpression(MultiplyingExpression):
 	      --     ^^^          <- LeftOperand
 	      --           ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " * ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " * ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1261,7 +1501,7 @@ class DivisionExpression(MultiplyingExpression):
 	      --     ^^^          <- LeftOperand
 	      --           ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " / ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " / ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1280,7 +1520,7 @@ class RemainderExpression(MultiplyingExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " rem ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " rem ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1299,7 +1539,7 @@ class ModuloExpression(MultiplyingExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " mod ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " mod ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1318,10 +1558,24 @@ class ExponentiationExpression(MultiplyingExpression):
 	      --     ^^^           <- LeftOperand
 	      --            ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", "**", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence]   = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str, str]] = ("", "**", "")                    #: The operator's string fragments.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this exponentiation and its operands with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitExponentiationExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitOperator(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartExponentiationExpression(self)
 
 
 @export
+@abstractclass
 class LogicalExpression(BinaryExpression):
 	"""
 	Represents the base-class of all binary logical expressions.
@@ -1337,6 +1591,19 @@ class LogicalExpression(BinaryExpression):
 	   * :class:`Xor expression <pyVHDLModel.Expression.XorExpression>`
 	   * :class:`Xnor expression <pyVHDLModel.Expression.XnorExpression>`
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Logical  #: The operator's precedence level.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this logical expression and its operands with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitLogicalExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitOperator(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartLogicalExpression(self)
 
 
 @export
@@ -1355,7 +1622,7 @@ class AndExpression(LogicalExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " and ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " and ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1374,7 +1641,7 @@ class NandExpression(LogicalExpression):
 	      --     ^^^             <- LeftOperand
 	      --              ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " nand ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " nand ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1393,7 +1660,7 @@ class OrExpression(LogicalExpression):
 	      --     ^^^           <- LeftOperand
 	      --            ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " or ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " or ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1412,7 +1679,7 @@ class NorExpression(LogicalExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " nor ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " nor ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1431,7 +1698,7 @@ class XorExpression(LogicalExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " xor ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " xor ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1450,10 +1717,11 @@ class XnorExpression(LogicalExpression):
 	      --     ^^^             <- LeftOperand
 	      --              ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " xnor ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " xnor ", "")  #: The operator's string fragments.
 
 
 @export
+@abstractclass
 class RelationalExpression(BinaryExpression):
 	"""
 	Represents the base-class of all relational expressions.
@@ -1470,6 +1738,19 @@ class RelationalExpression(BinaryExpression):
 	   * :class:`Less equal expression <pyVHDLModel.Expression.LessEqualExpression>`
 	   * :class:`Matching relational expression <pyVHDLModel.Expression.MatchingRelationalExpression>`
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Relational  #: The operator's precedence level.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this relational expression and its operands with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRelationalExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitOperator(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartRelationalExpression(self)
 
 
 @export
@@ -1488,7 +1769,7 @@ class EqualExpression(RelationalExpression):
 	      --     ^^^          <- LeftOperand
 	      --           ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " = ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " = ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1507,7 +1788,7 @@ class UnequalExpression(RelationalExpression):
 	      --     ^^^           <- LeftOperand
 	      --            ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " /= ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " /= ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1526,7 +1807,7 @@ class GreaterThanExpression(RelationalExpression):
 	      --     ^^^          <- LeftOperand
 	      --           ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " > ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " > ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1545,7 +1826,7 @@ class GreaterEqualExpression(RelationalExpression):
 	      --     ^^^           <- LeftOperand
 	      --            ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " >= ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " >= ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1564,7 +1845,7 @@ class LessThanExpression(RelationalExpression):
 	      --     ^^^          <- LeftOperand
 	      --           ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " < ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " < ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1583,10 +1864,11 @@ class LessEqualExpression(RelationalExpression):
 	      --     ^^^           <- LeftOperand
 	      --            ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " <= ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " <= ", "")  #: The operator's string fragments.
 
 
 @export
+@abstractclass
 class MatchingRelationalExpression(RelationalExpression):
 	"""
 	Represents the base-class of all matching relational expressions.
@@ -1623,7 +1905,7 @@ class MatchingEqualExpression(MatchingRelationalExpression):
 	      --     ^^^           <- LeftOperand
 	      --            ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " ?= ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " ?= ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1643,7 +1925,7 @@ class MatchingUnequalExpression(MatchingRelationalExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " ?/= ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " ?/= ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1663,7 +1945,7 @@ class MatchingGreaterThanExpression(MatchingRelationalExpression):
 	      --     ^^^           <- LeftOperand
 	      --            ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " ?> ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " ?> ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1683,7 +1965,7 @@ class MatchingGreaterEqualExpression(MatchingRelationalExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " ?>= ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " ?>= ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1703,7 +1985,7 @@ class MatchingLessThanExpression(MatchingRelationalExpression):
 	      --     ^^^           <- LeftOperand
 	      --            ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " ?< ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " ?< ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1723,10 +2005,11 @@ class MatchingLessEqualExpression(MatchingRelationalExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " ?<= ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " ?<= ", "")  #: The operator's string fragments.
 
 
 @export
+@abstractclass
 class ShiftExpression(BinaryExpression):
 	"""
 	Represents the base-class of all shift and rotate expressions.
@@ -1739,9 +2022,23 @@ class ShiftExpression(BinaryExpression):
 	   * :class:`Shift arithmetic expression <pyVHDLModel.Expression.ShiftArithmeticExpression>`
 	   * :class:`Rotate expression <pyVHDLModel.Expression.RotateExpression>`
 	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Shift  #: The operator's precedence level.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this shift or rotate expression and its operands with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitShiftExpression(self)
+		self._leftOperand.Visit(visitor)
+		visitor.VisitOperator(self)
+		self._rightOperand.Visit(visitor)
+		visitor.DepartShiftExpression(self)
 
 
 @export
+@abstractclass
 class ShiftLogicExpression(ShiftExpression):
 	"""
 	Represents the base-class of the logical shift expressions ``srl`` and ``sll``.
@@ -1757,6 +2054,7 @@ class ShiftLogicExpression(ShiftExpression):
 
 
 @export
+@abstractclass
 class ShiftArithmeticExpression(ShiftExpression):
 	"""
 	Represents the base-class of the arithmetic shift expressions ``sra`` and ``sla``.
@@ -1772,6 +2070,7 @@ class ShiftArithmeticExpression(ShiftExpression):
 
 
 @export
+@abstractclass
 class RotateExpression(ShiftExpression):
 	"""
 	Represents the base-class of the rotate expressions ``ror`` and ``rol``.
@@ -1802,7 +2101,7 @@ class ShiftRightLogicExpression(ShiftLogicExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " srl ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " srl ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1821,7 +2120,7 @@ class ShiftLeftLogicExpression(ShiftLogicExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " sll ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " sll ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1840,7 +2139,7 @@ class ShiftRightArithmeticExpression(ShiftArithmeticExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " sra ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " sra ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1859,7 +2158,7 @@ class ShiftLeftArithmeticExpression(ShiftArithmeticExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " sla ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " sla ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1878,7 +2177,7 @@ class RotateRightExpression(RotateExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " ror ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " ror ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1897,7 +2196,7 @@ class RotateLeftExpression(RotateExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[Tuple[str, str, str]] = ("", " rol ", "")
+	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " rol ", "")  #: The operator's string fragments.
 
 
 @export
@@ -1953,6 +2252,18 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 		"""
 		return self._subtype
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this qualified expression, its subtype and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitQualifiedExpression(self)
+		self._subtype.Visit(visitor)
+		visitor.VisitApostrophe(self)
+		self._operand.Visit(visitor)
+		visitor.DepartQualifiedExpression(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the qualified expression.
@@ -1965,6 +2276,7 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 
 
 @export
+@abstractclass
 class TernaryExpression(BaseExpression):
 	"""
 	Represents the base-class of all ternary expressions.
@@ -1974,7 +2286,8 @@ class TernaryExpression(BaseExpression):
 	   * :class:`When else expression <pyVHDLModel.Expression.WhenElseExpression>`
 	"""
 
-	_FORMAT:        ClassVar[Tuple[str, str, str, str]]  #: The operator's string representation as four fragments.
+	_PRECEDENCE:    ClassVar[OperatorPrecedence]         #: The operator's precedence level.
+	_FORMAT:        ClassVar[tuple[str, str, str, str]]  #: The operator's string representation as four fragments.
 	_firstOperand:  ExpressionUnion                      #: The operator's first operand.
 	_secondOperand: ExpressionUnion                      #: The operator's second operand.
 	_thirdOperand:  ExpressionUnion                      #: The operator's third operand.
@@ -2043,8 +2356,8 @@ class WhenElseExpression(TernaryExpression):
 	      --            ^           <- Condition
 	      --                   ^    <- ElseValue
 	"""
-
-	_FORMAT: ClassVar[Tuple[str, str, str, str]] = ("", " when ", " else ", "")
+	_PRECEDENCE: ClassVar[OperatorPrecedence]        = OperatorPrecedence.Conditional  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str, str, str]] = ("", " when ", " else ", "")    #: The operator's string fragments.
 
 	def __init__(
 		self,
@@ -2090,6 +2403,20 @@ class WhenElseExpression(TernaryExpression):
 		"""
 		return self._thirdOperand
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this conditional expression, its value, condition and alternative value with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitWhenElseExpression(self)
+		self._firstOperand.Visit(visitor)
+		visitor.VisitWhen(self)
+		self._secondOperand.Visit(visitor)
+		visitor.VisitElse(self)
+		self._thirdOperand.Visit(visitor)
+		visitor.DepartWhenElseExpression(self)
+
 
 @export
 class FunctionCall(BaseExpression):
@@ -2107,6 +2434,7 @@ class FunctionCall(BaseExpression):
 
 
 @export
+@abstractclass
 class Allocation(BaseExpression):
 	"""
 	Represents the base-class of all allocations via ``new``.
@@ -2156,6 +2484,16 @@ class SubtypeAllocation(Allocation):
 		"""
 		return self._subtype
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this allocation and its subtype with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSubtypeAllocation(self)
+		self._subtype.Visit(visitor)
+		visitor.DepartSubtypeAllocation(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the subtype allocation.
@@ -2204,6 +2542,16 @@ class QualifiedExpressionAllocation(Allocation):
 		"""
 		return self._qualifiedExpression
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this allocation and its qualified expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitQualifiedExpressionAllocation(self)
+		self._qualifiedExpression.Visit(visitor)
+		visitor.DepartQualifiedExpressionAllocation(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the qualified expression allocation.
@@ -2216,6 +2564,7 @@ class QualifiedExpressionAllocation(Allocation):
 
 
 @export
+@abstractclass
 class AggregateElement(ModelEntity):
 	"""
 	Represents the base-class of all aggregate elements.
@@ -2269,6 +2618,16 @@ class SimpleAggregateElement(AggregateElement):
 	      res := ('1', '0', '1', '0', '1', '0', '1', '0');
 	      --      ^^^                                        <- Expression
 	"""
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this positional aggregate element and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSimpleAggregateElement(self)
+		self._expression.Visit(visitor)
+		visitor.DepartSimpleAggregateElement(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the simple aggregate element.
@@ -2295,13 +2654,13 @@ class IndexedAggregateElement(AggregateElement):
 	      --      ^                           <- Index
 	      --           ^^^                    <- Expression
 	"""
-	_index: int  #: The index selecting the element this value is assigned to.
+	_index: ExpressionUnion  #: The index expression selecting the element this value is assigned to.
 
 	def __init__(self, index: ExpressionUnion, expression: ExpressionUnion, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes an aggregate element chosen by an index.
 
-		:param index:      The index selecting the element this value is assigned to.
+		:param index:      The index expression selecting the element this value is assigned to.
 		:param expression: The expression this aggregate element supplies.
 		:param parent:     The parent model entity of this entity.
 		"""
@@ -2310,13 +2669,25 @@ class IndexedAggregateElement(AggregateElement):
 		self._index = index
 
 	@readonly
-	def Index(self) -> int:
+	def Index(self) -> ExpressionUnion:
 		"""
-		Read-only property to access the index (:attr:`_index`).
+		Read-only property to access the index expression (:attr:`_index`).
 
-		:returns: The index.
+		:returns: The index expression.
 		"""
 		return self._index
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this aggregate element, its index and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIndexedAggregateElement(self)
+		self._index.Visit(visitor)
+		visitor.VisitArrow(self)
+		self._expression.Visit(visitor)
+		visitor.DepartIndexedAggregateElement(self)
 
 	def __str__(self) -> str:
 		"""
@@ -2368,6 +2739,18 @@ class RangedAggregateElement(AggregateElement):
 		"""
 		return self._range
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this aggregate element, its range and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRangedAggregateElement(self)
+		self._range.Visit(visitor)
+		visitor.VisitArrow(self)
+		self._expression.Visit(visitor)
+		visitor.DepartRangedAggregateElement(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the ranged aggregate element.
@@ -2418,6 +2801,18 @@ class NamedAggregateElement(AggregateElement):
 		"""
 		return self._name
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this aggregate element, its name and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitNamedAggregateElement(self)
+		self._name.Visit(visitor)
+		visitor.VisitArrow(self)
+		self._expression.Visit(visitor)
+		visitor.DepartNamedAggregateElement(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the named aggregate element.
@@ -2447,6 +2842,16 @@ class OthersAggregateElement(AggregateElement):
 	      --                ^^^^^^            <- the choice
 	      --                          ^^^     <- Expression
 	"""
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this ``others`` aggregate element and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitOthersAggregateElement(self)
+		self._expression.Visit(visitor)
+		visitor.DepartOthersAggregateElement(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the ``others`` aggregate element.
@@ -2475,7 +2880,7 @@ class Aggregate(BaseExpression):
 	      res := (0 => '1', 1 to 3 => '0', others => '1');
 	      --     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^    <- Elements
 	"""
-	_elements: List[AggregateElement]  #: List of all elements of this aggregate, in the order they were written.
+	_elements: list[AggregateElement]  #: List of all elements of this aggregate, in the order they were written.
 
 	def __init__(self, elements: Iterable[AggregateElement], parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -2492,13 +2897,28 @@ class Aggregate(BaseExpression):
 			element.Parent = self
 
 	@readonly
-	def Elements(self) -> List[AggregateElement]:
+	def Elements(self) -> list[AggregateElement]:
 		"""
 		Read-only property to access the elements (:attr:`_elements`).
 
 		:returns: List of elements.
 		"""
 		return self._elements
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this aggregate and its elements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAggregate(self)
+		for position, element in enumerate(self._elements):
+			if position > 0:
+				visitor.VisitComma(self)
+
+			element.Visit(visitor)
+
+		visitor.DepartAggregate(self)
 
 	def __str__(self) -> str:
 		"""

@@ -37,7 +37,7 @@ That shared shape is tested once, table-driven, in ``SimpleReferenceSymbols`` in
 hand-written test per class. Classes with distinct behaviour (constraints, the ``Symbol`` base
 itself, the object/function-call symbols with no dedicated property) get their own test class.
 """
-from unittest import TestCase
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base   import Direction, SimpleRange, RangeFromName
 from pyVHDLModel.Name   import SimpleName, AllName, AttributeName
@@ -61,9 +61,13 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class SymbolBase(TestCase):
-	"""``Symbol`` itself (used directly for e.g. ``Alias.Name``, which has no single fixed
-	``PossibleReference`` - see the design note in tests/unit/Declaration.py)."""
+class SymbolBase(Testcase):
+	"""
+	``Symbol`` itself.
+
+	It is used directly e.g. for ``Alias.Name``, which has no single fixed ``PossibleReference`` - see the design note
+	in tests/unit/Declaration.py.
+	"""
 
 	def test_Unresolved(self) -> None:
 		name = SimpleName("s")
@@ -111,7 +115,7 @@ _SIMPLE_REFERENCE_SYMBOLS = (
 )
 
 
-class SimpleReferenceSymbols(TestCase):
+class SimpleReferenceSymbols(Testcase):
 	def test_AllVariants(self) -> None:
 		for symbolClass, propertyName, possibleReference in _SIMPLE_REFERENCE_SYMBOLS:
 			with self.subTest(symbol=symbolClass.__name__):
@@ -146,7 +150,7 @@ class SimpleReferenceSymbols(TestCase):
 		self.assertIs(target, symbol.Members)
 
 
-class NoPropertyReferenceSymbols(TestCase):
+class NoPropertyReferenceSymbols(Testcase):
 	"""``RecordElementSymbol``, ``SimpleObjectOrFunctionCallSymbol`` and
 	``IndexedObjectOrFunctionCallSymbol`` fix a ``PossibleReference`` like the table above, but expose
 	no dedicated named property - only the base ``Symbol.Reference``."""
@@ -174,7 +178,7 @@ class NoPropertyReferenceSymbols(TestCase):
 		self.assertIs(expected, symbol._possibleReferences)
 
 
-class SubtypeSymbols(TestCase):
+class SubtypeSymbols(Testcase):
 	def test_SubtypeSymbol(self) -> None:
 		name = SimpleName("std_logic")
 		symbol = SubtypeSymbol(name)
@@ -194,7 +198,7 @@ class SubtypeSymbols(TestCase):
 		self.assertIsNone(symbol.Subtype)
 
 
-class ConstrainedSubtypeSymbols(TestCase):
+class ConstrainedSubtypeSymbols(Testcase):
 	"""``signal s : integer range 0 to 15;`` / ``std_logic_vector(7 downto 0)`` / record constraints."""
 
 	def test_ScalarConstraint_WithRange(self) -> None:

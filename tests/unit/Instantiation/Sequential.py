@@ -33,7 +33,7 @@ Tests for pyVHDLModel.Sequential - the sequential statement kinds not already co
 tests/unit/Assignment.py (conditional/selected/force/release assignments) or
 tests/unit/Base.py (branches, report/assert statements, choices).
 """
-from unittest import TestCase
+from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Base        import ModelEntity, Direction, SimpleRange
 from pyVHDLModel.Name        import SimpleName
@@ -58,7 +58,7 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class SequentialProcedureCalls(TestCase):
+class SequentialProcedureCalls(Testcase):
 	"""``ProcedureCallMixin`` is shared with ``ConcurrentProcedureCall`` (tests/unit/Concurrent.py);
 	tested once here since the mixin's own logic doesn't differ between the two."""
 
@@ -80,7 +80,7 @@ class SequentialProcedureCalls(TestCase):
 		self.assertIsNone(call.Label)
 
 
-class SequentialSignalAssignments(TestCase):
+class SequentialSignalAssignments(Testcase):
 	def test_Construction(self) -> None:
 		target = _signalSymbol("s")
 		assignment = SequentialSignalAssignment(target, label="lbl")
@@ -90,11 +90,11 @@ class SequentialSignalAssignments(TestCase):
 		self.assertEqual("lbl", assignment.Label)
 
 
-class SequentialSimpleSignalAssignments(TestCase):
+class SequentialSimpleSignalAssignments(Testcase):
 	def test_Construction(self) -> None:
 		"""``s <= '1';``"""
 		target = _signalSymbol("s")
-		waveformElement = WaveformElement(CharacterLiteral("'1'"))
+		waveformElement = WaveformElement(CharacterLiteral("1"))
 		assignment = SequentialSimpleSignalAssignment(target, [waveformElement])
 
 		self.assertIs(target, assignment.Target)
@@ -103,7 +103,7 @@ class SequentialSimpleSignalAssignments(TestCase):
 		self.assertIs(assignment, waveformElement.Parent)
 
 
-class IfStatements(TestCase):
+class IfStatements(Testcase):
 	def test_IfOnly(self) -> None:
 		ifBranch = IfBranch(IntegerLiteral(1))
 		statement = IfStatement(ifBranch)
@@ -128,7 +128,7 @@ class IfStatements(TestCase):
 		self.assertIs(statement, elseBranch.Parent)
 
 
-class Choices(TestCase):
+class Choices(Testcase):
 	"""Regression test: ``IndexedChoice``'s ``expression.Parent = self`` was previously commented out
 	(``# FIXME: received None``) - confirmed stale in the gap analysis (every real construction site
 	always provides a real expression) and now re-enabled."""
@@ -150,7 +150,7 @@ class Choices(TestCase):
 		self.assertEqual("0 to 3", str(choice))
 
 
-class Cases(TestCase):
+class Cases(Testcase):
 	def test_Case(self) -> None:
 		choice = IndexedChoice(IntegerLiteral(0))
 		case = Case([choice])
@@ -171,7 +171,7 @@ class Cases(TestCase):
 		self.assertEqual("when others =>", str(case))
 
 
-class CaseStatements(TestCase):
+class CaseStatements(Testcase):
 	def test_Construction(self) -> None:
 		expression = IntegerLiteral(0)
 		case = Case([IndexedChoice(IntegerLiteral(0))])
@@ -184,7 +184,7 @@ class CaseStatements(TestCase):
 		self.assertIs(statement, case.Parent)
 
 
-class LoopStatements(TestCase):
+class LoopStatements(Testcase):
 	def test_EndlessLoopStatement(self) -> None:
 		statement = EndlessLoopStatement(label="lbl")
 
@@ -206,7 +206,7 @@ class LoopStatements(TestCase):
 		self.assertIs(condition, statement.Condition)
 
 
-class LoopControlStatements(TestCase):
+class LoopControlStatements(Testcase):
 	"""Regression test: ``_loopReference`` was declared but never initialized in
 	``LoopControlStatement.__init__`` - the same crash-on-first-property-access shape as the fixed
 	``DeferredConstant`` bug. ``NextStatement``/``ExitStatement`` add no state of their own, so the
@@ -226,14 +226,14 @@ class LoopControlStatements(TestCase):
 		self.assertIsNone(statement.LoopReference)
 
 
-class NullStatements(TestCase):
+class NullStatements(Testcase):
 	def test_Construction(self) -> None:
 		statement = NullStatement(label="lbl")
 
 		self.assertEqual("lbl", statement.Label)
 
 
-class ReturnStatements(TestCase):
+class ReturnStatements(Testcase):
 	def test_WithValue(self) -> None:
 		value = IntegerLiteral(1)
 		statement = ReturnStatement(value)
@@ -248,7 +248,7 @@ class ReturnStatements(TestCase):
 		self.assertIsNone(statement.ReturnValue)
 
 
-class WaitStatements(TestCase):
+class WaitStatements(Testcase):
 	def test_Empty(self) -> None:
 		"""``wait;``"""
 		statement = WaitStatement()

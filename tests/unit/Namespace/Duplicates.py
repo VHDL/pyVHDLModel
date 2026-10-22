@@ -41,14 +41,14 @@ yet, so any two subprograms sharing a name are accepted.
 The expectations below were established with the GHDL analyzer (``ghdl -a --std=08``).
 """
 from pathlib import Path
-from unittest import TestCase
 
-from pyTooling.Warning import WarningCollector
+from pyTooling.Warning      import CriticalWarning, UnhandledCriticalWarningError, WarningCollector
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import Design, Document, Library
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.DesignUnit import Architecture, Entity, Package, PackageBody
-from pyVHDLModel.Exception  import DuplicateDeclarationWarning
+from pyVHDLModel.Exception  import DuplicateDeclarationWarning, VHDLModelCriticalWarning
 from pyVHDLModel.Interface  import PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Object     import Constant, Signal
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
 
 
-class OneDeclarativePart(TestCase):
+class OneDeclarativePart(Testcase):
 	"""Two declarations in the same declarative part."""
 
 	def test_TwoSignalsWithTheSameName(self) -> None:
@@ -76,6 +76,47 @@ class OneDeclarativePart(TestCase):
 			architecture.IndexDeclaredItems()
 
 		self.assertEqual(1, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
+
+	def test_WarningFields(self) -> None:
+		"""The warning carries the identifier, the namespace and both declarations."""
+		items = [_signal("s", "natural"), _signal("S", "natural")]
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=items)
+
+		with WarningCollector() as collector:
+			architecture.IndexDeclaredItems()
+
+		warning = _warningsOfType(collector, DuplicateDeclarationWarning)[0]
+		self.assertEqual("S", warning.Identifier)
+		self.assertEqual("s", warning.NormalizedIdentifier)
+		self.assertIs(architecture._namespace, warning.Namespace)
+		self.assertIs(items[0], warning.Existing)
+		self.assertIs(items[1], warning.Element)
+
+	def test_WarningFields_MessageOnly(self) -> None:
+		warning = DuplicateDeclarationWarning("Identifier is already used for a declaration.")
+
+		self.assertIsNone(warning.Identifier)
+		self.assertIsNone(warning.NormalizedIdentifier)
+		self.assertIsNone(warning.Namespace)
+		self.assertIsNone(warning.Element)
+		self.assertIsNone(warning.Existing)
+
+	def test_Critical(self) -> None:
+		"""A duplicate declaration is a critical warning."""
+		warning = DuplicateDeclarationWarning("Identifier is already used for a declaration.")
+
+		self.assertIsInstance(warning, VHDLModelCriticalWarning)
+		self.assertIsInstance(warning, CriticalWarning)
+
+	def test_WithoutCollector(self) -> None:
+		"""Without a collector, a duplicate declaration raises, caused by the warning."""
+		items = [_signal("s", "natural"), _signal("s", "natural")]
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=items)
+
+		with self.assertRaises(UnhandledCriticalWarningError) as context:
+			architecture.IndexDeclaredItems()
+
+		self.assertIsInstance(context.exception.__cause__, DuplicateDeclarationWarning)
 
 	def test_SignalAndConstantWithTheSameName(self) -> None:
 		"""Different kinds still collide - VHDL keys on the identifier, not the kind."""
@@ -97,7 +138,7 @@ class OneDeclarativePart(TestCase):
 		self.assertEqual(0, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
 
 	def test_ReIndexingIsNotADuplicate(self) -> None:
-		"""Indexing is not idempotent by construction, so re-inserting the *same* item must not report."""
+		"""Indexing twice must not report the *same* item as a duplicate."""
 		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[_signal("s", "natural")])
 
 		with WarningCollector() as collector:
@@ -106,8 +147,34 @@ class OneDeclarativePart(TestCase):
 
 		self.assertEqual(0, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
 
+	def test_DeclarationHidesVisiblePackage(self) -> None:
+		"""A package made visible by 'use lib.pkg;' (its parent is a library) is hidden by a declaration of its name."""
+		package = Package("pkg")
+		package.Library = Library("lib")
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[_signal("pkg", "natural")])
+		architecture._namespace._elements["pkg"] = package
 
-class OverloadableDeclarations(TestCase):
+		with WarningCollector() as collector:
+			architecture.IndexDeclaredItems()
+
+		self.assertEqual(0, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
+		self.assertIs(architecture.DeclaredItems[0], architecture._namespace._elements["pkg"])
+
+	def test_DeclarationHidesImportedItem(self) -> None:
+		"""An item imported by a use clause is hidden by a declaration of the same identifier."""
+		imported = Constant(["s"], _subtypeSymbol("bit"))
+		Package("other", declaredItems=[imported])
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[_signal("s", "natural")])
+		architecture._namespace._elements["s"] = imported
+
+		with WarningCollector() as collector:
+			architecture.IndexDeclaredItems()
+
+		self.assertEqual(0, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
+		self.assertIs(architecture.DeclaredItems[0], architecture._namespace._elements["s"])
+
+
+class OverloadableDeclarations(Testcase):
 	"""Subprograms may share a name; GHDL accepts them as long as the signatures differ."""
 
 	def test_TwoProceduresSharingAName(self) -> None:
@@ -137,7 +204,7 @@ class OverloadableDeclarations(TestCase):
 		self.assertEqual(1, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
 
 
-class RegionsSpanningTwoNamespaces(TestCase):
+class RegionsSpanningTwoNamespaces(Testcase):
 	"""An entity and its architecture, and a package and its body, are each one declarative region."""
 
 	def _design(self, entityItems, architectureItems, packageItems, bodyItems) -> Design:

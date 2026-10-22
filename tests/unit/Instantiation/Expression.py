@@ -37,14 +37,15 @@ construction/parent-wiring behaviour is tested once via the immediate base class
 (``UnaryExpression``/``BinaryExpression``), then every leaf subclass's ``_FORMAT`` is checked
 table-driven in one ``str()``-formatting test rather than one hand-written test per class.
 """
-from pickle   import dumps, loads
-from unittest import TestCase
+from pickle import dumps, loads
+
+from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
 from pyVHDLModel.Expression import (
-	BaseExpression, Literal,
+	OperatorPrecedence, BaseExpression, Literal,
 	NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral,
 	PhysicalIntegerLiteral, PhysicalFloatingLiteral, CharacterLiteral, StringLiteral,
 	BinaryBitStringLiteral, OctalBitStringLiteral, DecimalBitStringLiteral, HexadecimalBitStringLiteral,
@@ -77,13 +78,15 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class Literals(TestCase):
-	"""``BaseExpression`` itself (``class BaseExpression(ModelEntity): pass``) is never instantiated
-	directly here, matching the same reasoning as ``Allocation``/``Type`` (see tests/unit/Type.py):
-	it has no ``__init__`` override of its own (so there's no independent forwarding-bug risk to
-	check, unlike e.g. the type classes), no VHDL construct is ever "just a BaseExpression", and its
-	``Parent``-wiring behaviour is already covered via plain ``ModelEntity`` in tests/unit/Base.py -
-	every concrete literal/operator/etc. class tested below already exercises it transitively."""
+class Literals(Testcase):
+	"""
+	``BaseExpression`` itself (``class BaseExpression(ModelEntity): pass``) is never instantiated directly here.
+
+	This matches the same reasoning as ``Allocation``/``Type`` (see tests/unit/Type.py): it has no ``__init__`` override
+	of its own (so there's no independent forwarding-bug risk to check, unlike e.g. the type classes), no VHDL construct
+	is ever "just a BaseExpression", and its ``Parent``-wiring behaviour is already covered via plain ``ModelEntity`` in
+	tests/unit/Base.py - every concrete literal/operator/etc. class tested below already exercises it transitively.
+	"""
 
 
 	def test_NullLiteral(self) -> None:
@@ -108,10 +111,10 @@ class Literals(TestCase):
 		self.assertEqual("4.2", str(literal))
 
 	def test_CharacterLiteral(self) -> None:
-		literal = CharacterLiteral("'a'")
+		literal = CharacterLiteral("a")
 
-		self.assertEqual("'a'", literal.Value)
-		self.assertEqual("'a'", str(literal))
+		self.assertEqual("a", literal.Value)
+		self.assertEqual("a", str(literal))
 
 	def test_StringLiteral(self) -> None:
 		literal = StringLiteral("hello")
@@ -120,7 +123,35 @@ class Literals(TestCase):
 		self.assertEqual("\"hello\"", str(literal))
 
 
-class PhysicalLiterals(TestCase):
+class CharacterLiterals(Testcase):
+	def test_Apostrophe(self) -> None:
+		literal = CharacterLiteral("'")
+
+		self.assertEqual("'", literal.Value)
+		self.assertEqual("'", str(literal))
+
+	def test_Value_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			CharacterLiteral(None)
+
+		self.assertEqual("Parameter 'value' is None.", str(context.exception))
+
+	def test_Value_Integer(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			CharacterLiteral(1)
+
+		self.assertEqual("Parameter 'value' is not of type 'str'.", str(context.exception))
+		self.assertEqual(["Got type 'int'."], context.exception.__notes__)
+
+	def test_Value_WithApostrophes(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			CharacterLiteral("'a'")
+
+		self.assertEqual("Parameter 'value' is not a single character.", str(context.exception))
+		self.assertEqual(["Got value ''a''.", "Pass the character without apostrophes."], context.exception.__notes__)
+
+
+class PhysicalLiterals(Testcase):
 	"""``PhysicalLiteral`` itself is never instantiated directly - its own ``_value`` is only declared
 	by ``PhysicalIntegerLiteral``/``PhysicalFloatingLiteral``, so it's exercised only through those two
 	concrete subclasses."""
@@ -140,8 +171,8 @@ class PhysicalLiterals(TestCase):
 		self.assertEqual("2.5 ns", str(literal))
 
 
-class BitStringLiterals(TestCase):
-	"""``BitStringLiteral`` itself is abstract in practice (``_base`` is only set by its four concrete
+class BitStringLiterals(Testcase):
+	"""``BitStringLiteral`` itself is abstract in practice (``_BASE`` is only set by its four concrete
 	subclasses as a ``ClassVar``); ``Length``/``Signed``/``BinaryValue``/``Bits`` are all still-open
 	gaps beyond ``Value`` itself for ``BinaryValue``/``Bits`` (see the class's own ``.. todo``-less but
 	clearly unfinished state - both always stay ``None``, there's no code anywhere that computes
@@ -188,7 +219,7 @@ class BitStringLiterals(TestCase):
 		self.assertEqual("ux\"F\"", str(literal))
 
 
-class UnaryExpressions(TestCase):
+class UnaryExpressions(Testcase):
 	"""Regression test: ``operand.Parent = self`` was previously commented out
 	(``# FIXME: operand is provided as None``) - confirmed stale in the gap analysis (every real
 	construction site always provides a real operand) and now re-enabled. Tested once here via
@@ -218,7 +249,7 @@ _UNARY_FORMATS = (
 )
 
 
-class UnaryExpressionFormats(TestCase):
+class UnaryExpressionFormats(Testcase):
 	def test_AllVariants(self) -> None:
 		for expressionClass, expected in _UNARY_FORMATS:
 			with self.subTest(expression=expressionClass.__name__):
@@ -234,7 +265,7 @@ class UnaryExpressionFormats(TestCase):
 		self.assertIs(operand, expression.Operand)
 
 
-class TypeConversions(TestCase):
+class TypeConversions(Testcase):
 	"""Regression test: ``TypeConversion`` previously had no field for the target type at all (just
 	``pass``, inheriting ``UnaryExpression`` unchanged) - unlike every other ``UnaryExpression``
 	subclass, its "operator" is the target type name itself, not a fixed ``_FORMAT`` string, so
@@ -254,7 +285,7 @@ class TypeConversions(TestCase):
 		self.assertEqual("natural?(1)", str(expression))
 
 
-class BinaryExpressions(TestCase):
+class BinaryExpressions(Testcase):
 	"""Both operands' ``Parent`` wiring is already active (no FIXME here, unlike
 	``UnaryExpression``) - tested once via ``AdditionExpression``; every other binary subclass shares
 	the identical, unoverridden constructor."""
@@ -306,14 +337,14 @@ _BINARY_FORMATS = (
 )
 
 
-class BinaryExpressionFormats(TestCase):
+class BinaryExpressionFormats(Testcase):
 	def test_AllVariants(self) -> None:
 		for expressionClass, expected in _BINARY_FORMATS:
 			with self.subTest(expression=expressionClass.__name__):
 				self.assertEqual(expected, str(expressionClass(IntegerLiteral(1), IntegerLiteral(2))))
 
 
-class RangeExpressions(TestCase):
+class RangeExpressions(Testcase):
 	"""``AscendingRangeExpression``/``DescendingRangeExpression`` additionally expose ``Direction``
 	over the plain ``BinaryExpression`` shape."""
 
@@ -330,7 +361,7 @@ class RangeExpressions(TestCase):
 		self.assertEqual("7 downto 0", str(expression))
 
 
-class QualifiedExpressions(TestCase):
+class QualifiedExpressions(Testcase):
 	def test_Construction(self) -> None:
 		subtype = SimpleSubtypeSymbol(SimpleName("bit_vector"))
 		operand = IntegerLiteral(1)
@@ -343,7 +374,7 @@ class QualifiedExpressions(TestCase):
 		self.assertEqual("bit_vector?'(1)", str(expression))
 
 
-class TernaryExpressions(TestCase):
+class TernaryExpressions(Testcase):
 	"""Regression test: the constructor previously never accepted or set its three operands at all
 	(``# FIXME: parameters and initializers are missing !!``), and ``__str__`` separately indexed past
 	the end of the 4-element ``_FORMAT`` tuple (``self._FORMAT[4]``). Both fixed together - the
@@ -371,7 +402,7 @@ class TernaryExpressions(TestCase):
 		self.assertEqual("1 when 2 else 3", str(expression))
 
 
-class FunctionCallAndAllocation(TestCase):
+class FunctionCallAndAllocation(Testcase):
 	"""``Allocation`` itself (``class Allocation(BaseExpression): pass``) is never instantiated
 	directly anywhere - real VHDL always uses one of its two concrete subclasses below (``new T`` or
 	``new T'(expr)``), so unlike ``FunctionCall`` (which *is* the real, direct class for a function
@@ -401,7 +432,7 @@ class FunctionCallAndAllocation(TestCase):
 		self.assertEqual("new integer?'(1)", str(allocation))
 
 
-class AggregateElements(TestCase):
+class AggregateElements(Testcase):
 	def test_SimpleAggregateElement(self) -> None:
 		expression = IntegerLiteral(1)
 		element = SimpleAggregateElement(expression)
@@ -447,7 +478,7 @@ class AggregateElements(TestCase):
 		self.assertEqual("others => 1", str(element))
 
 
-class Aggregates(TestCase):
+class Aggregates(Testcase):
 	def test_Construction(self) -> None:
 		element1 = SimpleAggregateElement(IntegerLiteral(1))
 		element2 = SimpleAggregateElement(IntegerLiteral(2))
@@ -459,9 +490,9 @@ class Aggregates(TestCase):
 		self.assertEqual("(1, 2)", str(aggregate))
 
 
-class ClassVariables(TestCase):
+class ClassVariables(Testcase):
 	"""
-	``_FORMAT`` and ``_direction`` are constants of the concrete expression class, not object fields.
+	``_FORMAT`` and ``_DIRECTION`` are constants of the concrete expression class, not object fields.
 
 	They used to be declared as bare annotations, so ``ExtendedType`` made them slots and the concrete
 	subclasses' class-level assignment shadowed the slot descriptor. Reading worked, but assigning on an
@@ -483,7 +514,8 @@ class ClassVariables(TestCase):
 					slots.update(getattr(cls, "__slots__", ()))
 
 				self.assertNotIn("_FORMAT", slots)
-				self.assertNotIn("_direction", slots)
+				self.assertNotIn("_DIRECTION", slots)
+				self.assertNotIn("_PRECEDENCE", slots)
 
 	def test_Picklable(self) -> None:
 		"""An expression of every arity round-trips through :mod:`pickle`."""
@@ -499,5 +531,66 @@ class ClassVariables(TestCase):
 
 	def test_DirectionIsPerClass(self) -> None:
 		"""The two range expressions carry their direction as a class constant, readable without an instance."""
-		self.assertIs(Direction.To, AscendingRangeExpression._direction)
-		self.assertIs(Direction.DownTo, DescendingRangeExpression._direction)
+		self.assertIs(Direction.To, AscendingRangeExpression._DIRECTION)
+		self.assertIs(Direction.DownTo, DescendingRangeExpression._DIRECTION)
+
+
+class Precedences(Testcase):
+	"""Each operator class names its precedence level of IEEE Std 1076-2008, clause 9.2."""
+
+	def test_Range(self) -> None:
+		for expressionClass in (AscendingRangeExpression, DescendingRangeExpression):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Range, expressionClass._PRECEDENCE)
+
+	def test_Conditional(self) -> None:
+		self.assertIs(OperatorPrecedence.Conditional, WhenElseExpression._PRECEDENCE)
+
+	def test_Logical(self) -> None:
+		for expressionClass in (AndExpression, NandExpression, OrExpression, NorExpression, XorExpression, XnorExpression):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Logical, expressionClass._PRECEDENCE)
+
+	def test_Relational(self) -> None:
+		for expressionClass in (
+			EqualExpression, UnequalExpression, GreaterThanExpression, GreaterEqualExpression, LessThanExpression,
+			LessEqualExpression, MatchingEqualExpression, MatchingUnequalExpression, MatchingGreaterThanExpression,
+			MatchingGreaterEqualExpression, MatchingLessThanExpression, MatchingLessEqualExpression
+		):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Relational, expressionClass._PRECEDENCE)
+
+	def test_Shift(self) -> None:
+		for expressionClass in (
+			ShiftRightLogicExpression, ShiftLeftLogicExpression, ShiftRightArithmeticExpression,
+			ShiftLeftArithmeticExpression, RotateRightExpression, RotateLeftExpression
+		):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Shift, expressionClass._PRECEDENCE)
+
+	def test_Adding(self) -> None:
+		"""The adding operators and the signs share a level."""
+		for expressionClass in (
+			AdditionExpression, SubtractionExpression, ConcatenationExpression, NegationExpression, IdentityExpression
+		):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Adding, expressionClass._PRECEDENCE)
+
+	def test_Multiplying(self) -> None:
+		for expressionClass in (MultiplyExpression, DivisionExpression, RemainderExpression, ModuloExpression):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Multiplying, expressionClass._PRECEDENCE)
+
+	def test_Miscellaneous(self) -> None:
+		for expressionClass in (
+			ExponentiationExpression, AbsoluteExpression, InverseExpression, UnaryAndExpression, UnaryNandExpression,
+			UnaryOrExpression, UnaryNorExpression, UnaryXorExpression, UnaryXnorExpression
+		):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Miscellaneous, expressionClass._PRECEDENCE)
+
+	def test_Primary(self) -> None:
+		"""A parenthesized sub-expression and a type conversion are primaries."""
+		for expressionClass in (SubExpression, TypeConversion):
+			with self.subTest(expressionClass=expressionClass.__name__):
+				self.assertIs(OperatorPrecedence.Primary, expressionClass._PRECEDENCE)

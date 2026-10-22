@@ -34,24 +34,28 @@ This module contains parts of an abstract document language model for VHDL.
 
 Concurrent defines all concurrent statements used in entities, architectures, generates and block statements.
 """
-from typing                  import List, Dict, Union, Iterable, Generator, Optional as Nullable
+from __future__              import annotations
 
+from typing                  import Union, Iterable, Generator, Optional as Nullable
+
+from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType
+from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, BaseCase, IfBranchMixin
 from pyVHDLModel.Base        import ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement, ChoicesMixin
+from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
 from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
+from pyVHDLModel.Regions     import WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
-from pyVHDLModel.Symbol      import SignalSymbol
+from pyVHDLModel.Symbol      import Symbol, SignalSymbol
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
 from pyVHDLModel.Association import GenericAssociationItem, PortAssociationItem
 from pyVHDLModel.Association import GenericMapAspectMixin, PortMapAspectMixin
-from pyVHDLModel.Interface   import PortInterfaceItemMixin, WithPortsMixin
-from pyVHDLModel.Interface   import GenericInterfaceItemMixin, WithGenericsMixin
+from pyVHDLModel.Interface   import PortInterfaceItemMixin, GenericInterfaceItemMixin
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin, AllowBlackboxMixin
 from pyVHDLModel.Common      import ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform
 from pyVHDLModel.Common      import ConditionalWaveformsMixin, WaveformMixin
@@ -70,6 +74,7 @@ ExpressionUnion = Union[
 
 
 @export
+@abstractclass
 class ConcurrentStatement(Statement):
 	"""
 	A base-class for all concurrent statements.
@@ -87,7 +92,7 @@ class ConcurrentStatement(Statement):
 
 
 @export
-class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
+class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_ClashingDeclarations", )):
 	"""
 	A mixin-class for all language constructs supporting concurrent statements.
 
@@ -103,11 +108,12 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 	   .. todo:: concurrent declaration region
 	"""
 
-	_statements:     List[ConcurrentStatement]  #: List of all concurrent statements in this construct.
+	_statements:           list[ConcurrentStatement]                                      #: List of all concurrent statements in this construct.
 
 	# TODO: add another instantiation class level for entity/configuration/component inst.
-	_instantiations: Dict[str, 'Instantiation']  #: All instantiations, indexed by label.
-	_hierarchy:      Dict[str, Union['ConcurrentBlockStatement', 'GenerateStatement']]  #: All elements creating a hierarchy level (blocks and generates), in declaration order.
+	_instantiations:       dict[str, Instantiation]                                       #: All instantiations, indexed by label.
+	_hierarchy:            dict[str, Union[ConcurrentBlockStatement, GenerateStatement]]  #: All elements creating a hierarchy level (blocks and generates), in declaration order.
+	_areStatementsIndexed: bool                                                           #: ``True`` if :meth:`IndexStatements` filled :attr:`_instantiations` and :attr:`_hierarchy`.
 
 	def __init__(self, statements: Nullable[Iterable[ConcurrentStatement]] = None) -> None:
 		"""
@@ -117,8 +123,9 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		self._statements = []
 
-		self._instantiations = {}
-		self._hierarchy = {}
+		self._instantiations =       {}
+		self._hierarchy =            {}
+		self._areStatementsIndexed = False
 
 		if statements is not None:
 			for statement in statements:
@@ -126,7 +133,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 				statement.Parent = self
 
 	@readonly
-	def Statements(self) -> List[ConcurrentStatement]:
+	def Statements(self) -> list[ConcurrentStatement]:
 		"""
 		Read-only property to access the statements (:attr:`_statements`).
 
@@ -134,7 +141,17 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return self._statements
 
-	def IterateInstantiations(self) -> Generator['Instantiation', None, None]:
+	def _Labels(self) -> tuple[ConcurrentStatement, ...]:
+		"""
+		Return the labeled statements, whose labels are declared in this construct's declarative region.
+
+		A statement nested in a block or generate statement is declared in that statement's declarative region.
+
+		:returns: Tuple of labeled statements, in statement order.
+		"""
+		return tuple(statement for statement in self._statements if statement._normalizedLabel is not None)
+
+	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
 		for instance in self._instantiations.values():
 			yield instance
 
@@ -143,18 +160,287 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True):
 
 	# TODO: move into _init__
 	def IndexStatements(self) -> None:
+		"""
+		Index the instantiations, blocks and generate statements of this construct, and the statements nested in them.
+
+		Both lookup tables (:attr:`_instantiations`, :attr:`_hierarchy`) are cleared first, so indexing again yields the
+		same lookup tables. Afterwards, the statement mutators (e.g. :meth:`InsertStatement`) keep them up to date.
+		"""
+		self._instantiations.clear()
+		self._hierarchy.clear()
 		for statement in self._statements:
-			if isinstance(statement, (EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation)):
-				self._instantiations[statement.NormalizedLabel] = statement
-			elif isinstance(statement, (ForGenerateStatement, IfGenerateStatement, CaseGenerateStatement)):
-				self._hierarchy[statement.NormalizedLabel] = statement
-				statement.IndexStatement()
-			elif isinstance(statement, ConcurrentBlockStatement):
-				self._hierarchy[statement.NormalizedLabel] = statement
-				statement.IndexStatements()
+			self._IndexStatement(statement)
+
+		self._areStatementsIndexed = True
+
+	def _IndexStatement(self, statement: ConcurrentStatement) -> None:
+		"""
+		Add an instantiation, a block or a generate statement to its lookup table, and index the statements nested in it.
+
+		:param statement: The concurrent statement of this construct.
+		"""
+		if isinstance(statement, (EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation)):
+			self._instantiations[statement._normalizedLabel] = statement
+		elif isinstance(statement, (ForGenerateStatement, IfGenerateStatement, CaseGenerateStatement)):
+			self._hierarchy[statement._normalizedLabel] = statement
+			statement.IndexStatement()
+		elif isinstance(statement, ConcurrentBlockStatement):
+			self._hierarchy[statement._normalizedLabel] = statement
+			statement.IndexStatements()
+
+	def _UnindexStatement(self, statement: ConcurrentStatement) -> None:
+		"""
+		Remove an instantiation, a block or a generate statement from its lookup table.
+
+		:param statement: The concurrent statement of this construct.
+		"""
+		if self._instantiations.get(statement._normalizedLabel) is statement:
+			del self._instantiations[statement._normalizedLabel]
+		elif self._hierarchy.get(statement._normalizedLabel) is statement:
+			del self._hierarchy[statement._normalizedLabel]
+
+	def AddStatement(self, statement: ConcurrentStatement) -> None:
+		"""
+		Add a concurrent statement at the end of this construct.
+
+		The statement's parent is set to this construct. If the statements are indexed, an instantiation, a block or a
+		generate statement is added to the lookup table matching its kind.
+
+		:param statement:             The concurrent statement to add.
+		:raises ValueError:           If parameter 'statement' is ``None``.
+		:raises TypeError:            If parameter 'statement' is not of type :class:`ConcurrentStatement`.
+		:raises AlreadyInDesignError: If parameter 'statement' already has a parent.
+		:raises DuplicateLabelError:  If the declarative region already declares the statement's label.
+
+		.. seealso::
+
+		   :meth:`InsertStatement`
+		      |rarr| Insert a concurrent statement at a position of this construct.
+		   :meth:`RemoveStatement`
+		      |rarr| Remove a concurrent statement from this construct.
+		"""
+		self.InsertStatement(len(self._statements), statement)
+
+	def InsertStatement(self, index: int, statement: ConcurrentStatement) -> None:
+		"""
+		Insert a concurrent statement at a position of this construct.
+
+		The statement's parent is set to this construct: a process, block or generate statement connects its namespace to
+		this construct's namespace. If the statements are indexed (:meth:`IndexStatements`), an instantiation, a block or
+		a generate statement is added to the lookup table matching its kind, and the statements nested in it are indexed.
+
+		A statement label is declared in the declarative region of this construct: it may neither repeat another
+		statement's label, nor an identifier declared in the region, including the region an entity shares with its
+		architectures. An unlabeled statement declares nothing.
+
+		:param index:                 Position, from ``0`` (first) to the number of statements (append). A negative index
+		                              counts from the end, as for :meth:`list.insert`: ``-1`` inserts before the last
+		                              statement.
+		:param statement:             The concurrent statement to insert.
+		:raises ValueError:           If parameter 'index' is ``None``.
+		:raises TypeError:            If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:           If parameter 'index' is out of range.
+		:raises ValueError:           If parameter 'statement' is ``None``.
+		:raises TypeError:            If parameter 'statement' is not of type :class:`ConcurrentStatement`.
+		:raises AlreadyInDesignError: If parameter 'statement' already has a parent.
+		:raises DuplicateLabelError:  If the declarative region already declares the statement's label.
+
+		.. seealso::
+
+		   :meth:`AddStatement`
+		      |rarr| Add a concurrent statement at the end of this construct.
+		   :meth:`InsertStatementBefore`
+		      |rarr| Insert a concurrent statement before another statement.
+		   :meth:`InsertStatementAfter`
+		      |rarr| Insert a concurrent statement after another statement.
+		   :meth:`RemoveStatement`
+		      |rarr| Remove a concurrent statement from this construct.
+		"""
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif not (-len(self._statements) <= index <= len(self._statements)):
+			ex = ValueError(f"Parameter 'index' is out of range {-len(self._statements)}..{len(self._statements)}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		if statement is None:
+			raise ValueError("Parameter 'statement' is None.")
+		elif not isinstance(statement, ConcurrentStatement):
+			ex = TypeError("Parameter 'statement' is not of type 'ConcurrentStatement'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(statement)}'.")
+			raise ex
+		elif statement._parent is not None:
+			label = "" if statement._label is None else f" '{statement._label}'"
+			ex = AlreadyInDesignError(
+				f"{getTypeName(statement)}{label} already has a parent.",
+				element=statement,
+				parent=statement._parent
+			)
+			ex.add_note(f"Remove it from its {getTypeName(statement._parent)} first.")
+			raise ex
+
+		if len(clashes := self._ClashingDeclarations(statement)) > 0:
+			ex = DuplicateLabelError(
+				f"{getTypeName(clashes[0]._parent)} already declares '{statement._label}'.",
+				identifier=statement._label,
+				namespace=self._namespace,
+				element=statement,
+				existing=clashes[0]
+			)
+			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
+			raise ex
+
+		self._statements.insert(index, statement)
+		statement.Parent = self
+		if self._areStatementsIndexed:
+			self._IndexStatement(statement)
+
+	def InsertStatementBefore(self, statement: ConcurrentStatement, before: ConcurrentStatement) -> None:
+		"""
+		Insert a concurrent statement before another statement of this construct.
+
+		The statement's parent is set to this construct. If the statements are indexed, an instantiation, a block or a
+		generate statement is added to the lookup table matching its kind.
+
+		:param statement:             The concurrent statement to insert.
+		:param before:                The statement of this construct to insert before.
+		:raises ValueError:           If parameter 'before' is ``None``.
+		:raises TypeError:            If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:       If parameter 'before' is not a statement of this construct.
+		:raises ValueError:           If parameter 'statement' is ``None``.
+		:raises TypeError:            If parameter 'statement' is not of type :class:`ConcurrentStatement`.
+		:raises AlreadyInDesignError: If parameter 'statement' already has a parent.
+		:raises DuplicateLabelError:  If the declarative region already declares the statement's label.
+
+		.. seealso::
+
+		   :meth:`InsertStatement`
+		      |rarr| Insert a concurrent statement at a position of this construct.
+		   :meth:`InsertStatementAfter`
+		      |rarr| Insert a concurrent statement after another statement.
+		"""
+		if before is None:
+			raise ValueError("Parameter 'before' is None.")
+		elif not isinstance(before, ModelEntity):
+			ex = TypeError("Parameter 'before' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(before)}'.")
+			raise ex
+
+		for index, item in enumerate(self._statements):
+			if item is before:
+				break
+		else:
+			label = ""
+			if isinstance(before, LabeledEntityMixin) and before._label is not None:
+				label = f" '{before._label}'"
+			raise NotAChildError(
+				f"{getTypeName(before)}{label} is not a statement of this {getTypeName(self)}.",
+				element=before,
+				parent=self
+			)
+
+		self.InsertStatement(index, statement)
+
+	def InsertStatementAfter(self, statement: ConcurrentStatement, after: ConcurrentStatement) -> None:
+		"""
+		Insert a concurrent statement after another statement of this construct.
+
+		The statement's parent is set to this construct. If the statements are indexed, an instantiation, a block or a
+		generate statement is added to the lookup table matching its kind.
+
+		:param statement:             The concurrent statement to insert.
+		:param after:                 The statement of this construct to insert after.
+		:raises ValueError:           If parameter 'after' is ``None``.
+		:raises TypeError:            If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:       If parameter 'after' is not a statement of this construct.
+		:raises ValueError:           If parameter 'statement' is ``None``.
+		:raises TypeError:            If parameter 'statement' is not of type :class:`ConcurrentStatement`.
+		:raises AlreadyInDesignError: If parameter 'statement' already has a parent.
+		:raises DuplicateLabelError:  If the declarative region already declares the statement's label.
+
+		.. seealso::
+
+		   :meth:`InsertStatement`
+		      |rarr| Insert a concurrent statement at a position of this construct.
+		   :meth:`InsertStatementBefore`
+		      |rarr| Insert a concurrent statement before another statement.
+		"""
+		if after is None:
+			raise ValueError("Parameter 'after' is None.")
+		elif not isinstance(after, ModelEntity):
+			ex = TypeError("Parameter 'after' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(after)}'.")
+			raise ex
+
+		for index, item in enumerate(self._statements):
+			if item is after:
+				break
+		else:
+			label = ""
+			if isinstance(after, LabeledEntityMixin) and after._label is not None:
+				label = f" '{after._label}'"
+			raise NotAChildError(
+				f"{getTypeName(after)}{label} is not a statement of this {getTypeName(self)}.",
+				element=after,
+				parent=self
+			)
+
+		self.InsertStatement(index + 1, statement)
+
+	def RemoveStatement(self, statement: ConcurrentStatement) -> None:
+		"""
+		Remove a concurrent statement from this construct.
+
+		The statement is detached: its parent is cleared. If the statements are indexed, an instantiation, a block or a
+		generate statement is removed from its lookup table. The statement itself is unchanged and can be added to another
+		construct, or inserted at another position. A removed process, block or generate statement keeps the link of its
+		namespace to this construct's namespace.
+
+		:param statement:       The concurrent statement to remove.
+		:raises ValueError:     If parameter 'statement' is ``None``.
+		:raises TypeError:      If parameter 'statement' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'statement' is not a statement of this construct.
+
+		.. seealso::
+
+		   :meth:`AddStatement`
+		      |rarr| Add a concurrent statement at the end of this construct.
+		   :meth:`InsertStatement`
+		      |rarr| Insert a concurrent statement at a position of this construct.
+		"""
+		if statement is None:
+			raise ValueError("Parameter 'statement' is None.")
+		elif not isinstance(statement, ModelEntity):
+			ex = TypeError("Parameter 'statement' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(statement)}'.")
+			raise ex
+
+		for index, item in enumerate(self._statements):
+			if item is statement:
+				break
+		else:
+			label = ""
+			if isinstance(statement, LabeledEntityMixin) and statement._label is not None:
+				label = f" '{statement._label}'"
+			raise NotAChildError(
+				f"{getTypeName(statement)}{label} is not a statement of this {getTypeName(self)}.",
+				element=statement,
+				parent=self
+			)
+
+		if self._areStatementsIndexed:
+			self._UnindexStatement(statement)
+
+		del self._statements[index]
+		statement._parent = None
 
 
 @export
+@abstractclass
 class Instantiation(ConcurrentStatement, GenericMapAspectMixin, PortMapAspectMixin):
 	"""
 	A base-class for all (component) instantiations.
@@ -381,7 +667,7 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 	"""
 
 	# TODO: implement a SignalSymbol
-	_sensitivityList: List[Name]  #: List of all signal names in the sensitivity list, or ``None`` if none was given.
+	_sensitivityList: list[Name]  #: List of all signal names in the sensitivity list, or ``None`` if none was given.
 
 	def __init__(
 		self,
@@ -423,8 +709,16 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 		# inside the process hides a same-named one from the architecture, block or generate around it.
 		self._namespace.ParentNamespace = parent._namespace
 
+	def _LabelRegion(self) -> ProcessStatement:
+		"""
+		Return the process, whose declarative region declares the labels of its statements.
+
+		:returns: The process itself.
+		"""
+		return self
+
 	@readonly
-	def SensitivityList(self) -> List[Name]:
+	def SensitivityList(self) -> list[Name]:
 		"""
 		Read-only property to access the sensitivity list (:attr:`_sensitivityList`).
 
@@ -454,8 +748,8 @@ class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
 	"""
 	def __init__(
 		self,
-		label: str,
-		procedureName: Name,
+		label: Nullable[str],
+		procedureName: Symbol,
 		parameterAssociationItems: Nullable[Iterable[ParameterAssociationItem]] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
@@ -519,8 +813,6 @@ class ConcurrentBlockStatement(
 
 	   * :class:`Generate statement <pyVHDLModel.Concurrent.GenerateStatement>`
 	"""
-	_namespace: Namespace  #: The namespace of this block's declarative region.
-
 	def __init__(
 		self,
 		label:                   str,
@@ -529,7 +821,7 @@ class ConcurrentBlockStatement(
 		portItems:               Nullable[Iterable[PortInterfaceItemMixin]] = None,
 		portAssociationItems:    Nullable[Iterable[PortAssociationItem]] = None,
 		declaredItems:           Nullable[Iterable] = None,
-		statements:              Iterable['ConcurrentStatement'] = None,
+		statements:              Iterable[ConcurrentStatement] = None,
 		documentation:           Nullable[str] = None,
 		allowBlackbox:           Nullable[bool] = None,
 		parent:                  Nullable[ModelEntity] = None
@@ -550,17 +842,16 @@ class ConcurrentBlockStatement(
 		"""
 		super().__init__(label, parent)
 
-		self._namespace = Namespace(self._normalizedLabel)
+		BlockStatementMixin.__init__(self)
+		LabeledEntityMixin.__init__(self, label)
+		ConcurrentDeclarationRegionMixin.__init__(self, self._normalizedLabel, declaredItems)
 		if parent is not None:
 			self._namespace.ParentNamespace = parent._namespace
 
-		BlockStatementMixin.__init__(self)
-		LabeledEntityMixin.__init__(self, label)
 		WithGenericsMixin.__init__(self, genericItems)
 		WithPortsMixin.__init__(self, portItems)
 		GenericMapAspectMixin.__init__(self, genericAssociationItems)
 		PortMapAspectMixin.__init__(self, portAssociationItems)
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
@@ -573,13 +864,28 @@ class ConcurrentBlockStatement(
 
 
 	def IndexDeclaredItems(self) -> None:
-		"""A block's ports share the declarative region of its declarative part."""
+		"""
+		A block's ports share the declarative region of its declarative part.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		"""
 		self._IndexPortItems()
 
 		super().IndexDeclaredItems()
 
+	def _Declarations(self) -> tuple[ModelEntity, ...]:
+		"""
+		Return all declarations of this block: its generics and ports share the declarative region.
+
+		:returns: Tuple of declarations: the generics, the ports, then the declared items.
+		"""
+		return (*self._genericItems, *self._portItems, *super()._Declarations())
+
 
 @export
+@abstractclass
 class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin, AllowBlackboxMixin):
 	"""
 	A base-class for all branches in a generate statements.
@@ -593,8 +899,6 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentSt
 
 	_alternativeLabel:           Nullable[str]  #: The branch's alternative label, if one was given.
 	_normalizedAlternativeLabel: Nullable[str]  #: The normalized (lower case) alternative label.
-
-	_namespace:                  Namespace      #: The namespace of this branch's declarative region.
 
 	def __init__(
 		self,
@@ -618,11 +922,10 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentSt
 		self._alternativeLabel = alternativeLabel
 		self._normalizedAlternativeLabel = alternativeLabel.lower() if alternativeLabel is not None else None
 
-		self._namespace = Namespace(self._normalizedAlternativeLabel)
+		ConcurrentDeclarationRegionMixin.__init__(self, self._normalizedAlternativeLabel, declaredItems)
 		if parent is not None:
 			self._namespace.ParentNamespace = parent._namespace
 
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
@@ -773,6 +1076,7 @@ class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 
 
 @export
+@abstractclass
 class GenerateStatement(ConcurrentStatement, AllowBlackboxMixin):
 	"""
 	Represents the base-class of all generate statements.
@@ -847,7 +1151,7 @@ class IfGenerateStatement(GenerateStatement):
 	"""
 
 	_ifBranch:      IfGenerateBranch              #: The mandatory ``if`` branch.
-	_elsifBranches: List[ElsifGenerateBranch]     #: List of all ``elsif`` branches, in the order they were written.
+	_elsifBranches: list[ElsifGenerateBranch]     #: List of all ``elsif`` branches, in the order they were written.
 	_elseBranch:    Nullable[ElseGenerateBranch]  #: The optional ``else`` branch, or ``None`` if none was given.
 
 	def __init__(
@@ -914,7 +1218,7 @@ class IfGenerateStatement(GenerateStatement):
 		return self._ifBranch
 
 	@readonly
-	def ElsifBranches(self) -> List[ElsifGenerateBranch]:
+	def ElsifBranches(self) -> list[ElsifGenerateBranch]:
 		"""
 		Read-only property to access the elsif branches (:attr:`_elsifBranches`).
 
@@ -936,7 +1240,7 @@ class IfGenerateStatement(GenerateStatement):
 		for branch in self._elsifBranches:
 			yield from branch.IterateInstantiations()
 		if self._elseBranch is not None:
-			yield from self._ifBranch.IterateInstantiations()
+			yield from self._elseBranch.IterateInstantiations()
 
 	def IndexStatement(self) -> None:
 		self._ifBranch.IndexStatements()
@@ -947,6 +1251,7 @@ class IfGenerateStatement(GenerateStatement):
 
 
 @export
+@abstractclass
 class ConcurrentChoice(BaseChoice):
 	"""
 	A base-class for all concurrent choices (in case...generate statements).
@@ -1020,9 +1325,9 @@ class RangedGenerateChoice(ConcurrentChoice):
 	      when 0 to 3 =>
 	      --   ^^^^^^      <- Range
 	"""
-	_range: 'Range'  #: The range this choice selects on.
+	_range: Range  #: The range this choice selects on.
 
-	def __init__(self, rng: 'Range', parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, rng: Range, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a case-generate choice given by a range.
 
@@ -1035,7 +1340,7 @@ class RangedGenerateChoice(ConcurrentChoice):
 		rng.Parent = self
 
 	@readonly
-	def Range(self) -> 'Range':
+	def Range(self) -> Range:
 		"""
 		Read-only property to access the range (:attr:`_range`).
 
@@ -1055,6 +1360,7 @@ class RangedGenerateChoice(ConcurrentChoice):
 
 
 @export
+@abstractclass
 class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin, AllowBlackboxMixin, ChoicesMixin):
 	"""
 	Represents the base-class of all alternatives of a case-generate statement.
@@ -1064,8 +1370,6 @@ class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMi
 	   * :class:`Generate case <pyVHDLModel.Concurrent.GenerateCase>`
 	   * :class:`Others generate case <pyVHDLModel.Concurrent.OthersGenerateCase>`
 	"""
-	_namespace: Namespace  #: The namespace of this alternative's declarative region.
-
 	def __init__(
 		self,
 		declaredItems:    Nullable[Iterable] = None,
@@ -1090,12 +1394,10 @@ class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMi
 
 		# TODO: Why not handover self?
 		#       This allows access to Label and NormalizedLabel, also to create a full instance path in case a lookup goes wrong.
-		# TODO: How about a WithNamespaceMixin class?
-		self._namespace = Namespace(self._normalizedLabel)
+		ConcurrentDeclarationRegionMixin.__init__(self, self._normalizedLabel, declaredItems)
 		if parent is not None:
 			self._namespace.ParentNamespace = parent._namespace
 
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 		ChoicesMixin.__init__(self, choices)
@@ -1198,7 +1500,7 @@ class CaseGenerateStatement(GenerateStatement):
 	"""
 
 	_expression: ExpressionUnion     #: The expression being tested; it must be static.
-	_cases:      List[GenerateCase]  #: List of all alternatives, in the order they were written.
+	_cases:      list[GenerateCase]  #: List of all alternatives, in the order they were written.
 
 	def __init__(
 		self,
@@ -1247,7 +1549,7 @@ class CaseGenerateStatement(GenerateStatement):
 		return self._expression
 
 	@readonly
-	def Cases(self) -> List[GenerateCase]:
+	def Cases(self) -> list[GenerateCase]:
 		"""
 		Read-only property to access the cases (:attr:`_cases`).
 
@@ -1290,10 +1592,8 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 	   * :class:`Case-generate statement <pyVHDLModel.Concurrent.CaseGenerateStatement>`
 	"""
 
-	_loopIndex: str        #: The name of the generate loop's index.
-	_range:     Range      #: The range the generate loop iterates over.
-
-	_namespace: Namespace  #: The namespace of the generate loop's declarative region.
+	_loopIndex: str    #: The name of the generate loop's index.
+	_range:     Range  #: The range the generate loop iterates over.
 
 	def __init__(
 		self,
@@ -1318,11 +1618,10 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 		"""
 		super().__init__(label, allowBlackbox, parent)
 
-		self._namespace = Namespace(self._normalizedLabel)
+		ConcurrentDeclarationRegionMixin.__init__(self, self._normalizedLabel, declaredItems)
 		if parent is not None:
 			self._namespace.ParentNamespace = parent._namespace
 
-		ConcurrentDeclarationRegionMixin.__init__(self, declaredItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
 
 		self._loopIndex = loopIndex
@@ -1367,6 +1666,7 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 
 
 @export
+@abstractclass
 class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignmentMixin):
 	"""
 	Represents the base-class of all concurrent signal assignments.
@@ -1376,7 +1676,7 @@ class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignmentMixin):
 	   * :class:`Concurrent simple signal assignment <pyVHDLModel.Concurrent.ConcurrentSimpleSignalAssignment>`
 	   * :class:`Concurrent selected signal assignment <pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment>`
 	   * :class:`Conditional signal assignment <pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment>`	"""
-	def __init__(self, label: str, target: SignalSymbol, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, label: Nullable[str], target: SignalSymbol, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a concurrent signal assignment.
 
@@ -1408,7 +1708,13 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment, WaveformMixin
 
 	   * :class:`Sequential counterpart <pyVHDLModel.Sequential.SequentialSimpleSignalAssignment>`
 	"""
-	def __init__(self, label: str, target: SignalSymbol, waveform: Iterable[WaveformElement], parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(
+		self,
+		label: Nullable[str],
+		target: SignalSymbol,
+		waveform: Iterable[WaveformElement],
+		parent: Nullable[ModelEntity] = None
+	) -> None:
 		"""
 		Initializes a simple concurrent signal assignment.
 
@@ -1449,7 +1755,7 @@ class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment, ExpressionM
 
 	def __init__(
 		self,
-		label: str,
+		label: Nullable[str],
 		target: SignalSymbol,
 		expression: ExpressionUnion,
 		selectedWaveforms: Iterable[SelectedWaveform],
@@ -1496,7 +1802,7 @@ class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment, Conditio
 
 	def __init__(
 		self,
-		label: str,
+		label: Nullable[str],
 		target: SignalSymbol,
 		conditionalWaveforms: Iterable[ConditionalWaveform],
 		parent: Nullable[ModelEntity] = None
@@ -1538,7 +1844,7 @@ class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
 	def __init__(
 		self,
 		condition: ExpressionUnion,
-		message: ExpressionUnion,
+		message: Nullable[ExpressionUnion] = None,
 		severity: Nullable[ExpressionUnion] = None,
 		label: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None

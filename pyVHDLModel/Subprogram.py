@@ -34,21 +34,32 @@ This module contains parts of an abstract document language model for VHDL.
 
 Subprograms are procedures, functions and methods.
 """
-from typing                 import ClassVar, List, Iterable, Optional as Nullable
+from __future__             import annotations
+
+from typing                 import ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType
+from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf
 from pyVHDLModel.Symbol     import SubtypeSymbol
 from pyVHDLModel.Type       import ProtectedType
 from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
-from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin
-from pyVHDLModel.Sequential import SequentialStatement
+from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, WithGenericsMixin, WithParametersMixin
+from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixin
 
 
 @export
-class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, SequentialDeclarationRegionMixin):
+@abstractclass
+class Subprogram(
+	ModelEntity,
+	NamedEntityMixin,
+	DocumentedEntityMixin,
+	WithGenericsMixin,
+	WithParametersMixin,
+	SequentialDeclarationRegionMixin,
+	SequentialStatementsMixin
+):
 	"""
 	Represents the base-class of all subprograms: procedures and functions.
 
@@ -61,19 +72,15 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Sequentia
 	   * :class:`Procedure <pyVHDLModel.Subprogram.Procedure>`
 	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
 	"""
-	_subprogramKeyword: ClassVar[str] = "subprogram"  #: The VHDL keyword introducing this subprogram kind.
-
-	_genericItems:   List['GenericInterfaceItemMixin']    #: List of all generics, in declaration order.
-	_parameterItems: List['ParameterInterfaceItemMixin']  #: List of all parameters, in declaration order.
-	_statements:     List[SequentialStatement]            #: List of all sequential statements in the subprogram's body.
-	_isPure:         bool                                 #: ``True`` if the subprogram was declared pure.
+	_SUBPROGRAM_KEYWORD: ClassVar[str] = "subprogram"  #: The VHDL keyword introducing this subprogram kind.
+	_isPure:             bool                          #: ``True`` if the subprogram was declared pure.
 
 	def __init__(
 		self,
 		identifier:     str,
 		isPure:         bool,
-		genericItems:   Nullable[Iterable['GenericInterfaceItemMixin']] =   None,
-		parameterItems: Nullable[Iterable['ParameterInterfaceItemMixin']] = None,
+		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
@@ -95,24 +102,9 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Sequentia
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 		SequentialDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
-
-		self._genericItems = []  # TODO: convert to dict
-		if genericItems is not None:
-			for item in genericItems:
-				self._genericItems.append(item)
-				item.Parent = self
-
-		self._parameterItems = []  # TODO: convert to dict
-		if parameterItems is not None:
-			for item in parameterItems:
-				self._parameterItems.append(item)
-				item.Parent = self
-
-		self._statements = []  # TODO: use mixin class
-		if statements is not None:
-			for item in statements:
-				self._statements.append(item)
-				item.Parent = self
+		WithGenericsMixin.__init__(self, genericItems)
+		WithParametersMixin.__init__(self, parameterItems)
+		SequentialStatementsMixin.__init__(self, statements)
 
 		self._isPure = isPure
 
@@ -129,33 +121,6 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Sequentia
 			self._namespace.ParentNamespace = parent._namespace
 
 	@readonly
-	def GenericItems(self) -> List['GenericInterfaceItemMixin']:
-		"""
-		Read-only property to access the generic items (:attr:`_genericItems`).
-
-		:returns: List of generic items.
-		"""
-		return self._genericItems
-
-	@readonly
-	def ParameterItems(self) -> List['ParameterInterfaceItemMixin']:
-		"""
-		Read-only property to access the parameter items (:attr:`_parameterItems`).
-
-		:returns: List of parameter items.
-		"""
-		return self._parameterItems
-
-	@readonly
-	def Statements(self) -> List[SequentialStatement]:
-		"""
-		Read-only property to access the statements (:attr:`_statements`).
-
-		:returns: List of statements.
-		"""
-		return self._statements
-
-	@readonly
 	def IsPure(self) -> bool:
 		"""
 		Check if the subprogram is pure (:attr:`_isPure`).
@@ -166,11 +131,33 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Sequentia
 
 
 	def IndexDeclaredItems(self) -> None:
-		"""A subprogram's generics and parameters share the declarative region of its declarative part."""
+		"""
+		A subprogram's generics and parameters share the declarative region of its declarative part.
+
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		"""
 		self._IndexGenericItems()
 		self._IndexParameterItems()
 
 		super().IndexDeclaredItems()
+
+	def _Declarations(self) -> tuple[ModelEntity, ...]:
+		"""
+		Return all declarations of this subprogram: its generics and parameters share the declarative region.
+
+		:returns: Tuple of declarations: the generics, the parameters, then the declared items.
+		"""
+		return (*self._genericItems, *self._parameterItems, *super()._Declarations())
+
+	def _LabelRegion(self) -> Subprogram:
+		"""
+		Return the subprogram, whose declarative region declares the labels of its statements.
+
+		:returns: The subprogram itself.
+		"""
+		return self
 
 	def __str__(self) -> str:
 		"""
@@ -181,7 +168,7 @@ class Subprogram(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Sequentia
 		:returns: Formatted subprogram declaration.
 		"""
 		parameters = ", ".join(name for item in self._parameterItems for name in identifiersOf(item))
-		return f"{self._subprogramKeyword} {self._identifier}({parameters})"
+		return f"{self._SUBPROGRAM_KEYWORD} {self._identifier}({parameters})"
 
 
 @export
@@ -215,12 +202,13 @@ class Procedure(Subprogram):
 	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
 	"""
 
-	_subprogramKeyword: ClassVar[str] = "procedure"
+	_SUBPROGRAM_KEYWORD: ClassVar[str] = "procedure"  #: The VHDL keyword introducing this subprogram kind.
+
 	def __init__(
 		self,
 		identifier:     str,
-		genericItems:   Nullable[Iterable['GenericInterfaceItemMixin']] =   None,
-		parameterItems: Nullable[Iterable['ParameterInterfaceItemMixin']] = None,
+		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
@@ -273,16 +261,16 @@ class Function(Subprogram):
 	   * :class:`Procedure <pyVHDLModel.Subprogram.Procedure>`
 	"""
 
-	_subprogramKeyword: ClassVar[str] = "function"
-	_returnType: SubtypeSymbol  #: Reference to the subtype of the function's return value.
+	_SUBPROGRAM_KEYWORD: ClassVar[str] = "function"  #: The VHDL keyword introducing this subprogram kind.
+	_returnType:         SubtypeSymbol               #: Reference to the subtype of the function's return value.
 
 	def __init__(
 		self,
 		identifier:     str,
 		returnType:     SubtypeSymbol,
 		isPure:         bool =                                              True,
-		genericItems:   Nullable[Iterable['GenericInterfaceItemMixin']] =   None,
-		parameterItems: Nullable[Iterable['ParameterInterfaceItemMixin']] = None,
+		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
@@ -363,8 +351,8 @@ class ProcedureMethod(Procedure, MethodMixin):
 	def __init__(
 		self,
 		identifier:     str,
-		genericItems:   Nullable[Iterable['GenericInterfaceItemMixin']] =   None,
-		parameterItems: Nullable[Iterable['ParameterInterfaceItemMixin']] = None,
+		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
@@ -403,8 +391,8 @@ class FunctionMethod(Function, MethodMixin):
 		identifier:     str,
 		returnType:     SubtypeSymbol,
 		isPure:         bool =                                              True,
-		genericItems:   Nullable[Iterable['GenericInterfaceItemMixin']] =   None,
-		parameterItems: Nullable[Iterable['ParameterInterfaceItemMixin']] = None,
+		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,

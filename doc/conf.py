@@ -2,6 +2,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 from sys      import path as sys_path
+from os       import environ
 from os.path  import abspath
 from pathlib  import Path
 from json     import loads
@@ -99,6 +100,12 @@ html_theme_options = {
 html_css_files = [
 	'css/override.css',
 ]
+
+# GoatCounter counts the page views of the published documentation, which is built on GitHub Actions.
+if environ.get("GITHUB_ACTIONS") == "true":
+	html_js_files = [
+		("https://gc.zgo.at/count.js", {"async": "async", "data-goatcounter": "https://vhdl.goatcounter.com/count"}),
+	]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

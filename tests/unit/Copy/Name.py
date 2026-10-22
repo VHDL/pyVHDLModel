@@ -51,14 +51,8 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class _MirrorSimpleName(SimpleName):
-	"""A simple name of another package, constructed from an extra parameter (like a :mod:`pyGHDL.dom` class)."""
-
-	_node: int  #: The extra constructor parameter.
-
-	def __init__(self, node: int, identifier: str) -> None:
-		super().__init__(identifier)
-		self._node = node
+class _DerivedSimpleName(SimpleName):
+	"""A name of a class derived outside pyVHDLModel, with the constructor of its base-class."""
 
 
 class CopyMethods(Testcase):
@@ -86,12 +80,12 @@ class SimpleNames(Testcase):
 		self.assertEqual(VHDLWriter().Format(original), VHDLWriter().Format(copy))
 
 	def test_Copy_Derived(self) -> None:
-		"""A copy of a name of a class derived outside pyVHDLModel is a name of the pyVHDLModel class."""
-		original = _MirrorSimpleName(42, "Clock")
+		"""A copy of a name of a derived class is an instance of that class."""
+		original = _DerivedSimpleName("Clock")
 
 		copy = original.Copy()
 
-		self.assertIs(SimpleName, type(copy))
+		self.assertIs(_DerivedSimpleName, type(copy))
 		self.assertEqual("Clock", copy.Identifier)
 
 

@@ -37,13 +37,13 @@ Symbols are entity specific wrappers for names that reference VHDL language enti
 from __future__            import annotations
 
 from enum                  import Flag, auto
-from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping
+from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping, Self
 
 from pyTooling.Common      import getTypeName
 from pyTooling.Decorators  import export, notimplemented, readonly
 from pyTooling.MetaClasses import ExtendedType, abstractclass
 
-from pyVHDLModel.Base      import Range, modelClassOf
+from pyVHDLModel.Base      import Range
 from pyVHDLModel.Name      import Name, AllName
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor import Visitor
@@ -154,7 +154,7 @@ class Symbol(metaclass=ExtendedType):
 		"""
 		return self._reference is not None
 
-	def Copy(self) -> Symbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this symbol.
 
@@ -162,7 +162,7 @@ class Symbol(metaclass=ExtendedType):
 
 		:returns: The new symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy(), self._possibleReferences)
+		copy = self.__class__(self._name.Copy(), self._possibleReferences)
 		copy._reference = self._reference
 		return copy
 
@@ -239,7 +239,7 @@ class LibraryReferenceSymbol(Symbol):
 	def Library(self, value: Library) -> None:
 		self._reference = value
 
-	def Copy(self) -> LibraryReferenceSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this library reference symbol.
 
@@ -247,7 +247,7 @@ class LibraryReferenceSymbol(Symbol):
 
 		:returns: The new library reference symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -288,7 +288,7 @@ class PackageReferenceSymbol(Symbol):
 	def Package(self, value: Package) -> None:
 		self._reference = value
 
-	def Copy(self) -> PackageReferenceSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this package reference symbol.
 
@@ -296,7 +296,7 @@ class PackageReferenceSymbol(Symbol):
 
 		:returns: The new package reference symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -347,7 +347,7 @@ class ModeViewSymbol(Symbol):
 	def ModeView(self, value: ModeViewDeclaration) -> None:
 		self._reference = value
 
-	def Copy(self) -> ModeViewSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this mode view symbol.
 
@@ -355,7 +355,7 @@ class ModeViewSymbol(Symbol):
 
 		:returns: The new mode view symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -396,7 +396,7 @@ class SubprogramReferenceSymbol(Symbol):
 	def Subprogram(self, value: Subprogram) -> None:
 		self._reference = value
 
-	def Copy(self) -> SubprogramReferenceSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this subprogram reference symbol.
 
@@ -404,7 +404,7 @@ class SubprogramReferenceSymbol(Symbol):
 
 		:returns: The new subprogram reference symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -445,7 +445,7 @@ class ConfigurationSymbol(Symbol):
 	def Configuration(self, value: Configuration) -> None:
 		self._reference = value
 
-	def Copy(self) -> ConfigurationSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this configuration symbol.
 
@@ -453,7 +453,7 @@ class ConfigurationSymbol(Symbol):
 
 		:returns: The new configuration symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -494,7 +494,7 @@ class VariableSymbol(Symbol):
 	def Variable(self, value: Variable) -> None:
 		self._reference = value
 
-	def Copy(self) -> VariableSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this variable symbol.
 
@@ -502,7 +502,7 @@ class VariableSymbol(Symbol):
 
 		:returns: The new variable symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -543,7 +543,7 @@ class SignalSymbol(Symbol):
 	def Signal(self, value: Signal) -> None:
 		self._reference = value
 
-	def Copy(self) -> SignalSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this signal symbol.
 
@@ -551,7 +551,7 @@ class SignalSymbol(Symbol):
 
 		:returns: The new signal symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -592,7 +592,7 @@ class ContextReferenceSymbol(Symbol):
 	def Context(self, value: Context) -> None:
 		self._reference = value
 
-	def Copy(self) -> ContextReferenceSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this context reference symbol.
 
@@ -600,7 +600,7 @@ class ContextReferenceSymbol(Symbol):
 
 		:returns: The new context reference symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -641,7 +641,7 @@ class PackageMemberReferenceSymbol(Symbol):
 	def Member(self, value: Package) -> None:  # TODO: typehint
 		self._reference = value
 
-	def Copy(self) -> PackageMemberReferenceSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this package member reference symbol.
 
@@ -649,7 +649,7 @@ class PackageMemberReferenceSymbol(Symbol):
 
 		:returns: The new package member reference symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -690,7 +690,7 @@ class AllPackageMembersReferenceSymbol(Symbol):
 	def Members(self, value: Package) -> None:  # TODO: typehint
 		self._reference = value
 
-	def Copy(self) -> AllPackageMembersReferenceSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this all package members reference symbol.
 
@@ -698,7 +698,7 @@ class AllPackageMembersReferenceSymbol(Symbol):
 
 		:returns: The new all package members reference symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -739,7 +739,7 @@ class EntityInstantiationSymbol(Symbol):
 	def Entity(self, value: Entity) -> None:
 		self._reference = value
 
-	def Copy(self) -> EntityInstantiationSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this entity instantiation symbol.
 
@@ -747,7 +747,7 @@ class EntityInstantiationSymbol(Symbol):
 
 		:returns: The new entity instantiation symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -788,7 +788,7 @@ class ComponentInstantiationSymbol(Symbol):
 	def Component(self, value: Component) -> None:
 		self._reference = value
 
-	def Copy(self) -> ComponentInstantiationSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this component instantiation symbol.
 
@@ -796,7 +796,7 @@ class ComponentInstantiationSymbol(Symbol):
 
 		:returns: The new component instantiation symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -837,7 +837,7 @@ class ConfigurationInstantiationSymbol(Symbol):
 	def Configuration(self, value: Configuration) -> None:
 		self._reference = value
 
-	def Copy(self) -> ConfigurationInstantiationSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this configuration instantiation symbol.
 
@@ -845,7 +845,7 @@ class ConfigurationInstantiationSymbol(Symbol):
 
 		:returns: The new configuration instantiation symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -888,7 +888,7 @@ class EntitySymbol(Symbol):
 	def Entity(self, value: Entity) -> None:
 		self._reference = value
 
-	def Copy(self) -> EntitySymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this entity symbol.
 
@@ -896,7 +896,7 @@ class EntitySymbol(Symbol):
 
 		:returns: The new entity symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -926,7 +926,7 @@ class ArchitectureSymbol(Symbol):
 	def Architecture(self, value: Architecture) -> None:
 		self._reference = value
 
-	def Copy(self) -> ArchitectureSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this architecture symbol.
 
@@ -934,7 +934,7 @@ class ArchitectureSymbol(Symbol):
 
 		:returns: The new architecture symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -976,7 +976,7 @@ class PackageSymbol(Symbol):
 	def Package(self, value: Package) -> None:
 		self._reference = value
 
-	def Copy(self) -> PackageSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this package symbol.
 
@@ -984,7 +984,7 @@ class PackageSymbol(Symbol):
 
 		:returns: The new package symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -1011,7 +1011,7 @@ class RecordElementSymbol(Symbol):
 		"""
 		super().__init__(name, PossibleReference.RecordElement)
 
-	def Copy(self) -> RecordElementSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this record element symbol.
 
@@ -1019,7 +1019,7 @@ class RecordElementSymbol(Symbol):
 
 		:returns: The new record element symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -1040,7 +1040,7 @@ class RangeAttributeSymbol(Symbol):
 		"""
 		super().__init__(name, PossibleReference.RangeAttribute)
 
-	def Copy(self) -> RangeAttributeSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this range attribute symbol.
 
@@ -1048,7 +1048,7 @@ class RangeAttributeSymbol(Symbol):
 
 		:returns: The new range attribute symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -1087,7 +1087,7 @@ class SubtypeSymbol(Symbol):
 	def Subtype(self, value: Subtype) -> None:
 		self._reference = value
 
-	def Copy(self) -> SubtypeSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this subtype symbol.
 
@@ -1095,7 +1095,7 @@ class SubtypeSymbol(Symbol):
 
 		:returns: The new subtype symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -1198,7 +1198,7 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol, ScalarConstraint):
 		super().__init__(name)
 		ScalarConstraint.__init__(self, constraint)
 
-	def Copy(self) -> ConstrainedScalarSubtypeSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this constrained scalar subtype symbol.
 
@@ -1206,7 +1206,7 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol, ScalarConstraint):
 
 		:returns: The new constrained scalar subtype symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy(), self._constraint.Copy())
+		copy = self.__class__(self._name.Copy(), self._constraint.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -1336,7 +1336,7 @@ class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol, ArrayCons
 		super().__init__(name)
 		ArrayConstraint.__init__(self, constraints)
 
-	def Copy(self) -> ConstrainedArraySubtypeSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this constrained array subtype symbol.
 
@@ -1344,7 +1344,7 @@ class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol, ArrayCons
 
 		:returns: The new constrained array subtype symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy(), [constraint.Copy() for constraint in self._constraints])
+		copy = self.__class__(self._name.Copy(), [constraint.Copy() for constraint in self._constraints])
 		copy._reference = self._reference
 		return copy
 
@@ -1368,7 +1368,7 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 		super().__init__(name)
 		RecordConstraint.__init__(self, constraints)
 
-	def Copy(self) -> ConstrainedRecordSubtypeSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this constrained record subtype symbol.
 
@@ -1380,7 +1380,7 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 			element.Copy(): None if constraint is None else constraint.Copy()
 			for element, constraint in self._constraints.items()
 		}
-		copy = modelClassOf(self)(self._name.Copy(), constraints)
+		copy = self.__class__(self._name.Copy(), constraints)
 		copy._reference = self._reference
 		return copy
 
@@ -1401,7 +1401,7 @@ class SimpleObjectOrFunctionCallSymbol(Symbol):
 		"""
 		super().__init__(name, PossibleReference.SimpleNameInExpression)
 
-	def Copy(self) -> SimpleObjectOrFunctionCallSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this simple object or function call symbol.
 
@@ -1409,7 +1409,7 @@ class SimpleObjectOrFunctionCallSymbol(Symbol):
 
 		:returns: The new simple object or function call symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -1442,7 +1442,7 @@ class IndexedObjectOrFunctionCallSymbol(Symbol):
 			PossibleReference.Object | PossibleReference.Function | PossibleReference.Type | PossibleReference.Subtype
 		)
 
-	def Copy(self) -> IndexedObjectOrFunctionCallSymbol:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this indexed object or function call symbol.
 
@@ -1450,6 +1450,6 @@ class IndexedObjectOrFunctionCallSymbol(Symbol):
 
 		:returns: The new indexed object or function call symbol.
 		"""
-		copy = modelClassOf(self)(self._name.Copy())
+		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy

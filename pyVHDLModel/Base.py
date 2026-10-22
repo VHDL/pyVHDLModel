@@ -37,7 +37,7 @@ Base-classes for the VHDL language model.
 from __future__            import annotations
 
 from enum                  import unique, Enum
-from typing                import TYPE_CHECKING, Type, Iterable, Optional as Nullable, Union, cast
+from typing                import TYPE_CHECKING, Type, Iterable, Optional as Nullable, Union, cast, Self
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, notimplemented, readonly
@@ -182,24 +182,6 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		:param visitor:              The visitor receiving the events.
 		:raises NotImplementedError: Always, because the element's class has no walk of its own.
 		"""
-
-
-@export
-def modelClassOf(element: ModelElementUnion) -> type:
-	"""
-	Return the class a copy of a model element is constructed from.
-
-	It is the element's own class, if pyVHDLModel defines it, otherwise the nearest base-class pyVHDLModel defines. So a
-	copy of a :mod:`pyGHDL.dom` element is an instance of the pyVHDLModel class it derives from.
-
-	:param element: The model element to copy.
-	:returns:       The nearest class of the element defined in a module of pyVHDLModel.
-	"""
-	for cls in type(element).__mro__:
-		if cls.__module__ == "pyVHDLModel" or cls.__module__.startswith("pyVHDLModel."):
-			break
-
-	return cls
 
 
 @export
@@ -842,7 +824,7 @@ class SimpleRange(Range):
 		"""
 		return self._direction
 
-	def Copy(self) -> SimpleRange:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this simple range.
 
@@ -850,7 +832,7 @@ class SimpleRange(Range):
 
 		:returns: The new simple range.
 		"""
-		return modelClassOf(self)(self._leftBound.Copy(), self._rightBound.Copy(), self._direction)
+		return self.__class__(self._leftBound.Copy(), self._rightBound.Copy(), self._direction)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -919,7 +901,7 @@ class RangeFromName(Range):
 		"""
 		return self._symbol
 
-	def Copy(self) -> RangeFromName:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this range denoted by a name.
 
@@ -927,7 +909,7 @@ class RangeFromName(Range):
 
 		:returns: The new range denoted by a name.
 		"""
-		return modelClassOf(self)(self._symbol.Copy())
+		return self.__class__(self._symbol.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

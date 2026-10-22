@@ -37,13 +37,13 @@ All declarations for literals, aggregates, operators forming an expressions.
 from __future__            import annotations
 
 from enum                  import Flag, IntEnum, unique
-from typing                import TYPE_CHECKING, Iterable, Union, ClassVar, Optional as Nullable
+from typing                import TYPE_CHECKING, Iterable, Union, ClassVar, Optional as Nullable, Self
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import abstractclass
 
-from pyVHDLModel.Base      import ModelEntity, Direction, Range, modelClassOf
+from pyVHDLModel.Base      import ModelEntity, Direction, Range
 from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor import Visitor
@@ -132,7 +132,7 @@ class NullLiteral(Literal):
 	      p := null;
 	      --   ^^^^    <- the literal
 	"""
-	def Copy(self) -> NullLiteral:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this null literal.
 
@@ -140,7 +140,7 @@ class NullLiteral(Literal):
 
 		:returns: The new null literal.
 		"""
-		return modelClassOf(self)()
+		return self.__class__()
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -198,7 +198,7 @@ class EnumerationLiteral(Literal):
 		"""
 		return self._value
 
-	def Copy(self) -> EnumerationLiteral:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this enumeration literal.
 
@@ -206,7 +206,7 @@ class EnumerationLiteral(Literal):
 
 		:returns: The new enumeration literal.
 		"""
-		return modelClassOf(self)(self._value)
+		return self.__class__(self._value)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -278,7 +278,7 @@ class IntegerLiteral(NumericLiteral):
 		"""
 		return self._value
 
-	def Copy(self) -> IntegerLiteral:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this integer literal.
 
@@ -286,7 +286,7 @@ class IntegerLiteral(NumericLiteral):
 
 		:returns: The new integer literal.
 		"""
-		return modelClassOf(self)(self._value)
+		return self.__class__(self._value)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -342,7 +342,7 @@ class FloatingPointLiteral(NumericLiteral):
 		"""
 		return self._value
 
-	def Copy(self) -> FloatingPointLiteral:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this floating-point literal.
 
@@ -350,7 +350,7 @@ class FloatingPointLiteral(NumericLiteral):
 
 		:returns: The new floating-point literal.
 		"""
-		return modelClassOf(self)(self._value)
+		return self.__class__(self._value)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -460,7 +460,7 @@ class PhysicalIntegerLiteral(PhysicalLiteral):
 		"""
 		return self._value
 
-	def Copy(self) -> PhysicalIntegerLiteral:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this physical literal.
 
@@ -468,7 +468,7 @@ class PhysicalIntegerLiteral(PhysicalLiteral):
 
 		:returns: The new physical literal.
 		"""
-		return modelClassOf(self)(self._value, self._unitName)
+		return self.__class__(self._value, self._unitName)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -516,7 +516,7 @@ class PhysicalFloatingLiteral(PhysicalLiteral):
 		"""
 		return self._value
 
-	def Copy(self) -> PhysicalFloatingLiteral:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this physical literal.
 
@@ -524,7 +524,7 @@ class PhysicalFloatingLiteral(PhysicalLiteral):
 
 		:returns: The new physical literal.
 		"""
-		return modelClassOf(self)(self._value, self._unitName)
+		return self.__class__(self._value, self._unitName)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -587,7 +587,7 @@ class CharacterLiteral(Literal):
 		"""
 		return self._value
 
-	def Copy(self) -> CharacterLiteral:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this character literal.
 
@@ -595,7 +595,7 @@ class CharacterLiteral(Literal):
 
 		:returns: The new character literal.
 		"""
-		return modelClassOf(self)(self._value)
+		return self.__class__(self._value)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -651,7 +651,7 @@ class StringLiteral(Literal):
 		"""
 		return self._value
 
-	def Copy(self) -> StringLiteral:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this string literal.
 
@@ -659,7 +659,7 @@ class StringLiteral(Literal):
 
 		:returns: The new string literal.
 		"""
-		return modelClassOf(self)(self._value)
+		return self.__class__(self._value)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -788,7 +788,7 @@ class BitStringLiteral(Literal):
 		"""
 		return self._isSigned
 
-	def Copy(self) -> BitStringLiteral:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this bit string literal.
 
@@ -796,7 +796,7 @@ class BitStringLiteral(Literal):
 
 		:returns: The new bit string literal.
 		"""
-		return modelClassOf(self)(self._value, self._length, self._isSigned)
+		return self.__class__(self._value, self._length, self._isSigned)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -954,7 +954,7 @@ class UnaryExpression(BaseExpression):
 		"""
 		return self._operand
 
-	def Copy(self) -> UnaryExpression:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this unary expression.
 
@@ -962,7 +962,7 @@ class UnaryExpression(BaseExpression):
 
 		:returns: The new unary expression.
 		"""
-		return modelClassOf(self)(self._operand.Copy())
+		return self.__class__(self._operand.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1244,7 +1244,7 @@ class TypeConversion(UnaryExpression):
 		"""
 		return self._targetSubtype
 
-	def Copy(self) -> TypeConversion:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this type conversion.
 
@@ -1252,7 +1252,7 @@ class TypeConversion(UnaryExpression):
 
 		:returns: The new type conversion.
 		"""
-		return modelClassOf(self)(self._targetSubtype.Copy(), self._operand.Copy())
+		return self.__class__(self._targetSubtype.Copy(), self._operand.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1363,7 +1363,7 @@ class BinaryExpression(BaseExpression):
 		"""
 		return self._rightOperand
 
-	def Copy(self) -> BinaryExpression:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this binary expression.
 
@@ -1371,7 +1371,7 @@ class BinaryExpression(BaseExpression):
 
 		:returns: The new binary expression.
 		"""
-		return modelClassOf(self)(self._leftOperand.Copy(), self._rightOperand.Copy())
+		return self.__class__(self._leftOperand.Copy(), self._rightOperand.Copy())
 
 	def __str__(self) -> str:
 		"""
@@ -2372,7 +2372,7 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 		"""
 		return self._subtype
 
-	def Copy(self) -> QualifiedExpression:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this qualified expression.
 
@@ -2380,7 +2380,7 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 
 		:returns: The new qualified expression.
 		"""
-		return modelClassOf(self)(self._subtype.Copy(), self._operand.Copy())
+		return self.__class__(self._subtype.Copy(), self._operand.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -2533,7 +2533,7 @@ class WhenElseExpression(TernaryExpression):
 		"""
 		return self._thirdOperand
 
-	def Copy(self) -> WhenElseExpression:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this conditional expression.
 
@@ -2541,7 +2541,7 @@ class WhenElseExpression(TernaryExpression):
 
 		:returns: The new conditional expression.
 		"""
-		return modelClassOf(self)(self._firstOperand.Copy(), self._secondOperand.Copy(), self._thirdOperand.Copy())
+		return self.__class__(self._firstOperand.Copy(), self._secondOperand.Copy(), self._thirdOperand.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -2570,7 +2570,7 @@ class FunctionCall(BaseExpression):
 	      res := maximum(a, b);
 	      --     ^^^^^^^^^^^^^    <- the call
 	"""
-	def Copy(self) -> FunctionCall:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this function call.
 
@@ -2578,7 +2578,7 @@ class FunctionCall(BaseExpression):
 
 		:returns: The new function call.
 		"""
-		return modelClassOf(self)()
+		return self.__class__()
 
 
 @export
@@ -2632,7 +2632,7 @@ class SubtypeAllocation(Allocation):
 		"""
 		return self._subtype
 
-	def Copy(self) -> SubtypeAllocation:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this subtype allocation.
 
@@ -2640,7 +2640,7 @@ class SubtypeAllocation(Allocation):
 
 		:returns: The new subtype allocation.
 		"""
-		return modelClassOf(self)(self._subtype.Copy())
+		return self.__class__(self._subtype.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -2700,7 +2700,7 @@ class QualifiedExpressionAllocation(Allocation):
 		"""
 		return self._qualifiedExpression
 
-	def Copy(self) -> QualifiedExpressionAllocation:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this qualified expression allocation.
 
@@ -2708,7 +2708,7 @@ class QualifiedExpressionAllocation(Allocation):
 
 		:returns: The new qualified expression allocation.
 		"""
-		return modelClassOf(self)(self._qualifiedExpression.Copy())
+		return self.__class__(self._qualifiedExpression.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -2771,7 +2771,7 @@ class AggregateElement(ModelEntity):
 		"""
 		return self._expression
 
-	def Copy(self) -> AggregateElement:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this aggregate element.
 
@@ -2779,7 +2779,7 @@ class AggregateElement(ModelEntity):
 
 		:returns: The new aggregate element.
 		"""
-		return modelClassOf(self)(self._expression.Copy())
+		return self.__class__(self._expression.Copy())
 
 
 @export
@@ -2855,7 +2855,7 @@ class IndexedAggregateElement(AggregateElement):
 		"""
 		return self._index
 
-	def Copy(self) -> IndexedAggregateElement:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this indexed aggregate element.
 
@@ -2863,7 +2863,7 @@ class IndexedAggregateElement(AggregateElement):
 
 		:returns: The new indexed aggregate element.
 		"""
-		return modelClassOf(self)(self._index.Copy(), self._expression.Copy())
+		return self.__class__(self._index.Copy(), self._expression.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -2927,7 +2927,7 @@ class RangedAggregateElement(AggregateElement):
 		"""
 		return self._range
 
-	def Copy(self) -> RangedAggregateElement:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this ranged aggregate element.
 
@@ -2935,7 +2935,7 @@ class RangedAggregateElement(AggregateElement):
 
 		:returns: The new ranged aggregate element.
 		"""
-		return modelClassOf(self)(self._range.Copy(), self._expression.Copy())
+		return self.__class__(self._range.Copy(), self._expression.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -2999,7 +2999,7 @@ class NamedAggregateElement(AggregateElement):
 		"""
 		return self._name
 
-	def Copy(self) -> NamedAggregateElement:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this named aggregate element.
 
@@ -3007,7 +3007,7 @@ class NamedAggregateElement(AggregateElement):
 
 		:returns: The new named aggregate element.
 		"""
-		return modelClassOf(self)(self._name.Copy(), self._expression.Copy())
+		return self.__class__(self._name.Copy(), self._expression.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -3113,7 +3113,7 @@ class Aggregate(BaseExpression):
 		"""
 		return self._elements
 
-	def Copy(self) -> Aggregate:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this aggregate.
 
@@ -3121,7 +3121,7 @@ class Aggregate(BaseExpression):
 
 		:returns: The new aggregate.
 		"""
-		return modelClassOf(self)([element.Copy() for element in self._elements])
+		return self.__class__([element.Copy() for element in self._elements])
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

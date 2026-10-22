@@ -36,13 +36,13 @@ Associations are used in generic maps, port maps and parameter maps.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, Iterable, Optional as Nullable, Union
+from typing                  import TYPE_CHECKING, Iterable, Optional as Nullable, Union, Self
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
-from pyVHDLModel.Base        import ModelEntity, modelClassOf
+from pyVHDLModel.Base        import ModelEntity
 from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError
 from pyVHDLModel.Exception   import DuplicateGenericAssociationError, DuplicatePortAssociationError
 from pyVHDLModel.Name        import Name, SimpleName
@@ -116,7 +116,7 @@ class AssociationItem(ModelEntity):
 		"""
 		return self._actual
 
-	def Copy(self) -> AssociationItem:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this association item.
 
@@ -126,7 +126,7 @@ class AssociationItem(ModelEntity):
 		"""
 		formal = None if self._formal is None else self._formal.Copy()
 		actual = None if self._actual is None else self._actual.Copy()
-		return modelClassOf(self)(formal, actual)
+		return self.__class__(formal, actual)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

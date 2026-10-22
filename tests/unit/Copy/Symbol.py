@@ -61,12 +61,8 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class _MirrorSignalSymbol(SignalSymbol):
-	"""A signal symbol of another package, constructed from an extra parameter (like a :mod:`pyGHDL.dom` class)."""
-
-	def __init__(self, node: int, name: SimpleName) -> None:
-		super().__init__(name)
-		self._node = node
+class _DerivedSignalSymbol(SignalSymbol):
+	"""A symbol of a class derived outside pyVHDLModel, with the constructor of its base-class."""
 
 
 class CopyMethods(Testcase):
@@ -105,12 +101,12 @@ class Symbols(Testcase):
 		self.assertTrue(copy.IsResolved)
 
 	def test_Copy_Derived(self) -> None:
-		"""A copy of a symbol of a class derived outside pyVHDLModel is a symbol of the pyVHDLModel class."""
-		original = _MirrorSignalSymbol(42, SimpleName("s"))
+		"""A copy of a symbol of a derived class is an instance of that class."""
+		original = _DerivedSignalSymbol(SimpleName("s"))
 
 		copy = original.Copy()
 
-		self.assertIs(SignalSymbol, type(copy))
+		self.assertIs(_DerivedSignalSymbol, type(copy))
 		self.assertEqual("s", copy.Name.Identifier)
 
 	def test_Copy_Classes(self) -> None:

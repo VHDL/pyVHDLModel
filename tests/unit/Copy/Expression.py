@@ -69,14 +69,8 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class _MirrorAdditionExpression(AdditionExpression):
-	"""An addition of another package, constructed from an extra parameter (like a :mod:`pyGHDL.dom` class)."""
-
-	_node: int  #: The extra constructor parameter.
-
-	def __init__(self, node: int, leftOperand: IntegerLiteral, rightOperand: IntegerLiteral) -> None:
-		super().__init__(leftOperand, rightOperand)
-		self._node = node
+class _DerivedAdditionExpression(AdditionExpression):
+	"""An expression of a class derived outside pyVHDLModel, with the constructor of its base-class."""
 
 
 class CopyMethods(Testcase):
@@ -306,12 +300,12 @@ class BinaryExpressions(Testcase):
 		self.assertIs(copy.LeftOperand.Operand, copy.LeftOperand.Operand.RightOperand.Parent)
 
 	def test_Copy_Derived(self) -> None:
-		"""A copy of an expression of a class derived outside pyVHDLModel is an expression of the pyVHDLModel class."""
-		original = _MirrorAdditionExpression(42, IntegerLiteral(1), IntegerLiteral(2))
+		"""A copy of an expression of a derived class is an instance of that class."""
+		original = _DerivedAdditionExpression(IntegerLiteral(1), IntegerLiteral(2))
 
 		copy = original.Copy()
 
-		self.assertIs(AdditionExpression, type(copy))
+		self.assertIs(_DerivedAdditionExpression, type(copy))
 		self.assertEqual("1 + 2", VHDLWriter().Format(copy))
 
 

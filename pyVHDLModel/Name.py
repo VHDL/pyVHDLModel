@@ -38,12 +38,12 @@ combined identifiers. :mod:`Symbols <pyVHDLModel.Symbol>` are structures represe
 """
 from __future__            import annotations
 
-from typing                import TYPE_CHECKING, Iterable, Optional as Nullable
+from typing                import TYPE_CHECKING, Iterable, Optional as Nullable, Self
 
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import abstractclass
 
-from pyVHDLModel.Base      import ModelEntity, ExpressionUnion, modelClassOf
+from pyVHDLModel.Base      import ModelEntity, ExpressionUnion
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor import Visitor
 
@@ -140,7 +140,7 @@ class Name(ModelEntity):
 		"""
 		return self._prefix is not None
 
-	def Copy(self) -> Name:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this name.
 
@@ -149,7 +149,7 @@ class Name(ModelEntity):
 		:returns: The new name.
 		"""
 		prefix = None if self._prefix is None else self._prefix.Copy()
-		return modelClassOf(self)(self._identifier, prefix)
+		return self.__class__(self._identifier, prefix)
 
 	def __repr__(self) -> str:
 		"""
@@ -225,7 +225,7 @@ class ParenthesisName(Name):
 		"""
 		return self._associations
 
-	def Copy(self) -> ParenthesisName:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this parenthesis name.
 
@@ -233,7 +233,7 @@ class ParenthesisName(Name):
 
 		:returns: The new parenthesis name.
 		"""
-		return modelClassOf(self)(self._prefix.Copy(), [association.Copy() for association in self._associations])
+		return self.__class__(self._prefix.Copy(), [association.Copy() for association in self._associations])
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -301,7 +301,7 @@ class IndexedName(Name):
 		"""
 		return self._indices
 
-	def Copy(self) -> IndexedName:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this indexed name.
 
@@ -309,7 +309,7 @@ class IndexedName(Name):
 
 		:returns: The new indexed name.
 		"""
-		return modelClassOf(self)(self._prefix.Copy(), [index.Copy() for index in self._indices])
+		return self.__class__(self._prefix.Copy(), [index.Copy() for index in self._indices])
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -388,7 +388,7 @@ class SelectedName(Name):
 		"""
 		super().__init__(identifier, prefix, parent)
 
-	def Copy(self) -> SelectedName:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this selected name.
 
@@ -396,7 +396,7 @@ class SelectedName(Name):
 
 		:returns: The new selected name.
 		"""
-		return modelClassOf(self)(self._identifier, self._prefix.Copy())
+		return self.__class__(self._identifier, self._prefix.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -441,7 +441,7 @@ class AttributeName(Name):
 		"""
 		super().__init__(identifier, prefix, parent)
 
-	def Copy(self) -> AttributeName:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this attribute name.
 
@@ -449,7 +449,7 @@ class AttributeName(Name):
 
 		:returns: The new attribute name.
 		"""
-		return modelClassOf(self)(self._identifier, self._prefix.Copy())
+		return self.__class__(self._identifier, self._prefix.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -488,7 +488,7 @@ class AllName(SelectedName):
 		"""
 		super().__init__("all", prefix, parent)  # TODO: the case of 'ALL' is not preserved
 
-	def Copy(self) -> AllName:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this ``all`` name.
 
@@ -496,7 +496,7 @@ class AllName(SelectedName):
 
 		:returns: The new ``all`` name.
 		"""
-		return modelClassOf(self)(self._prefix.Copy())
+		return self.__class__(self._prefix.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -524,7 +524,7 @@ class OpenName(Name):
 		"""
 		super().__init__("open", parent=parent)  # TODO: the case of 'OPEN' is not preserved
 
-	def Copy(self) -> OpenName:
+	def Copy(self) -> Self:
 		"""
 		Create a copy of this ``open`` name.
 
@@ -532,7 +532,7 @@ class OpenName(Name):
 
 		:returns: The new ``open`` name.
 		"""
-		return modelClassOf(self)()
+		return self.__class__()
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

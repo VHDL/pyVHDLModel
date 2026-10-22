@@ -30,11 +30,11 @@
 #
 #
 """
-Copy tests for ranges and the class of a copy (:mod:`pyVHDLModel.Base`).
+Copy tests for ranges (:mod:`pyVHDLModel.Base`).
 """
 from pyTooling.Testing           import Testcase
 
-from pyVHDLModel.Base            import Direction, SimpleRange, RangeFromName, modelClassOf
+from pyVHDLModel.Base            import Direction, SimpleRange, RangeFromName
 from pyVHDLModel.Expression      import IntegerLiteral
 from pyVHDLModel.Formatting.VHDL import VHDLWriter
 from pyVHDLModel.Name            import SimpleName, AttributeName
@@ -50,34 +50,8 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-class _MirrorSimpleRange(SimpleRange):
-	"""A range of another package, constructed from an extra parameter (like a :mod:`pyGHDL.dom` class)."""
-
-	_node: int  #: The extra constructor parameter.
-
-	def __init__(self, node: int, leftBound: IntegerLiteral, rightBound: IntegerLiteral, direction: Direction) -> None:
-		super().__init__(leftBound, rightBound, direction)
-		self._node = node
-
-
-class _DerivedMirrorSimpleRange(_MirrorSimpleRange):
-	"""A class derived from a class derived outside pyVHDLModel."""
-
-
-class ModelClasses(Testcase):
-	def test_ModelClass(self) -> None:
-		self.assertIs(SimpleName, modelClassOf(SimpleName("a")))
-
-	def test_Derived(self) -> None:
-		"""A class derived outside pyVHDLModel is replaced by its nearest base-class from pyVHDLModel."""
-		element = _MirrorSimpleRange(42, IntegerLiteral(0), IntegerLiteral(7), Direction.To)
-
-		self.assertIs(SimpleRange, modelClassOf(element))
-
-	def test_Derived_Twice(self) -> None:
-		element = _DerivedMirrorSimpleRange(42, IntegerLiteral(0), IntegerLiteral(7), Direction.To)
-
-		self.assertIs(SimpleRange, modelClassOf(element))
+class _DerivedSimpleRange(SimpleRange):
+	"""A range of a class derived outside pyVHDLModel, with the constructor of its base-class."""
 
 
 class CopyMethods(Testcase):
@@ -105,12 +79,12 @@ class SimpleRanges(Testcase):
 		self.assertEqual("7 downto 0", VHDLWriter().Format(copy))
 
 	def test_Copy_Derived(self) -> None:
-		"""A copy of a range of a class derived outside pyVHDLModel is a range of the pyVHDLModel class."""
-		original = _MirrorSimpleRange(42, IntegerLiteral(0), IntegerLiteral(7), Direction.To)
+		"""A copy of a range of a derived class is an instance of that class."""
+		original = _DerivedSimpleRange(IntegerLiteral(0), IntegerLiteral(7), Direction.To)
 
 		copy = original.Copy()
 
-		self.assertIs(SimpleRange, type(copy))
+		self.assertIs(_DerivedSimpleRange, type(copy))
 		self.assertEqual("0 to 7", VHDLWriter().Format(copy))
 
 

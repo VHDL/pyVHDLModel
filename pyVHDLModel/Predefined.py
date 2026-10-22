@@ -87,13 +87,12 @@ class PredefinedLibrary(Library):
 class PredefinedPackageMixin(
 	metaclass=ExtendedType,
 	mixin=True,
-	expects=("_contextItems", "_libraryReferences", "_packageReferences")
+	expects=("AddContextItem",)
 ):
 	"""
 	A mixin-class for predefined VHDL packages and package bodies.
 
-	The host class provides the lists of context items ``_contextItems``, library clauses ``_libraryReferences`` and use
-	clauses ``_packageReferences``.
+	The host class provides ``AddContextItem(contextItem)``, called to add a library clause or a use clause.
 
 	.. seealso::
 
@@ -105,8 +104,7 @@ class PredefinedPackageMixin(
 		symbols = [LibraryReferenceSymbol(SimpleName(libName)) for libName in libraries]
 		libraryClause = LibraryClause(symbols)
 
-		self._contextItems.append(libraryClause)
-		self._libraryReferences.append(libraryClause)
+		self.AddContextItem(libraryClause)
 
 	def _AddPackageClause(self, packages: Iterable[str]) -> None:
 		symbols = []
@@ -120,8 +118,7 @@ class PredefinedPackageMixin(
 				symbols.append(PackageMemberReferenceSymbol(SelectedName(members, packageName)))
 
 		useClause = UseClause(symbols)
-		self._contextItems.append(useClause)
-		self._packageReferences.append(useClause)
+		self.AddContextItem(useClause)
 
 
 @export

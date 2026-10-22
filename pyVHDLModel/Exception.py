@@ -292,6 +292,8 @@ class VHDLModelException(ExceptionBase):
 	   * :class:`Duplicate parameter error <pyVHDLModel.Exception.DuplicateParameterError>`
 	   * :class:`Not in namespace error <pyVHDLModel.Exception.NotInNamespaceError>`
 	   * :class:`Duplicate declaration error <pyVHDLModel.Exception.DuplicateDeclarationError>`
+	   * :class:`Duplicate association error <pyVHDLModel.Exception.DuplicateAssociationError>`
+	   * :class:`Association order error <pyVHDLModel.Exception.AssociationOrderError>`
 	   * :class:`Library not found error <pyVHDLModel.Exception.LibraryNotFoundError>`
 	   * :class:`Entity not found error <pyVHDLModel.Exception.EntityNotFoundError>`
 	   * :class:`Package not found error <pyVHDLModel.Exception.PackageNotFoundError>`
@@ -1264,6 +1266,182 @@ class DuplicateLabelError(DuplicateDeclarationError):
 	A statement label is declared implicitly in the declarative region enclosing the statement, so it clashes with
 	another label and with a declaration of the same identifier.
 	"""
+
+
+@export
+class DuplicateAssociationError(VHDLModelException, DuplicateElementError):
+	"""
+	This exception is raised, when an association list already associates the formal of a new named association.
+
+	It's the base-class of the errors for generic, port and parameter associations.
+
+	.. seealso::
+
+	   * :class:`Duplicate generic association error <pyVHDLModel.Exception.DuplicateGenericAssociationError>`
+	   * :class:`Duplicate port association error <pyVHDLModel.Exception.DuplicatePortAssociationError>`
+	   * :class:`Duplicate parameter association error <pyVHDLModel.Exception.DuplicateParameterAssociationError>`
+	"""
+
+	_identifier:           Nullable[str]          #: The formal associated twice.
+	_normalizedIdentifier: Nullable[str]          #: The normalized (lower case) formal.
+	_parent:               Nullable[ModelEntity]  #: The language construct owning the association list.
+	_element:              Nullable[ModelEntity]  #: The new association.
+	_existing:             Nullable[ModelEntity]  #: The existing association.
+
+	def __init__(
+		self,
+		message: str,
+		/, *,
+		identifier: Nullable[str] = None,
+		parent: Nullable[ModelEntity] = None,
+		element: Nullable[ModelEntity] = None,
+		existing: Nullable[ModelEntity] = None
+	) -> None:
+		"""
+		Initializes the exception with the formal, the language construct and both associations.
+
+		:param message:    The error message.
+		:param identifier: Optional, the formal associated twice.
+		:param parent:     Optional, the language construct owning the association list.
+		:param element:    Optional, the new association.
+		:param existing:   Optional, the existing association.
+		"""
+		super().__init__(message)
+		self._identifier =           identifier
+		self._normalizedIdentifier = identifier.lower() if identifier is not None else None
+		self._parent =               parent
+		self._element =              element
+		self._existing =             existing
+
+	@readonly
+	def Identifier(self) -> Nullable[str]:
+		"""
+		Read-only property to access the formal associated twice (:attr:`_identifier`).
+
+		:returns: The formal's identifier, or ``None`` if it wasn't recorded.
+		"""
+		return self._identifier
+
+	@readonly
+	def NormalizedIdentifier(self) -> Nullable[str]:
+		"""
+		Read-only property to access the normalized (lower case) formal (:attr:`_normalizedIdentifier`).
+
+		:returns: The normalized identifier, or ``None`` if it wasn't recorded.
+		"""
+		return self._normalizedIdentifier
+
+	@readonly
+	def Parent(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the language construct owning the association list (:attr:`_parent`).
+
+		:returns: The language construct, or ``None`` if it wasn't recorded.
+		"""
+		return self._parent
+
+	@readonly
+	def Element(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the new association (:attr:`_element`).
+
+		:returns: The association, or ``None`` if it wasn't recorded.
+		"""
+		return self._element
+
+	@readonly
+	def Existing(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the existing association (:attr:`_existing`).
+
+		:returns: The association, or ``None`` if it wasn't recorded.
+		"""
+		return self._existing
+
+
+@export
+class DuplicateGenericAssociationError(DuplicateAssociationError):
+	"""
+	This exception is raised, when a generic map aspect already associates the formal of a new generic association.
+	"""
+
+
+@export
+class DuplicatePortAssociationError(DuplicateAssociationError):
+	"""
+	This exception is raised, when a port map aspect already associates the formal of a new port association.
+	"""
+
+
+@export
+class DuplicateParameterAssociationError(DuplicateAssociationError):
+	"""
+	This exception is raised, when a procedure call already associates the formal of a new parameter association.
+	"""
+
+
+@export
+class AssociationOrderError(VHDLModelException):
+	"""
+	This exception is raised, when a new association breaks the order of an association list.
+
+	All positional associations of an association list precede its named associations: the existing association is a
+	named association preceding a new positional association, or a positional association following a new named
+	association.
+	"""
+
+	_parent:   Nullable[ModelEntity]  #: The language construct owning the association list.
+	_element:  Nullable[ModelEntity]  #: The new association.
+	_existing: Nullable[ModelEntity]  #: The existing association, the new association is out of order with.
+
+	def __init__(
+		self,
+		message: str,
+		/, *,
+		parent: Nullable[ModelEntity] = None,
+		element: Nullable[ModelEntity] = None,
+		existing: Nullable[ModelEntity] = None
+	) -> None:
+		"""
+		Initializes the exception with the language construct and both associations.
+
+		:param message:  The error message.
+		:param parent:   Optional, the language construct owning the association list.
+		:param element:  Optional, the new association.
+		:param existing: Optional, the existing association, the new association is out of order with.
+		"""
+		super().__init__(message)
+		self._parent =   parent
+		self._element =  element
+		self._existing = existing
+
+	@readonly
+	def Parent(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the language construct owning the association list (:attr:`_parent`).
+
+		:returns: The language construct, or ``None`` if it wasn't recorded.
+		"""
+		return self._parent
+
+	@readonly
+	def Element(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the new association (:attr:`_element`).
+
+		:returns: The association, or ``None`` if it wasn't recorded.
+		"""
+		return self._element
+
+	@readonly
+	def Existing(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the existing association, the new association is out of order with
+		(:attr:`_existing`).
+
+		:returns: The association, or ``None`` if it wasn't recorded.
+		"""
+		return self._existing
 
 
 @export

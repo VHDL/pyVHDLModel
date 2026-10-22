@@ -61,10 +61,17 @@ from pyTooling.Decorators        import export
 from pyTooling.MetaClasses       import ExtendedType, abstractclass
 
 if TYPE_CHECKING:
-	from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin
+	from pyVHDLModel               import Document
+	from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin, PortMapAspectMixin
 	from pyVHDLModel.Base          import SimpleRange, RangeFromName
+	from pyVHDLModel.Configuration import EntityAspectEntity, EntityAspectConfiguration, EntityAspectOpen
+	from pyVHDLModel.Configuration import BindingIndication, AllInstantiationList, OthersInstantiationList
+	from pyVHDLModel.Configuration import ComponentConfiguration, BlockConfiguration
 	from pyVHDLModel.Declaration   import Attribute, AttributeSpecification, Alias
-	from pyVHDLModel.DesignUnit    import Component
+	from pyVHDLModel.DesignUnit    import (
+		Reference, LibraryClause, UseClause, ContextReference, DesignUnit, Context, Package, PackageBody, Entity,
+		Architecture, Configuration, Component
+	)
 	from pyVHDLModel.Expression    import (
 		NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral,
 		PhysicalFloatingLiteral, CharacterLiteral, StringLiteral, BitStringLiteral, UnaryExpression, NegationExpression,
@@ -80,7 +87,7 @@ if TYPE_CHECKING:
 		ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem, GenericProcedureInterfaceItem,
 		GenericFunctionInterfaceItem
 	)
-	from pyVHDLModel.Instantiation import ProcedureInstantiation, FunctionInstantiation
+	from pyVHDLModel.Instantiation import ProcedureInstantiation, FunctionInstantiation, PackageInstantiation
 	from pyVHDLModel.Name          import (
 		SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, AttributeName, AllName, OpenName
 	)
@@ -108,7 +115,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	:mod:`pyVHDLModel.Visitor`.
 	"""
 
-	def VisitLeftParenthesis(self, element: IndexedName | ParenthesisName | TypeConversion) -> None:
+	def VisitLeftParenthesis(self, element: IndexedName | ParenthesisName | TypeConversion | EntityAspectEntity) -> None:
 		"""
 		Visit the left parenthesis between the prefix and the parenthesized list of an element.
 
@@ -119,7 +126,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		self,
 		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol |
 		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification |
-		         GenericMapAspectMixin
+		         GenericMapAspectMixin | PortMapAspectMixin | Reference | ComponentConfiguration
 	) -> None:
 		"""
 		Visit the comma between two items of a list.
@@ -186,7 +193,10 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The element with the default expression.
 		"""
 
-	def VisitIs(self, element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram) -> None:
+	def VisitIs(
+		self,
+		element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram | Architecture | Configuration
+	) -> None:
 		"""
 		Visit the reserved word ``is`` between the header and the body of a declaration.
 
@@ -214,7 +224,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param physicalType: The physical type.
 		"""
 
-	def VisitBegin(self, element: Subprogram) -> None:
+	def VisitBegin(self, element: Subprogram | Entity | Architecture) -> None:
 		"""
 		Visit the reserved word ``begin`` between the declarative part and the statement part of an element.
 
@@ -1583,4 +1593,326 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from a protected type body, after its last declared item.
 
 		:param body: The protected type body.
+		"""
+
+	def VisitPortMapAspect(self, element: PortMapAspectMixin) -> None:
+		"""
+		Visit the port map aspect of an element, before its first association.
+
+		:param element: The element with a port map aspect.
+		"""
+
+	def DepartPortMapAspect(self, element: PortMapAspectMixin) -> None:
+		"""
+		Depart from the port map aspect of an element, after its last association.
+
+		:param element: The element with a port map aspect.
+		"""
+
+	def VisitContextClause(self, designUnit: DesignUnit) -> None:
+		"""
+		Visit the context clause of a design unit, before its first context item.
+
+		:param designUnit: The design unit.
+		"""
+
+	def DepartContextClause(self, designUnit: DesignUnit) -> None:
+		"""
+		Depart from the context clause of a design unit, after its last context item.
+
+		:param designUnit: The design unit.
+		"""
+
+	def VisitInstantiationList(self, configuration: ComponentConfiguration) -> None:
+		"""
+		Visit the instantiation list of a component configuration, before its first label.
+
+		:param configuration: The component configuration.
+		"""
+
+	def DepartInstantiationList(self, configuration: ComponentConfiguration) -> None:
+		"""
+		Depart from the instantiation list of a component configuration, after its last label.
+
+		:param configuration: The component configuration.
+		"""
+
+	def VisitBlockSpecification(self, configuration: BlockConfiguration) -> None:
+		"""
+		Visit the block specification of a block configuration, before its block name.
+
+		:param configuration: The block configuration.
+		"""
+
+	def DepartBlockSpecification(self, configuration: BlockConfiguration) -> None:
+		"""
+		Depart from the block specification of a block configuration, after its block name.
+
+		:param configuration: The block configuration.
+		"""
+
+	def VisitLibraryClause(self, clause: LibraryClause) -> None:
+		"""
+		Visit a library clause, before its first library name.
+
+		:param clause: The library clause.
+		"""
+
+	def DepartLibraryClause(self, clause: LibraryClause) -> None:
+		"""
+		Depart from a library clause, after its last library name.
+
+		:param clause: The library clause.
+		"""
+
+	def VisitUseClause(self, clause: UseClause) -> None:
+		"""
+		Visit a use clause, before its first selected name.
+
+		:param clause: The use clause.
+		"""
+
+	def DepartUseClause(self, clause: UseClause) -> None:
+		"""
+		Depart from a use clause, after its last selected name.
+
+		:param clause: The use clause.
+		"""
+
+	def VisitContextReference(self, reference: ContextReference) -> None:
+		"""
+		Visit a context reference, before its first context name.
+
+		:param reference: The context reference.
+		"""
+
+	def DepartContextReference(self, reference: ContextReference) -> None:
+		"""
+		Depart from a context reference, after its last context name.
+
+		:param reference: The context reference.
+		"""
+
+	def VisitContext(self, context: Context) -> None:
+		"""
+		Visit a context declaration, before its first context item.
+
+		:param context: The context declaration.
+		"""
+
+	def DepartContext(self, context: Context) -> None:
+		"""
+		Depart from a context declaration, after its last context item.
+
+		:param context: The context declaration.
+		"""
+
+	def VisitPackage(self, package: Package) -> None:
+		"""
+		Visit a package declaration, before its generic clause.
+
+		:param package: The package declaration.
+		"""
+
+	def DepartPackage(self, package: Package) -> None:
+		"""
+		Depart from a package declaration, after its last declared item.
+
+		:param package: The package declaration.
+		"""
+
+	def VisitPackageBody(self, body: PackageBody) -> None:
+		"""
+		Visit a package body, before its first declared item.
+
+		:param body: The package body.
+		"""
+
+	def DepartPackageBody(self, body: PackageBody) -> None:
+		"""
+		Depart from a package body, after its last declared item.
+
+		:param body: The package body.
+		"""
+
+	def VisitPackageInstantiation(self, instantiation: PackageInstantiation) -> None:
+		"""
+		Visit a package instantiation, before its generic package.
+
+		:param instantiation: The package instantiation.
+		"""
+
+	def DepartPackageInstantiation(self, instantiation: PackageInstantiation) -> None:
+		"""
+		Depart from a package instantiation, after its generic map aspect.
+
+		:param instantiation: The package instantiation.
+		"""
+
+	def VisitEntity(self, entity: Entity) -> None:
+		"""
+		Visit an entity declaration, before its generic clause.
+
+		:param entity: The entity declaration.
+		"""
+
+	def DepartEntity(self, entity: Entity) -> None:
+		"""
+		Depart from an entity declaration, after its last statement.
+
+		:param entity: The entity declaration.
+		"""
+
+	def VisitArchitecture(self, architecture: Architecture) -> None:
+		"""
+		Visit an architecture body, before its entity name.
+
+		:param architecture: The architecture body.
+		"""
+
+	def DepartArchitecture(self, architecture: Architecture) -> None:
+		"""
+		Depart from an architecture body, after its last statement.
+
+		:param architecture: The architecture body.
+		"""
+
+	def VisitConfiguration(self, configuration: Configuration) -> None:
+		"""
+		Visit a configuration declaration, before its entity name.
+
+		:param configuration: The configuration declaration.
+		"""
+
+	def DepartConfiguration(self, configuration: Configuration) -> None:
+		"""
+		Depart from a configuration declaration, after its block configuration.
+
+		:param configuration: The configuration declaration.
+		"""
+
+	def VisitBlockConfiguration(self, configuration: BlockConfiguration) -> None:
+		"""
+		Visit a block configuration, before its block specification.
+
+		:param configuration: The block configuration.
+		"""
+
+	def DepartBlockConfiguration(self, configuration: BlockConfiguration) -> None:
+		"""
+		Depart from a block configuration, after its last nested configuration.
+
+		:param configuration: The block configuration.
+		"""
+
+	def VisitComponentConfiguration(self, configuration: ComponentConfiguration) -> None:
+		"""
+		Visit a component configuration, before its instantiation list.
+
+		:param configuration: The component configuration.
+		"""
+
+	def DepartComponentConfiguration(self, configuration: ComponentConfiguration) -> None:
+		"""
+		Depart from a component configuration, after its binding indication.
+
+		:param configuration: The component configuration.
+		"""
+
+	def VisitBindingIndication(self, indication: BindingIndication) -> None:
+		"""
+		Visit a binding indication, before its entity aspect.
+
+		:param indication: The binding indication.
+		"""
+
+	def DepartBindingIndication(self, indication: BindingIndication) -> None:
+		"""
+		Depart from a binding indication, after its port map aspect.
+
+		:param indication: The binding indication.
+		"""
+
+	def VisitEntityAspectEntity(self, aspect: EntityAspectEntity) -> None:
+		"""
+		Visit an entity aspect naming an entity, before its entity name.
+
+		:param aspect: The entity aspect.
+		"""
+
+	def DepartEntityAspectEntity(self, aspect: EntityAspectEntity) -> None:
+		"""
+		Depart from an entity aspect naming an entity, after its architecture name.
+
+		:param aspect: The entity aspect.
+		"""
+
+	def VisitEntityAspectConfiguration(self, aspect: EntityAspectConfiguration) -> None:
+		"""
+		Visit an entity aspect naming a configuration, before its configuration name.
+
+		:param aspect: The entity aspect.
+		"""
+
+	def DepartEntityAspectConfiguration(self, aspect: EntityAspectConfiguration) -> None:
+		"""
+		Depart from an entity aspect naming a configuration, after its configuration name.
+
+		:param aspect: The entity aspect.
+		"""
+
+	def VisitEntityAspectOpen(self, aspect: EntityAspectOpen) -> None:
+		"""
+		Visit an open entity aspect.
+
+		:param aspect: The entity aspect.
+		"""
+
+	def DepartEntityAspectOpen(self, aspect: EntityAspectOpen) -> None:
+		"""
+		Depart from an open entity aspect.
+
+		:param aspect: The entity aspect.
+		"""
+
+	def VisitAllInstantiationList(self, instantiationList: AllInstantiationList) -> None:
+		"""
+		Visit an ``all`` instantiation list.
+
+		:param instantiationList: The instantiation list.
+		"""
+
+	def DepartAllInstantiationList(self, instantiationList: AllInstantiationList) -> None:
+		"""
+		Depart from an ``all`` instantiation list.
+
+		:param instantiationList: The instantiation list.
+		"""
+
+	def VisitOthersInstantiationList(self, instantiationList: OthersInstantiationList) -> None:
+		"""
+		Visit an ``others`` instantiation list.
+
+		:param instantiationList: The instantiation list.
+		"""
+
+	def DepartOthersInstantiationList(self, instantiationList: OthersInstantiationList) -> None:
+		"""
+		Depart from an ``others`` instantiation list.
+
+		:param instantiationList: The instantiation list.
+		"""
+
+	def VisitDocument(self, document: Document) -> None:
+		"""
+		Visit a document, before its first design unit.
+
+		:param document: The document.
+		"""
+
+	def DepartDocument(self, document: Document) -> None:
+		"""
+		Depart from a document, after its last design unit.
+
+		:param document: The document.
 		"""

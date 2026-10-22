@@ -60,7 +60,7 @@ __issue_tracker_url__ = "https://GitHub.com/VHDL/pyVHDLModel/issues"
 from enum                      import unique, Enum, Flag, auto
 from pathlib                   import Path
 
-from typing                    import Union, cast, Generator, Optional as Nullable
+from typing                    import TYPE_CHECKING, Union, cast, Generator, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators      import export, readonly
@@ -95,6 +95,9 @@ from pyVHDLModel.Configuration import ComponentConfiguration
 from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
 from pyVHDLModel.Interface     import ModeViewDeclaration
 from pyVHDLModel.Subprogram    import Subprogram
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor     import Visitor
 
 
 # Classes of declared items each declarative region accepts (ClassVar _DECLARED_ITEM_TYPES).
@@ -3348,6 +3351,18 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		self._dependencyVertex =   None
 		self._compileOrderVertex = None
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this document and its design units with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitDocument(self)
+		for designUnit in self._designUnits:
+			designUnit.Visit(visitor)
+
+		visitor.DepartDocument(self)
 
 	def _AddEntity(self, item: Entity) -> None:
 		"""

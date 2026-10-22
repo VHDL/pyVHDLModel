@@ -30,8 +30,9 @@ abstract literals (e.g. ``16#FF#`` becomes ``255``) are not preserved.
 The writer formats names, symbols, literals, expressions, association items, subtype indications, object
 declarations, interface items, component declarations, mode view declarations, type and subtype declarations, alias
 declarations, attribute declarations and attribute specifications, subprograms, subprogram instantiations and protected
-types (:ref:`WRITER/declarations`), context items, design units and documents (:ref:`WRITER/designunits`). Statements
-follow.
+types (:ref:`WRITER/declarations`), context items, design units and documents (:ref:`WRITER/designunits`),
+concurrent signal assignments, concurrent procedure calls, concurrent assertions and processes
+(:ref:`WRITER/concurrent`). Further statements follow.
 
 
 .. _WRITER/visitor:
@@ -278,9 +279,39 @@ use clauses and context references), followed by a blank line.
 
 Entities, architectures, packages, package bodies, package instantiations, context declarations and configurations are
 written with ``end``, the reserved words of the design unit and its identifier. An entity without statements has no
-``begin``. Concurrent statements have no walk yet, so an entity or architecture with statements raises
-:exc:`NotImplementedError`.
+``begin``.
 
 A configuration writes its block configuration, nested block configurations and component configurations, each ending
 with ``end for;``. A binding indication (``use entity work.sub(rtl)``) and its map aspects are indented one level deeper
 than its component configuration; each association of a map aspect is written on its own line.
+
+
+.. _WRITER/concurrent:
+
+Concurrent Statements
+*********************
+
+A concurrent statement is written on its own line, starting with its label, if any (``mux : ...``).
+
+Signal assignments
+   Simple, conditional and selected signal assignments are written on one line. The waveform elements of a waveform
+   are separated by commas, a delay follows the reserved word ``after``. The alternatives of a conditional signal
+   assignment are separated by the reserved word ``else``, the alternatives of a selected signal assignment by
+   commas; choices are separated by vertical lines (``when 1 | 2 to 3``).
+
+Procedure calls and assertions
+   A concurrent procedure call is written with its parameter associations in parentheses, if it has any; an assertion
+   with its report and severity, if given.
+
+Processes
+   A process is written with its sensitivity list, if any, the reserved word ``is``, its declared items, ``begin`` and
+   its statements. A sensitivity list consisting of a single :class:`~pyVHDLModel.Name.AllName` without prefix is
+   written as ``process (all)``. Sequential statements have no walk yet, so a process with statements raises
+   :exc:`NotImplementedError`.
+
+.. code-block:: VHDL
+
+   count : process (clk, rst) is
+     variable value : natural := 0;
+   begin
+   end process count;

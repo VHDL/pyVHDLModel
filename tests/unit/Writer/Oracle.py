@@ -41,17 +41,18 @@ from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Association     import ParameterAssociationItem
 from pyVHDLModel.Base            import Direction, Mode, SimpleRange
+from pyVHDLModel.Declaration     import EntityClass, Alias, Attribute, AttributeSpecification
 from pyVHDLModel.DesignUnit      import Component
 from pyVHDLModel.Expression      import (
-	IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral, PhysicalFloatingLiteral, CharacterLiteral,
-	StringLiteral, BinaryBitStringLiteral, DecimalBitStringLiteral, HexadecimalBitStringLiteral,
+	EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral, PhysicalFloatingLiteral,
+	CharacterLiteral, StringLiteral, BinaryBitStringLiteral, DecimalBitStringLiteral, HexadecimalBitStringLiteral,
 	NegationExpression, InverseExpression, AbsoluteExpression, UnaryXorExpression, TypeConversion, SubExpression,
-	DescendingRangeExpression, AdditionExpression, SubtractionExpression, ConcatenationExpression, MultiplyExpression,
-	DivisionExpression, ModuloExpression, RemainderExpression, ExponentiationExpression, AndExpression, NandExpression,
-	OrExpression, EqualExpression, UnequalExpression, LessThanExpression, MatchingEqualExpression,
-	ShiftLeftLogicExpression, ShiftRightLogicExpression, RotateLeftExpression, QualifiedExpression,
-	SimpleAggregateElement, IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement,
-	OthersAggregateElement, Aggregate
+	AscendingRangeExpression, DescendingRangeExpression, AdditionExpression, SubtractionExpression,
+	ConcatenationExpression, MultiplyExpression, DivisionExpression, ModuloExpression, RemainderExpression,
+	ExponentiationExpression, AndExpression, NandExpression, OrExpression, EqualExpression, UnequalExpression,
+	LessThanExpression, MatchingEqualExpression, ShiftLeftLogicExpression, ShiftRightLogicExpression,
+	RotateLeftExpression, QualifiedExpression, SimpleAggregateElement, IndexedAggregateElement, RangedAggregateElement,
+	NamedAggregateElement, OthersAggregateElement, Aggregate
 )
 from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Interface       import (
@@ -65,6 +66,8 @@ from pyVHDLModel.Object          import Constant, DeferredConstant, Variable, Sh
 from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol, IndexedObjectOrFunctionCallSymbol
 from pyVHDLModel.Symbol          import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol
 from pyVHDLModel.Symbol          import ConstrainedRecordSubtypeSymbol, ModeViewSymbol
+from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType
+from pyVHDLModel.Type            import ArrayType, RecordTypeElement, RecordType, AccessType, FileType
 
 from tests.unit.Writer           import _GHDL, _analyze, _object
 
@@ -420,5 +423,78 @@ class GHDLOracleDeclarations(Testcase):
 			""").format(declaration=writer.Format(declaration), parameter=parameter, port=port)
 
 		result = _analyze(source, std="19")
+
+		self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)
+
+	def test_Types(self) -> None:
+		def to(left: int, right: int) -> AscendingRangeExpression:
+			"""Nested function returning an ascending range of two integer literals."""
+			return AscendingRangeExpression(IntegerLiteral(left), IntegerLiteral(right))
+
+		byte =         ConstrainedArraySubtypeSymbol(SimpleName("bit_vector"), [
+			DescendingRangeExpression(IntegerLiteral(7), IntegerLiteral(0))
+		])
+		declarations = (
+			EnumeratedType("state", [EnumerationLiteral("Idle"), EnumerationLiteral("Busy")]),
+			EnumeratedType("logic", [EnumerationLiteral("'0'"), EnumerationLiteral("'1'"), EnumerationLiteral("'Z'")]),
+			IntegerType("nibble", to(0, 15)),
+			RealType("fraction", AscendingRangeExpression(FloatingPointLiteral(0.0), FloatingPointLiteral(1.0))),
+			PhysicalType("distance", to(0, 1000000), "um", [
+				("mm", PhysicalIntegerLiteral(1000, "um")),
+				("m",  PhysicalIntegerLiteral(1000, "mm"))
+			]),
+			Subtype("byte", byte),
+			Subtype("word", _integer("integer")),
+			ArrayType("memory", [to(0, 255)], _integer("byte")),
+			ArrayType("matrix", [_integer("natural"), _integer("natural")], _integer("bit")),
+			AnonymousType("node"),
+			AccessType("pointer", _integer("node")),
+			RecordType("node", [
+				RecordTypeElement(["value", "count"], _integer("integer")),
+				RecordTypeElement(["successor"], _integer("pointer"))
+			]),
+			FileType("text_file", _integer("string")),
+		)
+
+		for style in (VHDLStyle(), VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs)):
+			with self.subTest(style=style.KeywordCase):
+				writer = VHDLWriter(style)
+				source = f"package types is\n{''.join(writer.Format(d) for d in declarations)}end package;\n"
+
+				result = _analyze(source)
+
+				self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)
+
+	def test_AliasesAndAttributes(self) -> None:
+		writer =       VHDLWriter()
+		low =          DescendingRangeExpression(IntegerLiteral(3), IntegerLiteral(0))
+		declarations = (
+			Alias("clock", _object("clk")),
+			Alias(
+				"low",
+				IndexedObjectOrFunctionCallSymbol(ParenthesisName(SimpleName("data"), [low])),
+				ConstrainedArraySubtypeSymbol(SimpleName("bit_vector"), [
+					DescendingRangeExpression(IntegerLiteral(3), IntegerLiteral(0))
+				])
+			),
+			Attribute("keep", _integer("boolean")),
+			Attribute("bits", _integer("natural")),
+			AttributeSpecification(
+				[SimpleName("clk"), SimpleName("data")],
+				SimpleName("keep"),
+				EntityClass.Signal,
+				EnumerationLiteral("true")
+			),
+			AttributeSpecification([SimpleName("byte")], SimpleName("bits"), EntityClass.Subtype, IntegerLiteral(8)),
+		)
+		source =       dedent("""\
+			package declarations is
+				signal clk : bit;
+				signal data : bit_vector(7 downto 0);
+				subtype byte is bit_vector(7 downto 0);
+			{declarations}end package;
+			""").format(declarations="".join(writer.Format(declaration) for declaration in declarations))
+
+		result = _analyze(source)
 
 		self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)

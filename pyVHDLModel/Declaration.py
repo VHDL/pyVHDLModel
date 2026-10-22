@@ -34,8 +34,10 @@ This module contains parts of an abstract document language model for VHDL.
 
 
 """
+from __future__             import annotations
+
 from enum                   import unique, Enum
-from typing                 import Iterable, Union, Optional as Nullable
+from typing                 import TYPE_CHECKING, Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators   import export, readonly
 
@@ -43,6 +45,9 @@ from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEnti
 from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Name       import Name
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor  import Visitor
 
 
 
@@ -120,6 +125,16 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self._subtype = subtype
 		subtype.Parent = self
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this attribute declaration and its subtype with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAttribute(self)
+		self._subtype.Visit(visitor)
+		visitor.DepartAttribute(self)
+
 	@readonly
 	def Subtype(self) -> None:
 		"""
@@ -191,6 +206,26 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 
 		self._expression = expression
 		expression.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this attribute specification, its attribute, its entity specification and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAttributeSpecification(self)
+		self._attribute.Visit(visitor)
+		visitor.VisitEntitySpecification(self)
+		for index, name in enumerate(self._identifiers):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			name.Visit(visitor)
+
+		visitor.DepartEntitySpecification(self)
+		visitor.VisitIs(self)
+		self._expression.Visit(visitor)
+		visitor.DepartAttributeSpecification(self)
 
 	@readonly
 	def Identifiers(self) -> list[Name]:
@@ -288,6 +323,20 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self._subtype = subtype
 		if subtype is not None:
 			subtype.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this alias declaration, its subtype (if any) and its name with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAlias(self)
+		if self._subtype is not None:
+			self._subtype.Visit(visitor)
+
+		visitor.VisitIs(self)
+		self._name.Visit(visitor)
+		visitor.DepartAlias(self)
 
 	@readonly
 	def Name(self) -> Symbol:

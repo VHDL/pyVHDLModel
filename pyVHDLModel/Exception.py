@@ -38,7 +38,7 @@ message in english, each exception object contains one or multiple references to
 from __future__               import annotations
 
 from pathlib                  import Path
-from typing                   import TYPE_CHECKING, Optional as Nullable, Union
+from typing                   import TYPE_CHECKING, Generic, Optional as Nullable, TypeVar, Union
 
 from pyTooling.Decorators     import export, readonly
 from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError, InUseError
@@ -47,10 +47,15 @@ from pyTooling.Warning        import Warning, CriticalWarning
 from pyVHDLModel.Symbol       import Symbol
 
 if TYPE_CHECKING:  # pragma: no cover
+	from pyVHDLModel            import Document, Library
 	from pyVHDLModel.Base       import ModelElementUnion, ModelEntity
 	from pyVHDLModel.Concurrent import ComponentInstantiation
 	from pyVHDLModel.DesignUnit import Component as _Component
 	from pyVHDLModel.Namespace  import Namespace as _Namespace
+
+
+ElementType = TypeVar("ElementType", bound="ModelEntity")  #: Type of the model entity to remove, which is still in use.
+UsersType =   TypeVar("UsersType", bound="ModelEntity")    #: Type of the model entities still using it.
 
 
 @export
@@ -1606,53 +1611,71 @@ class DuplicateDesignUnitError(VHDLModelException, DuplicateElementError):
 
 
 @export
-class LibraryInUseError(VHDLModelException, InUseError):
+class ElementInUseError(VHDLModelException, InUseError, Generic[ElementType, UsersType]):
 	"""
-	This exception is raised, when a library is removed from a design, but documents of the design still use it.
+	The exception is raised when a model entity is removed, but other model entities still use it.
 
-	.. hint::
+	It's the common base of the kind-specific exceptions: it carries the model entity to remove and the model entities
+	still using it, whose types a derived exception states, e.g. ``LibraryInUseError(ElementInUseError[Library,
+	Document])``.
 
-	   Remove the documents from the design first, e.g. by :meth:`~pyVHDLModel.Design.RemoveDocument`.
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.LibraryInUseError`
+	      |rarr| Library still used by documents.
 	"""
 
-	_element: Nullable[ModelEntity]    #: The library to remove.
-	_users:   tuple[ModelEntity, ...]  #: The documents still using it.
+	_element: Nullable[ElementType]  #: The model entity to remove.
+	_users:   tuple[UsersType, ...]  #: The model entities still using it.
 
 	def __init__(
 		self,
 		message: str,
 		/, *,
-		element: Nullable[ModelEntity] = None,
-		users: Nullable[tuple[ModelEntity, ...]] = None
+		element: Nullable[ElementType] = None,
+		users: Nullable[tuple[UsersType, ...]] = None
 	) -> None:
 		"""
-		Initializes the exception with the library and the documents still using it.
+		Initializes the exception with the model entity to remove and the model entities still using it.
 
 		:param message: The error message.
-		:param element: Optional, the library to remove.
-		:param users:   Optional, the documents still using the library.
+		:param element: Optional, the model entity to remove.
+		:param users:   Optional, the model entities still using it.
 		"""
 		super().__init__(message)
 		self._element = element
 		self._users =   () if users is None else users
 
 	@readonly
-	def Element(self) -> Nullable[ModelEntity]:
+	def Element(self) -> Nullable[ElementType]:
 		"""
-		Read-only property to access the library to remove (:attr:`_element`).
+		Read-only property to access the model entity to remove (:attr:`_element`).
 
-		:returns: The library, or ``None`` if it wasn't recorded.
+		:returns: The model entity, or ``None`` if it wasn't recorded.
 		"""
 		return self._element
 
 	@readonly
-	def Users(self) -> tuple[ModelEntity, ...]:
+	def Users(self) -> tuple[UsersType, ...]:
 		"""
-		Read-only property to access the documents still using the library to remove (:attr:`_users`).
+		Read-only property to access the model entities still using the model entity to remove (:attr:`_users`).
 
-		:returns: Tuple of documents, empty if they weren't recorded.
+		:returns: Tuple of model entities, empty if they weren't recorded.
 		"""
 		return self._users
+
+
+@export
+class LibraryInUseError(ElementInUseError["Library", "Document"]):
+	"""
+	This exception is raised, when a library is removed from a design, but documents of the design still use it.
+
+	:attr:`Element` is the library, :attr:`Users` are the documents.
+
+	.. hint::
+
+	   Remove the documents from the design first, e.g. by :meth:`~pyVHDLModel.Design.RemoveDocument`.
+	"""
 
 
 @export

@@ -40,7 +40,7 @@ from pyVHDLModel.Exception import DuplicateTypeError, DuplicateSubtypeError, Dup
 from pyVHDLModel.Exception import DuplicateSignalError, DuplicateVariableError, DuplicateFileError
 from pyVHDLModel.Exception import DuplicateComponentError, DuplicateSubprogramError
 from pyVHDLModel.Exception import NotInNamespaceError, DuplicateDocumentError, DuplicateDesignUnitError
-from pyVHDLModel.Exception import LibraryInUseError
+from pyVHDLModel.Exception import ElementInUseError, LibraryInUseError
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -102,5 +102,10 @@ class Exceptions(Testcase):
 		self.assertTrue(issubclass(DuplicateDesignUnitError, DuplicateElementError))
 
 	def test_LibraryInUseError(self) -> None:
+		self.assertTrue(issubclass(LibraryInUseError, ElementInUseError))
 		self.assertTrue(issubclass(LibraryInUseError, VHDLModelException))
 		self.assertTrue(issubclass(LibraryInUseError, InUseError))
+
+	def test_ElementInUseError(self) -> None:
+		self.assertTrue(issubclass(ElementInUseError, VHDLModelException))
+		self.assertTrue(issubclass(ElementInUseError, InUseError))

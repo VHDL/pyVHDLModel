@@ -46,7 +46,11 @@ from pyVHDLModel.Base            import Direction, Mode, SimpleRange, WaveformEl
 from pyVHDLModel.Common          import ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform
 from pyVHDLModel.Concurrent      import ProcessStatement, ConcurrentProcedureCall, ConcurrentSimpleSignalAssignment, \
                                         ConcurrentSelectedSignalAssignment, ConcurrentConditionalSignalAssignment, \
-                                        ConcurrentAssertStatement
+                                        ConcurrentAssertStatement, ComponentInstantiation, EntityInstantiation, \
+                                        ConfigurationInstantiation, ConcurrentBlockStatement, IfGenerateBranch, \
+                                        ElsifGenerateBranch, ElseGenerateBranch, IfGenerateStatement, \
+                                        IndexedGenerateChoice, RangedGenerateChoice, GenerateCase, OthersGenerateCase, \
+                                        CaseGenerateStatement, ForGenerateStatement
 from pyVHDLModel.Declaration     import EntityClass, Alias, Attribute, AttributeSpecification
 from pyVHDLModel.Configuration   import EntityAspectEntity, EntityAspectOpen, BindingIndication, AllInstantiationList, \
                                         OthersInstantiationList, ComponentConfiguration, BlockConfiguration
@@ -65,7 +69,7 @@ from pyVHDLModel.Expression      import EnumerationLiteral, IntegerLiteral, Floa
                                         MatchingEqualExpression, ShiftLeftLogicExpression, ShiftRightLogicExpression, \
                                         RotateLeftExpression, QualifiedExpression, SimpleAggregateElement, \
                                         IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
-                                        OthersAggregateElement, Aggregate
+                                        OthersAggregateElement, Aggregate, GreaterThanExpression
 from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Instantiation   import ProcedureInstantiation, FunctionInstantiation, PackageInstantiation
 from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
@@ -84,7 +88,9 @@ from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol
                                         ConstrainedRecordSubtypeSymbol, ModeViewSymbol, SubprogramReferenceSymbol, \
                                         LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, \
                                         ContextReferenceSymbol, EntitySymbol, ArchitectureSymbol, PackageSymbol, \
-                                        PackageReferenceSymbol, ComponentInstantiationSymbol, SignalSymbol
+                                        PackageReferenceSymbol, ComponentInstantiationSymbol, SignalSymbol, \
+                                        EntityInstantiationSymbol, ConfigurationInstantiationSymbol, \
+                                        ConfigurationSymbol
 from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
                                         ArrayType, RecordTypeElement, RecordType, AccessType, FileType, ProtectedType, \
                                         ProtectedTypeBody
@@ -760,6 +766,114 @@ class GHDLOracleConcurrentStatements(Testcase):
 			end package body;
 
 			use work.checks.all;
+
+			""")
+
+		for style in (VHDLStyle(), VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs)):
+			with self.subTest(style=style.KeywordCase):
+				source = header + VHDLWriter(style).Format(architecture)
+
+				result = _analyze(source)
+
+				self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)
+
+	def test_Hierarchy(self) -> None:
+		def assign(target: str, source: str) -> ConcurrentSimpleSignalAssignment:
+			"""Nested function returning a concurrent signal assignment of one object to a signal."""
+			waveform = [WaveformElement(_object(source))]
+			return ConcurrentSimpleSignalAssignment(None, SignalSymbol(SimpleName(target)), waveform)
+
+		def work(name: str) -> SelectedName:
+			"""Nested function returning the name of a design unit in library ``work``."""
+			return SelectedName(name, SimpleName("work"))
+
+		def bit(name: str) -> Signal:
+			"""Nested function returning a signal declaration of type ``bit``."""
+			return Signal([name], _integer("bit"))
+
+		ports = [GenericAssociationItem(SimpleName("BITS"), IntegerLiteral(4))]
+		statements = (
+			EntityInstantiation("u1", EntityInstantiationSymbol(work("sub")), ArchitectureSymbol(SimpleName("rtl")), ports, [
+				PortAssociationItem(SimpleName("a"), _object("x")),
+				PortAssociationItem(SimpleName("y"), _object("q1"))
+			]),
+			ComponentInstantiation("u2", ComponentInstantiationSymbol(SimpleName("sub")), portAssociationItems=[
+				PortAssociationItem(None, _object("x")),
+				PortAssociationItem(None, OpenName())
+			]),
+			ConfigurationInstantiation("u3", ConfigurationInstantiationSymbol(work("sub_cfg")), portAssociationItems=[
+				PortAssociationItem(SimpleName("a"), _object("x")),
+				PortAssociationItem(SimpleName("y"), _object("q2"))
+			]),
+			ConcurrentBlockStatement(
+				"blk",
+				[GenericConstantInterfaceItem(["G"], Mode.Default, _integer("positive"))],
+				[GenericAssociationItem(SimpleName("G"), IntegerLiteral(2))],
+				[PortSimpleSignalInterfaceItem(["bp"], Mode.In, _integer("bit"))],
+				[PortAssociationItem(SimpleName("bp"), _object("x"))],
+				[bit("inner")],
+				[assign("inner", "bp")]
+			),
+			IfGenerateStatement(
+				"gen_if",
+				IfGenerateBranch(GreaterThanExpression(_object("W"), IntegerLiteral(8)), statements=[assign("q3", "x")]),
+				[ElsifGenerateBranch(
+					GreaterThanExpression(_object("W"), IntegerLiteral(4)),
+					[bit("t")],
+					[assign("t", "x"), assign("q3", "t")],
+					alternativeLabel="middle"
+				)],
+				ElseGenerateBranch(statements=[assign("q3", "x")], alternativeLabel="small")
+			),
+			CaseGenerateStatement("gen_case", _object("W"), [
+				GenerateCase(
+					[
+						IndexedGenerateChoice(IntegerLiteral(0)),
+						RangedGenerateChoice(SimpleRange(IntegerLiteral(1), IntegerLiteral(2), Direction.To))
+					],
+					statements=[assign("q4", "x")]
+				),
+				GenerateCase(
+					[IndexedGenerateChoice(IntegerLiteral(3))],
+					statements=[assign("q4", "x")],
+					alternativeLabel="three"
+				),
+				OthersGenerateCase(declaredItems=[bit("t")], statements=[assign("t", "x"), assign("q4", "t")])
+			]),
+			ForGenerateStatement(
+				"gen_for",
+				"i",
+				SimpleRange(IntegerLiteral(0), IntegerLiteral(3), Direction.To),
+				[bit("t")],
+				[assign("t", "x")]
+			),
+		)
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("e")), declaredItems=[
+			Constant(["W"], _integer("natural"), IntegerLiteral(6)),
+			*(bit(name) for name in ("x", "q1", "q2", "q3", "q4")),
+			Component("sub", portItems=[
+				PortSimpleSignalInterfaceItem(["a"], Mode.In, _integer("bit")),
+				PortSimpleSignalInterfaceItem(["y"], Mode.Out, _integer("bit"))
+			]),
+		], statements=statements)
+		header = dedent("""\
+			entity sub is
+				generic (BITS : natural := 1);
+				port (a : in bit; y : out bit);
+			end entity;
+
+			architecture rtl of sub is
+			begin
+				y <= a;
+			end architecture;
+
+			configuration sub_cfg of sub is
+				for rtl
+				end for;
+			end configuration;
+
+			entity e is
+			end entity;
 
 			""")
 

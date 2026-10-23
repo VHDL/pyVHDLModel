@@ -137,11 +137,17 @@ class DesignUnits(Testcase):
 			"""), VHDLWriter().Format(entity))
 
 	def test_Entity_Statements(self) -> None:
-		"""Concurrent statements have no walk yet: an entity with statements raises, nothing is skipped."""
+		"""An entity with statements has a statement part after ``begin``."""
 		entity = Entity("e", statements=[ConcurrentBlockStatement("b")])
 
-		with self.assertRaises(NotImplementedError):
-			VHDLWriter().Format(entity)
+		self.assertEqual(dedent("""\
+			entity e is
+			begin
+			  b : block
+			  begin
+			  end block b;
+			end entity e;
+			"""), VHDLWriter().Format(entity))
 
 	def test_Architecture(self) -> None:
 		architecture = Architecture("rtl", _entitySymbol("counter"), declaredItems=[

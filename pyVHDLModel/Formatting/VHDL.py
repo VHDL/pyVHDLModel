@@ -54,7 +54,11 @@ from pyVHDLModel.Common        import Statement, ProcedureCallMixin, SignalAssig
                                       ConditionalWaveformsMixin, SelectedWaveformsMixin
 from pyVHDLModel.Concurrent    import ProcessStatement, ConcurrentProcedureCall, ConcurrentSimpleSignalAssignment, \
                                       ConcurrentSelectedSignalAssignment, ConcurrentConditionalSignalAssignment, \
-                                      ConcurrentAssertStatement
+                                      ConcurrentAssertStatement, ComponentInstantiation, EntityInstantiation, \
+                                      ConfigurationInstantiation, ConcurrentBlockStatement, GenerateBranch, \
+                                      IfGenerateBranch, ElsifGenerateBranch, ElseGenerateBranch, IfGenerateStatement, \
+                                      IndexedGenerateChoice, ConcurrentCase, GenerateCase, OthersGenerateCase, \
+                                      CaseGenerateStatement, ForGenerateStatement
 from pyVHDLModel.Configuration import EntityAspectEntity, EntityAspectConfiguration, EntityAspectOpen, \
                                       BindingIndication, AllInstantiationList, OthersInstantiationList, \
                                       ComponentConfiguration, BlockConfiguration
@@ -312,7 +316,10 @@ class VHDLWriter(Visitor):
 		element.Visit(self)
 		return "".join(self._buffer)
 
-	def VisitLeftParenthesis(self, element: IndexedName | ParenthesisName | TypeConversion | EntityAspectEntity) -> None:
+	def VisitLeftParenthesis(
+		self,
+		element: IndexedName | ParenthesisName | TypeConversion | EntityAspectEntity | EntityInstantiation
+	) -> None:
 		"""
 		Write the left parenthesis opening a parenthesized list.
 
@@ -353,15 +360,22 @@ class VHDLWriter(Visitor):
 
 	def VisitArrow(
 		self,
-		element: AssociationItem | IndexedAggregateElement | RangedAggregateElement | NamedAggregateElement
+		element: AssociationItem | IndexedAggregateElement | RangedAggregateElement | NamedAggregateElement |
+		         ConcurrentCase
 	) -> None:
 		"""
 		Write the arrow (``=>``) between a choice or formal and its value.
 
+		After the choices of a case-generate alternative, the alternative's body follows on new lines, indented.
+
 		:param element: The element containing the arrow.
 		"""
-		self._Write(" => ")
-		self._minimum = OperatorPrecedence.Range
+		if isinstance(element, ConcurrentCase):
+			self._Write(" =>\n")
+			self._indentation += 1
+		else:
+			self._Write(" => ")
+			self._minimum = OperatorPrecedence.Range
 
 	def VisitApostrophe(self, expression: QualifiedExpression) -> None:
 		"""
@@ -1981,11 +1995,16 @@ class VHDLWriter(Visitor):
 		"""
 		self._Write(";\n")
 
-	def VisitBegin(self, element: Subprogram | Entity | Architecture | ProcessStatement) -> None:
+	def VisitBegin(
+		self,
+		element: Subprogram | Entity | Architecture | ProcessStatement | ConcurrentBlockStatement | GenerateBranch |
+		         ConcurrentCase | ForGenerateStatement
+	) -> None:
 		"""
 		Write the reserved word ``begin`` before the statement part on its own line.
 
-		A subprogram declaration and an entity without statements have no ``begin``.
+		A subprogram declaration, an entity without statements and the body of a generate statement without declared items
+		have no ``begin``.
 
 		:param element: The element with a statement part.
 		"""
@@ -1993,6 +2012,9 @@ class VHDLWriter(Visitor):
 			return
 		elif isinstance(element, Entity) and len(element.Statements) == 0:
 			return
+		elif isinstance(element, (GenerateBranch, ConcurrentCase, ForGenerateStatement)):
+			if len(element.DeclaredItems) == 0:
+				return
 
 		self._indentation -= 1
 		self._WriteIndentation()
@@ -2056,18 +2078,25 @@ class VHDLWriter(Visitor):
 
 		**Format:** ``generic map (`` ... ``)``
 
+		The generic map aspect of a block statement is written like its generic clause and ends with a semicolon.
+
 		:param element: The element with a generic map aspect.
 		"""
-		self._WriteMapAspect(ReservedWord.Generic)
+		self._WriteMapAspect(ReservedWord.Generic, element)
 
-	def _WriteMapAspect(self, keyword: ReservedWord) -> None:
+	def _WriteMapAspect(self, keyword: ReservedWord, element: GenericMapAspectMixin | PortMapAspectMixin) -> None:
 		"""
 		Write the reserved words of a map aspect and the left parenthesis on a new line, one indentation level deeper.
 
+		In a block statement, the map aspect starts its own line at the block header's indentation level.
+
 		:param keyword: The reserved word ``generic`` or ``port``.
+		:param element: The element with the map aspect.
 		"""
-		self._Write("\n")
-		self._indentation += 1
+		if not isinstance(element, ConcurrentBlockStatement):
+			self._Write("\n")
+			self._indentation += 1
+
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(keyword)} {self._Keyword(ReservedWord.Map)} (\n")
 		self._indentation += 1
@@ -2079,8 +2108,21 @@ class VHDLWriter(Visitor):
 
 		:param element: The element with a generic map aspect.
 		"""
-		self._WriteClosingParenthesis("")
-		self._indentation -= 1
+		self._WriteMapAspectEnd(element)
+
+	def _WriteMapAspectEnd(self, element: GenericMapAspectMixin | PortMapAspectMixin) -> None:
+		"""
+		Write the right parenthesis of a map aspect on its own line and leave its indentation level.
+
+		In a block statement, a semicolon follows the right parenthesis.
+
+		:param element: The element with the map aspect.
+		"""
+		if isinstance(element, ConcurrentBlockStatement):
+			self._WriteClosingParenthesis(";\n")
+		else:
+			self._WriteClosingParenthesis("")
+			self._indentation -= 1
 
 	def VisitProcedure(self, procedure: Procedure) -> None:
 		"""
@@ -2250,7 +2292,7 @@ class VHDLWriter(Visitor):
 
 		:param element: The element with a port map aspect.
 		"""
-		self._WriteMapAspect(ReservedWord.Port)
+		self._WriteMapAspect(ReservedWord.Port, element)
 
 	def DepartPortMapAspect(self, element: PortMapAspectMixin) -> None:
 		"""
@@ -2258,8 +2300,7 @@ class VHDLWriter(Visitor):
 
 		:param element: The element with a port map aspect.
 		"""
-		self._WriteClosingParenthesis("")
-		self._indentation -= 1
+		self._WriteMapAspectEnd(element)
 
 	def VisitContextClause(self, designUnit: DesignUnit) -> None:
 		"""
@@ -2571,15 +2612,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._Write(f"{self._Keyword(ReservedWord.Entity)} ")
 
-	def DepartEntityAspectEntity(self, aspect: EntityAspectEntity) -> None:
-		"""
-		Write the right parenthesis after the architecture name of an entity aspect, if any.
-
-		:param aspect: The entity aspect.
-		"""
-		if aspect.Architecture is not None:
-			self._Write(")")
-
 	def VisitEntityAspectConfiguration(self, aspect: EntityAspectConfiguration) -> None:
 		"""
 		Write the reserved word ``configuration`` of an entity aspect naming a configuration.
@@ -2646,7 +2678,7 @@ class VHDLWriter(Visitor):
 		"""
 		self._Write(f" {self._Keyword(ReservedWord.Select)} ")
 
-	def VisitBar(self, element: SelectedWaveform) -> None:
+	def VisitBar(self, element: SelectedWaveform | GenerateCase) -> None:
 		"""
 		Write the vertical line (``|``) between two choices.
 
@@ -2853,3 +2885,303 @@ class VHDLWriter(Visitor):
 		:param assertion: The assertion.
 		"""
 		self._Write(";\n")
+
+	def VisitRightParenthesis(self, element: EntityAspectEntity | EntityInstantiation) -> None:
+		"""
+		Write the right parenthesis after the architecture name of an entity aspect or entity instantiation.
+
+		:param element: The element enclosing the architecture name.
+		"""
+		self._Write(")")
+
+	def VisitGenerate(self, element: GenerateBranch | CaseGenerateStatement | ForGenerateStatement) -> None:
+		"""
+		Write the reserved word ``generate``; the body of the generate statement or branch is indented.
+
+		:param element: The generate statement or branch.
+		"""
+		self._Write(f" {self._Keyword(ReservedWord.Generate)}\n")
+		self._indentation += 1
+
+	def VisitComponentInstantiation(self, instantiation: ComponentInstantiation) -> None:
+		"""
+		Write the label and the reserved word ``component`` of a component instantiation.
+
+		**Format:** ``u1 : component counter`` ... ``;``
+
+		:param instantiation:    The component instantiation.
+		:raises VHDLWriterError: If the component instantiation has no label.
+		"""
+		if instantiation.Label is None:
+			raise VHDLWriterError("Component instantiation has no label.", instantiation)
+
+		self._WriteStatementStart(instantiation)
+		self._Write(f"{self._Keyword(ReservedWord.Component)} ")
+
+	def DepartComponentInstantiation(self, instantiation: ComponentInstantiation) -> None:
+		"""
+		Write the semicolon ending a component instantiation.
+
+		:param instantiation: The component instantiation.
+		"""
+		self._Write(";\n")
+
+	def VisitEntityInstantiation(self, instantiation: EntityInstantiation) -> None:
+		"""
+		Write the label and the reserved word ``entity`` of an entity instantiation.
+
+		**Format:** ``u1 : entity work.counter(rtl)`` ... ``;``
+
+		:param instantiation:    The entity instantiation.
+		:raises VHDLWriterError: If the entity instantiation has no label.
+		"""
+		if instantiation.Label is None:
+			raise VHDLWriterError("Entity instantiation has no label.", instantiation)
+
+		self._WriteStatementStart(instantiation)
+		self._Write(f"{self._Keyword(ReservedWord.Entity)} ")
+
+	def DepartEntityInstantiation(self, instantiation: EntityInstantiation) -> None:
+		"""
+		Write the semicolon ending an entity instantiation.
+
+		:param instantiation: The entity instantiation.
+		"""
+		self._Write(";\n")
+
+	def VisitConfigurationInstantiation(self, instantiation: ConfigurationInstantiation) -> None:
+		"""
+		Write the label and the reserved word ``configuration`` of a configuration instantiation.
+
+		**Format:** ``u1 : configuration work.counter_cfg`` ... ``;``
+
+		:param instantiation:    The configuration instantiation.
+		:raises VHDLWriterError: If the configuration instantiation has no label.
+		"""
+		if instantiation.Label is None:
+			raise VHDLWriterError("Configuration instantiation has no label.", instantiation)
+
+		self._WriteStatementStart(instantiation)
+		self._Write(f"{self._Keyword(ReservedWord.Configuration)} ")
+
+	def DepartConfigurationInstantiation(self, instantiation: ConfigurationInstantiation) -> None:
+		"""
+		Write the semicolon ending a configuration instantiation.
+
+		:param instantiation: The configuration instantiation.
+		"""
+		self._Write(";\n")
+
+	def VisitConcurrentBlockStatement(self, block: ConcurrentBlockStatement) -> None:
+		"""
+		Write the label and the reserved word ``block`` of a block statement; its header and declarations are indented.
+
+		**Format:** ``inner : block`` ... ``begin`` ... ``end block inner;``
+
+		:param block:            The block statement.
+		:raises VHDLWriterError: If the block statement has no label.
+		"""
+		if block.Label is None:
+			raise VHDLWriterError("Block statement has no label.", block)
+
+		self._WriteStatementStart(block)
+		self._Write(f"{self._Keyword(ReservedWord.Block)}\n")
+		self._indentation += 1
+
+	def DepartConcurrentBlockStatement(self, block: ConcurrentBlockStatement) -> None:
+		"""
+		Write the end of a block statement.
+
+		:param block: The block statement.
+		"""
+		self._WriteEnd((ReservedWord.Block,), block.Label)
+
+	def VisitIfGenerateStatement(self, statement: IfGenerateStatement) -> None:
+		"""
+		Write the label of an if-generate statement; its branches follow.
+
+		**Format:** ``gen : if BITS > 8 generate`` ... ``elsif`` ... ``else generate`` ... ``end generate gen;``
+
+		:param statement:        The if-generate statement.
+		:raises VHDLWriterError: If the if-generate statement has no label.
+		"""
+		if statement.Label is None:
+			raise VHDLWriterError("If-generate statement has no label.", statement)
+
+		self._WriteStatementStart(statement)
+
+	def DepartIfGenerateStatement(self, statement: IfGenerateStatement) -> None:
+		"""
+		Write the end of an if-generate statement.
+
+		:param statement: The if-generate statement.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keyword(ReservedWord.Generate)} {statement.Label};\n")
+
+	def VisitIfGenerateBranch(self, branch: IfGenerateBranch) -> None:
+		"""
+		Write the reserved word ``if`` and the alternative label, if any, of the if branch of an if-generate statement.
+
+		:param branch: The generate branch.
+		"""
+		self._Write(f"{self._Keyword(ReservedWord.If)} ")
+		self._WriteAlternativeLabel(branch)
+
+	def _WriteAlternativeLabel(self, branch: GenerateBranch) -> None:
+		"""
+		Write the alternative label, if any, of a generate branch, followed by a colon.
+
+		:param branch: The generate branch.
+		"""
+		if branch.AlternativeLabel is not None:
+			self._Write(f"{branch.AlternativeLabel} : ")
+
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartIfGenerateBranch(self, branch: IfGenerateBranch) -> None:
+		"""
+		Leave the body of the if branch of an if-generate statement.
+
+		:param branch: The generate branch.
+		"""
+		self._indentation -= 1
+
+	def VisitElsifGenerateBranch(self, branch: ElsifGenerateBranch) -> None:
+		"""
+		Write the reserved word ``elsif`` and the alternative label, if any, of an elsif branch of an if-generate statement.
+
+		:param branch: The generate branch.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword(ReservedWord.ElsIf)} ")
+		self._WriteAlternativeLabel(branch)
+
+	def DepartElsifGenerateBranch(self, branch: ElsifGenerateBranch) -> None:
+		"""
+		Leave the body of an elsif branch of an if-generate statement.
+
+		:param branch: The generate branch.
+		"""
+		self._indentation -= 1
+
+	def VisitElseGenerateBranch(self, branch: ElseGenerateBranch) -> None:
+		"""
+		Write the reserved word ``else`` and the alternative label, if any, of the else branch of an if-generate statement.
+
+		:param branch: The generate branch.
+		"""
+		self._WriteIndentation()
+		self._Write(self._Keyword(ReservedWord.Else))
+		if branch.AlternativeLabel is not None:
+			self._Write(f" {branch.AlternativeLabel} :")
+
+	def DepartElseGenerateBranch(self, branch: ElseGenerateBranch) -> None:
+		"""
+		Leave the body of the else branch of an if-generate statement.
+
+		:param branch: The generate branch.
+		"""
+		self._indentation -= 1
+
+	def VisitCaseGenerateStatement(self, statement: CaseGenerateStatement) -> None:
+		"""
+		Write the label and the reserved word ``case`` of a case-generate statement; its alternatives are indented.
+
+		**Format:** ``gen : case MODE generate`` ... ``when 0 =>`` ... ``end generate gen;``
+
+		:param statement:        The case-generate statement.
+		:raises VHDLWriterError: If the case-generate statement has no label.
+		"""
+		if statement.Label is None:
+			raise VHDLWriterError("Case-generate statement has no label.", statement)
+
+		self._WriteStatementStart(statement)
+		self._Write(f"{self._Keyword(ReservedWord.Case)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartCaseGenerateStatement(self, statement: CaseGenerateStatement) -> None:
+		"""
+		Write the end of a case-generate statement.
+
+		:param statement: The case-generate statement.
+		"""
+		self._WriteEnd((ReservedWord.Generate,), statement.Label)
+
+	def VisitGenerateCase(self, case: GenerateCase) -> None:
+		"""
+		Write the reserved word ``when`` and the alternative label, if any, of an alternative of a case-generate statement.
+
+		**Format:** ``when 1 | 2 =>``
+
+		:param case: The case-generate alternative.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword(ReservedWord.When)} ")
+		if case.Label is not None:
+			self._Write(f"{case.Label} : ")
+
+	def DepartGenerateCase(self, case: GenerateCase) -> None:
+		"""
+		Leave the body of an alternative of a case-generate statement.
+
+		:param case: The case-generate alternative.
+		"""
+		self._indentation -= 1
+
+	def VisitOthersGenerateCase(self, case: OthersGenerateCase) -> None:
+		"""
+		Write the reserved words ``when`` and ``others`` of the ``others`` alternative of a case-generate statement.
+
+		**Format:** ``when others =>``
+
+		:param case: The case-generate alternative.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword(ReservedWord.When)} ")
+		if case.Label is not None:
+			self._Write(f"{case.Label} : ")
+
+		self._Write(self._Keyword(ReservedWord.Others))
+
+	def DepartOthersGenerateCase(self, case: OthersGenerateCase) -> None:
+		"""
+		Leave the body of the ``others`` alternative of a case-generate statement.
+
+		:param case: The case-generate alternative.
+		"""
+		self._indentation -= 1
+
+	def VisitIndexedGenerateChoice(self, choice: IndexedGenerateChoice) -> None:
+		"""
+		Enter a case-generate choice given by a value; the value is a simple expression.
+
+		**Format:** ``8``
+
+		:param choice: The choice.
+		"""
+		self._minimum = OperatorPrecedence.Adding
+
+	def VisitForGenerateStatement(self, statement: ForGenerateStatement) -> None:
+		"""
+		Write the label, the reserved word ``for``, the loop index and ``in`` of a for-generate statement.
+
+		**Format:** ``gen : for i in 0 to 3 generate`` ... ``end generate gen;``
+
+		:param statement:        The for-generate statement.
+		:raises VHDLWriterError: If the for-generate statement has no label.
+		"""
+		if statement.Label is None:
+			raise VHDLWriterError("For-generate statement has no label.", statement)
+
+		self._WriteStatementStart(statement)
+		self._Write(f"{self._Keyword(ReservedWord.For)} {statement.LoopIndex} {self._Keyword(ReservedWord.In)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartForGenerateStatement(self, statement: ForGenerateStatement) -> None:
+		"""
+		Write the end of a for-generate statement.
+
+		:param statement: The for-generate statement.
+		"""
+		self._WriteEnd((ReservedWord.Generate,), statement.Label)

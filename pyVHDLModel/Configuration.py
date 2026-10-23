@@ -124,6 +124,7 @@ class EntityAspectEntity(EntityAspect):
 		if self._architecture is not None:
 			visitor.VisitLeftParenthesis(self)
 			self._architecture.Visit(visitor)
+			visitor.VisitRightParenthesis(self)
 
 		visitor.DepartEntityAspectEntity(self)
 

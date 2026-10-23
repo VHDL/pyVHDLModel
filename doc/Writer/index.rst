@@ -31,8 +31,8 @@ The writer formats names, symbols, literals, expressions, association items, sub
 declarations, interface items, component declarations, mode view declarations, type and subtype declarations, alias
 declarations, attribute declarations and attribute specifications, subprograms, subprogram instantiations and protected
 types (:ref:`WRITER/declarations`), context items, design units and documents (:ref:`WRITER/designunits`),
-concurrent signal assignments, concurrent procedure calls, concurrent assertions and processes
-(:ref:`WRITER/concurrent`). Further statements follow.
+concurrent signal assignments, concurrent procedure calls, concurrent assertions, processes, instantiations, block
+statements and generate statements (:ref:`WRITER/concurrent`). Sequential statements follow.
 
 
 .. _WRITER/visitor:
@@ -315,3 +315,29 @@ Processes
      variable value : natural := 0;
    begin
    end process count;
+
+Instantiations
+   Component, entity and configuration instantiations are written with the reserved word ``component``, ``entity`` or
+   ``configuration``, followed by their generic and port map aspects, one association per line. An instantiation
+   without label raises :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
+
+Block statements
+   A block statement writes its block header (generic clause, generic map aspect, port clause, port map aspect), its
+   declared items, ``begin`` and its statements; each map aspect of the header ends with a semicolon.
+
+Generate statements
+   If-generate, case-generate and for-generate statements are written with their branches or alternatives and
+   ``end generate``. A branch or alternative with declared items writes ``begin`` before its statements; alternative
+   labels are written before the condition or the choices (``elsif middle : BITS > 4 generate``). A block or generate
+   statement without label raises :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
+
+.. code-block:: VHDL
+
+   gen : case MODE generate
+     when 0 | 1 to 2 =>
+       q <= a;
+     when others =>
+       signal t : bit;
+     begin
+       q <= t;
+   end generate gen;

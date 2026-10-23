@@ -45,8 +45,8 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf
 from pyVHDLModel.Symbol     import SubtypeSymbol
 from pyVHDLModel.Type       import ProtectedType
-from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
-from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, WithGenericsMixin, WithParametersMixin
+from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
+                                   ProtectedTypeDeclarationRegionMixin, WithGenericsMixin, WithParametersMixin
 from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixin
 
 if TYPE_CHECKING:

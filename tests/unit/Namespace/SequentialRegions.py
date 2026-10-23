@@ -43,14 +43,8 @@ from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Namespace  import ExtendedKeyError
 from pyVHDLModel.Object     import Constant, Signal, Variable
 from pyVHDLModel.Subprogram import Function, Procedure
-from pyVHDLModel.Symbol     import (
-	EntitySymbol,
-	PossibleReference,
-	SignalSymbol,
-	SimpleSubtypeSymbol,
-	Symbol,
-	VariableSymbol,
-)
+from pyVHDLModel.Symbol     import EntitySymbol, PossibleReference, SignalSymbol, SimpleSubtypeSymbol, Symbol, \
+                                   VariableSymbol
 from pyVHDLModel.Type       import IntegerType
 
 from tests.unit             import _signal, _subtypeSymbol, _variable

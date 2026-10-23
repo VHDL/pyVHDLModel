@@ -44,41 +44,45 @@ from pyVHDLModel                 import Document
 from pyVHDLModel.Association     import ParameterAssociationItem, GenericAssociationItem, PortAssociationItem
 from pyVHDLModel.Base            import Direction, Mode, SimpleRange
 from pyVHDLModel.Declaration     import EntityClass, Alias, Attribute, AttributeSpecification
-from pyVHDLModel.Configuration   import EntityAspectEntity, EntityAspectOpen, BindingIndication, AllInstantiationList
-from pyVHDLModel.Configuration   import OthersInstantiationList, ComponentConfiguration, BlockConfiguration
-from pyVHDLModel.DesignUnit      import LibraryClause, UseClause, ContextReference, Context, Package, PackageBody
-from pyVHDLModel.DesignUnit      import Entity, Architecture, Configuration, Component
-from pyVHDLModel.Expression      import (
-	EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral, PhysicalFloatingLiteral,
-	CharacterLiteral, StringLiteral, BinaryBitStringLiteral, DecimalBitStringLiteral, HexadecimalBitStringLiteral,
-	NegationExpression, InverseExpression, AbsoluteExpression, UnaryXorExpression, TypeConversion, SubExpression,
-	AscendingRangeExpression, DescendingRangeExpression, AdditionExpression, SubtractionExpression,
-	ConcatenationExpression, MultiplyExpression, DivisionExpression, ModuloExpression, RemainderExpression,
-	ExponentiationExpression, AndExpression, NandExpression, OrExpression, EqualExpression, UnequalExpression,
-	LessThanExpression, MatchingEqualExpression, ShiftLeftLogicExpression, ShiftRightLogicExpression,
-	RotateLeftExpression, QualifiedExpression, SimpleAggregateElement, IndexedAggregateElement, RangedAggregateElement,
-	NamedAggregateElement, OthersAggregateElement, Aggregate
-)
+from pyVHDLModel.Configuration   import EntityAspectEntity, EntityAspectOpen, BindingIndication, AllInstantiationList, \
+                                        OthersInstantiationList, ComponentConfiguration, BlockConfiguration
+from pyVHDLModel.DesignUnit      import LibraryClause, UseClause, ContextReference, Context, Package, PackageBody, \
+                                        Entity, Architecture, Configuration, Component
+from pyVHDLModel.Expression      import EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, \
+                                        PhysicalIntegerLiteral, PhysicalFloatingLiteral, CharacterLiteral, \
+                                        StringLiteral, BinaryBitStringLiteral, DecimalBitStringLiteral, \
+                                        HexadecimalBitStringLiteral, NegationExpression, InverseExpression, \
+                                        AbsoluteExpression, UnaryXorExpression, TypeConversion, SubExpression, \
+                                        AscendingRangeExpression, DescendingRangeExpression, AdditionExpression, \
+                                        SubtractionExpression, ConcatenationExpression, MultiplyExpression, \
+                                        DivisionExpression, ModuloExpression, RemainderExpression, \
+                                        ExponentiationExpression, AndExpression, NandExpression, OrExpression, \
+                                        EqualExpression, UnequalExpression, LessThanExpression, \
+                                        MatchingEqualExpression, ShiftLeftLogicExpression, ShiftRightLogicExpression, \
+                                        RotateLeftExpression, QualifiedExpression, SimpleAggregateElement, \
+                                        IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
+                                        OthersAggregateElement, Aggregate
 from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Instantiation   import ProcedureInstantiation, FunctionInstantiation, PackageInstantiation
-from pyVHDLModel.Interface       import (
-	GenericConstantInterfaceItem, GenericTypeInterfaceItem, PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem,
-	ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, ParameterSimpleSignalInterfaceItem,
-	ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem, ModeViewDeclaration, SimpleModeViewElement,
-	CompositeModeViewElement, GenericProcedureInterfaceItem, GenericFunctionInterfaceItem
-)
+from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
+                                        PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem, \
+                                        ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
+                                        ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem, \
+                                        ParameterFileInterfaceItem, ModeViewDeclaration, SimpleModeViewElement, \
+                                        CompositeModeViewElement, GenericProcedureInterfaceItem, \
+                                        GenericFunctionInterfaceItem
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, AttributeName, SelectedName, AllName, OpenName
 from pyVHDLModel.Object          import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
 from pyVHDLModel.Subprogram      import Procedure, Function, ProcedureMethod, FunctionMethod
-from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol, IndexedObjectOrFunctionCallSymbol
-from pyVHDLModel.Symbol          import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol
-from pyVHDLModel.Symbol          import ConstrainedRecordSubtypeSymbol, ModeViewSymbol, SubprogramReferenceSymbol
-from pyVHDLModel.Symbol          import LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, ContextReferenceSymbol
-from pyVHDLModel.Symbol          import EntitySymbol, ArchitectureSymbol, PackageSymbol, PackageReferenceSymbol
-from pyVHDLModel.Symbol          import ComponentInstantiationSymbol
-from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType
-from pyVHDLModel.Type            import ArrayType, RecordTypeElement, RecordType, AccessType, FileType, ProtectedType
-from pyVHDLModel.Type            import ProtectedTypeBody
+from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol, IndexedObjectOrFunctionCallSymbol, \
+                                        ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
+                                        ConstrainedRecordSubtypeSymbol, ModeViewSymbol, SubprogramReferenceSymbol, \
+                                        LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, \
+                                        ContextReferenceSymbol, EntitySymbol, ArchitectureSymbol, PackageSymbol, \
+                                        PackageReferenceSymbol, ComponentInstantiationSymbol
+from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
+                                        ArrayType, RecordTypeElement, RecordType, AccessType, FileType, ProtectedType, \
+                                        ProtectedTypeBody
 
 from tests.unit.Writer           import _GHDL, _analyze, _object
 

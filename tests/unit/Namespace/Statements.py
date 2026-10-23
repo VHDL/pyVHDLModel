@@ -38,17 +38,9 @@ setter. Every test here therefore assigns ``.Parent`` after construction.
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, SimpleRange
-from pyVHDLModel.Concurrent import (
-	CaseGenerateStatement,
-	ConcurrentBlockStatement,
-	ElseGenerateBranch,
-	ElsifGenerateBranch,
-	ForGenerateStatement,
-	GenerateCase,
-	IfGenerateBranch,
-	IfGenerateStatement,
-	IndexedGenerateChoice,
-)
+from pyVHDLModel.Concurrent import CaseGenerateStatement, ConcurrentBlockStatement, ElseGenerateBranch, \
+                                   ElsifGenerateBranch, ForGenerateStatement, GenerateCase, IfGenerateBranch, \
+                                   IfGenerateStatement, IndexedGenerateChoice
 from pyVHDLModel.DesignUnit import Architecture
 from pyVHDLModel.Expression import IntegerLiteral
 from pyVHDLModel.Name       import SimpleName

@@ -45,11 +45,11 @@ from pyTooling.Graph           import Vertex
 
 from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Exception     import VHDLModelException, AlreadyInDesignError, NotAChildError
-from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
-from pyVHDLModel.Base          import normalizedIdentifiersOf
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
+                                      normalizedIdentifiersOf
 from pyVHDLModel.Namespace     import Namespace
-from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin
-from pyVHDLModel.Regions       import WithoutStatementsMixin
+from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin, \
+                                      WithoutStatementsMixin
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin
 from pyVHDLModel.Object        import DeferredConstant

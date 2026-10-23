@@ -36,7 +36,8 @@ from pyTooling.Common       import getTypeName
 from pyTooling.Decorators   import export
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
-from pyVHDLModel            import Library, Package, PackageBody, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol
+from pyVHDLModel            import Library, Package, PackageBody, AllPackageMembersReferenceSymbol, \
+                                   PackageMemberReferenceSymbol
 from pyVHDLModel.Name       import SimpleName, SelectedName, AllName
 from pyVHDLModel.Symbol     import LibraryReferenceSymbol, PackageSymbol
 from pyVHDLModel.DesignUnit import LibraryClause, UseClause

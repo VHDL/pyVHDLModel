@@ -37,10 +37,10 @@ from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import Design, Document, Library
 from pyVHDLModel.DesignUnit import Architecture, Entity, Package, PackageBody
-from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicateDesignUnitError
-from pyVHDLModel.Exception  import DuplicateDocumentError, LibraryInUseError, LibraryNotRegisteredError
-from pyVHDLModel.Exception  import EntityExistsInLibraryError, ArchitectureExistsInLibraryError
-from pyVHDLModel.Exception  import PackageExistsInLibraryError
+from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicateDesignUnitError, \
+                                   DuplicateDocumentError, LibraryInUseError, LibraryNotRegisteredError, \
+                                   EntityExistsInLibraryError, ArchitectureExistsInLibraryError, \
+                                   PackageExistsInLibraryError
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.PSLModel   import VerificationUnit
 from pyVHDLModel.Symbol     import PackageSymbol

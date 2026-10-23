@@ -31,8 +31,8 @@
 """Tests for the infrastructure of pyVHDLModel.Formatting.VHDL: style object, dispatch, error reporting."""
 from pyTooling.Testing           import Testcase
 
-from pyVHDLModel.Expression      import AndExpression, EnumerationLiteral, FunctionCall, IntegerLiteral
-from pyVHDLModel.Expression      import InverseExpression, ModuloExpression, NullLiteral, OrExpression
+from pyVHDLModel.Expression      import AndExpression, EnumerationLiteral, FunctionCall, IntegerLiteral, \
+                                        InverseExpression, ModuloExpression, NullLiteral, OrExpression
 from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, OpenName
 from pyVHDLModel.Symbol          import ConstrainedCompositeSubtypeSymbol

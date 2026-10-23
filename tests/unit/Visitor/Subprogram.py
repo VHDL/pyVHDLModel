@@ -35,8 +35,8 @@ from pyVHDLModel.Association   import GenericAssociationItem
 from pyVHDLModel.Base          import Mode
 from pyVHDLModel.Expression    import IntegerLiteral
 from pyVHDLModel.Instantiation import ProcedureInstantiation
-from pyVHDLModel.Interface     import GenericTypeInterfaceItem, GenericFunctionInterfaceItem
-from pyVHDLModel.Interface     import ParameterConstantInterfaceItem
+from pyVHDLModel.Interface     import GenericTypeInterfaceItem, GenericFunctionInterfaceItem, \
+                                      ParameterConstantInterfaceItem
 from pyVHDLModel.Name          import SimpleName
 from pyVHDLModel.Object        import Variable
 from pyVHDLModel.Subprogram    import Procedure, Function

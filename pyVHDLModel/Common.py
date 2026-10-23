@@ -40,9 +40,10 @@ from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, BaseCase, BaseChoice, WaveformElement, ConditionalMixin, ChoicesMixin
-from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError
-from pyVHDLModel.Exception   import DuplicateParameterAssociationError
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, BaseCase, BaseChoice, WaveformElement, \
+                                    ConditionalMixin, ChoicesMixin
+from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError, \
+                                    DuplicateParameterAssociationError
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import Symbol, SignalSymbol, VariableSymbol

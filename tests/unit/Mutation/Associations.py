@@ -44,9 +44,9 @@ from pyTooling.Testing         import Testcase
 from pyVHDLModel.Association   import GenericAssociationItem, PortAssociationItem, ParameterAssociationItem
 from pyVHDLModel.Concurrent    import ComponentInstantiation, ConcurrentBlockStatement, ConcurrentProcedureCall
 from pyVHDLModel.Configuration import BindingIndication
-from pyVHDLModel.Exception     import AlreadyInDesignError, NotAChildError, AssociationOrderError
-from pyVHDLModel.Exception     import DuplicateGenericAssociationError, DuplicatePortAssociationError
-from pyVHDLModel.Exception     import DuplicateParameterAssociationError
+from pyVHDLModel.Exception     import AlreadyInDesignError, NotAChildError, AssociationOrderError, \
+                                      DuplicateGenericAssociationError, DuplicatePortAssociationError, \
+                                      DuplicateParameterAssociationError
 from pyVHDLModel.Expression    import IntegerLiteral
 from pyVHDLModel.Name          import SimpleName, ParenthesisName
 from pyVHDLModel.Sequential    import SequentialProcedureCall

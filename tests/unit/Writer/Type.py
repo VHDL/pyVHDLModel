@@ -33,13 +33,13 @@ from textwrap                    import dedent
 
 from pyTooling.Testing           import Testcase
 
-from pyVHDLModel.Expression      import IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral, EnumerationLiteral
-from pyVHDLModel.Expression      import AscendingRangeExpression, DescendingRangeExpression
+from pyVHDLModel.Expression      import IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral, \
+                                        EnumerationLiteral, AscendingRangeExpression, DescendingRangeExpression
 from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, AttributeName
 from pyVHDLModel.Symbol          import ConstrainedArraySubtypeSymbol
-from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType
-from pyVHDLModel.Type            import ArrayType, RecordTypeElement, RecordType, AccessType, FileType
+from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
+                                        ArrayType, RecordTypeElement, RecordType, AccessType, FileType
 
 from tests.unit                  import _subtypeSymbol
 

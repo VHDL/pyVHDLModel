@@ -38,8 +38,8 @@ from pyVHDLModel                 import Document
 from pyVHDLModel.Association     import GenericAssociationItem
 from pyVHDLModel.Base            import Mode
 from pyVHDLModel.Concurrent      import ConcurrentBlockStatement
-from pyVHDLModel.DesignUnit      import LibraryClause, UseClause, ContextReference, Context, Package, PackageBody
-from pyVHDLModel.DesignUnit      import Entity, Architecture
+from pyVHDLModel.DesignUnit      import LibraryClause, UseClause, ContextReference, Context, Package, PackageBody, \
+                                        Entity, Architecture
 from pyVHDLModel.Expression      import IntegerLiteral
 from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Instantiation   import PackageInstantiation
@@ -47,8 +47,9 @@ from pyVHDLModel.Interface       import GenericConstantInterfaceItem, PortSimple
 from pyVHDLModel.Name            import SimpleName, SelectedName, AllName
 from pyVHDLModel.Object          import Constant, Signal
 from pyVHDLModel.Subprogram      import Function, Procedure
-from pyVHDLModel.Symbol          import LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, ContextReferenceSymbol
-from pyVHDLModel.Symbol          import PackageMemberReferenceSymbol, PackageSymbol, PackageReferenceSymbol
+from pyVHDLModel.Symbol          import LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, \
+                                        ContextReferenceSymbol, PackageMemberReferenceSymbol, PackageSymbol, \
+                                        PackageReferenceSymbol
 
 from tests.unit                  import _entitySymbol, _subtypeSymbol
 

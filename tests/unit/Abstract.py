@@ -37,28 +37,24 @@ from pyTooling.Testing         import Testcase
 from pyVHDLModel.Association   import AssociationItem
 from pyVHDLModel.Base          import BaseCase, BaseChoice
 from pyVHDLModel.Common        import Statement
-from pyVHDLModel.Concurrent    import (
-	ConcurrentCase, ConcurrentChoice, ConcurrentSignalAssignment, ConcurrentStatement, GenerateBranch, GenerateStatement,
-	Instantiation,
-)
+from pyVHDLModel.Concurrent    import ConcurrentCase, ConcurrentChoice, ConcurrentSignalAssignment, \
+                                      ConcurrentStatement, GenerateBranch, GenerateStatement, Instantiation
 from pyVHDLModel.Configuration import EntityAspect
 from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Reference, SecondaryUnit
-from pyVHDLModel.Expression    import (
-	AddingExpression, AggregateElement, Allocation, BaseExpression, BinaryExpression, BitStringLiteral, Literal,
-	LogicalExpression, MatchingRelationalExpression, MultiplyingExpression, NumericLiteral, PhysicalLiteral,
-	RangeExpression, RelationalExpression, RotateExpression, ShiftArithmeticExpression, ShiftExpression,
-	ShiftLogicExpression, TernaryExpression, UnaryExpression,
-)
-from pyVHDLModel.Interface     import (
-	InterfacePackage, ModeViewElement, ParameterSignalInterfaceItem, PortSignalInterfaceItem,
-)
+from pyVHDLModel.Expression    import AddingExpression, AggregateElement, Allocation, BaseExpression, \
+                                      BinaryExpression, BitStringLiteral, Literal, LogicalExpression, \
+                                      MatchingRelationalExpression, MultiplyingExpression, NumericLiteral, \
+                                      PhysicalLiteral, RangeExpression, RelationalExpression, RotateExpression, \
+                                      ShiftArithmeticExpression, ShiftExpression, ShiftLogicExpression, \
+                                      TernaryExpression, UnaryExpression
+from pyVHDLModel.Interface     import InterfacePackage, ModeViewElement, ParameterSignalInterfaceItem, \
+                                      PortSignalInterfaceItem
 from pyVHDLModel.Name          import Name
 from pyVHDLModel.Object        import BaseConstant, Obj
 from pyVHDLModel.PSLModel      import PSLEntity, PSLPrimaryUnit
 from pyVHDLModel.Predefined    import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
-from pyVHDLModel.Sequential    import (
-	Branch, CompoundStatement, LoopControlStatement, LoopStatement, SequentialChoice, SequentialStatement,
-)
+from pyVHDLModel.Sequential    import Branch, CompoundStatement, LoopControlStatement, LoopStatement, \
+                                      SequentialChoice, SequentialStatement
 from pyVHDLModel.Subprogram    import Subprogram
 from pyVHDLModel.Symbol        import ConstrainedCompositeSubtypeSymbol
 from pyVHDLModel.Type          import BaseType, CompositeType, RangedScalarType, ScalarType, Type

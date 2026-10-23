@@ -35,19 +35,16 @@ tests/unit/Base.py (branches, report/assert statements, choices).
 """
 from pyTooling.Testing       import Testcase
 
-from pyVHDLModel.Base        import ModelEntity, Direction, SimpleRange
+from pyVHDLModel.Base        import ModelEntity, Direction, SimpleRange, WaveformElement
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import SignalSymbol, VariableSymbol, Symbol, PossibleReference
 from pyVHDLModel.Expression  import IntegerLiteral, CharacterLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Association import ParameterAssociationItem
-from pyVHDLModel.Sequential  import (
-	SequentialProcedureCall, SequentialSignalAssignment, SequentialSimpleSignalAssignment,
-	CompoundStatement, IfBranch, ElseBranch, IfStatement,
-	IndexedChoice, RangedChoice, Case, OthersCase, CaseStatement,
-	LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement,
-	NextStatement, ExitStatement, NullStatement, ReturnStatement, WaitStatement,
-)
-from pyVHDLModel.Base        import WaveformElement
+from pyVHDLModel.Sequential  import SequentialProcedureCall, SequentialSignalAssignment, \
+                                    SequentialSimpleSignalAssignment, CompoundStatement, IfBranch, ElseBranch, \
+                                    IfStatement, IndexedChoice, RangedChoice, Case, OthersCase, CaseStatement, \
+                                    LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, \
+                                    NextStatement, ExitStatement, NullStatement, ReturnStatement, WaitStatement
 
 from tests.unit              import _signalSymbol
 

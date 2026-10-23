@@ -42,12 +42,8 @@ from pyTooling.Testing      import Testcase
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Concurrent import ConcurrentBlockStatement, ProcessStatement
 from pyVHDLModel.DesignUnit import Architecture, Entity, Package
-from pyVHDLModel.Interface  import (
-	GenericConstantInterfaceItem,
-	GenericTypeInterfaceItem,
-	ParameterVariableInterfaceItem,
-	PortSimpleSignalInterfaceItem,
-)
+from pyVHDLModel.Interface  import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
+                                   ParameterVariableInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Object     import Signal
 from pyVHDLModel.Subprogram import Procedure

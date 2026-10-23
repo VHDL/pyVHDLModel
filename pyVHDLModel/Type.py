@@ -45,8 +45,8 @@ from pyTooling.Graph        import Vertex
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, Range
 from pyVHDLModel.Symbol     import Symbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
-from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin
-from pyVHDLModel.Regions    import WithoutStatementsMixin
+from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
+                                   WithoutStatementsMixin
 
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor  import Visitor

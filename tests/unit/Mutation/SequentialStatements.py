@@ -40,8 +40,8 @@ from pyTooling.Testing      import Testcase
 from pyVHDLModel.Concurrent import ProcessStatement
 from pyVHDLModel.Exception  import AlreadyInDesignError, DuplicateLabelError, NotAChildError
 from pyVHDLModel.Expression import EnumerationLiteral
-from pyVHDLModel.Sequential import Case, CaseStatement, EndlessLoopStatement, IfBranch, IfStatement, IndexedChoice
-from pyVHDLModel.Sequential import NullStatement
+from pyVHDLModel.Sequential import Case, CaseStatement, EndlessLoopStatement, IfBranch, IfStatement, IndexedChoice, \
+                                   NullStatement
 from pyVHDLModel.Subprogram import Procedure
 
 from tests.unit.Mutation    import _parameter, _variable

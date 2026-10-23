@@ -67,27 +67,31 @@ from pyTooling.Decorators      import export, readonly
 from pyTooling.Graph           import Graph, Vertex, Edge
 from pyTooling.Warning         import WarningCollector
 
-from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning, BlackboxWarning
-from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegisteredToForeignDesignError, LibraryNotRegisteredError, EntityExistsInLibraryError
-from pyVHDLModel.Exception     import ArchitectureExistsInLibraryError, PackageExistsInLibraryError, PackageBodyExistsError, ConfigurationExistsInLibraryError
-from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLibraryNotExistingError
-from pyVHDLModel.Exception     import LibraryNotFoundError, EntityNotFoundError, PackageNotFoundError
-from pyVHDLModel.Exception     import ConfigurationNotFoundError, ContextNotFoundError
-from pyVHDLModel.Exception     import AlreadyInDesignError, NotAChildError, DuplicateDocumentError
-from pyVHDLModel.Exception     import DuplicateDesignUnitError, LibraryInUseError
+from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning, BlackboxWarning, \
+                                      LibraryExistsInDesignError, LibraryRegisteredToForeignDesignError, \
+                                      LibraryNotRegisteredError, EntityExistsInLibraryError, \
+                                      ArchitectureExistsInLibraryError, PackageExistsInLibraryError, \
+                                      PackageBodyExistsError, ConfigurationExistsInLibraryError, \
+                                      ContextExistsInLibraryError, ReferencedLibraryNotExistingError, \
+                                      LibraryNotFoundError, EntityNotFoundError, PackageNotFoundError, \
+                                      ConfigurationNotFoundError, ContextNotFoundError, AlreadyInDesignError, \
+                                      NotAChildError, DuplicateDocumentError, DuplicateDesignUnitError, \
+                                      LibraryInUseError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant, SharedVariable, Variable, File
-from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
+                                      PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Common        import AllowBlackboxMixin
-from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
-from pyVHDLModel.Regions       import ProtectedTypeDeclarationRegionMixin
-from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation
-from pyVHDLModel.Concurrent    import GenerateStatement, IfGenerateStatement, ForGenerateStatement, CaseGenerateStatement
-from pyVHDLModel.Concurrent    import GenerateBranch, ConcurrentStatementsMixin, ConcurrentBlockStatement
-from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, Configuration, Package, Component
-from pyVHDLModel.DesignUnit    import UseClause
+from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
+                                      ProtectedTypeDeclarationRegionMixin
+from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation, \
+                                      GenerateStatement, IfGenerateStatement, ForGenerateStatement, \
+                                      CaseGenerateStatement, GenerateBranch, ConcurrentStatementsMixin, \
+                                      ConcurrentBlockStatement
+from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, \
+                                      Configuration, Package, Component, UseClause
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode, PSLEntity
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType, BaseType

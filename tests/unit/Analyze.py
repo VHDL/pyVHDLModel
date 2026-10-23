@@ -34,11 +34,11 @@ from pathlib import Path
 
 from pyVHDLModel import Design, Document, VHDLModelException
 from pyVHDLModel.Name import Name, SimpleName, SelectedName, AllName
-from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, AllPackageMembersReferenceSymbol
-from pyVHDLModel.Symbol import ContextReferenceSymbol, EntitySymbol, PackageSymbol, EntityInstantiationSymbol
-from pyVHDLModel.Symbol import SimpleSubtypeSymbol, Symbol, PossibleReference, ComponentInstantiationSymbol
-from pyVHDLModel.DesignUnit import Package, PackageBody, Context, Entity, Architecture, Configuration, Component
-from pyVHDLModel.DesignUnit import LibraryClause, UseClause, ContextReference
+from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
+                               ContextReferenceSymbol, EntitySymbol, PackageSymbol, EntityInstantiationSymbol, \
+                               SimpleSubtypeSymbol, Symbol, PossibleReference, ComponentInstantiationSymbol
+from pyVHDLModel.DesignUnit import Package, PackageBody, Context, Entity, Architecture, Configuration, Component, \
+                                   LibraryClause, UseClause, ContextReference
 from pyVHDLModel.Configuration import BlockConfiguration
 from pyVHDLModel.Concurrent import EntityInstantiation, ComponentInstantiation
 from pyVHDLModel.Object import Variable

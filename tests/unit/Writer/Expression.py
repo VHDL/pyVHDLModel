@@ -38,25 +38,29 @@ from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Base            import Direction, SimpleRange, RangeFromName
 from pyVHDLModel.Exception       import VHDLWriterError
-from pyVHDLModel.Expression      import (
-	NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral,
-	PhysicalFloatingLiteral, CharacterLiteral, StringLiteral, BinaryBitStringLiteral, OctalBitStringLiteral,
-	DecimalBitStringLiteral, HexadecimalBitStringLiteral,
-	NegationExpression, IdentityExpression, InverseExpression, AbsoluteExpression, UnaryAndExpression,
-	UnaryNandExpression, UnaryOrExpression, UnaryNorExpression, UnaryXorExpression, UnaryXnorExpression,
-	TypeConversion, SubExpression,
-	AscendingRangeExpression, DescendingRangeExpression, AdditionExpression, SubtractionExpression,
-	ConcatenationExpression, MultiplyExpression, DivisionExpression, RemainderExpression, ModuloExpression,
-	ExponentiationExpression, AndExpression, NandExpression, OrExpression, NorExpression, XorExpression,
-	XnorExpression, EqualExpression, UnequalExpression, GreaterThanExpression, GreaterEqualExpression,
-	LessThanExpression, LessEqualExpression, MatchingEqualExpression, MatchingUnequalExpression,
-	MatchingGreaterThanExpression, MatchingGreaterEqualExpression, MatchingLessThanExpression,
-	MatchingLessEqualExpression, ShiftRightLogicExpression, ShiftLeftLogicExpression, ShiftRightArithmeticExpression,
-	ShiftLeftArithmeticExpression, RotateRightExpression, RotateLeftExpression,
-	QualifiedExpression, WhenElseExpression, SubtypeAllocation, QualifiedExpressionAllocation,
-	SimpleAggregateElement, IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement,
-	OthersAggregateElement, Aggregate
-)
+from pyVHDLModel.Expression      import NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, \
+                                        PhysicalIntegerLiteral, PhysicalFloatingLiteral, CharacterLiteral, \
+                                        StringLiteral, BinaryBitStringLiteral, OctalBitStringLiteral, \
+                                        DecimalBitStringLiteral, HexadecimalBitStringLiteral, NegationExpression, \
+                                        IdentityExpression, InverseExpression, AbsoluteExpression, UnaryAndExpression, \
+                                        UnaryNandExpression, UnaryOrExpression, UnaryNorExpression, \
+                                        UnaryXorExpression, UnaryXnorExpression, TypeConversion, SubExpression, \
+                                        AscendingRangeExpression, DescendingRangeExpression, AdditionExpression, \
+                                        SubtractionExpression, ConcatenationExpression, MultiplyExpression, \
+                                        DivisionExpression, RemainderExpression, ModuloExpression, \
+                                        ExponentiationExpression, AndExpression, NandExpression, OrExpression, \
+                                        NorExpression, XorExpression, XnorExpression, EqualExpression, \
+                                        UnequalExpression, GreaterThanExpression, GreaterEqualExpression, \
+                                        LessThanExpression, LessEqualExpression, MatchingEqualExpression, \
+                                        MatchingUnequalExpression, MatchingGreaterThanExpression, \
+                                        MatchingGreaterEqualExpression, MatchingLessThanExpression, \
+                                        MatchingLessEqualExpression, ShiftRightLogicExpression, \
+                                        ShiftLeftLogicExpression, ShiftRightArithmeticExpression, \
+                                        ShiftLeftArithmeticExpression, RotateRightExpression, RotateLeftExpression, \
+                                        QualifiedExpression, WhenElseExpression, SubtypeAllocation, \
+                                        QualifiedExpressionAllocation, SimpleAggregateElement, \
+                                        IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
+                                        OthersAggregateElement, Aggregate
 from pyVHDLModel.Formatting.VHDL import VHDLWriter
 from pyVHDLModel.Name            import SimpleName, AttributeName
 from pyVHDLModel.Symbol          import RangeAttributeSymbol, RecordElementSymbol, SimpleSubtypeSymbol

@@ -39,10 +39,10 @@ from pyTooling.Warning       import WarningCollector
 
 from pyVHDLModel.Declaration import Alias
 from pyVHDLModel.DesignUnit  import Architecture, Component, Package, UseClause
-from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, DuplicateDeclarationError
-from pyVHDLModel.Exception   import DuplicateTypeError, DuplicateSubtypeError
-from pyVHDLModel.Exception   import DuplicateConstantError, DuplicateSignalError, DuplicateVariableError
-from pyVHDLModel.Exception   import DuplicateFileError, DuplicateComponentError, DuplicateSubprogramError
+from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, DuplicateDeclarationError, \
+                                    DuplicateTypeError, DuplicateSubtypeError, DuplicateConstantError, \
+                                    DuplicateSignalError, DuplicateVariableError, DuplicateFileError, \
+                                    DuplicateComponentError, DuplicateSubprogramError
 from pyVHDLModel.Object      import DeferredConstant, File, SharedVariable
 from pyVHDLModel.Type        import AnonymousType, FullType, ProtectedType, ProtectedTypeBody, Subtype
 

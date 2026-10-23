@@ -36,10 +36,9 @@ from pyVHDLModel.Exception       import VHDLWriterError
 from pyVHDLModel.Formatting.VHDL import VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, SelectedName, AllName, OpenName
 from pyVHDLModel.Object          import Signal
-from pyVHDLModel.Symbol          import (
-	LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, EntityInstantiationSymbol, SignalSymbol,
-	SimpleSubtypeSymbol, IndexedObjectOrFunctionCallSymbol
-)
+from pyVHDLModel.Symbol          import LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, \
+                                        EntityInstantiationSymbol, SignalSymbol, SimpleSubtypeSymbol, \
+                                        IndexedObjectOrFunctionCallSymbol
 
 from tests.unit                  import _subtypeSymbol
 from tests.unit.Writer           import _object

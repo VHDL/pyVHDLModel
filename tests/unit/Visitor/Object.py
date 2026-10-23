@@ -35,8 +35,8 @@ from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.Expression import IntegerLiteral
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Object     import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
-from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol
-from pyVHDLModel.Symbol     import ConstrainedRecordSubtypeSymbol, RecordElementSymbol
+from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
+                                   ConstrainedRecordSubtypeSymbol, RecordElementSymbol
 
 from tests.unit.Visitor     import FullRecorder
 

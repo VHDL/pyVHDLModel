@@ -42,8 +42,8 @@ from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import Design, Document, Library
 from pyVHDLModel.DesignUnit import Architecture, Component, Entity, Package, PackageBody
-from pyVHDLModel.Exception  import DuplicateConstantError, DuplicateSignalError, DuplicateVariableError
-from pyVHDLModel.Exception  import DuplicateGenericError, DuplicatePortError, DuplicateParameterError
+from pyVHDLModel.Exception  import DuplicateConstantError, DuplicateSignalError, DuplicateVariableError, \
+                                   DuplicateGenericError, DuplicatePortError, DuplicateParameterError
 from pyVHDLModel.Interface  import GenericFunctionInterfaceItem
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Object     import DeferredConstant

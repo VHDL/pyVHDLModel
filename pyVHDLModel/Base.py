@@ -37,9 +37,9 @@ Base-classes for the VHDL language model.
 from __future__            import annotations
 
 from enum                  import unique, Enum
-from typing                import TYPE_CHECKING, Type, Iterable, Optional as Nullable, Union, cast, Self
+from typing                import TYPE_CHECKING, ClassVar, Type, Iterable, Optional as Nullable, Union, cast, Self
 
-from pyTooling.Common      import getFullyQualifiedName
+from pyTooling.Common      import StringEnum, getFullyQualifiedName
 from pyTooling.Decorators  import export, notimplemented, readonly
 from pyTooling.MetaClasses import ExtendedType, abstractclass
 if TYPE_CHECKING:
@@ -68,11 +68,155 @@ A model element a visitor walks or the VHDL writer writes: a :class:`ModelEntity
 
 @export
 @unique
+class ReservedWord(StringEnum):
+	"""
+	A ``ReservedWord`` is an enumeration of VHDL's reserved words (IEEE Std 1076-2019, 15.10).
+
+	A member is a :class:`str`: its value is the reserved word in lower case, e.g. ``ReservedWord.DownTo == "downto"``.
+	The VHDL writer (:mod:`pyVHDLModel.Formatting.VHDL`) applies the configured keyword case to it.
+	"""
+
+	Abs =               "abs"                 #: Reserved word since VHDL-87.
+	Access =            "access"              #: Reserved word since VHDL-87.
+	After =             "after"               #: Reserved word since VHDL-87.
+	Alias =             "alias"               #: Reserved word since VHDL-87.
+	All =               "all"                 #: Reserved word since VHDL-87.
+	And =               "and"                 #: Reserved word since VHDL-87.
+	Architecture =      "architecture"        #: Reserved word since VHDL-87.
+	Array =             "array"               #: Reserved word since VHDL-87.
+	Assert =            "assert"              #: Reserved word since VHDL-87.
+	Assume =            "assume"              #: Reserved word since VHDL-2008.
+	Attribute =         "attribute"           #: Reserved word since VHDL-87.
+	Begin =             "begin"               #: Reserved word since VHDL-87.
+	Block =             "block"               #: Reserved word since VHDL-87.
+	Body =              "body"                #: Reserved word since VHDL-87.
+	Buffer =            "buffer"              #: Reserved word since VHDL-87.
+	Bus =               "bus"                 #: Reserved word since VHDL-87.
+	Case =              "case"                #: Reserved word since VHDL-87.
+	Component =         "component"           #: Reserved word since VHDL-87.
+	Configuration =     "configuration"       #: Reserved word since VHDL-87.
+	Constant =          "constant"            #: Reserved word since VHDL-87.
+	Context =           "context"             #: Reserved word since VHDL-2008.
+	Cover =             "cover"               #: Reserved word since VHDL-2008.
+	Default =           "default"             #: Reserved word since VHDL-2008.
+	Disconnect =        "disconnect"          #: Reserved word since VHDL-87.
+	DownTo =            "downto"              #: Reserved word since VHDL-87.
+	Else =              "else"                #: Reserved word since VHDL-87.
+	ElsIf =             "elsif"               #: Reserved word since VHDL-87.
+	End =               "end"                 #: Reserved word since VHDL-87.
+	Entity =            "entity"              #: Reserved word since VHDL-87.
+	Exit =              "exit"                #: Reserved word since VHDL-87.
+	File =              "file"                #: Reserved word since VHDL-87.
+	For =               "for"                 #: Reserved word since VHDL-87.
+	Force =             "force"               #: Reserved word since VHDL-2008.
+	Function =          "function"            #: Reserved word since VHDL-87.
+	Generate =          "generate"            #: Reserved word since VHDL-87.
+	Generic =           "generic"             #: Reserved word since VHDL-87.
+	Group =             "group"               #: Reserved word since VHDL-93.
+	Guarded =           "guarded"             #: Reserved word since VHDL-87.
+	If =                "if"                  #: Reserved word since VHDL-87.
+	Impure =            "impure"              #: Reserved word since VHDL-93.
+	In =                "in"                  #: Reserved word since VHDL-87.
+	Inertial =          "inertial"            #: Reserved word since VHDL-93.
+	Inherit =           "inherit"             #: Reserved word since VHDL-2008.
+	InOut =             "inout"               #: Reserved word since VHDL-87.
+	Is =                "is"                  #: Reserved word since VHDL-87.
+	Label =             "label"               #: Reserved word since VHDL-87.
+	Library =           "library"             #: Reserved word since VHDL-87.
+	Linkage =           "linkage"             #: Reserved word since VHDL-87.
+	Literal =           "literal"             #: Reserved word since VHDL-93.
+	Loop =              "loop"                #: Reserved word since VHDL-87.
+	Map =               "map"                 #: Reserved word since VHDL-87.
+	Mod =               "mod"                 #: Reserved word since VHDL-87.
+	Nand =              "nand"                #: Reserved word since VHDL-87.
+	New =               "new"                 #: Reserved word since VHDL-87.
+	Next =              "next"                #: Reserved word since VHDL-87.
+	Nor =               "nor"                 #: Reserved word since VHDL-87.
+	Not =               "not"                 #: Reserved word since VHDL-87.
+	Null =              "null"                #: Reserved word since VHDL-87.
+	Of =                "of"                  #: Reserved word since VHDL-87.
+	On =                "on"                  #: Reserved word since VHDL-87.
+	Open =              "open"                #: Reserved word since VHDL-87.
+	Or =                "or"                  #: Reserved word since VHDL-87.
+	Others =            "others"              #: Reserved word since VHDL-87.
+	Out =               "out"                 #: Reserved word since VHDL-87.
+	Package =           "package"             #: Reserved word since VHDL-87.
+	Parameter =         "parameter"           #: Reserved word since VHDL-2008.
+	Port =              "port"                #: Reserved word since VHDL-87.
+	Postponed =         "postponed"           #: Reserved word since VHDL-93.
+	Private =           "private"             #: Reserved word since VHDL-2019.
+	Procedure =         "procedure"           #: Reserved word since VHDL-87.
+	Process =           "process"             #: Reserved word since VHDL-87.
+	Property =          "property"            #: Reserved word since VHDL-2008.
+	Protected =         "protected"           #: Reserved word since VHDL-2002.
+	Pure =              "pure"                #: Reserved word since VHDL-93.
+	Range =             "range"               #: Reserved word since VHDL-87.
+	Record =            "record"              #: Reserved word since VHDL-87.
+	Register =          "register"            #: Reserved word since VHDL-87.
+	Reject =            "reject"              #: Reserved word since VHDL-93.
+	Release =           "release"             #: Reserved word since VHDL-2008.
+	Rem =               "rem"                 #: Reserved word since VHDL-87.
+	Report =            "report"              #: Reserved word since VHDL-87.
+	Restrict =          "restrict"            #: Reserved word since VHDL-2008.
+	RestrictGuarantee = "restrict_guarantee"  #: Reserved word since VHDL-2008.
+	Return =            "return"              #: Reserved word since VHDL-87.
+	Rol =               "rol"                 #: Reserved word since VHDL-93.
+	Ror =               "ror"                 #: Reserved word since VHDL-93.
+	Select =            "select"              #: Reserved word since VHDL-87.
+	Sequence =          "sequence"            #: Reserved word since VHDL-2008.
+	Severity =          "severity"            #: Reserved word since VHDL-87.
+	Shared =            "shared"              #: Reserved word since VHDL-93.
+	Signal =            "signal"              #: Reserved word since VHDL-87.
+	Sla =               "sla"                 #: Reserved word since VHDL-93.
+	Sll =               "sll"                 #: Reserved word since VHDL-93.
+	Sra =               "sra"                 #: Reserved word since VHDL-93.
+	Srl =               "srl"                 #: Reserved word since VHDL-93.
+	Subtype =           "subtype"             #: Reserved word since VHDL-87.
+	Then =              "then"                #: Reserved word since VHDL-87.
+	To =                "to"                  #: Reserved word since VHDL-87.
+	Transport =         "transport"           #: Reserved word since VHDL-87.
+	Type =              "type"                #: Reserved word since VHDL-87.
+	Unaffected =        "unaffected"          #: Reserved word since VHDL-93.
+	Units =             "units"               #: Reserved word since VHDL-87.
+	Until =             "until"               #: Reserved word since VHDL-87.
+	Use =               "use"                 #: Reserved word since VHDL-87.
+	Variable =          "variable"            #: Reserved word since VHDL-87.
+	View =              "view"                #: Reserved word since VHDL-2019.
+	VMode =             "vmode"               #: Reserved word since VHDL-2008.
+	VProp =             "vprop"               #: Reserved word since VHDL-2008.
+	VUnit =             "vunit"               #: Reserved word since VHDL-2008.
+	Wait =              "wait"                #: Reserved word since VHDL-87.
+	When =              "when"                #: Reserved word since VHDL-87.
+	While =             "while"               #: Reserved word since VHDL-87.
+	With =              "with"                #: Reserved word since VHDL-87.
+	Xnor =              "xnor"                #: Reserved word since VHDL-93.
+	Xor =               "xor"                 #: Reserved word since VHDL-87.
+
+
+_ReservedWord = ReservedWord  #: Alias of :class:`ReservedWord` for annotations in classes with a property of that name.
+
+
+@export
+@unique
 class Direction(Enum):
 	"""An enumeration representing a direction in a range	(``to`` or ``downto``)."""
 
 	To =      0  #: Ascending direction
 	DownTo =  1  #: Descending direction
+
+	__RESERVED_WORDS: ClassVar[dict[int, _ReservedWord]] = {
+		0: _ReservedWord.To,
+		1: _ReservedWord.DownTo
+	}  #: The reserved word of each direction, by value.
+
+	@readonly
+	def ReservedWord(self) -> _ReservedWord:
+		"""
+		Read-only property to return the reserved word of the direction.
+
+		:returns: The reserved word, ``to`` or ``downto``.
+		"""
+		return self.__RESERVED_WORDS[self.value]
 
 	def __str__(self) -> str:
 		"""
@@ -99,6 +243,23 @@ class Mode(Enum):
 	InOut =   3  #: Bi-directional
 	Buffer =  4  #: Buffered output
 	Linkage = 5  #: undocumented
+
+	__RESERVED_WORDS: ClassVar[dict[int, _ReservedWord]] = {
+		1: _ReservedWord.In,
+		2: _ReservedWord.Out,
+		3: _ReservedWord.InOut,
+		4: _ReservedWord.Buffer,
+		5: _ReservedWord.Linkage
+	}  #: The reserved word of each mode, by value; ``Default`` has none.
+
+	@readonly
+	def ReservedWord(self) -> Nullable[_ReservedWord]:
+		"""
+		Read-only property to return the reserved word of the mode.
+
+		:returns: The reserved word, or ``None`` for ``Mode.Default``.
+		"""
+		return self.__RESERVED_WORDS.get(self.value, None)
 
 	def __str__(self) -> str:
 		"""

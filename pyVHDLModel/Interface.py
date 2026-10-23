@@ -347,7 +347,7 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 
 		Interface items are objects, so they render like one (``signal p : bit``), but an object's own
 		rendering cannot show the interface *mode* - a mode is not part of an object declaration. This
-		adds it, for the derived class's :meth:`__str__` to return. The host class provides the object's keyword
+		adds it, for the derived class's :meth:`__str__` to return. The host class provides the object's reserved words
 		``_OBJECT_KEYWORD``, identifiers ``_identifiers`` and subtype ``_subtype``.
 
 		:param mode:       This item's mode, or ``None`` when it declares none.
@@ -358,7 +358,7 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 		if isModeView:
 			prefix = "view "
 
-		return f"{self._OBJECT_KEYWORD} {', '.join(self._identifiers)} : {prefix}{self._subtype}"
+		return f"{' '.join(self._OBJECT_KEYWORD)} {', '.join(self._identifiers)} : {prefix}{self._subtype}"
 
 
 @export

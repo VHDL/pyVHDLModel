@@ -84,7 +84,8 @@ Formatting Options
 :class:`~pyVHDLModel.Formatting.VHDL.VHDLStyle` holds the formatting options passed to the writer.
 
 ``keywordCase``
-   Letter case of reserved words: :attr:`~pyVHDLModel.Formatting.VHDL.KeywordCase.Lower` (default) or
+   Letter case of reserved words - the members of :class:`~pyVHDLModel.Base.ReservedWord`, which the writer writes
+   them from: :attr:`~pyVHDLModel.Formatting.VHDL.KeywordCase.Lower` (default) or
    :attr:`~pyVHDLModel.Formatting.VHDL.KeywordCase.Upper`. Identifiers keep their letter case. See vhdl-style-guide's
    :ref:`vsg:configuring-uppercase-and-lowercase-rules`.
 

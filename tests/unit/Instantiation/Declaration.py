@@ -31,15 +31,28 @@
 """Tests for pyVHDLModel.Declaration."""
 from pyTooling.Testing       import Testcase
 
+from pyVHDLModel.Base        import ReservedWord
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import ConstrainedArraySubtypeSymbol, Symbol, PossibleReference
-from pyVHDLModel.Declaration import Alias
+from pyVHDLModel.Declaration import Alias, EntityClass
 
 
 if __name__ == "__main__":  # pragma: no cover
 	print("ERROR: you called a testcase declaration file as an executable module.")
 	print("Use: 'python -m unitest <testcase module>'")
 	exit(1)
+
+
+class EntityClassEnum(Testcase):
+	def test_ReservedWord(self) -> None:
+		"""Every entity class but ``Others`` has a reserved word of the same name."""
+		self.assertIsNone(EntityClass.Others.ReservedWord)
+		for entityClass in EntityClass:
+			if entityClass is EntityClass.Others:
+				continue
+
+			with self.subTest(entityClass=entityClass.name):
+				self.assertIs(ReservedWord[entityClass.name], entityClass.ReservedWord)
 
 
 class Aliases(Testcase):

@@ -46,7 +46,8 @@ Mixins already fully exercised elsewhere are intentionally not repeated here:
 from pyTooling.MetaClasses   import AbstractClassError
 from pyTooling.Testing       import Testcase
 
-from pyVHDLModel.Base        import Direction, Mode, ModelEntity, Range, RangeFromName, SimpleRange, WaveformElement
+from pyVHDLModel.Base        import Direction, Mode, ModelEntity, Range, RangeFromName, ReservedWord, SimpleRange
+from pyVHDLModel.Base        import WaveformElement
 from pyVHDLModel.Expression  import IntegerLiteral, CharacterLiteral
 from pyVHDLModel.Interface   import InterfaceGroup
 from pyVHDLModel.Sequential  import IfBranch, ElsifBranch, ElseBranch, SequentialReportStatement, SequentialAssertStatement, SequentialCase
@@ -64,12 +65,40 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
+class ReservedWordEnum(Testcase):
+	def test_Count(self) -> None:
+		"""VHDL-2019 reserves 115 words, as ``ghdl -s --std=19`` rejects them as identifiers."""
+		self.assertEqual(115, len(ReservedWord))
+
+	def test_Value(self) -> None:
+		"""A member is a string: the reserved word in lower case."""
+		self.assertIsInstance(ReservedWord.DownTo, str)
+		self.assertEqual("downto", ReservedWord.DownTo)
+		self.assertEqual("protected", str(ReservedWord.Protected))
+
+	def test_Values(self) -> None:
+		for member in ReservedWord:
+			with self.subTest(member=member.name):
+				self.assertRegex(member.value, r"^[a-z][a-z_]*$")
+				self.assertEqual(member.value.replace("_", ""), member.name.lower())
+
+	def test_Parse(self) -> None:
+		self.assertIs(ReservedWord.View, ReservedWord.Parse("view"))
+
+		with self.assertRaises(ValueError):
+			ReservedWord.Parse("vpkg")
+
+
 class DirectionEnum(Testcase):
 	def test_To(self) -> None:
 		self.assertEqual("to", str(Direction.To))
 
 	def test_DownTo(self) -> None:
 		self.assertEqual("downto", str(Direction.DownTo))
+
+	def test_ReservedWord(self) -> None:
+		self.assertIs(ReservedWord.To, Direction.To.ReservedWord)
+		self.assertIs(ReservedWord.DownTo, Direction.DownTo.ReservedWord)
 
 
 class ModeEnum(Testcase):
@@ -86,6 +115,14 @@ class ModeEnum(Testcase):
 
 		for mode, text in expected.items():
 			self.assertEqual(text, str(mode))
+
+	def test_ReservedWord(self) -> None:
+		"""Every mode but ``Default`` has a reserved word, spelled as ``str()`` formats the mode."""
+		self.assertIsNone(Mode.Default.ReservedWord)
+		for mode in (Mode.In, Mode.Out, Mode.InOut, Mode.Buffer, Mode.Linkage):
+			with self.subTest(mode=mode.name):
+				self.assertIsInstance(mode.ReservedWord, ReservedWord)
+				self.assertEqual(str(mode), mode.ReservedWord)
 
 
 class ModelEntities(Testcase):

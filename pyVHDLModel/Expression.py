@@ -43,7 +43,7 @@ from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import abstractclass
 
-from pyVHDLModel.Base      import ModelEntity, Direction, Range
+from pyVHDLModel.Base      import ModelEntity, Direction, Range, ReservedWord
 from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor import Visitor
@@ -929,9 +929,10 @@ class UnaryExpression(BaseExpression):
 	The operand is available as :data:`Operand`.
 	"""
 
-	_PRECEDENCE: ClassVar[OperatorPrecedence]  #: The operator's precedence level.
-	_FORMAT:     ClassVar[tuple[str, str]]     #: The operator's string representation as (prefix, suffix) of the operand.
-	_operand:    ExpressionUnion               #: The expression the operator is applied to.
+	_PRECEDENCE:    ClassVar[OperatorPrecedence]             #: The operator's precedence level.
+	_FORMAT:        ClassVar[tuple[str, str]]                #: The operator's string representation as (prefix, suffix) of the operand.
+	_RESERVED_WORD: ClassVar[Nullable[ReservedWord]] = None  #: The operator's reserved word; ``None`` for a symbol (:attr:`_FORMAT`).
+	_operand:       ExpressionUnion                          #: The expression the operator is applied to.
 
 	def __init__(self, operand: ExpressionUnion, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -1058,8 +1059,9 @@ class InverseExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
-	_FORMAT:     ClassVar[tuple[str, str]]    = ("not ", "")                      #: The operator's string fragments.
+	_PRECEDENCE:    ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:        ClassVar[tuple[str, str]]    = ("not ", "")                      #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]       = ReservedWord.Not                  #: The operator's reserved word.
 
 
 @export
@@ -1078,8 +1080,9 @@ class UnaryAndExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
-	_FORMAT:     ClassVar[tuple[str, str]]    = ("and ", "")                      #: The operator's string fragments.
+	_PRECEDENCE:    ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:        ClassVar[tuple[str, str]]    = ("and ", "")                      #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]       = ReservedWord.And                  #: The operator's reserved word.
 
 
 @export
@@ -1098,8 +1101,9 @@ class UnaryNandExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^^    <- the expression
 	      --          ^^^^^^^    <- Operand
 	"""
-	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
-	_FORMAT:     ClassVar[tuple[str, str]]    = ("nand ", "")                     #: The operator's string fragments.
+	_PRECEDENCE:    ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:        ClassVar[tuple[str, str]]    = ("nand ", "")                     #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]       = ReservedWord.Nand                 #: The operator's reserved word.
 
 
 @export
@@ -1118,8 +1122,9 @@ class UnaryOrExpression(UnaryExpression):
 	      --     ^^^^^^^^^^    <- the expression
 	      --        ^^^^^^^    <- Operand
 	"""
-	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
-	_FORMAT:     ClassVar[tuple[str, str]]    = ("or ", "")                       #: The operator's string fragments.
+	_PRECEDENCE:    ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:        ClassVar[tuple[str, str]]    = ("or ", "")                       #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]       = ReservedWord.Or                   #: The operator's reserved word.
 
 
 @export
@@ -1138,8 +1143,9 @@ class UnaryNorExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
-	_FORMAT:     ClassVar[tuple[str, str]]    = ("nor ", "")                      #: The operator's string fragments.
+	_PRECEDENCE:    ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:        ClassVar[tuple[str, str]]    = ("nor ", "")                      #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]       = ReservedWord.Nor                  #: The operator's reserved word.
 
 
 @export
@@ -1158,8 +1164,9 @@ class UnaryXorExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
-	_FORMAT:     ClassVar[tuple[str, str]]    = ("xor ", "")                      #: The operator's string fragments.
+	_PRECEDENCE:    ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:        ClassVar[tuple[str, str]]    = ("xor ", "")                      #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]       = ReservedWord.Xor                  #: The operator's reserved word.
 
 
 @export
@@ -1178,8 +1185,9 @@ class UnaryXnorExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^^    <- the expression
 	      --          ^^^^^^^    <- Operand
 	"""
-	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
-	_FORMAT:     ClassVar[tuple[str, str]]    = ("xnor ", "")                     #: The operator's string fragments.
+	_PRECEDENCE:    ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:        ClassVar[tuple[str, str]]    = ("xnor ", "")                     #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]       = ReservedWord.Xnor                 #: The operator's reserved word.
 
 
 @export
@@ -1197,8 +1205,9 @@ class AbsoluteExpression(UnaryExpression):
 	      --     ^^^^^^^^^^^    <- the expression
 	      --         ^^^^^^^    <- Operand
 	"""
-	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
-	_FORMAT:     ClassVar[tuple[str, str]]    = ("abs ", "")                      #: The operator's string fragments.
+	_PRECEDENCE:    ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
+	_FORMAT:        ClassVar[tuple[str, str]]    = ("abs ", "")                      #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]       = ReservedWord.Abs                  #: The operator's reserved word.
 
 
 @export
@@ -1324,10 +1333,11 @@ class BinaryExpression(BaseExpression):
 	   * :class:`Shift expression <pyVHDLModel.Expression.ShiftExpression>`
 	"""
 
-	_PRECEDENCE:   ClassVar[OperatorPrecedence]    #: The operator's precedence level.
-	_FORMAT:       ClassVar[tuple[str, str, str]]  #: The operator's string representation as (prefix, infix, suffix).
-	_leftOperand:  ExpressionUnion                 #: The expression left of the operator.
-	_rightOperand: ExpressionUnion                 #: The expression right of the operator.
+	_PRECEDENCE:    ClassVar[OperatorPrecedence]             #: The operator's precedence level.
+	_FORMAT:        ClassVar[tuple[str, str, str]]           #: The operator's string representation as (prefix, infix, suffix).
+	_RESERVED_WORD: ClassVar[Nullable[ReservedWord]] = None  #: The operator's reserved word; ``None`` for a symbol (:attr:`_FORMAT`).
+	_leftOperand:   ExpressionUnion                          #: The expression left of the operator.
+	_rightOperand:  ExpressionUnion                          #: The expression right of the operator.
 
 	def __init__(self, leftOperand: ExpressionUnion, rightOperand: ExpressionUnion, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -1640,7 +1650,8 @@ class RemainderExpression(MultiplyingExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " rem ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " rem ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Rem   #: The operator's reserved word.
 
 
 @export
@@ -1659,7 +1670,8 @@ class ModuloExpression(MultiplyingExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " mod ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " mod ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Mod   #: The operator's reserved word.
 
 
 @export
@@ -1742,7 +1754,8 @@ class AndExpression(LogicalExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " and ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " and ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.And   #: The operator's reserved word.
 
 
 @export
@@ -1761,7 +1774,8 @@ class NandExpression(LogicalExpression):
 	      --     ^^^             <- LeftOperand
 	      --              ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " nand ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " nand ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Nand   #: The operator's reserved word.
 
 
 @export
@@ -1780,7 +1794,8 @@ class OrExpression(LogicalExpression):
 	      --     ^^^           <- LeftOperand
 	      --            ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " or ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " or ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Or   #: The operator's reserved word.
 
 
 @export
@@ -1799,7 +1814,8 @@ class NorExpression(LogicalExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " nor ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " nor ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Nor   #: The operator's reserved word.
 
 
 @export
@@ -1818,7 +1834,8 @@ class XorExpression(LogicalExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " xor ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " xor ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Xor   #: The operator's reserved word.
 
 
 @export
@@ -1837,7 +1854,8 @@ class XnorExpression(LogicalExpression):
 	      --     ^^^             <- LeftOperand
 	      --              ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " xnor ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " xnor ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Xnor   #: The operator's reserved word.
 
 
 @export
@@ -2221,7 +2239,8 @@ class ShiftRightLogicExpression(ShiftLogicExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " srl ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " srl ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Srl   #: The operator's reserved word.
 
 
 @export
@@ -2240,7 +2259,8 @@ class ShiftLeftLogicExpression(ShiftLogicExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " sll ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " sll ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Sll   #: The operator's reserved word.
 
 
 @export
@@ -2259,7 +2279,8 @@ class ShiftRightArithmeticExpression(ShiftArithmeticExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " sra ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " sra ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Sra   #: The operator's reserved word.
 
 
 @export
@@ -2278,7 +2299,8 @@ class ShiftLeftArithmeticExpression(ShiftArithmeticExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " sla ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " sla ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Sla   #: The operator's reserved word.
 
 
 @export
@@ -2297,7 +2319,8 @@ class RotateRightExpression(RotateExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " ror ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " ror ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Ror   #: The operator's reserved word.
 
 
 @export
@@ -2316,7 +2339,8 @@ class RotateLeftExpression(RotateExpression):
 	      --     ^^^            <- LeftOperand
 	      --             ^^^    <- RightOperand
 	"""
-	_FORMAT: ClassVar[tuple[str, str, str]] = ("", " rol ", "")  #: The operator's string fragments.
+	_FORMAT:        ClassVar[tuple[str, str, str]] = ("", " rol ", "")  #: The operator's string fragments.
+	_RESERVED_WORD: ClassVar[ReservedWord]         = ReservedWord.Rol   #: The operator's reserved word.
 
 
 @export

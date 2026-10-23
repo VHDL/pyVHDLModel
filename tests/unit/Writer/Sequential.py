@@ -34,12 +34,12 @@ from textwrap                    import dedent
 from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Association     import ParameterAssociationItem
-from pyVHDLModel.Base            import WaveformElement
+from pyVHDLModel.Base            import WaveformElement, Direction, SimpleRange
 from pyVHDLModel.Common          import ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform, \
                                         ConditionalExpression, SelectedExpression, OthersSelectedExpression
 from pyVHDLModel.Concurrent      import ProcessStatement
 from pyVHDLModel.Expression      import IntegerLiteral, CharacterLiteral, StringLiteral, PhysicalIntegerLiteral, \
-                                        AdditionExpression, EqualExpression
+                                        AdditionExpression, EqualExpression, LessThanExpression
 from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName
 from pyVHDLModel.Sequential      import IndexedChoice, SequentialProcedureCall, SequentialSimpleSignalAssignment, \
@@ -47,7 +47,10 @@ from pyVHDLModel.Sequential      import IndexedChoice, SequentialProcedureCall, 
                                         SequentialConditionalSignalAssignment, SequentialSelectedVariableAssignment, \
                                         SequentialSelectedSignalAssignment, SignalForceAssignment, \
                                         SignalReleaseAssignment, SequentialReportStatement, SequentialAssertStatement, \
-                                        NullStatement, ReturnStatement, WaitStatement
+                                        NullStatement, ReturnStatement, WaitStatement, RangedChoice, IfBranch, \
+                                        ElsifBranch, ElseBranch, IfStatement, Case, OthersCase, CaseStatement, \
+                                        EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, NextStatement, \
+                                        ExitStatement
 from pyVHDLModel.Subprogram      import Function
 
 from tests.unit                  import _signalSymbol, _subtypeSymbol, _variableSymbol
@@ -194,3 +197,106 @@ class StatementParts(Testcase):
 			  return 1;
 			end function one;
 			"""), VHDLWriter().Format(function))
+
+
+def _increment() -> SequentialVariableAssignment:
+	"""Variable assignment incrementing ``v``."""
+	return SequentialVariableAssignment(_variableSymbol("v"), AdditionExpression(_object("v"), IntegerLiteral(1)))
+
+
+class CompoundStatements(Testcase):
+	def test_If(self) -> None:
+		statement = IfStatement(
+			IfBranch(_object("a"), [_increment()]),
+			[ElsifBranch(_object("b"), [NullStatement()])],
+			ElseBranch([_increment(), _increment()]),
+			"check"
+		)
+
+		self.assertEqual(dedent("""\
+			check : if a then
+			  v := v + 1;
+			elsif b then
+			  null;
+			else
+			  v := v + 1;
+			  v := v + 1;
+			end if check;
+			"""), VHDLWriter().Format(statement))
+
+	def test_If_Only(self) -> None:
+		statement = IfStatement(IfBranch(EqualExpression(_object("v"), IntegerLiteral(0)), [NullStatement()]))
+
+		self.assertEqual("if v = 0 then\n  null;\nend if;\n", VHDLWriter().Format(statement))
+
+	def test_Case(self) -> None:
+		statement = CaseStatement(_object("v"), [
+			Case(
+				[
+					IndexedChoice(IntegerLiteral(0)),
+					RangedChoice(SimpleRange(IntegerLiteral(1), IntegerLiteral(2), Direction.To))
+				],
+				[_increment()]
+			),
+			OthersCase([NullStatement()])
+		])
+
+		self.assertEqual(dedent("""\
+			case v is
+			  when 0 | 1 to 2 =>
+			    v := v + 1;
+			  when others =>
+			    null;
+			end case;
+			"""), VHDLWriter().Format(statement))
+
+	def test_ForLoop(self) -> None:
+		statement = ForLoopStatement(
+			"i",
+			SimpleRange(IntegerLiteral(0), IntegerLiteral(3), Direction.To),
+			[NextStatement(_object("skip")), _increment()],
+			"outer"
+		)
+
+		self.assertEqual(dedent("""\
+			outer : for i in 0 to 3 loop
+			  next when skip;
+			  v := v + 1;
+			end loop outer;
+			"""), VHDLWriter().Format(statement))
+
+	def test_WhileLoop(self) -> None:
+		statement = WhileLoopStatement(LessThanExpression(_object("v"), IntegerLiteral(8)), [_increment()])
+
+		self.assertEqual("while v < 8 loop\n  v := v + 1;\nend loop;\n", VHDLWriter().Format(statement))
+
+	def test_EndlessLoop(self) -> None:
+		statement = EndlessLoopStatement([ExitStatement(_object("done")), ExitStatement()], "forever")
+
+		self.assertEqual(dedent("""\
+			forever : loop
+			  exit when done;
+			  exit;
+			end loop forever;
+			"""), VHDLWriter().Format(statement))
+
+	def test_Nested(self) -> None:
+		statement = ForLoopStatement("i", SimpleRange(IntegerLiteral(0), IntegerLiteral(1), Direction.To), [
+			IfStatement(IfBranch(_object("a"), [ExitStatement()]))
+		])
+
+		self.assertEqual(dedent("""\
+			for i in 0 to 1 loop
+			  if a then
+			    exit;
+			  end if;
+			end loop;
+			"""), VHDLWriter().Format(statement))
+
+	def test_UpperCase(self) -> None:
+		statement = IfStatement(IfBranch(_object("a"), [NullStatement()]), elseBranch=ElseBranch([NullStatement()]))
+
+		self.assertEqual(
+			"IF a THEN\n  NULL;\nELSE\n  NULL;\nEND IF;\n",
+			VHDLWriter(VHDLStyle(KeywordCase.Upper)).Format(statement)
+		)

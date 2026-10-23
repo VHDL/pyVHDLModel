@@ -31,13 +31,17 @@
 """Tests for the walk of sequential statements (:mod:`pyVHDLModel.Visitor`)."""
 from pyTooling.Testing      import Testcase
 
+from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.Common     import ConditionalExpression, SelectedExpression, OthersSelectedExpression
 from pyVHDLModel.Concurrent import ProcessStatement
 from pyVHDLModel.Expression import IntegerLiteral, StringLiteral
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Sequential import IndexedChoice, SequentialVariableAssignment, \
                                    SequentialConditionalVariableAssignment, SequentialSelectedVariableAssignment, \
-                                   SequentialReportStatement, NullStatement, ReturnStatement, WaitStatement
+                                   SequentialReportStatement, NullStatement, ReturnStatement, WaitStatement, IfBranch, \
+                                   ElsifBranch, ElseBranch, IfStatement, Case, OthersCase, CaseStatement, \
+                                   EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, NextStatement, \
+                                   ExitStatement
 from pyVHDLModel.Symbol     import SignalSymbol, VariableSymbol, SimpleObjectOrFunctionCallSymbol
 
 from tests.unit.Visitor     import FullRecorder
@@ -185,3 +189,101 @@ class Statements(Testcase):
 			("DepartNullStatement",    statement),
 			("DepartProcessStatement", process),
 		], recorder.Events)
+
+
+class CompoundStatements(Testcase):
+	def test_If(self) -> None:
+		"""Each condition is followed by the ``then`` event, then the branch's statements."""
+		condition1 =  SimpleObjectOrFunctionCallSymbol(SimpleName("a"))
+		statement1 =  NullStatement()
+		ifBranch =    IfBranch(condition1, [statement1])
+		condition2 =  SimpleObjectOrFunctionCallSymbol(SimpleName("b"))
+		elsifBranch = ElsifBranch(condition2)
+		elseBranch =  ElseBranch()
+		statement =   IfStatement(ifBranch, [elsifBranch], elseBranch)
+		recorder =    FullRecorder()
+
+		statement.Visit(recorder)
+
+		self.assertEqual([
+			("VisitIfStatement",    statement),
+			("VisitIfBranch",       ifBranch),
+			("VisitSymbol",         condition1),
+			("VisitSimpleName",     condition1.Name),
+			("DepartSimpleName",    condition1.Name),
+			("DepartSymbol",        condition1),
+			("VisitThen",           ifBranch),
+			("VisitNullStatement",  statement1),
+			("DepartNullStatement", statement1),
+			("DepartIfBranch",      ifBranch),
+			("VisitElsifBranch",    elsifBranch),
+			("VisitSymbol",         condition2),
+			("VisitSimpleName",     condition2.Name),
+			("DepartSimpleName",    condition2.Name),
+			("DepartSymbol",        condition2),
+			("VisitThen",           elsifBranch),
+			("DepartElsifBranch",   elsifBranch),
+			("VisitElseBranch",     elseBranch),
+			("DepartElseBranch",    elseBranch),
+			("DepartIfStatement",   statement),
+		], recorder.Events)
+
+	def test_Case(self) -> None:
+		selector =  SimpleObjectOrFunctionCallSymbol(SimpleName("v"))
+		first =     IndexedChoice(IntegerLiteral(0))
+		second =    IndexedChoice(IntegerLiteral(1))
+		case =      Case([first, second])
+		others =    OthersCase()
+		statement = CaseStatement(selector, [case, others])
+		recorder =  FullRecorder()
+
+		statement.Visit(recorder)
+
+		self.assertEqual([
+			"VisitCaseStatement",
+			"VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol",
+			"VisitIs",
+			"VisitCase",
+			"VisitIndexedChoice", "VisitIntegerLiteral", "DepartIntegerLiteral", "DepartIndexedChoice",
+			"VisitBar",
+			"VisitIndexedChoice", "VisitIntegerLiteral", "DepartIntegerLiteral", "DepartIndexedChoice",
+			"VisitArrow",
+			"DepartCase",
+			"VisitOthersCase",
+			"VisitArrow",
+			"DepartOthersCase",
+			"DepartCaseStatement",
+		], [event[0] for event in recorder.Events])
+
+	def test_Loops(self) -> None:
+		"""Each loop reports the ``loop`` event before its statements."""
+		endless =   EndlessLoopStatement([ExitStatement()])
+		forLoop =   ForLoopStatement("i", SimpleRange(IntegerLiteral(0), IntegerLiteral(1), Direction.To))
+		whileLoop = WhileLoopStatement(SimpleObjectOrFunctionCallSymbol(SimpleName("c")), [NextStatement()])
+		recorder =  FullRecorder()
+
+		endless.Visit(recorder)
+		forLoop.Visit(recorder)
+		whileLoop.Visit(recorder)
+
+		self.assertEqual([
+			"VisitEndlessLoopStatement", "VisitLoop", "VisitExitStatement", "DepartExitStatement",
+			"DepartEndlessLoopStatement",
+			"VisitForLoopStatement", "VisitSimpleRange", "VisitIntegerLiteral", "DepartIntegerLiteral", "VisitDirection",
+			"VisitIntegerLiteral", "DepartIntegerLiteral", "DepartSimpleRange", "VisitLoop", "DepartForLoopStatement",
+			"VisitWhileLoopStatement", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitLoop",
+			"VisitNextStatement", "DepartNextStatement", "DepartWhileLoopStatement",
+		], [event[0] for event in recorder.Events])
+
+	def test_Exit_Condition(self) -> None:
+		condition = SimpleObjectOrFunctionCallSymbol(SimpleName("done"))
+		statement = ExitStatement(condition)
+		recorder =  FullRecorder()
+
+		statement.Visit(recorder)
+
+		self.assertEqual(
+			["VisitExitStatement", "VisitWhen", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol",
+			 "DepartExitStatement"],
+			[event[0] for event in recorder.Events]
+		)

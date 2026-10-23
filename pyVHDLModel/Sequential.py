@@ -1227,6 +1227,18 @@ class IfBranch(Branch, IfBranchMixin):
 		super().__init__(statements, parent)
 		IfBranchMixin.__init__(self, condition)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this if branch, its condition and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIfBranch(self)
+		self._condition.Visit(visitor)
+		visitor.VisitThen(self)
+		self._VisitStatements(visitor)
+		visitor.DepartIfBranch(self)
+
 
 @export
 class ElsifBranch(Branch, ElsifBranchMixin):
@@ -1263,6 +1275,18 @@ class ElsifBranch(Branch, ElsifBranchMixin):
 		super().__init__(statements, parent)
 		ElsifBranchMixin.__init__(self, condition)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this elsif branch, its condition and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitElsifBranch(self)
+		self._condition.Visit(visitor)
+		visitor.VisitThen(self)
+		self._VisitStatements(visitor)
+		visitor.DepartElsifBranch(self)
+
 
 @export
 class ElseBranch(Branch, ElseBranchMixin):
@@ -1296,6 +1320,16 @@ class ElseBranch(Branch, ElseBranchMixin):
 		"""
 		super().__init__(statements, parent)
 		ElseBranchMixin.__init__(self)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this else branch and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitElseBranch(self)
+		self._VisitStatements(visitor)
+		visitor.DepartElseBranch(self)
 
 
 @export
@@ -1374,6 +1408,22 @@ class IfStatement(CompoundStatement):
 			elseBranch.Parent = self
 		else:
 			self._elseBranch = None
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this if statement and its branches with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIfStatement(self)
+		self._ifBranch.Visit(visitor)
+		for branch in self._elsifBranches:
+			branch.Visit(visitor)
+
+		if self._elseBranch is not None:
+			self._elseBranch.Visit(visitor)
+
+		visitor.DepartIfStatement(self)
 
 	@readonly
 	def IfBranch(self) -> IfBranch:
@@ -1597,6 +1647,23 @@ class Case(SequentialCase):
 		"""
 		super().__init__(statements, choices, parent)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this case alternative, its choices and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitCase(self)
+		for index, choice in enumerate(self._choices):
+			if index > 0:
+				visitor.VisitBar(self)
+
+			choice.Visit(visitor)
+
+		visitor.VisitArrow(self)
+		self._VisitStatements(visitor)
+		visitor.DepartCase(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the case alternative.
@@ -1622,6 +1689,17 @@ class OthersCase(SequentialCase):
 	      when others => null;
 	      --   ^^^^^^            <- the choice
 	"""
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this ``others`` case alternative and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitOthersCase(self)
+		visitor.VisitArrow(self)
+		self._VisitStatements(visitor)
+		visitor.DepartOthersCase(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the ``others`` case alternative.
@@ -1680,6 +1758,20 @@ class CaseStatement(CompoundStatement):
 			for case in cases:
 				self._cases.append(case)
 				case.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this case statement, its selector and its alternatives with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitCaseStatement(self)
+		self._expression.Visit(visitor)
+		visitor.VisitIs(self)
+		for case in self._cases:
+			case.Visit(visitor)
+
+		visitor.DepartCaseStatement(self)
 
 	@readonly
 	def SelectExpression(self) -> ExpressionUnion:
@@ -1758,7 +1850,17 @@ class EndlessLoopStatement(LoopStatement):
 	   * :class:`For loop statement <pyVHDLModel.Sequential.ForLoopStatement>`
 	   * :class:`While loop statement <pyVHDLModel.Sequential.WhileLoopStatement>`
 	"""
-	pass
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this loop and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitEndlessLoopStatement(self)
+		visitor.VisitLoop(self)
+		self._VisitStatements(visitor)
+		visitor.DepartEndlessLoopStatement(self)
 
 
 @export
@@ -1806,6 +1908,18 @@ class ForLoopStatement(LoopStatement):
 
 		self._range = rng
 		rng.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this for-loop, its range and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitForLoopStatement(self)
+		self._range.Visit(visitor)
+		visitor.VisitLoop(self)
+		self._VisitStatements(visitor)
+		visitor.DepartForLoopStatement(self)
 
 	@readonly
 	def LoopIndex(self) -> str:
@@ -1867,6 +1981,18 @@ class WhileLoopStatement(LoopStatement, ConditionalMixin):
 		super().__init__(statements, label, parent)
 		ConditionalMixin.__init__(self, condition)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this while-loop, its condition and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitWhileLoopStatement(self)
+		self._condition.Visit(visitor)
+		visitor.VisitLoop(self)
+		self._VisitStatements(visitor)
+		visitor.DepartWhileLoopStatement(self)
+
 
 @export
 @abstractclass
@@ -1927,7 +2053,19 @@ class NextStatement(LoopControlStatement):
 	      --           ^^^^^               <- optional LoopReference
 	      --                      ^^^^^    <- optional Condition
 	"""
-	pass
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this next statement and its condition (if any) with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitNextStatement(self)
+		if self._condition is not None:
+			visitor.VisitWhen(self)
+			self._condition.Visit(visitor)
+
+		visitor.DepartNextStatement(self)
 
 
 @export
@@ -1947,7 +2085,19 @@ class ExitStatement(LoopControlStatement):
 	      --           ^^^^^               <- optional LoopReference
 	      --                      ^^^^^    <- optional Condition
 	"""
-	pass
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this exit statement and its condition (if any) with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitExitStatement(self)
+		if self._condition is not None:
+			visitor.VisitWhen(self)
+			self._condition.Visit(visitor)
+
+		visitor.DepartExitStatement(self)
 
 
 @export

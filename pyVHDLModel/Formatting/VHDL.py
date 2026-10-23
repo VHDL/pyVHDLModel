@@ -97,7 +97,10 @@ from pyVHDLModel.Sequential    import IndexedChoice, SequentialProcedureCall, Se
                                       SequentialConditionalSignalAssignment, SequentialSelectedVariableAssignment, \
                                       SequentialSelectedSignalAssignment, SignalForceAssignment, \
                                       SignalReleaseAssignment, SequentialReportStatement, SequentialAssertStatement, \
-                                      NullStatement, ReturnStatement, WaitStatement
+                                      NullStatement, ReturnStatement, WaitStatement, IfBranch, ElsifBranch, \
+                                      ElseBranch, IfStatement, SequentialCase, Case, OthersCase, CaseStatement, \
+                                      LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, \
+                                      LoopControlStatement, NextStatement, ExitStatement
 from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
 from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
                                       ConstrainedRecordSubtypeSymbol
@@ -368,16 +371,16 @@ class VHDLWriter(Visitor):
 	def VisitArrow(
 		self,
 		element: AssociationItem | IndexedAggregateElement | RangedAggregateElement | NamedAggregateElement |
-		         ConcurrentCase
+		         ConcurrentCase | SequentialCase
 	) -> None:
 		"""
 		Write the arrow (``=>``) between a choice or formal and its value.
 
-		After the choices of a case-generate alternative, the alternative's body follows on new lines, indented.
+		After the choices of a case or case-generate alternative, the alternative's body follows on new lines, indented.
 
 		:param element: The element containing the arrow.
 		"""
-		if isinstance(element, ConcurrentCase):
+		if isinstance(element, (ConcurrentCase, SequentialCase)):
 			self._Write(" =>\n")
 			self._indentation += 1
 		else:
@@ -402,7 +405,7 @@ class VHDLWriter(Visitor):
 	def VisitWhen(
 		self,
 		element: WhenElseExpression | ConditionalWaveform | SelectedWaveform | OthersSelectedWaveform |
-		         ConditionalExpression | SelectedExpression | OthersSelectedExpression
+		         ConditionalExpression | SelectedExpression | OthersSelectedExpression | LoopControlStatement
 	) -> None:
 		"""
 		Write the reserved word ``when`` of a conditional expression or waveform, or of a selected waveform or expression.
@@ -1208,7 +1211,7 @@ class VHDLWriter(Visitor):
 	def VisitIs(
 		self,
 		element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram | Architecture | Configuration |
-		         ProcessStatement
+		         ProcessStatement | CaseStatement
 	) -> None:
 		"""
 		Write the reserved word ``is`` ending the header of a declaration; its body is indented.
@@ -1596,6 +1599,15 @@ class VHDLWriter(Visitor):
 		:param identifier: The identifier or label of the declaration or statement, or ``None`` if it has none.
 		"""
 		self._indentation -= 1
+		self._WriteEndLine(keywords, identifier)
+
+	def _WriteEndLine(self, keywords: tuple[ReservedWord, ...], identifier: Nullable[str]) -> None:
+		"""
+		Write the reserved word ``end``, the given reserved words and the identifier on a line of the current level.
+
+		:param keywords:   The reserved words after ``end``.
+		:param identifier: The identifier or label of the declaration or statement, or ``None`` if it has none.
+		"""
 		self._WriteIndentation()
 		if identifier is None:
 			self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keywords(keywords)};\n")
@@ -2699,7 +2711,7 @@ class VHDLWriter(Visitor):
 		"""
 		self._Write(f" {self._Keyword(ReservedWord.Select)} ")
 
-	def VisitBar(self, element: SelectedWaveform | GenerateCase | SelectedExpression) -> None:
+	def VisitBar(self, element: SelectedWaveform | GenerateCase | SelectedExpression | Case) -> None:
 		"""
 		Write the vertical line (``|``) between two choices.
 
@@ -3043,8 +3055,7 @@ class VHDLWriter(Visitor):
 
 		:param statement: The if-generate statement.
 		"""
-		self._WriteIndentation()
-		self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keyword(ReservedWord.Generate)} {statement.Label};\n")
+		self._WriteEndLine((ReservedWord.Generate,), statement.Label)
 
 	def VisitIfGenerateBranch(self, branch: IfGenerateBranch) -> None:
 		"""
@@ -3502,5 +3513,256 @@ class VHDLWriter(Visitor):
 		Write the semicolon ending a wait statement.
 
 		:param statement: The wait statement.
+		"""
+		self._Write(";\n")
+
+	def VisitThen(self, branch: IfBranch | ElsifBranch) -> None:
+		"""
+		Write the reserved word ``then`` of an if or elsif branch; its statements are indented.
+
+		:param branch: The branch.
+		"""
+		self._Write(f" {self._Keyword(ReservedWord.Then)}\n")
+		self._indentation += 1
+
+	def VisitLoop(self, statement: LoopStatement) -> None:
+		"""
+		Write the reserved word ``loop`` of a loop statement; its statements are indented.
+
+		:param statement: The loop statement.
+		"""
+		if isinstance(statement, EndlessLoopStatement):
+			self._Write(f"{self._Keyword(ReservedWord.Loop)}\n")
+		else:
+			self._Write(f" {self._Keyword(ReservedWord.Loop)}\n")
+
+		self._indentation += 1
+
+	def VisitIfStatement(self, statement: IfStatement) -> None:
+		"""
+		Write the label, if any, of an if statement; its branches follow.
+
+		**Format:** ``if count = 0 then`` ... ``elsif`` ... ``else`` ... ``end if;``
+
+		:param statement: The if statement.
+		"""
+		self._WriteStatementStart(statement)
+
+	def DepartIfStatement(self, statement: IfStatement) -> None:
+		"""
+		Write the end of an if statement.
+
+		:param statement: The if statement.
+		"""
+		self._WriteEndLine((ReservedWord.If,), statement.Label)
+
+	def VisitIfBranch(self, branch: IfBranch) -> None:
+		"""
+		Write the reserved word ``if`` of the if branch of an if statement.
+
+		:param branch: The branch.
+		"""
+		self._Write(f"{self._Keyword(ReservedWord.If)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartIfBranch(self, branch: IfBranch) -> None:
+		"""
+		Leave the statements of the if branch of an if statement.
+
+		:param branch: The branch.
+		"""
+		self._indentation -= 1
+
+	def VisitElsifBranch(self, branch: ElsifBranch) -> None:
+		"""
+		Write the reserved word ``elsif`` of an elsif branch of an if statement.
+
+		:param branch: The branch.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword(ReservedWord.ElsIf)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartElsifBranch(self, branch: ElsifBranch) -> None:
+		"""
+		Leave the statements of an elsif branch of an if statement.
+
+		:param branch: The branch.
+		"""
+		self._indentation -= 1
+
+	def VisitElseBranch(self, branch: ElseBranch) -> None:
+		"""
+		Write the reserved word ``else`` of the else branch of an if statement; its statements are indented.
+
+		:param branch: The branch.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword(ReservedWord.Else)}\n")
+		self._indentation += 1
+
+	def DepartElseBranch(self, branch: ElseBranch) -> None:
+		"""
+		Leave the statements of the else branch of an if statement.
+
+		:param branch: The branch.
+		"""
+		self._indentation -= 1
+
+	def VisitCaseStatement(self, statement: CaseStatement) -> None:
+		"""
+		Write the label, if any, and the reserved word ``case`` of a case statement; its alternatives are indented.
+
+		**Format:** ``case state is`` ... ``when Idle =>`` ... ``end case;``
+
+		:param statement: The case statement.
+		"""
+		self._WriteStatementStart(statement)
+		self._Write(f"{self._Keyword(ReservedWord.Case)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartCaseStatement(self, statement: CaseStatement) -> None:
+		"""
+		Write the end of a case statement.
+
+		:param statement: The case statement.
+		"""
+		self._WriteEnd((ReservedWord.Case,), statement.Label)
+
+	def VisitCase(self, case: Case) -> None:
+		"""
+		Write the reserved word ``when`` of an alternative of a case statement.
+
+		**Format:** ``when 1 | 2 =>``
+
+		:param case: The case alternative.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword(ReservedWord.When)} ")
+
+	def DepartCase(self, case: Case) -> None:
+		"""
+		Leave the statements of an alternative of a case statement.
+
+		:param case: The case alternative.
+		"""
+		self._indentation -= 1
+
+	def VisitOthersCase(self, case: OthersCase) -> None:
+		"""
+		Write the reserved words ``when`` and ``others`` of the ``others`` alternative of a case statement.
+
+		**Format:** ``when others =>``
+
+		:param case: The case alternative.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword(ReservedWord.When)} {self._Keyword(ReservedWord.Others)}")
+
+	def DepartOthersCase(self, case: OthersCase) -> None:
+		"""
+		Leave the statements of the ``others`` alternative of a case statement.
+
+		:param case: The case alternative.
+		"""
+		self._indentation -= 1
+
+	def VisitEndlessLoopStatement(self, statement: EndlessLoopStatement) -> None:
+		"""
+		Write the label, if any, of a loop statement without iteration scheme.
+
+		**Format:** ``loop`` ... ``end loop;``
+
+		:param statement: The loop statement.
+		"""
+		self._WriteStatementStart(statement)
+
+	def DepartEndlessLoopStatement(self, statement: EndlessLoopStatement) -> None:
+		"""
+		Write the end of a loop statement without iteration scheme.
+
+		:param statement: The loop statement.
+		"""
+		self._WriteEnd((ReservedWord.Loop,), statement.Label)
+
+	def VisitForLoopStatement(self, statement: ForLoopStatement) -> None:
+		"""
+		Write the label, if any, the reserved word ``for``, the loop index and ``in`` of a for-loop statement.
+
+		**Format:** ``for i in 0 to 7 loop`` ... ``end loop;``
+
+		:param statement: The loop statement.
+		"""
+		self._WriteStatementStart(statement)
+		self._Write(f"{self._Keyword(ReservedWord.For)} {statement.LoopIndex} {self._Keyword(ReservedWord.In)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartForLoopStatement(self, statement: ForLoopStatement) -> None:
+		"""
+		Write the end of a for-loop statement.
+
+		:param statement: The loop statement.
+		"""
+		self._WriteEnd((ReservedWord.Loop,), statement.Label)
+
+	def VisitWhileLoopStatement(self, statement: WhileLoopStatement) -> None:
+		"""
+		Write the label, if any, and the reserved word ``while`` of a while-loop statement.
+
+		**Format:** ``while count < 8 loop`` ... ``end loop;``
+
+		:param statement: The loop statement.
+		"""
+		self._WriteStatementStart(statement)
+		self._Write(f"{self._Keyword(ReservedWord.While)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartWhileLoopStatement(self, statement: WhileLoopStatement) -> None:
+		"""
+		Write the end of a while-loop statement.
+
+		:param statement: The loop statement.
+		"""
+		self._WriteEnd((ReservedWord.Loop,), statement.Label)
+
+	def VisitNextStatement(self, statement: NextStatement) -> None:
+		"""
+		Write the label, if any, and the reserved word ``next`` of a next statement.
+
+		**Format:** ``next when skip;``
+
+		The model keeps no loop label, so none is written.
+
+		:param statement: The next statement.
+		"""
+		self._WriteStatementStart(statement)
+		self._Write(self._Keyword(ReservedWord.Next))
+
+	def DepartNextStatement(self, statement: NextStatement) -> None:
+		"""
+		Write the semicolon ending a next statement.
+
+		:param statement: The next statement.
+		"""
+		self._Write(";\n")
+
+	def VisitExitStatement(self, statement: ExitStatement) -> None:
+		"""
+		Write the label, if any, and the reserved word ``exit`` of an exit statement.
+
+		**Format:** ``exit when done;``
+
+		The model keeps no loop label, so none is written.
+
+		:param statement: The exit statement.
+		"""
+		self._WriteStatementStart(statement)
+		self._Write(self._Keyword(ReservedWord.Exit))
+
+	def DepartExitStatement(self, statement: ExitStatement) -> None:
+		"""
+		Write the semicolon ending an exit statement.
+
+		:param statement: The exit statement.
 		"""
 		self._Write(";\n")

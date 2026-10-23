@@ -88,7 +88,10 @@ from pyVHDLModel.Sequential      import IndexedChoice, RangedChoice, SequentialP
                                         SequentialConditionalSignalAssignment, SequentialSelectedVariableAssignment, \
                                         SequentialSelectedSignalAssignment, SignalForceAssignment, \
                                         SignalReleaseAssignment, SequentialReportStatement, SequentialAssertStatement, \
-                                        NullStatement, ReturnStatement, WaitStatement
+                                        NullStatement, ReturnStatement, WaitStatement, IfBranch, ElsifBranch, \
+                                        ElseBranch, IfStatement, Case, OthersCase, CaseStatement, \
+                                        EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, NextStatement, \
+                                        ExitStatement
 from pyVHDLModel.Subprogram      import Procedure, Function, ProcedureMethod, FunctionMethod
 from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol, IndexedObjectOrFunctionCallSymbol, \
                                         ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
@@ -953,6 +956,50 @@ class GHDLOracleSequentialStatements(Testcase):
 			Signal(["en"], _integer("boolean"), EnumerationLiteral("true")),
 			check,
 			twice,
+		], statements=[process])
+
+		for style in (VHDLStyle(), VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs)):
+			with self.subTest(style=style.KeywordCase):
+				source = "entity tb is\nend entity;\n\n" + VHDLWriter(style).Format(architecture)
+
+				result = _analyze(source)
+
+				self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)
+
+	def test_CompoundStatements(self) -> None:
+		def increment() -> SequentialVariableAssignment:
+			"""Nested function returning a variable assignment incrementing ``v``."""
+			value = AdditionExpression(_object("v"), IntegerLiteral(1))
+			return SequentialVariableAssignment(VariableSymbol(SimpleName("v")), value)
+
+		statements = [
+			IfStatement(
+				IfBranch(EqualExpression(_object("v"), IntegerLiteral(0)), [increment()]),
+				[ElsifBranch(_object("en"), [NullStatement()])],
+				ElseBranch([increment(), increment()]),
+				"check"
+			),
+			CaseStatement(_object("v"), [
+				Case(
+					[
+						IndexedChoice(IntegerLiteral(0)),
+						RangedChoice(SimpleRange(IntegerLiteral(1), IntegerLiteral(2), Direction.To))
+					],
+					[increment()]
+				),
+				OthersCase([NullStatement()])
+			]),
+			ForLoopStatement("i", SimpleRange(IntegerLiteral(0), IntegerLiteral(3), Direction.To), [
+				NextStatement(_object("en")),
+				increment()
+			], "outer"),
+			WhileLoopStatement(LessThanExpression(_object("v"), IntegerLiteral(8)), [increment()]),
+			EndlessLoopStatement([ExitStatement(_object("en")), ExitStatement()]),
+			WaitStatement(),
+		]
+		process = ProcessStatement("p", [Variable(["v"], _integer("natural"), IntegerLiteral(0))], statements)
+		architecture = Architecture("sim", EntitySymbol(SimpleName("tb")), declaredItems=[
+			Signal(["en"], _integer("boolean"), EnumerationLiteral("true")),
 		], statements=[process])
 
 		for style in (VHDLStyle(), VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs)):

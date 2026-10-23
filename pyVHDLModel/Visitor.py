@@ -111,7 +111,10 @@ if TYPE_CHECKING:
 	                                      SequentialConditionalSignalAssignment, SequentialSelectedVariableAssignment, \
 	                                      SequentialSelectedSignalAssignment, SignalForceAssignment, \
 	                                      SignalReleaseAssignment, SequentialReportStatement, SequentialAssertStatement, \
-	                                      NullStatement, ReturnStatement, WaitStatement
+	                                      NullStatement, ReturnStatement, WaitStatement, IfBranch, ElsifBranch, \
+	                                      ElseBranch, IfStatement, SequentialCase, Case, OthersCase, CaseStatement, \
+	                                      LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, \
+	                                      LoopControlStatement, NextStatement, ExitStatement
 	from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
 	from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
 	                                      ConstrainedRecordSubtypeSymbol
@@ -156,7 +159,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	def VisitArrow(
 		self,
 		element: AssociationItem | IndexedAggregateElement | RangedAggregateElement | NamedAggregateElement |
-		         ConcurrentCase
+		         ConcurrentCase | SequentialCase
 	) -> None:
 		"""
 		Visit the arrow (``=>``) between a choice or formal and its value.
@@ -174,13 +177,13 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	def VisitWhen(
 		self,
 		element: WhenElseExpression | ConditionalWaveform | SelectedWaveform | OthersSelectedWaveform |
-		         ConditionalExpression | SelectedExpression | OthersSelectedExpression
+		         ConditionalExpression | SelectedExpression | OthersSelectedExpression | LoopControlStatement
 	) -> None:
 		"""
-		Visit the reserved word ``when`` before the condition of a conditional expression or waveform, or before the
-		choices of a selected waveform or expression.
+		Visit the reserved word ``when`` before the condition of a conditional expression, waveform or loop control
+		statement, or before the choices of a selected waveform or expression.
 
-		:param element: The conditional expression, the conditional waveform or the selected waveform or expression.
+		:param element: The element with the condition or choices.
 		"""
 
 	def VisitElse(
@@ -224,10 +227,10 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	def VisitIs(
 		self,
 		element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram | Architecture | Configuration |
-		         ProcessStatement
+		         ProcessStatement | CaseStatement
 	) -> None:
 		"""
-		Visit the reserved word ``is`` between the header and the body of a declaration.
+		Visit the reserved word ``is`` between the header and the body of a declaration or statement.
 
 		:param element: The declaration.
 		"""
@@ -296,7 +299,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The selected assignment.
 		"""
 
-	def VisitBar(self, element: SelectedWaveform | GenerateCase | SelectedExpression) -> None:
+	def VisitBar(self, element: SelectedWaveform | GenerateCase | SelectedExpression | Case) -> None:
 		"""
 		Visit the vertical line (``|``) between two choices.
 
@@ -350,6 +353,20 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Visit the reserved word ``for`` before the timeout of a wait statement.
 
 		:param statement: The wait statement.
+		"""
+
+	def VisitThen(self, branch: IfBranch | ElsifBranch) -> None:
+		"""
+		Visit the reserved word ``then`` between the condition and the statements of an if or elsif branch.
+
+		:param branch: The branch.
+		"""
+
+	def VisitLoop(self, statement: LoopStatement) -> None:
+		"""
+		Visit the reserved word ``loop`` before the statements of a loop statement.
+
+		:param statement: The loop statement.
 		"""
 
 	def VisitNullLiteral(self, literal: NullLiteral) -> None:
@@ -2659,4 +2676,172 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from a wait statement, after its timeout clause.
 
 		:param statement: The wait statement.
+		"""
+
+	def VisitIfStatement(self, statement: IfStatement) -> None:
+		"""
+		Visit an if statement, before its if branch.
+
+		:param statement: The if statement.
+		"""
+
+	def DepartIfStatement(self, statement: IfStatement) -> None:
+		"""
+		Depart from an if statement, after its last branch.
+
+		:param statement: The if statement.
+		"""
+
+	def VisitIfBranch(self, branch: IfBranch) -> None:
+		"""
+		Visit the if branch of an if statement, before its condition.
+
+		:param branch: The branch.
+		"""
+
+	def DepartIfBranch(self, branch: IfBranch) -> None:
+		"""
+		Depart from the if branch of an if statement, after its last statement.
+
+		:param branch: The branch.
+		"""
+
+	def VisitElsifBranch(self, branch: ElsifBranch) -> None:
+		"""
+		Visit an elsif branch of an if statement, before its condition.
+
+		:param branch: The branch.
+		"""
+
+	def DepartElsifBranch(self, branch: ElsifBranch) -> None:
+		"""
+		Depart from an elsif branch of an if statement, after its last statement.
+
+		:param branch: The branch.
+		"""
+
+	def VisitElseBranch(self, branch: ElseBranch) -> None:
+		"""
+		Visit the else branch of an if statement, before its first statement.
+
+		:param branch: The branch.
+		"""
+
+	def DepartElseBranch(self, branch: ElseBranch) -> None:
+		"""
+		Depart from the else branch of an if statement, after its last statement.
+
+		:param branch: The branch.
+		"""
+
+	def VisitCaseStatement(self, statement: CaseStatement) -> None:
+		"""
+		Visit a case statement, before its selector.
+
+		:param statement: The case statement.
+		"""
+
+	def DepartCaseStatement(self, statement: CaseStatement) -> None:
+		"""
+		Depart from a case statement, after its last alternative.
+
+		:param statement: The case statement.
+		"""
+
+	def VisitCase(self, case: Case) -> None:
+		"""
+		Visit an alternative of a case statement, before its first choice.
+
+		:param case: The case alternative.
+		"""
+
+	def DepartCase(self, case: Case) -> None:
+		"""
+		Depart from an alternative of a case statement, after its last statement.
+
+		:param case: The case alternative.
+		"""
+
+	def VisitOthersCase(self, case: OthersCase) -> None:
+		"""
+		Visit the ``others`` alternative of a case statement, before its first statement.
+
+		:param case: The case alternative.
+		"""
+
+	def DepartOthersCase(self, case: OthersCase) -> None:
+		"""
+		Depart from the ``others`` alternative of a case statement, after its last statement.
+
+		:param case: The case alternative.
+		"""
+
+	def VisitEndlessLoopStatement(self, statement: EndlessLoopStatement) -> None:
+		"""
+		Visit a loop statement without iteration scheme, before its first statement.
+
+		:param statement: The loop statement.
+		"""
+
+	def DepartEndlessLoopStatement(self, statement: EndlessLoopStatement) -> None:
+		"""
+		Depart from a loop statement without iteration scheme, after its last statement.
+
+		:param statement: The loop statement.
+		"""
+
+	def VisitForLoopStatement(self, statement: ForLoopStatement) -> None:
+		"""
+		Visit a for-loop statement, before its range.
+
+		:param statement: The loop statement.
+		"""
+
+	def DepartForLoopStatement(self, statement: ForLoopStatement) -> None:
+		"""
+		Depart from a for-loop statement, after its last statement.
+
+		:param statement: The loop statement.
+		"""
+
+	def VisitWhileLoopStatement(self, statement: WhileLoopStatement) -> None:
+		"""
+		Visit a while-loop statement, before its condition.
+
+		:param statement: The loop statement.
+		"""
+
+	def DepartWhileLoopStatement(self, statement: WhileLoopStatement) -> None:
+		"""
+		Depart from a while-loop statement, after its last statement.
+
+		:param statement: The loop statement.
+		"""
+
+	def VisitNextStatement(self, statement: NextStatement) -> None:
+		"""
+		Visit a next statement, before its condition.
+
+		:param statement: The next statement.
+		"""
+
+	def DepartNextStatement(self, statement: NextStatement) -> None:
+		"""
+		Depart from a next statement, after its condition.
+
+		:param statement: The next statement.
+		"""
+
+	def VisitExitStatement(self, statement: ExitStatement) -> None:
+		"""
+		Visit an exit statement, before its condition.
+
+		:param statement: The exit statement.
+		"""
+
+	def DepartExitStatement(self, statement: ExitStatement) -> None:
+		"""
+		Depart from an exit statement, after its condition.
+
+		:param statement: The exit statement.
 		"""

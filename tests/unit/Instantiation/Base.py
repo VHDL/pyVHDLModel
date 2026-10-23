@@ -67,8 +67,8 @@ if __name__ == "__main__":  # pragma: no cover
 
 class ReservedWordEnum(Testcase):
 	def test_Count(self) -> None:
-		"""VHDL-2019 reserves 115 words, as ``ghdl -s --std=19`` rejects them as identifiers."""
-		self.assertEqual(115, len(ReservedWord))
+		"""IEEE Std 1076-2019, 15.10 reserves 116 words."""
+		self.assertEqual(116, len(ReservedWord))
 
 	def test_Value(self) -> None:
 		"""A member is a string: the reserved word in lower case."""
@@ -80,13 +80,18 @@ class ReservedWordEnum(Testcase):
 		for member in ReservedWord:
 			with self.subTest(member=member.name):
 				self.assertRegex(member.value, r"^[a-z][a-z_]*$")
-				self.assertEqual(member.value.replace("_", ""), member.name.lower())
+				self.assertEqual(member.value, member.name.lower())
 
 	def test_Parse(self) -> None:
 		self.assertIs(ReservedWord.View, ReservedWord.Parse("view"))
+		self.assertIs(ReservedWord.VPkg, ReservedWord.Parse("vpkg"))
 
-		with self.assertRaises(ValueError):
-			ReservedWord.Parse("vpkg")
+	def test_Parse_NotReserved(self) -> None:
+		"""``inherit`` and ``restrict_guarantee`` aren't reserved in VHDL-2019; GHDL rejects them as identifiers."""
+		for word in ("inherit", "restrict_guarantee"):
+			with self.subTest(word=word):
+				with self.assertRaises(ValueError):
+					ReservedWord.Parse(word)
 
 
 class DirectionEnum(Testcase):

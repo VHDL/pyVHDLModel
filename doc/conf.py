@@ -202,6 +202,7 @@ intersphinx_mapping = {
 	"pyTool": ("https://pyTooling.github.io/pyTooling/", None),
 	"vasg":   ("https://IEEE-P1076.gitlab.io/", None),
 	"ghdl":   ("https://GHDL.github.io/ghdl/", None),
+	"vsg":    ("https://vhdl-style-guide.readthedocs.io/en/stable/", None),
 }
 
 

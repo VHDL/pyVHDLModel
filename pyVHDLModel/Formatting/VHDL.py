@@ -82,6 +82,11 @@ from pyVHDLModel.Visitor     import Visitor
 class KeywordCase(Enum):
 	"""
 	An enumeration of letter cases for VHDL reserved words in the written source text.
+
+	.. seealso::
+
+	   :ref:`vsg:configuring-uppercase-and-lowercase-rules`
+	      |rarr| vhdl-style-guide's option ``case``.
 	"""
 
 	Lower = 0  #: Lower case, e.g. ``downto``.
@@ -93,6 +98,11 @@ class KeywordCase(Enum):
 class IndentStyle(Enum):
 	"""
 	An enumeration of indentation styles of the written source text, as vhdl-style-guide's option ``indent_style``.
+
+	.. seealso::
+
+	   :ref:`vsg:configuring-indent-rules`
+	      |rarr| vhdl-style-guide's options ``indent_style`` and ``indent_size``, with an example of smart tabs.
 	"""
 
 	Spaces =    0  #: Spaces, ``indent_size`` per indentation level (VSG: ``spaces``).
@@ -103,6 +113,15 @@ class IndentStyle(Enum):
 class VHDLStyle(metaclass=ExtendedType, slots=True):
 	"""
 	Represents the formatting options of the :class:`VHDL writer <VHDLWriter>`.
+
+	The options follow vhdl-style-guide's names and values.
+
+	.. seealso::
+
+	   :ref:`vsg:configuring-uppercase-and-lowercase-rules`
+	      |rarr| vhdl-style-guide's option ``case``.
+	   :ref:`vsg:configuring-indent-rules`
+	      |rarr| vhdl-style-guide's options ``indent_style`` and ``indent_size``.
 	"""
 
 	_keywordCase: KeywordCase  #: Letter case of reserved words.

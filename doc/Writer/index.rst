@@ -83,12 +83,14 @@ Formatting Options
 
 ``keywordCase``
    Letter case of reserved words: :attr:`~pyVHDLModel.Formatting.VHDL.KeywordCase.Lower` (default) or
-   :attr:`~pyVHDLModel.Formatting.VHDL.KeywordCase.Upper`. Identifiers keep their letter case.
+   :attr:`~pyVHDLModel.Formatting.VHDL.KeywordCase.Upper`. Identifiers keep their letter case. See vhdl-style-guide's
+   :ref:`vsg:configuring-uppercase-and-lowercase-rules`.
 
 ``indentStyle``
    Indentation style, as vhdl-style-guide's option ``indent_style``:
    :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.Spaces` (default, ``spaces``) or
-   :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.SmartTabs` (``smart_tabs``: one tab per indentation level).
+   :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.SmartTabs` (``smart_tabs``: one tab per indentation level). See
+   vhdl-style-guide's :ref:`vsg:configuring-indent-rules`.
 
 ``indentSize``
    Number of spaces per indentation level, as vhdl-style-guide's option ``indent_size`` (default: ``2``). It applies to

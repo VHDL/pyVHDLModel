@@ -36,7 +36,7 @@ Types.
 """
 from __future__             import annotations
 
-from typing                 import Union, Iterator, Iterable, Optional as Nullable, Mapping
+from typing                 import Union, Iterator, Iterable, Optional as Nullable, Mapping, Self
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
@@ -722,6 +722,16 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		:returns: The subtype.
 		"""
 		return self._subtype
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this record type element.
+
+		The copy has no parent. Its subtype is a copy of this element's subtype.
+
+		:returns: The new record type element.
+		"""
+		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
 	def __str__(self) -> str:
 		"""

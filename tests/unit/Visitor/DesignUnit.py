@@ -37,7 +37,7 @@ from pyVHDLModel               import Document
 from pyVHDLModel.Association   import PortAssociationItem
 from pyVHDLModel.Configuration import EntityAspectEntity, BindingIndication, AllInstantiationList
 from pyVHDLModel.Configuration import ComponentConfiguration, BlockConfiguration
-from pyVHDLModel.DesignUnit    import LibraryClause, Entity, Architecture, Configuration
+from pyVHDLModel.DesignUnit    import LibraryClause, Entity, Architecture, Configuration, Context
 from pyVHDLModel.Name          import SimpleName
 from pyVHDLModel.Symbol        import LibraryReferenceSymbol, EntitySymbol, ArchitectureSymbol
 from pyVHDLModel.Symbol        import ComponentInstantiationSymbol
@@ -99,6 +99,26 @@ class DesignUnits(Testcase):
 			("VisitIs",             architecture),
 			("VisitBegin",          architecture),
 			("DepartArchitecture",  architecture),
+		], recorder.Events)
+
+	def test_Context(self) -> None:
+		"""A context declaration has no context clause: its context items are walked inside the declaration."""
+		ieee =     LibraryReferenceSymbol(SimpleName("ieee"))
+		clause =   LibraryClause([ieee])
+		context =  Context("project", [clause])
+		recorder = FullRecorder()
+
+		context.Visit(recorder)
+
+		self.assertEqual([
+			("VisitContext",        context),
+			("VisitLibraryClause",  clause),
+			("VisitSymbol",         ieee),
+			("VisitSimpleName",     ieee.Name),
+			("DepartSimpleName",    ieee.Name),
+			("DepartSymbol",        ieee),
+			("DepartLibraryClause", clause),
+			("DepartContext",       context),
 		], recorder.Events)
 
 	def test_Document(self) -> None:

@@ -712,12 +712,13 @@ class Context(PrimaryUnit):
 		"""
 		Walk this context declaration and its context items with a visitor.
 
+		A context declaration has no context clause: its context items are walked inside the declaration.
+
 		:param visitor: The visitor receiving the events.
 		"""
-		self._VisitContextClause(visitor)
 		visitor.VisitContext(self)
-		for reference in self._references:
-			reference.Visit(visitor)
+		for item in self._contextItems:
+			item.Visit(visitor)
 
 		visitor.DepartContext(self)
 

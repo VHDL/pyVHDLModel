@@ -95,8 +95,8 @@ class IndentStyle(Enum):
 	An enumeration of indentation styles of the written source text, as vhdl-style-guide's option ``indent_style``.
 	"""
 
-	Spaces =    0  #: Spaces, ``indent_size`` per level (VSG: ``spaces``).
-	SmartTabs = 1  #: One tab per level (VSG: ``smart_tabs``).
+	Spaces =    0  #: Spaces, ``indent_size`` per indentation level (VSG: ``spaces``).
+	SmartTabs = 1  #: One tab per indentation level (VSG: ``smart_tabs`` - tabs indent, spaces align).
 
 
 @export

@@ -37,6 +37,7 @@ message in english, each exception object contains one or multiple references to
 """
 from __future__               import annotations
 
+from pathlib                  import Path
 from typing                   import TYPE_CHECKING, Optional as Nullable, Union
 
 from pyTooling.Decorators     import export, readonly
@@ -294,6 +295,9 @@ class VHDLModelException(ExceptionBase):
 	   * :class:`Duplicate declaration error <pyVHDLModel.Exception.DuplicateDeclarationError>`
 	   * :class:`Duplicate association error <pyVHDLModel.Exception.DuplicateAssociationError>`
 	   * :class:`Association order error <pyVHDLModel.Exception.AssociationOrderError>`
+	   * :class:`Duplicate document error <pyVHDLModel.Exception.DuplicateDocumentError>`
+	   * :class:`Duplicate design unit error <pyVHDLModel.Exception.DuplicateDesignUnitError>`
+	   * :class:`Library in use error <pyVHDLModel.Exception.LibraryInUseError>`
 	   * :class:`Library not found error <pyVHDLModel.Exception.LibraryNotFoundError>`
 	   * :class:`Entity not found error <pyVHDLModel.Exception.EntityNotFoundError>`
 	   * :class:`Package not found error <pyVHDLModel.Exception.PackageNotFoundError>`
@@ -1442,6 +1446,229 @@ class AssociationOrderError(VHDLModelException):
 		:returns: The association, or ``None`` if it wasn't recorded.
 		"""
 		return self._existing
+
+
+@export
+class DuplicateDocumentError(VHDLModelException, DuplicateElementError):
+	"""
+	This exception is raised, when a design already contains a document of the same path.
+	"""
+
+	_path:     Nullable[Path]         #: The path of both documents.
+	_parent:   Nullable[ModelEntity]  #: The design containing the existing document.
+	_element:  Nullable[ModelEntity]  #: The new document.
+	_existing: Nullable[ModelEntity]  #: The existing document.
+
+	def __init__(
+		self,
+		message: str,
+		/, *,
+		path: Nullable[Path] = None,
+		parent: Nullable[ModelEntity] = None,
+		element: Nullable[ModelEntity] = None,
+		existing: Nullable[ModelEntity] = None
+	) -> None:
+		"""
+		Initializes the exception with the path, the design and both documents.
+
+		:param message:  The error message.
+		:param path:     Optional, the path of both documents.
+		:param parent:   Optional, the design containing the existing document.
+		:param element:  Optional, the new document.
+		:param existing: Optional, the existing document.
+		"""
+		super().__init__(message)
+		self._path =     path
+		self._parent =   parent
+		self._element =  element
+		self._existing = existing
+
+	@readonly
+	def Path(self) -> Nullable[Path]:
+		"""
+		Read-only property to access the path of both documents (:attr:`_path`).
+
+		:returns: The path, or ``None`` if it wasn't recorded.
+		"""
+		return self._path
+
+	@readonly
+	def Parent(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the design containing the existing document (:attr:`_parent`).
+
+		:returns: The design, or ``None`` if it wasn't recorded.
+		"""
+		return self._parent
+
+	@readonly
+	def Element(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the new document (:attr:`_element`).
+
+		:returns: The document, or ``None`` if it wasn't recorded.
+		"""
+		return self._element
+
+	@readonly
+	def Existing(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the existing document (:attr:`_existing`).
+
+		:returns: The document, or ``None`` if it wasn't recorded.
+		"""
+		return self._existing
+
+
+@export
+class DuplicateDesignUnitError(VHDLModelException, DuplicateElementError):
+	"""
+	This exception is raised, when a document already contains a design unit of the same kind and identifier.
+
+	An architecture is a duplicate, if the document contains an architecture of the same identifier for the same entity.
+	"""
+
+	_identifier:           Nullable[str]          #: The identifier of both design units.
+	_normalizedIdentifier: Nullable[str]          #: The normalized (lower case) identifier.
+	_parent:               Nullable[ModelEntity]  #: The document containing the existing design unit.
+	_element:              Nullable[ModelEntity]  #: The new design unit.
+	_existing:             Nullable[ModelEntity]  #: The existing design unit.
+
+	def __init__(
+		self,
+		message: str,
+		/, *,
+		identifier: Nullable[str] = None,
+		parent: Nullable[ModelEntity] = None,
+		element: Nullable[ModelEntity] = None,
+		existing: Nullable[ModelEntity] = None
+	) -> None:
+		"""
+		Initializes the exception with the identifier, the document and both design units.
+
+		:param message:    The error message.
+		:param identifier: Optional, the identifier of both design units.
+		:param parent:     Optional, the document containing the existing design unit.
+		:param element:    Optional, the new design unit.
+		:param existing:   Optional, the existing design unit.
+		"""
+		super().__init__(message)
+		self._identifier =           identifier
+		self._normalizedIdentifier = identifier.lower() if identifier is not None else None
+		self._parent =               parent
+		self._element =              element
+		self._existing =             existing
+
+	@readonly
+	def Identifier(self) -> Nullable[str]:
+		"""
+		Read-only property to access the identifier of both design units (:attr:`_identifier`).
+
+		:returns: The identifier, or ``None`` if it wasn't recorded.
+		"""
+		return self._identifier
+
+	@readonly
+	def NormalizedIdentifier(self) -> Nullable[str]:
+		"""
+		Read-only property to access the normalized (lower case) identifier (:attr:`_normalizedIdentifier`).
+
+		:returns: The normalized identifier, or ``None`` if it wasn't recorded.
+		"""
+		return self._normalizedIdentifier
+
+	@readonly
+	def Parent(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the document containing the existing design unit (:attr:`_parent`).
+
+		:returns: The document, or ``None`` if it wasn't recorded.
+		"""
+		return self._parent
+
+	@readonly
+	def Element(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the new design unit (:attr:`_element`).
+
+		:returns: The design unit, or ``None`` if it wasn't recorded.
+		"""
+		return self._element
+
+	@readonly
+	def Existing(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the existing design unit (:attr:`_existing`).
+
+		:returns: The design unit, or ``None`` if it wasn't recorded.
+		"""
+		return self._existing
+
+
+@export
+class ElementInUseError(Exception):
+	"""
+	The exception is raised when a model entity is removed, but other model entities still use it.
+
+	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
+	``class LibraryInUseError(VHDLModelException, ElementInUseError)``. It has no initializer of its own; the derived
+	exception sets the fields.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.LibraryInUseError`
+	      |rarr| Library still used by documents.
+	"""
+
+	_element: Nullable[ModelEntity]    #: The model entity to remove.
+	_users:   tuple[ModelEntity, ...]  #: The model entities still using it.
+
+	@readonly
+	def Element(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the model entity to remove (:attr:`_element`).
+
+		:returns: The model entity, or ``None`` if it wasn't recorded.
+		"""
+		return self._element
+
+	@readonly
+	def Users(self) -> tuple[ModelEntity, ...]:
+		"""
+		Read-only property to access the model entities still using the model entity to remove (:attr:`_users`).
+
+		:returns: Tuple of model entities, empty if they weren't recorded.
+		"""
+		return self._users
+
+
+@export
+class LibraryInUseError(VHDLModelException, ElementInUseError):
+	"""
+	This exception is raised, when a library is removed from a design, but documents of the design still use it.
+
+	.. hint::
+
+	   Remove the documents from the design first, e.g. by :meth:`~pyVHDLModel.Design.RemoveDocument`.
+	"""
+
+	def __init__(
+		self,
+		message: str,
+		/, *,
+		element: Nullable[ModelEntity] = None,
+		users: Nullable[tuple[ModelEntity, ...]] = None
+	) -> None:
+		"""
+		Initializes the exception with the library and the documents still using it.
+
+		:param message: The error message.
+		:param element: Optional, the library to remove.
+		:param users:   Optional, the documents still using the library.
+		"""
+		super().__init__(message)
+		self._element = element
+		self._users =   () if users is None else users
 
 
 @export

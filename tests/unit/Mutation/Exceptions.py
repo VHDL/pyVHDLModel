@@ -39,7 +39,8 @@ from pyVHDLModel.Exception import DuplicatePortError, DuplicateParameterError, D
 from pyVHDLModel.Exception import DuplicateTypeError, DuplicateSubtypeError, DuplicateConstantError
 from pyVHDLModel.Exception import DuplicateSignalError, DuplicateVariableError, DuplicateFileError
 from pyVHDLModel.Exception import DuplicateComponentError, DuplicateSubprogramError
-from pyVHDLModel.Exception import NotInNamespaceError
+from pyVHDLModel.Exception import NotInNamespaceError, DuplicateDocumentError, DuplicateDesignUnitError
+from pyVHDLModel.Exception import ElementInUseError, LibraryInUseError
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -91,3 +92,15 @@ class Exceptions(Testcase):
 		self.assertTrue(issubclass(DuplicateFileError, DuplicateDeclarationError))
 		self.assertTrue(issubclass(DuplicateComponentError, DuplicateDeclarationError))
 		self.assertTrue(issubclass(DuplicateSubprogramError, DuplicateDeclarationError))
+
+	def test_DuplicateDocumentError(self) -> None:
+		self.assertTrue(issubclass(DuplicateDocumentError, VHDLModelException))
+		self.assertTrue(issubclass(DuplicateDocumentError, DuplicateElementError))
+
+	def test_DuplicateDesignUnitError(self) -> None:
+		self.assertTrue(issubclass(DuplicateDesignUnitError, VHDLModelException))
+		self.assertTrue(issubclass(DuplicateDesignUnitError, DuplicateElementError))
+
+	def test_LibraryInUseError(self) -> None:
+		self.assertTrue(issubclass(LibraryInUseError, VHDLModelException))
+		self.assertTrue(issubclass(LibraryInUseError, ElementInUseError))

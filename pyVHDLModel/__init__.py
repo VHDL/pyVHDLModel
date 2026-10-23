@@ -533,6 +533,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	_name:              Nullable[str]         #: Name of the design.
 	_libraries:         dict[str, Library]    #: List of all libraries defined for a design.
 	_documents:         list[Document]        #: List of all documents loaded for a design.
+	_documentsByPath:   dict[Path, Document]  #: The documents loaded for a design, indexed by path.
 	_dependencyGraph:   Graph                 #: The graph of all dependencies in the designs.
 	_compileOrderGraph: Graph                 #: A graph derived from dependency graph containing the order of documents for compilation.
 	_hierarchyGraph:    Graph                 #: A graph derived from dependency graph containing the design hierarchy.
@@ -555,8 +556,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		self._name = name
 
-		self._libraries = {}
-		self._documents = []
+		self._libraries =       {}
+		self._documents =       []
+		self._documentsByPath = {}
 
 		self._compileOrderGraph = Graph()
 		self._dependencyGraph = Graph()
@@ -1120,7 +1122,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			ex = TypeError("Parameter 'document' is not of type 'Document'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(document)}'.")
 			raise ex
-		elif isinstance(document._parent, Design) and document in document._parent._documents:
+		elif isinstance(document._parent, Design) and document._parent._documentsByPath.get(document._path) is document:
 			ex = AlreadyInDesignError(
 				f"Document '{document._path}' is already a document of a design.",
 				element=document,
@@ -1129,15 +1131,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			ex.add_note("Remove it from its design first.")
 			raise ex
 
-		for existing in self._documents:
-			if existing._path == document._path:
-				raise DuplicateDocumentError(
-					f"Design already contains a document of path '{document._path}'.",
-					path=document._path,
-					parent=self,
-					element=document,
-					existing=existing
-				)
+		if (existing := self._documentsByPath.get(document._path)) is not None:
+			raise DuplicateDocumentError(
+				f"Design already contains a document of path '{document._path}'.",
+				path=document._path,
+				parent=self,
+				element=document,
+				existing=existing
+			)
 
 		if library is None:
 			raise ValueError("Parameter 'library' is None.")
@@ -1175,6 +1176,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				raise ContextExistsInLibraryError(context, library)
 
 		self._documents.append(document)
+		self._documentsByPath[document._path] = document
 		document.Parent = self
 		document._library = library
 
@@ -1229,10 +1231,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			ex.add_note(f"Got type '{getFullyQualifiedName(document)}'.")
 			raise ex
 
-		for index, item in enumerate(self._documents):
-			if item is document:
-				break
-		else:
+		if self._documentsByPath.get(document._path) is not document:
 			raise NotAChildError(
 				f"Document '{document._path}' is not a document of this design.",
 				element=document,
@@ -1269,7 +1268,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			del library._contexts[contextIdentifier]
 			context._parent = None
 
-		del self._documents[index]
+		for index, item in enumerate(self._documents):
+			if item is document:
+				del self._documents[index]
+				break
+		del self._documentsByPath[document._path]
 		document._parent = None
 		document._library = None
 
@@ -3560,7 +3563,8 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			ex.add_note(f"Remove it from document '{designUnit._document._path}' first.")
 			raise ex
 
-		library = self._library if isinstance(self._parent, Design) and self in self._parent._documents else None
+		inDesign =   isinstance(self._parent, Design) and self._parent._documentsByPath.get(self._path) is self
+		library =    self._library if inDesign else None
 		identifier = designUnit._normalizedIdentifier
 		libraryUnits: Nullable[dict[str, DesignUnit]] = None
 		if isinstance(designUnit, Entity):
@@ -3675,7 +3679,8 @@ class Document(ModelEntity, DocumentedEntityMixin):
 				parent=self
 			)
 
-		library = self._library if isinstance(self._parent, Design) and self in self._parent._documents else None
+		inDesign =   isinstance(self._parent, Design) and self._parent._documentsByPath.get(self._path) is self
+		library =    self._library if inDesign else None
 		identifier = designUnit._normalizedIdentifier
 		libraryUnits: Nullable[dict[str, DesignUnit]] = None
 		if isinstance(designUnit, Entity):

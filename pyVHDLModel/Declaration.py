@@ -37,11 +37,11 @@ This module contains parts of an abstract document language model for VHDL.
 from __future__             import annotations
 
 from enum                   import unique, Enum
-from typing                 import TYPE_CHECKING, Iterable, Union, Optional as Nullable
+from typing                 import TYPE_CHECKING, ClassVar, Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators   import export, readonly
 
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ReservedWord as _ReservedWord
 from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Name       import Name
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol
@@ -87,6 +87,38 @@ class EntityClass(Enum):
 	Sequence =      18  #: Sequence
 	View =          19  #: View
 	Others =        20  #: Others
+
+	__RESERVED_WORDS: ClassVar[dict[int, _ReservedWord]] = {
+		0:  _ReservedWord.Entity,
+		1:  _ReservedWord.Architecture,
+		2:  _ReservedWord.Configuration,
+		3:  _ReservedWord.Procedure,
+		4:  _ReservedWord.Function,
+		5:  _ReservedWord.Package,
+		6:  _ReservedWord.Type,
+		7:  _ReservedWord.Subtype,
+		8:  _ReservedWord.Constant,
+		9:  _ReservedWord.Signal,
+		10: _ReservedWord.Variable,
+		11: _ReservedWord.Component,
+		12: _ReservedWord.Label,
+		13: _ReservedWord.Literal,
+		14: _ReservedWord.Units,
+		15: _ReservedWord.Group,
+		16: _ReservedWord.File,
+		17: _ReservedWord.Property,
+		18: _ReservedWord.Sequence,
+		19: _ReservedWord.View
+	}  #: The reserved word of each entity class, by value; ``Others`` has none.
+
+	@readonly
+	def ReservedWord(self) -> Nullable[_ReservedWord]:
+		"""
+		Read-only property to return the reserved word of the entity class.
+
+		:returns: The reserved word, or ``None`` for ``EntityClass.Others``.
+		"""
+		return self.__RESERVED_WORDS.get(self.value, None)
 
 
 @export

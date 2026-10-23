@@ -43,6 +43,7 @@ from pyTooling.MetaClasses import ExtendedType, abstractclass
 from pyTooling.Graph       import Vertex
 
 from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
+from pyVHDLModel.Base      import ReservedWord
 from pyVHDLModel.Symbol    import Symbol
 
 if TYPE_CHECKING:
@@ -73,7 +74,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	   * :class:`File <pyVHDLModel.Object.File>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[str] = "object"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]]  #: The reserved words introducing this object class.
 
 	_subtype:      Symbol            #: Reference to the object's subtype.
 	_objectVertex: Nullable[Vertex]  #: The vertex representing this object in the design's object graph.
@@ -134,7 +135,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 
 		:returns: Formatted object declaration.
 		"""
-		return f"{self._OBJECT_KEYWORD} {', '.join(self._identifiers)} : {self._subtype}"
+		return f"{' '.join(self._OBJECT_KEYWORD)} {', '.join(self._identifiers)} : {self._subtype}"
 
 
 @export
@@ -196,7 +197,7 @@ class BaseConstant(Obj):
 	   * :class:`Deferred constant <pyVHDLModel.Object.DeferredConstant>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[str] = "constant"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Constant,)  #: The reserved words introducing this object class.
 
 
 @export
@@ -348,7 +349,7 @@ class Variable(Obj, WithDefaultExpressionMixin):
 	   * :class:`Parameter variable interface item <pyVHDLModel.Interface.ParameterVariableInterfaceItem>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[str] = "variable"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Variable,)  #: The reserved words introducing this object class.
 
 	def __init__(
 		self,
@@ -402,7 +403,7 @@ class SharedVariable(Obj):
 	.. todo:: Shared variable object not implemented.
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[str] = "shared variable"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Shared, ReservedWord.Variable)  #: The reserved words introducing this object class.
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -435,7 +436,7 @@ class Signal(Obj, WithDefaultExpressionMixin):
 	   * :class:`Parameter signal interface item <pyVHDLModel.Interface.ParameterSignalInterfaceItem>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[str] = "signal"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Signal,)  #: The reserved words introducing this object class.
 
 	def __init__(
 		self,
@@ -493,7 +494,7 @@ class File(Obj):
 	   * :class:`Parameter file interface item <pyVHDLModel.Interface.ParameterFileInterfaceItem>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[str] = "file"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.File,)  #: The reserved words introducing this object class.
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

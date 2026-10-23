@@ -40,14 +40,14 @@ from __future__                import annotations
 
 from enum                      import Enum, unique
 from math                      import copysign, isfinite
-from typing                    import ClassVar, Optional as Nullable
+from typing                    import ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName
 from pyTooling.Decorators      import export, readonly
 from pyTooling.MetaClasses     import ExtendedType
 
 from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin, PortMapAspectMixin
-from pyVHDLModel.Base          import ModelElementUnion, ModelEntity, Direction, Mode, SimpleRange, RangeFromName
+from pyVHDLModel.Base          import ModelElementUnion, ModelEntity, Mode, ReservedWord, SimpleRange, RangeFromName
 from pyVHDLModel.Configuration import EntityAspectEntity, EntityAspectConfiguration, EntityAspectOpen
 from pyVHDLModel.Configuration import BindingIndication, AllInstantiationList, OthersInstantiationList
 from pyVHDLModel.Configuration import ComponentConfiguration, BlockConfiguration
@@ -378,20 +378,31 @@ class VHDLWriter(Visitor):
 
 		:param expression: The conditional expression.
 		"""
-		self._Write(f" {self._Keyword('when')} ")
+		self._Write(f" {self._Keyword(ReservedWord.When)} ")
 		self._minimum = OperatorPrecedence.Logical
 
-	def _Keyword(self, word: str) -> str:
+	def _Keyword(self, keyword: ReservedWord) -> str:
 		"""
 		Apply the keyword case of the formatting options to a reserved word.
 
-		:param word: The reserved word in lower case.
-		:returns:    The reserved word in the configured letter case.
+		:param keyword: The reserved word.
+		:returns:       The reserved word in the configured letter case.
 		"""
 		if self._style.KeywordCase is KeywordCase.Upper:
-			return word.upper()
+			return keyword.value.upper()
 
-		return word
+		return keyword.value
+
+	def _Keywords(self, keywords: Iterable[ReservedWord]) -> str:
+		"""
+		Apply the keyword case of the formatting options to reserved words and join them by spaces.
+
+		**Format:** ``shared variable``, ``protected body``
+
+		:param keywords: The reserved words.
+		:returns:        The reserved words in the configured letter case, separated by spaces.
+		"""
+		return " ".join(self._Keyword(keyword) for keyword in keywords)
 
 	def VisitElse(self, expression: WhenElseExpression) -> None:
 		"""
@@ -399,7 +410,7 @@ class VHDLWriter(Visitor):
 
 		:param expression: The conditional expression.
 		"""
-		self._Write(f" {self._Keyword('else')} ")
+		self._Write(f" {self._Keyword(ReservedWord.Else)} ")
 		self._minimum = OperatorPrecedence.Conditional
 
 	def VisitOperator(self, expression: BinaryExpression) -> None:
@@ -411,7 +422,11 @@ class VHDLWriter(Visitor):
 		:param expression: The binary expression.
 		"""
 		precedence, _ = self._frames[-1]
-		self._Write(f" {self._Keyword(expression._FORMAT[1].strip())} ")
+		if (reservedWord := expression._RESERVED_WORD) is None:
+			self._Write(f" {expression._FORMAT[1].strip()} ")
+		else:
+			self._Write(f" {self._Keyword(reservedWord)} ")
+
 		self._minimum = OperatorPrecedence(min(precedence + 1, OperatorPrecedence.Primary))
 
 	def VisitDirection(self, rng: RangeExpression | SimpleRange) -> None:
@@ -420,8 +435,7 @@ class VHDLWriter(Visitor):
 
 		:param rng: The range.
 		"""
-		direction = "to" if rng.Direction is Direction.To else "downto"
-		self._Write(f" {self._Keyword(direction)} ")
+		self._Write(f" {self._Keyword(rng.Direction.ReservedWord)} ")
 		self._minimum = OperatorPrecedence.Adding
 
 	def VisitNullLiteral(self, literal: NullLiteral) -> None:
@@ -432,7 +446,7 @@ class VHDLWriter(Visitor):
 
 		:param literal: The null literal.
 		"""
-		self._Write(self._Keyword("null"))
+		self._Write(self._Keyword(ReservedWord.Null))
 
 	def VisitEnumerationLiteral(self, literal: EnumerationLiteral) -> None:
 		"""
@@ -667,7 +681,7 @@ class VHDLWriter(Visitor):
 		:param expression: The unary expression.
 		"""
 		self._Enter(expression._PRECEDENCE)
-		self._Write(self._Keyword(expression._FORMAT[0]))
+		self._Write(f"{self._Keyword(expression._RESERVED_WORD)} ")
 		self._minimum = OperatorPrecedence.Primary
 
 	def DepartUnaryExpression(self, expression: UnaryExpression) -> None:
@@ -927,7 +941,7 @@ class VHDLWriter(Visitor):
 
 		:param allocation: The allocation.
 		"""
-		self._Write(f"{self._Keyword('new')} ")
+		self._Write(f"{self._Keyword(ReservedWord.New)} ")
 
 	def VisitQualifiedExpressionAllocation(self, allocation: QualifiedExpressionAllocation) -> None:
 		"""
@@ -937,7 +951,7 @@ class VHDLWriter(Visitor):
 
 		:param allocation: The allocation.
 		"""
-		self._Write(f"{self._Keyword('new')} ")
+		self._Write(f"{self._Keyword(ReservedWord.New)} ")
 
 	def VisitAggregate(self, aggregate: Aggregate) -> None:
 		"""
@@ -987,7 +1001,7 @@ class VHDLWriter(Visitor):
 
 		:param element: The aggregate element.
 		"""
-		self._Write(f"{self._Keyword('others')} => ")
+		self._Write(f"{self._Keyword(ReservedWord.Others)} => ")
 		self._minimum = OperatorPrecedence.Range
 
 	def VisitSimpleRange(self, rng: SimpleRange) -> None:
@@ -1055,7 +1069,7 @@ class VHDLWriter(Visitor):
 
 		:param name: The ``all`` name.
 		"""
-		self._Write(f".{self._Keyword('all')}")
+		self._Write(f".{self._Keyword(ReservedWord.All)}")
 
 	def DepartAttributeName(self, name: AttributeName) -> None:
 		"""
@@ -1107,7 +1121,7 @@ class VHDLWriter(Visitor):
 
 		:param name: The ``open`` name.
 		"""
-		self._Write(self._Keyword("open"))
+		self._Write(self._Keyword(ReservedWord.Open))
 
 	def VisitAssociationItem(self, item: AssociationItem) -> None:
 		"""
@@ -1161,12 +1175,12 @@ class VHDLWriter(Visitor):
 		:param element: The declaration.
 		"""
 		if isinstance(element, (Alias, AttributeSpecification)):
-			self._Write(f" {self._Keyword('is')} ")
+			self._Write(f" {self._Keyword(ReservedWord.Is)} ")
 			self._minimum = OperatorPrecedence.Range
 		elif isinstance(element, Subprogram) and not self._IsSubprogramBody(element):
 			return
 		else:
-			self._Write(f" {self._Keyword('is')}\n")
+			self._Write(f" {self._Keyword(ReservedWord.Is)}\n")
 			self._indentation += 1
 
 	def VisitRangeConstraint(self, symbol: ConstrainedScalarSubtypeSymbol) -> None:
@@ -1177,7 +1191,7 @@ class VHDLWriter(Visitor):
 
 		:param symbol: The constrained subtype symbol.
 		"""
-		self._Write(f" {self._Keyword('range')} ")
+		self._Write(f" {self._Keyword(ReservedWord.Range)} ")
 		self._minimum = OperatorPrecedence.Range
 
 	def VisitIndexConstraint(
@@ -1238,7 +1252,7 @@ class VHDLWriter(Visitor):
 		else:
 			self._WriteIndentation()
 
-		self._Write(f"{self._Keyword('generic')} (\n")
+		self._Write(f"{self._Keyword(ReservedWord.Generic)} (\n")
 		self._indentation += 1
 		self._WriteIndentation()
 
@@ -1273,7 +1287,7 @@ class VHDLWriter(Visitor):
 		:param element: The element with ports.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('port')} (\n")
+		self._Write(f"{self._Keyword(ReservedWord.Port)} (\n")
 		self._indentation += 1
 		self._WriteIndentation()
 
@@ -1302,7 +1316,7 @@ class VHDLWriter(Visitor):
 		:param obj: The object declaration.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword(obj._OBJECT_KEYWORD)} {', '.join(obj.Identifiers)} : ")
+		self._Write(f"{self._Keywords(obj._OBJECT_KEYWORD)} {', '.join(obj.Identifiers)} : ")
 
 	def DepartConstant(self, constant: Constant) -> None:
 		"""
@@ -1412,22 +1426,22 @@ class VHDLWriter(Visitor):
 
 		:param item: The generic constant.
 		"""
-		self._WriteInterfaceItem(item, "", item.Mode)
+		self._WriteInterfaceItem(item, (), item.Mode)
 
-	def _WriteInterfaceItem(self, item: Obj, keyword: str, mode: Mode) -> None:
+	def _WriteInterfaceItem(self, item: Obj, keywords: tuple[ReservedWord, ...], mode: Mode) -> None:
 		"""
-		Write the object class reserved word (if any), the identifiers and the mode (if any) of an interface item.
+		Write the object class reserved words (if any), the identifiers and the mode (if any) of an interface item.
 
-		:param item:    The interface item.
-		:param keyword: The object class reserved word in lower case, or an empty string.
-		:param mode:    The mode; ``Mode.Default`` writes none.
+		:param item:     The interface item.
+		:param keywords: The object class reserved words, or an empty tuple.
+		:param mode:     The mode; ``Mode.Default`` writes none.
 		"""
-		if keyword != "":
-			self._Write(f"{self._Keyword(keyword)} ")
+		if len(keywords) > 0:
+			self._Write(f"{self._Keywords(keywords)} ")
 
 		self._Write(f"{', '.join(item.Identifiers)} : ")
 		if mode is not Mode.Default:
-			self._Write(f"{self._Keyword(str(mode))} ")
+			self._Write(f"{self._Keyword(mode.ReservedWord)} ")
 
 	def VisitGenericTypeInterfaceItem(self, item: GenericTypeInterfaceItem) -> None:
 		"""
@@ -1437,7 +1451,7 @@ class VHDLWriter(Visitor):
 
 		:param item: The generic type.
 		"""
-		self._Write(f"{self._Keyword('type')} {item.Identifier}")
+		self._Write(f"{self._Keyword(ReservedWord.Type)} {item.Identifier}")
 
 	def VisitPortSimpleSignalInterfaceItem(self, item: PortSimpleSignalInterfaceItem) -> None:
 		"""
@@ -1447,7 +1461,7 @@ class VHDLWriter(Visitor):
 
 		:param item: The port.
 		"""
-		self._WriteInterfaceItem(item, "", item.Mode)
+		self._WriteInterfaceItem(item, (), item.Mode)
 
 	def VisitPortViewSignalInterfaceItem(self, item: PortViewSignalInterfaceItem) -> None:
 		"""
@@ -1457,8 +1471,8 @@ class VHDLWriter(Visitor):
 
 		:param item: The port.
 		"""
-		self._WriteInterfaceItem(item, "", Mode.Default)
-		self._Write(f"{self._Keyword('view')} ")
+		self._WriteInterfaceItem(item, (), Mode.Default)
+		self._Write(f"{self._Keyword(ReservedWord.View)} ")
 
 	def VisitParameterConstantInterfaceItem(self, item: ParameterConstantInterfaceItem) -> None:
 		"""
@@ -1499,7 +1513,7 @@ class VHDLWriter(Visitor):
 		:param item: The signal parameter.
 		"""
 		self._WriteInterfaceItem(item, item._OBJECT_KEYWORD, Mode.Default)
-		self._Write(f"{self._Keyword('view')} ")
+		self._Write(f"{self._Keyword(ReservedWord.View)} ")
 
 	def VisitParameterFileInterfaceItem(self, item: ParameterFileInterfaceItem) -> None:
 		"""
@@ -1520,7 +1534,7 @@ class VHDLWriter(Visitor):
 		:param declaration: The mode view declaration.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('view')} {declaration.Identifier} {self._Keyword('of')} ")
+		self._Write(f"{self._Keyword(ReservedWord.View)} {declaration.Identifier} {self._Keyword(ReservedWord.Of)} ")
 
 	def DepartModeViewDeclaration(self, declaration: ModeViewDeclaration) -> None:
 		"""
@@ -1528,18 +1542,18 @@ class VHDLWriter(Visitor):
 
 		:param declaration: The mode view declaration.
 		"""
-		self._WriteEnd("view", declaration.Identifier)
+		self._WriteEnd((ReservedWord.View,), declaration.Identifier)
 
-	def _WriteEnd(self, keywords: str, identifier: str) -> None:
+	def _WriteEnd(self, keywords: tuple[ReservedWord, ...], identifier: str) -> None:
 		"""
 		Leave the indented body and write the reserved word ``end``, the given reserved words and the identifier.
 
-		:param keywords:   The reserved words after ``end`` in lower case.
+		:param keywords:   The reserved words after ``end``.
 		:param identifier: The identifier of the declaration.
 		"""
 		self._indentation -= 1
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('end')} {self._Keyword(keywords)} {identifier};\n")
+		self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keywords(keywords)} {identifier};\n")
 
 	def VisitSimpleModeViewElement(self, element: SimpleModeViewElement) -> None:
 		"""
@@ -1554,7 +1568,7 @@ class VHDLWriter(Visitor):
 			raise VHDLWriterError("Mode view element has no mode.", element)
 
 		self._WriteIndentation()
-		self._Write(f"{', '.join(element.Identifiers)} : {self._Keyword(str(element.Mode))};\n")
+		self._Write(f"{', '.join(element.Identifiers)} : {self._Keyword(element.Mode.ReservedWord)};\n")
 
 	def VisitCompositeModeViewElement(self, element: CompositeModeViewElement) -> None:
 		"""
@@ -1565,7 +1579,7 @@ class VHDLWriter(Visitor):
 		:param element: The mode view element.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{', '.join(element.Identifiers)} : {self._Keyword('view')} ")
+		self._Write(f"{', '.join(element.Identifiers)} : {self._Keyword(ReservedWord.View)} ")
 
 	def DepartCompositeModeViewElement(self, element: CompositeModeViewElement) -> None:
 		"""
@@ -1584,7 +1598,7 @@ class VHDLWriter(Visitor):
 		:param component: The component declaration.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('component')} {component.Identifier} {self._Keyword('is')}\n")
+		self._Write(f"{self._Keyword(ReservedWord.Component)} {component.Identifier} {self._Keyword(ReservedWord.Is)}\n")
 		self._indentation += 1
 
 	def DepartComponent(self, component: Component) -> None:
@@ -1593,7 +1607,7 @@ class VHDLWriter(Visitor):
 
 		:param component: The component declaration.
 		"""
-		self._WriteEnd("component", component.Identifier)
+		self._WriteEnd((ReservedWord.Component,), component.Identifier)
 
 	def VisitBox(self, arrayType: ArrayType) -> None:
 		"""
@@ -1603,7 +1617,7 @@ class VHDLWriter(Visitor):
 
 		:param arrayType: The array type.
 		"""
-		self._Write(f" {self._Keyword('range')} <>")
+		self._Write(f" {self._Keyword(ReservedWord.Range)} <>")
 
 	def VisitOf(self, arrayType: ArrayType) -> None:
 		"""
@@ -1611,7 +1625,7 @@ class VHDLWriter(Visitor):
 
 		:param arrayType: The array type.
 		"""
-		self._Write(f" {self._Keyword('of')} ")
+		self._Write(f" {self._Keyword(ReservedWord.Of)} ")
 
 	def VisitUnits(self, physicalType: PhysicalType) -> None:
 		"""
@@ -1622,7 +1636,7 @@ class VHDLWriter(Visitor):
 		self._Write("\n")
 		self._indentation += 1
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('units')}\n")
+		self._Write(f"{self._Keyword(ReservedWord.Units)}\n")
 		self._indentation += 1
 		self._WriteIndentation()
 		self._Write(f"{physicalType.PrimaryUnit};\n")
@@ -1655,7 +1669,7 @@ class VHDLWriter(Visitor):
 
 		:param specification: The attribute specification.
 		"""
-		self._Write(f" {self._Keyword('of')} ")
+		self._Write(f" {self._Keyword(ReservedWord.Of)} ")
 
 	def DepartEntitySpecification(self, specification: AttributeSpecification) -> None:
 		"""
@@ -1663,7 +1677,7 @@ class VHDLWriter(Visitor):
 
 		:param specification: The attribute specification.
 		"""
-		self._Write(f" : {self._Keyword(specification.EntityClass.name.lower())}")
+		self._Write(f" : {self._Keyword(specification.EntityClass.ReservedWord)}")
 
 	def VisitAnonymousType(self, declaration: AnonymousType) -> None:
 		"""
@@ -1674,7 +1688,7 @@ class VHDLWriter(Visitor):
 		:param declaration: The incomplete type declaration.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('type')} {declaration.Identifier};\n")
+		self._Write(f"{self._Keyword(ReservedWord.Type)} {declaration.Identifier};\n")
 
 	def VisitSubtype(self, subtype: Subtype) -> None:
 		"""
@@ -1687,7 +1701,7 @@ class VHDLWriter(Visitor):
 		:param subtype: The subtype declaration.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('subtype')} {subtype.Identifier} {self._Keyword('is')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Subtype)} {subtype.Identifier} {self._Keyword(ReservedWord.Is)} ")
 
 	def DepartSubtype(self, subtype: Subtype) -> None:
 		"""
@@ -1715,7 +1729,7 @@ class VHDLWriter(Visitor):
 		:param declaration: The type declaration.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('type')} {declaration.Identifier} {self._Keyword('is')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Type)} {declaration.Identifier} {self._Keyword(ReservedWord.Is)} ")
 
 	def DepartEnumeratedType(self, enumeratedType: EnumeratedType) -> None:
 		"""
@@ -1734,7 +1748,7 @@ class VHDLWriter(Visitor):
 		:param integerType: The integer type.
 		"""
 		self._WriteTypeHeader(integerType)
-		self._Write(f"{self._Keyword('range')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Range)} ")
 		self._minimum = OperatorPrecedence.Range
 
 	def DepartIntegerType(self, integerType: IntegerType) -> None:
@@ -1754,7 +1768,7 @@ class VHDLWriter(Visitor):
 		:param realType: The floating-point type.
 		"""
 		self._WriteTypeHeader(realType)
-		self._Write(f"{self._Keyword('range')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Range)} ")
 		self._minimum = OperatorPrecedence.Range
 
 	def DepartRealType(self, realType: RealType) -> None:
@@ -1774,7 +1788,7 @@ class VHDLWriter(Visitor):
 		:param physicalType: The physical type.
 		"""
 		self._WriteTypeHeader(physicalType)
-		self._Write(f"{self._Keyword('range')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Range)} ")
 		self._minimum = OperatorPrecedence.Range
 
 	def DepartPhysicalType(self, physicalType: PhysicalType) -> None:
@@ -1783,7 +1797,7 @@ class VHDLWriter(Visitor):
 
 		:param physicalType: The physical type.
 		"""
-		self._WriteEnd("units", physicalType.Identifier)
+		self._WriteEnd((ReservedWord.Units,), physicalType.Identifier)
 		self._indentation -= 1
 
 	def VisitArrayType(self, arrayType: ArrayType) -> None:
@@ -1795,7 +1809,7 @@ class VHDLWriter(Visitor):
 		:param arrayType: The array type.
 		"""
 		self._WriteTypeHeader(arrayType)
-		self._Write(f"{self._Keyword('array')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Array)} ")
 
 	def DepartArrayType(self, arrayType: ArrayType) -> None:
 		"""
@@ -1814,7 +1828,7 @@ class VHDLWriter(Visitor):
 		:param recordType: The record type.
 		"""
 		self._WriteTypeHeader(recordType)
-		self._Write(f"{self._Keyword('record')}\n")
+		self._Write(f"{self._Keyword(ReservedWord.Record)}\n")
 		self._indentation += 1
 
 	def DepartRecordType(self, recordType: RecordType) -> None:
@@ -1823,7 +1837,7 @@ class VHDLWriter(Visitor):
 
 		:param recordType: The record type.
 		"""
-		self._WriteEnd("record", recordType.Identifier)
+		self._WriteEnd((ReservedWord.Record,), recordType.Identifier)
 
 	def VisitRecordTypeElement(self, element: RecordTypeElement) -> None:
 		"""
@@ -1853,7 +1867,7 @@ class VHDLWriter(Visitor):
 		:param accessType: The access type.
 		"""
 		self._WriteTypeHeader(accessType)
-		self._Write(f"{self._Keyword('access')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Access)} ")
 
 	def DepartAccessType(self, accessType: AccessType) -> None:
 		"""
@@ -1872,7 +1886,7 @@ class VHDLWriter(Visitor):
 		:param fileType: The file type.
 		"""
 		self._WriteTypeHeader(fileType)
-		self._Write(f"{self._Keyword('file')} {self._Keyword('of')} ")
+		self._Write(f"{self._Keyword(ReservedWord.File)} {self._Keyword(ReservedWord.Of)} ")
 
 	def DepartFileType(self, fileType: FileType) -> None:
 		"""
@@ -1891,7 +1905,7 @@ class VHDLWriter(Visitor):
 		:param alias: The alias declaration.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('alias')} {alias.Identifier}")
+		self._Write(f"{self._Keyword(ReservedWord.Alias)} {alias.Identifier}")
 		if alias.Subtype is not None:
 			self._Write(" : ")
 
@@ -1912,7 +1926,7 @@ class VHDLWriter(Visitor):
 		:param attribute: The attribute declaration.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('attribute')} {attribute.Identifier} : ")
+		self._Write(f"{self._Keyword(ReservedWord.Attribute)} {attribute.Identifier} : ")
 
 	def DepartAttribute(self, attribute: Attribute) -> None:
 		"""
@@ -1935,7 +1949,7 @@ class VHDLWriter(Visitor):
 			raise VHDLWriterError("Entity class 'Others' has no VHDL notation.", specification)
 
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('attribute')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Attribute)} ")
 
 	def DepartAttributeSpecification(self, specification: AttributeSpecification) -> None:
 		"""
@@ -1960,7 +1974,7 @@ class VHDLWriter(Visitor):
 
 		self._indentation -= 1
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('begin')}\n")
+		self._Write(f"{self._Keyword(ReservedWord.Begin)}\n")
 		self._indentation += 1
 
 	@staticmethod
@@ -1985,7 +1999,7 @@ class VHDLWriter(Visitor):
 
 		:param function: The function.
 		"""
-		self._Write(f" {self._Keyword('return')} ")
+		self._Write(f" {self._Keyword(ReservedWord.Return)} ")
 
 	def VisitFormalParameterList(self, element: WithParametersMixin) -> None:
 		"""
@@ -1998,7 +2012,7 @@ class VHDLWriter(Visitor):
 		:param element: The element with parameters.
 		"""
 		if isinstance(element, WithGenericsMixin) and len(element.GenericItems) > 0:
-			self._Write(f" {self._Keyword('parameter')} (\n")
+			self._Write(f" {self._Keyword(ReservedWord.Parameter)} (\n")
 		else:
 			self._Write(" (\n")
 
@@ -2022,18 +2036,18 @@ class VHDLWriter(Visitor):
 
 		:param element: The element with a generic map aspect.
 		"""
-		self._WriteMapAspect("generic")
+		self._WriteMapAspect(ReservedWord.Generic)
 
-	def _WriteMapAspect(self, keyword: str) -> None:
+	def _WriteMapAspect(self, keyword: ReservedWord) -> None:
 		"""
 		Write the reserved words of a map aspect and the left parenthesis on a new line, one indentation level deeper.
 
-		:param keyword: The reserved word ``generic`` or ``port`` in lower case.
+		:param keyword: The reserved word ``generic`` or ``port``.
 		"""
 		self._Write("\n")
 		self._indentation += 1
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword(keyword)} {self._Keyword('map')} (\n")
+		self._Write(f"{self._Keyword(keyword)} {self._Keyword(ReservedWord.Map)} (\n")
 		self._indentation += 1
 		self._WriteIndentation()
 
@@ -2057,7 +2071,7 @@ class VHDLWriter(Visitor):
 		:param procedure: The procedure.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('procedure')} {procedure.Identifier}")
+		self._Write(f"{self._Keyword(ReservedWord.Procedure)} {procedure.Identifier}")
 
 	def DepartProcedure(self, procedure: Procedure) -> None:
 		"""
@@ -2066,7 +2080,7 @@ class VHDLWriter(Visitor):
 		:param procedure: The procedure.
 		"""
 		if self._IsSubprogramBody(procedure):
-			self._WriteEnd("procedure", procedure.Identifier)
+			self._WriteEnd((ReservedWord.Procedure,), procedure.Identifier)
 		else:
 			self._Write(";\n")
 
@@ -2090,9 +2104,9 @@ class VHDLWriter(Visitor):
 		:param function: The function.
 		"""
 		if not function.IsPure:
-			self._Write(f"{self._Keyword('impure')} ")
+			self._Write(f"{self._Keyword(ReservedWord.Impure)} ")
 
-		self._Write(f"{self._Keyword('function')} {function.Identifier}")
+		self._Write(f"{self._Keyword(ReservedWord.Function)} {function.Identifier}")
 
 	def DepartFunction(self, function: Function) -> None:
 		"""
@@ -2101,7 +2115,7 @@ class VHDLWriter(Visitor):
 		:param function: The function.
 		"""
 		if self._IsSubprogramBody(function):
-			self._WriteEnd("function", function.Identifier)
+			self._WriteEnd((ReservedWord.Function,), function.Identifier)
 		else:
 			self._Write(";\n")
 
@@ -2113,7 +2127,7 @@ class VHDLWriter(Visitor):
 
 		:param item: The generic procedure.
 		"""
-		self._Write(f"{self._Keyword('procedure')} {item.Identifier}")
+		self._Write(f"{self._Keyword(ReservedWord.Procedure)} {item.Identifier}")
 
 	def VisitGenericFunctionInterfaceItem(self, item: GenericFunctionInterfaceItem) -> None:
 		"""
@@ -2135,8 +2149,8 @@ class VHDLWriter(Visitor):
 		:param instantiation: The procedure instantiation.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('procedure')} {instantiation.Identifier} ")
-		self._Write(f"{self._Keyword('is')} {self._Keyword('new')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Procedure)} {instantiation.Identifier} ")
+		self._Write(f"{self._Keyword(ReservedWord.Is)} {self._Keyword(ReservedWord.New)} ")
 
 	def DepartProcedureInstantiation(self, instantiation: ProcedureInstantiation) -> None:
 		"""
@@ -2155,8 +2169,8 @@ class VHDLWriter(Visitor):
 		:param instantiation: The function instantiation.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('function')} {instantiation.Identifier} ")
-		self._Write(f"{self._Keyword('is')} {self._Keyword('new')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Function)} {instantiation.Identifier} ")
+		self._Write(f"{self._Keyword(ReservedWord.Is)} {self._Keyword(ReservedWord.New)} ")
 
 	def DepartFunctionInstantiation(self, instantiation: FunctionInstantiation) -> None:
 		"""
@@ -2175,7 +2189,7 @@ class VHDLWriter(Visitor):
 		:param protectedType: The protected type.
 		"""
 		self._WriteTypeHeader(protectedType)
-		self._Write(f"{self._Keyword('protected')}\n")
+		self._Write(f"{self._Keyword(ReservedWord.Protected)}\n")
 		self._indentation += 1
 
 	def DepartProtectedType(self, protectedType: ProtectedType) -> None:
@@ -2184,7 +2198,7 @@ class VHDLWriter(Visitor):
 
 		:param protectedType: The protected type.
 		"""
-		self._WriteEnd("protected", protectedType.Identifier)
+		self._WriteEnd((ReservedWord.Protected,), protectedType.Identifier)
 
 	def VisitProtectedTypeBody(self, body: ProtectedTypeBody) -> None:
 		"""
@@ -2195,7 +2209,7 @@ class VHDLWriter(Visitor):
 		:param body: The protected type body.
 		"""
 		self._WriteTypeHeader(body)
-		self._Write(f"{self._Keyword('protected')} {self._Keyword('body')}\n")
+		self._Write(f"{self._Keyword(ReservedWord.Protected)} {self._Keyword(ReservedWord.Body)}\n")
 		self._indentation += 1
 
 	def DepartProtectedTypeBody(self, body: ProtectedTypeBody) -> None:
@@ -2204,7 +2218,7 @@ class VHDLWriter(Visitor):
 
 		:param body: The protected type body.
 		"""
-		self._WriteEnd("protected body", body.Identifier)
+		self._WriteEnd((ReservedWord.Protected, ReservedWord.Body), body.Identifier)
 
 	def VisitPortMapAspect(self, element: PortMapAspectMixin) -> None:
 		"""
@@ -2214,7 +2228,7 @@ class VHDLWriter(Visitor):
 
 		:param element: The element with a port map aspect.
 		"""
-		self._WriteMapAspect("port")
+		self._WriteMapAspect(ReservedWord.Port)
 
 	def DepartPortMapAspect(self, element: PortMapAspectMixin) -> None:
 		"""
@@ -2252,7 +2266,7 @@ class VHDLWriter(Visitor):
 		:param clause: The library clause.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('library')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Library)} ")
 
 	def DepartLibraryClause(self, clause: LibraryClause) -> None:
 		"""
@@ -2271,7 +2285,7 @@ class VHDLWriter(Visitor):
 		:param clause: The use clause.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('use')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Use)} ")
 
 	def DepartUseClause(self, clause: UseClause) -> None:
 		"""
@@ -2290,7 +2304,7 @@ class VHDLWriter(Visitor):
 		:param reference: The context reference.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('context')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Context)} ")
 
 	def DepartContextReference(self, reference: ContextReference) -> None:
 		"""
@@ -2308,17 +2322,17 @@ class VHDLWriter(Visitor):
 
 		:param context: The context declaration.
 		"""
-		self._WriteUnitHeader("context", context.Identifier)
+		self._WriteUnitHeader((ReservedWord.Context,), context.Identifier)
 
-	def _WriteUnitHeader(self, keywords: str, identifier: str) -> None:
+	def _WriteUnitHeader(self, keywords: tuple[ReservedWord, ...], identifier: str) -> None:
 		"""
 		Write the reserved words, the identifier and the reserved word ``is`` of a header; the body is indented.
 
-		:param keywords:   The reserved words before the identifier in lower case.
+		:param keywords:   The reserved words before the identifier.
 		:param identifier: The identifier.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword(keywords)} {identifier} {self._Keyword('is')}\n")
+		self._Write(f"{self._Keywords(keywords)} {identifier} {self._Keyword(ReservedWord.Is)}\n")
 		self._indentation += 1
 
 	def DepartContext(self, context: Context) -> None:
@@ -2327,7 +2341,7 @@ class VHDLWriter(Visitor):
 
 		:param context: The context declaration.
 		"""
-		self._WriteEnd("context", context.Identifier)
+		self._WriteEnd((ReservedWord.Context,), context.Identifier)
 
 	def VisitPackage(self, package: Package) -> None:
 		"""
@@ -2337,7 +2351,7 @@ class VHDLWriter(Visitor):
 
 		:param package: The package declaration.
 		"""
-		self._WriteUnitHeader("package", package.Identifier)
+		self._WriteUnitHeader((ReservedWord.Package,), package.Identifier)
 
 	def DepartPackage(self, package: Package) -> None:
 		"""
@@ -2345,7 +2359,7 @@ class VHDLWriter(Visitor):
 
 		:param package: The package declaration.
 		"""
-		self._WriteEnd("package", package.Identifier)
+		self._WriteEnd((ReservedWord.Package,), package.Identifier)
 
 	def VisitPackageBody(self, body: PackageBody) -> None:
 		"""
@@ -2355,7 +2369,7 @@ class VHDLWriter(Visitor):
 
 		:param body: The package body.
 		"""
-		self._WriteUnitHeader("package body", body.Identifier)
+		self._WriteUnitHeader((ReservedWord.Package, ReservedWord.Body), body.Identifier)
 
 	def DepartPackageBody(self, body: PackageBody) -> None:
 		"""
@@ -2363,7 +2377,7 @@ class VHDLWriter(Visitor):
 
 		:param body: The package body.
 		"""
-		self._WriteEnd("package body", body.Identifier)
+		self._WriteEnd((ReservedWord.Package, ReservedWord.Body), body.Identifier)
 
 	def VisitPackageInstantiation(self, instantiation: PackageInstantiation) -> None:
 		"""
@@ -2374,7 +2388,8 @@ class VHDLWriter(Visitor):
 		:param instantiation: The package instantiation.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('package')} {instantiation.Identifier} {self._Keyword('is')} {self._Keyword('new')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Package)} {instantiation.Identifier} ")
+		self._Write(f"{self._Keywords((ReservedWord.Is, ReservedWord.New))} ")
 
 	def DepartPackageInstantiation(self, instantiation: PackageInstantiation) -> None:
 		"""
@@ -2392,7 +2407,7 @@ class VHDLWriter(Visitor):
 
 		:param entity: The entity declaration.
 		"""
-		self._WriteUnitHeader("entity", entity.Identifier)
+		self._WriteUnitHeader((ReservedWord.Entity,), entity.Identifier)
 
 	def DepartEntity(self, entity: Entity) -> None:
 		"""
@@ -2400,7 +2415,7 @@ class VHDLWriter(Visitor):
 
 		:param entity: The entity declaration.
 		"""
-		self._WriteEnd("entity", entity.Identifier)
+		self._WriteEnd((ReservedWord.Entity,), entity.Identifier)
 
 	def VisitArchitecture(self, architecture: Architecture) -> None:
 		"""
@@ -2411,7 +2426,8 @@ class VHDLWriter(Visitor):
 		:param architecture: The architecture body.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('architecture')} {architecture.Identifier} {self._Keyword('of')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Architecture)} {architecture.Identifier} ")
+		self._Write(f"{self._Keyword(ReservedWord.Of)} ")
 
 	def DepartArchitecture(self, architecture: Architecture) -> None:
 		"""
@@ -2419,7 +2435,7 @@ class VHDLWriter(Visitor):
 
 		:param architecture: The architecture body.
 		"""
-		self._WriteEnd("architecture", architecture.Identifier)
+		self._WriteEnd((ReservedWord.Architecture,), architecture.Identifier)
 
 	def VisitConfiguration(self, configuration: Configuration) -> None:
 		"""
@@ -2430,7 +2446,8 @@ class VHDLWriter(Visitor):
 		:param configuration: The configuration declaration.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('configuration')} {configuration.Identifier} {self._Keyword('of')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Configuration)} {configuration.Identifier} ")
+		self._Write(f"{self._Keyword(ReservedWord.Of)} ")
 
 	def DepartConfiguration(self, configuration: Configuration) -> None:
 		"""
@@ -2438,7 +2455,7 @@ class VHDLWriter(Visitor):
 
 		:param configuration: The configuration declaration.
 		"""
-		self._WriteEnd("configuration", configuration.Identifier)
+		self._WriteEnd((ReservedWord.Configuration,), configuration.Identifier)
 
 	def VisitBlockConfiguration(self, configuration: BlockConfiguration) -> None:
 		"""
@@ -2449,7 +2466,7 @@ class VHDLWriter(Visitor):
 		:param configuration: The block configuration.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('for')} ")
+		self._Write(f"{self._Keyword(ReservedWord.For)} ")
 
 	def DepartBlockSpecification(self, configuration: BlockConfiguration) -> None:
 		"""
@@ -2468,7 +2485,7 @@ class VHDLWriter(Visitor):
 		"""
 		self._indentation -= 1
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('end')} {self._Keyword('for')};\n")
+		self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keyword(ReservedWord.For)};\n")
 
 	def VisitComponentConfiguration(self, configuration: ComponentConfiguration) -> None:
 		"""
@@ -2479,7 +2496,7 @@ class VHDLWriter(Visitor):
 		:param configuration: The component configuration.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('for')} ")
+		self._Write(f"{self._Keyword(ReservedWord.For)} ")
 
 	def DepartInstantiationList(self, configuration: ComponentConfiguration) -> None:
 		"""
@@ -2497,7 +2514,7 @@ class VHDLWriter(Visitor):
 		"""
 		self._Write("\n")
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('end')} {self._Keyword('for')};\n")
+		self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keyword(ReservedWord.For)};\n")
 
 	def VisitBindingIndication(self, indication: BindingIndication) -> None:
 		"""
@@ -2511,7 +2528,7 @@ class VHDLWriter(Visitor):
 		if indication.EntityAspect is not None:
 			self._Write("\n")
 			self._WriteIndentation()
-			self._Write(f"{self._Keyword('use')} ")
+			self._Write(f"{self._Keyword(ReservedWord.Use)} ")
 
 	def DepartBindingIndication(self, indication: BindingIndication) -> None:
 		"""
@@ -2530,7 +2547,7 @@ class VHDLWriter(Visitor):
 
 		:param aspect: The entity aspect.
 		"""
-		self._Write(f"{self._Keyword('entity')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Entity)} ")
 
 	def DepartEntityAspectEntity(self, aspect: EntityAspectEntity) -> None:
 		"""
@@ -2549,7 +2566,7 @@ class VHDLWriter(Visitor):
 
 		:param aspect: The entity aspect.
 		"""
-		self._Write(f"{self._Keyword('configuration')} ")
+		self._Write(f"{self._Keyword(ReservedWord.Configuration)} ")
 
 	def VisitEntityAspectOpen(self, aspect: EntityAspectOpen) -> None:
 		"""
@@ -2559,7 +2576,7 @@ class VHDLWriter(Visitor):
 
 		:param aspect: The entity aspect.
 		"""
-		self._Write(self._Keyword("open"))
+		self._Write(self._Keyword(ReservedWord.Open))
 
 	def VisitAllInstantiationList(self, instantiationList: AllInstantiationList) -> None:
 		"""
@@ -2569,7 +2586,7 @@ class VHDLWriter(Visitor):
 
 		:param instantiationList: The instantiation list.
 		"""
-		self._Write(self._Keyword("all"))
+		self._Write(self._Keyword(ReservedWord.All))
 
 	def VisitOthersInstantiationList(self, instantiationList: OthersInstantiationList) -> None:
 		"""
@@ -2579,4 +2596,4 @@ class VHDLWriter(Visitor):
 
 		:param instantiationList: The instantiation list.
 		"""
-		self._Write(self._Keyword("others"))
+		self._Write(self._Keyword(ReservedWord.Others))

@@ -39,7 +39,7 @@ from __future__              import annotations
 from typing                  import TYPE_CHECKING, Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType, abstractclass
+from pyTooling.MetaClasses   import abstractclass
 
 from pyVHDLModel.Base        import ModelEntity
 from pyVHDLModel.Name        import Name

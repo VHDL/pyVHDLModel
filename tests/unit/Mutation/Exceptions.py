@@ -31,7 +31,7 @@
 """
 Tests for the class hierarchy of the errors raised by the mutators.
 """
-from pyTooling.Exceptions  import AlreadyInHierarchyError, DuplicateElementError
+from pyTooling.Exceptions  import AlreadyInHierarchyError, DuplicateElementError, InUseError
 from pyTooling.Testing     import Testcase
 
 from pyVHDLModel.Exception import VHDLModelException, AlreadyInDesignError, NotAChildError, DuplicateGenericError
@@ -40,7 +40,7 @@ from pyVHDLModel.Exception import DuplicateTypeError, DuplicateSubtypeError, Dup
 from pyVHDLModel.Exception import DuplicateSignalError, DuplicateVariableError, DuplicateFileError
 from pyVHDLModel.Exception import DuplicateComponentError, DuplicateSubprogramError
 from pyVHDLModel.Exception import NotInNamespaceError, DuplicateDocumentError, DuplicateDesignUnitError
-from pyVHDLModel.Exception import ElementInUseError, LibraryInUseError
+from pyVHDLModel.Exception import LibraryInUseError
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -103,4 +103,4 @@ class Exceptions(Testcase):
 
 	def test_LibraryInUseError(self) -> None:
 		self.assertTrue(issubclass(LibraryInUseError, VHDLModelException))
-		self.assertTrue(issubclass(LibraryInUseError, ElementInUseError))
+		self.assertTrue(issubclass(LibraryInUseError, InUseError))

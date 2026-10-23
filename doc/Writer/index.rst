@@ -29,8 +29,8 @@ abstract literals (e.g. ``16#FF#`` becomes ``255``) are not preserved.
 
 The writer formats names, symbols, literals, expressions, association items, subtype indications, object
 declarations, interface items, component declarations, mode view declarations, type and subtype declarations, alias
-declarations, attribute declarations and attribute specifications (:ref:`WRITER/declarations`). Further declarations,
-design units and statements follow.
+declarations, attribute declarations and attribute specifications, subprograms, subprogram instantiations and protected
+types (:ref:`WRITER/declarations`). Design units and statements follow.
 
 
 .. _WRITER/visitor:
@@ -217,5 +217,29 @@ Alias and attribute declarations
    Alias declarations with and without subtype indication, attribute declarations and attribute specifications. The
    entity class :attr:`EntityClass.Others <pyVHDLModel.Declaration.EntityClass.Others>` has no VHDL notation and raises
    :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
+
+Subprograms
+   The model doesn't distinguish a subprogram declaration from a subprogram body. A procedure or function with declared
+   items or statements is written as a subprogram body. One without them is written as a subprogram declaration
+   (``procedure reset;``), if its parent is a package declaration, a protected type declaration or none, otherwise as
+   an empty subprogram body (e.g. in a package body or an architecture). A subprogram
+   body has a declarative part and a statement part; statements have no walk yet, so a subprogram with statements raises
+   :exc:`NotImplementedError`. Each parameter is written on its own line. A generic clause of a subprogram is followed
+   by the reserved word ``parameter`` before the parameter list. Generic procedures and functions are written in a
+   generic clause like any other generic. A method of a protected type is written like a procedure or function.
+
+Subprogram instantiations
+   Procedure and function instantiations are written with their generic map aspect, one association per line.
+
+Protected types
+   A protected type declaration writes its methods, a protected type body its declared items, one per line.
+
+.. code-block:: VHDL
+
+   function maximum generic (
+     type T
+   ) parameter (
+     constant a, b : T
+   ) return T;
 
 Documentation comments of the model (:attr:`~pyVHDLModel.Base.DocumentedEntityMixin.Documentation`) are not written.

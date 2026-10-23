@@ -218,6 +218,26 @@ class GenericMapAspectMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return self._genericAssociationItems
 
+	def _VisitGenericMapAspect(self, visitor: Visitor) -> None:
+		"""
+		Walk the generic map aspect, if there are generic associations, with a visitor.
+
+		The associations are separated by commas.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if len(self._genericAssociationItems) == 0:
+			return
+
+		visitor.VisitGenericMapAspect(self)
+		for index, item in enumerate(self._genericAssociationItems):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			item.Visit(visitor)
+
+		visitor.DepartGenericMapAspect(self)
+
 	def AddGenericAssociationItem(self, genericAssociationItem: GenericAssociationItem) -> None:
 		"""
 		Add a generic association at the end of the generic map aspect.

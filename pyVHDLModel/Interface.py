@@ -600,6 +600,16 @@ class GenericProcedureInterfaceItem(Procedure, GenericSubprogramInterfaceItemMix
 		super().__init__(identifier, documentation=documentation, parent=parent)
 		GenericSubprogramInterfaceItemMixin.__init__(self)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this generic procedure and its parameters with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitGenericProcedureInterfaceItem(self)
+		self._VisitFormalParameterList(visitor)
+		visitor.DepartGenericProcedureInterfaceItem(self)
+
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this generic procedure.
@@ -646,6 +656,18 @@ class GenericFunctionInterfaceItem(Function, GenericSubprogramInterfaceItemMixin
 		"""
 		super().__init__(identifier, returnType, documentation=documentation, parent=parent)
 		GenericSubprogramInterfaceItemMixin.__init__(self)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this generic function, its parameters and its return type with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitGenericFunctionInterfaceItem(self)
+		self._VisitFormalParameterList(visitor)
+		visitor.VisitReturn(self)
+		self._returnType.Visit(visitor)
+		visitor.DepartGenericFunctionInterfaceItem(self)
 
 	def Copy(self) -> Self:
 		"""

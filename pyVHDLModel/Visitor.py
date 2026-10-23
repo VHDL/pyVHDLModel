@@ -53,19 +53,19 @@ element and then its children in source order as events to the visitor. A parser
    ``=>``), a reserved word by itself (e.g. ``VisitWhen``), and a token depending on the element's class by its role
    (e.g. ``VisitOperator``).
 """
-from __future__                import annotations
+from __future__                  import annotations
 
-from typing                    import TYPE_CHECKING
+from typing                      import TYPE_CHECKING
 
-from pyTooling.Decorators      import export
-from pyTooling.MetaClasses     import ExtendedType, abstractclass
+from pyTooling.Decorators        import export
+from pyTooling.MetaClasses       import ExtendedType, abstractclass
 
 if TYPE_CHECKING:
-	from pyVHDLModel.Association import AssociationItem
-	from pyVHDLModel.Base        import SimpleRange, RangeFromName
-	from pyVHDLModel.Declaration import Attribute, AttributeSpecification, Alias
-	from pyVHDLModel.DesignUnit  import Component
-	from pyVHDLModel.Expression  import (
+	from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin
+	from pyVHDLModel.Base          import SimpleRange, RangeFromName
+	from pyVHDLModel.Declaration   import Attribute, AttributeSpecification, Alias
+	from pyVHDLModel.DesignUnit    import Component
+	from pyVHDLModel.Expression    import (
 		NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral,
 		PhysicalFloatingLiteral, CharacterLiteral, StringLiteral, BitStringLiteral, UnaryExpression, NegationExpression,
 		IdentityExpression, TypeConversion, SubExpression, BinaryExpression, RangeExpression, AddingExpression,
@@ -73,25 +73,28 @@ if TYPE_CHECKING:
 		QualifiedExpression, WhenElseExpression, SubtypeAllocation, QualifiedExpressionAllocation, SimpleAggregateElement,
 		IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, OthersAggregateElement, Aggregate
 	)
-	from pyVHDLModel.Interface   import (
+	from pyVHDLModel.Interface     import (
 		ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, GenericConstantInterfaceItem,
 		GenericTypeInterfaceItem, PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem,
 		ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, ParameterSimpleSignalInterfaceItem,
-		ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem
+		ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem, GenericProcedureInterfaceItem,
+		GenericFunctionInterfaceItem
 	)
-	from pyVHDLModel.Name        import (
+	from pyVHDLModel.Instantiation import ProcedureInstantiation, FunctionInstantiation
+	from pyVHDLModel.Name          import (
 		SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, AttributeName, AllName, OpenName
 	)
-	from pyVHDLModel.Object      import (
+	from pyVHDLModel.Object        import (
 		WithDefaultExpressionMixin, Constant, DeferredConstant, Variable, SharedVariable, Signal, File
 	)
-	from pyVHDLModel.Regions     import WithGenericsMixin, WithPortsMixin
-	from pyVHDLModel.Symbol      import (
+	from pyVHDLModel.Regions       import WithGenericsMixin, WithPortsMixin, WithParametersMixin
+	from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
+	from pyVHDLModel.Symbol        import (
 		Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol
 	)
-	from pyVHDLModel.Type        import (
+	from pyVHDLModel.Type          import (
 		AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, ArrayType, RecordTypeElement,
-		RecordType, AccessType, FileType
+		RecordType, AccessType, FileType, ProtectedType, ProtectedTypeBody
 	)
 
 
@@ -115,7 +118,8 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	def VisitComma(
 		self,
 		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol |
-		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification
+		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification |
+		         GenericMapAspectMixin
 	) -> None:
 		"""
 		Visit the comma between two items of a list.
@@ -168,7 +172,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param rng: The range.
 		"""
 
-	def VisitSemicolon(self, element: WithGenericsMixin | WithPortsMixin) -> None:
+	def VisitSemicolon(self, element: WithGenericsMixin | WithPortsMixin | WithParametersMixin) -> None:
 		"""
 		Visit the semicolon between two items of an interface list.
 
@@ -182,7 +186,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The element with the default expression.
 		"""
 
-	def VisitIs(self, element: ModeViewDeclaration | Alias | AttributeSpecification) -> None:
+	def VisitIs(self, element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram) -> None:
 		"""
 		Visit the reserved word ``is`` between the header and the body of a declaration.
 
@@ -208,6 +212,20 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Visit the reserved word ``units`` between the range and the secondary units of a physical type.
 
 		:param physicalType: The physical type.
+		"""
+
+	def VisitBegin(self, element: Subprogram) -> None:
+		"""
+		Visit the reserved word ``begin`` between the declarative part and the statement part of an element.
+
+		:param element: The element.
+		"""
+
+	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem) -> None:
+		"""
+		Visit the reserved word ``return`` before the return type of a function.
+
+		:param function: The function.
 		"""
 
 	def VisitNullLiteral(self, literal: NullLiteral) -> None:
@@ -1425,4 +1443,144 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from an attribute specification, after its expression.
 
 		:param specification: The attribute specification.
+		"""
+
+	def VisitFormalParameterList(self, element: WithParametersMixin) -> None:
+		"""
+		Visit the formal parameter list of a subprogram, before its first parameter.
+
+		:param element: The element with parameters.
+		"""
+
+	def DepartFormalParameterList(self, element: WithParametersMixin) -> None:
+		"""
+		Depart from the formal parameter list of a subprogram, after its last parameter.
+
+		:param element: The element with parameters.
+		"""
+
+	def VisitGenericMapAspect(self, element: GenericMapAspectMixin) -> None:
+		"""
+		Visit the generic map aspect of an element, before its first association.
+
+		:param element: The element with a generic map aspect.
+		"""
+
+	def DepartGenericMapAspect(self, element: GenericMapAspectMixin) -> None:
+		"""
+		Depart from the generic map aspect of an element, after its last association.
+
+		:param element: The element with a generic map aspect.
+		"""
+
+	def VisitProcedure(self, procedure: Procedure) -> None:
+		"""
+		Visit a procedure declaration or body, before its generic clause.
+
+		:param procedure: The procedure.
+		"""
+
+	def DepartProcedure(self, procedure: Procedure) -> None:
+		"""
+		Depart from a procedure declaration or body, after its statements.
+
+		:param procedure: The procedure.
+		"""
+
+	def VisitFunction(self, function: Function) -> None:
+		"""
+		Visit a function declaration or body, before its generic clause.
+
+		:param function: The function.
+		"""
+
+	def DepartFunction(self, function: Function) -> None:
+		"""
+		Depart from a function declaration or body, after its statements.
+
+		:param function: The function.
+		"""
+
+	def VisitGenericProcedureInterfaceItem(self, item: GenericProcedureInterfaceItem) -> None:
+		"""
+		Visit a generic procedure, before its parameters.
+
+		:param item: The generic procedure.
+		"""
+
+	def DepartGenericProcedureInterfaceItem(self, item: GenericProcedureInterfaceItem) -> None:
+		"""
+		Depart from a generic procedure, after its parameters.
+
+		:param item: The generic procedure.
+		"""
+
+	def VisitGenericFunctionInterfaceItem(self, item: GenericFunctionInterfaceItem) -> None:
+		"""
+		Visit a generic function, before its parameters.
+
+		:param item: The generic function.
+		"""
+
+	def DepartGenericFunctionInterfaceItem(self, item: GenericFunctionInterfaceItem) -> None:
+		"""
+		Depart from a generic function, after its return type.
+
+		:param item: The generic function.
+		"""
+
+	def VisitProcedureInstantiation(self, instantiation: ProcedureInstantiation) -> None:
+		"""
+		Visit a procedure instantiation, before its generic procedure.
+
+		:param instantiation: The procedure instantiation.
+		"""
+
+	def DepartProcedureInstantiation(self, instantiation: ProcedureInstantiation) -> None:
+		"""
+		Depart from a procedure instantiation, after its generic map aspect.
+
+		:param instantiation: The procedure instantiation.
+		"""
+
+	def VisitFunctionInstantiation(self, instantiation: FunctionInstantiation) -> None:
+		"""
+		Visit a function instantiation, before its generic function.
+
+		:param instantiation: The function instantiation.
+		"""
+
+	def DepartFunctionInstantiation(self, instantiation: FunctionInstantiation) -> None:
+		"""
+		Depart from a function instantiation, after its generic map aspect.
+
+		:param instantiation: The function instantiation.
+		"""
+
+	def VisitProtectedType(self, protectedType: ProtectedType) -> None:
+		"""
+		Visit a protected type declaration, before its first method.
+
+		:param protectedType: The protected type.
+		"""
+
+	def DepartProtectedType(self, protectedType: ProtectedType) -> None:
+		"""
+		Depart from a protected type declaration, after its last method.
+
+		:param protectedType: The protected type.
+		"""
+
+	def VisitProtectedTypeBody(self, body: ProtectedTypeBody) -> None:
+		"""
+		Visit a protected type body, before its first declared item.
+
+		:param body: The protected type body.
+		"""
+
+	def DepartProtectedTypeBody(self, body: ProtectedTypeBody) -> None:
+		"""
+		Depart from a protected type body, after its last declared item.
+
+		:param body: The protected type body.
 		"""

@@ -583,6 +583,16 @@ class SequentialProcedureCall(SequentialStatement, ProcedureCallMixin):
 		super().__init__(label, parent)
 		ProcedureCallMixin.__init__(self, procedureName, parameterAssociationItems)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this procedure call, its procedure and its parameters with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSequentialProcedureCall(self)
+		self._VisitProcedureCall(visitor)
+		visitor.DepartSequentialProcedureCall(self)
+
 
 @export
 class SequentialSignalAssignment(SequentialStatement, SignalAssignmentMixin):
@@ -637,6 +647,18 @@ class SequentialSimpleSignalAssignment(SequentialSignalAssignment, WaveformMixin
 		super().__init__(target, label, parent)
 		WaveformMixin.__init__(self, waveform)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this signal assignment, its target and its waveform with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSequentialSimpleSignalAssignment(self)
+		self._target.Visit(visitor)
+		visitor.VisitSignalAssignment(self)
+		self._VisitWaveform(visitor)
+		visitor.DepartSequentialSimpleSignalAssignment(self)
+
 
 @export
 class SequentialVariableAssignment(SequentialStatement, VariableAssignmentMixin):
@@ -665,6 +687,18 @@ class SequentialVariableAssignment(SequentialStatement, VariableAssignmentMixin)
 		"""
 		super().__init__(label, parent)
 		VariableAssignmentMixin.__init__(self, target, expression)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this variable assignment, its target and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSequentialVariableAssignment(self)
+		self._target.Visit(visitor)
+		visitor.VisitVariableAssignment(self)
+		self._expression.Visit(visitor)
+		visitor.DepartSequentialVariableAssignment(self)
 
 
 @export
@@ -715,6 +749,23 @@ class SequentialConditionalVariableAssignment(SequentialStatement, AssignmentMix
 		for conditionalExpression in conditionalExpressions:
 			self._conditionalExpressions.append(conditionalExpression)
 			conditionalExpression.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this conditional variable assignment, its target and its alternatives with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSequentialConditionalVariableAssignment(self)
+		self._target.Visit(visitor)
+		visitor.VisitVariableAssignment(self)
+		for index, conditionalExpression in enumerate(self._conditionalExpressions):
+			if index > 0:
+				visitor.VisitElse(self)
+
+			conditionalExpression.Visit(visitor)
+
+		visitor.DepartSequentialConditionalVariableAssignment(self)
 
 	@readonly
 	def ConditionalExpressions(self) -> list[ConditionalExpression]:
@@ -770,6 +821,18 @@ class SequentialConditionalSignalAssignment(SequentialStatement, SignalAssignmen
 		SignalAssignmentMixin.__init__(self, target)
 		ConditionalWaveformsMixin.__init__(self, conditionalWaveforms)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this conditional signal assignment, its target and its alternatives with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSequentialConditionalSignalAssignment(self)
+		self._target.Visit(visitor)
+		visitor.VisitSignalAssignment(self)
+		self._VisitConditionalWaveforms(visitor)
+		visitor.DepartSequentialConditionalSignalAssignment(self)
+
 
 @export
 class SequentialSelectedVariableAssignment(SequentialStatement, AssignmentMixin, ExpressionMixin, SelectedExpressionsMixin):
@@ -817,6 +880,20 @@ class SequentialSelectedVariableAssignment(SequentialStatement, AssignmentMixin,
 		AssignmentMixin.__init__(self, target)
 		ExpressionMixin.__init__(self, expression)
 		SelectedExpressionsMixin.__init__(self, selectedExpressions)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this selected variable assignment, its selector, its target and its alternatives with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSequentialSelectedVariableAssignment(self)
+		self._expression.Visit(visitor)
+		visitor.VisitSelect(self)
+		self._target.Visit(visitor)
+		visitor.VisitVariableAssignment(self)
+		self._VisitSelectedExpressions(visitor)
+		visitor.DepartSequentialSelectedVariableAssignment(self)
 
 
 @export
@@ -867,6 +944,20 @@ class SequentialSelectedSignalAssignment(SequentialStatement, SignalAssignmentMi
 		ExpressionMixin.__init__(self, expression)
 		SelectedWaveformsMixin.__init__(self, selectedWaveforms)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this selected signal assignment, its selector, its target and its alternatives with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSequentialSelectedSignalAssignment(self)
+		self._expression.Visit(visitor)
+		visitor.VisitSelect(self)
+		self._target.Visit(visitor)
+		visitor.VisitSignalAssignment(self)
+		self._VisitSelectedWaveforms(visitor)
+		visitor.DepartSequentialSelectedSignalAssignment(self)
+
 
 @export
 class SignalForceAssignment(SequentialStatement, SignalAssignmentMixin, ExpressionMixin):
@@ -904,6 +995,18 @@ class SignalForceAssignment(SequentialStatement, SignalAssignmentMixin, Expressi
 		SignalAssignmentMixin.__init__(self, target)
 		ExpressionMixin.__init__(self, expression)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this force assignment, its target and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSignalForceAssignment(self)
+		self._target.Visit(visitor)
+		visitor.VisitSignalAssignment(self)
+		self._expression.Visit(visitor)
+		visitor.DepartSignalForceAssignment(self)
+
 
 @export
 class SignalReleaseAssignment(SequentialStatement, SignalAssignmentMixin):
@@ -931,6 +1034,17 @@ class SignalReleaseAssignment(SequentialStatement, SignalAssignmentMixin):
 		"""
 		super().__init__(label, parent)
 		SignalAssignmentMixin.__init__(self, target)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this release assignment and its target with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSignalReleaseAssignment(self)
+		self._target.Visit(visitor)
+		visitor.VisitSignalAssignment(self)
+		visitor.DepartSignalReleaseAssignment(self)
 
 
 @export
@@ -960,6 +1074,16 @@ class SequentialReportStatement(SequentialStatement, ReportStatementMixin):
 		"""
 		super().__init__(label, parent)
 		ReportStatementMixin.__init__(self, message, severity)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this report statement, its message and its severity with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSequentialReportStatement(self)
+		self._VisitReportAndSeverity(visitor)
+		visitor.DepartSequentialReportStatement(self)
 
 
 @export
@@ -1003,6 +1127,16 @@ class SequentialAssertStatement(SequentialStatement, AssertStatementMixin):
 		"""
 		super().__init__(label, parent)
 		AssertStatementMixin.__init__(self, condition, message, severity)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this assertion, its condition, its message and its severity with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSequentialAssertStatement(self)
+		self._VisitAssertion(visitor)
+		visitor.DepartSequentialAssertStatement(self)
 
 
 @export
@@ -1832,7 +1966,15 @@ class NullStatement(SequentialStatement):
 	      --^^^           <- optional Label
 	      --      ^^^^    <- the statement
 	"""
-	pass
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this null statement with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitNullStatement(self)
+		visitor.DepartNullStatement(self)
 
 
 @export
@@ -1870,6 +2012,18 @@ class ReturnStatement(SequentialStatement):
 		self._returnValue = returnValue
 		if returnValue is not None:
 			returnValue.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this return statement and its value (if any) with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitReturnStatement(self)
+		if self._returnValue is not None:
+			self._returnValue.Visit(visitor)
+
+		visitor.DepartReturnStatement(self)
 
 	@readonly
 	def ReturnValue(self) -> Nullable[ExpressionUnion]:
@@ -1932,6 +2086,31 @@ class WaitStatement(SequentialStatement, ConditionalMixin):
 		self._timeout = timeout
 		if timeout is not None:
 			timeout.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this wait statement, its sensitivity clause, its condition clause and its timeout clause with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitWaitStatement(self)
+		if self._sensitivityList is not None:
+			visitor.VisitOn(self)
+			for index, name in enumerate(self._sensitivityList):
+				if index > 0:
+					visitor.VisitComma(self)
+
+				name.Visit(visitor)
+
+		if self._condition is not None:
+			visitor.VisitUntil(self)
+			self._condition.Visit(visitor)
+
+		if self._timeout is not None:
+			visitor.VisitFor(self)
+			self._timeout.Visit(visitor)
+
+		visitor.DepartWaitStatement(self)
 
 	@readonly
 	def SensitivityList(self) -> list[Symbol]:

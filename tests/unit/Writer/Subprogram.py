@@ -198,11 +198,10 @@ class Bodies(Testcase):
 			"""), VHDLWriter().Format(procedure))
 
 	def test_Statements(self) -> None:
-		"""Sequential statements have no walk yet: a subprogram body with statements raises, nothing is skipped."""
+		"""A subprogram with statements is a subprogram body."""
 		procedure = Procedure("p", statements=[NullStatement()])
 
-		with self.assertRaises(NotImplementedError):
-			VHDLWriter().Format(procedure)
+		self.assertEqual("procedure p is\nbegin\n  null;\nend procedure p;\n", VHDLWriter().Format(procedure))
 
 
 class GenericSubprograms(Testcase):

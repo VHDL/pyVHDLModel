@@ -676,6 +676,20 @@ class ConditionalExpression(ModelEntity, ExpressionMixin, ConditionalMixin):
 		ExpressionMixin.__init__(self, expression)
 		ConditionalMixin.__init__(self, condition)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this conditional expression, its value and its condition (if any) with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConditionalExpression(self)
+		self._expression.Visit(visitor)
+		if self._condition is not None:
+			visitor.VisitWhen(self)
+			self._condition.Visit(visitor)
+
+		visitor.DepartConditionalExpression(self)
+
 
 @export
 class ConditionalWaveformsMixin(metaclass=ExtendedType, mixin=True):
@@ -853,6 +867,23 @@ class SelectedExpression(BaseCase, ExpressionMixin, ChoicesMixin):
 		ExpressionMixin.__init__(self, expression)
 		ChoicesMixin.__init__(self, choices)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this selected expression, its value and its choices with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSelectedExpression(self)
+		self._expression.Visit(visitor)
+		visitor.VisitWhen(self)
+		for index, choice in enumerate(self._choices):
+			if index > 0:
+				visitor.VisitBar(self)
+
+			choice.Visit(visitor)
+
+		visitor.DepartSelectedExpression(self)
+
 
 @export
 class OthersSelectedExpression(BaseCase, ExpressionMixin):
@@ -878,6 +909,17 @@ class OthersSelectedExpression(BaseCase, ExpressionMixin):
 		"""
 		super().__init__(parent)
 		ExpressionMixin.__init__(self, expression)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this ``others`` selected expression and its value with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitOthersSelectedExpression(self)
+		self._expression.Visit(visitor)
+		visitor.VisitWhen(self)
+		visitor.DepartOthersSelectedExpression(self)
 
 
 @export
@@ -951,6 +993,18 @@ class SelectedExpressionsMixin(metaclass=ExtendedType, mixin=True):
 		for selectedExpression in selectedExpressions:
 			self._selectedExpressions.append(selectedExpression)
 			selectedExpression.Parent = self
+
+	def _VisitSelectedExpressions(self, visitor: Visitor) -> None:
+		"""
+		Walk the selected expressions, separated by commas, with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		for index, selectedExpression in enumerate(self._selectedExpressions):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			selectedExpression.Visit(visitor)
 
 	@readonly
 	def SelectedExpressions(self) -> list[Union[SelectedExpression, OthersSelectedExpression]]:

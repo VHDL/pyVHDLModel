@@ -41,7 +41,7 @@ from typing                  import TYPE_CHECKING, Iterable, Optional as Nullabl
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 
-from pyVHDLModel             import VHDLModelException
+from pyVHDLModel.Exception   import VHDLModelException
 from pyVHDLModel.Base        import ModelEntity
 from pyVHDLModel.DesignUnit  import Package, ContextUnion
 from pyVHDLModel.Association import GenericAssociationItem, GenericMapAspectMixin

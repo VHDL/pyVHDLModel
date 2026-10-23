@@ -47,7 +47,8 @@ from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Association import AssociationItem
-from pyVHDLModel.Base        import ModelElementUnion, ModelEntity, Direction, SimpleRange, RangeFromName
+from pyVHDLModel.Base        import ModelElementUnion, ModelEntity, Direction, Mode, SimpleRange, RangeFromName
+from pyVHDLModel.DesignUnit  import Component
 from pyVHDLModel.Exception   import VHDLWriterError
 from pyVHDLModel.Expression  import (
 	OperatorPrecedence, NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral,
@@ -60,8 +61,19 @@ from pyVHDLModel.Expression  import (
 	OthersAggregateElement, Aggregate
 )
 from pyVHDLModel.Name        import SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, AttributeName
+from pyVHDLModel.Interface   import (
+	ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, GenericConstantInterfaceItem,
+	GenericTypeInterfaceItem, PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem,
+	ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, ParameterSimpleSignalInterfaceItem,
+	ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem
+)
 from pyVHDLModel.Name        import AllName, OpenName
-from pyVHDLModel.Symbol      import Symbol
+from pyVHDLModel.Object      import Obj, WithDefaultExpressionMixin, Constant, DeferredConstant, Variable
+from pyVHDLModel.Object      import SharedVariable, Signal, File
+from pyVHDLModel.Regions     import WithGenericsMixin, WithPortsMixin
+from pyVHDLModel.Symbol      import (
+	Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol
+)
 from pyVHDLModel.Visitor     import Visitor
 
 
@@ -70,6 +82,11 @@ from pyVHDLModel.Visitor     import Visitor
 class KeywordCase(Enum):
 	"""
 	An enumeration of letter cases for VHDL reserved words in the written source text.
+
+	.. seealso::
+
+	   :ref:`vsg:configuring-uppercase-and-lowercase-rules`
+	      |rarr| vhdl-style-guide's option ``case``.
 	"""
 
 	Lower = 0  #: Lower case, e.g. ``downto``.
@@ -77,20 +94,59 @@ class KeywordCase(Enum):
 
 
 @export
+@unique
+class IndentStyle(Enum):
+	"""
+	An enumeration of indentation styles of the written source text, as vhdl-style-guide's option ``indent_style``.
+
+	.. seealso::
+
+	   :ref:`vsg:configuring-indent-rules`
+	      |rarr| vhdl-style-guide's options ``indent_style`` and ``indent_size``, with an example of smart tabs.
+	"""
+
+	Spaces =    0  #: Spaces, ``indent_size`` per indentation level (VSG: ``spaces``).
+	SmartTabs = 1  #: One tab per indentation level (VSG: ``smart_tabs`` - tabs indent, spaces align).
+
+
+@export
 class VHDLStyle(metaclass=ExtendedType, slots=True):
 	"""
 	Represents the formatting options of the :class:`VHDL writer <VHDLWriter>`.
+
+	The options follow vhdl-style-guide's names and values.
+
+	.. seealso::
+
+	   :ref:`vsg:configuring-uppercase-and-lowercase-rules`
+	      |rarr| vhdl-style-guide's option ``case``.
+	   :ref:`vsg:configuring-indent-rules`
+	      |rarr| vhdl-style-guide's options ``indent_style`` and ``indent_size``.
 	"""
 
 	_keywordCase: KeywordCase  #: Letter case of reserved words.
+	_indentStyle: IndentStyle  #: Indentation style.
+	_indentSize:  int          #: Number of spaces per indentation level.
 
-	def __init__(self, keywordCase: KeywordCase = KeywordCase.Lower) -> None:
+	def __init__(
+		self,
+		keywordCase: KeywordCase = KeywordCase.Lower,
+		indentStyle: IndentStyle = IndentStyle.Spaces,
+		indentSize:  int =         2
+	) -> None:
 		"""
 		Initializes the formatting options.
 
 		:param keywordCase: Optional, letter case of reserved words. Default: ``KeywordCase.Lower``.
+		:param indentStyle: Optional, indentation style. Default: ``IndentStyle.Spaces``.
+		:param indentSize:  Optional, number of spaces per indentation level. Default: ``2``.
 		:raises ValueError: If parameter 'keywordCase' is None.
 		:raises TypeError:  If parameter 'keywordCase' is not of type :class:`KeywordCase`.
+		:raises ValueError: If parameter 'indentStyle' is None.
+		:raises TypeError:  If parameter 'indentStyle' is not of type :class:`IndentStyle`.
+		:raises ValueError: If parameter 'indentSize' is None.
+		:raises TypeError:  If parameter 'indentSize' is not of type :class:`int`.
+		:raises ValueError: If parameter 'indentSize' is less than 1.
 		"""
 		if keywordCase is None:
 			raise ValueError("Parameter 'keywordCase' is None.")
@@ -99,7 +155,27 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 			ex.add_note(f"Got type '{getFullyQualifiedName(keywordCase)}'.")
 			raise ex
 
+		if indentStyle is None:
+			raise ValueError("Parameter 'indentStyle' is None.")
+		elif not isinstance(indentStyle, IndentStyle):
+			ex = TypeError("Parameter 'indentStyle' is not of type 'IndentStyle'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(indentStyle)}'.")
+			raise ex
+
+		if indentSize is None:
+			raise ValueError("Parameter 'indentSize' is None.")
+		elif not isinstance(indentSize, int) or isinstance(indentSize, bool):
+			ex = TypeError("Parameter 'indentSize' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(indentSize)}'.")
+			raise ex
+		elif indentSize < 1:
+			ex = ValueError("Parameter 'indentSize' is less than 1.")
+			ex.add_note(f"Got value '{indentSize}'.")
+			raise ex
+
 		self._keywordCase = keywordCase
+		self._indentStyle = indentStyle
+		self._indentSize =  indentSize
 
 	@readonly
 	def KeywordCase(self) -> KeywordCase:
@@ -109,6 +185,24 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		:returns: The letter case of reserved words.
 		"""
 		return self._keywordCase
+
+	@readonly
+	def IndentStyle(self) -> IndentStyle:
+		"""
+		Read-only property to access the indentation style (:attr:`_indentStyle`).
+
+		:returns: The indentation style.
+		"""
+		return self._indentStyle
+
+	@readonly
+	def IndentSize(self) -> int:
+		"""
+		Read-only property to access the number of spaces per indentation level (:attr:`_indentSize`).
+
+		:returns: The number of spaces per indentation level.
+		"""
+		return self._indentSize
 
 
 
@@ -133,10 +227,11 @@ class VHDLWriter(Visitor):
 		BitStringBase.Hexadecimal: "x",
 	}  #: Dictionary of base specifiers, indexed by bit string base.
 
-	_style:   VHDLStyle                              #: Formatting options.
-	_buffer:  list[str]                              #: Fragments of the VHDL source text written by :meth:`Format`.
-	_minimum: OperatorPrecedence                     #: Loosest precedence of the next operand without parentheses.
-	_frames:  list[tuple[OperatorPrecedence, bool]]  #: Stack of entered operands: precedence and if in parentheses.
+	_style:       VHDLStyle                              #: Formatting options.
+	_buffer:      list[str]                              #: Fragments of the VHDL source text written by :meth:`Format`.
+	_minimum:     OperatorPrecedence                     #: Loosest precedence of the next operand without parentheses.
+	_frames:      list[tuple[OperatorPrecedence, bool]]  #: Stack of entered operands: precedence and if in parentheses.
+	_indentation: int                                    #: Indentation level of the next line.
 
 	def __init__(self, style: Nullable[VHDLStyle] = None) -> None:
 		"""
@@ -154,10 +249,11 @@ class VHDLWriter(Visitor):
 			ex.add_note(f"Got type '{getFullyQualifiedName(style)}'.")
 			raise ex
 
-		self._style =   style
-		self._buffer =  []
-		self._minimum = OperatorPrecedence.Range
-		self._frames =  []
+		self._style =       style
+		self._buffer =      []
+		self._minimum =     OperatorPrecedence.Range
+		self._frames =      []
+		self._indentation = 0
 
 	@readonly
 	def Style(self) -> VHDLStyle:
@@ -172,7 +268,8 @@ class VHDLWriter(Visitor):
 		"""
 		Format a model element as VHDL source text.
 
-		Each call starts with an empty buffer.
+		Each call starts with an empty buffer at indentation level 0. A declaration, a statement or a design unit ends with
+		a newline.
 
 		:param element:              The model element to format.
 		:returns:                    The VHDL source text.
@@ -189,9 +286,10 @@ class VHDLWriter(Visitor):
 			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
 			raise ex
 
-		self._buffer =  []
-		self._minimum = OperatorPrecedence.Range
-		self._frames =  []
+		self._buffer =      []
+		self._minimum =     OperatorPrecedence.Range
+		self._frames =      []
+		self._indentation = 0
 		element.Visit(self)
 		return "".join(self._buffer)
 
@@ -996,3 +1094,448 @@ class VHDLWriter(Visitor):
 		"""
 		if item.Actual is None:
 			raise VHDLWriterError("Association item has no actual.", item)
+
+	def VisitSemicolon(self, element: WithGenericsMixin | WithPortsMixin) -> None:
+		"""
+		Write the semicolon between two items of an interface list; the next item starts on a new line.
+
+		:param element: The element containing the interface list.
+		"""
+		self._Write(";\n")
+		self._WriteIndentation()
+
+	def _WriteIndentation(self) -> None:
+		"""
+		Write the indentation of the current indentation level.
+		"""
+		if self._style.IndentStyle is IndentStyle.SmartTabs:
+			self._Write("\t" * self._indentation)
+		else:
+			self._Write(" " * (self._indentation * self._style.IndentSize))
+
+	def VisitVariableAssignment(self, element: WithDefaultExpressionMixin) -> None:
+		"""
+		Write the variable assignment delimiter (``:=``) before a default expression.
+
+		:param element: The element with the default expression.
+		"""
+		self._Write(" := ")
+		self._minimum = OperatorPrecedence.Range
+
+	def VisitIs(self, element: ModeViewDeclaration) -> None:
+		"""
+		Write the reserved word ``is`` ending the header of a declaration; its body is indented.
+
+		:param element: The declaration.
+		"""
+		self._Write(f" {self._Keyword('is')}\n")
+		self._indentation += 1
+
+	def VisitRangeConstraint(self, symbol: ConstrainedScalarSubtypeSymbol) -> None:
+		"""
+		Write the reserved word ``range`` of a range constraint.
+
+		**Format:** ``integer range 0 to 7``
+
+		:param symbol: The constrained subtype symbol.
+		"""
+		self._Write(f" {self._Keyword('range')} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def VisitIndexConstraint(self, symbol: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol) -> None:
+		"""
+		Write the left parenthesis of an index constraint.
+
+		**Format:** ``bit_vector(7 downto 0)``
+
+		:param symbol: The constrained subtype symbol.
+		"""
+		self._Write("(")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartIndexConstraint(self, symbol: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol) -> None:
+		"""
+		Write the right parenthesis of an index constraint.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+		self._Write(")")
+
+	def VisitRecordConstraint(self, symbol: ConstrainedRecordSubtypeSymbol) -> None:
+		"""
+		Write the left parenthesis of a record constraint.
+
+		**Format:** ``frame(data(7 downto 0), mask(3 downto 0))``
+
+		:param symbol: The constrained subtype symbol.
+		"""
+		self._Write("(")
+
+	def DepartRecordConstraint(self, symbol: ConstrainedRecordSubtypeSymbol) -> None:
+		"""
+		Write the right parenthesis of a record constraint.
+
+		:param symbol: The constrained subtype symbol.
+		"""
+		self._Write(")")
+
+	def VisitGenericClause(self, element: WithGenericsMixin) -> None:
+		"""
+		Write the reserved word ``generic`` and the left parenthesis of a generic clause; each generic is on its own line.
+
+		**Format:** ``generic (`` ... ``);``
+
+		:param element: The element with generics.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('generic')} (\n")
+		self._indentation += 1
+		self._WriteIndentation()
+
+	def DepartGenericClause(self, element: WithGenericsMixin) -> None:
+		"""
+		Write the right parenthesis of a generic clause on its own line.
+
+		:param element: The element with generics.
+		"""
+		self._WriteClosingParenthesis()
+
+	def _WriteClosingParenthesis(self) -> None:
+		"""
+		Write the right parenthesis and semicolon closing a generic or port clause on its own line.
+		"""
+		self._Write("\n")
+		self._indentation -= 1
+		self._WriteIndentation()
+		self._Write(");\n")
+
+	def VisitPortClause(self, element: WithPortsMixin) -> None:
+		"""
+		Write the reserved word ``port`` and the left parenthesis of a port clause; each port is on its own line.
+
+		**Format:** ``port (`` ... ``);``
+
+		:param element: The element with ports.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('port')} (\n")
+		self._indentation += 1
+		self._WriteIndentation()
+
+	def DepartPortClause(self, element: WithPortsMixin) -> None:
+		"""
+		Write the right parenthesis of a port clause on its own line.
+
+		:param element: The element with ports.
+		"""
+		self._WriteClosingParenthesis()
+
+	def VisitConstant(self, constant: Constant) -> None:
+		"""
+		Write the reserved word ``constant`` and the identifiers of a constant declaration.
+
+		**Format:** ``constant BITS : positive := 8;``
+
+		:param constant: The constant declaration.
+		"""
+		self._WriteObjectDeclaration(constant)
+
+	def _WriteObjectDeclaration(self, obj: Obj) -> None:
+		"""
+		Write the indentation, the object class reserved word and the identifiers of an object declaration.
+
+		:param obj: The object declaration.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword(obj._OBJECT_KEYWORD)} {', '.join(obj.Identifiers)} : ")
+
+	def DepartConstant(self, constant: Constant) -> None:
+		"""
+		Write the semicolon ending a constant declaration.
+
+		:param constant: The constant declaration.
+		"""
+		self._Write(";\n")
+
+	def VisitDeferredConstant(self, constant: DeferredConstant) -> None:
+		"""
+		Write the reserved word ``constant`` and the identifiers of a deferred constant declaration.
+
+		**Format:** ``constant BITS : positive;``
+
+		:param constant: The deferred constant declaration.
+		"""
+		self._WriteObjectDeclaration(constant)
+
+	def DepartDeferredConstant(self, constant: DeferredConstant) -> None:
+		"""
+		Write the semicolon ending a deferred constant declaration.
+
+		:param constant: The deferred constant declaration.
+		"""
+		self._Write(";\n")
+
+	def VisitVariable(self, variable: Variable) -> None:
+		"""
+		Write the reserved word ``variable`` and the identifiers of a variable declaration.
+
+		**Format:** ``variable count : natural := 0;``
+
+		:param variable: The variable declaration.
+		"""
+		self._WriteObjectDeclaration(variable)
+
+	def DepartVariable(self, variable: Variable) -> None:
+		"""
+		Write the semicolon ending a variable declaration.
+
+		:param variable: The variable declaration.
+		"""
+		self._Write(";\n")
+
+	def VisitSharedVariable(self, variable: SharedVariable) -> None:
+		"""
+		Write the reserved words ``shared variable`` and the identifiers of a shared variable declaration.
+
+		**Format:** ``shared variable counter : counter_t;``
+
+		:param variable: The shared variable declaration.
+		"""
+		self._WriteObjectDeclaration(variable)
+
+	def DepartSharedVariable(self, variable: SharedVariable) -> None:
+		"""
+		Write the semicolon ending a shared variable declaration.
+
+		:param variable: The shared variable declaration.
+		"""
+		self._Write(";\n")
+
+	def VisitSignal(self, signal: Signal) -> None:
+		"""
+		Write the reserved word ``signal`` and the identifiers of a signal declaration.
+
+		**Format:** ``signal a, b : bit := '0';``
+
+		:param signal: The signal declaration.
+		"""
+		self._WriteObjectDeclaration(signal)
+
+	def DepartSignal(self, signal: Signal) -> None:
+		"""
+		Write the semicolon ending a signal declaration.
+
+		:param signal: The signal declaration.
+		"""
+		self._Write(";\n")
+
+	def VisitFile(self, file: File) -> None:
+		"""
+		Write the reserved word ``file`` and the identifiers of a file declaration.
+
+		**Format:** ``file input : text;``
+
+		The model carries no file open information, so none is written.
+
+		:param file: The file declaration.
+		"""
+		self._WriteObjectDeclaration(file)
+
+	def DepartFile(self, file: File) -> None:
+		"""
+		Write the semicolon ending a file declaration.
+
+		:param file: The file declaration.
+		"""
+		self._Write(";\n")
+
+	def VisitGenericConstantInterfaceItem(self, item: GenericConstantInterfaceItem) -> None:
+		"""
+		Write the identifiers and the mode of a generic constant.
+
+		**Format:** ``BITS : positive := 8``
+
+		:param item: The generic constant.
+		"""
+		self._WriteInterfaceItem(item, "", item.Mode)
+
+	def _WriteInterfaceItem(self, item: Obj, keyword: str, mode: Mode) -> None:
+		"""
+		Write the object class reserved word (if any), the identifiers and the mode (if any) of an interface item.
+
+		:param item:    The interface item.
+		:param keyword: The object class reserved word in lower case, or an empty string.
+		:param mode:    The mode; ``Mode.Default`` writes none.
+		"""
+		if keyword != "":
+			self._Write(f"{self._Keyword(keyword)} ")
+
+		self._Write(f"{', '.join(item.Identifiers)} : ")
+		if mode is not Mode.Default:
+			self._Write(f"{self._Keyword(str(mode))} ")
+
+	def VisitGenericTypeInterfaceItem(self, item: GenericTypeInterfaceItem) -> None:
+		"""
+		Write a generic type.
+
+		**Format:** ``type T``
+
+		:param item: The generic type.
+		"""
+		self._Write(f"{self._Keyword('type')} {item.Identifier}")
+
+	def VisitPortSimpleSignalInterfaceItem(self, item: PortSimpleSignalInterfaceItem) -> None:
+		"""
+		Write the identifiers and the mode of a port.
+
+		**Format:** ``clk : in std_logic``
+
+		:param item: The port.
+		"""
+		self._WriteInterfaceItem(item, "", item.Mode)
+
+	def VisitPortViewSignalInterfaceItem(self, item: PortViewSignalInterfaceItem) -> None:
+		"""
+		Write the identifiers and the reserved word ``view`` of a port with a mode view.
+
+		**Format:** ``link : view master``
+
+		:param item: The port.
+		"""
+		self._WriteInterfaceItem(item, "", Mode.Default)
+		self._Write(f"{self._Keyword('view')} ")
+
+	def VisitParameterConstantInterfaceItem(self, item: ParameterConstantInterfaceItem) -> None:
+		"""
+		Write the reserved word ``constant``, the identifiers and the mode of a constant parameter.
+
+		**Format:** ``constant value : in integer``
+
+		:param item: The constant parameter.
+		"""
+		self._WriteInterfaceItem(item, item._OBJECT_KEYWORD, item.Mode)
+
+	def VisitParameterVariableInterfaceItem(self, item: ParameterVariableInterfaceItem) -> None:
+		"""
+		Write the reserved word ``variable``, the identifiers and the mode of a variable parameter.
+
+		**Format:** ``variable result : out integer``
+
+		:param item: The variable parameter.
+		"""
+		self._WriteInterfaceItem(item, item._OBJECT_KEYWORD, item.Mode)
+
+	def VisitParameterSimpleSignalInterfaceItem(self, item: ParameterSimpleSignalInterfaceItem) -> None:
+		"""
+		Write the reserved word ``signal``, the identifiers and the mode of a signal parameter.
+
+		**Format:** ``signal clk : in std_logic``
+
+		:param item: The signal parameter.
+		"""
+		self._WriteInterfaceItem(item, item._OBJECT_KEYWORD, item.Mode)
+
+	def VisitParameterViewSignalInterfaceItem(self, item: ParameterViewSignalInterfaceItem) -> None:
+		"""
+		Write the reserved word ``signal``, the identifiers and the reserved word ``view`` of a signal parameter.
+
+		**Format:** ``signal link : view master``
+
+		:param item: The signal parameter.
+		"""
+		self._WriteInterfaceItem(item, item._OBJECT_KEYWORD, Mode.Default)
+		self._Write(f"{self._Keyword('view')} ")
+
+	def VisitParameterFileInterfaceItem(self, item: ParameterFileInterfaceItem) -> None:
+		"""
+		Write the reserved word ``file`` and the identifiers of a file parameter.
+
+		**Format:** ``file input : text``
+
+		:param item: The file parameter.
+		"""
+		self._WriteInterfaceItem(item, item._OBJECT_KEYWORD, Mode.Default)
+
+	def VisitModeViewDeclaration(self, declaration: ModeViewDeclaration) -> None:
+		"""
+		Write the reserved word ``view``, the identifier and the reserved word ``of`` of a mode view declaration.
+
+		**Format:** ``view master of bus_t is`` ... ``end view master;``
+
+		:param declaration: The mode view declaration.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('view')} {declaration.Identifier} {self._Keyword('of')} ")
+
+	def DepartModeViewDeclaration(self, declaration: ModeViewDeclaration) -> None:
+		"""
+		Write the end of a mode view declaration.
+
+		:param declaration: The mode view declaration.
+		"""
+		self._WriteEnd("view", declaration.Identifier)
+
+	def _WriteEnd(self, keywords: str, identifier: str) -> None:
+		"""
+		Leave the indented body and write the reserved word ``end``, the given reserved words and the identifier.
+
+		:param keywords:   The reserved words after ``end`` in lower case.
+		:param identifier: The identifier of the declaration.
+		"""
+		self._indentation -= 1
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('end')} {self._Keyword(keywords)} {identifier};\n")
+
+	def VisitSimpleModeViewElement(self, element: SimpleModeViewElement) -> None:
+		"""
+		Write an element of a mode view with a mode.
+
+		**Format:** ``valid, data : out;``
+
+		:param element:          The mode view element.
+		:raises VHDLWriterError: If the mode view element has no mode.
+		"""
+		if element.Mode is Mode.Default:
+			raise VHDLWriterError("Mode view element has no mode.", element)
+
+		self._WriteIndentation()
+		self._Write(f"{', '.join(element.Identifiers)} : {self._Keyword(str(element.Mode))};\n")
+
+	def VisitCompositeModeViewElement(self, element: CompositeModeViewElement) -> None:
+		"""
+		Write the identifiers and the reserved word ``view`` of an element of a mode view with a mode view.
+
+		**Format:** ``request : view master;``
+
+		:param element: The mode view element.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{', '.join(element.Identifiers)} : {self._Keyword('view')} ")
+
+	def DepartCompositeModeViewElement(self, element: CompositeModeViewElement) -> None:
+		"""
+		Write the semicolon ending an element of a mode view with a mode view.
+
+		:param element: The mode view element.
+		"""
+		self._Write(";\n")
+
+	def VisitComponent(self, component: Component) -> None:
+		"""
+		Write the header of a component declaration; its generic and port clauses are indented.
+
+		**Format:** ``component counter is`` ... ``end component counter;``
+
+		:param component: The component declaration.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('component')} {component.Identifier} {self._Keyword('is')}\n")
+		self._indentation += 1
+
+	def DepartComponent(self, component: Component) -> None:
+		"""
+		Write the end of a component declaration.
+
+		:param component: The component declaration.
+		"""
+		self._WriteEnd("component", component.Identifier)

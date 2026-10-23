@@ -31,12 +31,11 @@
 """Tests for the infrastructure of pyVHDLModel.Formatting.VHDL: style object, dispatch, error reporting."""
 from pyTooling.Testing           import Testcase
 
-from pyVHDLModel.Base            import Direction, SimpleRange
 from pyVHDLModel.Expression      import AndExpression, EnumerationLiteral, FunctionCall, IntegerLiteral
 from pyVHDLModel.Expression      import InverseExpression, ModuloExpression, NullLiteral, OrExpression
-from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
+from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, OpenName
-from pyVHDLModel.Symbol          import ConstrainedArraySubtypeSymbol
+from pyVHDLModel.Symbol          import ConstrainedCompositeSubtypeSymbol
 from pyVHDLModel.Visitor         import Visitor
 
 from tests.unit.Writer           import _object
@@ -55,11 +54,17 @@ class ParserAndExpression(AndExpression):
 	"""A parser's subclass of a model class, like the mirror classes of ``pyGHDL.dom``."""
 
 
+class ParserCompositeSubtypeSymbol(ConstrainedCompositeSubtypeSymbol):
+	"""A parser's subclass of an abstract model class without a walk of its own."""
+
+
 class Styles(Testcase):
 	def test_Default(self) -> None:
 		style = VHDLStyle()
 
 		self.assertIs(KeywordCase.Lower, style.KeywordCase)
+		self.assertIs(IndentStyle.Spaces, style.IndentStyle)
+		self.assertEqual(2, style.IndentSize)
 
 	def test_KeywordCase(self) -> None:
 		style = VHDLStyle(KeywordCase.Upper)
@@ -78,6 +83,50 @@ class Styles(Testcase):
 
 		self.assertEqual("Parameter 'keywordCase' is not of type 'KeywordCase'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_IndentStyle(self) -> None:
+		style = VHDLStyle(indentStyle=IndentStyle.SmartTabs)
+
+		self.assertIs(IndentStyle.SmartTabs, style.IndentStyle)
+
+	def test_IndentStyle_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			VHDLStyle(indentStyle=None)
+
+		self.assertEqual("Parameter 'indentStyle' is None.", str(context.exception))
+
+	def test_IndentStyle_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(indentStyle="smart_tabs")
+
+		self.assertEqual("Parameter 'indentStyle' is not of type 'IndentStyle'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_IndentSize(self) -> None:
+		style = VHDLStyle(indentSize=4)
+
+		self.assertEqual(4, style.IndentSize)
+
+	def test_IndentSize_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			VHDLStyle(indentSize=None)
+
+		self.assertEqual("Parameter 'indentSize' is None.", str(context.exception))
+
+	def test_IndentSize_Type(self) -> None:
+		for value in ("2", 2.0, True):
+			with self.subTest(value=value):
+				with self.assertRaises(TypeError) as context:
+					VHDLStyle(indentSize=value)
+
+				self.assertEqual("Parameter 'indentSize' is not of type 'int'.", str(context.exception))
+
+	def test_IndentSize_Value(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			VHDLStyle(indentSize=0)
+
+		self.assertEqual("Parameter 'indentSize' is less than 1.", str(context.exception))
+		self.assertEqual(["Got value '0'."], context.exception.__notes__)
 
 
 class Writers(Testcase):
@@ -102,7 +151,10 @@ class Writers(Testcase):
 	def test_Events(self) -> None:
 		"""The writer handles the events of every model class with a walk, except those written by their children alone."""
 		classNames =        {name[len("Depart"):] for name in dir(Visitor) if name.startswith("Depart")}
-		writtenByChildren = {"Symbol", "SimpleAggregateElement", "RangedAggregateElement", "NamedAggregateElement"}
+		writtenByChildren = {
+			"Symbol", "SimpleAggregateElement", "RangedAggregateElement", "NamedAggregateElement",
+			"ConstrainedScalarSubtypeSymbol", "ConstrainedArraySubtypeSymbol", "ConstrainedRecordSubtypeSymbol"
+		}
 		for className in classNames - writtenByChildren:
 			with self.subTest(className=className):
 				self.assertTrue(
@@ -150,9 +202,7 @@ class Dispatch(Testcase):
 
 	def test_Unsupported_Subclass(self) -> None:
 		"""A subclass carrying more data than its base class is not written as the base class."""
-		subtype = ConstrainedArraySubtypeSymbol(SimpleName("unsigned"), [
-			SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)
-		])
+		subtype = ParserCompositeSubtypeSymbol(SimpleName("unsigned"))
 
 		with self.assertRaises(NotImplementedError) as context:
 			VHDLWriter().Format(subtype)

@@ -50,13 +50,13 @@ def _object(name: str) -> SimpleObjectOrFunctionCallSymbol:
 	return SimpleObjectOrFunctionCallSymbol(SimpleName(name))
 
 
-def _analyze(source: str) -> CompletedProcess:
-	"""Analyze VHDL source text with GHDL (VHDL-2008) in a temporary directory."""
+def _analyze(source: str, std: str = "08") -> CompletedProcess:
+	"""Analyze VHDL source text with GHDL (default: VHDL-2008) in a temporary directory."""
 	with TemporaryDirectory() as directory:
 		path = Path(directory) / "oracle.vhdl"
 		path.write_text(source, encoding="latin-1")
 		return subprocess_run(
-			[_GHDL, "-a", "--std=08", f"--workdir={directory}", str(path)],
+			[_GHDL, "-a", f"--std={std}", f"--workdir={directory}", str(path)],
 			capture_output=True,
 			text=True,
 			cwd=directory

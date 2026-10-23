@@ -48,6 +48,7 @@ from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Association import AssociationItem
 from pyVHDLModel.Base        import ModelElementUnion, ModelEntity, Direction, Mode, SimpleRange, RangeFromName
+from pyVHDLModel.Declaration import EntityClass, Attribute, AttributeSpecification, Alias
 from pyVHDLModel.DesignUnit  import Component
 from pyVHDLModel.Exception   import VHDLWriterError
 from pyVHDLModel.Expression  import (
@@ -73,6 +74,10 @@ from pyVHDLModel.Object      import SharedVariable, Signal, File
 from pyVHDLModel.Regions     import WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Symbol      import (
 	Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol
+)
+from pyVHDLModel.Type        import (
+	AnonymousType, FullType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, ArrayType, RecordTypeElement,
+	RecordType, AccessType, FileType
 )
 from pyVHDLModel.Visitor     import Visitor
 
@@ -310,7 +315,11 @@ class VHDLWriter(Visitor):
 		"""
 		self._buffer.append(text)
 
-	def VisitComma(self, element: IndexedName | ParenthesisName | Aggregate) -> None:
+	def VisitComma(
+		self,
+		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol |
+		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification
+	) -> None:
 		"""
 		Write the comma between two items of a list.
 
@@ -1122,14 +1131,20 @@ class VHDLWriter(Visitor):
 		self._Write(" := ")
 		self._minimum = OperatorPrecedence.Range
 
-	def VisitIs(self, element: ModeViewDeclaration) -> None:
+	def VisitIs(self, element: ModeViewDeclaration | Alias | AttributeSpecification) -> None:
 		"""
 		Write the reserved word ``is`` ending the header of a declaration; its body is indented.
 
+		In an alias declaration and an attribute specification, the name or the expression follows on the same line.
+
 		:param element: The declaration.
 		"""
-		self._Write(f" {self._Keyword('is')}\n")
-		self._indentation += 1
+		if isinstance(element, (Alias, AttributeSpecification)):
+			self._Write(f" {self._Keyword('is')} ")
+			self._minimum = OperatorPrecedence.Range
+		else:
+			self._Write(f" {self._Keyword('is')}\n")
+			self._indentation += 1
 
 	def VisitRangeConstraint(self, symbol: ConstrainedScalarSubtypeSymbol) -> None:
 		"""
@@ -1142,22 +1157,28 @@ class VHDLWriter(Visitor):
 		self._Write(f" {self._Keyword('range')} ")
 		self._minimum = OperatorPrecedence.Range
 
-	def VisitIndexConstraint(self, symbol: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol) -> None:
+	def VisitIndexConstraint(
+		self,
+		element: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol | ArrayType
+	) -> None:
 		"""
 		Write the left parenthesis of an index constraint.
 
 		**Format:** ``bit_vector(7 downto 0)``
 
-		:param symbol: The constrained subtype symbol.
+		:param element: The constrained subtype symbol or the array type.
 		"""
 		self._Write("(")
 		self._minimum = OperatorPrecedence.Range
 
-	def DepartIndexConstraint(self, symbol: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol) -> None:
+	def DepartIndexConstraint(
+		self,
+		element: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol | ArrayType
+	) -> None:
 		"""
 		Write the right parenthesis of an index constraint.
 
-		:param symbol: The constrained subtype symbol.
+		:param element: The constrained subtype symbol or the array type.
 		"""
 		self._Write(")")
 
@@ -1539,3 +1560,353 @@ class VHDLWriter(Visitor):
 		:param component: The component declaration.
 		"""
 		self._WriteEnd("component", component.Identifier)
+
+	def VisitBox(self, arrayType: ArrayType) -> None:
+		"""
+		Write the reserved word ``range`` and the box (``<>``) of an unbounded index of an array type.
+
+		**Format:** ``natural range <>``
+
+		:param arrayType: The array type.
+		"""
+		self._Write(f" {self._Keyword('range')} <>")
+
+	def VisitOf(self, arrayType: ArrayType) -> None:
+		"""
+		Write the reserved word ``of`` before the element subtype of an array type.
+
+		:param arrayType: The array type.
+		"""
+		self._Write(f" {self._Keyword('of')} ")
+
+	def VisitUnits(self, physicalType: PhysicalType) -> None:
+		"""
+		Write the reserved word ``units`` and the primary unit of a physical type on their own lines.
+
+		:param physicalType: The physical type.
+		"""
+		self._Write("\n")
+		self._indentation += 1
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('units')}\n")
+		self._indentation += 1
+		self._WriteIndentation()
+		self._Write(f"{physicalType.PrimaryUnit};\n")
+
+	def VisitSecondaryUnitDeclaration(self, physicalType: PhysicalType, identifier: str) -> None:
+		"""
+		Write the identifier of a secondary unit declaration.
+
+		**Format:** ``mm = 1000 um;``
+
+		:param physicalType: The physical type.
+		:param identifier:   The identifier of the secondary unit.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{identifier} = ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartSecondaryUnitDeclaration(self, physicalType: PhysicalType, identifier: str) -> None:
+		"""
+		Write the semicolon ending a secondary unit declaration.
+
+		:param physicalType: The physical type.
+		:param identifier:   The identifier of the secondary unit.
+		"""
+		self._Write(";\n")
+
+	def VisitEntitySpecification(self, specification: AttributeSpecification) -> None:
+		"""
+		Write the reserved word ``of`` before the names of an attribute specification.
+
+		:param specification: The attribute specification.
+		"""
+		self._Write(f" {self._Keyword('of')} ")
+
+	def DepartEntitySpecification(self, specification: AttributeSpecification) -> None:
+		"""
+		Write the entity class after the names of an attribute specification.
+
+		:param specification: The attribute specification.
+		"""
+		self._Write(f" : {self._Keyword(specification.EntityClass.name.lower())}")
+
+	def VisitAnonymousType(self, declaration: AnonymousType) -> None:
+		"""
+		Write an incomplete type declaration.
+
+		**Format:** ``type node;``
+
+		:param declaration: The incomplete type declaration.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('type')} {declaration.Identifier};\n")
+
+	def VisitSubtype(self, subtype: Subtype) -> None:
+		"""
+		Write the reserved word ``subtype``, the identifier and the reserved word ``is`` of a subtype declaration.
+
+		**Format:** ``subtype byte is bit_vector(7 downto 0);``
+
+		The model's resolution function of a subtype is not written.
+
+		:param subtype: The subtype declaration.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('subtype')} {subtype.Identifier} {self._Keyword('is')} ")
+
+	def DepartSubtype(self, subtype: Subtype) -> None:
+		"""
+		Write the semicolon ending a subtype declaration.
+
+		:param subtype: The subtype declaration.
+		"""
+		self._Write(";\n")
+
+	def VisitEnumeratedType(self, enumeratedType: EnumeratedType) -> None:
+		"""
+		Write the header and the left parenthesis of an enumerated type declaration.
+
+		**Format:** ``type state is (Idle, Busy, Done);``
+
+		:param enumeratedType: The enumerated type.
+		"""
+		self._WriteTypeHeader(enumeratedType)
+		self._Write("(")
+
+	def _WriteTypeHeader(self, declaration: FullType) -> None:
+		"""
+		Write the indentation, the reserved word ``type``, the identifier and the reserved word ``is`` of a type.
+
+		:param declaration: The type declaration.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('type')} {declaration.Identifier} {self._Keyword('is')} ")
+
+	def DepartEnumeratedType(self, enumeratedType: EnumeratedType) -> None:
+		"""
+		Write the right parenthesis ending an enumerated type declaration.
+
+		:param enumeratedType: The enumerated type.
+		"""
+		self._Write(");\n")
+
+	def VisitIntegerType(self, integerType: IntegerType) -> None:
+		"""
+		Write the header and the reserved word ``range`` of an integer type declaration.
+
+		**Format:** ``type nibble is range 0 to 15;``
+
+		:param integerType: The integer type.
+		"""
+		self._WriteTypeHeader(integerType)
+		self._Write(f"{self._Keyword('range')} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartIntegerType(self, integerType: IntegerType) -> None:
+		"""
+		Write the semicolon ending an integer type declaration.
+
+		:param integerType: The integer type.
+		"""
+		self._Write(";\n")
+
+	def VisitRealType(self, realType: RealType) -> None:
+		"""
+		Write the header and the reserved word ``range`` of a floating-point type declaration.
+
+		**Format:** ``type fraction is range 0.0 to 1.0;``
+
+		:param realType: The floating-point type.
+		"""
+		self._WriteTypeHeader(realType)
+		self._Write(f"{self._Keyword('range')} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartRealType(self, realType: RealType) -> None:
+		"""
+		Write the semicolon ending a floating-point type declaration.
+
+		:param realType: The floating-point type.
+		"""
+		self._Write(";\n")
+
+	def VisitPhysicalType(self, physicalType: PhysicalType) -> None:
+		"""
+		Write the header and the reserved word ``range`` of a physical type declaration; its units are indented.
+
+		**Format:** ``type distance is range 0 to 1000000`` ... ``units`` ... ``end units distance;``
+
+		:param physicalType: The physical type.
+		"""
+		self._WriteTypeHeader(physicalType)
+		self._Write(f"{self._Keyword('range')} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartPhysicalType(self, physicalType: PhysicalType) -> None:
+		"""
+		Write the end of the units of a physical type declaration.
+
+		:param physicalType: The physical type.
+		"""
+		self._WriteEnd("units", physicalType.Identifier)
+		self._indentation -= 1
+
+	def VisitArrayType(self, arrayType: ArrayType) -> None:
+		"""
+		Write the header and the reserved word ``array`` of an array type declaration.
+
+		**Format:** ``type memory is array (0 to 255) of byte;`` or ``type bits is array (natural range <>) of bit;``
+
+		:param arrayType: The array type.
+		"""
+		self._WriteTypeHeader(arrayType)
+		self._Write(f"{self._Keyword('array')} ")
+
+	def DepartArrayType(self, arrayType: ArrayType) -> None:
+		"""
+		Write the semicolon ending an array type declaration.
+
+		:param arrayType: The array type.
+		"""
+		self._Write(";\n")
+
+	def VisitRecordType(self, recordType: RecordType) -> None:
+		"""
+		Write the header of a record type declaration; its element declarations are indented.
+
+		**Format:** ``type frame is record`` ... ``end record frame;``
+
+		:param recordType: The record type.
+		"""
+		self._WriteTypeHeader(recordType)
+		self._Write(f"{self._Keyword('record')}\n")
+		self._indentation += 1
+
+	def DepartRecordType(self, recordType: RecordType) -> None:
+		"""
+		Write the end of a record type declaration.
+
+		:param recordType: The record type.
+		"""
+		self._WriteEnd("record", recordType.Identifier)
+
+	def VisitRecordTypeElement(self, element: RecordTypeElement) -> None:
+		"""
+		Write the identifiers of an element declaration of a record type.
+
+		**Format:** ``valid, last : bit;``
+
+		:param element: The record element declaration.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{', '.join(element.Identifiers)} : ")
+
+	def DepartRecordTypeElement(self, element: RecordTypeElement) -> None:
+		"""
+		Write the semicolon ending an element declaration of a record type.
+
+		:param element: The record element declaration.
+		"""
+		self._Write(";\n")
+
+	def VisitAccessType(self, accessType: AccessType) -> None:
+		"""
+		Write the header and the reserved word ``access`` of an access type declaration.
+
+		**Format:** ``type pointer is access node;``
+
+		:param accessType: The access type.
+		"""
+		self._WriteTypeHeader(accessType)
+		self._Write(f"{self._Keyword('access')} ")
+
+	def DepartAccessType(self, accessType: AccessType) -> None:
+		"""
+		Write the semicolon ending an access type declaration.
+
+		:param accessType: The access type.
+		"""
+		self._Write(";\n")
+
+	def VisitFileType(self, fileType: FileType) -> None:
+		"""
+		Write the header and the reserved words ``file of`` of a file type declaration.
+
+		**Format:** ``type text_file is file of string;``
+
+		:param fileType: The file type.
+		"""
+		self._WriteTypeHeader(fileType)
+		self._Write(f"{self._Keyword('file')} {self._Keyword('of')} ")
+
+	def DepartFileType(self, fileType: FileType) -> None:
+		"""
+		Write the semicolon ending a file type declaration.
+
+		:param fileType: The file type.
+		"""
+		self._Write(";\n")
+
+	def VisitAlias(self, alias: Alias) -> None:
+		"""
+		Write the reserved word ``alias`` and the identifier of an alias declaration.
+
+		**Format:** ``alias low : bit_vector(3 downto 0) is data(3 downto 0);`` or ``alias clock is clk;``
+
+		:param alias: The alias declaration.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('alias')} {alias.Identifier}")
+		if alias.Subtype is not None:
+			self._Write(" : ")
+
+	def DepartAlias(self, alias: Alias) -> None:
+		"""
+		Write the semicolon ending an alias declaration.
+
+		:param alias: The alias declaration.
+		"""
+		self._Write(";\n")
+
+	def VisitAttribute(self, attribute: Attribute) -> None:
+		"""
+		Write the reserved word ``attribute`` and the identifier of an attribute declaration.
+
+		**Format:** ``attribute keep : boolean;``
+
+		:param attribute: The attribute declaration.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('attribute')} {attribute.Identifier} : ")
+
+	def DepartAttribute(self, attribute: Attribute) -> None:
+		"""
+		Write the semicolon ending an attribute declaration.
+
+		:param attribute: The attribute declaration.
+		"""
+		self._Write(";\n")
+
+	def VisitAttributeSpecification(self, specification: AttributeSpecification) -> None:
+		"""
+		Write the reserved word ``attribute`` of an attribute specification.
+
+		**Format:** ``attribute keep of valid, ready : signal is true;``
+
+		:param specification:    The attribute specification.
+		:raises VHDLWriterError: If the entity class is ``EntityClass.Others``.
+		"""
+		if specification.EntityClass is EntityClass.Others:
+			raise VHDLWriterError("Entity class 'Others' has no VHDL notation.", specification)
+
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('attribute')} ")
+
+	def DepartAttributeSpecification(self, specification: AttributeSpecification) -> None:
+		"""
+		Write the semicolon ending an attribute specification.
+
+		:param specification: The attribute specification.
+		"""
+		self._Write(";\n")

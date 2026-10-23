@@ -63,6 +63,7 @@ from pyTooling.MetaClasses     import ExtendedType, abstractclass
 if TYPE_CHECKING:
 	from pyVHDLModel.Association import AssociationItem
 	from pyVHDLModel.Base        import SimpleRange, RangeFromName
+	from pyVHDLModel.Declaration import Attribute, AttributeSpecification, Alias
 	from pyVHDLModel.DesignUnit  import Component
 	from pyVHDLModel.Expression  import (
 		NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral,
@@ -88,6 +89,10 @@ if TYPE_CHECKING:
 	from pyVHDLModel.Symbol      import (
 		Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol
 	)
+	from pyVHDLModel.Type        import (
+		AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, ArrayType, RecordTypeElement,
+		RecordType, AccessType, FileType
+	)
 
 
 @export
@@ -109,7 +114,8 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def VisitComma(
 		self,
-		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol
+		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol |
+		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification
 	) -> None:
 		"""
 		Visit the comma between two items of a list.
@@ -176,11 +182,32 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The element with the default expression.
 		"""
 
-	def VisitIs(self, element: ModeViewDeclaration) -> None:
+	def VisitIs(self, element: ModeViewDeclaration | Alias | AttributeSpecification) -> None:
 		"""
 		Visit the reserved word ``is`` between the header and the body of a declaration.
 
 		:param element: The declaration.
+		"""
+
+	def VisitBox(self, arrayType: ArrayType) -> None:
+		"""
+		Visit the box (``<>``) after the type mark of an unbounded index of an array type.
+
+		:param arrayType: The array type.
+		"""
+
+	def VisitOf(self, arrayType: ArrayType) -> None:
+		"""
+		Visit the reserved word ``of`` between the index ranges and the element subtype of an array type.
+
+		:param arrayType: The array type.
+		"""
+
+	def VisitUnits(self, physicalType: PhysicalType) -> None:
+		"""
+		Visit the reserved word ``units`` between the range and the secondary units of a physical type.
+
+		:param physicalType: The physical type.
 		"""
 
 	def VisitNullLiteral(self, literal: NullLiteral) -> None:
@@ -803,18 +830,25 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param symbol: The constrained subtype symbol.
 		"""
 
-	def VisitIndexConstraint(self, symbol: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol) -> None:
+	def VisitIndexConstraint(
+		self,
+		element: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol | ArrayType
+	) -> None:
 		"""
-		Visit the index constraint of a subtype indication or of a record element, before its first range.
+		Visit the index constraint of a subtype indication, of a record element or of an array type, before its first range.
 
-		:param symbol: The constrained subtype symbol.
+		:param element: The constrained subtype symbol or the array type.
 		"""
 
-	def DepartIndexConstraint(self, symbol: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol) -> None:
+	def DepartIndexConstraint(
+		self,
+		element: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol | ArrayType
+	) -> None:
 		"""
-		Depart from the index constraint of a subtype indication or of a record element, after its last range.
+		Depart from the index constraint of a subtype indication, of a record element or of an array type, after its last
+		range.
 
-		:param symbol: The constrained subtype symbol.
+		:param element: The constrained subtype symbol or the array type.
 		"""
 
 	def VisitRecordConstraint(self, symbol: ConstrainedRecordSubtypeSymbol) -> None:
@@ -1165,4 +1199,230 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from a component declaration, after its port clause.
 
 		:param component: The component declaration.
+		"""
+
+	def VisitSecondaryUnitDeclaration(self, physicalType: PhysicalType, identifier: str) -> None:
+		"""
+		Visit a secondary unit declaration of a physical type, before its value.
+
+		:param physicalType: The physical type.
+		:param identifier:   The identifier of the secondary unit.
+		"""
+
+	def DepartSecondaryUnitDeclaration(self, physicalType: PhysicalType, identifier: str) -> None:
+		"""
+		Depart from a secondary unit declaration of a physical type, after its value.
+
+		:param physicalType: The physical type.
+		:param identifier:   The identifier of the secondary unit.
+		"""
+
+	def VisitEntitySpecification(self, specification: AttributeSpecification) -> None:
+		"""
+		Visit the entity specification of an attribute specification, before its first name.
+
+		:param specification: The attribute specification.
+		"""
+
+	def DepartEntitySpecification(self, specification: AttributeSpecification) -> None:
+		"""
+		Depart from the entity specification of an attribute specification, after its last name.
+
+		:param specification: The attribute specification.
+		"""
+
+	def VisitAnonymousType(self, declaration: AnonymousType) -> None:
+		"""
+		Visit an incomplete type declaration.
+
+		:param declaration: The incomplete type declaration.
+		"""
+
+	def DepartAnonymousType(self, declaration: AnonymousType) -> None:
+		"""
+		Depart from an incomplete type declaration.
+
+		:param declaration: The incomplete type declaration.
+		"""
+
+	def VisitSubtype(self, subtype: Subtype) -> None:
+		"""
+		Visit a subtype declaration, before its subtype indication.
+
+		:param subtype: The subtype declaration.
+		"""
+
+	def DepartSubtype(self, subtype: Subtype) -> None:
+		"""
+		Depart from a subtype declaration, after its subtype indication.
+
+		:param subtype: The subtype declaration.
+		"""
+
+	def VisitEnumeratedType(self, enumeratedType: EnumeratedType) -> None:
+		"""
+		Visit an enumerated type declaration, before its first literal.
+
+		:param enumeratedType: The enumerated type.
+		"""
+
+	def DepartEnumeratedType(self, enumeratedType: EnumeratedType) -> None:
+		"""
+		Depart from an enumerated type declaration, after its last literal.
+
+		:param enumeratedType: The enumerated type.
+		"""
+
+	def VisitIntegerType(self, integerType: IntegerType) -> None:
+		"""
+		Visit an integer type declaration, before its range.
+
+		:param integerType: The integer type.
+		"""
+
+	def DepartIntegerType(self, integerType: IntegerType) -> None:
+		"""
+		Depart from an integer type declaration, after its range.
+
+		:param integerType: The integer type.
+		"""
+
+	def VisitRealType(self, realType: RealType) -> None:
+		"""
+		Visit a floating-point type declaration, before its range.
+
+		:param realType: The floating-point type.
+		"""
+
+	def DepartRealType(self, realType: RealType) -> None:
+		"""
+		Depart from a floating-point type declaration, after its range.
+
+		:param realType: The floating-point type.
+		"""
+
+	def VisitPhysicalType(self, physicalType: PhysicalType) -> None:
+		"""
+		Visit a physical type declaration, before its range.
+
+		:param physicalType: The physical type.
+		"""
+
+	def DepartPhysicalType(self, physicalType: PhysicalType) -> None:
+		"""
+		Depart from a physical type declaration, after its last secondary unit.
+
+		:param physicalType: The physical type.
+		"""
+
+	def VisitArrayType(self, arrayType: ArrayType) -> None:
+		"""
+		Visit an array type declaration, before its index ranges.
+
+		:param arrayType: The array type.
+		"""
+
+	def DepartArrayType(self, arrayType: ArrayType) -> None:
+		"""
+		Depart from an array type declaration, after its element subtype.
+
+		:param arrayType: The array type.
+		"""
+
+	def VisitRecordTypeElement(self, element: RecordTypeElement) -> None:
+		"""
+		Visit an element declaration of a record type, before its subtype.
+
+		:param element: The record element declaration.
+		"""
+
+	def DepartRecordTypeElement(self, element: RecordTypeElement) -> None:
+		"""
+		Depart from an element declaration of a record type, after its subtype.
+
+		:param element: The record element declaration.
+		"""
+
+	def VisitRecordType(self, recordType: RecordType) -> None:
+		"""
+		Visit a record type declaration, before its first element declaration.
+
+		:param recordType: The record type.
+		"""
+
+	def DepartRecordType(self, recordType: RecordType) -> None:
+		"""
+		Depart from a record type declaration, after its last element declaration.
+
+		:param recordType: The record type.
+		"""
+
+	def VisitAccessType(self, accessType: AccessType) -> None:
+		"""
+		Visit an access type declaration, before its designated subtype.
+
+		:param accessType: The access type.
+		"""
+
+	def DepartAccessType(self, accessType: AccessType) -> None:
+		"""
+		Depart from an access type declaration, after its designated subtype.
+
+		:param accessType: The access type.
+		"""
+
+	def VisitFileType(self, fileType: FileType) -> None:
+		"""
+		Visit a file type declaration, before its designated subtype.
+
+		:param fileType: The file type.
+		"""
+
+	def DepartFileType(self, fileType: FileType) -> None:
+		"""
+		Depart from a file type declaration, after its designated subtype.
+
+		:param fileType: The file type.
+		"""
+
+	def VisitAlias(self, alias: Alias) -> None:
+		"""
+		Visit an alias declaration, before its subtype or name.
+
+		:param alias: The alias declaration.
+		"""
+
+	def DepartAlias(self, alias: Alias) -> None:
+		"""
+		Depart from an alias declaration, after its name.
+
+		:param alias: The alias declaration.
+		"""
+
+	def VisitAttribute(self, attribute: Attribute) -> None:
+		"""
+		Visit an attribute declaration, before its subtype.
+
+		:param attribute: The attribute declaration.
+		"""
+
+	def DepartAttribute(self, attribute: Attribute) -> None:
+		"""
+		Depart from an attribute declaration, after its subtype.
+
+		:param attribute: The attribute declaration.
+		"""
+
+	def VisitAttributeSpecification(self, specification: AttributeSpecification) -> None:
+		"""
+		Visit an attribute specification, before its attribute.
+
+		:param specification: The attribute specification.
+		"""
+
+	def DepartAttributeSpecification(self, specification: AttributeSpecification) -> None:
+		"""
+		Depart from an attribute specification, after its expression.
+
+		:param specification: The attribute specification.
 		"""

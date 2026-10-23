@@ -28,8 +28,9 @@ abstract literals (e.g. ``16#FF#`` becomes ``255``) are not preserved.
 .. rubric:: Supported language constructs
 
 The writer formats names, symbols, literals, expressions, association items, subtype indications, object
-declarations, interface items, component declarations and mode view declarations
-(:ref:`WRITER/declarations`). Further declarations, design units and statements follow.
+declarations, interface items, component declarations, mode view declarations, type and subtype declarations, alias
+declarations, attribute declarations and attribute specifications (:ref:`WRITER/declarations`). Further declarations,
+design units and statements follow.
 
 
 .. _WRITER/visitor:
@@ -203,6 +204,18 @@ Interface items
 
 Mode view declarations
    A mode view declaration (VHDL-2019) is written with one element per line. An element without a mode raises
+   :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
+
+Type and subtype declarations
+   Enumerated, integer, floating-point, physical, array, record, access, file and incomplete type declarations
+   (:class:`~pyVHDLModel.Type.AnonymousType`, ``type node;``) and subtype declarations. A physical type writes its
+   units and a record type its element declarations one per line. An index of an array type, which is a
+   :class:`~pyVHDLModel.Symbol.SimpleSubtypeSymbol`, is an unbounded index (``natural range <>``); any other index is a
+   range. The model's resolution function of a subtype declaration is not written.
+
+Alias and attribute declarations
+   Alias declarations with and without subtype indication, attribute declarations and attribute specifications. The
+   entity class :attr:`EntityClass.Others <pyVHDLModel.Declaration.EntityClass.Others>` has no VHDL notation and raises
    :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
 
 Documentation comments of the model (:attr:`~pyVHDLModel.Base.DocumentedEntityMixin.Documentation`) are not written.

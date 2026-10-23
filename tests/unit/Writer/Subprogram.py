@@ -39,10 +39,10 @@ from pyVHDLModel.DesignUnit      import Component
 from pyVHDLModel.Expression      import IntegerLiteral
 from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
 from pyVHDLModel.Instantiation   import ProcedureInstantiation, FunctionInstantiation
-from pyVHDLModel.Interface       import (
-	GenericConstantInterfaceItem, GenericTypeInterfaceItem, GenericProcedureInterfaceItem, GenericFunctionInterfaceItem,
-	ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, ParameterSimpleSignalInterfaceItem
-)
+from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
+                                        GenericProcedureInterfaceItem, GenericFunctionInterfaceItem, \
+                                        ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
+                                        ParameterSimpleSignalInterfaceItem
 from pyVHDLModel.Name            import SimpleName
 from pyVHDLModel.Object          import Constant, Variable
 from pyVHDLModel.Sequential      import NullStatement

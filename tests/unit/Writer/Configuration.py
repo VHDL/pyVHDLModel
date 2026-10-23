@@ -34,9 +34,9 @@ from textwrap                    import dedent
 from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Association     import GenericAssociationItem, PortAssociationItem
-from pyVHDLModel.Configuration   import EntityAspectEntity, EntityAspectConfiguration, EntityAspectOpen
-from pyVHDLModel.Configuration   import BindingIndication, AllInstantiationList, OthersInstantiationList
-from pyVHDLModel.Configuration   import ComponentConfiguration, BlockConfiguration
+from pyVHDLModel.Configuration   import EntityAspectEntity, EntityAspectConfiguration, EntityAspectOpen, \
+                                        BindingIndication, AllInstantiationList, OthersInstantiationList, \
+                                        ComponentConfiguration, BlockConfiguration
 from pyVHDLModel.DesignUnit      import Configuration
 from pyVHDLModel.Expression      import IntegerLiteral
 from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter

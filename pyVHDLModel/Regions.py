@@ -43,18 +43,18 @@ from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, expects
 from pyTooling.Warning       import WarningCollector
 
-from pyVHDLModel.Base        import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf
-from pyVHDLModel.Base        import normalizedIdentifiersOf, normalizedDeclaredNamesOf
-from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError
-from pyVHDLModel.Exception   import DuplicateGenericError, DuplicatePortError, DuplicateParameterError
-from pyVHDLModel.Exception   import DuplicateDeclarationError, DuplicateTypeError, DuplicateSubtypeError
-from pyVHDLModel.Exception   import DuplicateConstantError, DuplicateSignalError, DuplicateVariableError
-from pyVHDLModel.Exception   import DuplicateFileError, DuplicateComponentError, DuplicateSubprogramError
+from pyVHDLModel.Base        import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf, \
+                                    normalizedIdentifiersOf, normalizedDeclaredNamesOf
+from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError, \
+                                    DuplicateGenericError, DuplicatePortError, DuplicateParameterError, \
+                                    DuplicateDeclarationError, DuplicateTypeError, DuplicateSubtypeError, \
+                                    DuplicateConstantError, DuplicateSignalError, DuplicateVariableError, \
+                                    DuplicateFileError, DuplicateComponentError, DuplicateSubprogramError
 from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Object      import BaseConstant, Constant, DeferredConstant, SharedVariable, File, Variable, Signal
 if TYPE_CHECKING:
-	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin
-	from pyVHDLModel.Interface import PortSignalInterfaceItem
+	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
+	                                  PortSignalInterfaceItem
 	from pyVHDLModel.Type      import Subtype, FullType
 	from pyVHDLModel.Visitor   import Visitor
 

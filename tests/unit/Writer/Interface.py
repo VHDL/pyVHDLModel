@@ -38,12 +38,12 @@ from pyVHDLModel.DesignUnit      import Component
 from pyVHDLModel.Exception       import VHDLWriterError
 from pyVHDLModel.Expression      import IntegerLiteral, CharacterLiteral
 from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
-from pyVHDLModel.Interface       import (
-	GenericConstantInterfaceItem, GenericTypeInterfaceItem, PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem,
-	ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, ParameterSimpleSignalInterfaceItem,
-	ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem, ModeViewDeclaration, SimpleModeViewElement,
-	CompositeModeViewElement
-)
+from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
+                                        PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem, \
+                                        ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
+                                        ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem, \
+                                        ParameterFileInterfaceItem, ModeViewDeclaration, SimpleModeViewElement, \
+                                        CompositeModeViewElement
 from pyVHDLModel.Name            import SimpleName
 from pyVHDLModel.Symbol          import ModeViewSymbol
 

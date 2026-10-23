@@ -43,8 +43,8 @@ from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity
-from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError
-from pyVHDLModel.Exception   import DuplicateGenericAssociationError, DuplicatePortAssociationError
+from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError, \
+                                    DuplicateGenericAssociationError, DuplicatePortAssociationError
 from pyVHDLModel.Name        import Name, SimpleName
 from pyVHDLModel.Symbol      import Symbol
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal

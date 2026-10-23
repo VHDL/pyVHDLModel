@@ -43,14 +43,14 @@ from pyTooling.Testing         import Testcase
 from pyVHDLModel               import Design, Document
 from pyVHDLModel.Base          import Mode
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ProcessStatement
-from pyVHDLModel.DesignUnit    import Architecture, Component, Context, Entity, Package, PackageBody
-from pyVHDLModel.DesignUnit    import ContextReference, LibraryClause, UseClause
+from pyVHDLModel.DesignUnit    import Architecture, Component, Context, Entity, Package, PackageBody, \
+                                      ContextReference, LibraryClause, UseClause
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericConstantInterfaceItem
 from pyVHDLModel.Name          import AllName, SelectedName, SimpleName
-from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, ComponentInstantiationSymbol
-from pyVHDLModel.Symbol        import ContextReferenceSymbol, EntityInstantiationSymbol, LibraryReferenceSymbol
-from pyVHDLModel.Symbol        import PackageReferenceSymbol, PackageSymbol
+from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, ComponentInstantiationSymbol, \
+                                      ContextReferenceSymbol, EntityInstantiationSymbol, LibraryReferenceSymbol, \
+                                      PackageReferenceSymbol, PackageSymbol
 
 from tests.unit                import _entitySymbol, _subtypeSymbol
 from tests.unit.Mutation       import _port

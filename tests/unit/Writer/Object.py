@@ -34,13 +34,13 @@ from textwrap                    import dedent
 from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Base            import Direction, SimpleRange
-from pyVHDLModel.Expression      import IntegerLiteral, CharacterLiteral, AscendingRangeExpression
-from pyVHDLModel.Expression      import DescendingRangeExpression, SubtractionExpression
+from pyVHDLModel.Expression      import IntegerLiteral, CharacterLiteral, AscendingRangeExpression, \
+                                        DescendingRangeExpression, SubtractionExpression
 from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName
 from pyVHDLModel.Object          import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
-from pyVHDLModel.Symbol          import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol
-from pyVHDLModel.Symbol          import ConstrainedRecordSubtypeSymbol, RecordElementSymbol
+from pyVHDLModel.Symbol          import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
+                                        ConstrainedRecordSubtypeSymbol, RecordElementSymbol
 
 from tests.unit                  import _subtypeSymbol
 from tests.unit.Writer           import _object

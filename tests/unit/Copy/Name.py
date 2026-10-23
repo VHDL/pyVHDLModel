@@ -38,8 +38,8 @@ from pyVHDLModel                 import Name as NameModule
 from pyVHDLModel.Association     import ParameterAssociationItem
 from pyVHDLModel.Expression      import IntegerLiteral
 from pyVHDLModel.Formatting.VHDL import VHDLWriter
-from pyVHDLModel.Name            import SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName
-from pyVHDLModel.Name            import AttributeName, AllName, OpenName
+from pyVHDLModel.Name            import SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, \
+                                        AttributeName, AllName, OpenName
 
 from tests.unit                  import _Element
 from tests.unit.Copy             import _object, _concreteModelClasses, _copyAboveConstructor

@@ -42,23 +42,22 @@ from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, BaseCase, IfBranchMixin
-from pyVHDLModel.Base        import ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement, ChoicesMixin
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, \
+                                    BaseCase, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, \
+                                    BlockStatementMixin, WaveformElement, ChoicesMixin
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
-from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
-from pyVHDLModel.Regions     import WithGenericsMixin, WithPortsMixin
+from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
+                                    WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Name        import Name
-from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
-from pyVHDLModel.Symbol      import Symbol, SignalSymbol
+from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, \
+                                    ConfigurationInstantiationSymbol, Symbol, SignalSymbol
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
-from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
-from pyVHDLModel.Association import GenericAssociationItem, PortAssociationItem
-from pyVHDLModel.Association import GenericMapAspectMixin, PortMapAspectMixin
+from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem, GenericAssociationItem, \
+                                    PortAssociationItem, GenericMapAspectMixin, PortMapAspectMixin
 from pyVHDLModel.Interface   import PortInterfaceItemMixin, GenericInterfaceItemMixin
-from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin, AllowBlackboxMixin
-from pyVHDLModel.Common      import ConditionalWaveform, SelectedWaveform
-from pyVHDLModel.Common      import ConditionalWaveformsMixin, WaveformMixin
-from pyVHDLModel.Common      import ExpressionMixin, SelectedWaveformsMixin
+from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin, AllowBlackboxMixin, \
+                                    ConditionalWaveform, SelectedWaveform, ConditionalWaveformsMixin, WaveformMixin, \
+                                    ExpressionMixin, SelectedWaveformsMixin
 from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatementsMixin
 
 if TYPE_CHECKING:

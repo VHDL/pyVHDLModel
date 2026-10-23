@@ -35,25 +35,21 @@ tests/unit/Assignment.py (conditional/selected signal assignments) or tests/unit
 """
 from pyTooling.Testing       import Testcase
 
-from pyVHDLModel.Base        import Direction, Mode, SimpleRange
+from pyVHDLModel.Base        import Direction, Mode, SimpleRange, WaveformElement
 from pyVHDLModel.Name        import SimpleName
-from pyVHDLModel.Symbol      import (
-	ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol,
-	ConfigurationInstantiationSymbol, SignalSymbol, Symbol, PossibleReference, EntitySymbol,
-)
+from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, \
+                                    ConfigurationInstantiationSymbol, SignalSymbol, Symbol, PossibleReference, \
+                                    EntitySymbol
 from pyVHDLModel.Expression  import IntegerLiteral, CharacterLiteral
 from pyVHDLModel.Association import GenericAssociationItem, PortAssociationItem
-from pyVHDLModel.Base        import WaveformElement
 from pyVHDLModel.DesignUnit  import Architecture
 from pyVHDLModel.Interface   import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem
-from pyVHDLModel.Concurrent  import (
-	ComponentInstantiation, EntityInstantiation, ConfigurationInstantiation,
-	ProcessStatement, ConcurrentProcedureCall, ConcurrentBlockStatement,
-	IfGenerateBranch, ElsifGenerateBranch, ElseGenerateBranch,
-	GenerateStatement, IfGenerateStatement,
-	IndexedGenerateChoice, RangedGenerateChoice, GenerateCase, OthersGenerateCase, CaseGenerateStatement,
-	ForGenerateStatement, ConcurrentSimpleSignalAssignment, ConcurrentAssertStatement,
-)
+from pyVHDLModel.Concurrent  import ComponentInstantiation, EntityInstantiation, ConfigurationInstantiation, \
+                                    ProcessStatement, ConcurrentProcedureCall, ConcurrentBlockStatement, \
+                                    IfGenerateBranch, ElsifGenerateBranch, ElseGenerateBranch, GenerateStatement, \
+                                    IfGenerateStatement, IndexedGenerateChoice, RangedGenerateChoice, GenerateCase, \
+                                    OthersGenerateCase, CaseGenerateStatement, ForGenerateStatement, \
+                                    ConcurrentSimpleSignalAssignment, ConcurrentAssertStatement
 
 from tests.unit              import _entitySymbol, _subtypeSymbol
 

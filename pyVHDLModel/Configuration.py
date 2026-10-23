@@ -43,10 +43,10 @@ from pyTooling.MetaClasses   import abstractclass
 
 from pyVHDLModel.Base        import ModelEntity
 from pyVHDLModel.Name        import Name
-from pyVHDLModel.Symbol      import Symbol, EntitySymbol, ArchitectureSymbol, ConfigurationSymbol
-from pyVHDLModel.Symbol      import ComponentInstantiationSymbol
-from pyVHDLModel.Association import GenericAssociationItem, PortAssociationItem
-from pyVHDLModel.Association import GenericMapAspectMixin, PortMapAspectMixin
+from pyVHDLModel.Symbol      import Symbol, EntitySymbol, ArchitectureSymbol, ConfigurationSymbol, \
+                                    ComponentInstantiationSymbol
+from pyVHDLModel.Association import GenericAssociationItem, PortAssociationItem, GenericMapAspectMixin, \
+                                    PortMapAspectMixin
 
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor   import Visitor

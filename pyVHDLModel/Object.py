@@ -42,8 +42,8 @@ from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType, abstractclass
 from pyTooling.Graph       import Vertex
 
-from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
-from pyVHDLModel.Base      import ReservedWord
+from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, \
+                                  ReservedWord
 from pyVHDLModel.Symbol    import Symbol
 
 if TYPE_CHECKING:

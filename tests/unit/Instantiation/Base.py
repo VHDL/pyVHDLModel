@@ -46,11 +46,12 @@ Mixins already fully exercised elsewhere are intentionally not repeated here:
 from pyTooling.MetaClasses   import AbstractClassError
 from pyTooling.Testing       import Testcase
 
-from pyVHDLModel.Base        import Direction, Mode, ModelEntity, Range, RangeFromName, ReservedWord, SimpleRange
-from pyVHDLModel.Base        import WaveformElement
+from pyVHDLModel.Base        import Direction, Mode, ModelEntity, Range, RangeFromName, ReservedWord, SimpleRange, \
+                                    WaveformElement
 from pyVHDLModel.Expression  import IntegerLiteral, CharacterLiteral
 from pyVHDLModel.Interface   import InterfaceGroup
-from pyVHDLModel.Sequential  import IfBranch, ElsifBranch, ElseBranch, SequentialReportStatement, SequentialAssertStatement, SequentialCase
+from pyVHDLModel.Sequential  import IfBranch, ElsifBranch, ElseBranch, SequentialReportStatement, \
+                                    SequentialAssertStatement, SequentialCase
 from pyVHDLModel.Concurrent  import ConcurrentBlockStatement
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Object      import Signal

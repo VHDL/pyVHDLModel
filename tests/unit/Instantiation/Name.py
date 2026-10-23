@@ -33,9 +33,8 @@ from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Expression  import IntegerLiteral
 from pyVHDLModel.Association import GenericAssociationItem
-from pyVHDLModel.Name        import (
-	Name, SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, AttributeName, AllName, OpenName,
-)
+from pyVHDLModel.Name        import Name, SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, \
+                                    AttributeName, AllName, OpenName
 
 from tests.unit              import _Element
 

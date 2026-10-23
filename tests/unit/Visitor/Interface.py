@@ -34,9 +34,10 @@ from pyTooling.Testing      import Testcase
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.DesignUnit import Component
 from pyVHDLModel.Expression import IntegerLiteral
-from pyVHDLModel.Interface  import GenericConstantInterfaceItem, GenericTypeInterfaceItem, PortSimpleSignalInterfaceItem
-from pyVHDLModel.Interface  import PortViewSignalInterfaceItem, ParameterFileInterfaceItem, ModeViewDeclaration
-from pyVHDLModel.Interface  import SimpleModeViewElement, CompositeModeViewElement
+from pyVHDLModel.Interface  import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
+                                   PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem, \
+                                   ParameterFileInterfaceItem, ModeViewDeclaration, SimpleModeViewElement, \
+                                   CompositeModeViewElement
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ModeViewSymbol
 

@@ -42,17 +42,15 @@ from pyTooling.Testing      import Testcase
 from pyVHDLModel.Base   import Direction, SimpleRange, RangeFromName
 from pyVHDLModel.Name   import SimpleName, SelectedName, AllName, AttributeName
 from pyVHDLModel.Expression import IntegerLiteral
-from pyVHDLModel.Symbol import (
-	PossibleReference, Symbol,
-	LibraryReferenceSymbol, PackageReferenceSymbol, ModeViewSymbol, SubprogramReferenceSymbol,
-	ConfigurationSymbol, VariableSymbol, SignalSymbol, ContextReferenceSymbol,
-	PackageMemberReferenceSymbol, AllPackageMembersReferenceSymbol,
-	EntityInstantiationSymbol, ComponentInstantiationSymbol, ConfigurationInstantiationSymbol,
-	EntitySymbol, ArchitectureSymbol, PackageSymbol,
-	RangeAttributeSymbol, RecordElementSymbol, SubtypeSymbol, SimpleSubtypeSymbol,
-	ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol,
-	SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol,
-)
+from pyVHDLModel.Symbol import PossibleReference, Symbol, LibraryReferenceSymbol, PackageReferenceSymbol, \
+                               ModeViewSymbol, SubprogramReferenceSymbol, ConfigurationSymbol, VariableSymbol, \
+                               SignalSymbol, ContextReferenceSymbol, PackageMemberReferenceSymbol, \
+                               AllPackageMembersReferenceSymbol, EntityInstantiationSymbol, \
+                               ComponentInstantiationSymbol, ConfigurationInstantiationSymbol, EntitySymbol, \
+                               ArchitectureSymbol, PackageSymbol, RangeAttributeSymbol, RecordElementSymbol, \
+                               SubtypeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
+                               ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
+                               SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -47,11 +47,9 @@ from pyVHDLModel.Symbol     import EntitySymbol, PackageSymbol, LibraryReference
 from pyVHDLModel.Object     import Constant, Signal, Variable, SharedVariable, File, DeferredConstant
 from pyVHDLModel.Type       import FullType, Subtype
 from pyVHDLModel.Subprogram import Function, Procedure
-from pyVHDLModel.DesignUnit import (
-	Reference, LibraryClause, UseClause, ContextReference,
-	DesignUnit, PrimaryUnit, SecondaryUnit, Context,
-	Package, PackageBody, Entity, Architecture, Component, Configuration,
-)
+from pyVHDLModel.DesignUnit import Reference, LibraryClause, UseClause, ContextReference, DesignUnit, PrimaryUnit, \
+                                   SecondaryUnit, Context, Package, PackageBody, Entity, Architecture, Component, \
+                                   Configuration
 
 from tests.unit             import _Element, _entitySymbol
 

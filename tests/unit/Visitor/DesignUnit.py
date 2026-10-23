@@ -35,12 +35,12 @@ from pyTooling.Testing         import Testcase
 
 from pyVHDLModel               import Document
 from pyVHDLModel.Association   import PortAssociationItem
-from pyVHDLModel.Configuration import EntityAspectEntity, BindingIndication, AllInstantiationList
-from pyVHDLModel.Configuration import ComponentConfiguration, BlockConfiguration
+from pyVHDLModel.Configuration import EntityAspectEntity, BindingIndication, AllInstantiationList, \
+                                      ComponentConfiguration, BlockConfiguration
 from pyVHDLModel.DesignUnit    import LibraryClause, Entity, Architecture, Configuration, Context
 from pyVHDLModel.Name          import SimpleName
-from pyVHDLModel.Symbol        import LibraryReferenceSymbol, EntitySymbol, ArchitectureSymbol
-from pyVHDLModel.Symbol        import ComponentInstantiationSymbol
+from pyVHDLModel.Symbol        import LibraryReferenceSymbol, EntitySymbol, ArchitectureSymbol, \
+                                      ComponentInstantiationSymbol
 
 from tests.unit.Visitor        import FullRecorder
 

@@ -37,12 +37,9 @@ from pyVHDLModel.Symbol     import RangeAttributeSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import IntegerLiteral, EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Object     import Variable
 from pyVHDLModel.Subprogram import Procedure
-from pyVHDLModel.Type       import (
-	Subtype, RangedScalarType,
-	EnumeratedType, IntegerType, RealType, PhysicalType,
-	ArrayType, RecordTypeElement, RecordType, ProtectedType, ProtectedTypeBody,
-	AccessType, FileType,
-)
+from pyVHDLModel.Type       import Subtype, RangedScalarType, EnumeratedType, IntegerType, RealType, PhysicalType, \
+                                   ArrayType, RecordTypeElement, RecordType, ProtectedType, ProtectedTypeBody, \
+                                   AccessType, FileType
 
 from tests.unit             import _Element, _subtypeSymbol
 

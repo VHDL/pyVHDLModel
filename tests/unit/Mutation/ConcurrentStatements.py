@@ -40,11 +40,11 @@ from pathlib                import Path
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import Design, Document, Library
-from pyVHDLModel.Concurrent import ComponentInstantiation, ConcurrentAssertStatement, ConcurrentBlockStatement
-from pyVHDLModel.Concurrent import ProcessStatement
+from pyVHDLModel.Concurrent import ComponentInstantiation, ConcurrentAssertStatement, ConcurrentBlockStatement, \
+                                   ProcessStatement
 from pyVHDLModel.DesignUnit import Architecture, Entity
-from pyVHDLModel.Exception  import AlreadyInDesignError, DuplicateLabelError, DuplicateSignalError
-from pyVHDLModel.Exception  import DuplicateVariableError, NotAChildError
+from pyVHDLModel.Exception  import AlreadyInDesignError, DuplicateLabelError, DuplicateSignalError, \
+                                   DuplicateVariableError, NotAChildError
 from pyVHDLModel.Expression import EnumerationLiteral
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Sequential import IfBranch, IfStatement, NullStatement

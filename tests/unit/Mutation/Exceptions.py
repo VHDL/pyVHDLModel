@@ -34,13 +34,13 @@ Tests for the class hierarchy of the errors raised by the mutators.
 from pyTooling.Exceptions  import AlreadyInHierarchyError, DuplicateElementError, InUseError
 from pyTooling.Testing     import Testcase
 
-from pyVHDLModel.Exception import VHDLModelException, AlreadyInDesignError, NotAChildError, DuplicateGenericError
-from pyVHDLModel.Exception import DuplicatePortError, DuplicateParameterError, DuplicateDeclarationError
-from pyVHDLModel.Exception import DuplicateTypeError, DuplicateSubtypeError, DuplicateConstantError
-from pyVHDLModel.Exception import DuplicateSignalError, DuplicateVariableError, DuplicateFileError
-from pyVHDLModel.Exception import DuplicateComponentError, DuplicateSubprogramError
-from pyVHDLModel.Exception import NotInNamespaceError, DuplicateDocumentError, DuplicateDesignUnitError
-from pyVHDLModel.Exception import ElementInUseError, LibraryInUseError
+from pyVHDLModel.Exception import VHDLModelException, AlreadyInDesignError, NotAChildError, DuplicateGenericError, \
+                                  DuplicatePortError, DuplicateParameterError, DuplicateDeclarationError, \
+                                  DuplicateTypeError, DuplicateSubtypeError, DuplicateConstantError, \
+                                  DuplicateSignalError, DuplicateVariableError, DuplicateFileError, \
+                                  DuplicateComponentError, DuplicateSubprogramError, NotInNamespaceError, \
+                                  DuplicateDocumentError, DuplicateDesignUnitError, ElementInUseError, \
+                                  LibraryInUseError
 
 
 if __name__ == "__main__":  # pragma: no cover

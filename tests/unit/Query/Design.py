@@ -36,8 +36,8 @@ from pyTooling.Testing         import Testcase
 from pyVHDLModel               import Design, Document, VHDLModelException
 from pyVHDLModel.Configuration import BlockConfiguration
 from pyVHDLModel.DesignUnit    import Configuration, Context, Entity, Package
-from pyVHDLModel.Exception     import LibraryNotFoundError, DesignUnitNotFoundError, EntityNotFoundError
-from pyVHDLModel.Exception     import PackageNotFoundError, ConfigurationNotFoundError, ContextNotFoundError
+from pyVHDLModel.Exception     import LibraryNotFoundError, DesignUnitNotFoundError, EntityNotFoundError, \
+                                      PackageNotFoundError, ConfigurationNotFoundError, ContextNotFoundError
 from pyVHDLModel.Name          import SimpleName
 from pyVHDLModel.Symbol        import EntitySymbol, PossibleReference, Symbol
 

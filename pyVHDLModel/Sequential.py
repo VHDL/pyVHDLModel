@@ -42,18 +42,15 @@ from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
-from pyVHDLModel.Base        import ModelEntity, ExpressionUnion, Range, BaseChoice, BaseCase, ConditionalMixin, IfBranchMixin, ElsifBranchMixin
-from pyVHDLModel.Base        import ElseBranchMixin, ReportStatementMixin, AssertStatementMixin, WaveformElement, ChoicesMixin
-from pyVHDLModel.Base        import LabeledEntityMixin
+from pyVHDLModel.Base        import ModelEntity, ExpressionUnion, Range, BaseChoice, BaseCase, ConditionalMixin, \
+                                    IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, ReportStatementMixin, \
+                                    AssertStatementMixin, WaveformElement, ChoicesMixin, LabeledEntityMixin
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
 from pyVHDLModel.Symbol      import Symbol, SignalSymbol, VariableSymbol
-from pyVHDLModel.Common      import Statement, ProcedureCallMixin
-from pyVHDLModel.Common      import AssignmentMixin, SignalAssignmentMixin, VariableAssignmentMixin
-from pyVHDLModel.Common      import ConditionalWaveform, ConditionalExpression
-from pyVHDLModel.Common      import ConditionalWaveformsMixin, WaveformMixin
-from pyVHDLModel.Common      import ExpressionMixin, SelectedWaveformsMixin, SelectedExpressionsMixin
-from pyVHDLModel.Common      import SelectedWaveform
-from pyVHDLModel.Common      import SelectedExpression
+from pyVHDLModel.Common      import Statement, ProcedureCallMixin, AssignmentMixin, SignalAssignmentMixin, \
+                                    VariableAssignmentMixin, ConditionalWaveform, ConditionalExpression, \
+                                    ConditionalWaveformsMixin, WaveformMixin, ExpressionMixin, SelectedWaveformsMixin, \
+                                    SelectedExpressionsMixin, SelectedWaveform, SelectedExpression
 from pyVHDLModel.Association import ParameterAssociationItem
 
 if TYPE_CHECKING:

@@ -792,6 +792,20 @@ class ReportStatementMixin(metaclass=ExtendedType, mixin=True):
 		if severity is not None:
 			severity.Parent = self
 
+	def _VisitReportAndSeverity(self, visitor: Visitor) -> None:
+		"""
+		Walk the message and the severity, if given, each after its reserved word, with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if self._message is not None:
+			visitor.VisitReport(self)
+			self._message.Visit(visitor)
+
+		if self._severity is not None:
+			visitor.VisitSeverity(self)
+			self._severity.Visit(visitor)
+
 	@readonly
 	def Message(self) -> Nullable[ExpressionUnion]:
 		"""
@@ -832,6 +846,15 @@ class AssertStatementMixin(ReportStatementMixin, ConditionalMixin, mixin=True):
 		"""
 		super().__init__(message, severity)
 		ConditionalMixin.__init__(self, condition)
+
+	def _VisitAssertion(self, visitor: Visitor) -> None:
+		"""
+		Walk the condition, the message and the severity of an assertion with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		self._condition.Visit(visitor)
+		self._VisitReportAndSeverity(visitor)
 
 
 class BlockStatementMixin(metaclass=ExtendedType, mixin=True):
@@ -1138,6 +1161,20 @@ class WaveformElement(ModelEntity):
 		self._after = after
 		if after is not None:
 			after.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this waveform element, its value and its delay (if any) with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitWaveformElement(self)
+		self._expression.Visit(visitor)
+		if self._after is not None:
+			visitor.VisitAfter(self)
+			self._after.Visit(visitor)
+
+		visitor.DepartWaveformElement(self)
 
 	@readonly
 	def Expression(self) -> ExpressionUnion:

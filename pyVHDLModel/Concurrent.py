@@ -871,6 +871,29 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 				self._sensitivityList.append(signalSymbol)
 				# signalSymbol._parent = self  # FIXME: currently str are provided
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this process, its sensitivity list (if any), its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitProcessStatement(self)
+		if self._sensitivityList is not None:
+			visitor.VisitSensitivityList(self)
+			for index, name in enumerate(self._sensitivityList):
+				if index > 0:
+					visitor.VisitComma(self)
+
+				name.Visit(visitor)
+
+			visitor.DepartSensitivityList(self)
+
+		visitor.VisitIs(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartProcessStatement(self)
+
 	@ConcurrentStatement.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
 		ConcurrentStatement.Parent.fset(self, parent)
@@ -933,6 +956,16 @@ class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
 		"""
 		super().__init__(label, parent)
 		ProcedureCallMixin.__init__(self, procedureName, parameterAssociationItems)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this concurrent procedure call, its procedure and its parameters with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConcurrentProcedureCall(self)
+		self._VisitProcedureCall(visitor)
+		visitor.DepartConcurrentProcedureCall(self)
 
 
 @export
@@ -1894,6 +1927,18 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment, WaveformMixin
 		super().__init__(label, target, parent)
 		WaveformMixin.__init__(self, waveform)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this concurrent signal assignment, its target and its waveform with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConcurrentSimpleSignalAssignment(self)
+		self._target.Visit(visitor)
+		visitor.VisitSignalAssignment(self)
+		self._VisitWaveform(visitor)
+		visitor.DepartConcurrentSimpleSignalAssignment(self)
+
 
 @export
 class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment, ExpressionMixin, SelectedWaveformsMixin):
@@ -1942,6 +1987,20 @@ class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment, ExpressionM
 		ExpressionMixin.__init__(self, expression)
 		SelectedWaveformsMixin.__init__(self, selectedWaveforms)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this selected signal assignment, its selector, its target and its alternatives with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConcurrentSelectedSignalAssignment(self)
+		self._expression.Visit(visitor)
+		visitor.VisitSelect(self)
+		self._target.Visit(visitor)
+		visitor.VisitSignalAssignment(self)
+		self._VisitSelectedWaveforms(visitor)
+		visitor.DepartConcurrentSelectedSignalAssignment(self)
+
 
 @export
 class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment, ConditionalWaveformsMixin):
@@ -1986,6 +2045,18 @@ class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment, Conditio
 		super().__init__(label, target, parent)
 		ConditionalWaveformsMixin.__init__(self, conditionalWaveforms)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this conditional signal assignment, its target and its alternatives with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConcurrentConditionalSignalAssignment(self)
+		self._target.Visit(visitor)
+		visitor.VisitSignalAssignment(self)
+		self._VisitConditionalWaveforms(visitor)
+		visitor.DepartConcurrentConditionalSignalAssignment(self)
+
 
 @export
 class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
@@ -2028,3 +2099,13 @@ class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
 		"""
 		super().__init__(label, parent)
 		AssertStatementMixin.__init__(self, condition, message, severity)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this concurrent assertion, its condition, its message and its severity with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConcurrentAssertStatement(self)
+		self._VisitAssertion(visitor)
+		visitor.DepartConcurrentAssertStatement(self)

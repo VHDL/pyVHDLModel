@@ -1310,6 +1310,16 @@ class IndexedChoice(SequentialChoice):
 		self._expression = expression
 		expression.Parent = self
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this choice and its value with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIndexedChoice(self)
+		self._expression.Visit(visitor)
+		visitor.DepartIndexedChoice(self)
+
 	@readonly
 	def Expression(self) -> ExpressionUnion:
 		"""
@@ -1357,6 +1367,16 @@ class RangedChoice(SequentialChoice):
 
 		self._range = rng
 		rng.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this choice and its range with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRangedChoice(self)
+		self._range.Visit(visitor)
+		visitor.DepartRangedChoice(self)
 
 	@readonly
 	def Range(self) -> Range:

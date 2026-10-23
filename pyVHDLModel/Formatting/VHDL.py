@@ -47,7 +47,14 @@ from pyTooling.Decorators      import export, readonly
 from pyTooling.MetaClasses     import ExtendedType
 
 from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin, PortMapAspectMixin
-from pyVHDLModel.Base          import ModelElementUnion, ModelEntity, Mode, ReservedWord, SimpleRange, RangeFromName
+from pyVHDLModel.Base          import ModelElementUnion, ModelEntity, Mode, ReservedWord, SimpleRange, RangeFromName, \
+                                      WaveformElement, ReportStatementMixin
+from pyVHDLModel.Common        import Statement, ProcedureCallMixin, SignalAssignmentMixin, WaveformMixin, \
+                                      ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform, \
+                                      ConditionalWaveformsMixin, SelectedWaveformsMixin
+from pyVHDLModel.Concurrent    import ProcessStatement, ConcurrentProcedureCall, ConcurrentSimpleSignalAssignment, \
+                                      ConcurrentSelectedSignalAssignment, ConcurrentConditionalSignalAssignment, \
+                                      ConcurrentAssertStatement
 from pyVHDLModel.Configuration import EntityAspectEntity, EntityAspectConfiguration, EntityAspectOpen, \
                                       BindingIndication, AllInstantiationList, OthersInstantiationList, \
                                       ComponentConfiguration, BlockConfiguration
@@ -79,6 +86,7 @@ from pyVHDLModel.Instantiation import ProcedureInstantiation, FunctionInstantiat
 from pyVHDLModel.Object        import Obj, WithDefaultExpressionMixin, Constant, DeferredConstant, Variable, \
                                       SharedVariable, Signal, File
 from pyVHDLModel.Regions       import WithGenericsMixin, WithPortsMixin, WithParametersMixin
+from pyVHDLModel.Sequential    import IndexedChoice
 from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
 from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
                                       ConstrainedRecordSubtypeSymbol
@@ -325,7 +333,8 @@ class VHDLWriter(Visitor):
 		self,
 		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol |
 		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification |
-		         GenericMapAspectMixin | PortMapAspectMixin | Reference | ComponentConfiguration
+		         GenericMapAspectMixin | PortMapAspectMixin | Reference | ComponentConfiguration | ProcessStatement |
+		         ProcedureCallMixin | WaveformMixin | SelectedWaveformsMixin
 	) -> None:
 		"""
 		Write the comma between two items of a list.
@@ -369,14 +378,20 @@ class VHDLWriter(Visitor):
 
 		self._minimum = OperatorPrecedence.Range
 
-	def VisitWhen(self, expression: WhenElseExpression) -> None:
+	def VisitWhen(
+		self,
+		element: WhenElseExpression | ConditionalWaveform | SelectedWaveform | OthersSelectedWaveform
+	) -> None:
 		"""
-		Write the reserved word ``when`` of a conditional expression.
+		Write the reserved word ``when`` of a conditional expression, a conditional waveform or a selected waveform.
 
-		:param expression: The conditional expression.
+		:param element: The conditional expression, the conditional waveform or the selected waveform.
 		"""
 		self._Write(f" {self._Keyword(ReservedWord.When)} ")
-		self._minimum = OperatorPrecedence.Logical
+		if isinstance(element, WhenElseExpression):
+			self._minimum = OperatorPrecedence.Logical
+		else:
+			self._minimum = OperatorPrecedence.Range
 
 	def _Keyword(self, keyword: ReservedWord) -> str:
 		"""
@@ -401,14 +416,17 @@ class VHDLWriter(Visitor):
 		"""
 		return " ".join(self._Keyword(keyword) for keyword in keywords)
 
-	def VisitElse(self, expression: WhenElseExpression) -> None:
+	def VisitElse(self, element: WhenElseExpression | ConditionalWaveformsMixin) -> None:
 		"""
-		Write the reserved word ``else`` of a conditional expression.
+		Write the reserved word ``else`` of a conditional expression or between conditional waveforms.
 
-		:param expression: The conditional expression.
+		:param element: The conditional expression or the element with conditional waveforms.
 		"""
 		self._Write(f" {self._Keyword(ReservedWord.Else)} ")
-		self._minimum = OperatorPrecedence.Conditional
+		if isinstance(element, WhenElseExpression):
+			self._minimum = OperatorPrecedence.Conditional
+		else:
+			self._minimum = OperatorPrecedence.Range
 
 	def VisitOperator(self, expression: BinaryExpression) -> None:
 		"""
@@ -1060,13 +1078,16 @@ class VHDLWriter(Visitor):
 
 	def DepartAllName(self, name: AllName) -> None:
 		"""
-		Write the suffix ``all`` of a selected name after its prefix.
+		Write the suffix ``all`` of a selected name after its prefix, or the reserved word ``all`` without a prefix.
 
-		**Format:** ``ieee.numeric_std.all``
+		**Format:** ``ieee.numeric_std.all`` or ``all``
 
 		:param name: The ``all`` name.
 		"""
-		self._Write(f".{self._Keyword(ReservedWord.All)}")
+		if name.Prefix is None:
+			self._Write(self._Keyword(ReservedWord.All))
+		else:
+			self._Write(f".{self._Keyword(ReservedWord.All)}")
 
 	def DepartAttributeName(self, name: AttributeName) -> None:
 		"""
@@ -1161,7 +1182,8 @@ class VHDLWriter(Visitor):
 
 	def VisitIs(
 		self,
-		element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram | Architecture | Configuration
+		element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram | Architecture | Configuration |
+		         ProcessStatement
 	) -> None:
 		"""
 		Write the reserved word ``is`` ending the header of a declaration; its body is indented.
@@ -1541,16 +1563,19 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteEnd((ReservedWord.View,), declaration.Identifier)
 
-	def _WriteEnd(self, keywords: tuple[ReservedWord, ...], identifier: str) -> None:
+	def _WriteEnd(self, keywords: tuple[ReservedWord, ...], identifier: Nullable[str]) -> None:
 		"""
 		Leave the indented body and write the reserved word ``end``, the given reserved words and the identifier.
 
 		:param keywords:   The reserved words after ``end``.
-		:param identifier: The identifier of the declaration.
+		:param identifier: The identifier or label of the declaration or statement, or ``None`` if it has none.
 		"""
 		self._indentation -= 1
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keywords(keywords)} {identifier};\n")
+		if identifier is None:
+			self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keywords(keywords)};\n")
+		else:
+			self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keywords(keywords)} {identifier};\n")
 
 	def VisitSimpleModeViewElement(self, element: SimpleModeViewElement) -> None:
 		"""
@@ -1956,7 +1981,7 @@ class VHDLWriter(Visitor):
 		"""
 		self._Write(";\n")
 
-	def VisitBegin(self, element: Subprogram | Entity | Architecture) -> None:
+	def VisitBegin(self, element: Subprogram | Entity | Architecture | ProcessStatement) -> None:
 		"""
 		Write the reserved word ``begin`` before the statement part on its own line.
 
@@ -2594,3 +2619,237 @@ class VHDLWriter(Visitor):
 		:param instantiationList: The instantiation list.
 		"""
 		self._Write(self._Keyword(ReservedWord.Others))
+
+	def VisitSignalAssignment(self, element: SignalAssignmentMixin) -> None:
+		"""
+		Write the signal assignment delimiter (``<=``) between the target and the waveform of a signal assignment.
+
+		:param element: The signal assignment.
+		"""
+		self._Write(" <= ")
+		self._minimum = OperatorPrecedence.Range
+
+	def VisitAfter(self, element: WaveformElement) -> None:
+		"""
+		Write the reserved word ``after`` before the delay of a waveform element.
+
+		:param element: The waveform element.
+		"""
+		self._Write(f" {self._Keyword(ReservedWord.After)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def VisitSelect(self, element: ConcurrentSelectedSignalAssignment) -> None:
+		"""
+		Write the reserved word ``select`` between the selector and the target of a selected assignment.
+
+		:param element: The selected assignment.
+		"""
+		self._Write(f" {self._Keyword(ReservedWord.Select)} ")
+
+	def VisitBar(self, element: SelectedWaveform) -> None:
+		"""
+		Write the vertical line (``|``) between two choices.
+
+		:param element: The element with the choices.
+		"""
+		self._Write(" | ")
+		self._minimum = OperatorPrecedence.Range
+
+	def VisitReport(self, element: ReportStatementMixin) -> None:
+		"""
+		Write the reserved word ``report`` before the message of an assertion or report.
+
+		:param element: The assertion or report.
+		"""
+		self._Write(f" {self._Keyword(ReservedWord.Report)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def VisitSeverity(self, element: ReportStatementMixin) -> None:
+		"""
+		Write the reserved word ``severity`` before the severity level of an assertion or report.
+
+		:param element: The assertion or report.
+		"""
+		self._Write(f" {self._Keyword(ReservedWord.Severity)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def VisitSensitivityList(self, process: ProcessStatement) -> None:
+		"""
+		Write the left parenthesis of the sensitivity list of a process.
+
+		**Format:** ``process (clk, rst)`` or ``process (all)``
+
+		:param process: The process.
+		"""
+		self._Write(" (")
+
+	def DepartSensitivityList(self, process: ProcessStatement) -> None:
+		"""
+		Write the right parenthesis of the sensitivity list of a process.
+
+		:param process: The process.
+		"""
+		self._Write(")")
+
+	def VisitActualParameterPart(self, call: ProcedureCallMixin) -> None:
+		"""
+		Write the left parenthesis of the actual parameter part of a procedure call.
+
+		:param call: The procedure call.
+		"""
+		self._Write("(")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartActualParameterPart(self, call: ProcedureCallMixin) -> None:
+		"""
+		Write the right parenthesis of the actual parameter part of a procedure call.
+
+		:param call: The procedure call.
+		"""
+		self._Write(")")
+
+	def DepartOthersSelectedWaveform(self, waveform: OthersSelectedWaveform) -> None:
+		"""
+		Write the choice ``others`` of the ``others`` selected waveform.
+
+		**Format:** ``'0' when others``
+
+		:param waveform: The selected waveform.
+		"""
+		self._Write(self._Keyword(ReservedWord.Others))
+
+	def VisitIndexedChoice(self, choice: IndexedChoice) -> None:
+		"""
+		Enter a choice given by a value; the value is a simple expression.
+
+		**Format:** ``'0'``
+
+		:param choice: The choice.
+		"""
+		self._minimum = OperatorPrecedence.Adding
+
+	def VisitProcessStatement(self, process: ProcessStatement) -> None:
+		"""
+		Write the label, if any, and the reserved word ``process`` of a process statement.
+
+		**Format:** ``count : process (clk) is`` ... ``begin`` ... ``end process count;``
+
+		A process with ``all`` as sensitivity list has a single :class:`~pyVHDLModel.Name.AllName` without prefix in its
+		sensitivity list.
+
+		:param process: The process.
+		"""
+		self._WriteStatementStart(process)
+		self._Write(self._Keyword(ReservedWord.Process))
+
+	def _WriteStatementStart(self, statement: Statement) -> None:
+		"""
+		Write the indentation and the label, if any, of a statement.
+
+		:param statement: The statement.
+		"""
+		self._WriteIndentation()
+		if statement.Label is not None:
+			self._Write(f"{statement.Label} : ")
+
+	def DepartProcessStatement(self, process: ProcessStatement) -> None:
+		"""
+		Write the end of a process statement.
+
+		:param process: The process.
+		"""
+		self._WriteEnd((ReservedWord.Process,), process.Label)
+
+	def VisitConcurrentProcedureCall(self, call: ConcurrentProcedureCall) -> None:
+		"""
+		Write the label, if any, of a concurrent procedure call.
+
+		**Format:** ``check(clk, rst);``
+
+		:param call: The procedure call.
+		"""
+		self._WriteStatementStart(call)
+
+	def DepartConcurrentProcedureCall(self, call: ConcurrentProcedureCall) -> None:
+		"""
+		Write the semicolon ending a concurrent procedure call.
+
+		:param call: The procedure call.
+		"""
+		self._Write(";\n")
+
+	def VisitConcurrentSimpleSignalAssignment(self, assignment: ConcurrentSimpleSignalAssignment) -> None:
+		"""
+		Write the label, if any, of a concurrent simple signal assignment.
+
+		**Format:** ``q <= d after 1 ns;``
+
+		:param assignment: The signal assignment.
+		"""
+		self._WriteStatementStart(assignment)
+
+	def DepartConcurrentSimpleSignalAssignment(self, assignment: ConcurrentSimpleSignalAssignment) -> None:
+		"""
+		Write the semicolon ending a concurrent simple signal assignment.
+
+		:param assignment: The signal assignment.
+		"""
+		self._Write(";\n")
+
+	def VisitConcurrentSelectedSignalAssignment(self, assignment: ConcurrentSelectedSignalAssignment) -> None:
+		"""
+		Write the label, if any, and the reserved word ``with`` of a concurrent selected signal assignment.
+
+		**Format:** ``with sel select q <= a when '0', b when others;``
+
+		:param assignment: The signal assignment.
+		"""
+		self._WriteStatementStart(assignment)
+		self._Write(f"{self._Keyword(ReservedWord.With)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartConcurrentSelectedSignalAssignment(self, assignment: ConcurrentSelectedSignalAssignment) -> None:
+		"""
+		Write the semicolon ending a concurrent selected signal assignment.
+
+		:param assignment: The signal assignment.
+		"""
+		self._Write(";\n")
+
+	def VisitConcurrentConditionalSignalAssignment(self, assignment: ConcurrentConditionalSignalAssignment) -> None:
+		"""
+		Write the label, if any, of a concurrent conditional signal assignment.
+
+		**Format:** ``q <= a when sel = '0' else b;``
+
+		:param assignment: The signal assignment.
+		"""
+		self._WriteStatementStart(assignment)
+
+	def DepartConcurrentConditionalSignalAssignment(self, assignment: ConcurrentConditionalSignalAssignment) -> None:
+		"""
+		Write the semicolon ending a concurrent conditional signal assignment.
+
+		:param assignment: The signal assignment.
+		"""
+		self._Write(";\n")
+
+	def VisitConcurrentAssertStatement(self, assertion: ConcurrentAssertStatement) -> None:
+		"""
+		Write the label, if any, and the reserved word ``assert`` of a concurrent assertion.
+
+		**Format:** ``assert BITS > 0 report "no bits" severity failure;``
+
+		:param assertion: The assertion.
+		"""
+		self._WriteStatementStart(assertion)
+		self._Write(f"{self._Keyword(ReservedWord.Assert)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartConcurrentAssertStatement(self, assertion: ConcurrentAssertStatement) -> None:
+		"""
+		Write the semicolon ending a concurrent assertion.
+
+		:param assertion: The assertion.
+		"""
+		self._Write(";\n")

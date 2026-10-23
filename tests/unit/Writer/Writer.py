@@ -153,7 +153,8 @@ class Writers(Testcase):
 		classNames =        {name[len("Depart"):] for name in dir(Visitor) if name.startswith("Depart")}
 		writtenByChildren = {
 			"Symbol", "SimpleAggregateElement", "RangedAggregateElement", "NamedAggregateElement",
-			"ConstrainedScalarSubtypeSymbol", "ConstrainedArraySubtypeSymbol", "ConstrainedRecordSubtypeSymbol", "Document"
+			"ConstrainedScalarSubtypeSymbol", "ConstrainedArraySubtypeSymbol", "ConstrainedRecordSubtypeSymbol", "Document",
+			"WaveformElement", "ConditionalWaveform", "SelectedWaveform", "RangedChoice"
 		}
 		for className in classNames - writtenByChildren:
 			with self.subTest(className=className):

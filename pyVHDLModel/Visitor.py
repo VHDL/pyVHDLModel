@@ -63,7 +63,13 @@ from pyTooling.MetaClasses       import ExtendedType, abstractclass
 if TYPE_CHECKING:
 	from pyVHDLModel               import Document
 	from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin, PortMapAspectMixin
-	from pyVHDLModel.Base          import SimpleRange, RangeFromName
+	from pyVHDLModel.Base          import SimpleRange, RangeFromName, WaveformElement, ReportStatementMixin
+	from pyVHDLModel.Common        import ProcedureCallMixin, SignalAssignmentMixin, WaveformMixin, ConditionalWaveform, \
+	                                      SelectedWaveform, OthersSelectedWaveform, ConditionalWaveformsMixin, \
+	                                      SelectedWaveformsMixin
+	from pyVHDLModel.Concurrent    import ProcessStatement, ConcurrentProcedureCall, ConcurrentSimpleSignalAssignment, \
+	                                      ConcurrentSelectedSignalAssignment, ConcurrentConditionalSignalAssignment, \
+	                                      ConcurrentAssertStatement
 	from pyVHDLModel.Configuration import EntityAspectEntity, EntityAspectConfiguration, EntityAspectOpen, \
 	                                      BindingIndication, AllInstantiationList, OthersInstantiationList, \
 	                                      ComponentConfiguration, BlockConfiguration
@@ -93,6 +99,7 @@ if TYPE_CHECKING:
 	from pyVHDLModel.Object        import WithDefaultExpressionMixin, Constant, DeferredConstant, Variable, \
 	                                      SharedVariable, Signal, File
 	from pyVHDLModel.Regions       import WithGenericsMixin, WithPortsMixin, WithParametersMixin
+	from pyVHDLModel.Sequential    import IndexedChoice, RangedChoice
 	from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
 	from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
 	                                      ConstrainedRecordSubtypeSymbol
@@ -122,7 +129,8 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		self,
 		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol |
 		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification |
-		         GenericMapAspectMixin | PortMapAspectMixin | Reference | ComponentConfiguration
+		         GenericMapAspectMixin | PortMapAspectMixin | Reference | ComponentConfiguration | ProcessStatement |
+		         ProcedureCallMixin | WaveformMixin | SelectedWaveformsMixin
 	) -> None:
 		"""
 		Visit the comma between two items of a list.
@@ -147,18 +155,22 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param expression: The qualified expression.
 		"""
 
-	def VisitWhen(self, expression: WhenElseExpression) -> None:
+	def VisitWhen(
+		self,
+		element: WhenElseExpression | ConditionalWaveform | SelectedWaveform | OthersSelectedWaveform
+	) -> None:
 		"""
-		Visit the reserved word ``when`` between the value and the condition of a conditional expression.
+		Visit the reserved word ``when`` before the condition of a conditional expression or waveform, or before the
+		choices of a selected waveform.
 
-		:param expression: The conditional expression.
+		:param element: The conditional expression, the conditional waveform or the selected waveform.
 		"""
 
-	def VisitElse(self, expression: WhenElseExpression) -> None:
+	def VisitElse(self, element: WhenElseExpression | ConditionalWaveformsMixin) -> None:
 		"""
-		Visit the reserved word ``else`` between the condition and the alternative value of a conditional expression.
+		Visit the reserved word ``else`` before the alternative of a conditional expression or conditional waveforms.
 
-		:param expression: The conditional expression.
+		:param element: The conditional expression or the element with conditional waveforms.
 		"""
 
 	def VisitOperator(self, expression: BinaryExpression) -> None:
@@ -191,7 +203,8 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def VisitIs(
 		self,
-		element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram | Architecture | Configuration
+		element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram | Architecture | Configuration |
+		         ProcessStatement
 	) -> None:
 		"""
 		Visit the reserved word ``is`` between the header and the body of a declaration.
@@ -220,7 +233,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param physicalType: The physical type.
 		"""
 
-	def VisitBegin(self, element: Subprogram | Entity | Architecture) -> None:
+	def VisitBegin(self, element: Subprogram | Entity | Architecture | ProcessStatement) -> None:
 		"""
 		Visit the reserved word ``begin`` between the declarative part and the statement part of an element.
 
@@ -232,6 +245,48 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Visit the reserved word ``return`` before the return type of a function.
 
 		:param function: The function.
+		"""
+
+	def VisitSignalAssignment(self, element: SignalAssignmentMixin) -> None:
+		"""
+		Visit the signal assignment delimiter (``<=``) between the target and the waveform of a signal assignment.
+
+		:param element: The signal assignment.
+		"""
+
+	def VisitAfter(self, element: WaveformElement) -> None:
+		"""
+		Visit the reserved word ``after`` between the value and the delay of a waveform element.
+
+		:param element: The waveform element.
+		"""
+
+	def VisitSelect(self, element: ConcurrentSelectedSignalAssignment) -> None:
+		"""
+		Visit the reserved word ``select`` between the selector and the target of a selected assignment.
+
+		:param element: The selected assignment.
+		"""
+
+	def VisitBar(self, element: SelectedWaveform) -> None:
+		"""
+		Visit the vertical line (``|``) between two choices.
+
+		:param element: The element with the choices.
+		"""
+
+	def VisitReport(self, element: ReportStatementMixin) -> None:
+		"""
+		Visit the reserved word ``report`` before the message of an assertion or report.
+
+		:param element: The assertion or report.
+		"""
+
+	def VisitSeverity(self, element: ReportStatementMixin) -> None:
+		"""
+		Visit the reserved word ``severity`` before the severity level of an assertion or report.
+
+		:param element: The assertion or report.
 		"""
 
 	def VisitNullLiteral(self, literal: NullLiteral) -> None:
@@ -1911,4 +1966,200 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from a document, after its last design unit.
 
 		:param document: The document.
+		"""
+
+	def VisitSensitivityList(self, process: ProcessStatement) -> None:
+		"""
+		Visit the sensitivity list of a process, before its first name.
+
+		:param process: The process.
+		"""
+
+	def DepartSensitivityList(self, process: ProcessStatement) -> None:
+		"""
+		Depart from the sensitivity list of a process, after its last name.
+
+		:param process: The process.
+		"""
+
+	def VisitActualParameterPart(self, call: ProcedureCallMixin) -> None:
+		"""
+		Visit the actual parameter part of a procedure call, before its first association.
+
+		:param call: The procedure call.
+		"""
+
+	def DepartActualParameterPart(self, call: ProcedureCallMixin) -> None:
+		"""
+		Depart from the actual parameter part of a procedure call, after its last association.
+
+		:param call: The procedure call.
+		"""
+
+	def VisitWaveformElement(self, element: WaveformElement) -> None:
+		"""
+		Visit a waveform element, before its value.
+
+		:param element: The waveform element.
+		"""
+
+	def DepartWaveformElement(self, element: WaveformElement) -> None:
+		"""
+		Depart from a waveform element, after its delay.
+
+		:param element: The waveform element.
+		"""
+
+	def VisitConditionalWaveform(self, waveform: ConditionalWaveform) -> None:
+		"""
+		Visit a conditional waveform, before its waveform.
+
+		:param waveform: The conditional waveform.
+		"""
+
+	def DepartConditionalWaveform(self, waveform: ConditionalWaveform) -> None:
+		"""
+		Depart from a conditional waveform, after its condition.
+
+		:param waveform: The conditional waveform.
+		"""
+
+	def VisitSelectedWaveform(self, waveform: SelectedWaveform) -> None:
+		"""
+		Visit a selected waveform, before its waveform.
+
+		:param waveform: The selected waveform.
+		"""
+
+	def DepartSelectedWaveform(self, waveform: SelectedWaveform) -> None:
+		"""
+		Depart from a selected waveform, after its last choice.
+
+		:param waveform: The selected waveform.
+		"""
+
+	def VisitOthersSelectedWaveform(self, waveform: OthersSelectedWaveform) -> None:
+		"""
+		Visit the ``others`` selected waveform, before its waveform.
+
+		:param waveform: The selected waveform.
+		"""
+
+	def DepartOthersSelectedWaveform(self, waveform: OthersSelectedWaveform) -> None:
+		"""
+		Depart from the ``others`` selected waveform, after its waveform.
+
+		:param waveform: The selected waveform.
+		"""
+
+	def VisitIndexedChoice(self, choice: IndexedChoice) -> None:
+		"""
+		Visit a choice given by a value, before its value.
+
+		:param choice: The choice.
+		"""
+
+	def DepartIndexedChoice(self, choice: IndexedChoice) -> None:
+		"""
+		Depart from a choice given by a value, after its value.
+
+		:param choice: The choice.
+		"""
+
+	def VisitRangedChoice(self, choice: RangedChoice) -> None:
+		"""
+		Visit a choice given by a range, before its range.
+
+		:param choice: The choice.
+		"""
+
+	def DepartRangedChoice(self, choice: RangedChoice) -> None:
+		"""
+		Depart from a choice given by a range, after its range.
+
+		:param choice: The choice.
+		"""
+
+	def VisitProcessStatement(self, process: ProcessStatement) -> None:
+		"""
+		Visit a process statement, before its sensitivity list.
+
+		:param process: The process.
+		"""
+
+	def DepartProcessStatement(self, process: ProcessStatement) -> None:
+		"""
+		Depart from a process statement, after its last statement.
+
+		:param process: The process.
+		"""
+
+	def VisitConcurrentProcedureCall(self, call: ConcurrentProcedureCall) -> None:
+		"""
+		Visit a concurrent procedure call, before its procedure.
+
+		:param call: The procedure call.
+		"""
+
+	def DepartConcurrentProcedureCall(self, call: ConcurrentProcedureCall) -> None:
+		"""
+		Depart from a concurrent procedure call, after its parameters.
+
+		:param call: The procedure call.
+		"""
+
+	def VisitConcurrentSimpleSignalAssignment(self, assignment: ConcurrentSimpleSignalAssignment) -> None:
+		"""
+		Visit a concurrent simple signal assignment, before its target.
+
+		:param assignment: The signal assignment.
+		"""
+
+	def DepartConcurrentSimpleSignalAssignment(self, assignment: ConcurrentSimpleSignalAssignment) -> None:
+		"""
+		Depart from a concurrent simple signal assignment, after its waveform.
+
+		:param assignment: The signal assignment.
+		"""
+
+	def VisitConcurrentSelectedSignalAssignment(self, assignment: ConcurrentSelectedSignalAssignment) -> None:
+		"""
+		Visit a concurrent selected signal assignment, before its selector.
+
+		:param assignment: The signal assignment.
+		"""
+
+	def DepartConcurrentSelectedSignalAssignment(self, assignment: ConcurrentSelectedSignalAssignment) -> None:
+		"""
+		Depart from a concurrent selected signal assignment, after its last alternative.
+
+		:param assignment: The signal assignment.
+		"""
+
+	def VisitConcurrentConditionalSignalAssignment(self, assignment: ConcurrentConditionalSignalAssignment) -> None:
+		"""
+		Visit a concurrent conditional signal assignment, before its target.
+
+		:param assignment: The signal assignment.
+		"""
+
+	def DepartConcurrentConditionalSignalAssignment(self, assignment: ConcurrentConditionalSignalAssignment) -> None:
+		"""
+		Depart from a concurrent conditional signal assignment, after its last alternative.
+
+		:param assignment: The signal assignment.
+		"""
+
+	def VisitConcurrentAssertStatement(self, assertion: ConcurrentAssertStatement) -> None:
+		"""
+		Visit a concurrent assertion, before its condition.
+
+		:param assertion: The assertion.
+		"""
+
+	def DepartConcurrentAssertStatement(self, assertion: ConcurrentAssertStatement) -> None:
+		"""
+		Depart from a concurrent assertion, after its severity.
+
+		:param assertion: The assertion.
 		"""

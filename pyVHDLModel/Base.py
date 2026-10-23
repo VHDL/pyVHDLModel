@@ -74,6 +74,10 @@ class ReservedWord(StringEnum):
 
 	A member is a :class:`str`: its value is the reserved word in lower case, e.g. ``ReservedWord.DownTo == "downto"``.
 	The VHDL writer (:mod:`pyVHDLModel.Formatting.VHDL`) applies the configured keyword case to it.
+
+	Each member states the revision of IEEE Std 1076 that first reserved it. Earlier revisions reserved words, which
+	VHDL-2019 doesn't: ``procedural`` and ``reference`` (VHDL-2000 and VHDL-2002), ``assume_guarantee`` and
+	``restrict_guarantee`` (VHDL-2008).
 	"""
 
 	Abs =           "abs"            #: Reserved word since VHDL-87.
@@ -148,7 +152,7 @@ class ReservedWord(StringEnum):
 	Procedure =     "procedure"      #: Reserved word since VHDL-87.
 	Process =       "process"        #: Reserved word since VHDL-87.
 	Property =      "property"       #: Reserved word since VHDL-2008.
-	Protected =     "protected"      #: Reserved word since VHDL-2002.
+	Protected =     "protected"      #: Reserved word since VHDL-2000.
 	Pure =          "pure"           #: Reserved word since VHDL-93.
 	Range =         "range"          #: Reserved word since VHDL-87.
 	Record =        "record"         #: Reserved word since VHDL-87.

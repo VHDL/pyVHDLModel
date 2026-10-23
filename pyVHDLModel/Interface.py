@@ -36,8 +36,9 @@ Interface items are used in generic, port and parameter declarations.
 """
 from __future__             import annotations
 
-from typing                 import TYPE_CHECKING, Iterable, Optional as Nullable, Iterator, Self
+from typing                 import TYPE_CHECKING, ClassVar, Iterable, Optional as Nullable, Iterator, Self
 
+from pyTooling.Common       import getFullyQualifiedName
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
 
@@ -453,6 +454,8 @@ class ParameterInterfaceItemMixin(InterfaceItemMixin, mixin=True):
 	   * :class:`Parameter file interface item <pyVHDLModel.Interface.ParameterFileInterfaceItem>`
 	"""
 
+	_SINGLE_DECLARATION: ClassVar[type[SingleDeclarationMixin]]  #: The class of a single declaration of one identifier.
+
 
 @export
 class GenericConstantInterfaceItem(Constant, GenericInterfaceItemMixin, InterfaceItemWithModeMixin):
@@ -468,6 +471,9 @@ class GenericConstantInterfaceItem(Constant, GenericInterfaceItemMixin, Interfac
 	      --           ^^^^^^^^          <- Subtype
 	      --                       ^     <- DefaultExpression
 	"""
+
+	_SINGLE_DECLARATION: ClassVar[type[SingleDeclarationMixin]]  #: The class of a single declaration of one identifier.
+
 	def __init__(
 		self,
 		identifiers: Iterable[str],
@@ -762,6 +768,8 @@ class PortSignalInterfaceItem(Signal, InterfaceItemMixin):
 	   * :class:`Port simple signal interface item <pyVHDLModel.Interface.PortSimpleSignalInterfaceItem>`
 	   * :class:`Port view signal interface item <pyVHDLModel.Interface.PortViewSignalInterfaceItem>`
 	"""
+
+	_SINGLE_DECLARATION: ClassVar[type[SingleDeclarationMixin]]  #: The class of a single declaration of one identifier.
 
 
 @export
@@ -1324,6 +1332,553 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
 		:returns: Formatted file parameter.
 		"""
 		return self._FormatInterfaceItem()
+
+
+@export
+class SingleDeclarationMixin(metaclass=ExtendedType, mixin=True, expects=("_parent", )):
+	"""
+	A mixin-class for one identifier of a declaration with an identifier list.
+
+	A declaration may declare several identifiers sharing one specification (``a, b : in bit``). IEEE Std 1076 defines it
+	as equivalent to a sequence of single declarations, one per identifier, in list order. A single declaration
+	represents one of them: it has its own identifier and its position in the identifier list, and it accesses the
+	specification of its declaration, which is its parent. It isn't added to its declaration nor to the model.
+
+	.. seealso::
+
+	   :class:`~pyVHDLModel.Interface.SingleGenericDeclarationMixin`
+	      |rarr| A single declaration of a generic.
+	   :class:`~pyVHDLModel.Interface.SinglePortDeclarationMixin`
+	      |rarr| A single declaration of a port.
+	   :class:`~pyVHDLModel.Interface.SingleParameterDeclarationMixin`
+	      |rarr| A single declaration of a parameter.
+	"""
+
+	_DECLARATION_TYPE: ClassVar[type]  #: Accepted type of the declaration.
+
+	_identifier:           str  #: The identifier.
+	_normalizedIdentifier: str  #: The normalized (lower case) identifier.
+	_position:             int  #: The identifier's position in the declaration's identifier list.
+
+	def __init__(self, identifier: str) -> None:
+		"""
+		Initializes a single declaration of one identifier of its parent declaration.
+
+		The identifier is matched case-insensitively; :data:`Identifier` returns it as declared.
+
+		:param identifier:  One of the identifiers of the parent declaration.
+		:raises ValueError: If parameter 'parent' is None.
+		:raises TypeError:  If parameter 'parent' is not of the declaration type this class accepts.
+		:raises ValueError: If parameter 'identifier' is None.
+		:raises TypeError:  If parameter 'identifier' is not of type :class:`str`.
+		:raises ValueError: If parameter 'identifier' is not declared by parameter 'parent'.
+		"""
+		if self._parent is None:
+			raise ValueError("Parameter 'parent' is None.")
+		elif not isinstance(self._parent, self._DECLARATION_TYPE):
+			ex = TypeError(f"Parameter 'parent' is not of type '{self._DECLARATION_TYPE.__name__}'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(self._parent)}'.")
+			raise ex
+
+		if identifier is None:
+			raise ValueError("Parameter 'identifier' is None.")
+		elif not isinstance(identifier, str):
+			ex = TypeError("Parameter 'identifier' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(identifier)}'.")
+			raise ex
+
+		normalizedIdentifier = identifier.lower()
+		try:
+			position = self._parent._normalizedIdentifiers.index(normalizedIdentifier)
+		except ValueError as cause:
+			ex = ValueError("Parameter 'identifier' is not declared by parameter 'parent'.")
+			ex.add_note(f"Got identifier '{identifier}'.")
+			ex.add_note(f"Declared identifiers: {', '.join(self._parent._identifiers)}")
+			raise ex from cause
+
+		self._identifier =           self._parent._identifiers[position]
+		self._normalizedIdentifier = normalizedIdentifier
+		self._position =             position
+
+	@readonly
+	def Identifier(self) -> str:
+		"""
+		Read-only property to access the identifier (:attr:`_identifier`).
+
+		:returns: The identifier, as declared.
+		"""
+		return self._identifier
+
+	@readonly
+	def NormalizedIdentifier(self) -> str:
+		"""
+		Read-only property to access the normalized identifier (:attr:`_normalizedIdentifier`).
+
+		:returns: The normalized (lower case) identifier.
+		"""
+		return self._normalizedIdentifier
+
+	@readonly
+	def Position(self) -> int:
+		"""
+		Read-only property to access the identifier's position in the declaration's identifier list (:attr:`_position`).
+
+		:returns: The zero-based position of the identifier.
+		"""
+		return self._position
+
+	@readonly
+	def Declaration(self) -> MultipleNamedEntityMixin:
+		"""
+		Read-only property to access the declaration, which is the single declaration's parent (:attr:`_parent`).
+
+		:returns: The declaration with the identifier list.
+		"""
+		return self._parent
+
+	@readonly
+	def Subtype(self) -> Symbol:
+		"""
+		Read-only property to access the subtype of the declaration.
+
+		:returns: The declaration's subtype, or its mode view indication if it's declared with a mode view.
+		"""
+		return self._parent._subtype
+
+	@readonly
+	def Documentation(self) -> Nullable[str]:
+		"""
+		Read-only property to access the documentation of the declaration.
+
+		:returns: The declaration's documentation, or ``None`` if it has none.
+		"""
+		return self._parent._documentation
+
+	def __str__(self) -> str:
+		"""
+		Formats the single declaration as its identifier.
+
+		**Format:** ``a``
+
+		:returns: The identifier.
+		"""
+		return self._identifier
+
+
+@export
+class SingleDeclarationWithModeMixin(metaclass=ExtendedType, mixin=True, expects=("_parent", )):
+	"""
+	A mixin-class for single declarations of a declaration with a mode.
+
+	The mode of the declaration is available as :data:`Mode`.
+	"""
+
+	@readonly
+	def Mode(self) -> Mode:
+		"""
+		Read-only property to access the mode of the declaration.
+
+		:returns: The declaration's mode.
+		"""
+		return self._parent._mode
+
+
+@export
+class SingleDeclarationWithDefaultExpressionMixin(metaclass=ExtendedType, mixin=True, expects=("_parent", )):
+	"""
+	A mixin-class for single declarations of a declaration with an optional default expression.
+
+	The default expression of the declaration is available as :data:`DefaultExpression`.
+	"""
+
+	@readonly
+	def DefaultExpression(self) -> Nullable[ExpressionUnion]:
+		"""
+		Read-only property to access the default expression of the declaration.
+
+		:returns: The declaration's default expression, or ``None`` if none was given.
+		"""
+		return self._parent._defaultExpression
+
+
+@export
+class SingleGenericDeclarationMixin(SingleDeclarationMixin, mixin=True):
+	"""
+	A mixin-class for single declarations of a generic.
+
+	Only a generic constant has an identifier list. A generic type, subprogram or package declares exactly one
+	identifier.
+
+	.. seealso::
+
+	   :class:`~pyVHDLModel.Interface.SingleGenericConstantDeclaration`
+	      |rarr| One identifier of a generic constant.
+	"""
+
+
+@export
+class SinglePortDeclarationMixin(SingleDeclarationMixin, mixin=True):
+	"""
+	A mixin-class for single declarations of a port.
+
+	.. seealso::
+
+	   :class:`~pyVHDLModel.Interface.SinglePortSimpleSignalDeclaration`
+	      |rarr| One identifier of a port with a mode.
+	   :class:`~pyVHDLModel.Interface.SinglePortViewSignalDeclaration`
+	      |rarr| One identifier of a port with a mode view.
+	"""
+
+
+@export
+class SingleParameterDeclarationMixin(SingleDeclarationMixin, mixin=True):
+	"""
+	A mixin-class for single declarations of a parameter.
+
+	.. seealso::
+
+	   :class:`~pyVHDLModel.Interface.SingleParameterConstantDeclaration`
+	      |rarr| One identifier of a constant parameter.
+	   :class:`~pyVHDLModel.Interface.SingleParameterVariableDeclaration`
+	      |rarr| One identifier of a variable parameter.
+	   :class:`~pyVHDLModel.Interface.SingleParameterSimpleSignalDeclaration`
+	      |rarr| One identifier of a signal parameter with a mode.
+	   :class:`~pyVHDLModel.Interface.SingleParameterViewSignalDeclaration`
+	      |rarr| One identifier of a signal parameter with a mode view.
+	   :class:`~pyVHDLModel.Interface.SingleParameterFileDeclaration`
+	      |rarr| One identifier of a file parameter.
+	"""
+
+
+@export
+class SingleGenericConstantDeclaration(
+	ModelEntity,
+	SingleGenericDeclarationMixin,
+	SingleDeclarationWithModeMixin,
+	SingleDeclarationWithDefaultExpressionMixin
+):
+	"""
+	Represents one identifier of a generic constant.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      generic (WIDTH, DEPTH : positive := 8);
+	      --       ^^^^^                         <- first single declaration
+	      --              ^^^^^                  <- second single declaration
+	"""
+
+	_DECLARATION_TYPE: ClassVar[type] = GenericConstantInterfaceItem  #: Accepted type of the declaration.
+
+	def __init__(self, identifier: str, *, parent: GenericConstantInterfaceItem) -> None:
+		"""
+		Initializes a single declaration of one identifier of a generic constant.
+
+		:param identifier:  One of the identifiers of ``parent``.
+		:param parent:      The generic constant declaring the identifier.
+		:raises ValueError: If parameter 'parent' is None.
+		:raises TypeError:  If parameter 'parent' is not of type :class:`GenericConstantInterfaceItem`.
+		:raises ValueError: If parameter 'identifier' is None.
+		:raises TypeError:  If parameter 'identifier' is not of type :class:`str`.
+		:raises ValueError: If parameter 'identifier' is not declared by parameter 'parent'.
+		"""
+		super().__init__(parent)
+		SingleGenericDeclarationMixin.__init__(self, identifier)
+
+
+GenericConstantInterfaceItem._SINGLE_DECLARATION = SingleGenericConstantDeclaration
+
+
+@export
+class SinglePortSimpleSignalDeclaration(
+	ModelEntity,
+	SinglePortDeclarationMixin,
+	SingleDeclarationWithModeMixin,
+	SingleDeclarationWithDefaultExpressionMixin
+):
+	"""
+	Represents one identifier of a port with a mode.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      port (a, b : in bit);
+	      --    ^                <- first single declaration
+	      --       ^             <- second single declaration
+	"""
+
+	_DECLARATION_TYPE: ClassVar[type] = PortSimpleSignalInterfaceItem  #: Accepted type of the declaration.
+
+	def __init__(self, identifier: str, *, parent: PortSimpleSignalInterfaceItem) -> None:
+		"""
+		Initializes a single declaration of one identifier of a port with a mode.
+
+		:param identifier:  One of the identifiers of ``parent``.
+		:param parent:      The port declaring the identifier.
+		:raises ValueError: If parameter 'parent' is None.
+		:raises TypeError:  If parameter 'parent' is not of type :class:`PortSimpleSignalInterfaceItem`.
+		:raises ValueError: If parameter 'identifier' is None.
+		:raises TypeError:  If parameter 'identifier' is not of type :class:`str`.
+		:raises ValueError: If parameter 'identifier' is not declared by parameter 'parent'.
+		"""
+		super().__init__(parent)
+		SinglePortDeclarationMixin.__init__(self, identifier)
+
+
+PortSimpleSignalInterfaceItem._SINGLE_DECLARATION = SinglePortSimpleSignalDeclaration
+
+
+@export
+class SinglePortViewSignalDeclaration(
+	ModelEntity,
+	SinglePortDeclarationMixin,
+	SingleDeclarationWithDefaultExpressionMixin
+):
+	"""
+	Represents one identifier of a port with a mode view.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      port (a, b : view axi_slave);
+	      --    ^                        <- first single declaration
+	      --       ^                     <- second single declaration
+	"""
+
+	_DECLARATION_TYPE: ClassVar[type] = PortViewSignalInterfaceItem  #: Accepted type of the declaration.
+
+	def __init__(self, identifier: str, *, parent: PortViewSignalInterfaceItem) -> None:
+		"""
+		Initializes a single declaration of one identifier of a port with a mode view.
+
+		:param identifier:  One of the identifiers of ``parent``.
+		:param parent:      The port declaring the identifier.
+		:raises ValueError: If parameter 'parent' is None.
+		:raises TypeError:  If parameter 'parent' is not of type :class:`PortViewSignalInterfaceItem`.
+		:raises ValueError: If parameter 'identifier' is None.
+		:raises TypeError:  If parameter 'identifier' is not of type :class:`str`.
+		:raises ValueError: If parameter 'identifier' is not declared by parameter 'parent'.
+		"""
+		super().__init__(parent)
+		SinglePortDeclarationMixin.__init__(self, identifier)
+
+	@readonly
+	def ModeViewIndication(self) -> ModeViewSymbol:
+		"""
+		Read-only property to access the mode view indication of the declaration.
+
+		:returns: The declaration's mode view indication.
+		"""
+		return self._parent._subtype
+
+
+PortViewSignalInterfaceItem._SINGLE_DECLARATION = SinglePortViewSignalDeclaration
+
+
+@export
+class SingleParameterConstantDeclaration(
+	ModelEntity,
+	SingleParameterDeclarationMixin,
+	SingleDeclarationWithModeMixin,
+	SingleDeclarationWithDefaultExpressionMixin
+):
+	"""
+	Represents one identifier of a constant parameter.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      procedure p(constant a, b : in integer);
+	      --                   ^                    <- first single declaration
+	      --                      ^                 <- second single declaration
+	"""
+
+	_DECLARATION_TYPE: ClassVar[type] = ParameterConstantInterfaceItem  #: Accepted type of the declaration.
+
+	def __init__(self, identifier: str, *, parent: ParameterConstantInterfaceItem) -> None:
+		"""
+		Initializes a single declaration of one identifier of a constant parameter.
+
+		:param identifier:  One of the identifiers of ``parent``.
+		:param parent:      The parameter declaring the identifier.
+		:raises ValueError: If parameter 'parent' is None.
+		:raises TypeError:  If parameter 'parent' is not of type :class:`ParameterConstantInterfaceItem`.
+		:raises ValueError: If parameter 'identifier' is None.
+		:raises TypeError:  If parameter 'identifier' is not of type :class:`str`.
+		:raises ValueError: If parameter 'identifier' is not declared by parameter 'parent'.
+		"""
+		super().__init__(parent)
+		SingleParameterDeclarationMixin.__init__(self, identifier)
+
+
+ParameterConstantInterfaceItem._SINGLE_DECLARATION = SingleParameterConstantDeclaration
+
+
+@export
+class SingleParameterVariableDeclaration(
+	ModelEntity,
+	SingleParameterDeclarationMixin,
+	SingleDeclarationWithModeMixin,
+	SingleDeclarationWithDefaultExpressionMixin
+):
+	"""
+	Represents one identifier of a variable parameter.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      procedure p(variable a, b : inout integer);
+	      --                   ^                       <- first single declaration
+	      --                      ^                    <- second single declaration
+	"""
+
+	_DECLARATION_TYPE: ClassVar[type] = ParameterVariableInterfaceItem  #: Accepted type of the declaration.
+
+	def __init__(self, identifier: str, *, parent: ParameterVariableInterfaceItem) -> None:
+		"""
+		Initializes a single declaration of one identifier of a variable parameter.
+
+		:param identifier:  One of the identifiers of ``parent``.
+		:param parent:      The parameter declaring the identifier.
+		:raises ValueError: If parameter 'parent' is None.
+		:raises TypeError:  If parameter 'parent' is not of type :class:`ParameterVariableInterfaceItem`.
+		:raises ValueError: If parameter 'identifier' is None.
+		:raises TypeError:  If parameter 'identifier' is not of type :class:`str`.
+		:raises ValueError: If parameter 'identifier' is not declared by parameter 'parent'.
+		"""
+		super().__init__(parent)
+		SingleParameterDeclarationMixin.__init__(self, identifier)
+
+
+ParameterVariableInterfaceItem._SINGLE_DECLARATION = SingleParameterVariableDeclaration
+
+
+@export
+class SingleParameterSimpleSignalDeclaration(
+	ModelEntity,
+	SingleParameterDeclarationMixin,
+	SingleDeclarationWithModeMixin,
+	SingleDeclarationWithDefaultExpressionMixin
+):
+	"""
+	Represents one identifier of a signal parameter with a mode.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      procedure p(signal a, b : in bit);
+	      --                 ^                <- first single declaration
+	      --                    ^             <- second single declaration
+	"""
+
+	_DECLARATION_TYPE: ClassVar[type] = ParameterSimpleSignalInterfaceItem  #: Accepted type of the declaration.
+
+	def __init__(self, identifier: str, *, parent: ParameterSimpleSignalInterfaceItem) -> None:
+		"""
+		Initializes a single declaration of one identifier of a signal parameter with a mode.
+
+		:param identifier:  One of the identifiers of ``parent``.
+		:param parent:      The parameter declaring the identifier.
+		:raises ValueError: If parameter 'parent' is None.
+		:raises TypeError:  If parameter 'parent' is not of type :class:`ParameterSimpleSignalInterfaceItem`.
+		:raises ValueError: If parameter 'identifier' is None.
+		:raises TypeError:  If parameter 'identifier' is not of type :class:`str`.
+		:raises ValueError: If parameter 'identifier' is not declared by parameter 'parent'.
+		"""
+		super().__init__(parent)
+		SingleParameterDeclarationMixin.__init__(self, identifier)
+
+
+ParameterSimpleSignalInterfaceItem._SINGLE_DECLARATION = SingleParameterSimpleSignalDeclaration
+
+
+@export
+class SingleParameterViewSignalDeclaration(
+	ModelEntity,
+	SingleParameterDeclarationMixin,
+	SingleDeclarationWithDefaultExpressionMixin
+):
+	"""
+	Represents one identifier of a signal parameter with a mode view.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      procedure p(signal a, b : view axi_slave);
+	      --                 ^                        <- first single declaration
+	      --                    ^                     <- second single declaration
+	"""
+
+	_DECLARATION_TYPE: ClassVar[type] = ParameterViewSignalInterfaceItem  #: Accepted type of the declaration.
+
+	def __init__(self, identifier: str, *, parent: ParameterViewSignalInterfaceItem) -> None:
+		"""
+		Initializes a single declaration of one identifier of a signal parameter with a mode view.
+
+		:param identifier:  One of the identifiers of ``parent``.
+		:param parent:      The parameter declaring the identifier.
+		:raises ValueError: If parameter 'parent' is None.
+		:raises TypeError:  If parameter 'parent' is not of type :class:`ParameterViewSignalInterfaceItem`.
+		:raises ValueError: If parameter 'identifier' is None.
+		:raises TypeError:  If parameter 'identifier' is not of type :class:`str`.
+		:raises ValueError: If parameter 'identifier' is not declared by parameter 'parent'.
+		"""
+		super().__init__(parent)
+		SingleParameterDeclarationMixin.__init__(self, identifier)
+
+	@readonly
+	def ModeViewIndication(self) -> ModeViewSymbol:
+		"""
+		Read-only property to access the mode view indication of the declaration.
+
+		:returns: The declaration's mode view indication.
+		"""
+		return self._parent._subtype
+
+
+ParameterViewSignalInterfaceItem._SINGLE_DECLARATION = SingleParameterViewSignalDeclaration
+
+
+@export
+class SingleParameterFileDeclaration(ModelEntity, SingleParameterDeclarationMixin):
+	"""
+	Represents one identifier of a file parameter.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      procedure p(file a, b : text);
+	      --               ^              <- first single declaration
+	      --                  ^           <- second single declaration
+	"""
+
+	_DECLARATION_TYPE: ClassVar[type] = ParameterFileInterfaceItem  #: Accepted type of the declaration.
+
+	def __init__(self, identifier: str, *, parent: ParameterFileInterfaceItem) -> None:
+		"""
+		Initializes a single declaration of one identifier of a file parameter.
+
+		:param identifier:  One of the identifiers of ``parent``.
+		:param parent:      The parameter declaring the identifier.
+		:raises ValueError: If parameter 'parent' is None.
+		:raises TypeError:  If parameter 'parent' is not of type :class:`ParameterFileInterfaceItem`.
+		:raises ValueError: If parameter 'identifier' is None.
+		:raises TypeError:  If parameter 'identifier' is not of type :class:`str`.
+		:raises ValueError: If parameter 'identifier' is not declared by parameter 'parent'.
+		"""
+		super().__init__(parent)
+		SingleParameterDeclarationMixin.__init__(self, identifier)
+
+
+ParameterFileInterfaceItem._SINGLE_DECLARATION = SingleParameterFileDeclaration
 
 
 @export

@@ -65,9 +65,16 @@ class _DerivedPortSimpleSignalInterfaceItem(PortSimpleSignalInterfaceItem):
 
 class CopyMethods(Testcase):
 	def test_Constructor(self) -> None:
-		"""Every interface item and mode view element class has a ``Copy()`` calling its own constructor."""
+		"""
+		Every interface item and mode view element class has a ``Copy()`` calling its own constructor.
+
+		A single declaration is a view of one identifier of its declaration, created when iterated, and has no copy.
+		"""
 		withoutCopy = (ModeViewDeclaration, InterfaceGroup, GenericGroup, PortGroup, ParameterGroup)
-		classes = [cls for cls in _concreteModelClasses(InterfaceModule) if cls not in withoutCopy]
+		classes = [
+			cls for cls in _concreteModelClasses(InterfaceModule)
+			if cls not in withoutCopy and not issubclass(cls, InterfaceModule.SingleDeclarationMixin)
+		]
 
 		self.assertIn(ParameterFileInterfaceItem, classes)
 		self.assertListEqual([], _copyAboveConstructor(classes))

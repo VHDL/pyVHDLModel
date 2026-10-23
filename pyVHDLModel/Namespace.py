@@ -36,7 +36,7 @@ A helper class to implement namespaces and scopes.
 """
 from __future__            import annotations
 
-from typing                import TYPE_CHECKING, TypeVar, Generic, Optional as Nullable, Any
+from typing                import TYPE_CHECKING, TypeVar, Generic, Optional as Nullable
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import readonly
@@ -47,7 +47,7 @@ from pyVHDLModel.Object    import Obj, Signal, Constant, Variable
 from pyVHDLModel.Symbol    import ComponentInstantiationSymbol, Symbol, PossibleReference
 from pyVHDLModel.Exception import DuplicateDeclarationWarning, NotInNamespaceError
 if TYPE_CHECKING:
-	from pyVHDLModel.Type   import Subtype, FullType, BaseType
+	from pyVHDLModel.Type   import BaseType
 
 K = TypeVar("K")
 O = TypeVar("O")

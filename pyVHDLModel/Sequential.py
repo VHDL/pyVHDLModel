@@ -52,8 +52,8 @@ from pyVHDLModel.Common      import AssignmentMixin, SignalAssignmentMixin, Vari
 from pyVHDLModel.Common      import ConditionalWaveform, ConditionalExpression
 from pyVHDLModel.Common      import ConditionalWaveformsMixin, WaveformMixin
 from pyVHDLModel.Common      import ExpressionMixin, SelectedWaveformsMixin, SelectedExpressionsMixin
-from pyVHDLModel.Common      import SelectedWaveform, OthersSelectedWaveform
-from pyVHDLModel.Common      import SelectedExpression, OthersSelectedExpression
+from pyVHDLModel.Common      import SelectedWaveform
+from pyVHDLModel.Common      import SelectedExpression
 from pyVHDLModel.Association import ParameterAssociationItem
 
 if TYPE_CHECKING:

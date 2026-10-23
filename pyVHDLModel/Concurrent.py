@@ -47,7 +47,6 @@ from pyVHDLModel.Base        import ElsifBranchMixin, ElseBranchMixin, AssertSta
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
 from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
 from pyVHDLModel.Regions     import WithGenericsMixin, WithPortsMixin
-from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
 from pyVHDLModel.Symbol      import Symbol, SignalSymbol
@@ -57,7 +56,7 @@ from pyVHDLModel.Association import GenericAssociationItem, PortAssociationItem
 from pyVHDLModel.Association import GenericMapAspectMixin, PortMapAspectMixin
 from pyVHDLModel.Interface   import PortInterfaceItemMixin, GenericInterfaceItemMixin
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin, AllowBlackboxMixin
-from pyVHDLModel.Common      import ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform
+from pyVHDLModel.Common      import ConditionalWaveform, SelectedWaveform
 from pyVHDLModel.Common      import ConditionalWaveformsMixin, WaveformMixin
 from pyVHDLModel.Common      import ExpressionMixin, SelectedWaveformsMixin
 from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatementsMixin
@@ -1364,8 +1363,6 @@ class IfGenerateStatement(GenerateStatement):
 
 	@GenerateStatement.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
-		from pyVHDLModel.DesignUnit import Architecture
-
 		GenerateStatement.Parent.fset(self, parent)
 
 		# Connect namespaces

@@ -1349,7 +1349,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		.. rubric:: Algorithm
 
-		1. Replace the dependency, compile-order, hierarchy and object graph by empty graphs, and forget the top-level.
+		1. Delete the dependency, compile-order, hierarchy and object graph (:meth:`~pyTooling.Graph.Graph.Delete`), so
+		   their vertices and edges are freed at once, replace them by empty graphs, and forget the top-level.
 		2. Clear the references to vertices of all libraries, documents and design units.
 		3. Clear the references of all design units: referenced libraries, packages and contexts, the symbols of library
 		   clauses, use clauses and context references, and the items imported into namespaces.
@@ -1359,6 +1360,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		6. Unbind all components: their entity and blackbox state.
 		7. Clear the symbols of entity and component instantiations.
 		"""
+		self._dependencyGraph.Delete()
+		self._compileOrderGraph.Delete()
+		self._hierarchyGraph.Delete()
+		self._objectGraph.Delete()
+
 		self._dependencyGraph =   Graph()
 		self._compileOrderGraph = Graph()
 		self._hierarchyGraph =    Graph()

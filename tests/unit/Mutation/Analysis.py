@@ -317,6 +317,22 @@ class ResetAnalysis(Testcase):
 			self.assertDictEqual({}, designUnit.ReferencedPackages)
 			self.assertDictEqual({}, designUnit.ReferencedContexts)
 
+	def test_ResetAnalysis_GraphsDeleted(self) -> None:
+		"""The previous graphs are deleted: no vertex or edge is left in them."""
+		design = _design(_packages(), _leaf(), _top())
+		design.Analyze()
+		graphs = (design.DependencyGraph, design.CompileOrderGraph, design.HierarchyGraph)
+		vertex = design.GetEntity("lib", "top").DependencyVertex
+
+		design.ResetAnalysis()
+
+		for graph in graphs:
+			self.assertEqual(0, graph.VertexCount)
+			self.assertEqual(0, graph.EdgeCount)
+
+		self.assertEqual(0, len(vertex.OutboundEdges))
+		self.assertEqual(0, len(vertex.InboundEdges))
+
 	def test_ResetAnalysis_Links(self) -> None:
 		design = _design(_packages(), _leaf(), _top())
 		design.Analyze()

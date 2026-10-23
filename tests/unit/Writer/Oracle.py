@@ -43,7 +43,8 @@ from pyTooling.Testing           import Testcase
 from pyVHDLModel                 import Document
 from pyVHDLModel.Association     import ParameterAssociationItem, GenericAssociationItem, PortAssociationItem
 from pyVHDLModel.Base            import Direction, Mode, SimpleRange, WaveformElement
-from pyVHDLModel.Common          import ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform
+from pyVHDLModel.Common          import ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform, \
+                                        ConditionalExpression, SelectedExpression, OthersSelectedExpression
 from pyVHDLModel.Concurrent      import ProcessStatement, ConcurrentProcedureCall, ConcurrentSimpleSignalAssignment, \
                                         ConcurrentSelectedSignalAssignment, ConcurrentConditionalSignalAssignment, \
                                         ConcurrentAssertStatement, ComponentInstantiation, EntityInstantiation, \
@@ -81,7 +82,13 @@ from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTyp
                                         GenericFunctionInterfaceItem
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, AttributeName, SelectedName, AllName, OpenName
 from pyVHDLModel.Object          import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
-from pyVHDLModel.Sequential      import IndexedChoice, RangedChoice
+from pyVHDLModel.Sequential      import IndexedChoice, RangedChoice, SequentialProcedureCall, \
+                                        SequentialSimpleSignalAssignment, SequentialVariableAssignment, \
+                                        SequentialConditionalVariableAssignment, \
+                                        SequentialConditionalSignalAssignment, SequentialSelectedVariableAssignment, \
+                                        SequentialSelectedSignalAssignment, SignalForceAssignment, \
+                                        SignalReleaseAssignment, SequentialReportStatement, SequentialAssertStatement, \
+                                        NullStatement, ReturnStatement, WaitStatement
 from pyVHDLModel.Subprogram      import Procedure, Function, ProcedureMethod, FunctionMethod
 from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol, IndexedObjectOrFunctionCallSymbol, \
                                         ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
@@ -90,7 +97,7 @@ from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol
                                         ContextReferenceSymbol, EntitySymbol, ArchitectureSymbol, PackageSymbol, \
                                         PackageReferenceSymbol, ComponentInstantiationSymbol, SignalSymbol, \
                                         EntityInstantiationSymbol, ConfigurationInstantiationSymbol, \
-                                        ConfigurationSymbol
+                                        ConfigurationSymbol, VariableSymbol
 from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
                                         ArrayType, RecordTypeElement, RecordType, AccessType, FileType, ProtectedType, \
                                         ProtectedTypeBody
@@ -880,6 +887,77 @@ class GHDLOracleConcurrentStatements(Testcase):
 		for style in (VHDLStyle(), VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs)):
 			with self.subTest(style=style.KeywordCase):
 				source = header + VHDLWriter(style).Format(architecture)
+
+				result = _analyze(source)
+
+				self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)
+
+
+@skipIf(_GHDL is None, "GHDL is not on PATH.")
+class GHDLOracleSequentialStatements(Testcase):
+	def test_Statements(self) -> None:
+		def signal(name: str) -> SignalSymbol:
+			"""Nested function returning a reference to a signal."""
+			return SignalSymbol(SimpleName(name))
+
+		def variable(name: str) -> VariableSymbol:
+			"""Nested function returning a reference to a variable."""
+			return VariableSymbol(SimpleName(name))
+
+		statements = [
+			SequentialSimpleSignalAssignment(signal("q"), [WaveformElement(_object("d"), PhysicalIntegerLiteral(1, "ns"))]),
+			SequentialVariableAssignment(variable("v"), AdditionExpression(_object("v"), IntegerLiteral(1)), "increment"),
+			SequentialConditionalVariableAssignment(variable("v"), [
+				ConditionalExpression(IntegerLiteral(1), _object("en")),
+				ConditionalExpression(IntegerLiteral(0))
+			]),
+			SequentialConditionalSignalAssignment(signal("q"), [
+				ConditionalWaveform([WaveformElement(_object("d"))], _object("en")),
+				ConditionalWaveform([WaveformElement(CharacterLiteral("0"))])
+			]),
+			SequentialSelectedVariableAssignment(variable("v"), _object("v"), [
+				SelectedExpression([IndexedChoice(IntegerLiteral(0)), IndexedChoice(IntegerLiteral(1))], IntegerLiteral(2)),
+				OthersSelectedExpression(IntegerLiteral(0))
+			]),
+			SequentialSelectedSignalAssignment(signal("q"), _object("v"), [
+				SelectedWaveform([IndexedChoice(IntegerLiteral(0))], [WaveformElement(CharacterLiteral("1"))]),
+				OthersSelectedWaveform([WaveformElement(CharacterLiteral("0"))])
+			]),
+			SignalForceAssignment(signal("q"), CharacterLiteral("1")),
+			SignalReleaseAssignment(signal("q")),
+			SequentialProcedureCall(_object("check"), [ParameterAssociationItem(None, _object("v"))]),
+			SequentialReportStatement(StringLiteral("tick"), _object("note")),
+			SequentialAssertStatement(_object("en"), StringLiteral("disabled"), _object("warning")),
+			NullStatement("nothing"),
+			WaitStatement(
+				[signal("d")],
+				EqualExpression(_object("d"), CharacterLiteral("1")),
+				PhysicalIntegerLiteral(10, "ns")
+			),
+			WaitStatement(),
+		]
+		process = ProcessStatement("p", [Variable(["v"], _integer("natural"), IntegerLiteral(0))], statements)
+		check =   Procedure(
+			"check",
+			parameterItems=[ParameterConstantInterfaceItem(["x"], Mode.In, _integer("natural"))],
+			statements=[ReturnStatement()]
+		)
+		twice =   Function(
+			"twice",
+			_integer("natural"),
+			parameterItems=[ParameterConstantInterfaceItem(["x"], Mode.Default, _integer("natural"))],
+			statements=[ReturnStatement(MultiplyExpression(_object("x"), IntegerLiteral(2)))]
+		)
+		architecture = Architecture("sim", EntitySymbol(SimpleName("tb")), declaredItems=[
+			Signal(["d", "q"], _integer("bit")),
+			Signal(["en"], _integer("boolean"), EnumerationLiteral("true")),
+			check,
+			twice,
+		], statements=[process])
+
+		for style in (VHDLStyle(), VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs)):
+			with self.subTest(style=style.KeywordCase):
+				source = "entity tb is\nend entity;\n\n" + VHDLWriter(style).Format(architecture)
 
 				result = _analyze(source)
 

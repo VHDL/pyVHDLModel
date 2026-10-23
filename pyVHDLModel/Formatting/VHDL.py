@@ -51,7 +51,9 @@ from pyVHDLModel.Base          import ModelElementUnion, ModelEntity, Mode, Rese
                                       WaveformElement, ReportStatementMixin
 from pyVHDLModel.Common        import Statement, ProcedureCallMixin, SignalAssignmentMixin, WaveformMixin, \
                                       ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform, \
-                                      ConditionalWaveformsMixin, SelectedWaveformsMixin
+                                      ConditionalWaveformsMixin, SelectedWaveformsMixin, AssignmentMixin, \
+                                      ConditionalExpression, SelectedExpression, OthersSelectedExpression, \
+                                      SelectedExpressionsMixin
 from pyVHDLModel.Concurrent    import ProcessStatement, ConcurrentProcedureCall, ConcurrentSimpleSignalAssignment, \
                                       ConcurrentSelectedSignalAssignment, ConcurrentConditionalSignalAssignment, \
                                       ConcurrentAssertStatement, ComponentInstantiation, EntityInstantiation, \
@@ -90,7 +92,12 @@ from pyVHDLModel.Instantiation import ProcedureInstantiation, FunctionInstantiat
 from pyVHDLModel.Object        import Obj, WithDefaultExpressionMixin, Constant, DeferredConstant, Variable, \
                                       SharedVariable, Signal, File
 from pyVHDLModel.Regions       import WithGenericsMixin, WithPortsMixin, WithParametersMixin
-from pyVHDLModel.Sequential    import IndexedChoice
+from pyVHDLModel.Sequential    import IndexedChoice, SequentialProcedureCall, SequentialSimpleSignalAssignment, \
+                                      SequentialVariableAssignment, SequentialConditionalVariableAssignment, \
+                                      SequentialConditionalSignalAssignment, SequentialSelectedVariableAssignment, \
+                                      SequentialSelectedSignalAssignment, SignalForceAssignment, \
+                                      SignalReleaseAssignment, SequentialReportStatement, SequentialAssertStatement, \
+                                      NullStatement, ReturnStatement, WaitStatement
 from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
 from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
                                       ConstrainedRecordSubtypeSymbol
@@ -341,7 +348,7 @@ class VHDLWriter(Visitor):
 		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol |
 		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification |
 		         GenericMapAspectMixin | PortMapAspectMixin | Reference | ComponentConfiguration | ProcessStatement |
-		         ProcedureCallMixin | WaveformMixin | SelectedWaveformsMixin
+		         ProcedureCallMixin | WaveformMixin | SelectedWaveformsMixin | SelectedExpressionsMixin | WaitStatement
 	) -> None:
 		"""
 		Write the comma between two items of a list.
@@ -394,12 +401,13 @@ class VHDLWriter(Visitor):
 
 	def VisitWhen(
 		self,
-		element: WhenElseExpression | ConditionalWaveform | SelectedWaveform | OthersSelectedWaveform
+		element: WhenElseExpression | ConditionalWaveform | SelectedWaveform | OthersSelectedWaveform |
+		         ConditionalExpression | SelectedExpression | OthersSelectedExpression
 	) -> None:
 		"""
-		Write the reserved word ``when`` of a conditional expression, a conditional waveform or a selected waveform.
+		Write the reserved word ``when`` of a conditional expression or waveform, or of a selected waveform or expression.
 
-		:param element: The conditional expression, the conditional waveform or the selected waveform.
+		:param element: The conditional expression, the conditional waveform or the selected waveform or expression.
 		"""
 		self._Write(f" {self._Keyword(ReservedWord.When)} ")
 		if isinstance(element, WhenElseExpression):
@@ -430,11 +438,14 @@ class VHDLWriter(Visitor):
 		"""
 		return " ".join(self._Keyword(keyword) for keyword in keywords)
 
-	def VisitElse(self, element: WhenElseExpression | ConditionalWaveformsMixin) -> None:
+	def VisitElse(
+		self,
+		element: WhenElseExpression | ConditionalWaveformsMixin | SequentialConditionalVariableAssignment
+	) -> None:
 		"""
-		Write the reserved word ``else`` of a conditional expression or between conditional waveforms.
+		Write the reserved word ``else`` of a conditional expression or between the alternatives of an assignment.
 
-		:param element: The conditional expression or the element with conditional waveforms.
+		:param element: The conditional expression or the conditional assignment.
 		"""
 		self._Write(f" {self._Keyword(ReservedWord.Else)} ")
 		if isinstance(element, WhenElseExpression):
@@ -1185,11 +1196,11 @@ class VHDLWriter(Visitor):
 		else:
 			self._Write(" " * (self._indentation * self._style.IndentSize))
 
-	def VisitVariableAssignment(self, element: WithDefaultExpressionMixin) -> None:
+	def VisitVariableAssignment(self, element: WithDefaultExpressionMixin | AssignmentMixin) -> None:
 		"""
-		Write the variable assignment delimiter (``:=``) before a default expression.
+		Write the variable assignment delimiter (``:=``) before a default expression or the value of a variable assignment.
 
-		:param element: The element with the default expression.
+		:param element: The element with the default expression or the variable assignment.
 		"""
 		self._Write(" := ")
 		self._minimum = OperatorPrecedence.Range
@@ -2656,9 +2667,15 @@ class VHDLWriter(Visitor):
 		"""
 		Write the signal assignment delimiter (``<=``) between the target and the waveform of a signal assignment.
 
+		In a force assignment, the reserved word ``force`` follows.
+
 		:param element: The signal assignment.
 		"""
-		self._Write(" <= ")
+		if isinstance(element, SignalForceAssignment):
+			self._Write(f" <= {self._Keyword(ReservedWord.Force)} ")
+		else:
+			self._Write(" <= ")
+
 		self._minimum = OperatorPrecedence.Range
 
 	def VisitAfter(self, element: WaveformElement) -> None:
@@ -2670,7 +2687,11 @@ class VHDLWriter(Visitor):
 		self._Write(f" {self._Keyword(ReservedWord.After)} ")
 		self._minimum = OperatorPrecedence.Range
 
-	def VisitSelect(self, element: ConcurrentSelectedSignalAssignment) -> None:
+	def VisitSelect(
+		self,
+		element: ConcurrentSelectedSignalAssignment | SequentialSelectedVariableAssignment |
+		         SequentialSelectedSignalAssignment
+	) -> None:
 		"""
 		Write the reserved word ``select`` between the selector and the target of a selected assignment.
 
@@ -2678,7 +2699,7 @@ class VHDLWriter(Visitor):
 		"""
 		self._Write(f" {self._Keyword(ReservedWord.Select)} ")
 
-	def VisitBar(self, element: SelectedWaveform | GenerateCase) -> None:
+	def VisitBar(self, element: SelectedWaveform | GenerateCase | SelectedExpression) -> None:
 		"""
 		Write the vertical line (``|``) between two choices.
 
@@ -2691,9 +2712,15 @@ class VHDLWriter(Visitor):
 		"""
 		Write the reserved word ``report`` before the message of an assertion or report.
 
+		A report statement starts with the reserved word.
+
 		:param element: The assertion or report.
 		"""
-		self._Write(f" {self._Keyword(ReservedWord.Report)} ")
+		if isinstance(element, SequentialReportStatement):
+			self._Write(f"{self._Keyword(ReservedWord.Report)} ")
+		else:
+			self._Write(f" {self._Keyword(ReservedWord.Report)} ")
+
 		self._minimum = OperatorPrecedence.Range
 
 	def VisitSeverity(self, element: ReportStatementMixin) -> None:
@@ -3185,3 +3212,295 @@ class VHDLWriter(Visitor):
 		:param statement: The for-generate statement.
 		"""
 		self._WriteEnd((ReservedWord.Generate,), statement.Label)
+
+	def VisitOn(self, statement: WaitStatement) -> None:
+		"""
+		Write the reserved word ``on`` before the sensitivity list of a wait statement.
+
+		:param statement: The wait statement.
+		"""
+		self._Write(f" {self._Keyword(ReservedWord.On)} ")
+
+	def VisitUntil(self, statement: WaitStatement) -> None:
+		"""
+		Write the reserved word ``until`` before the condition of a wait statement.
+
+		:param statement: The wait statement.
+		"""
+		self._Write(f" {self._Keyword(ReservedWord.Until)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def VisitFor(self, statement: WaitStatement) -> None:
+		"""
+		Write the reserved word ``for`` before the timeout of a wait statement.
+
+		:param statement: The wait statement.
+		"""
+		self._Write(f" {self._Keyword(ReservedWord.For)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartOthersSelectedExpression(self, expression: OthersSelectedExpression) -> None:
+		"""
+		Write the choice ``others`` of the ``others`` selected expression.
+
+		**Format:** ``'0' when others``
+
+		:param expression: The selected expression.
+		"""
+		self._Write(self._Keyword(ReservedWord.Others))
+
+	def VisitSequentialProcedureCall(self, call: SequentialProcedureCall) -> None:
+		"""
+		Write the label, if any, of a procedure call.
+
+		**Format:** ``check(value, limit => 4);``
+
+		:param call: The procedure call.
+		"""
+		self._WriteStatementStart(call)
+
+	def DepartSequentialProcedureCall(self, call: SequentialProcedureCall) -> None:
+		"""
+		Write the semicolon ending a procedure call.
+
+		:param call: The procedure call.
+		"""
+		self._Write(";\n")
+
+	def VisitSequentialSimpleSignalAssignment(self, assignment: SequentialSimpleSignalAssignment) -> None:
+		"""
+		Write the label, if any, of a signal assignment.
+
+		**Format:** ``q <= d after 1 ns;``
+
+		:param assignment: The signal assignment.
+		"""
+		self._WriteStatementStart(assignment)
+
+	def DepartSequentialSimpleSignalAssignment(self, assignment: SequentialSimpleSignalAssignment) -> None:
+		"""
+		Write the semicolon ending a signal assignment.
+
+		:param assignment: The signal assignment.
+		"""
+		self._Write(";\n")
+
+	def VisitSequentialVariableAssignment(self, assignment: SequentialVariableAssignment) -> None:
+		"""
+		Write the label, if any, of a variable assignment.
+
+		**Format:** ``count := count + 1;``
+
+		:param assignment: The variable assignment.
+		"""
+		self._WriteStatementStart(assignment)
+
+	def DepartSequentialVariableAssignment(self, assignment: SequentialVariableAssignment) -> None:
+		"""
+		Write the semicolon ending a variable assignment.
+
+		:param assignment: The variable assignment.
+		"""
+		self._Write(";\n")
+
+	def VisitSequentialConditionalVariableAssignment(self, assignment: SequentialConditionalVariableAssignment) -> None:
+		"""
+		Write the label, if any, of a conditional variable assignment.
+
+		**Format:** ``v := a when sel = '0' else b;``
+
+		:param assignment: The conditional variable assignment.
+		"""
+		self._WriteStatementStart(assignment)
+
+	def DepartSequentialConditionalVariableAssignment(self, assignment: SequentialConditionalVariableAssignment) -> None:
+		"""
+		Write the semicolon ending a conditional variable assignment.
+
+		:param assignment: The conditional variable assignment.
+		"""
+		self._Write(";\n")
+
+	def VisitSequentialConditionalSignalAssignment(self, assignment: SequentialConditionalSignalAssignment) -> None:
+		"""
+		Write the label, if any, of a conditional signal assignment.
+
+		**Format:** ``q <= a when sel = '0' else b;``
+
+		:param assignment: The conditional signal assignment.
+		"""
+		self._WriteStatementStart(assignment)
+
+	def DepartSequentialConditionalSignalAssignment(self, assignment: SequentialConditionalSignalAssignment) -> None:
+		"""
+		Write the semicolon ending a conditional signal assignment.
+
+		:param assignment: The conditional signal assignment.
+		"""
+		self._Write(";\n")
+
+	def VisitSequentialSelectedVariableAssignment(self, assignment: SequentialSelectedVariableAssignment) -> None:
+		"""
+		Write the label, if any, and the reserved word ``with`` of a selected variable assignment.
+
+		**Format:** ``with sel select v := a when '0', b when others;``
+
+		:param assignment: The selected variable assignment.
+		"""
+		self._WriteStatementStart(assignment)
+		self._Write(f"{self._Keyword(ReservedWord.With)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartSequentialSelectedVariableAssignment(self, assignment: SequentialSelectedVariableAssignment) -> None:
+		"""
+		Write the semicolon ending a selected variable assignment.
+
+		:param assignment: The selected variable assignment.
+		"""
+		self._Write(";\n")
+
+	def VisitSequentialSelectedSignalAssignment(self, assignment: SequentialSelectedSignalAssignment) -> None:
+		"""
+		Write the label, if any, and the reserved word ``with`` of a selected signal assignment.
+
+		**Format:** ``with sel select q <= a when '0', b when others;``
+
+		:param assignment: The selected signal assignment.
+		"""
+		self._WriteStatementStart(assignment)
+		self._Write(f"{self._Keyword(ReservedWord.With)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartSequentialSelectedSignalAssignment(self, assignment: SequentialSelectedSignalAssignment) -> None:
+		"""
+		Write the semicolon ending a selected signal assignment.
+
+		:param assignment: The selected signal assignment.
+		"""
+		self._Write(";\n")
+
+	def VisitSignalForceAssignment(self, assignment: SignalForceAssignment) -> None:
+		"""
+		Write the label, if any, of a force assignment.
+
+		**Format:** ``q <= force '1';``
+
+		:param assignment: The force assignment.
+		"""
+		self._WriteStatementStart(assignment)
+
+	def DepartSignalForceAssignment(self, assignment: SignalForceAssignment) -> None:
+		"""
+		Write the semicolon ending a force assignment.
+
+		:param assignment: The force assignment.
+		"""
+		self._Write(";\n")
+
+	def VisitSignalReleaseAssignment(self, assignment: SignalReleaseAssignment) -> None:
+		"""
+		Write the label, if any, of a release assignment.
+
+		**Format:** ``q <= release;``
+
+		:param assignment: The release assignment.
+		"""
+		self._WriteStatementStart(assignment)
+
+	def DepartSignalReleaseAssignment(self, assignment: SignalReleaseAssignment) -> None:
+		"""
+		Write the reserved word ``release`` and the semicolon ending a release assignment.
+
+		:param assignment: The release assignment.
+		"""
+		self._Write(f"{self._Keyword(ReservedWord.Release)};\n")
+
+	def VisitSequentialReportStatement(self, statement: SequentialReportStatement) -> None:
+		"""
+		Write the label, if any, of a report statement.
+
+		**Format:** ``report "done" severity note;``
+
+		:param statement: The report statement.
+		"""
+		self._WriteStatementStart(statement)
+
+	def DepartSequentialReportStatement(self, statement: SequentialReportStatement) -> None:
+		"""
+		Write the semicolon ending a report statement.
+
+		:param statement: The report statement.
+		"""
+		self._Write(";\n")
+
+	def VisitSequentialAssertStatement(self, assertion: SequentialAssertStatement) -> None:
+		"""
+		Write the label, if any, and the reserved word ``assert`` of an assertion.
+
+		**Format:** ``assert count < 8 report "overflow" severity error;``
+
+		:param assertion: The assertion.
+		"""
+		self._WriteStatementStart(assertion)
+		self._Write(f"{self._Keyword(ReservedWord.Assert)} ")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartSequentialAssertStatement(self, assertion: SequentialAssertStatement) -> None:
+		"""
+		Write the semicolon ending an assertion.
+
+		:param assertion: The assertion.
+		"""
+		self._Write(";\n")
+
+	def VisitNullStatement(self, statement: NullStatement) -> None:
+		"""
+		Write a null statement.
+
+		**Format:** ``null;``
+
+		:param statement: The null statement.
+		"""
+		self._WriteStatementStart(statement)
+		self._Write(f"{self._Keyword(ReservedWord.Null)};\n")
+
+	def VisitReturnStatement(self, statement: ReturnStatement) -> None:
+		"""
+		Write the label, if any, and the reserved word ``return`` of a return statement.
+
+		**Format:** ``return count;``
+
+		:param statement: The return statement.
+		"""
+		self._WriteStatementStart(statement)
+		self._Write(self._Keyword(ReservedWord.Return))
+		if statement.ReturnValue is not None:
+			self._Write(" ")
+			self._minimum = OperatorPrecedence.Range
+
+	def DepartReturnStatement(self, statement: ReturnStatement) -> None:
+		"""
+		Write the semicolon ending a return statement.
+
+		:param statement: The return statement.
+		"""
+		self._Write(";\n")
+
+	def VisitWaitStatement(self, statement: WaitStatement) -> None:
+		"""
+		Write the label, if any, and the reserved word ``wait`` of a wait statement.
+
+		**Format:** ``wait on clk until clk = '1' for 10 ns;``
+
+		:param statement: The wait statement.
+		"""
+		self._WriteStatementStart(statement)
+		self._Write(self._Keyword(ReservedWord.Wait))
+
+	def DepartWaitStatement(self, statement: WaitStatement) -> None:
+		"""
+		Write the semicolon ending a wait statement.
+
+		:param statement: The wait statement.
+		"""
+		self._Write(";\n")

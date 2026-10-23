@@ -66,7 +66,8 @@ if TYPE_CHECKING:
 	from pyVHDLModel.Base          import SimpleRange, RangeFromName, WaveformElement, ReportStatementMixin
 	from pyVHDLModel.Common        import ProcedureCallMixin, SignalAssignmentMixin, WaveformMixin, ConditionalWaveform, \
 	                                      SelectedWaveform, OthersSelectedWaveform, ConditionalWaveformsMixin, \
-	                                      SelectedWaveformsMixin
+	                                      SelectedWaveformsMixin, AssignmentMixin, ConditionalExpression, \
+	                                      SelectedExpression, OthersSelectedExpression, SelectedExpressionsMixin
 	from pyVHDLModel.Concurrent    import ProcessStatement, ConcurrentProcedureCall, ConcurrentSimpleSignalAssignment, \
 	                                      ConcurrentSelectedSignalAssignment, ConcurrentConditionalSignalAssignment, \
 	                                      ConcurrentAssertStatement, ComponentInstantiation, EntityInstantiation, \
@@ -104,7 +105,13 @@ if TYPE_CHECKING:
 	from pyVHDLModel.Object        import WithDefaultExpressionMixin, Constant, DeferredConstant, Variable, \
 	                                      SharedVariable, Signal, File
 	from pyVHDLModel.Regions       import WithGenericsMixin, WithPortsMixin, WithParametersMixin
-	from pyVHDLModel.Sequential    import IndexedChoice, RangedChoice
+	from pyVHDLModel.Sequential    import IndexedChoice, RangedChoice, SequentialProcedureCall, \
+	                                      SequentialSimpleSignalAssignment, SequentialVariableAssignment, \
+	                                      SequentialConditionalVariableAssignment, \
+	                                      SequentialConditionalSignalAssignment, SequentialSelectedVariableAssignment, \
+	                                      SequentialSelectedSignalAssignment, SignalForceAssignment, \
+	                                      SignalReleaseAssignment, SequentialReportStatement, SequentialAssertStatement, \
+	                                      NullStatement, ReturnStatement, WaitStatement
 	from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
 	from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
 	                                      ConstrainedRecordSubtypeSymbol
@@ -138,7 +145,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol |
 		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification |
 		         GenericMapAspectMixin | PortMapAspectMixin | Reference | ComponentConfiguration | ProcessStatement |
-		         ProcedureCallMixin | WaveformMixin | SelectedWaveformsMixin
+		         ProcedureCallMixin | WaveformMixin | SelectedWaveformsMixin | SelectedExpressionsMixin | WaitStatement
 	) -> None:
 		"""
 		Visit the comma between two items of a list.
@@ -166,20 +173,24 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def VisitWhen(
 		self,
-		element: WhenElseExpression | ConditionalWaveform | SelectedWaveform | OthersSelectedWaveform
+		element: WhenElseExpression | ConditionalWaveform | SelectedWaveform | OthersSelectedWaveform |
+		         ConditionalExpression | SelectedExpression | OthersSelectedExpression
 	) -> None:
 		"""
 		Visit the reserved word ``when`` before the condition of a conditional expression or waveform, or before the
-		choices of a selected waveform.
+		choices of a selected waveform or expression.
 
-		:param element: The conditional expression, the conditional waveform or the selected waveform.
+		:param element: The conditional expression, the conditional waveform or the selected waveform or expression.
 		"""
 
-	def VisitElse(self, element: WhenElseExpression | ConditionalWaveformsMixin) -> None:
+	def VisitElse(
+		self,
+		element: WhenElseExpression | ConditionalWaveformsMixin | SequentialConditionalVariableAssignment
+	) -> None:
 		"""
-		Visit the reserved word ``else`` before the alternative of a conditional expression or conditional waveforms.
+		Visit the reserved word ``else`` before the alternative of a conditional expression or a conditional assignment.
 
-		:param element: The conditional expression or the element with conditional waveforms.
+		:param element: The conditional expression or the conditional assignment.
 		"""
 
 	def VisitOperator(self, expression: BinaryExpression) -> None:
@@ -203,11 +214,11 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The element containing the interface list.
 		"""
 
-	def VisitVariableAssignment(self, element: WithDefaultExpressionMixin) -> None:
+	def VisitVariableAssignment(self, element: WithDefaultExpressionMixin | AssignmentMixin) -> None:
 		"""
-		Visit the variable assignment delimiter (``:=``) before a default expression.
+		Visit the variable assignment delimiter (``:=``) before a default expression or the value of a variable assignment.
 
-		:param element: The element with the default expression.
+		:param element: The element with the default expression or the variable assignment.
 		"""
 
 	def VisitIs(
@@ -274,14 +285,18 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The waveform element.
 		"""
 
-	def VisitSelect(self, element: ConcurrentSelectedSignalAssignment) -> None:
+	def VisitSelect(
+		self,
+		element: ConcurrentSelectedSignalAssignment | SequentialSelectedVariableAssignment |
+		         SequentialSelectedSignalAssignment
+	) -> None:
 		"""
 		Visit the reserved word ``select`` between the selector and the target of a selected assignment.
 
 		:param element: The selected assignment.
 		"""
 
-	def VisitBar(self, element: SelectedWaveform | GenerateCase) -> None:
+	def VisitBar(self, element: SelectedWaveform | GenerateCase | SelectedExpression) -> None:
 		"""
 		Visit the vertical line (``|``) between two choices.
 
@@ -314,6 +329,27 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Visit the reserved word ``generate`` before the body of a generate statement or branch.
 
 		:param element: The generate statement or branch.
+		"""
+
+	def VisitOn(self, statement: WaitStatement) -> None:
+		"""
+		Visit the reserved word ``on`` before the sensitivity list of a wait statement.
+
+		:param statement: The wait statement.
+		"""
+
+	def VisitUntil(self, statement: WaitStatement) -> None:
+		"""
+		Visit the reserved word ``until`` before the condition of a wait statement.
+
+		:param statement: The wait statement.
+		"""
+
+	def VisitFor(self, statement: WaitStatement) -> None:
+		"""
+		Visit the reserved word ``for`` before the timeout of a wait statement.
+
+		:param statement: The wait statement.
 		"""
 
 	def VisitNullLiteral(self, literal: NullLiteral) -> None:
@@ -2385,4 +2421,242 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from a for-generate statement, after its last statement.
 
 		:param statement: The for-generate statement.
+		"""
+
+	def VisitConditionalExpression(self, expression: ConditionalExpression) -> None:
+		"""
+		Visit a conditional expression of a conditional variable assignment, before its value.
+
+		:param expression: The conditional expression.
+		"""
+
+	def DepartConditionalExpression(self, expression: ConditionalExpression) -> None:
+		"""
+		Depart from a conditional expression of a conditional variable assignment, after its condition.
+
+		:param expression: The conditional expression.
+		"""
+
+	def VisitSelectedExpression(self, expression: SelectedExpression) -> None:
+		"""
+		Visit a selected expression of a selected variable assignment, before its value.
+
+		:param expression: The selected expression.
+		"""
+
+	def DepartSelectedExpression(self, expression: SelectedExpression) -> None:
+		"""
+		Depart from a selected expression of a selected variable assignment, after its last choice.
+
+		:param expression: The selected expression.
+		"""
+
+	def VisitOthersSelectedExpression(self, expression: OthersSelectedExpression) -> None:
+		"""
+		Visit the ``others`` selected expression of a selected variable assignment, before its value.
+
+		:param expression: The selected expression.
+		"""
+
+	def DepartOthersSelectedExpression(self, expression: OthersSelectedExpression) -> None:
+		"""
+		Depart from the ``others`` selected expression of a selected variable assignment, after its value.
+
+		:param expression: The selected expression.
+		"""
+
+	def VisitSequentialProcedureCall(self, call: SequentialProcedureCall) -> None:
+		"""
+		Visit a sequential procedure call, before its procedure.
+
+		:param call: The procedure call.
+		"""
+
+	def DepartSequentialProcedureCall(self, call: SequentialProcedureCall) -> None:
+		"""
+		Depart from a sequential procedure call, after its parameters.
+
+		:param call: The procedure call.
+		"""
+
+	def VisitSequentialSimpleSignalAssignment(self, assignment: SequentialSimpleSignalAssignment) -> None:
+		"""
+		Visit a sequential simple signal assignment, before its target.
+
+		:param assignment: The signal assignment.
+		"""
+
+	def DepartSequentialSimpleSignalAssignment(self, assignment: SequentialSimpleSignalAssignment) -> None:
+		"""
+		Depart from a sequential simple signal assignment, after its waveform.
+
+		:param assignment: The signal assignment.
+		"""
+
+	def VisitSequentialVariableAssignment(self, assignment: SequentialVariableAssignment) -> None:
+		"""
+		Visit a variable assignment, before its target.
+
+		:param assignment: The variable assignment.
+		"""
+
+	def DepartSequentialVariableAssignment(self, assignment: SequentialVariableAssignment) -> None:
+		"""
+		Depart from a variable assignment, after its expression.
+
+		:param assignment: The variable assignment.
+		"""
+
+	def VisitSequentialConditionalVariableAssignment(self, assignment: SequentialConditionalVariableAssignment) -> None:
+		"""
+		Visit a conditional variable assignment, before its target.
+
+		:param assignment: The variable assignment.
+		"""
+
+	def DepartSequentialConditionalVariableAssignment(self, assignment: SequentialConditionalVariableAssignment) -> None:
+		"""
+		Depart from a conditional variable assignment, after its last alternative.
+
+		:param assignment: The variable assignment.
+		"""
+
+	def VisitSequentialConditionalSignalAssignment(self, assignment: SequentialConditionalSignalAssignment) -> None:
+		"""
+		Visit a sequential conditional signal assignment, before its target.
+
+		:param assignment: The signal assignment.
+		"""
+
+	def DepartSequentialConditionalSignalAssignment(self, assignment: SequentialConditionalSignalAssignment) -> None:
+		"""
+		Depart from a sequential conditional signal assignment, after its last alternative.
+
+		:param assignment: The signal assignment.
+		"""
+
+	def VisitSequentialSelectedVariableAssignment(self, assignment: SequentialSelectedVariableAssignment) -> None:
+		"""
+		Visit a selected variable assignment, before its selector.
+
+		:param assignment: The variable assignment.
+		"""
+
+	def DepartSequentialSelectedVariableAssignment(self, assignment: SequentialSelectedVariableAssignment) -> None:
+		"""
+		Depart from a selected variable assignment, after its last alternative.
+
+		:param assignment: The variable assignment.
+		"""
+
+	def VisitSequentialSelectedSignalAssignment(self, assignment: SequentialSelectedSignalAssignment) -> None:
+		"""
+		Visit a sequential selected signal assignment, before its selector.
+
+		:param assignment: The signal assignment.
+		"""
+
+	def DepartSequentialSelectedSignalAssignment(self, assignment: SequentialSelectedSignalAssignment) -> None:
+		"""
+		Depart from a sequential selected signal assignment, after its last alternative.
+
+		:param assignment: The signal assignment.
+		"""
+
+	def VisitSignalForceAssignment(self, assignment: SignalForceAssignment) -> None:
+		"""
+		Visit a force assignment, before its target.
+
+		:param assignment: The force assignment.
+		"""
+
+	def DepartSignalForceAssignment(self, assignment: SignalForceAssignment) -> None:
+		"""
+		Depart from a force assignment, after its expression.
+
+		:param assignment: The force assignment.
+		"""
+
+	def VisitSignalReleaseAssignment(self, assignment: SignalReleaseAssignment) -> None:
+		"""
+		Visit a release assignment, before its target.
+
+		:param assignment: The release assignment.
+		"""
+
+	def DepartSignalReleaseAssignment(self, assignment: SignalReleaseAssignment) -> None:
+		"""
+		Depart from a release assignment, after its target.
+
+		:param assignment: The release assignment.
+		"""
+
+	def VisitSequentialReportStatement(self, statement: SequentialReportStatement) -> None:
+		"""
+		Visit a report statement, before its message.
+
+		:param statement: The report statement.
+		"""
+
+	def DepartSequentialReportStatement(self, statement: SequentialReportStatement) -> None:
+		"""
+		Depart from a report statement, after its severity.
+
+		:param statement: The report statement.
+		"""
+
+	def VisitSequentialAssertStatement(self, assertion: SequentialAssertStatement) -> None:
+		"""
+		Visit a sequential assertion, before its condition.
+
+		:param assertion: The assertion.
+		"""
+
+	def DepartSequentialAssertStatement(self, assertion: SequentialAssertStatement) -> None:
+		"""
+		Depart from a sequential assertion, after its severity.
+
+		:param assertion: The assertion.
+		"""
+
+	def VisitNullStatement(self, statement: NullStatement) -> None:
+		"""
+		Visit a null statement.
+
+		:param statement: The null statement.
+		"""
+
+	def DepartNullStatement(self, statement: NullStatement) -> None:
+		"""
+		Depart from a null statement.
+
+		:param statement: The null statement.
+		"""
+
+	def VisitReturnStatement(self, statement: ReturnStatement) -> None:
+		"""
+		Visit a return statement, before its value.
+
+		:param statement: The return statement.
+		"""
+
+	def DepartReturnStatement(self, statement: ReturnStatement) -> None:
+		"""
+		Depart from a return statement, after its value.
+
+		:param statement: The return statement.
+		"""
+
+	def VisitWaitStatement(self, statement: WaitStatement) -> None:
+		"""
+		Visit a wait statement, before its sensitivity clause.
+
+		:param statement: The wait statement.
+		"""
+
+	def DepartWaitStatement(self, statement: WaitStatement) -> None:
+		"""
+		Depart from a wait statement, after its timeout clause.
+
+		:param statement: The wait statement.
 		"""

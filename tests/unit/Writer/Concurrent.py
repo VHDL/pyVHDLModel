@@ -185,8 +185,6 @@ class Processes(Testcase):
 		self.assertEqual("process is\nbegin\nend process;\n", VHDLWriter().Format(ProcessStatement()))
 
 	def test_Process_Statements(self) -> None:
-		"""Sequential statements have no walk yet: a process with statements raises, nothing is skipped."""
 		process = ProcessStatement(statements=[NullStatement()])
 
-		with self.assertRaises(NotImplementedError):
-			VHDLWriter().Format(process)
+		self.assertEqual("process is\nbegin\n  null;\nend process;\n", VHDLWriter().Format(process))

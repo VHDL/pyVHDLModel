@@ -439,6 +439,39 @@ class Documents(Testcase):
 
 		self.assertEqual("Parameter 'document' is not of type 'Document'.", str(context.exception))
 
+	def test_RemoveDocument_PathFreed(self) -> None:
+		"""After a document is removed, another document of the same path can be added."""
+		document = _document(Entity("ent"))
+		design =   _design(document)
+		other =    _document(Entity("other"))
+		design.RemoveDocument(document)
+
+		design.AddDocument(other, design.GetLibrary("lib"))
+
+		self.assertListEqual([other], design.Documents)
+
+	def test_RemoveDocument_SamePath(self) -> None:
+		"""A document of the same path as a document of the design, but another object, isn't a document of the design."""
+		document = _document(Entity("ent"))
+		design =   _design(document)
+		other =    _document(Entity("other"))
+
+		with self.assertRaises(NotAChildError):
+			design.RemoveDocument(other)
+
+		self.assertListEqual([document], design.Documents)
+
+	def test_RemoveDocument_Order(self) -> None:
+		"""Removing a document keeps the order of the others."""
+		first =  _document(Entity("a"), path="a.vhdl")
+		second = _document(Entity("b"), path="b.vhdl")
+		third =  _document(Entity("c"), path="c.vhdl")
+		design = _design(first, second, third)
+
+		design.RemoveDocument(second)
+
+		self.assertListEqual([first, third], design.Documents)
+
 	def test_RemoveDocument_NotAChild(self) -> None:
 		design = Design("design")
 		document = Document(Path("design.vhdl"))

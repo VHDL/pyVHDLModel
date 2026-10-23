@@ -448,6 +448,26 @@ class PortMapAspectMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return self._portAssociationItems
 
+	def _VisitPortMapAspect(self, visitor: Visitor) -> None:
+		"""
+		Walk the port map aspect, if there are port associations, with a visitor.
+
+		The associations are separated by commas.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if len(self._portAssociationItems) == 0:
+			return
+
+		visitor.VisitPortMapAspect(self)
+		for index, item in enumerate(self._portAssociationItems):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			item.Visit(visitor)
+
+		visitor.DepartPortMapAspect(self)
+
 	def AddPortAssociationItem(self, portAssociationItem: PortAssociationItem) -> None:
 		"""
 		Add a port association at the end of the port map aspect.

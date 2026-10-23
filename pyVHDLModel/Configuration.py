@@ -36,7 +36,7 @@ identical configuration specifications), and block configurations.
 """
 from __future__              import annotations
 
-from typing                  import Iterable, Union, Optional as Nullable
+from typing                  import TYPE_CHECKING, Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
@@ -47,6 +47,9 @@ from pyVHDLModel.Symbol      import Symbol, EntitySymbol, ArchitectureSymbol, Co
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol
 from pyVHDLModel.Association import GenericAssociationItem, PortAssociationItem
 from pyVHDLModel.Association import GenericMapAspectMixin, PortMapAspectMixin
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor   import Visitor
 
 
 @export
@@ -110,6 +113,20 @@ class EntityAspectEntity(EntityAspect):
 		if architecture is not None:
 			architecture.Parent = self
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this entity aspect, its entity and its architecture (if any) with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitEntityAspectEntity(self)
+		self._entity.Visit(visitor)
+		if self._architecture is not None:
+			visitor.VisitLeftParenthesis(self)
+			self._architecture.Visit(visitor)
+
+		visitor.DepartEntityAspectEntity(self)
+
 	@readonly
 	def Entity(self) -> EntitySymbol:
 		"""
@@ -156,6 +173,16 @@ class EntityAspectConfiguration(EntityAspect):
 		self._configuration = configuration
 		configuration.Parent = self
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this entity aspect and its configuration with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitEntityAspectConfiguration(self)
+		self._configuration.Visit(visitor)
+		visitor.DepartEntityAspectConfiguration(self)
+
 	@readonly
 	def Configuration(self) -> ConfigurationSymbol:
 		"""
@@ -178,6 +205,15 @@ class EntityAspectOpen(EntityAspect):
 	      use open;
 	      --  ^^^^    <- the aspect
 	"""
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this open entity aspect with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitEntityAspectOpen(self)
+		visitor.DepartEntityAspectOpen(self)
 
 
 @export
@@ -214,6 +250,20 @@ class BindingIndication(ModelEntity, GenericMapAspectMixin, PortMapAspectMixin):
 		if entityAspect is not None:
 			entityAspect.Parent = self
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this binding indication, its entity aspect and its map aspects with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitBindingIndication(self)
+		if self._entityAspect is not None:
+			self._entityAspect.Visit(visitor)
+
+		self._VisitGenericMapAspect(visitor)
+		self._VisitPortMapAspect(visitor)
+		visitor.DepartBindingIndication(self)
+
 	@readonly
 	def EntityAspect(self) -> Nullable[EntityAspect]:
 		"""
@@ -239,6 +289,15 @@ class AllInstantiationList(ModelEntity):
 	      --  ^^^                                      <- the instantiation list
 	"""
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this ``all`` instantiation list with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAllInstantiationList(self)
+		visitor.DepartAllInstantiationList(self)
+
 
 @export
 class OthersInstantiationList(ModelEntity):
@@ -252,6 +311,15 @@ class OthersInstantiationList(ModelEntity):
 	      for others : comp use entity work.sub(behav);
 	      --  ^^^^^^                                      <- the instantiation list
 	"""
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this ``others`` instantiation list with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitOthersInstantiationList(self)
+		visitor.DepartOthersInstantiationList(self)
 
 
 InstantiationListUnion = Union[list[Name], AllInstantiationList, OthersInstantiationList]
@@ -308,6 +376,30 @@ class ComponentConfiguration(ModelEntity):
 		self._bindingIndication = bindingIndication
 		if bindingIndication is not None:
 			bindingIndication.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this component configuration, its component specification and its binding indication with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitComponentConfiguration(self)
+		visitor.VisitInstantiationList(self)
+		if isinstance(self._instantiationList, list):
+			for index, label in enumerate(self._instantiationList):
+				if index > 0:
+					visitor.VisitComma(self)
+
+				label.Visit(visitor)
+		else:
+			self._instantiationList.Visit(visitor)
+
+		visitor.DepartInstantiationList(self)
+		self._componentName.Visit(visitor)
+		if self._bindingIndication is not None:
+			self._bindingIndication.Visit(visitor)
+
+		visitor.DepartComponentConfiguration(self)
 
 	@readonly
 	def InstantiationList(self) -> InstantiationListUnion:
@@ -379,6 +471,21 @@ class BlockConfiguration(ModelEntity):
 			for item in items:
 				self._items.append(item)
 				item.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this block configuration, its block specification and its nested configurations with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitBlockConfiguration(self)
+		visitor.VisitBlockSpecification(self)
+		self._blockSpecification.Visit(visitor)
+		visitor.DepartBlockSpecification(self)
+		for item in self._items:
+			item.Visit(visitor)
+
+		visitor.DepartBlockConfiguration(self)
 
 	@readonly
 	def BlockSpecification(self) -> Symbol:

@@ -46,10 +46,16 @@ from pyTooling.Common          import getFullyQualifiedName
 from pyTooling.Decorators      import export, readonly
 from pyTooling.MetaClasses     import ExtendedType
 
-from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin
+from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin, PortMapAspectMixin
 from pyVHDLModel.Base          import ModelElementUnion, ModelEntity, Direction, Mode, SimpleRange, RangeFromName
+from pyVHDLModel.Configuration import EntityAspectEntity, EntityAspectConfiguration, EntityAspectOpen
+from pyVHDLModel.Configuration import BindingIndication, AllInstantiationList, OthersInstantiationList
+from pyVHDLModel.Configuration import ComponentConfiguration, BlockConfiguration
 from pyVHDLModel.Declaration   import EntityClass, Attribute, AttributeSpecification, Alias
-from pyVHDLModel.DesignUnit    import Package, Component
+from pyVHDLModel.DesignUnit    import (
+	Reference, LibraryClause, UseClause, ContextReference, DesignUnit, Context, Package, PackageBody, Entity,
+	Architecture, Configuration, Component
+)
 from pyVHDLModel.Exception     import VHDLWriterError
 from pyVHDLModel.Expression    import (
 	OperatorPrecedence, NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral,
@@ -69,7 +75,7 @@ from pyVHDLModel.Interface     import (
 	ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem, GenericProcedureInterfaceItem,
 	GenericFunctionInterfaceItem
 )
-from pyVHDLModel.Instantiation import ProcedureInstantiation, FunctionInstantiation
+from pyVHDLModel.Instantiation import ProcedureInstantiation, FunctionInstantiation, PackageInstantiation
 from pyVHDLModel.Name          import AllName, OpenName
 from pyVHDLModel.Object        import Obj, WithDefaultExpressionMixin, Constant, DeferredConstant, Variable
 from pyVHDLModel.Object        import SharedVariable, Signal, File
@@ -301,7 +307,7 @@ class VHDLWriter(Visitor):
 		element.Visit(self)
 		return "".join(self._buffer)
 
-	def VisitLeftParenthesis(self, element: IndexedName | ParenthesisName | TypeConversion) -> None:
+	def VisitLeftParenthesis(self, element: IndexedName | ParenthesisName | TypeConversion | EntityAspectEntity) -> None:
 		"""
 		Write the left parenthesis opening a parenthesized list.
 
@@ -322,7 +328,7 @@ class VHDLWriter(Visitor):
 		self,
 		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol |
 		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification |
-		         GenericMapAspectMixin
+		         GenericMapAspectMixin | PortMapAspectMixin | Reference | ComponentConfiguration
 	) -> None:
 		"""
 		Write the comma between two items of a list.
@@ -331,7 +337,7 @@ class VHDLWriter(Visitor):
 
 		:param element: The element containing the list.
 		"""
-		if isinstance(element, GenericMapAspectMixin):
+		if isinstance(element, (GenericMapAspectMixin, PortMapAspectMixin)):
 			self._Write(",\n")
 			self._WriteIndentation()
 		else:
@@ -1142,7 +1148,10 @@ class VHDLWriter(Visitor):
 		self._Write(" := ")
 		self._minimum = OperatorPrecedence.Range
 
-	def VisitIs(self, element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram) -> None:
+	def VisitIs(
+		self,
+		element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram | Architecture | Configuration
+	) -> None:
 		"""
 		Write the reserved word ``is`` ending the header of a declaration; its body is indented.
 
@@ -1936,13 +1945,17 @@ class VHDLWriter(Visitor):
 		"""
 		self._Write(";\n")
 
-	def VisitBegin(self, element: Subprogram) -> None:
+	def VisitBegin(self, element: Subprogram | Entity | Architecture) -> None:
 		"""
-		Write the reserved word ``begin`` of a subprogram body on its own line.
+		Write the reserved word ``begin`` before the statement part on its own line.
 
-		:param element: The subprogram.
+		A subprogram declaration and an entity without statements have no ``begin``.
+
+		:param element: The element with a statement part.
 		"""
-		if not self._IsSubprogramBody(element):
+		if isinstance(element, Subprogram) and not self._IsSubprogramBody(element):
+			return
+		elif isinstance(element, Entity) and len(element.Statements) == 0:
 			return
 
 		self._indentation -= 1
@@ -2009,10 +2022,18 @@ class VHDLWriter(Visitor):
 
 		:param element: The element with a generic map aspect.
 		"""
+		self._WriteMapAspect("generic")
+
+	def _WriteMapAspect(self, keyword: str) -> None:
+		"""
+		Write the reserved words of a map aspect and the left parenthesis on a new line, one indentation level deeper.
+
+		:param keyword: The reserved word ``generic`` or ``port`` in lower case.
+		"""
 		self._Write("\n")
 		self._indentation += 1
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword('generic')} {self._Keyword('map')} (\n")
+		self._Write(f"{self._Keyword(keyword)} {self._Keyword('map')} (\n")
 		self._indentation += 1
 		self._WriteIndentation()
 
@@ -2184,3 +2205,378 @@ class VHDLWriter(Visitor):
 		:param body: The protected type body.
 		"""
 		self._WriteEnd("protected body", body.Identifier)
+
+	def VisitPortMapAspect(self, element: PortMapAspectMixin) -> None:
+		"""
+		Write the reserved words ``port map`` and the left parenthesis on a new line; each association is on its own line.
+
+		**Format:** ``port map (`` ... ``)``
+
+		:param element: The element with a port map aspect.
+		"""
+		self._WriteMapAspect("port")
+
+	def DepartPortMapAspect(self, element: PortMapAspectMixin) -> None:
+		"""
+		Write the right parenthesis of a port map aspect on its own line.
+
+		:param element: The element with a port map aspect.
+		"""
+		self._WriteClosingParenthesis("")
+		self._indentation -= 1
+
+	def VisitContextClause(self, designUnit: DesignUnit) -> None:
+		"""
+		Separate a design unit by a blank line from the text written before it.
+
+		:param designUnit: The design unit.
+		"""
+		if len(self._buffer) > 0:
+			self._Write("\n")
+
+	def DepartContextClause(self, designUnit: DesignUnit) -> None:
+		"""
+		Separate the context items of a design unit by a blank line from the design unit.
+
+		:param designUnit: The design unit.
+		"""
+		if len(designUnit.ContextItems) > 0:
+			self._Write("\n")
+
+	def VisitLibraryClause(self, clause: LibraryClause) -> None:
+		"""
+		Write the reserved word ``library`` of a library clause.
+
+		**Format:** ``library ieee;``
+
+		:param clause: The library clause.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('library')} ")
+
+	def DepartLibraryClause(self, clause: LibraryClause) -> None:
+		"""
+		Write the semicolon ending a library clause.
+
+		:param clause: The library clause.
+		"""
+		self._Write(";\n")
+
+	def VisitUseClause(self, clause: UseClause) -> None:
+		"""
+		Write the reserved word ``use`` of a use clause.
+
+		**Format:** ``use ieee.numeric_std.all;``
+
+		:param clause: The use clause.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('use')} ")
+
+	def DepartUseClause(self, clause: UseClause) -> None:
+		"""
+		Write the semicolon ending a use clause.
+
+		:param clause: The use clause.
+		"""
+		self._Write(";\n")
+
+	def VisitContextReference(self, reference: ContextReference) -> None:
+		"""
+		Write the reserved word ``context`` of a context reference.
+
+		**Format:** ``context ieee.ieee_std_context;``
+
+		:param reference: The context reference.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('context')} ")
+
+	def DepartContextReference(self, reference: ContextReference) -> None:
+		"""
+		Write the semicolon ending a context reference.
+
+		:param reference: The context reference.
+		"""
+		self._Write(";\n")
+
+	def VisitContext(self, context: Context) -> None:
+		"""
+		Write the header of a context declaration; its context items are indented.
+
+		**Format:** ``context project is`` ... ``end context project;``
+
+		:param context: The context declaration.
+		"""
+		self._WriteUnitHeader("context", context.Identifier)
+
+	def _WriteUnitHeader(self, keywords: str, identifier: str) -> None:
+		"""
+		Write the reserved words, the identifier and the reserved word ``is`` of a header; the body is indented.
+
+		:param keywords:   The reserved words before the identifier in lower case.
+		:param identifier: The identifier.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword(keywords)} {identifier} {self._Keyword('is')}\n")
+		self._indentation += 1
+
+	def DepartContext(self, context: Context) -> None:
+		"""
+		Write the end of a context declaration.
+
+		:param context: The context declaration.
+		"""
+		self._WriteEnd("context", context.Identifier)
+
+	def VisitPackage(self, package: Package) -> None:
+		"""
+		Write the header of a package declaration; its generic clause and declared items are indented.
+
+		**Format:** ``package utilities is`` ... ``end package utilities;``
+
+		:param package: The package declaration.
+		"""
+		self._WriteUnitHeader("package", package.Identifier)
+
+	def DepartPackage(self, package: Package) -> None:
+		"""
+		Write the end of a package declaration.
+
+		:param package: The package declaration.
+		"""
+		self._WriteEnd("package", package.Identifier)
+
+	def VisitPackageBody(self, body: PackageBody) -> None:
+		"""
+		Write the header of a package body; its declared items are indented.
+
+		**Format:** ``package body utilities is`` ... ``end package body utilities;``
+
+		:param body: The package body.
+		"""
+		self._WriteUnitHeader("package body", body.Identifier)
+
+	def DepartPackageBody(self, body: PackageBody) -> None:
+		"""
+		Write the end of a package body.
+
+		:param body: The package body.
+		"""
+		self._WriteEnd("package body", body.Identifier)
+
+	def VisitPackageInstantiation(self, instantiation: PackageInstantiation) -> None:
+		"""
+		Write the reserved word ``package``, the identifier and the reserved words ``is new`` of a package instantiation.
+
+		**Format:** ``package fifo_byte is new work.fifo`` ... ``;``
+
+		:param instantiation: The package instantiation.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('package')} {instantiation.Identifier} {self._Keyword('is')} {self._Keyword('new')} ")
+
+	def DepartPackageInstantiation(self, instantiation: PackageInstantiation) -> None:
+		"""
+		Write the semicolon ending a package instantiation.
+
+		:param instantiation: The package instantiation.
+		"""
+		self._Write(";\n")
+
+	def VisitEntity(self, entity: Entity) -> None:
+		"""
+		Write the header of an entity declaration; its generic and port clauses and its declared items are indented.
+
+		**Format:** ``entity counter is`` ... ``end entity counter;``
+
+		:param entity: The entity declaration.
+		"""
+		self._WriteUnitHeader("entity", entity.Identifier)
+
+	def DepartEntity(self, entity: Entity) -> None:
+		"""
+		Write the end of an entity declaration.
+
+		:param entity: The entity declaration.
+		"""
+		self._WriteEnd("entity", entity.Identifier)
+
+	def VisitArchitecture(self, architecture: Architecture) -> None:
+		"""
+		Write the reserved word ``architecture``, the identifier and the reserved word ``of`` of an architecture body.
+
+		**Format:** ``architecture rtl of counter is`` ... ``begin`` ... ``end architecture rtl;``
+
+		:param architecture: The architecture body.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('architecture')} {architecture.Identifier} {self._Keyword('of')} ")
+
+	def DepartArchitecture(self, architecture: Architecture) -> None:
+		"""
+		Write the end of an architecture body.
+
+		:param architecture: The architecture body.
+		"""
+		self._WriteEnd("architecture", architecture.Identifier)
+
+	def VisitConfiguration(self, configuration: Configuration) -> None:
+		"""
+		Write the reserved word ``configuration``, the identifier and the reserved word ``of`` of a configuration.
+
+		**Format:** ``configuration counter_cfg of counter is`` ... ``end configuration counter_cfg;``
+
+		:param configuration: The configuration declaration.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('configuration')} {configuration.Identifier} {self._Keyword('of')} ")
+
+	def DepartConfiguration(self, configuration: Configuration) -> None:
+		"""
+		Write the end of a configuration declaration.
+
+		:param configuration: The configuration declaration.
+		"""
+		self._WriteEnd("configuration", configuration.Identifier)
+
+	def VisitBlockConfiguration(self, configuration: BlockConfiguration) -> None:
+		"""
+		Write the reserved word ``for`` of a block configuration; its nested configurations are indented.
+
+		**Format:** ``for rtl`` ... ``end for;``
+
+		:param configuration: The block configuration.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('for')} ")
+
+	def DepartBlockSpecification(self, configuration: BlockConfiguration) -> None:
+		"""
+		End the line of a block specification; the nested configurations are indented.
+
+		:param configuration: The block configuration.
+		"""
+		self._Write("\n")
+		self._indentation += 1
+
+	def DepartBlockConfiguration(self, configuration: BlockConfiguration) -> None:
+		"""
+		Write the end of a block configuration.
+
+		:param configuration: The block configuration.
+		"""
+		self._indentation -= 1
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('end')} {self._Keyword('for')};\n")
+
+	def VisitComponentConfiguration(self, configuration: ComponentConfiguration) -> None:
+		"""
+		Write the reserved word ``for`` of a component configuration.
+
+		**Format:** ``for all : counter use entity work.counter(rtl);`` ... ``end for;``
+
+		:param configuration: The component configuration.
+		"""
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('for')} ")
+
+	def DepartInstantiationList(self, configuration: ComponentConfiguration) -> None:
+		"""
+		Write the colon between the instantiation list and the component name of a component configuration.
+
+		:param configuration: The component configuration.
+		"""
+		self._Write(" : ")
+
+	def DepartComponentConfiguration(self, configuration: ComponentConfiguration) -> None:
+		"""
+		Write the end of a component configuration on its own line.
+
+		:param configuration: The component configuration.
+		"""
+		self._Write("\n")
+		self._WriteIndentation()
+		self._Write(f"{self._Keyword('end')} {self._Keyword('for')};\n")
+
+	def VisitBindingIndication(self, indication: BindingIndication) -> None:
+		"""
+		Write the reserved word ``use`` of a binding indication on a new line, one indentation level deeper.
+
+		**Format:** ``use entity work.counter(rtl)`` ... ``;``
+
+		:param indication: The binding indication.
+		"""
+		self._indentation += 1
+		if indication.EntityAspect is not None:
+			self._Write("\n")
+			self._WriteIndentation()
+			self._Write(f"{self._Keyword('use')} ")
+
+	def DepartBindingIndication(self, indication: BindingIndication) -> None:
+		"""
+		Write the semicolon ending a binding indication.
+
+		:param indication: The binding indication.
+		"""
+		self._Write(";")
+		self._indentation -= 1
+
+	def VisitEntityAspectEntity(self, aspect: EntityAspectEntity) -> None:
+		"""
+		Write the reserved word ``entity`` of an entity aspect naming an entity.
+
+		**Format:** ``entity work.counter(rtl)``
+
+		:param aspect: The entity aspect.
+		"""
+		self._Write(f"{self._Keyword('entity')} ")
+
+	def DepartEntityAspectEntity(self, aspect: EntityAspectEntity) -> None:
+		"""
+		Write the right parenthesis after the architecture name of an entity aspect, if any.
+
+		:param aspect: The entity aspect.
+		"""
+		if aspect.Architecture is not None:
+			self._Write(")")
+
+	def VisitEntityAspectConfiguration(self, aspect: EntityAspectConfiguration) -> None:
+		"""
+		Write the reserved word ``configuration`` of an entity aspect naming a configuration.
+
+		**Format:** ``configuration work.counter_cfg``
+
+		:param aspect: The entity aspect.
+		"""
+		self._Write(f"{self._Keyword('configuration')} ")
+
+	def VisitEntityAspectOpen(self, aspect: EntityAspectOpen) -> None:
+		"""
+		Write the reserved word ``open`` of an open entity aspect.
+
+		**Format:** ``open``
+
+		:param aspect: The entity aspect.
+		"""
+		self._Write(self._Keyword("open"))
+
+	def VisitAllInstantiationList(self, instantiationList: AllInstantiationList) -> None:
+		"""
+		Write the reserved word ``all`` of an instantiation list.
+
+		**Format:** ``all``
+
+		:param instantiationList: The instantiation list.
+		"""
+		self._Write(self._Keyword("all"))
+
+	def VisitOthersInstantiationList(self, instantiationList: OthersInstantiationList) -> None:
+		"""
+		Write the reserved word ``others`` of an instantiation list.
+
+		**Format:** ``others``
+
+		:param instantiationList: The instantiation list.
+		"""
+		self._Write(self._Keyword("others"))

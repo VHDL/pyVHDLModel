@@ -30,7 +30,8 @@ abstract literals (e.g. ``16#FF#`` becomes ``255``) are not preserved.
 The writer formats names, symbols, literals, expressions, association items, subtype indications, object
 declarations, interface items, component declarations, mode view declarations, type and subtype declarations, alias
 declarations, attribute declarations and attribute specifications, subprograms, subprogram instantiations and protected
-types (:ref:`WRITER/declarations`). Design units and statements follow.
+types (:ref:`WRITER/declarations`), context items, design units and documents (:ref:`WRITER/designunits`). Statements
+follow.
 
 
 .. _WRITER/visitor:
@@ -243,3 +244,42 @@ Protected types
    ) return T;
 
 Documentation comments of the model (:attr:`~pyVHDLModel.Base.DocumentedEntityMixin.Documentation`) are not written.
+
+
+.. _WRITER/designunits:
+
+Design Units
+************
+
+:meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format` of a :class:`~pyVHDLModel.Document` writes all its design units
+in the document's order, separated by a blank line. Each design unit is preceded by its context items (library clauses,
+use clauses and context references), followed by a blank line.
+
+.. code-block:: VHDL
+
+   library ieee;
+   use ieee.std_logic_1164.all;
+
+   entity counter is
+     generic (
+       BITS : positive := 8
+     );
+     port (
+       clk : in std_logic;
+       count : out natural
+     );
+   end entity counter;
+
+   architecture rtl of counter is
+     signal value : natural := 0;
+   begin
+   end architecture rtl;
+
+Entities, architectures, packages, package bodies, package instantiations, context declarations and configurations are
+written with ``end``, the reserved words of the design unit and its identifier. An entity without statements has no
+``begin``. Concurrent statements have no walk yet, so an entity or architecture with statements raises
+:exc:`NotImplementedError`.
+
+A configuration writes its block configuration, nested block configurations and component configurations, each ending
+with ``end for;``. A binding indication (``use entity work.sub(rtl)``) and its map aspects are indented one level deeper
+than its component configuration; each association of a map aspect is written on its own line.

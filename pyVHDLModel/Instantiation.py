@@ -288,6 +288,18 @@ class PackageInstantiation(Package, GenericInstantiationMixin, GenericMapAspectM
 		self._packageReference = genericPackage
 		self._packageReference.Parent = self
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this package instantiation, its context clause, its generic package and its generic map aspect with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		self._VisitContextClause(visitor)
+		visitor.VisitPackageInstantiation(self)
+		self._packageReference.Visit(visitor)
+		self._VisitGenericMapAspect(visitor)
+		visitor.DepartPackageInstantiation(self)
+
 	@readonly
 	def PackageReference(self) -> PackageReferenceSymbol:
 		"""

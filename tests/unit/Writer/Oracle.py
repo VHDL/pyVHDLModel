@@ -33,16 +33,21 @@ GHDL as oracle for pyVHDLModel.Formatting.VHDL: written expressions must pass ``
 
 Each expression becomes the value of a constant declaration in a package. Skipped if GHDL is not on PATH.
 """
+from pathlib                     import Path
 from textwrap                    import dedent
 from typing                      import Iterable
 from unittest                    import skipIf
 
 from pyTooling.Testing           import Testcase
 
-from pyVHDLModel.Association     import ParameterAssociationItem, GenericAssociationItem
+from pyVHDLModel                 import Document
+from pyVHDLModel.Association     import ParameterAssociationItem, GenericAssociationItem, PortAssociationItem
 from pyVHDLModel.Base            import Direction, Mode, SimpleRange
 from pyVHDLModel.Declaration     import EntityClass, Alias, Attribute, AttributeSpecification
-from pyVHDLModel.DesignUnit      import Component
+from pyVHDLModel.Configuration   import EntityAspectEntity, EntityAspectOpen, BindingIndication, AllInstantiationList
+from pyVHDLModel.Configuration   import OthersInstantiationList, ComponentConfiguration, BlockConfiguration
+from pyVHDLModel.DesignUnit      import LibraryClause, UseClause, ContextReference, Context, Package, PackageBody
+from pyVHDLModel.DesignUnit      import Entity, Architecture, Configuration, Component
 from pyVHDLModel.Expression      import (
 	EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral, PhysicalFloatingLiteral,
 	CharacterLiteral, StringLiteral, BinaryBitStringLiteral, DecimalBitStringLiteral, HexadecimalBitStringLiteral,
@@ -55,19 +60,22 @@ from pyVHDLModel.Expression      import (
 	NamedAggregateElement, OthersAggregateElement, Aggregate
 )
 from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
-from pyVHDLModel.Instantiation   import ProcedureInstantiation, FunctionInstantiation
+from pyVHDLModel.Instantiation   import ProcedureInstantiation, FunctionInstantiation, PackageInstantiation
 from pyVHDLModel.Interface       import (
 	GenericConstantInterfaceItem, GenericTypeInterfaceItem, PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem,
 	ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, ParameterSimpleSignalInterfaceItem,
 	ParameterViewSignalInterfaceItem, ParameterFileInterfaceItem, ModeViewDeclaration, SimpleModeViewElement,
 	CompositeModeViewElement, GenericProcedureInterfaceItem, GenericFunctionInterfaceItem
 )
-from pyVHDLModel.Name            import SimpleName, ParenthesisName, AttributeName
+from pyVHDLModel.Name            import SimpleName, ParenthesisName, AttributeName, SelectedName, AllName, OpenName
 from pyVHDLModel.Object          import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
 from pyVHDLModel.Subprogram      import Procedure, Function, ProcedureMethod, FunctionMethod
 from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol, IndexedObjectOrFunctionCallSymbol
 from pyVHDLModel.Symbol          import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol
 from pyVHDLModel.Symbol          import ConstrainedRecordSubtypeSymbol, ModeViewSymbol, SubprogramReferenceSymbol
+from pyVHDLModel.Symbol          import LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, ContextReferenceSymbol
+from pyVHDLModel.Symbol          import EntitySymbol, ArchitectureSymbol, PackageSymbol, PackageReferenceSymbol
+from pyVHDLModel.Symbol          import ComponentInstantiationSymbol
 from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType
 from pyVHDLModel.Type            import ArrayType, RecordTypeElement, RecordType, AccessType, FileType, ProtectedType
 from pyVHDLModel.Type            import ProtectedTypeBody
@@ -591,6 +599,90 @@ class GHDLOracleDeclarations(Testcase):
 					f"package subprograms is\n{''.join(writer.Format(d) for d in declarations)}end package;\n\n"
 					f"package body subprograms is\n{''.join(writer.Format(b) for b in bodies)}end package body;\n"
 				)
+
+				result = _analyze(source)
+
+				self.assertEqual(0, result.returncode, msg=source + result.stdout + result.stderr)
+
+
+@skipIf(_GHDL is None, "GHDL is not on PATH.")
+class GHDLOracleDesignUnits(Testcase):
+	def test_Document(self) -> None:
+		def useAll(library: str, package: str) -> UseClause:
+			"""Nested function returning a use clause of all members of a package."""
+			return UseClause([AllPackageMembersReferenceSymbol(AllName(SelectedName(package, SimpleName(library))))])
+
+		def ieee() -> LibraryClause:
+			"""Nested function returning a library clause of library ``ieee``."""
+			return LibraryClause([LibraryReferenceSymbol(SimpleName("ieee"))])
+
+		def work(name: str) -> SelectedName:
+			"""Nested function returning the name of a design unit in library ``work``."""
+			return SelectedName(name, SimpleName("work"))
+
+		ports = [
+			PortSimpleSignalInterfaceItem(["clk"], Mode.In, _integer("std_logic")),
+			PortSimpleSignalInterfaceItem(["count"], Mode.Out, _integer("natural"))
+		]
+		designUnits = (
+			Context("project", [ieee(), useAll("ieee", "std_logic_1164")]),
+			Package(
+				"generic_fifo",
+				genericItems=[GenericConstantInterfaceItem(["DEPTH"], Mode.Default, _integer("positive"))],
+				declaredItems=[Constant(["SIZE"], _integer("positive"), _object("DEPTH"))]
+			),
+			PackageInstantiation(
+				"fifo_4",
+				PackageReferenceSymbol(work("generic_fifo")),
+				genericAssociationItems=[GenericAssociationItem(SimpleName("DEPTH"), IntegerLiteral(4))]
+			),
+			Package("utilities", [ieee(), useAll("ieee", "numeric_std")], declaredItems=[
+				Function("ones", _integer("natural")),
+				Component("sub", portItems=[PortSimpleSignalInterfaceItem(["a"], Mode.In, _integer("bit"))])
+			]),
+			PackageBody(PackageSymbol(SimpleName("utilities")), declaredItems=[
+				Function("ones", _integer("natural"), declaredItems=[Constant(["ONE"], _integer("natural"), IntegerLiteral(1))])
+			]),
+			Entity(
+				"counter",
+				[ContextReference([ContextReferenceSymbol(work("project"))])],
+				[GenericConstantInterfaceItem(["BITS"], Mode.Default, _integer("positive"), IntegerLiteral(8))],
+				ports,
+				[Constant(["MAXIMUM"], _integer("natural"), IntegerLiteral(255))]
+			),
+			Architecture("rtl", EntitySymbol(SimpleName("counter")), [useAll("work", "utilities")], [
+				Signal(["value"], _integer("natural"), IntegerLiteral(0)),
+				Component("sub", portItems=[PortSimpleSignalInterfaceItem(["a"], Mode.In, _integer("bit"))])
+			]),
+			Entity("sub", portItems=[PortSimpleSignalInterfaceItem(["a"], Mode.In, _integer("bit"))]),
+			Architecture("behav", EntitySymbol(SimpleName("sub"))),
+			Configuration("counter_cfg", EntitySymbol(SimpleName("counter")), BlockConfiguration(
+				ArchitectureSymbol(SimpleName("rtl")),
+				[
+					ComponentConfiguration(
+						AllInstantiationList(),
+						ComponentInstantiationSymbol(SimpleName("sub")),
+						BindingIndication(
+							EntityAspectEntity(EntitySymbol(work("sub")), ArchitectureSymbol(SimpleName("behav"))),
+							portAssociationItems=[PortAssociationItem(SimpleName("a"), OpenName())]
+						)
+					),
+					ComponentConfiguration(
+						OthersInstantiationList(),
+						ComponentInstantiationSymbol(SimpleName("sub")),
+						BindingIndication(EntityAspectOpen())
+					),
+				]
+			)),
+		)
+
+		for style in (VHDLStyle(), VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs)):
+			with self.subTest(style=style.KeywordCase):
+				document = Document(Path("oracle.vhdl"))
+				for designUnit in designUnits:
+					document._AddDesignUnit(designUnit)
+
+				source = VHDLWriter(style).Format(document)
 
 				result = _analyze(source)
 

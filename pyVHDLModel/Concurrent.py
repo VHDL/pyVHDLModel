@@ -36,7 +36,7 @@ Concurrent defines all concurrent statements used in entities, architectures, ge
 """
 from __future__              import annotations
 
-from typing                  import Union, Iterable, Generator, Optional as Nullable
+from typing                  import TYPE_CHECKING, Union, Iterable, Generator, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
@@ -61,6 +61,9 @@ from pyVHDLModel.Common      import ConditionalWaveform, SelectedWaveform, Other
 from pyVHDLModel.Common      import ConditionalWaveformsMixin, WaveformMixin
 from pyVHDLModel.Common      import ExpressionMixin, SelectedWaveformsMixin
 from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatementsMixin
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor   import Visitor
 
 
 ExpressionUnion = Union[
@@ -140,6 +143,15 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 		:returns: List of statements.
 		"""
 		return self._statements
+
+	def _VisitStatements(self, visitor: Visitor) -> None:
+		"""
+		Walk the concurrent statements in statement order with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		for statement in self._statements:
+			statement.Visit(visitor)
 
 	def _Labels(self) -> tuple[ConcurrentStatement, ...]:
 		"""

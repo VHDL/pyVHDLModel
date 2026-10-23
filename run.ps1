@@ -33,7 +33,7 @@ Param(
 )
 
 $PackageName = "pyVHDLModel"
-$PackageVersion = "0.40.0rc1"
+$PackageVersion = "0.40.0rc2"
 
 # set default values
 $EnableDebug =        [bool]$PSCmdlet.MyInvocation.BoundParameters["Debug"]

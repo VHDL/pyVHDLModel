@@ -34,7 +34,9 @@ This module contains parts of an abstract document language model for VHDL.
 
 Interface items are used in generic, port and parameter declarations.
 """
-from typing                 import Iterable, Optional as Nullable, Iterator
+from __future__             import annotations
+
+from typing                 import Iterable, Optional as Nullable, Iterator, Self
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
@@ -136,6 +138,16 @@ class SimpleModeViewElement(ModeViewElement):
 		"""
 		return self._mode
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this simple mode view element.
+
+		The copy has no parent.
+
+		:returns: The new simple mode view element.
+		"""
+		return self.__class__(self._identifiers, self._mode, self._documentation)
+
 
 @export
 class CompositeModeViewElement(ModeViewElement):
@@ -181,6 +193,16 @@ class CompositeModeViewElement(ModeViewElement):
 		:returns: The mode view name.
 		"""
 		return self._modeViewName
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this composite mode view element.
+
+		The copy has no parent. Its mode view name is a copy of this element's mode view name.
+
+		:returns: The new composite mode view element.
+		"""
+		return self.__class__(self._identifiers, self._modeViewName.Copy(), self._documentation)
 
 
 @export
@@ -433,6 +455,24 @@ class GenericConstantInterfaceItem(Constant, GenericInterfaceItemMixin, Interfac
 		GenericInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this generic constant.
+
+		The copy has no parent and no object vertex. Its subtype and default expression are copies of this item's
+		subtype and default expression.
+
+		:returns: The new generic constant.
+		"""
+		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
+		return self.__class__(
+			self._identifiers,
+			self._mode,
+			self._subtype.Copy(),
+			defaultExpression,
+			self._documentation
+		)
+
 	def __str__(self) -> str:
 		"""
 		Formats the generic constant.
@@ -469,6 +509,16 @@ class GenericTypeInterfaceItem(Type, GenericInterfaceItemMixin):
 		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this generic type.
+
+		The copy has no parent and no object vertex.
+
+		:returns: The new generic type.
+		"""
+		return self.__class__(self._identifier, self._documentation)
+
 
 @export
 class GenericProcedureInterfaceItem(Procedure, GenericSubprogramInterfaceItemMixin):
@@ -493,6 +543,20 @@ class GenericProcedureInterfaceItem(Procedure, GenericSubprogramInterfaceItemMix
 		"""
 		super().__init__(identifier, documentation=documentation, parent=parent)
 		GenericSubprogramInterfaceItemMixin.__init__(self)
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this generic procedure.
+
+		The copy has no parent. Its parameters are copies of this procedure's parameters.
+
+		:returns: The new generic procedure.
+		"""
+		copy = self.__class__(self._identifier, self._documentation)
+		for parameterItem in self._parameterItems:
+			copy.AddParameterItem(parameterItem.Copy())
+
+		return copy
 
 
 @export
@@ -526,6 +590,20 @@ class GenericFunctionInterfaceItem(Function, GenericSubprogramInterfaceItemMixin
 		"""
 		super().__init__(identifier, returnType, documentation=documentation, parent=parent)
 		GenericSubprogramInterfaceItemMixin.__init__(self)
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this generic function.
+
+		The copy has no parent. Its return type and parameters are copies of this function's return type and parameters.
+
+		:returns: The new generic function.
+		"""
+		copy = self.__class__(self._identifier, self._returnType.Copy(), self._documentation)
+		for parameterItem in self._parameterItems:
+			copy.AddParameterItem(parameterItem.Copy())
+
+		return copy
 
 
 @export
@@ -580,6 +658,16 @@ class GenericPackageInterfaceItem(InterfacePackage, GenericInterfaceItemMixin):
 		"""
 		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this generic package.
+
+		The copy has no parent.
+
+		:returns: The new generic package.
+		"""
+		return self.__class__(self._identifier, self._documentation)
 
 
 @export
@@ -641,6 +729,24 @@ class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem, InterfaceItemWithMo
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this port.
+
+		The copy has no parent and no object vertex. Its subtype and default expression are copies of this item's
+		subtype and default expression.
+
+		:returns: The new port.
+		"""
+		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
+		return self.__class__(
+			self._identifiers,
+			self._mode,
+			self._subtype.Copy(),
+			defaultExpression,
+			self._documentation
+		)
+
 	def __str__(self) -> str:
 		"""
 		Formats the port.
@@ -700,6 +806,17 @@ class PortViewSignalInterfaceItem(PortSignalInterfaceItem):
 		"""
 		return self._subtype
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this port declared with a mode view.
+
+		The copy has no parent and no object vertex. Its mode view indication is a copy of this item's mode view
+		indication.
+
+		:returns: The new port declared with a mode view.
+		"""
+		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
+
 	def __str__(self) -> str:
 		"""
 		Formats the port declared with a mode view.
@@ -748,6 +865,24 @@ class ParameterConstantInterfaceItem(Constant, ParameterInterfaceItemMixin, Inte
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this constant parameter.
+
+		The copy has no parent and no object vertex. Its subtype and default expression are copies of this item's
+		subtype and default expression.
+
+		:returns: The new constant parameter.
+		"""
+		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
+		return self.__class__(
+			self._identifiers,
+			self._mode,
+			self._subtype.Copy(),
+			defaultExpression,
+			self._documentation
+		)
+
 	def __str__(self) -> str:
 		"""
 		Formats the constant parameter.
@@ -795,6 +930,24 @@ class ParameterVariableInterfaceItem(Variable, ParameterInterfaceItemMixin, Inte
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this variable parameter.
+
+		The copy has no parent and no object vertex. Its subtype and default expression are copies of this item's
+		subtype and default expression.
+
+		:returns: The new variable parameter.
+		"""
+		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
+		return self.__class__(
+			self._identifiers,
+			self._mode,
+			self._subtype.Copy(),
+			defaultExpression,
+			self._documentation
+		)
 
 	def __str__(self) -> str:
 		"""
@@ -869,6 +1022,24 @@ class ParameterSimpleSignalInterfaceItem(ParameterSignalInterfaceItem, Interface
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this signal parameter.
+
+		The copy has no parent and no object vertex. Its subtype and default expression are copies of this item's
+		subtype and default expression.
+
+		:returns: The new signal parameter.
+		"""
+		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
+		return self.__class__(
+			self._identifiers,
+			self._mode,
+			self._subtype.Copy(),
+			defaultExpression,
+			self._documentation
+		)
+
 	def __str__(self) -> str:
 		"""
 		Formats the signal parameter.
@@ -929,6 +1100,17 @@ class ParameterViewSignalInterfaceItem(ParameterSignalInterfaceItem):
 		"""
 		return self._subtype
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this signal parameter declared with a mode view.
+
+		The copy has no parent and no object vertex. Its mode view indication is a copy of this item's mode view
+		indication.
+
+		:returns: The new signal parameter declared with a mode view.
+		"""
+		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
+
 	def __str__(self) -> str:
 		"""
 		Formats the signal parameter declared with a mode view.
@@ -970,6 +1152,16 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin):
 		"""
 		super().__init__(identifiers, subtype, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this file parameter.
+
+		The copy has no parent and no object vertex. Its subtype is a copy of this item's subtype.
+
+		:returns: The new file parameter.
+		"""
+		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
 	def __str__(self) -> str:
 		"""
@@ -1238,3 +1430,6 @@ class ParameterGroup(InterfaceGroup, WithParametersMixin):
 			declaration for declaration in self._parameterItems
 			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
 		)
+
+	def _ParameterItemsChanged(self) -> None:
+		"""Do nothing, because a parameter group keeps nothing derived from its parameters."""

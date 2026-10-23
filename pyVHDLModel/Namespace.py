@@ -90,11 +90,12 @@ class Namespace(Generic[K, O]):
 	   * :class:`Concurrent declaration region <pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin>`
 	   * :class:`Sequential declaration region <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	"""
-	_name:                   str                   #: The namespace's name.
-	_parentNamespace:        Namespace             #: Reference to the enclosing namespace, ``None`` if outermost.
-	_subNamespaces:          dict[str, Namespace]  #: Dictionary of all nested namespaces, indexed by name.
-	_elements:               dict[K, O]            #: All elements declared in this namespace, indexed by name.
-	_sharesRegionWithParent: bool                  #: ``True`` if the parent namespace is the same declarative region.
+	_name:                   str                  #: The namespace's name.
+	_parentNamespace:        Nullable[Namespace]  #: Reference to the enclosing namespace, ``None`` if outermost.
+	_subNamespaces:          list[Namespace]      #: List of all nested namespaces, in the order they were linked.
+	_elements:               dict[K, O]           #: All elements declared in this namespace, indexed by name.
+	_imports:                dict[K, O]           #: All elements imported into this namespace, indexed by name.
+	_sharesRegionWithParent: bool                 #: ``True`` if the parent namespace is the same declarative region.
 
 	def __init__(
 		self,
@@ -105,14 +106,23 @@ class Namespace(Generic[K, O]):
 		"""
 		Initializes a namespace.
 
-		:param name:            The namespace's name.
-		:param parentNamespace: Reference to the enclosing namespace, or ``None`` for the outermost one.
+		:param name:                   The namespace's name.
+		:param parentNamespace:        Optional, reference to the enclosing namespace, or ``None`` for the outermost one.
+		                               Default: ``None``. |br|
+		                               This namespace is appended to the parent namespace's sub-namespaces.
+		:param sharesRegionWithParent: Optional, ``True`` if the parent namespace is the same declarative region.
+		                               Default: ``False``.
+		:raises TypeError:             If parameter 'parentNamespace' is not of type :class:`Namespace`.
 		"""
-		self._name = name
-		self._parentNamespace = parentNamespace
-		self._subNamespaces = {}
-		self._elements = {}
+		self._name =                   name
+		self._parentNamespace =        None
+		self._subNamespaces =          []
+		self._elements =               {}
+		self._imports =                {}
 		self._sharesRegionWithParent = sharesRegionWithParent
+
+		if parentNamespace is not None:
+			self.ParentNamespace = parentNamespace
 
 	@readonly
 	def Name(self) -> str:
@@ -124,18 +134,35 @@ class Namespace(Generic[K, O]):
 		return self._name
 
 	@property
-	def ParentNamespace(self) -> Namespace:
+	def ParentNamespace(self) -> Nullable[Namespace]:
 		"""
 		Property to access the parent namespace (:attr:`_parentNamespace`).
 
-		:returns: The parent namespace.
+		Assigning a namespace links both sides: this namespace leaves the sub-namespaces (:attr:`SubNamespaces`) of its
+		previous parent namespace and is appended to the sub-namespaces of the new one. Assigning ``None`` unlinks this
+		namespace from its parent namespace. Assigning the current parent namespace changes nothing.
+
+		:returns:          The parent namespace, or ``None`` if this namespace is the outermost one.
+		:raises TypeError: If the assigned value is not of type :class:`Namespace`.
 		"""
 		return self._parentNamespace
 
 	@ParentNamespace.setter
-	def ParentNamespace(self, value: Namespace) -> None:
-		self._parentNamespace = value
-		value._subNamespaces[self._name] = self
+	def ParentNamespace(self, parentNamespace: Nullable[Namespace]) -> None:
+		if parentNamespace is not None and not isinstance(parentNamespace, Namespace):
+			ex = TypeError("Parameter 'parentNamespace' is not of type 'Namespace'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parentNamespace)}'.")
+			raise ex
+
+		if parentNamespace is self._parentNamespace:
+			return
+
+		if self._parentNamespace is not None:
+			self._parentNamespace._subNamespaces.remove(self)
+
+		self._parentNamespace = parentNamespace
+		if parentNamespace is not None:
+			parentNamespace._subNamespaces.append(self)
 
 	@readonly
 	def SharesRegionWithParent(self) -> bool:
@@ -154,11 +181,14 @@ class Namespace(Generic[K, O]):
 		return self._sharesRegionWithParent
 
 	@readonly
-	def SubNamespaces(self) -> dict[str, Namespace]:
+	def SubNamespaces(self) -> list[Namespace]:
 		"""
 		Read-only property to access the sub namespaces (:attr:`_subNamespaces`).
 
-		:returns: Dictionary of sub namespaces.
+		A sub-namespace is linked by assigning this namespace to its :attr:`ParentNamespace`. Several sub-namespaces may
+		share a name, e.g. ``None`` for unlabeled processes.
+
+		:returns: List of sub namespaces, in the order they were linked.
 		"""
 		return self._subNamespaces
 
@@ -174,8 +204,8 @@ class Namespace(Generic[K, O]):
 		signatures differ. Signatures are not compared yet, so two subprograms sharing a name are always
 		accepted (see the overload-resolution finding).
 
-		An item imported into a namespace (e.g. by a use clause) is no declaration of that namespace's region: a
-		declaration hides it.
+		An item imported into a namespace (e.g. by a use clause) is no declaration of that namespace's region: it's kept
+		apart (:meth:`AddImport`), so it never clashes with a declaration, and a lookup finds the declaration first.
 
 		:param normalizedIdentifier:           The normalized (lower case) identifier being declared.
 		:param element:                        The declared item.
@@ -184,7 +214,6 @@ class Namespace(Generic[K, O]):
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
-		from pyVHDLModel            import Library
 		from pyVHDLModel.Subprogram import Function, Procedure
 
 		namespace = self
@@ -193,12 +222,7 @@ class Namespace(Generic[K, O]):
 			# `existing is element` means the region is being re-indexed, not that the name is declared twice.
 			isReindex = existing is element
 			isOverload = overloadable and isinstance(existing, (Function, Procedure))
-			# An item made visible by a use clause is declared elsewhere: 'use lib.pkg;' adds the package, whose parent is
-			# a library (without namespace); 'use lib.pkg.all;' adds the package's items, whose parent is the package.
-			isImport = existing is not None and (
-				isinstance(existing._parent, Library) or existing._parent._namespace is not namespace
-			)
-			if existing is not None and not isReindex and not isOverload and not isImport:
+			if existing is not None and not isReindex and not isOverload:
 				WarningCollector.Raise(DuplicateDeclarationWarning(
 					f"Identifier '{normalizedIdentifier}' is already used for a declaration in '{namespace._name}'.",
 					identifier=self._IdentifierOf(element, normalizedIdentifier),
@@ -238,6 +262,55 @@ class Namespace(Generic[K, O]):
 
 		del self._elements[normalizedIdentifier]
 
+	def AddImport(self, normalizedIdentifier: K, element: O) -> None:
+		"""
+		Add an item imported by a use clause to this namespace.
+
+		An imported item is declared elsewhere, so it's kept apart from the declarations (:meth:`AddElement`): it never
+		clashes with a declaration, and a lookup finds a declaration of the same identifier first. Importing another item
+		for the same identifier replaces the imported item.
+
+		:param normalizedIdentifier: The normalized (lower case) identifier of the imported item.
+		:param element:              The imported item, e.g. a package or a component.
+		"""
+		self._imports[normalizedIdentifier] = element
+
+	def RemoveImport(self, normalizedIdentifier: K, element: O) -> None:
+		"""
+		Remove an imported item from this namespace.
+
+		Declarations of the same identifier are kept.
+
+		:param normalizedIdentifier: The normalized (lower case) identifier of the imported item.
+		:param element:              The imported item.
+		:raises NotInNamespaceError: If the identifier isn't imported into this namespace.
+		:raises NotInNamespaceError: If the identifier refers to another imported item.
+		"""
+		if (existing := self._imports.get(normalizedIdentifier)) is None:
+			raise NotInNamespaceError(
+				f"Namespace '{self._name}' has no import '{normalizedIdentifier}'.",
+				identifier=self._IdentifierOf(element, normalizedIdentifier),
+				namespace=self
+			)
+		elif existing is not element:
+			ex = NotInNamespaceError(
+				f"Namespace '{self._name}' has another import for '{normalizedIdentifier}'.",
+				identifier=self._IdentifierOf(element, normalizedIdentifier),
+				namespace=self
+			)
+			ex.add_note(f"Found element of type '{getFullyQualifiedName(existing)}'.")
+			raise ex
+
+		del self._imports[normalizedIdentifier]
+
+	def ClearImports(self) -> None:
+		"""
+		Remove all imported items from this namespace.
+
+		The declarations (:meth:`Elements`) are kept.
+		"""
+		self._imports.clear()
+
 	@staticmethod
 	def _IdentifierOf(element: O, normalizedIdentifier: K) -> str:
 		"""
@@ -254,13 +327,39 @@ class Namespace(Generic[K, O]):
 		)
 
 	def Elements(self) -> dict[K, O]:
+		"""
+		Return the elements declared in this namespace (:attr:`_elements`).
+
+		:returns: Dictionary of declared elements, indexed by normalized identifier.
+		"""
 		return self._elements
+
+	def Imports(self) -> dict[K, O]:
+		"""
+		Return the elements imported into this namespace (:attr:`_imports`).
+
+		:returns: Dictionary of imported elements, indexed by normalized identifier.
+		"""
+		return self._imports
+
+	def _LookupElement(self, normalizedIdentifier: K) -> O:
+		"""
+		Return the element of an identifier in this namespace: the declared element, else the imported element.
+
+		:param normalizedIdentifier: The normalized (lower case) identifier.
+		:returns:                    The declared or imported element.
+		:raises KeyError:            If the identifier is neither declared nor imported in this namespace.
+		"""
+		if (element := self._elements.get(normalizedIdentifier)) is not None:
+			return element
+
+		return self._imports[normalizedIdentifier]
 
 	def FindComponent(self, componentSymbol: ComponentInstantiationSymbol) -> Component:
 		from pyVHDLModel.DesignUnit import Component
 
 		try:
-			element = self._elements[componentSymbol._name._normalizedIdentifier]
+			element = self._LookupElement(componentSymbol._name._normalizedIdentifier)
 			if isinstance(element, Component):
 				return element
 			else:
@@ -283,7 +382,7 @@ class Namespace(Generic[K, O]):
 		from pyVHDLModel.Type import Subtype, FullType
 
 		try:
-			element = self._elements[subtypeSymbol._name._normalizedIdentifier]
+			element = self._LookupElement(subtypeSymbol._name._normalizedIdentifier)
 			if isinstance(element, Subtype):
 				if PossibleReference.Subtype in subtypeSymbol._possibleReferences:
 					return element
@@ -318,7 +417,7 @@ class Namespace(Generic[K, O]):
 
 	def FindObject(self, objectSymbol: Symbol) -> Obj:
 		try:
-			element = self._elements[objectSymbol._name._normalizedIdentifier]
+			element = self._LookupElement(objectSymbol._name._normalizedIdentifier)
 			if isinstance(element, Signal):
 				if PossibleReference.Signal in objectSymbol._possibleReferences:
 					return element

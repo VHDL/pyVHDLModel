@@ -50,7 +50,7 @@ __author__ =            "Patrick Lehmann"
 __email__ =             "Paebbels@gmail.com"
 __copyright__ =         "2016-2026, Patrick Lehmann"
 __license__ =           "Apache License, Version 2.0"
-__version__ =           "0.40.0rc1"
+__version__ =           "0.40.0rc2"
 # __keywords__ =          []
 __project_url__ =       "https://github.com/VHDL/pyVHDLModel"
 __documentation_url__ = "https://vhdl.github.io/pyVHDLModel"
@@ -1433,9 +1433,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					for declaredItem in referencedPackage._declaredItems:
 						if isinstance(declaredItem, MultipleNamedEntityMixin):
 							for normalizedIdentifier in declaredItem._normalizedIdentifiers:
-								package._namespace._elements[normalizedIdentifier] = declaredItem
+								package._namespace.AddImport(normalizedIdentifier, declaredItem)
 						elif isinstance(declaredItem, NamedEntityMixin):
-							package._namespace._elements[declaredItem._normalizedIdentifier] = declaredItem
+							package._namespace.AddImport(declaredItem._normalizedIdentifier, declaredItem)
 						elif isinstance(declaredItem, AttributeSpecification):
 							# FIXME: actually, this is not a declared item, but a application of an attribute to named entities
 							WarningCollector.Raise(NotImplementedWarning("Attribute specification.", item=declaredItem))
@@ -1947,7 +1947,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		        * If package symbol is a ``AllPackageMembersReferenceSymbol``:
 
-		          * Iterate all components within the referenced package and add entries for each component in the design unit's ``_namespace``.
+		          * Iterate all components within the referenced package and import each component into the design unit's
+		            namespace.
 
 		          .. todo:: Other elements are not implemented.
 
@@ -2039,7 +2040,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					# TODO: update the namespace with visible members
 					if isinstance(packageMemberSymbol, PackageReferenceSymbol):
-						designUnit._namespace._elements[packageIdentifier] = package
+						designUnit._namespace.AddImport(packageIdentifier, package)
 
 					elif isinstance(packageMemberSymbol, AllPackageMembersReferenceSymbol):
 						WarningCollector.Raise(NotImplementedWarning(
@@ -2048,7 +2049,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						))
 
 						for componentIdentifier, component in package._components.items():
-							designUnit._namespace._elements[componentIdentifier] = component
+							designUnit._namespace.AddImport(componentIdentifier, component)
 
 					elif isinstance(packageMemberSymbol, PackageMemberReferenceSymbol):
 						WarningCollector.Raise(NotImplementedWarning(
@@ -2799,7 +2800,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 
 				entity._architectures[architecture._normalizedIdentifier] = architecture
 				architecture._entity.Entity = entity
-				architecture._namespace._parentNamespace = entity._namespace
+				architecture._namespace.ParentNamespace = entity._namespace
 
 				# add "architecture -> entity" relation in dependency graph
 				dependency = architecture._dependencyVertex.EdgeToVertex(entity._dependencyVertex)
@@ -2835,7 +2836,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 			package = self._packages[packageBodyName]
 			package._packageBody = packageBody    # TODO: add warning if package had already a body, which is now replaced
 			packageBody._package.Package = package
-			packageBody._namespace._parentNamespace = package._namespace
+			packageBody._namespace.ParentNamespace = package._namespace
 
 			# add "package body -> package" relation in dependency graph
 			dependency = packageBody._dependencyVertex.EdgeToVertex(package._dependencyVertex)

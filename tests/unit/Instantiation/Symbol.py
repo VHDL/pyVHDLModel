@@ -40,7 +40,7 @@ itself, the object/function-call symbols with no dedicated property) get their o
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base   import Direction, SimpleRange, RangeFromName
-from pyVHDLModel.Name   import SimpleName, AllName, AttributeName
+from pyVHDLModel.Name   import SimpleName, SelectedName, AllName, AttributeName
 from pyVHDLModel.Expression import IntegerLiteral
 from pyVHDLModel.Symbol import (
 	PossibleReference, Symbol,
@@ -190,6 +190,16 @@ class SubtypeSymbols(Testcase):
 		symbol.Subtype = target
 
 		self.assertIs(target, symbol.Subtype)
+
+	def test_TypeMark_SimpleName(self) -> None:
+		symbol = SimpleSubtypeSymbol(SimpleName("Natural"))
+
+		self.assertEqual("Natural", symbol.TypeMark)
+
+	def test_TypeMark_SelectedName(self) -> None:
+		symbol = SimpleSubtypeSymbol(SelectedName("unsigned", SelectedName("numeric_std", SimpleName("ieee"))))
+
+		self.assertEqual("ieee.numeric_std.unsigned", symbol.TypeMark)
 
 	def test_SimpleSubtypeSymbol(self) -> None:
 		"""``SimpleSubtypeSymbol`` adds no behaviour of its own over ``SubtypeSymbol``."""

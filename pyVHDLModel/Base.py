@@ -37,7 +37,7 @@ Base-classes for the VHDL language model.
 from __future__            import annotations
 
 from enum                  import unique, Enum
-from typing                import TYPE_CHECKING, Type, Iterable, Optional as Nullable, Union, cast
+from typing                import TYPE_CHECKING, Type, Iterable, Optional as Nullable, Union, cast, Self
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, notimplemented, readonly
@@ -824,6 +824,16 @@ class SimpleRange(Range):
 		"""
 		return self._direction
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this simple range.
+
+		The copy has no parent. Its bounds are copies of this range's bounds.
+
+		:returns: The new simple range.
+		"""
+		return self.__class__(self._leftBound.Copy(), self._rightBound.Copy(), self._direction)
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this range, its left bound and its right bound with a visitor.
@@ -890,6 +900,16 @@ class RangeFromName(Range):
 		:returns: The symbol.
 		"""
 		return self._symbol
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this range denoted by a name.
+
+		The copy has no parent. Its symbol is a copy of this range's symbol.
+
+		:returns: The new range denoted by a name.
+		"""
+		return self.__class__(self._symbol.Copy())
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

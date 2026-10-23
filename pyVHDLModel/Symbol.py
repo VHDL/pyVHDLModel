@@ -37,7 +37,7 @@ Symbols are entity specific wrappers for names that reference VHDL language enti
 from __future__            import annotations
 
 from enum                  import Flag, auto
-from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping
+from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping, Self
 
 from pyTooling.Common      import getTypeName
 from pyTooling.Decorators  import export, notimplemented, readonly
@@ -154,6 +154,18 @@ class Symbol(metaclass=ExtendedType):
 		"""
 		return self._reference is not None
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new symbol.
+		"""
+		copy = self.__class__(self._name.Copy(), self._possibleReferences)
+		copy._reference = self._reference
+		return copy
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this symbol and its name with a visitor.
@@ -227,6 +239,18 @@ class LibraryReferenceSymbol(Symbol):
 	def Library(self, value: Library) -> None:
 		self._reference = value
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this library reference symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new library reference symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
 
 @export
 class PackageReferenceSymbol(Symbol):
@@ -263,6 +287,18 @@ class PackageReferenceSymbol(Symbol):
 	@Package.setter
 	def Package(self, value: Package) -> None:
 		self._reference = value
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this package reference symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new package reference symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
 
 
 @export
@@ -311,6 +347,18 @@ class ModeViewSymbol(Symbol):
 	def ModeView(self, value: ModeViewDeclaration) -> None:
 		self._reference = value
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this mode view symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new mode view symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
 
 @export
 class SubprogramReferenceSymbol(Symbol):
@@ -347,6 +395,18 @@ class SubprogramReferenceSymbol(Symbol):
 	@Subprogram.setter
 	def Subprogram(self, value: Subprogram) -> None:
 		self._reference = value
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this subprogram reference symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new subprogram reference symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
 
 
 @export
@@ -385,6 +445,18 @@ class ConfigurationSymbol(Symbol):
 	def Configuration(self, value: Configuration) -> None:
 		self._reference = value
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this configuration symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new configuration symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
 
 @export
 class VariableSymbol(Symbol):
@@ -421,6 +493,18 @@ class VariableSymbol(Symbol):
 	@Variable.setter
 	def Variable(self, value: Variable) -> None:
 		self._reference = value
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this variable symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new variable symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
 
 
 @export
@@ -459,6 +543,18 @@ class SignalSymbol(Symbol):
 	def Signal(self, value: Signal) -> None:
 		self._reference = value
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this signal symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new signal symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
 
 @export
 class ContextReferenceSymbol(Symbol):
@@ -495,6 +591,18 @@ class ContextReferenceSymbol(Symbol):
 	@Context.setter
 	def Context(self, value: Context) -> None:
 		self._reference = value
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this context reference symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new context reference symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
 
 
 @export
@@ -533,6 +641,18 @@ class PackageMemberReferenceSymbol(Symbol):
 	def Member(self, value: Package) -> None:  # TODO: typehint
 		self._reference = value
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this package member reference symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new package member reference symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
 
 @export
 class AllPackageMembersReferenceSymbol(Symbol):
@@ -569,6 +689,18 @@ class AllPackageMembersReferenceSymbol(Symbol):
 	@Members.setter
 	def Members(self, value: Package) -> None:  # TODO: typehint
 		self._reference = value
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this all package members reference symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new all package members reference symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
 
 
 @export
@@ -607,6 +739,18 @@ class EntityInstantiationSymbol(Symbol):
 	def Entity(self, value: Entity) -> None:
 		self._reference = value
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this entity instantiation symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new entity instantiation symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
 
 @export
 class ComponentInstantiationSymbol(Symbol):
@@ -644,6 +788,18 @@ class ComponentInstantiationSymbol(Symbol):
 	def Component(self, value: Component) -> None:
 		self._reference = value
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this component instantiation symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new component instantiation symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
 
 @export
 class ConfigurationInstantiationSymbol(Symbol):
@@ -680,6 +836,18 @@ class ConfigurationInstantiationSymbol(Symbol):
 	@Configuration.setter
 	def Configuration(self, value: Configuration) -> None:
 		self._reference = value
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this configuration instantiation symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new configuration instantiation symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
 
 
 @export
@@ -720,6 +888,18 @@ class EntitySymbol(Symbol):
 	def Entity(self, value: Entity) -> None:
 		self._reference = value
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this entity symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new entity symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
 
 @export
 class ArchitectureSymbol(Symbol):
@@ -745,6 +925,18 @@ class ArchitectureSymbol(Symbol):
 	@Architecture.setter
 	def Architecture(self, value: Architecture) -> None:
 		self._reference = value
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this architecture symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new architecture symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
 
 
 @export
@@ -784,6 +976,18 @@ class PackageSymbol(Symbol):
 	def Package(self, value: Package) -> None:
 		self._reference = value
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this package symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new package symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
 
 @export
 class RecordElementSymbol(Symbol):
@@ -807,6 +1011,18 @@ class RecordElementSymbol(Symbol):
 		"""
 		super().__init__(name, PossibleReference.RecordElement)
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this record element symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new record element symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
 
 @export
 class RangeAttributeSymbol(Symbol):
@@ -823,6 +1039,18 @@ class RangeAttributeSymbol(Symbol):
 		:param name: The attribute name referencing the range.
 		"""
 		super().__init__(name, PossibleReference.RangeAttribute)
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this range attribute symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new range attribute symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
 
 
 @export
@@ -846,6 +1074,25 @@ class SubtypeSymbol(Symbol):
 		"""
 		super().__init__(name, PossibleReference.Type | PossibleReference.Subtype)
 
+	@readonly
+	def TypeMark(self) -> str:
+		"""
+		Read-only property to return the type mark's name, as written: its identifiers joined by dots.
+
+		A simple name gives its identifier (``natural``), a selected name the identifiers of its prefixes too
+		(``ieee.numeric_std.unsigned``). The model doesn't resolve type marks yet, so this isn't the fully qualified name of
+		the denoted type.
+
+		:returns: The type mark's name.
+		"""
+		name = self._name
+		identifiers = [name._identifier]
+		while name._prefix is not None:
+			name = name._prefix
+			identifiers.append(name._identifier)
+
+		return ".".join(reversed(identifiers))
+
 	@property
 	def Subtype(self) -> Subtype:
 		"""
@@ -858,6 +1105,18 @@ class SubtypeSymbol(Symbol):
 	@Subtype.setter
 	def Subtype(self, value: Subtype) -> None:
 		self._reference = value
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this subtype symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new subtype symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
 
 
 @export
@@ -957,6 +1216,18 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol, ScalarConstraint):
 		"""
 		super().__init__(name)
 		ScalarConstraint.__init__(self, constraint)
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this constrained scalar subtype symbol.
+
+		The name and the range are copied; the reference, if resolved, is the same.
+
+		:returns: The new constrained scalar subtype symbol.
+		"""
+		copy = self.__class__(self._name.Copy(), self._constraint.Copy())
+		copy._reference = self._reference
+		return copy
 
 	@notimplemented("Model element has no walk for a visitor.")
 	def Visit(self, visitor: Visitor) -> None:
@@ -1084,6 +1355,18 @@ class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol, ArrayCons
 		super().__init__(name)
 		ArrayConstraint.__init__(self, constraints)
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this constrained array subtype symbol.
+
+		The name and the index ranges are copied; the reference, if resolved, is the same.
+
+		:returns: The new constrained array subtype symbol.
+		"""
+		copy = self.__class__(self._name.Copy(), [constraint.Copy() for constraint in self._constraints])
+		copy._reference = self._reference
+		return copy
+
 
 @export
 class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordConstraint):
@@ -1104,6 +1387,22 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 		super().__init__(name)
 		RecordConstraint.__init__(self, constraints)
 
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this constrained record subtype symbol.
+
+		The name, the record elements and their constraints are copied; the reference, if resolved, is the same.
+
+		:returns: The new constrained record subtype symbol.
+		"""
+		constraints = {
+			element.Copy(): None if constraint is None else constraint.Copy()
+			for element, constraint in self._constraints.items()
+		}
+		copy = self.__class__(self._name.Copy(), constraints)
+		copy._reference = self._reference
+		return copy
+
 
 @export
 class SimpleObjectOrFunctionCallSymbol(Symbol):
@@ -1120,6 +1419,18 @@ class SimpleObjectOrFunctionCallSymbol(Symbol):
 		:param name: The name to reference the language entity.
 		"""
 		super().__init__(name, PossibleReference.SimpleNameInExpression)
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this simple object or function call symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new simple object or function call symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
 
 
 @export
@@ -1149,3 +1460,15 @@ class IndexedObjectOrFunctionCallSymbol(Symbol):
 			name,
 			PossibleReference.Object | PossibleReference.Function | PossibleReference.Type | PossibleReference.Subtype
 		)
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this indexed object or function call symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new indexed object or function call symbol.
+		"""
+		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy

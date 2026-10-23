@@ -196,6 +196,7 @@ class Configurations(Testcase):
 			("VisitSimpleName",              architecture.Name),
 			("DepartSimpleName",             architecture.Name),
 			("DepartSymbol",                 architecture),
+			("VisitRightParenthesis",        aspect),
 			("DepartEntityAspectEntity",     aspect),
 			("VisitPortMapAspect",           indication),
 			("VisitAssociationItem",         association),

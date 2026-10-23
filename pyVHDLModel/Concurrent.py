@@ -641,6 +641,15 @@ class Instantiation(ConcurrentStatement, GenericMapAspectMixin, PortMapAspectMix
 		GenericMapAspectMixin.__init__(self, genericAssociationItems)
 		PortMapAspectMixin.__init__(self, portAssociationItems)
 
+	def _VisitMapAspects(self, visitor: Visitor) -> None:
+		"""
+		Walk the generic map aspect and the port map aspect of this instantiation with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		self._VisitGenericMapAspect(visitor)
+		self._VisitPortMapAspect(visitor)
+
 
 
 
@@ -684,6 +693,17 @@ class ComponentInstantiation(Instantiation):
 
 		self._component = componentSymbol
 		componentSymbol.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this component instantiation, its component and its map aspects with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitComponentInstantiation(self)
+		self._component.Visit(visitor)
+		self._VisitMapAspects(visitor)
+		visitor.DepartComponentInstantiation(self)
 
 	@readonly
 	def Component(self) -> ComponentInstantiationSymbol:
@@ -744,6 +764,22 @@ class EntityInstantiation(Instantiation):
 		if architectureSymbol is not None:
 			architectureSymbol.Parent = self
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this entity instantiation, its entity, its architecture (if any) and its map aspects with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitEntityInstantiation(self)
+		self._entity.Visit(visitor)
+		if self._architecture is not None:
+			visitor.VisitLeftParenthesis(self)
+			self._architecture.Visit(visitor)
+			visitor.VisitRightParenthesis(self)
+
+		self._VisitMapAspects(visitor)
+		visitor.DepartEntityInstantiation(self)
+
 	@readonly
 	def Entity(self) -> EntityInstantiationSymbol:
 		"""
@@ -802,6 +838,17 @@ class ConfigurationInstantiation(Instantiation):
 
 		self._configuration = configurationSymbol
 		configurationSymbol.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this configuration instantiation, its configuration and its map aspects with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConfigurationInstantiation(self)
+		self._configuration.Visit(visitor)
+		self._VisitMapAspects(visitor)
+		visitor.DepartConfigurationInstantiation(self)
 
 	@readonly
 	def Configuration(self) -> ConfigurationInstantiationSymbol:
@@ -1059,6 +1106,22 @@ class ConcurrentBlockStatement(
 		DocumentedEntityMixin.__init__(self, documentation)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this block, its block header, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConcurrentBlockStatement(self)
+		self._VisitGenericClause(visitor)
+		self._VisitGenericMapAspect(visitor)
+		self._VisitPortClause(visitor)
+		self._VisitPortMapAspect(visitor)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartConcurrentBlockStatement(self)
+
 	@ConcurrentStatement.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
 		ConcurrentStatement.Parent.fset(self, parent)
@@ -1193,6 +1256,20 @@ class IfGenerateBranch(GenerateBranch, IfBranchMixin):
 		super().__init__(declaredItems, statements, alternativeLabel, allowBlackbox, parent)
 		IfBranchMixin.__init__(self, condition)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this if-generate branch, its condition, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIfGenerateBranch(self)
+		self._condition.Visit(visitor)
+		visitor.VisitGenerate(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartIfGenerateBranch(self)
+
 
 @export
 class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
@@ -1236,6 +1313,20 @@ class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
 		super().__init__(declaredItems, statements, alternativeLabel, allowBlackbox, parent)
 		ElsifBranchMixin.__init__(self, condition)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this elsif-generate branch, its condition, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitElsifGenerateBranch(self)
+		self._condition.Visit(visitor)
+		visitor.VisitGenerate(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartElsifGenerateBranch(self)
+
 
 @export
 class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
@@ -1276,6 +1367,19 @@ class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 		"""
 		super().__init__(declaredItems, statements, alternativeLabel, allowBlackbox, parent)
 		ElseBranchMixin.__init__(self)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this else-generate branch, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitElseGenerateBranch(self)
+		visitor.VisitGenerate(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartElseGenerateBranch(self)
 
 
 @export
@@ -1393,6 +1497,22 @@ class IfGenerateStatement(GenerateStatement):
 		else:
 			self._elseBranch = None
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this if-generate statement and its branches with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIfGenerateStatement(self)
+		self._ifBranch.Visit(visitor)
+		for branch in self._elsifBranches:
+			branch.Visit(visitor)
+
+		if self._elseBranch is not None:
+			self._elseBranch.Visit(visitor)
+
+		visitor.DepartIfGenerateStatement(self)
+
 	@GenerateStatement.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
 		GenerateStatement.Parent.fset(self, parent)
@@ -1492,6 +1612,16 @@ class IndexedGenerateChoice(ConcurrentChoice):
 		self._expression = expression
 		expression.Parent = self
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this case-generate choice and its value with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIndexedGenerateChoice(self)
+		self._expression.Visit(visitor)
+		visitor.DepartIndexedGenerateChoice(self)
+
 	@readonly
 	def Expression(self) -> ExpressionUnion:
 		"""
@@ -1539,6 +1669,16 @@ class RangedGenerateChoice(ConcurrentChoice):
 
 		self._range = rng
 		rng.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this case-generate choice and its range with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRangedGenerateChoice(self)
+		self._range.Visit(visitor)
+		visitor.DepartRangedGenerateChoice(self)
 
 	@readonly
 	def Range(self) -> Range:
@@ -1637,6 +1777,25 @@ class GenerateCase(ConcurrentCase):
 		"""
 		super().__init__(declaredItems, statements, alternativeLabel, choices, allowBlackbox, parent)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this case-generate alternative, its choices, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitGenerateCase(self)
+		for index, choice in enumerate(self._choices):
+			if index > 0:
+				visitor.VisitBar(self)
+
+			choice.Visit(visitor)
+
+		visitor.VisitArrow(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartGenerateCase(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the case-generate alternative.
@@ -1662,6 +1821,19 @@ class OthersGenerateCase(ConcurrentCase):
 	      when others =>
 	      --   ^^^^^^      <- the choice
 	"""
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this ``others`` case-generate alternative, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitOthersGenerateCase(self)
+		visitor.VisitArrow(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartOthersGenerateCase(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the ``others`` case-generate alternative.
@@ -1731,6 +1903,20 @@ class CaseGenerateStatement(GenerateStatement):
 			for case in cases:
 				self._cases.append(case)
 				case.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this case-generate statement, its selector and its alternatives with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitCaseGenerateStatement(self)
+		self._expression.Visit(visitor)
+		visitor.VisitGenerate(self)
+		for case in self._cases:
+			case.Visit(visitor)
+
+		visitor.DepartCaseGenerateStatement(self)
 
 	@GenerateStatement.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
@@ -1829,6 +2015,20 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 
 		self._range = rng
 		rng.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this for-generate statement, its range, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitForGenerateStatement(self)
+		self._range.Visit(visitor)
+		visitor.VisitGenerate(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartForGenerateStatement(self)
 
 	@GenerateStatement.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:

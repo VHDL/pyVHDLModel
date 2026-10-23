@@ -154,7 +154,7 @@ class Writers(Testcase):
 		writtenByChildren = {
 			"Symbol", "SimpleAggregateElement", "RangedAggregateElement", "NamedAggregateElement",
 			"ConstrainedScalarSubtypeSymbol", "ConstrainedArraySubtypeSymbol", "ConstrainedRecordSubtypeSymbol", "Document",
-			"WaveformElement", "ConditionalWaveform", "SelectedWaveform", "RangedChoice"
+			"WaveformElement", "ConditionalWaveform", "SelectedWaveform", "RangedChoice", "RangedGenerateChoice"
 		}
 		for className in classNames - writtenByChildren:
 			with self.subTest(className=className):

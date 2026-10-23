@@ -69,7 +69,12 @@ if TYPE_CHECKING:
 	                                      SelectedWaveformsMixin
 	from pyVHDLModel.Concurrent    import ProcessStatement, ConcurrentProcedureCall, ConcurrentSimpleSignalAssignment, \
 	                                      ConcurrentSelectedSignalAssignment, ConcurrentConditionalSignalAssignment, \
-	                                      ConcurrentAssertStatement
+	                                      ConcurrentAssertStatement, ComponentInstantiation, EntityInstantiation, \
+	                                      ConfigurationInstantiation, ConcurrentBlockStatement, GenerateBranch, \
+	                                      IfGenerateBranch, ElsifGenerateBranch, ElseGenerateBranch, \
+	                                      IfGenerateStatement, IndexedGenerateChoice, RangedGenerateChoice, \
+	                                      ConcurrentCase, GenerateCase, OthersGenerateCase, CaseGenerateStatement, \
+	                                      ForGenerateStatement
 	from pyVHDLModel.Configuration import EntityAspectEntity, EntityAspectConfiguration, EntityAspectOpen, \
 	                                      BindingIndication, AllInstantiationList, OthersInstantiationList, \
 	                                      ComponentConfiguration, BlockConfiguration
@@ -118,7 +123,10 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	:mod:`pyVHDLModel.Visitor`.
 	"""
 
-	def VisitLeftParenthesis(self, element: IndexedName | ParenthesisName | TypeConversion | EntityAspectEntity) -> None:
+	def VisitLeftParenthesis(
+		self,
+		element: IndexedName | ParenthesisName | TypeConversion | EntityAspectEntity | EntityInstantiation
+	) -> None:
 		"""
 		Visit the left parenthesis between the prefix and the parenthesized list of an element.
 
@@ -140,7 +148,8 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def VisitArrow(
 		self,
-		element: AssociationItem | IndexedAggregateElement | RangedAggregateElement | NamedAggregateElement
+		element: AssociationItem | IndexedAggregateElement | RangedAggregateElement | NamedAggregateElement |
+		         ConcurrentCase
 	) -> None:
 		"""
 		Visit the arrow (``=>``) between a choice or formal and its value.
@@ -233,7 +242,11 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param physicalType: The physical type.
 		"""
 
-	def VisitBegin(self, element: Subprogram | Entity | Architecture | ProcessStatement) -> None:
+	def VisitBegin(
+		self,
+		element: Subprogram | Entity | Architecture | ProcessStatement | ConcurrentBlockStatement | GenerateBranch |
+		         ConcurrentCase | ForGenerateStatement
+	) -> None:
 		"""
 		Visit the reserved word ``begin`` between the declarative part and the statement part of an element.
 
@@ -268,7 +281,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The selected assignment.
 		"""
 
-	def VisitBar(self, element: SelectedWaveform) -> None:
+	def VisitBar(self, element: SelectedWaveform | GenerateCase) -> None:
 		"""
 		Visit the vertical line (``|``) between two choices.
 
@@ -287,6 +300,20 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Visit the reserved word ``severity`` before the severity level of an assertion or report.
 
 		:param element: The assertion or report.
+		"""
+
+	def VisitRightParenthesis(self, element: EntityAspectEntity | EntityInstantiation) -> None:
+		"""
+		Visit the right parenthesis after the architecture name of an entity aspect or entity instantiation.
+
+		:param element: The element enclosing the architecture name.
+		"""
+
+	def VisitGenerate(self, element: GenerateBranch | CaseGenerateStatement | ForGenerateStatement) -> None:
+		"""
+		Visit the reserved word ``generate`` before the body of a generate statement or branch.
+
+		:param element: The generate statement or branch.
 		"""
 
 	def VisitNullLiteral(self, literal: NullLiteral) -> None:
@@ -2162,4 +2189,200 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from a concurrent assertion, after its severity.
 
 		:param assertion: The assertion.
+		"""
+
+	def VisitComponentInstantiation(self, instantiation: ComponentInstantiation) -> None:
+		"""
+		Visit a component instantiation, before its component name.
+
+		:param instantiation: The component instantiation.
+		"""
+
+	def DepartComponentInstantiation(self, instantiation: ComponentInstantiation) -> None:
+		"""
+		Depart from a component instantiation, after its port map aspect.
+
+		:param instantiation: The component instantiation.
+		"""
+
+	def VisitEntityInstantiation(self, instantiation: EntityInstantiation) -> None:
+		"""
+		Visit an entity instantiation, before its entity name.
+
+		:param instantiation: The entity instantiation.
+		"""
+
+	def DepartEntityInstantiation(self, instantiation: EntityInstantiation) -> None:
+		"""
+		Depart from an entity instantiation, after its port map aspect.
+
+		:param instantiation: The entity instantiation.
+		"""
+
+	def VisitConfigurationInstantiation(self, instantiation: ConfigurationInstantiation) -> None:
+		"""
+		Visit a configuration instantiation, before its configuration name.
+
+		:param instantiation: The configuration instantiation.
+		"""
+
+	def DepartConfigurationInstantiation(self, instantiation: ConfigurationInstantiation) -> None:
+		"""
+		Depart from a configuration instantiation, after its port map aspect.
+
+		:param instantiation: The configuration instantiation.
+		"""
+
+	def VisitConcurrentBlockStatement(self, block: ConcurrentBlockStatement) -> None:
+		"""
+		Visit a block statement, before its generic clause.
+
+		:param block: The block statement.
+		"""
+
+	def DepartConcurrentBlockStatement(self, block: ConcurrentBlockStatement) -> None:
+		"""
+		Depart from a block statement, after its last statement.
+
+		:param block: The block statement.
+		"""
+
+	def VisitIfGenerateStatement(self, statement: IfGenerateStatement) -> None:
+		"""
+		Visit an if-generate statement, before its if branch.
+
+		:param statement: The if-generate statement.
+		"""
+
+	def DepartIfGenerateStatement(self, statement: IfGenerateStatement) -> None:
+		"""
+		Depart from an if-generate statement, after its last branch.
+
+		:param statement: The if-generate statement.
+		"""
+
+	def VisitIfGenerateBranch(self, branch: IfGenerateBranch) -> None:
+		"""
+		Visit the if branch of an if-generate statement, before its condition.
+
+		:param branch: The generate branch.
+		"""
+
+	def DepartIfGenerateBranch(self, branch: IfGenerateBranch) -> None:
+		"""
+		Depart from the if branch of an if-generate statement, after its last statement.
+
+		:param branch: The generate branch.
+		"""
+
+	def VisitElsifGenerateBranch(self, branch: ElsifGenerateBranch) -> None:
+		"""
+		Visit an elsif branch of an if-generate statement, before its condition.
+
+		:param branch: The generate branch.
+		"""
+
+	def DepartElsifGenerateBranch(self, branch: ElsifGenerateBranch) -> None:
+		"""
+		Depart from an elsif branch of an if-generate statement, after its last statement.
+
+		:param branch: The generate branch.
+		"""
+
+	def VisitElseGenerateBranch(self, branch: ElseGenerateBranch) -> None:
+		"""
+		Visit the else branch of an if-generate statement, before its first declared item.
+
+		:param branch: The generate branch.
+		"""
+
+	def DepartElseGenerateBranch(self, branch: ElseGenerateBranch) -> None:
+		"""
+		Depart from the else branch of an if-generate statement, after its last statement.
+
+		:param branch: The generate branch.
+		"""
+
+	def VisitCaseGenerateStatement(self, statement: CaseGenerateStatement) -> None:
+		"""
+		Visit a case-generate statement, before its selector.
+
+		:param statement: The case-generate statement.
+		"""
+
+	def DepartCaseGenerateStatement(self, statement: CaseGenerateStatement) -> None:
+		"""
+		Depart from a case-generate statement, after its last alternative.
+
+		:param statement: The case-generate statement.
+		"""
+
+	def VisitGenerateCase(self, case: GenerateCase) -> None:
+		"""
+		Visit an alternative of a case-generate statement, before its first choice.
+
+		:param case: The case-generate alternative.
+		"""
+
+	def DepartGenerateCase(self, case: GenerateCase) -> None:
+		"""
+		Depart from an alternative of a case-generate statement, after its last statement.
+
+		:param case: The case-generate alternative.
+		"""
+
+	def VisitOthersGenerateCase(self, case: OthersGenerateCase) -> None:
+		"""
+		Visit the ``others`` alternative of a case-generate statement, before its first declared item.
+
+		:param case: The case-generate alternative.
+		"""
+
+	def DepartOthersGenerateCase(self, case: OthersGenerateCase) -> None:
+		"""
+		Depart from the ``others`` alternative of a case-generate statement, after its last statement.
+
+		:param case: The case-generate alternative.
+		"""
+
+	def VisitIndexedGenerateChoice(self, choice: IndexedGenerateChoice) -> None:
+		"""
+		Visit a case-generate choice given by a value, before its value.
+
+		:param choice: The choice.
+		"""
+
+	def DepartIndexedGenerateChoice(self, choice: IndexedGenerateChoice) -> None:
+		"""
+		Depart from a case-generate choice given by a value, after its value.
+
+		:param choice: The choice.
+		"""
+
+	def VisitRangedGenerateChoice(self, choice: RangedGenerateChoice) -> None:
+		"""
+		Visit a case-generate choice given by a range, before its range.
+
+		:param choice: The choice.
+		"""
+
+	def DepartRangedGenerateChoice(self, choice: RangedGenerateChoice) -> None:
+		"""
+		Depart from a case-generate choice given by a range, after its range.
+
+		:param choice: The choice.
+		"""
+
+	def VisitForGenerateStatement(self, statement: ForGenerateStatement) -> None:
+		"""
+		Visit a for-generate statement, before its range.
+
+		:param statement: The for-generate statement.
+		"""
+
+	def DepartForGenerateStatement(self, statement: ForGenerateStatement) -> None:
+		"""
+		Depart from a for-generate statement, after its last statement.
+
+		:param statement: The for-generate statement.
 		"""

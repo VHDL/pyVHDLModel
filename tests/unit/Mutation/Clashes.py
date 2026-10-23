@@ -497,7 +497,7 @@ class ImportedItems(Testcase):
 		Package("other", declaredItems=[imported])
 		architecture = _architecture()
 		architecture.IndexDeclaredItems()
-		architecture._namespace._elements["bits"] = imported
+		architecture._namespace.AddImport("bits", imported)
 		constant = _constant("BITS")
 
 		architecture.AddDeclaredItem(constant)
@@ -511,7 +511,7 @@ class ImportedItems(Testcase):
 		entity = Entity("ent")
 		architecture = _architecture()
 		_link(entity, architecture, Package("pkg"), _packageBody())
-		entity._namespace._elements["bits"] = imported
+		entity._namespace.AddImport("bits", imported)
 		constant = _constant("BITS")
 
 		architecture.AddDeclaredItem(constant)
@@ -523,7 +523,7 @@ class ImportedItems(Testcase):
 		Package("other", declaredItems=[imported])
 		entity = Entity("ent")
 		entity.IndexDeclaredItems()
-		entity._namespace._elements["clock"] = imported
+		entity._namespace.AddImport("clock", imported)
 		port = _port("Clock")
 
 		entity.AddPortItem(port)

@@ -83,8 +83,7 @@ class Namespaces(Testcase):
 		namespace = Namespace("architecture", parent)
 
 		self.assertIs(parent, namespace.ParentNamespace)
-		# The constructor only stores the parent - it doesn't register the child.
-		self.assertEqual(0, len(parent.SubNamespaces))
+		self.assertListEqual([namespace], parent.SubNamespaces)
 
 	def test_ParentNamespaceSetter_RegistersInParent(self) -> None:
 		parent = Namespace("entity")
@@ -92,7 +91,7 @@ class Namespaces(Testcase):
 		namespace.ParentNamespace = parent
 
 		self.assertIs(parent, namespace.ParentNamespace)
-		self.assertIs(namespace, parent.SubNamespaces["architecture"])
+		self.assertListEqual([namespace], parent.SubNamespaces)
 
 
 class FindComponent(Testcase):

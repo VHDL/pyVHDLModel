@@ -37,7 +37,7 @@ from pyVHDLModel.Association     import GenericAssociationItem
 from pyVHDLModel.Base            import Mode
 from pyVHDLModel.DesignUnit      import Component
 from pyVHDLModel.Expression      import IntegerLiteral
-from pyVHDLModel.Formatting.VHDL import KeywordCase, NewLine, VHDLStyle, VHDLWriter
+from pyVHDLModel.Formatting.VHDL import KeywordCase, NewLine, ListStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Instantiation   import ProcedureInstantiation, FunctionInstantiation
 from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                         GenericProcedureInterfaceItem, GenericFunctionInterfaceItem, \
@@ -80,7 +80,7 @@ class Declarations(Testcase):
 			"""), VHDLWriter().Format(Procedure("p", parameterItems=_parameters())))
 
 	def test_Procedure_Parameters_OneLine(self) -> None:
-		style = VHDLStyle(interfaceElement=NewLine.Remove, interfaceLastCloseParenthesis=NewLine.Remove)
+		style = VHDLStyle(parameterList=ListStyle(NewLine.Remove, lastCloseParen=NewLine.Remove))
 
 		self.assertEqual(
 			"procedure p (constant a : in integer; variable b : out integer);\n",

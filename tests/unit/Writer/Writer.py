@@ -33,7 +33,7 @@ from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Expression      import AndExpression, EnumerationLiteral, FunctionCall, IntegerLiteral, \
                                         InverseExpression, ModuloExpression, NullLiteral, OrExpression
-from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, NewLine, VHDLStyle, VHDLWriter
+from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, NewLine, ListStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, OpenName
 from pyVHDLModel.Symbol          import ConstrainedCompositeSubtypeSymbol
 from pyVHDLModel.Visitor         import Visitor
@@ -128,66 +128,169 @@ class Styles(Testcase):
 		self.assertEqual("Parameter 'indentSize' is less than 1.", str(context.exception))
 		self.assertEqual(["Got value '0'."], context.exception.__notes__)
 
-	def test_Default_InterfaceList(self) -> None:
+	def test_Default_Lists(self) -> None:
+		"""Interface lists and map aspects: one element per line; procedure and function calls: a single line."""
 		style = VHDLStyle()
 
-		self.assertIs(NewLine.Add, style.InterfaceElement)
-		self.assertIs(NewLine.Remove, style.InterfaceListSemicolon)
-		self.assertIs(NewLine.Add, style.InterfaceLastCloseParenthesis)
+		for listStyle in (
+			style.GenericClause, style.PortClause, style.SubprogramGenericClause, style.ParameterList, style.GenericMap,
+			style.PortMap
+		):
+			self.assertIs(NewLine.Add, listStyle.Element)
+			self.assertIs(NewLine.Remove, listStyle.Separator)
+			self.assertIs(NewLine.Add, listStyle.LastCloseParen)
 
-	def test_InterfaceElement(self) -> None:
-		style = VHDLStyle(interfaceElement=NewLine.Remove)
+		for listStyle in (style.ProcedureCall, style.FunctionCall):
+			self.assertIs(NewLine.Remove, listStyle.Element)
+			self.assertIs(NewLine.Remove, listStyle.Separator)
+			self.assertIs(NewLine.Remove, listStyle.LastCloseParen)
 
-		self.assertIs(NewLine.Remove, style.InterfaceElement)
+	def test_GenericClause(self) -> None:
+		listStyle = ListStyle(NewLine.Remove)
 
-	def test_InterfaceElement_None(self) -> None:
-		with self.assertRaises(ValueError) as context:
-			VHDLStyle(interfaceElement=None)
+		self.assertIs(listStyle, VHDLStyle(genericClause=listStyle).GenericClause)
 
-		self.assertEqual("Parameter 'interfaceElement' is None.", str(context.exception))
-
-	def test_InterfaceElement_Type(self) -> None:
+	def test_GenericClause_Type(self) -> None:
 		with self.assertRaises(TypeError) as context:
-			VHDLStyle(interfaceElement="remove_new_line")
+			VHDLStyle(genericClause=NewLine.Remove)
 
-		self.assertEqual("Parameter 'interfaceElement' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual("Parameter 'genericClause' is not of type 'ListStyle'.", str(context.exception))
+		self.assertEqual(["Got type 'pyVHDLModel.Formatting.VHDL.NewLine'."], context.exception.__notes__)
+
+	def test_PortClause(self) -> None:
+		listStyle = ListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(portClause=listStyle).PortClause)
+
+	def test_PortClause_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(portClause=NewLine.Remove)
+
+		self.assertEqual("Parameter 'portClause' is not of type 'ListStyle'.", str(context.exception))
+
+	def test_SubprogramGenericClause(self) -> None:
+		listStyle = ListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(subprogramGenericClause=listStyle).SubprogramGenericClause)
+
+	def test_SubprogramGenericClause_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(subprogramGenericClause=NewLine.Remove)
+
+		self.assertEqual("Parameter 'subprogramGenericClause' is not of type 'ListStyle'.", str(context.exception))
+
+	def test_ParameterList(self) -> None:
+		listStyle = ListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(parameterList=listStyle).ParameterList)
+
+	def test_ParameterList_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(parameterList=NewLine.Remove)
+
+		self.assertEqual("Parameter 'parameterList' is not of type 'ListStyle'.", str(context.exception))
+
+	def test_GenericMap(self) -> None:
+		listStyle = ListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(genericMap=listStyle).GenericMap)
+
+	def test_GenericMap_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(genericMap=NewLine.Remove)
+
+		self.assertEqual("Parameter 'genericMap' is not of type 'ListStyle'.", str(context.exception))
+
+	def test_PortMap(self) -> None:
+		listStyle = ListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(portMap=listStyle).PortMap)
+
+	def test_PortMap_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(portMap=NewLine.Remove)
+
+		self.assertEqual("Parameter 'portMap' is not of type 'ListStyle'.", str(context.exception))
+
+	def test_ProcedureCall(self) -> None:
+		listStyle = ListStyle()
+
+		self.assertIs(listStyle, VHDLStyle(procedureCall=listStyle).ProcedureCall)
+
+	def test_ProcedureCall_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(procedureCall=NewLine.Remove)
+
+		self.assertEqual("Parameter 'procedureCall' is not of type 'ListStyle'.", str(context.exception))
+
+	def test_FunctionCall(self) -> None:
+		listStyle = ListStyle()
+
+		self.assertIs(listStyle, VHDLStyle(functionCall=listStyle).FunctionCall)
+
+	def test_FunctionCall_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(functionCall=NewLine.Remove)
+
+		self.assertEqual("Parameter 'functionCall' is not of type 'ListStyle'.", str(context.exception))
+
+
+class ListStyles(Testcase):
+	def test_Default(self) -> None:
+		listStyle = ListStyle()
+
+		self.assertIs(NewLine.Add, listStyle.Element)
+		self.assertIs(NewLine.Remove, listStyle.Separator)
+		self.assertIs(NewLine.Add, listStyle.LastCloseParen)
+
+	def test_Element(self) -> None:
+		self.assertIs(NewLine.Remove, ListStyle(NewLine.Remove).Element)
+
+	def test_Element_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			ListStyle(None)
+
+		self.assertEqual("Parameter 'element' is None.", str(context.exception))
+
+	def test_Element_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			ListStyle("remove_new_line")
+
+		self.assertEqual("Parameter 'element' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
-	def test_InterfaceListSemicolon(self) -> None:
-		style = VHDLStyle(interfaceListSemicolon=NewLine.Add)
+	def test_Separator(self) -> None:
+		self.assertIs(NewLine.Add, ListStyle(separator=NewLine.Add).Separator)
 
-		self.assertIs(NewLine.Add, style.InterfaceListSemicolon)
-
-	def test_InterfaceListSemicolon_None(self) -> None:
+	def test_Separator_None(self) -> None:
 		with self.assertRaises(ValueError) as context:
-			VHDLStyle(interfaceListSemicolon=None)
+			ListStyle(separator=None)
 
-		self.assertEqual("Parameter 'interfaceListSemicolon' is None.", str(context.exception))
+		self.assertEqual("Parameter 'separator' is None.", str(context.exception))
 
-	def test_InterfaceListSemicolon_Type(self) -> None:
+	def test_Separator_Type(self) -> None:
 		with self.assertRaises(TypeError) as context:
-			VHDLStyle(interfaceListSemicolon="add_new_line")
+			ListStyle(separator="add_new_line")
 
-		self.assertEqual("Parameter 'interfaceListSemicolon' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual("Parameter 'separator' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
-	def test_InterfaceLastCloseParenthesis(self) -> None:
-		style = VHDLStyle(interfaceLastCloseParenthesis=NewLine.Remove)
+	def test_LastCloseParen(self) -> None:
+		self.assertIs(NewLine.Remove, ListStyle(lastCloseParen=NewLine.Remove).LastCloseParen)
 
-		self.assertIs(NewLine.Remove, style.InterfaceLastCloseParenthesis)
-
-	def test_InterfaceLastCloseParenthesis_None(self) -> None:
+	def test_LastCloseParen_None(self) -> None:
 		with self.assertRaises(ValueError) as context:
-			VHDLStyle(interfaceLastCloseParenthesis=None)
+			ListStyle(lastCloseParen=None)
 
-		self.assertEqual("Parameter 'interfaceLastCloseParenthesis' is None.", str(context.exception))
+		self.assertEqual("Parameter 'lastCloseParen' is None.", str(context.exception))
 
-	def test_InterfaceLastCloseParenthesis_Type(self) -> None:
+	def test_LastCloseParen_Type(self) -> None:
 		with self.assertRaises(TypeError) as context:
-			VHDLStyle(interfaceLastCloseParenthesis="remove_new_line")
+			ListStyle(lastCloseParen="remove_new_line")
 
-		self.assertEqual("Parameter 'interfaceLastCloseParenthesis' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual("Parameter 'lastCloseParen' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
 
 
 class Writers(Testcase):

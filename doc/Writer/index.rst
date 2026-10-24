@@ -102,41 +102,92 @@ Formatting Options
    Number of spaces per indentation level, as vhdl-style-guide's option ``indent_size`` (default: ``2``). It applies to
    :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.Spaces`.
 
-``interfaceElement``
-   Line break before each interface element of a generic clause, a port clause or a formal parameter list, as
-   vhdl-style-guide's option ``interface_element``: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (default,
-   ``add_new_line``: one element per line) or :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove`
-   (``remove_new_line``).
-
-``interfaceListSemicolon``
-   Line break before the semicolon between two interface elements, as vhdl-style-guide's option
-   ``interface_list_semicolon``: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove` (default: the semicolon ends the
-   line) or :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (the semicolon starts the next line).
-
-``interfaceLastCloseParenthesis``
-   Line break before the right parenthesis of an interface list, as vhdl-style-guide's option ``last_close_paren``:
-   :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (default: on its own line) or
-   :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove`.
-
-vhdl-style-guide has these three options for subprogram specifications
-(:ref:`vsg:configuring-subprogram-specification-statement-rules`); the writer applies them to generic clauses and port
-clauses, too.
-
 .. code-block:: Python
 
    from pyVHDLModel.Formatting.VHDL import IndentStyle, KeywordCase, VHDLStyle, VHDLWriter
 
    writer = VHDLWriter(VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs))
 
+
+.. _WRITER/style/lists:
+
+List Layout
+===========
+
+Each construct with a parenthesized list has its own :class:`~pyVHDLModel.Formatting.VHDL.ListStyle`:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Option
+     - Construct
+     - Default
+   * - ``genericClause``
+     - generic clauses of entities, components, packages and block statements
+     - one generic per line
+   * - ``portClause``
+     - port clauses of entities, components and block statements
+     - one port per line
+   * - ``subprogramGenericClause``
+     - generic clauses of procedures and functions
+     - one generic per line
+   * - ``parameterList``
+     - formal parameter lists of procedures, functions, generic procedures and generic functions
+     - one parameter per line
+   * - ``genericMap``
+     - generic map aspects of instantiations, block statements, binding indications, package instantiations and
+       subprogram instantiations
+     - one association per line
+   * - ``portMap``
+     - port map aspects of instantiations, block statements and binding indications
+     - one association per line
+   * - ``procedureCall``
+     - actual parameter parts of concurrent and sequential procedure calls
+     - a single line
+   * - ``functionCall``
+     - association lists of function calls (:class:`~pyVHDLModel.Name.ParenthesisName`, also an indexed or slice name)
+     - a single line
+
+A :class:`~pyVHDLModel.Formatting.VHDL.ListStyle` has three options, named after vhdl-style-guide's options of the
+subprogram specification rules ``function_019``/``procedure_013`` (interface lists, separated by semicolons) and of the
+procedure call rule ``procedure_call_003`` (association lists, separated by commas):
+
+``element``
+   Line break before each element, the first one after the left parenthesis included, as vhdl-style-guide's options
+   ``interface_element`` and ``association_element``: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (default,
+   ``add_new_line``: one element per line) or :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove`
+   (``remove_new_line``).
+
+``separator``
+   Line break before the separator between two elements, as vhdl-style-guide's options ``interface_list_semicolon`` and
+   ``association_list_comma``: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove` (default: the separator ends the
+   line) or :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (the separator starts the next line).
+
+``lastCloseParen``
+   Line break before the right parenthesis, as vhdl-style-guide's option ``last_close_paren``:
+   :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (default: on its own line) or
+   :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove`.
+
+The procedure call and function call styles are ``ListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)``. See
+vhdl-style-guide's :ref:`vsg:configuring-subprogram-specification-statement-rules` and
+:ref:`vsg:configuring-procedure-call-statement-rules`.
+
+.. code-block:: Python
+
+   from pyVHDLModel.Formatting.VHDL import ListStyle, NewLine, VHDLStyle, VHDLWriter
+
+   oneLine = ListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
+   writer =  VHDLWriter(VHDLStyle(genericClause=oneLine, portClause=ListStyle(NewLine.Remove, NewLine.Add)))
+
 .. code-block:: VHDL
 
-   -- interfaceElement=NewLine.Remove, interfaceListSemicolon=NewLine.Add
-   port (clk, rst : in bit
-     ; q : out T
-   );
-
-   -- interfaceElement=NewLine.Remove, interfaceLastCloseParenthesis=NewLine.Remove
-   procedure p (constant a : in integer; variable b : out integer);
+   -- genericClause=oneLine, portClause=ListStyle(NewLine.Remove, NewLine.Add)
+   component counter is
+     generic (BITS : positive := 8; type T);
+     port (clk, rst : in bit
+       ; q : out T
+     );
+   end component counter;
 
 
 .. _WRITER/separators:
@@ -156,11 +207,11 @@ Each list reports the separator between two of its items by an event named after
    * - ``VisitInterfaceListSeparator``
      - ``;``
      - generic clause, port clause, formal parameter list
-     - ``;``, then a new line (``interfaceElement``, ``interfaceListSemicolon``)
+     - by the construct's list style (:ref:`WRITER/style/lists`), by default ``;`` and a new line
    * - ``VisitAssociationListSeparator``
      - ``,``
      - associations of a parenthesis name, generic and port map aspects, actual parameters of a procedure call
-     - ``,`` and a new line in a map aspect, otherwise ``,`` and a space
+     - by the construct's list style, by default ``,`` and a new line in a map aspect, otherwise ``,`` and a space
    * - ``VisitElementSeparator``
      - ``,``
      - indices of an indexed name, element associations of an aggregate, index and record constraints, literals of an
@@ -279,7 +330,8 @@ Object declarations
    file declaration is written without one.
 
 Interface items
-   Each item of a generic clause or a port clause is written on its own line; the items are separated by semicolons.
+   By default, each item of a generic clause or a port clause is written on its own line
+   (:ref:`WRITER/style/lists`); the items are separated by semicolons.
    A clause without items is not written. Generic constants and ports are written without an object class reserved word
    (``BITS : positive``, ``clk : in bit``), parameters with one (``signal clk : in bit``). An item with
    :attr:`Mode.Default <pyVHDLModel.Base.Mode.Default>` is written without a mode. Ports and parameters with a mode view
@@ -306,12 +358,13 @@ Subprograms
    items or statements is written as a subprogram body. One without them is written as a subprogram declaration
    (``procedure reset;``), if its parent is a package declaration, a protected type declaration or none, otherwise as
    an empty subprogram body (e.g. in a package body or an architecture). A subprogram body has a declarative part and a
-   statement part. Each parameter is written on its own line. A generic clause of a subprogram is followed by the
-   reserved word ``parameter`` before the parameter list. Generic procedures and functions are written in a generic
-   clause like any other generic. A method of a protected type is written like a procedure or function.
+   statement part. By default, each parameter is written on its own line. A generic clause of a subprogram is followed
+   by the reserved word ``parameter`` before the parameter list. Generic procedures and functions are written in a
+   generic clause like any other generic. A method of a protected type is written like a procedure or function.
 
 Subprogram instantiations
-   Procedure and function instantiations are written with their generic map aspect, one association per line.
+   Procedure and function instantiations are written with their generic map aspect, by default one association per
+   line.
 
 Protected types
    A protected type declaration writes its methods, a protected type body its declared items, one per line.
@@ -362,7 +415,7 @@ written with ``end``, the reserved words of the design unit and its identifier. 
 
 A configuration writes its block configuration, nested block configurations and component configurations, each ending
 with ``end for;``. A binding indication (``use entity work.sub(rtl)``) and its map aspects are indented one level deeper
-than its component configuration; each association of a map aspect is written on its own line.
+than its component configuration; by default, each association of a map aspect is written on its own line.
 
 
 .. _WRITER/concurrent:
@@ -396,8 +449,8 @@ Processes
 
 Instantiations
    Component, entity and configuration instantiations are written with the reserved word ``component``, ``entity`` or
-   ``configuration``, followed by their generic and port map aspects, one association per line. An instantiation
-   without label raises :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
+   ``configuration``, followed by their generic and port map aspects, by default one association per line. An
+   instantiation without label raises :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
 
 Block statements
    A block statement writes its block header (generic clause, generic map aspect, port clause, port map aspect), its

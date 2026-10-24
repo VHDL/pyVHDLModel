@@ -455,19 +455,17 @@ class ParameterInterfaceItemMixin(InterfaceItemMixin, mixin=True):
 	"""
 
 
-# WORKAROUND: pyTooling <= 10.0.0rc8 replaces a class with expectations, which a class variable holds, by a function.
-#   class WithSingleDeclarationsMixin(
-#   	metaclass=ExtendedType,
-#   	mixin=True,
-#   	expects=("_identifiers", "_normalizedIdentifiers")
-#   ):
 @export
-class WithSingleDeclarationsMixin(metaclass=ExtendedType, mixin=True):
+class WithSingleDeclarationsMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=("_identifiers", "_normalizedIdentifiers")
+):
 	"""
 	A mixin-class for interface items declaring several identifiers, which offer one single declaration per identifier.
 
 	The single declarations are created on first access of :data:`SingleDeclarations` and kept in
-	:attr:`_singleDeclarations`. The host class provides the identifiers ``_identifiers`` and ``_normalizedIdentifiers``.
+	:attr:`_singleDeclarations`.
 
 	.. seealso::
 

@@ -178,10 +178,11 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 		procedureName.Parent = self
 
 		# TODO: extract to mixin
-		self._parameterAssociationItems = []
+		parameterAssociationItemList = []
+		self._parameterAssociationItems = parameterAssociationItemList
 		if parameterAssociationItems is not None:
 			for parameterMapping in parameterAssociationItems:
-				self._parameterAssociationItems.append(parameterMapping)
+				parameterAssociationItemList.append(parameterMapping)
 				parameterMapping.Parent = self
 
 	def _VisitProcedureCall(self, visitor: Visitor) -> None:
@@ -520,9 +521,10 @@ class WaveformMixin(metaclass=ExtendedType, mixin=True):
 
 		:param waveform: List of all waveform elements, in the order they were written.
 		"""
-		self._waveform = []
+		waveformList = []
+		self._waveform = waveformList
 		for waveformElement in waveform:
-			self._waveform.append(waveformElement)
+			waveformList.append(waveformElement)
 			waveformElement.Parent = self
 
 	def _VisitWaveform(self, visitor: Visitor) -> None:
@@ -710,9 +712,10 @@ class ConditionalWaveformsMixin(metaclass=ExtendedType, mixin=True):
 
 		:param conditionalWaveforms: All alternatives, in order.
 		"""
-		self._conditionalWaveforms = []
+		conditionalWaveformList = []
+		self._conditionalWaveforms = conditionalWaveformList
 		for conditionalWaveform in conditionalWaveforms:
-			self._conditionalWaveforms.append(conditionalWaveform)
+			conditionalWaveformList.append(conditionalWaveform)
 			conditionalWaveform.Parent = self
 
 	def _VisitConditionalWaveforms(self, visitor: Visitor) -> None:
@@ -943,9 +946,10 @@ class SelectedWaveformsMixin(metaclass=ExtendedType, mixin=True):
 
 		:param selectedWaveforms: All alternatives, in order.
 		"""
-		self._selectedWaveforms = []
+		selectedWaveformList = []
+		self._selectedWaveforms = selectedWaveformList
 		for selectedWaveform in selectedWaveforms:
-			self._selectedWaveforms.append(selectedWaveform)
+			selectedWaveformList.append(selectedWaveform)
 			selectedWaveform.Parent = self
 
 	def _VisitSelectedWaveforms(self, visitor: Visitor) -> None:
@@ -989,9 +993,10 @@ class SelectedExpressionsMixin(metaclass=ExtendedType, mixin=True):
 
 		:param selectedExpressions: All alternatives, in order.
 		"""
-		self._selectedExpressions = []
+		selectedExpressionList = []
+		self._selectedExpressions = selectedExpressionList
 		for selectedExpression in selectedExpressions:
-			self._selectedExpressions.append(selectedExpression)
+			selectedExpressionList.append(selectedExpression)
 			selectedExpression.Parent = self
 
 	def _VisitSelectedExpressions(self, visitor: Visitor) -> None:

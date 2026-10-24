@@ -226,9 +226,10 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		super().__init__(parent)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._identifiers = []  # TODO: convert to dict
+		identifierList = []  # TODO: convert to dict
+		self._identifiers = identifierList
 		for identifier in identifiers:
-			self._identifiers.append(identifier)
+			identifierList.append(identifier)
 			identifier.Parent = self
 
 		self._attribute = attribute

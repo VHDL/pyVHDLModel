@@ -467,10 +467,11 @@ class BlockConfiguration(ModelEntity):
 		self._blockSpecification = blockSpecification
 		blockSpecification.Parent = self
 
-		self._items = []
+		itemList = []
+		self._items = itemList
 		if items is not None:
 			for item in items:
-				self._items.append(item)
+				itemList.append(item)
 				item.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:

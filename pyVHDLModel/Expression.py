@@ -3123,9 +3123,10 @@ class Aggregate(BaseExpression):
 		"""
 		super().__init__(parent)
 
-		self._elements = []
+		elementList = []
+		self._elements = elementList
 		for element in elements:
-			self._elements.append(element)
+			elementList.append(element)
 			element.Parent = self
 
 	@readonly

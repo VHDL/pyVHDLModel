@@ -91,10 +91,11 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_L
 
 		:param statements: List of all sequential statements in this construct.
 		"""
-		self._statements = []
+		statementList = []
+		self._statements = statementList
 		if statements is not None:
 			for item in statements:
-				self._statements.append(item)
+				statementList.append(item)
 				item.Parent = self
 
 	@readonly
@@ -745,9 +746,10 @@ class SequentialConditionalVariableAssignment(SequentialStatement, AssignmentMix
 		super().__init__(label, parent)
 		AssignmentMixin.__init__(self, target)
 
-		self._conditionalExpressions = []
+		conditionalExpressionList = []
+		self._conditionalExpressions = conditionalExpressionList
 		for conditionalExpression in conditionalExpressions:
-			self._conditionalExpressions.append(conditionalExpression)
+			conditionalExpressionList.append(conditionalExpression)
 			conditionalExpression.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -1397,10 +1399,11 @@ class IfStatement(CompoundStatement):
 		self._ifBranch = ifBranch
 		ifBranch.Parent = self
 
-		self._elsifBranches = []
+		elsifBranchList = []
+		self._elsifBranches = elsifBranchList
 		if elsifBranches is not None:
 			for branch in elsifBranches:
-				self._elsifBranches.append(branch)
+				elsifBranchList.append(branch)
 				branch.Parent = self
 
 		if elseBranch is not None:
@@ -1753,10 +1756,11 @@ class CaseStatement(CompoundStatement):
 		self._expression = expression
 		expression.Parent = self
 
-		self._cases = []
+		caseList = []
+		self._cases = caseList
 		if cases is not None:
 			for case in cases:
-				self._cases.append(case)
+				caseList.append(case)
 				case.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -2228,9 +2232,10 @@ class WaitStatement(SequentialStatement, ConditionalMixin):
 		if sensitivityList is None:
 			self._sensitivityList = None
 		else:
-			self._sensitivityList = []  # TODO: convert to dict
+			signalSymbols = []  # TODO: convert to dict
+			self._sensitivityList = signalSymbols
 			for signalSymbol in sensitivityList:
-				self._sensitivityList.append(signalSymbol)
+				signalSymbols.append(signalSymbol)
 				signalSymbol.Parent = self
 
 		self._timeout = timeout

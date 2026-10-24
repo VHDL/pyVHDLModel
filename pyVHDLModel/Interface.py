@@ -276,10 +276,11 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self._subtype = subtype
 		subtype.Parent = self
 
-		self._elements = []
+		elementList = []
+		self._elements = elementList
 		if elements is not None:
 			for element in elements:
-				self._elements.append(element)
+				elementList.append(element)
 				element.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -493,11 +494,12 @@ class WithSingleDeclarationsMixin(
 		:returns: The single declarations.
 		"""
 		if self._singleDeclarations is None:
-			self._singleDeclarations = []
+			singleDeclarations = []
+			self._singleDeclarations = singleDeclarations
 			for position, identifier in enumerate(self._identifiers):
 				normalizedIdentifier = self._normalizedIdentifiers[position]
 				singleDeclaration =    self._SINGLE_DECLARATION(identifier, normalizedIdentifier, position, parent=self)
-				self._singleDeclarations.append(singleDeclaration)
+				singleDeclarations.append(singleDeclaration)
 
 		return self._singleDeclarations
 

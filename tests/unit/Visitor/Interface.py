@@ -135,7 +135,7 @@ class Components(Testcase):
 			("DepartSimpleName",                    clock.Subtype.Name),
 			("DepartSymbol",                        clock.Subtype),
 			("DepartPortSimpleSignalInterfaceItem", clock),
-			("VisitSemicolon",                      component),
+			("VisitInterfaceListSeparator",         component),
 			("VisitPortSimpleSignalInterfaceItem",  output),
 			("VisitSymbol",                         output.Subtype),
 			("VisitSimpleName",                     output.Subtype.Name),

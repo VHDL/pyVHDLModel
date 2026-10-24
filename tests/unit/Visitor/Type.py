@@ -66,7 +66,7 @@ class Types(Testcase):
 			("VisitEnumeratedType",      enumeratedType),
 			("VisitEnumerationLiteral",  first),
 			("DepartEnumerationLiteral", first),
-			("VisitComma",               enumeratedType),
+			("VisitElementSeparator",    enumeratedType),
 			("VisitEnumerationLiteral",  second),
 			("DepartEnumerationLiteral", second),
 			("DepartEnumeratedType",     enumeratedType),

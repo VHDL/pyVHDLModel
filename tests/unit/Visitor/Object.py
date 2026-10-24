@@ -92,7 +92,7 @@ class SubtypeIndications(Testcase):
 			("VisitSimpleName",                     first.Name),
 			("DepartSimpleName",                    first.Name),
 			("DepartSymbol",                        first),
-			("VisitComma",                          symbol),
+			("VisitElementSeparator",               symbol),
 			("VisitSymbol",                         second),
 			("VisitSimpleName",                     second.Name),
 			("DepartSimpleName",                    second.Name),

@@ -33,7 +33,7 @@ from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Expression      import AndExpression, EnumerationLiteral, FunctionCall, IntegerLiteral, \
                                         InverseExpression, ModuloExpression, NullLiteral, OrExpression
-from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
+from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, NewLine, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, OpenName
 from pyVHDLModel.Symbol          import ConstrainedCompositeSubtypeSymbol
 from pyVHDLModel.Visitor         import Visitor
@@ -128,6 +128,67 @@ class Styles(Testcase):
 		self.assertEqual("Parameter 'indentSize' is less than 1.", str(context.exception))
 		self.assertEqual(["Got value '0'."], context.exception.__notes__)
 
+	def test_Default_InterfaceList(self) -> None:
+		style = VHDLStyle()
+
+		self.assertIs(NewLine.Add, style.InterfaceElement)
+		self.assertIs(NewLine.Remove, style.InterfaceListSemicolon)
+		self.assertIs(NewLine.Add, style.InterfaceLastCloseParen)
+
+	def test_InterfaceElement(self) -> None:
+		style = VHDLStyle(interfaceElement=NewLine.Remove)
+
+		self.assertIs(NewLine.Remove, style.InterfaceElement)
+
+	def test_InterfaceElement_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			VHDLStyle(interfaceElement=None)
+
+		self.assertEqual("Parameter 'interfaceElement' is None.", str(context.exception))
+
+	def test_InterfaceElement_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(interfaceElement="remove_new_line")
+
+		self.assertEqual("Parameter 'interfaceElement' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_InterfaceListSemicolon(self) -> None:
+		style = VHDLStyle(interfaceListSemicolon=NewLine.Add)
+
+		self.assertIs(NewLine.Add, style.InterfaceListSemicolon)
+
+	def test_InterfaceListSemicolon_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			VHDLStyle(interfaceListSemicolon=None)
+
+		self.assertEqual("Parameter 'interfaceListSemicolon' is None.", str(context.exception))
+
+	def test_InterfaceListSemicolon_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(interfaceListSemicolon="add_new_line")
+
+		self.assertEqual("Parameter 'interfaceListSemicolon' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_InterfaceLastCloseParen(self) -> None:
+		style = VHDLStyle(interfaceLastCloseParen=NewLine.Remove)
+
+		self.assertIs(NewLine.Remove, style.InterfaceLastCloseParen)
+
+	def test_InterfaceLastCloseParen_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			VHDLStyle(interfaceLastCloseParen=None)
+
+		self.assertEqual("Parameter 'interfaceLastCloseParen' is None.", str(context.exception))
+
+	def test_InterfaceLastCloseParen_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(interfaceLastCloseParen="remove_new_line")
+
+		self.assertEqual("Parameter 'interfaceLastCloseParen' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
 
 class Writers(Testcase):
 	def test_Default(self) -> None:
@@ -155,7 +216,7 @@ class Writers(Testcase):
 			"Symbol", "SimpleAggregateElement", "RangedAggregateElement", "NamedAggregateElement",
 			"ConstrainedScalarSubtypeSymbol", "ConstrainedArraySubtypeSymbol", "ConstrainedRecordSubtypeSymbol", "Document",
 			"WaveformElement", "ConditionalWaveform", "SelectedWaveform", "RangedChoice", "RangedGenerateChoice",
-			"ConditionalExpression", "SelectedExpression"
+			"ConditionalExpression", "SelectedExpression", "IndexedName", "ParenthesisName", "TypeConversion"
 		}
 		for className in classNames - writtenByChildren:
 			with self.subTest(className=className):

@@ -389,7 +389,7 @@ class ComponentConfiguration(ModelEntity):
 		if isinstance(self._instantiationList, list):
 			for index, label in enumerate(self._instantiationList):
 				if index > 0:
-					visitor.VisitComma(self)
+					visitor.VisitNameListSeparator(self)
 
 				label.Visit(visitor)
 		else:

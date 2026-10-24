@@ -51,7 +51,11 @@ element and then its children in source order as events to the visitor. A parser
    The walk passes a token of the element between two of its parts, which is not a model element itself. The event is
    named after the token: a delimiter as IEEE Std 1076-2008 names it in clauses 15.2 and 15.3 (e.g. ``VisitArrow`` for
    ``=>``), a reserved word by itself (e.g. ``VisitWhen``), and a token depending on the element's class by its role
-   (e.g. ``VisitOperator``).
+   (e.g. ``VisitOperator``). A separator is named after the list it separates, so a visitor can tell its purpose
+   (e.g. ``VisitInterfaceListSeparator`` for the semicolon between two interface elements,
+   ``VisitAssociationListSeparator`` for the comma between two association elements). The parentheses of a list
+   belong to the events of its element or part (e.g. ``VisitIndexList`` and ``DepartIndexList``);
+   ``VisitLeftParenthesis`` and ``VisitRightParenthesis`` enclose a single item, which is no list.
 """
 from __future__                  import annotations
 
@@ -133,27 +137,74 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	:mod:`pyVHDLModel.Visitor`.
 	"""
 
-	def VisitLeftParenthesis(
-		self,
-		element: IndexedName | ParenthesisName | TypeConversion | EntityAspectEntity | EntityInstantiation
-	) -> None:
+	def VisitLeftParenthesis(self, element: TypeConversion | EntityAspectEntity | EntityInstantiation) -> None:
 		"""
-		Visit the left parenthesis between the prefix and the parenthesized list of an element.
+		Visit the left parenthesis enclosing a single item, which is no list: the operand of a type conversion or the
+		architecture name of an entity aspect or entity instantiation.
 
-		:param element: The element enclosing the list.
+		:param element: The element enclosing the item.
 		"""
 
-	def VisitComma(
+	def VisitInterfaceListSeparator(self, element: WithGenericsMixin | WithPortsMixin | WithParametersMixin) -> None:
+		"""
+		Visit the semicolon between two interface elements of an interface list: a generic clause, a port clause or a
+		formal parameter list.
+
+		:param element: The element containing the interface list.
+		"""
+
+	def VisitAssociationListSeparator(
 		self,
-		element: IndexedName | ParenthesisName | Aggregate | ConstrainedArraySubtypeSymbol |
-		         ConstrainedRecordSubtypeSymbol | EnumeratedType | ArrayType | AttributeSpecification |
-		         GenericMapAspectMixin | PortMapAspectMixin | Reference | ComponentConfiguration | ProcessStatement |
-		         ProcedureCallMixin | WaveformMixin | SelectedWaveformsMixin | SelectedExpressionsMixin | WaitStatement
+		element: ParenthesisName | GenericMapAspectMixin | PortMapAspectMixin | ProcedureCallMixin
 	) -> None:
 		"""
-		Visit the comma between two items of a list.
+		Visit the comma between two association elements of an association list: the associations of a parenthesis
+		name, of a generic or port map aspect, or the actual parameters of a procedure call.
+
+		:param element: The element containing the association list.
+		"""
+
+	def VisitElementSeparator(
+		self,
+		element: IndexedName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol |
+		         EnumeratedType | ArrayType
+	) -> None:
+		"""
+		Visit the comma between two elements of a parenthesized list, which is no association list.
+
+		The elements are the indices of an indexed name, the element associations of an aggregate, the discrete ranges of
+		an index constraint, the record element constraints of a record constraint, the literals of an enumerated type, or
+		the index subtype definitions or discrete ranges of an array type.
 
 		:param element: The element containing the list.
+		"""
+
+	def VisitNameListSeparator(
+		self,
+		element: AttributeSpecification | Reference | ComponentConfiguration | ProcessStatement | WaitStatement
+	) -> None:
+		"""
+		Visit the comma between two names of a name list.
+
+		The name lists are the entity name list of an attribute specification, the names of a library clause, use clause
+		or context reference, the instantiation list of a component configuration, and the sensitivity list of a process
+		or wait statement.
+
+		:param element: The element containing the name list.
+		"""
+
+	def VisitWaveformSeparator(self, element: WaveformMixin) -> None:
+		"""
+		Visit the comma between two waveform elements of a waveform.
+
+		:param element: The element containing the waveform.
+		"""
+
+	def VisitSelectedAlternativeSeparator(self, element: SelectedWaveformsMixin | SelectedExpressionsMixin) -> None:
+		"""
+		Visit the comma between two alternatives of selected waveforms or selected expressions.
+
+		:param element: The selected assignment.
 		"""
 
 	def VisitArrow(
@@ -208,13 +259,6 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Visit the direction (``to`` or ``downto``) between the bounds of a range.
 
 		:param rng: The range.
-		"""
-
-	def VisitSemicolon(self, element: WithGenericsMixin | WithPortsMixin | WithParametersMixin) -> None:
-		"""
-		Visit the semicolon between two items of an interface list.
-
-		:param element: The element containing the interface list.
 		"""
 
 	def VisitVariableAssignment(self, element: WithDefaultExpressionMixin | AssignmentMixin) -> None:
@@ -320,11 +364,12 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The assertion or report.
 		"""
 
-	def VisitRightParenthesis(self, element: EntityAspectEntity | EntityInstantiation) -> None:
+	def VisitRightParenthesis(self, element: TypeConversion | EntityAspectEntity | EntityInstantiation) -> None:
 		"""
-		Visit the right parenthesis after the architecture name of an entity aspect or entity instantiation.
+		Visit the right parenthesis enclosing a single item, which is no list: the operand of a type conversion or the
+		architecture name of an entity aspect or entity instantiation.
 
-		:param element: The element enclosing the architecture name.
+		:param element: The element enclosing the item.
 		"""
 
 	def VisitGenerate(self, element: GenerateBranch | CaseGenerateStatement | ForGenerateStatement) -> None:
@@ -560,7 +605,21 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def DepartIndexedName(self, name: IndexedName) -> None:
 		"""
-		Depart from an indexed name, after its last index.
+		Depart from an indexed name, after its index list.
+
+		:param name: The indexed name.
+		"""
+
+	def VisitIndexList(self, name: IndexedName) -> None:
+		"""
+		Visit the parenthesized index list of an indexed name, before its first index.
+
+		:param name: The indexed name.
+		"""
+
+	def DepartIndexList(self, name: IndexedName) -> None:
+		"""
+		Depart from the parenthesized index list of an indexed name, after its last index.
 
 		:param name: The indexed name.
 		"""
@@ -574,7 +633,21 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def DepartParenthesisName(self, name: ParenthesisName) -> None:
 		"""
-		Depart from a name followed by a parenthesized association list, after its last association.
+		Depart from a name followed by a parenthesized association list, after its association list.
+
+		:param name: The parenthesis name.
+		"""
+
+	def VisitAssociationList(self, name: ParenthesisName) -> None:
+		"""
+		Visit the parenthesized association list of a parenthesis name, before its first association.
+
+		:param name: The parenthesis name.
+		"""
+
+	def DepartAssociationList(self, name: ParenthesisName) -> None:
+		"""
+		Depart from the parenthesized association list of a parenthesis name, after its last association.
 
 		:param name: The parenthesis name.
 		"""

@@ -423,7 +423,7 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		visitor.VisitEnumeratedType(self)
 		for index, literal in enumerate(self._literals):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitElementSeparator(self)
 
 			literal.Visit(visitor)
 
@@ -737,7 +737,7 @@ class ArrayType(CompositeType):
 		visitor.VisitIndexConstraint(self)
 		for index, dimension in enumerate(self._dimensions):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitElementSeparator(self)
 
 			dimension.Visit(visitor)
 			if isinstance(dimension, SimpleSubtypeSymbol):

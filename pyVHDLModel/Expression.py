@@ -44,6 +44,7 @@ from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import abstractclass
 
 from pyVHDLModel.Base      import ModelEntity, Direction, Range, ReservedWord
+from pyVHDLModel.Exception import LiteralError
 from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor import Visitor
@@ -802,24 +803,25 @@ class BitStringLiteral(Literal):
 
 		Example: ``12sx"F5"`` |rarr| ``111111110101``.
 
-		:returns:           The literal's string value, one character per bit.
-		:raises ValueError: If the value starts or ends with an underscore or contains two consecutive underscores.
-		:raises ValueError: If a decimal literal is signed or unsigned.
-		:raises ValueError: If a decimal literal contains a character other than a digit or an underscore.
-		:raises ValueError: If a digit is not allowed in the base, e.g. ``2`` in a binary literal.
-		:raises ValueError: If the value contains a non-graphic character.
-		:raises ValueError: If a signed literal with an empty expanded value has a non-zero length.
-		:raises ValueError: If the length of an unsigned or unspecified literal truncates a character other than ``0``. |br|
-		                    Only leading '0' characters can be truncated.
-		:raises ValueError: If the length of a signed literal truncates a character other than the sign. |br|
-		                    Only copies of the leftmost remaining character can be truncated.
+		:returns:             The literal's string value, one character per bit.
+		:raises LiteralError: If the value starts or ends with an underscore or contains two consecutive underscores.
+		:raises LiteralError: If a decimal literal is signed or unsigned.
+		:raises LiteralError: If a decimal literal contains a character other than a digit or an underscore.
+		:raises LiteralError: If a digit is not allowed in the base, e.g. ``2`` in a binary literal.
+		:raises LiteralError: If the value contains a non-graphic character.
+		:raises LiteralError: If a signed literal with an empty expanded value has a non-zero length.
+		:raises LiteralError: If the length of an unsigned or unspecified literal truncates a character other than
+		                      ``0``. |br|
+		                      Only leading '0' characters can be truncated.
+		:raises LiteralError: If the length of a signed literal truncates a character other than the sign. |br|
+		                      Only copies of the leftmost remaining character can be truncated.
 		"""
 		if self._binaryValue is not None:
 			return self._binaryValue
 
 		if self._value.startswith("_") or self._value.endswith("_") or "__" in self._value:
-			ex = ValueError("Bit string literal has a leading, trailing or double underscore.")
-			ex.add_note(f"Got value '{self._value}'.")
+			ex = LiteralError("Bit string literal has a leading, trailing or double underscore.", self)
+			ex.add_note(f"Got value '{self}'.")
 			raise ex
 
 		simplifiedValue = self._value.replace("_", "")
@@ -827,14 +829,14 @@ class BitStringLiteral(Literal):
 
 		if self._BASE is BitStringBase.Decimal:
 			if self._isSigned is not None:
-				ex = ValueError("Decimal bit string literal can't be signed or unsigned.")
+				ex = LiteralError("Decimal bit string literal can't be signed or unsigned.", self)
 				ex.add_note(f"Got value '{self}'.")
 				raise ex
 
 			for character in simplifiedValue:
 				if character not in "0123456789":
-					ex = ValueError("Decimal bit string literal contains a character other than a digit.")
-					ex.add_note(f"Got character '{character}' in value '{self._value}'.")
+					ex = LiteralError("Decimal bit string literal contains a character other than a digit.", self)
+					ex.add_note(f"Got character '{character}' in value '{self}'.")
 					raise ex
 
 			number =        0 if simplifiedValue == "" else int(simplifiedValue)
@@ -846,8 +848,8 @@ class BitStringLiteral(Literal):
 				if character in "0123456789":
 					digit = int(character)
 					if digit >= radix:
-						ex = ValueError(f"Bit string literal contains a digit not allowed in base {radix}.")
-						ex.add_note(f"Got digit '{character}' in value '{self._value}'.")
+						ex = LiteralError(f"Bit string literal contains a digit not allowed in base {radix}.", self)
+						ex.add_note(f"Got digit '{character}' in value '{self}'.")
 						raise ex
 				elif radix == 16 and character in "abcdefABCDEF":
 					digit = int(character, 16)
@@ -855,8 +857,8 @@ class BitStringLiteral(Literal):
 					bitList.append(character * bitsPerDigit)
 					continue
 				else:
-					ex = ValueError("Bit string literal contains a non-graphic character.")
-					ex.add_note(f"Got value {self._value!r}.")
+					ex = LiteralError("Bit string literal contains a non-graphic character.", self)
+					ex.add_note(f"Got value {str(self)!r}.")
 					raise ex
 
 				bitList.append(f"{digit:0{bitsPerDigit}b}")
@@ -870,7 +872,7 @@ class BitStringLiteral(Literal):
 			if self._isSigned is not True:
 				padding = "0"
 			elif expandedLength == 0:
-				ex = ValueError("Signed bit string literal with an empty value can't be extended.")
+				ex = LiteralError("Signed bit string literal with an empty value can't be extended.", self)
 				ex.add_note(f"Got value '{self}'.")
 				raise ex
 			else:
@@ -889,7 +891,7 @@ class BitStringLiteral(Literal):
 				padding = binaryValue[0]
 
 			if deletedValue != padding * deletedCount:
-				ex = ValueError(f"Bit string literal's length {self._length} truncates significant characters.")
+				ex = LiteralError(f"Bit string literal's length {self._length} truncates significant characters.", self)
 				ex.add_note(f"Got value '{self}' expanded to '{expandedValue}'.")
 				if self._isSigned is True:
 					ex.add_note("Only copies of the leftmost remaining character can be truncated.")

@@ -42,6 +42,7 @@ from pickle import dumps, loads
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, SimpleRange
+from pyVHDLModel.Exception  import VHDLModelException, LiteralError
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
 from pyVHDLModel.Expression import OperatorPrecedence, BaseExpression, Literal, NullLiteral, EnumerationLiteral, \
@@ -206,16 +207,16 @@ class BitStringLiterals(Testcase):
 	def test_Underscore_Leading(self) -> None:
 		literal = BinaryBitStringLiteral("_1")
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Bit string literal has a leading, trailing or double underscore.", str(context.exception))
-		self.assertEqual(["Got value '_1'."], context.exception.__notes__)
+		self.assertEqual(["Got value 'b\"_1\"'."], context.exception.__notes__)
 
 	def test_Underscore_Trailing(self) -> None:
 		literal = HexadecimalBitStringLiteral("1_")
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.Bits
 
 		self.assertEqual("Bit string literal has a leading, trailing or double underscore.", str(context.exception))
@@ -223,7 +224,7 @@ class BitStringLiterals(Testcase):
 	def test_Underscore_Double(self) -> None:
 		literal = DecimalBitStringLiteral("1__0")
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Bit string literal has a leading, trailing or double underscore.", str(context.exception))
@@ -231,11 +232,21 @@ class BitStringLiterals(Testcase):
 	def test_NonGraphic(self) -> None:
 		literal = OctalBitStringLiteral("1\t2")
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Bit string literal contains a non-graphic character.", str(context.exception))
-		self.assertEqual(["Got value '1\\t2'."], context.exception.__notes__)
+		self.assertEqual(["Got value 'o\"1\\t2\"'."], context.exception.__notes__)
+
+	def test_LiteralError(self) -> None:
+		literal = BinaryBitStringLiteral("2")
+
+		with self.assertRaises(LiteralError) as context:
+			_ = literal.BinaryValue
+
+		self.assertIsInstance(context.exception, VHDLModelException)
+		self.assertIsInstance(context.exception, ValueError)
+		self.assertIs(literal, context.exception.Literal)
 
 	def test_Cached(self) -> None:
 		literal = HexadecimalBitStringLiteral("A5")
@@ -285,11 +296,11 @@ class BinaryBitStringLiterals(Testcase):
 	def test_InvalidDigit(self) -> None:
 		literal = BinaryBitStringLiteral("012")
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Bit string literal contains a digit not allowed in base 2.", str(context.exception))
-		self.assertEqual(["Got digit '2' in value '012'."], context.exception.__notes__)
+		self.assertEqual(["Got digit '2' in value 'b\"012\"'."], context.exception.__notes__)
 
 
 class OctalBitStringLiterals(Testcase):
@@ -314,11 +325,11 @@ class OctalBitStringLiterals(Testcase):
 	def test_InvalidDigit(self) -> None:
 		literal = OctalBitStringLiteral("8")
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Bit string literal contains a digit not allowed in base 8.", str(context.exception))
-		self.assertEqual(["Got digit '8' in value '8'."], context.exception.__notes__)
+		self.assertEqual(["Got digit '8' in value 'o\"8\"'."], context.exception.__notes__)
 
 
 class DecimalBitStringLiterals(Testcase):
@@ -371,7 +382,7 @@ class DecimalBitStringLiterals(Testcase):
 	def test_Length_TooShort(self) -> None:
 		literal = DecimalBitStringLiteral("16", 4)
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Bit string literal's length 4 truncates significant characters.", str(context.exception))
@@ -383,16 +394,16 @@ class DecimalBitStringLiterals(Testcase):
 	def test_Letter(self) -> None:
 		literal = DecimalBitStringLiteral("1X")
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Decimal bit string literal contains a character other than a digit.", str(context.exception))
-		self.assertEqual(["Got character 'X' in value '1X'."], context.exception.__notes__)
+		self.assertEqual(["Got character 'X' in value 'd\"1X\"'."], context.exception.__notes__)
 
 	def test_Signed(self) -> None:
 		literal = DecimalBitStringLiteral("5", None, True)
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Decimal bit string literal can't be signed or unsigned.", str(context.exception))
@@ -401,7 +412,7 @@ class DecimalBitStringLiterals(Testcase):
 	def test_Unsigned(self) -> None:
 		literal = DecimalBitStringLiteral("5", None, False)
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Decimal bit string literal can't be signed or unsigned.", str(context.exception))
@@ -487,7 +498,7 @@ class BitStringLiteralLengths(Testcase):
 	def test_Extended_Signed_Empty(self) -> None:
 		literal = BinaryBitStringLiteral("", 4, True)
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Signed bit string literal with an empty value can't be extended.", str(context.exception))
@@ -517,7 +528,7 @@ class BitStringLiteralLengths(Testcase):
 	def test_TooShort(self) -> None:
 		literal = HexadecimalBitStringLiteral("FF", 7)
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Bit string literal's length 7 truncates significant characters.", str(context.exception))
@@ -529,7 +540,7 @@ class BitStringLiteralLengths(Testcase):
 	def test_TooShort_GraphicCharacter(self) -> None:
 		literal = HexadecimalBitStringLiteral("Z0", 7)
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Bit string literal's length 7 truncates significant characters.", str(context.exception))
@@ -537,7 +548,7 @@ class BitStringLiteralLengths(Testcase):
 	def test_TooShort_Signed(self) -> None:
 		literal = HexadecimalBitStringLiteral("7F", 7, True)
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Bit string literal's length 7 truncates significant characters.", str(context.exception))
@@ -552,7 +563,7 @@ class BitStringLiteralLengths(Testcase):
 	def test_TooShort_Signed_Zero(self) -> None:
 		literal = HexadecimalBitStringLiteral("0", 0, True)
 
-		with self.assertRaises(ValueError) as context:
+		with self.assertRaises(LiteralError) as context:
 			_ = literal.BinaryValue
 
 		self.assertEqual("Bit string literal's length 0 truncates significant characters.", str(context.exception))

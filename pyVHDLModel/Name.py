@@ -211,8 +211,7 @@ class ParenthesisName(Name):
 		"""
 		super().__init__("", prefix, parent)
 
-		associationList = []
-		self._associations = associationList
+		self._associations = associationList = []
 		for association in associations:
 			associationList.append(association)
 			association.Parent = self
@@ -288,8 +287,7 @@ class IndexedName(Name):
 		"""
 		super().__init__("", prefix, parent)
 
-		indexList = []
-		self._indices = indexList
+		self._indices = indexList = []
 		for index in indices:
 			indexList.append(index)
 			index.Parent = self

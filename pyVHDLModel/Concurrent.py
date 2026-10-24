@@ -122,8 +122,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 
 		:param statements: List of all concurrent statements in this construct.
 		"""
-		statementList = []
-		self._statements = statementList
+		self._statements = statementList = []
 
 		self._instantiations =       {}
 		self._hierarchy =            {}
@@ -914,8 +913,7 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 		if sensitivityList is None:
 			self._sensitivityList = None
 		else:
-			signalSymbols = []  # TODO: convert to dict
-			self._sensitivityList = signalSymbols
+			self._sensitivityList = signalSymbols = []  # TODO: convert to dict
 			for signalSymbol in sensitivityList:
 				signalSymbols.append(signalSymbol)
 				# signalSymbol._parent = self  # FIXME: currently str are provided
@@ -1487,8 +1485,7 @@ class IfGenerateStatement(GenerateStatement):
 		self._ifBranch = ifBranch
 		ifBranch.Parent = self
 
-		elsifBranchList = []
-		self._elsifBranches = elsifBranchList
+		self._elsifBranches = elsifBranchList = []
 		if elsifBranches is not None:
 			for branch in elsifBranches:
 				elsifBranchList.append(branch)
@@ -1901,8 +1898,7 @@ class CaseGenerateStatement(GenerateStatement):
 		expression.Parent = self
 
 		# TODO: create a mixin for things with cases
-		caseList = []
-		self._cases = caseList
+		self._cases = caseList = []
 		if cases is not None:
 			for case in cases:
 				caseList.append(case)

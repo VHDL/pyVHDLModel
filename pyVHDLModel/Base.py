@@ -924,11 +924,10 @@ class ChoicesMixin(metaclass=ExtendedType, mixin=True):
 
 		:param choices: List of all choices selecting this alternative.
 		"""
-		choexList = []
-		self._choices = choexList
+		self._choices = choiceList = []
 		if choices is not None:
 			for choice in choices:
-				choexList.append(choice)
+				choiceList.append(choice)
 				choice.Parent = self
 
 	@readonly

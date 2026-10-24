@@ -203,8 +203,7 @@ class GenericMapAspectMixin(metaclass=ExtendedType, mixin=True):
 
 		:param genericAssociationItems: List of all generic associations.
 		"""
-		genericAssociationItemList = []
-		self._genericAssociationItems = genericAssociationItemList
+		self._genericAssociationItems = genericAssociationItemList = []
 		if genericAssociationItems is not None:
 			for association in genericAssociationItems:
 				genericAssociationItemList.append(association)
@@ -434,8 +433,7 @@ class PortMapAspectMixin(metaclass=ExtendedType, mixin=True):
 
 		:param portAssociationItems: List of all port associations.
 		"""
-		portAssociationItemList = []
-		self._portAssociationItems = portAssociationItemList
+		self._portAssociationItems = portAssociationItemList = []
 		if portAssociationItems is not None:
 			for association in portAssociationItems:
 				portAssociationItemList.append(association)

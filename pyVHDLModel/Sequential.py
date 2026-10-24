@@ -91,8 +91,7 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_L
 
 		:param statements: List of all sequential statements in this construct.
 		"""
-		statementList = []
-		self._statements = statementList
+		self._statements = statementList = []
 		if statements is not None:
 			for item in statements:
 				statementList.append(item)
@@ -746,8 +745,7 @@ class SequentialConditionalVariableAssignment(SequentialStatement, AssignmentMix
 		super().__init__(label, parent)
 		AssignmentMixin.__init__(self, target)
 
-		conditionalExpressionList = []
-		self._conditionalExpressions = conditionalExpressionList
+		self._conditionalExpressions = conditionalExpressionList = []
 		for conditionalExpression in conditionalExpressions:
 			conditionalExpressionList.append(conditionalExpression)
 			conditionalExpression.Parent = self
@@ -1399,8 +1397,7 @@ class IfStatement(CompoundStatement):
 		self._ifBranch = ifBranch
 		ifBranch.Parent = self
 
-		elsifBranchList = []
-		self._elsifBranches = elsifBranchList
+		self._elsifBranches = elsifBranchList = []
 		if elsifBranches is not None:
 			for branch in elsifBranches:
 				elsifBranchList.append(branch)
@@ -1756,8 +1753,7 @@ class CaseStatement(CompoundStatement):
 		self._expression = expression
 		expression.Parent = self
 
-		caseList = []
-		self._cases = caseList
+		self._cases = caseList = []
 		if cases is not None:
 			for case in cases:
 				caseList.append(case)
@@ -2232,8 +2228,7 @@ class WaitStatement(SequentialStatement, ConditionalMixin):
 		if sensitivityList is None:
 			self._sensitivityList = None
 		else:
-			signalSymbols = []  # TODO: convert to dict
-			self._sensitivityList = signalSymbols
+			self._sensitivityList = signalSymbols = []  # TODO: convert to dict
 			for signalSymbol in sensitivityList:
 				signalSymbols.append(signalSymbol)
 				signalSymbol.Parent = self

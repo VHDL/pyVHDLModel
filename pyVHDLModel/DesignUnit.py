@@ -266,14 +266,10 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		self._document = None
 
-		contextItemList = []
-		self._contextItems = contextItemList
-		libraryReferences = []
-		self._libraryReferences = libraryReferences
-		packageReferences = []
-		self._packageReferences = packageReferences
-		contextReferences = []
-		self._contextReferences = contextReferences
+		self._contextItems = contextItemList = []
+		self._libraryReferences = libraryReferences = []
+		self._packageReferences = packageReferences = []
+		self._contextReferences = contextReferences = []
 
 		if contextItems is not None:
 			for item in contextItems:

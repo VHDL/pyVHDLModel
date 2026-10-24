@@ -102,8 +102,7 @@ class WithGenericsMixin(
 
 		:param genericItems: List of all generics, in declaration order.
 		"""
-		genericItemList = []
-		self._genericItems = genericItemList
+		self._genericItems = genericItemList = []
 		if genericItems is not None:
 			for item in genericItems:
 				genericItemList.append(item)
@@ -449,8 +448,7 @@ class WithPortsMixin(
 
 		:param portItems: List of all ports, in declaration order.
 		"""
-		portItemList = []
-		self._portItems = portItemList
+		self._portItems = portItemList = []
 		if portItems is not None:
 			for item in portItems:
 				portItemList.append(item)
@@ -772,8 +770,7 @@ class WithParametersMixin(
 
 		:param parameterItems: List of all parameters, in declaration order.
 		"""
-		parameterItemList = []
-		self._parameterItems = parameterItemList
+		self._parameterItems = parameterItemList = []
 		if parameterItems is not None:
 			for item in parameterItems:
 				parameterItemList.append(item)
@@ -1976,8 +1973,7 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		self._namespace = Namespace(namespaceName, sharesRegionWithParent=sharesRegionWithParent)
 
-		declaredItemList = []  # TODO: convert to dict
-		self._declaredItems = declaredItemList
+		self._declaredItems = declaredItemList = []  # TODO: convert to dict
 		if declaredItems is not None:
 			for item in declaredItems:
 				declaredItemList.append(item)
@@ -2296,8 +2292,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		self._namespace = Namespace(namespaceName)
 
-		declaredItemList = []  # TODO: convert to dict
-		self._declaredItems = declaredItemList
+		self._declaredItems = declaredItemList = []  # TODO: convert to dict
 		if declaredItems is not None:
 			for item in declaredItems:
 				declaredItemList.append(item)
@@ -2539,8 +2534,7 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		self._namespace = Namespace(namespaceName)
 
-		declaredItemList = []  # TODO: convert to dict
-		self._declaredItems = declaredItemList
+		self._declaredItems = declaredItemList = []  # TODO: convert to dict
 		if declaredItems is not None:
 			for item in declaredItems:
 				declaredItemList.append(item)

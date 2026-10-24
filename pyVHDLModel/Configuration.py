@@ -467,8 +467,7 @@ class BlockConfiguration(ModelEntity):
 		self._blockSpecification = blockSpecification
 		blockSpecification.Parent = self
 
-		itemList = []
-		self._items = itemList
+		self._items = itemList = []
 		if items is not None:
 			for item in items:
 				itemList.append(item)

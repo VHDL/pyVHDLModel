@@ -399,8 +399,7 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		"""
 		super().__init__(identifier, documentation, parent)
 
-		literalList = []
-		self._literals = literalList
+		self._literals = literalList = []
 		if literals is not None:
 			for literal in literals:
 				literalList.append(literal)
@@ -587,8 +586,7 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 
 		self._primaryUnit = primaryUnit
 
-		secondaryUnits = []  # TODO: convert to dict
-		self._secondaryUnits = secondaryUnits
+		self._secondaryUnits = secondaryUnits = []  # TODO: convert to dict
 		for unit in units:
 			secondaryUnits.append(unit)
 			unit[1].Parent = self
@@ -703,8 +701,7 @@ class ArrayType(CompositeType):
 		"""
 		super().__init__(identifier, documentation, parent)
 
-		dimensions = []
-		self._dimensions = dimensions
+		self._dimensions = dimensions = []
 		for index in indices:
 			dimensions.append(index)
 			# index.Parent = self  # FIXME: indices are provided as empty list
@@ -889,8 +886,7 @@ class RecordType(CompositeType):
 		"""
 		super().__init__(identifier, documentation, parent)
 
-		elementList = []  # TODO: convert to dict
-		self._elements = elementList
+		self._elements = elementList = []  # TODO: convert to dict
 		if elements is not None:
 			for element in elements:
 				elementList.append(element)

@@ -178,8 +178,7 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 		procedureName.Parent = self
 
 		# TODO: extract to mixin
-		parameterAssociationItemList = []
-		self._parameterAssociationItems = parameterAssociationItemList
+		self._parameterAssociationItems = parameterAssociationItemList = []
 		if parameterAssociationItems is not None:
 			for parameterMapping in parameterAssociationItems:
 				parameterAssociationItemList.append(parameterMapping)
@@ -521,8 +520,7 @@ class WaveformMixin(metaclass=ExtendedType, mixin=True):
 
 		:param waveform: List of all waveform elements, in the order they were written.
 		"""
-		waveformList = []
-		self._waveform = waveformList
+		self._waveform = waveformList = []
 		for waveformElement in waveform:
 			waveformList.append(waveformElement)
 			waveformElement.Parent = self
@@ -712,8 +710,7 @@ class ConditionalWaveformsMixin(metaclass=ExtendedType, mixin=True):
 
 		:param conditionalWaveforms: All alternatives, in order.
 		"""
-		conditionalWaveformList = []
-		self._conditionalWaveforms = conditionalWaveformList
+		self._conditionalWaveforms = conditionalWaveformList = []
 		for conditionalWaveform in conditionalWaveforms:
 			conditionalWaveformList.append(conditionalWaveform)
 			conditionalWaveform.Parent = self
@@ -946,8 +943,7 @@ class SelectedWaveformsMixin(metaclass=ExtendedType, mixin=True):
 
 		:param selectedWaveforms: All alternatives, in order.
 		"""
-		selectedWaveformList = []
-		self._selectedWaveforms = selectedWaveformList
+		self._selectedWaveforms = selectedWaveformList = []
 		for selectedWaveform in selectedWaveforms:
 			selectedWaveformList.append(selectedWaveform)
 			selectedWaveform.Parent = self
@@ -993,8 +989,7 @@ class SelectedExpressionsMixin(metaclass=ExtendedType, mixin=True):
 
 		:param selectedExpressions: All alternatives, in order.
 		"""
-		selectedExpressionList = []
-		self._selectedExpressions = selectedExpressionList
+		self._selectedExpressions = selectedExpressionList = []
 		for selectedExpression in selectedExpressions:
 			selectedExpressionList.append(selectedExpression)
 			selectedExpression.Parent = self

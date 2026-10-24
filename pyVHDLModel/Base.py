@@ -452,7 +452,7 @@ class OptionallyNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 class MultipleNamedEntityMixin(
 	metaclass=ExtendedType,
 	mixin=True,
-	expects=("_parent", "Copy", "_InsertSplitDeclarations")
+	expects=("_parent", "Copy", "_SplitInParent")
 ):
 	"""
 	A ``MultipleNamedEntityMixin`` is a mixin class for all VHDL entities that declare multiple instances at once by
@@ -461,8 +461,9 @@ class MultipleNamedEntityMixin(
 	Protected variables :attr:`_identifiers` and :attr:`_normalizedIdentifiers` are available to derived classes as well
 	as two readonly properties :attr:`Identifiers` and :attr:`NormalizedIdentifiers` for public access.
 
-	The host class provides ``Copy()`` and ``_InsertSplitDeclarations(declarations)``, called by :meth:`Split`: the
-	latter inserts the new declarations after the declaration into its parent.
+	The host class provides ``Copy()`` and ``_SplitInParent()``, called by :meth:`Split`: the latter calls the parent's
+	mutator splitting the declaration, e.g.
+	:meth:`DeclarationRegionMixin.SplitDeclaredItem <pyVHDLModel.Regions.DeclarationRegionMixin.SplitDeclaredItem>`.
 
 	.. seealso::
 
@@ -513,10 +514,9 @@ class MultipleNamedEntityMixin(
 		``Copy()``: it has its own copy of the subtype indication and of the default expression, and the same
 		documentation. Single declarations created before are dropped.
 
-		If this declaration has a parent, the new declarations are inserted right after it, in list order, and their
-		parent is set. If the parent is an indexed declarative region, the namespace and lookup table entries of the other
-		identifiers refer to the new declarations. Without a parent, the new declarations have no parent either: the
-		caller places them.
+		Without a parent, the new declarations have no parent either: the caller places them. With a parent, the parent's
+		mutator splits the declaration and inserts the new declarations right after it, e.g.
+		:meth:`WithPortsMixin.SplitPortItem <pyVHDLModel.Regions.WithPortsMixin.SplitPortItem>` for a port.
 
 		A declaration with one identifier is unchanged.
 
@@ -526,21 +526,28 @@ class MultipleNamedEntityMixin(
 		:raises NotInNamespaceError: If the parent is an indexed declarative region, and an identifier of this declaration
 		                             refers to another element, e.g. a duplicate declaration.
 		"""
-		if len(self._identifiers) == 1:
+		if self._parent is not None:
+			return self._SplitInParent()
+		elif len(self._identifiers) == 1:
 			return (self, )
 
+		declarations = self._SplitCopies()
+		self._KeepIdentifier(0)
+		return (self, *declarations)
+
+	def _SplitCopies(self) -> list[Self]:
+		"""
+		Create one parentless copy of this declaration per identifier after the first, each keeping its identifier.
+
+		:returns: List of new declarations, in list order.
+		"""
 		declarations = []
 		for position in range(1, len(self._identifiers)):
 			declaration = self.Copy()
 			declaration._KeepIdentifier(position)
 			declarations.append(declaration)
 
-		if self._parent is None:
-			self._KeepIdentifier(0)
-		else:
-			self._InsertSplitDeclarations(declarations)
-
-		return (self, *declarations)
+		return declarations
 
 	def _KeepIdentifier(self, position: int) -> None:
 		"""

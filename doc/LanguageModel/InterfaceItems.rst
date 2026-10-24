@@ -281,11 +281,19 @@ interface items, object declarations, record element declarations and mode view 
 first identifier. For every other identifier, a new declaration of the same class is created by ``Copy()``, with its
 own copy of the subtype indication and of the default expression.
 
-In a language construct, the new declarations are inserted right after the declaration, and the namespace of an indexed
-declarative region refers to them. For a declaration without a parent, ``Split()`` returns them without a parent; the
-caller places them.
+For a declaration without a parent, ``Split()`` returns the new declarations without a parent; the caller places them.
+For a declaration in a language construct, ``Split()`` calls the construct's mutator, which can also be called
+directly. It inserts the new declarations right after the declaration; the namespace of an indexed declarative region
+refers to them:
+
+* :meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.SplitDeclaredItem` for a declared item,
+* :meth:`~pyVHDLModel.Regions.WithGenericsMixin.SplitGenericItem`,
+  :meth:`~pyVHDLModel.Regions.WithPortsMixin.SplitPortItem` and
+  :meth:`~pyVHDLModel.Regions.WithParametersMixin.SplitParameterItem` for an interface item,
+* :meth:`RecordType.SplitElement <pyVHDLModel.Type.RecordType.SplitElement>` and
+  :meth:`ModeViewDeclaration.SplitElement <pyVHDLModel.Interface.ModeViewDeclaration.SplitElement>` for an element.
 
 .. code-block:: Python
 
    for port in list(entity.PortItems):
-     port.Split()
+     entity.SplitPortItem(port)

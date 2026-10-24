@@ -38,7 +38,7 @@ from __future__             import annotations
 
 from typing                 import TYPE_CHECKING, Union, Iterator, Iterable, Optional as Nullable, Self
 
-from pyTooling.Common       import getTypeName
+from pyTooling.Common       import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyTooling.Graph        import Vertex
@@ -828,13 +828,13 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		"""
 		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
-	def _InsertSplitDeclarations(self, declarations: list[Self]) -> None:
+	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""
-		Insert the element declarations split from this element declaration right after it into its record type.
+		Split this element declaration by the mutator of its parent (``SplitElement()``).
 
-		:param declarations: The new element declarations, one per identifier after the first.
+		:returns: Tuple of element declarations, one per identifier in list order, starting with this element declaration.
 		"""
-		self._parent._InsertSplitElements(self, declarations)
+		return self._parent.SplitElement(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -911,16 +911,32 @@ class RecordType(CompositeType):
 		"""
 		return self._elements
 
-	def _InsertSplitElements(self, element: RecordTypeElement, declarations: list[RecordTypeElement]) -> None:
+	def SplitElement(self, element: RecordTypeElement) -> tuple[RecordTypeElement, ...]:
 		"""
-		Insert the element declarations split from an element declaration right after it.
+		Split an element with an identifier list into one element per identifier.
 
-		The element declaration keeps its first identifier.
+		The element keeps its first identifier. For every other identifier, a new element is created by its ``Copy()``
+		and inserted right after it, in list order; its parent is set to this record type. An element declaring one
+		identifier is unchanged.
 
-		:param element:         The split element declaration, with all its identifiers.
-		:param declarations:    The new element declarations, one per identifier after the first.
-		:raises NotAChildError: If parameter 'element' is not an element declaration of this record type.
+		:param element:         The element to split.
+		:returns:               Tuple of elements, one per identifier in list order, starting with the split element.
+		:raises ValueError:     If parameter 'element' is ``None``.
+		:raises TypeError:      If parameter 'element' is not of type :class:`RecordTypeElement`.
+		:raises NotAChildError: If parameter 'element' is not an element of this record type.
+
+		.. seealso::
+
+		   :meth:`~pyVHDLModel.Base.MultipleNamedEntityMixin.Split`
+		      |rarr| Split a declaration with an identifier list.
 		"""
+		if element is None:
+			raise ValueError("Parameter 'element' is None.")
+		elif not isinstance(element, RecordTypeElement):
+			ex = TypeError("Parameter 'element' is not of type 'RecordTypeElement'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+			raise ex
+
 		for index, item in enumerate(self._elements):
 			if item is element:
 				break
@@ -932,10 +948,16 @@ class RecordType(CompositeType):
 				parent=self
 			)
 
+		if len(element._identifiers) == 1:
+			return (element, )
+
+		declarations = element._SplitCopies()
 		element._KeepIdentifier(0)
 		self._elements[index + 1:index + 1] = declarations
 		for declaration in declarations:
 			declaration.Parent = self
+
+		return (element, *declarations)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

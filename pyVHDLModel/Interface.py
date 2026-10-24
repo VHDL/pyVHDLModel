@@ -88,13 +88,13 @@ class ModeViewElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMix
 		MultipleNamedEntityMixin.__init__(self, identifiers)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-	def _InsertSplitDeclarations(self, declarations: list[Self]) -> None:
+	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""
-		Insert the mode view elements split from this mode view element right after it into its mode view declaration.
+		Split this mode view element by the mutator of its parent (``SplitElement()``).
 
-		:param declarations: The new mode view elements, one per identifier after the first.
+		:returns: Tuple of mode view elements, one per identifier in list order, starting with this mode view element.
 		"""
-		self._parent._InsertSplitElements(self, declarations)
+		return self._parent.SplitElement(self)
 
 	def __str__(self) -> str:
 		"""
@@ -323,16 +323,32 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		"""
 		return self._elements
 
-	def _InsertSplitElements(self, element: ModeViewElement, declarations: list[ModeViewElement]) -> None:
+	def SplitElement(self, element: ModeViewElement) -> tuple[ModeViewElement, ...]:
 		"""
-		Insert the mode view elements split from a mode view element right after it.
+		Split an element with an identifier list into one element per identifier.
 
-		The mode view element keeps its first identifier.
+		The element keeps its first identifier. For every other identifier, a new element is created by its ``Copy()``
+		and inserted right after it, in list order; its parent is set to this mode view declaration. An element
+		declaring one identifier is unchanged.
 
-		:param element:         The split mode view element, with all its identifiers.
-		:param declarations:    The new mode view elements, one per identifier after the first.
+		:param element:         The element to split.
+		:returns:               Tuple of elements, one per identifier in list order, starting with the split element.
+		:raises ValueError:     If parameter 'element' is ``None``.
+		:raises TypeError:      If parameter 'element' is not of type :class:`ModeViewElement`.
 		:raises NotAChildError: If parameter 'element' is not an element of this mode view declaration.
+
+		.. seealso::
+
+		   :meth:`~pyVHDLModel.Base.MultipleNamedEntityMixin.Split`
+		      |rarr| Split a declaration with an identifier list.
 		"""
+		if element is None:
+			raise ValueError("Parameter 'element' is None.")
+		elif not isinstance(element, ModeViewElement):
+			ex = TypeError("Parameter 'element' is not of type 'ModeViewElement'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+			raise ex
+
 		for index, item in enumerate(self._elements):
 			if item is element:
 				break
@@ -344,10 +360,16 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 				parent=self
 			)
 
+		if len(element._identifiers) == 1:
+			return (element, )
+
+		declarations = element._SplitCopies()
 		element._KeepIdentifier(0)
 		self._elements[index + 1:index + 1] = declarations
 		for declaration in declarations:
 			declaration.Parent = self
+
+		return (element, *declarations)
 
 	def __str__(self) -> str:
 		"""
@@ -592,13 +614,13 @@ class GenericConstantInterfaceItem(
 			self._documentation
 		)
 
-	def _InsertSplitDeclarations(self, declarations: list[Self]) -> None:
+	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""
-		Insert the generic constants split from this generic constant right after it into its parent's generic clause.
+		Split this generic constant by the mutator of its parent (``SplitGenericItem()``).
 
-		:param declarations: The new generic constants, one per identifier after the first.
+		:returns: Tuple of generic constants, one per identifier in list order, starting with this generic constant.
 		"""
-		self._parent._InsertSplitGenericItems(self, declarations)
+		return self._parent.SplitGenericItem(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -854,13 +876,13 @@ class PortSignalInterfaceItem(Signal, InterfaceItemMixin):
 	   * :class:`Port view signal interface item <pyVHDLModel.Interface.PortViewSignalInterfaceItem>`
 	"""
 
-	def _InsertSplitDeclarations(self, declarations: list[Self]) -> None:
+	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""
-		Insert the ports split from this port right after it into its parent's port clause.
+		Split this port by the mutator of its parent (``SplitPortItem()``).
 
-		:param declarations: The new ports, one per identifier after the first.
+		:returns: Tuple of ports, one per identifier in list order, starting with this port.
 		"""
-		self._parent._InsertSplitPortItems(self, declarations)
+		return self._parent.SplitPortItem(self)
 
 
 @export
@@ -1086,13 +1108,13 @@ class ParameterConstantInterfaceItem(
 			self._documentation
 		)
 
-	def _InsertSplitDeclarations(self, declarations: list[Self]) -> None:
+	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""
-		Insert the constant parameters split from this constant parameter right after it into its parent's parameter list.
+		Split this constant parameter by the mutator of its parent (``SplitParameterItem()``).
 
-		:param declarations: The new constant parameters, one per identifier after the first.
+		:returns: Tuple of constant parameters, one per identifier in list order, starting with this constant parameter.
 		"""
-		self._parent._InsertSplitParameterItems(self, declarations)
+		return self._parent.SplitParameterItem(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1176,13 +1198,13 @@ class ParameterVariableInterfaceItem(
 			self._documentation
 		)
 
-	def _InsertSplitDeclarations(self, declarations: list[Self]) -> None:
+	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""
-		Insert the variable parameters split from this variable parameter right after it into its parent's parameter list.
+		Split this variable parameter by the mutator of its parent (``SplitParameterItem()``).
 
-		:param declarations: The new variable parameters, one per identifier after the first.
+		:returns: Tuple of variable parameters, one per identifier in list order, starting with this variable parameter.
 		"""
-		self._parent._InsertSplitParameterItems(self, declarations)
+		return self._parent.SplitParameterItem(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1227,13 +1249,13 @@ class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItemMixin):
 	   * :class:`Parameter view signal interface item <pyVHDLModel.Interface.ParameterViewSignalInterfaceItem>`
 	"""
 
-	def _InsertSplitDeclarations(self, declarations: list[Self]) -> None:
+	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""
-		Insert the signal parameters split from this signal parameter right after it into its parent's parameter list.
+		Split this signal parameter by the mutator of its parent (``SplitParameterItem()``).
 
-		:param declarations: The new signal parameters, one per identifier after the first.
+		:returns: Tuple of signal parameters, one per identifier in list order, starting with this signal parameter.
 		"""
-		self._parent._InsertSplitParameterItems(self, declarations)
+		return self._parent.SplitParameterItem(self)
 
 
 @export
@@ -1442,13 +1464,13 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin, WithSingleDe
 		"""
 		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
-	def _InsertSplitDeclarations(self, declarations: list[Self]) -> None:
+	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""
-		Insert the file parameters split from this file parameter right after it into its parent's parameter list.
+		Split this file parameter by the mutator of its parent (``SplitParameterItem()``).
 
-		:param declarations: The new file parameters, one per identifier after the first.
+		:returns: Tuple of file parameters, one per identifier in list order, starting with this file parameter.
 		"""
-		self._parent._InsertSplitParameterItems(self, declarations)
+		return self._parent.SplitParameterItem(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

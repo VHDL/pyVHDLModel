@@ -40,7 +40,7 @@ from pyTooling.Testing           import Testcase
 from pyTooling.Warning           import WarningCollector
 
 from pyVHDLModel.Concurrent      import ProcessStatement
-from pyVHDLModel.DesignUnit      import Architecture, Package
+from pyVHDLModel.DesignUnit      import Architecture, Component, Package
 from pyVHDLModel.Exception       import NotAChildError, NotInNamespaceError
 from pyVHDLModel.Expression      import IntegerLiteral, AdditionExpression
 from pyVHDLModel.Object          import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
@@ -262,3 +262,58 @@ class SequentialDeclarationRegion(Testcase):
 		self.assertDictEqual({"a": declarations[0], "b": declarations[1]}, process.Variables)
 		self.assertDictEqual({"a": declarations[0], "b": declarations[1]}, process.Namespace._elements)
 		self.assertDictEqual(*_reindexed(process))
+
+
+class SplitDeclaredItem(Testcase):
+	def test_Split(self) -> None:
+		original = _signal("a", "b")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[original])
+		architecture.IndexDeclaredItems()
+
+		declarations = architecture.SplitDeclaredItem(original)
+
+		self.assertEqual(2, len(declarations))
+		self.assertIs(original, declarations[0])
+		self.assertListEqual(list(declarations), architecture.DeclaredItems)
+		self.assertDictEqual({"a": declarations[0], "b": declarations[1]}, architecture.Signals)
+
+	def test_Split_OneIdentifier(self) -> None:
+		original = _signal("a")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[original])
+
+		self.assertTupleEqual((original, ), architecture.SplitDeclaredItem(original))
+		self.assertListEqual([original], architecture.DeclaredItems)
+
+	def test_Split_SingleNamed(self) -> None:
+		"""A declared item without an identifier list is returned unchanged."""
+		component = Component("c")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[component])
+
+		self.assertTupleEqual((component, ), architecture.SplitDeclaredItem(component))
+
+	def test_Split_None(self) -> None:
+		architecture = Architecture("rtl", _entitySymbol("e"))
+
+		with self.assertRaises(ValueError) as context:
+			architecture.SplitDeclaredItem(None)
+
+		self.assertEqual("Parameter 'declaredItem' is None.", str(context.exception))
+
+	def test_Split_WrongType(self) -> None:
+		architecture = Architecture("rtl", _entitySymbol("e"))
+
+		with self.assertRaises(TypeError) as context:
+			architecture.SplitDeclaredItem("a")
+
+		self.assertEqual("Parameter 'declaredItem' is not of type 'ModelEntity'.", str(context.exception))
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_Split_NotAChild(self) -> None:
+		original = _signal("a", "b")
+		architecture = Architecture("rtl", _entitySymbol("e"))
+
+		with self.assertRaises(NotAChildError) as context:
+			architecture.SplitDeclaredItem(original)
+
+		self.assertEqual("Signal 'a, b' is not a declared item of this Architecture.", str(context.exception))
+		self.assertTupleEqual(("a", "b"), original.Identifiers)

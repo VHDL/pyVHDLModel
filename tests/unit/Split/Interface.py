@@ -46,7 +46,7 @@ from pyVHDLModel.Interface       import SimpleModeViewElement, CompositeModeView
                                         ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
                                         ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem, \
                                         ParameterFileInterfaceItem, ModeViewDeclaration, GenericGroup, PortGroup, \
-                                        ParameterGroup
+                                        ParameterGroup, GenericTypeInterfaceItem
 from pyVHDLModel.Name            import SimpleName
 from pyVHDLModel.Subprogram      import Procedure
 from pyVHDLModel.Symbol          import ModeViewSymbol
@@ -411,6 +411,212 @@ class ModeViewElements(Testcase):
 
 		with self.assertRaises(NotAChildError) as context:
 			original.Split()
+
+		self.assertEqual(
+			"SimpleModeViewElement 'a, b' is not an element of this ModeViewDeclaration.",
+			str(context.exception)
+		)
+		self.assertTupleEqual(("a", "b"), original.Identifiers)
+
+
+class SplitGenericItem(Testcase):
+	def test_Split(self) -> None:
+		original = _generic("a", "b")
+		container = Entity("e", genericItems=[original])
+
+		declarations = container.SplitGenericItem(original)
+
+		self.assertIs(original, declarations[0])
+		self.assertTupleEqual(("a", ), declarations[0].Identifiers)
+		self.assertTupleEqual(("b", ), declarations[1].Identifiers)
+		self.assertIs(container, declarations[1].Parent)
+
+	def test_Split_Type(self) -> None:
+		"""A generic type declares one identifier and is returned unchanged."""
+		original = GenericTypeInterfaceItem("T")
+		container = Entity("e", genericItems=[original])
+
+		self.assertTupleEqual((original, ), container.SplitGenericItem(original))
+
+	def test_Split_None(self) -> None:
+		container = Entity("e")
+
+		with self.assertRaises(ValueError) as context:
+			container.SplitGenericItem(None)
+
+		self.assertEqual("Parameter 'genericItem' is None.", str(context.exception))
+
+	def test_Split_WrongType(self) -> None:
+		container = Entity("e")
+
+		with self.assertRaises(TypeError) as context:
+			container.SplitGenericItem(_port("p"))
+
+		self.assertEqual("Parameter 'genericItem' is not of type 'GenericInterfaceItemMixin'.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
+			context.exception.__notes__
+		)
+
+	def test_Split_NotAChild(self) -> None:
+		original = _generic("a", "b")
+		container = Entity("e")
+
+		with self.assertRaises(NotAChildError) as context:
+			container.SplitGenericItem(original)
+
+		self.assertEqual("GenericConstantInterfaceItem 'a, b' is not a generic of this Entity.", str(context.exception))
+		self.assertTupleEqual(("a", "b"), original.Identifiers)
+
+
+class SplitPortItem(Testcase):
+	def test_Split(self) -> None:
+		original = _port("a", "b")
+		container = Entity("e", portItems=[original])
+
+		declarations = container.SplitPortItem(original)
+
+		self.assertIs(original, declarations[0])
+		self.assertTupleEqual(("a", ), declarations[0].Identifiers)
+		self.assertTupleEqual(("b", ), declarations[1].Identifiers)
+		self.assertIs(container, declarations[1].Parent)
+
+	def test_Split_OneIdentifier(self) -> None:
+		"""A port declaring one identifier is returned unchanged."""
+		original = _port("a")
+		container = Entity("e", portItems=[original])
+
+		self.assertTupleEqual((original, ), container.SplitPortItem(original))
+
+	def test_Split_None(self) -> None:
+		container = Entity("e")
+
+		with self.assertRaises(ValueError) as context:
+			container.SplitPortItem(None)
+
+		self.assertEqual("Parameter 'portItem' is None.", str(context.exception))
+
+	def test_Split_WrongType(self) -> None:
+		container = Entity("e")
+
+		with self.assertRaises(TypeError) as context:
+			container.SplitPortItem(_generic("G"))
+
+		self.assertEqual("Parameter 'portItem' is not of type 'PortSignalInterfaceItem'.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Interface.GenericConstantInterfaceItem'."],
+			context.exception.__notes__
+		)
+
+	def test_Split_NotAChild(self) -> None:
+		original = _port("a", "b")
+		container = Entity("e")
+
+		with self.assertRaises(NotAChildError) as context:
+			container.SplitPortItem(original)
+
+		self.assertEqual("PortSimpleSignalInterfaceItem 'a, b' is not a port of this Entity.", str(context.exception))
+		self.assertTupleEqual(("a", "b"), original.Identifiers)
+
+
+class SplitParameterItem(Testcase):
+	def test_Split(self) -> None:
+		original = _parameter("a", "b")
+		container = Procedure("p", parameterItems=[original])
+
+		declarations = container.SplitParameterItem(original)
+
+		self.assertIs(original, declarations[0])
+		self.assertTupleEqual(("a", ), declarations[0].Identifiers)
+		self.assertTupleEqual(("b", ), declarations[1].Identifiers)
+		self.assertIs(container, declarations[1].Parent)
+
+	def test_Split_OneIdentifier(self) -> None:
+		"""A parameter declaring one identifier is returned unchanged."""
+		original = _parameter("a")
+		container = Procedure("p", parameterItems=[original])
+
+		self.assertTupleEqual((original, ), container.SplitParameterItem(original))
+
+	def test_Split_None(self) -> None:
+		container = Procedure("p")
+
+		with self.assertRaises(ValueError) as context:
+			container.SplitParameterItem(None)
+
+		self.assertEqual("Parameter 'parameterItem' is None.", str(context.exception))
+
+	def test_Split_WrongType(self) -> None:
+		container = Procedure("p")
+
+		with self.assertRaises(TypeError) as context:
+			container.SplitParameterItem(_port("p"))
+
+		self.assertEqual("Parameter 'parameterItem' is not of type 'ParameterInterfaceItemMixin'.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
+			context.exception.__notes__
+		)
+
+	def test_Split_NotAChild(self) -> None:
+		original = _parameter("a", "b")
+		container = Procedure("p")
+
+		with self.assertRaises(NotAChildError) as context:
+			container.SplitParameterItem(original)
+
+		self.assertEqual(
+			"ParameterConstantInterfaceItem 'a, b' is not a parameter of this Procedure.",
+			str(context.exception)
+		)
+		self.assertTupleEqual(("a", "b"), original.Identifiers)
+
+
+class SplitModeViewElement(Testcase):
+	def test_Split(self) -> None:
+		original = SimpleModeViewElement(("a", "b"), Mode.Out)
+		container = ModeViewDeclaration("view1", _subtypeSymbol("frame"), [original])
+
+		declarations = container.SplitElement(original)
+
+		self.assertIs(original, declarations[0])
+		self.assertTupleEqual(("a", ), declarations[0].Identifiers)
+		self.assertTupleEqual(("b", ), declarations[1].Identifiers)
+		self.assertIs(container, declarations[1].Parent)
+
+	def test_Split_OneIdentifier(self) -> None:
+		"""An element declaring one identifier is returned unchanged."""
+		original = SimpleModeViewElement(("a", ), Mode.Out)
+		container = ModeViewDeclaration("view1", _subtypeSymbol("frame"), [original])
+
+		self.assertTupleEqual((original, ), container.SplitElement(original))
+
+	def test_Split_None(self) -> None:
+		container = ModeViewDeclaration("view1", _subtypeSymbol("frame"))
+
+		with self.assertRaises(ValueError) as context:
+			container.SplitElement(None)
+
+		self.assertEqual("Parameter 'element' is None.", str(context.exception))
+
+	def test_Split_WrongType(self) -> None:
+		container = ModeViewDeclaration("view1", _subtypeSymbol("frame"))
+
+		with self.assertRaises(TypeError) as context:
+			container.SplitElement(_port("p"))
+
+		self.assertEqual("Parameter 'element' is not of type 'ModeViewElement'.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
+			context.exception.__notes__
+		)
+
+	def test_Split_NotAChild(self) -> None:
+		original = SimpleModeViewElement(("a", "b"), Mode.Out)
+		container = ModeViewDeclaration("view1", _subtypeSymbol("frame"))
+
+		with self.assertRaises(NotAChildError) as context:
+			container.SplitElement(original)
 
 		self.assertEqual(
 			"SimpleModeViewElement 'a, b' is not an element of this ModeViewDeclaration.",

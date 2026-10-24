@@ -96,3 +96,47 @@ class RecordTypeElements(Testcase):
 
 		self.assertEqual("RecordTypeElement 'a, b' is not an element of this RecordType.", str(context.exception))
 		self.assertTupleEqual(("a", "b"), original.Identifiers)
+
+
+class SplitElement(Testcase):
+	def test_Split(self) -> None:
+		original = RecordTypeElement(("a", "b"), _subtypeSymbol("bit"))
+		recordType = RecordType("frame", [original])
+
+		declarations = recordType.SplitElement(original)
+
+		self.assertIs(original, declarations[0])
+		self.assertListEqual(list(declarations), recordType.Elements)
+		self.assertIs(recordType, declarations[1].Parent)
+
+	def test_Split_OneIdentifier(self) -> None:
+		original = RecordTypeElement(("a", ), _subtypeSymbol("bit"))
+		recordType = RecordType("frame", [original])
+
+		self.assertTupleEqual((original, ), recordType.SplitElement(original))
+
+	def test_Split_None(self) -> None:
+		recordType = RecordType("frame")
+
+		with self.assertRaises(ValueError) as context:
+			recordType.SplitElement(None)
+
+		self.assertEqual("Parameter 'element' is None.", str(context.exception))
+
+	def test_Split_WrongType(self) -> None:
+		recordType = RecordType("frame")
+
+		with self.assertRaises(TypeError) as context:
+			recordType.SplitElement(_subtypeSymbol("bit"))
+
+		self.assertEqual("Parameter 'element' is not of type 'RecordTypeElement'.", str(context.exception))
+		self.assertListEqual(["Got type 'pyVHDLModel.Symbol.SimpleSubtypeSymbol'."], context.exception.__notes__)
+
+	def test_Split_NotAChild(self) -> None:
+		original = RecordTypeElement(("a", "b"), _subtypeSymbol("bit"))
+		recordType = RecordType("frame")
+
+		with self.assertRaises(NotAChildError) as context:
+			recordType.SplitElement(original)
+
+		self.assertEqual("RecordTypeElement 'a, b' is not an element of this RecordType.", str(context.exception))

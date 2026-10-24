@@ -140,7 +140,7 @@ Each construct with a parenthesized list has its own list style: an
      - one generic per line
    * - ``parameterList``
      - formal parameter lists of procedures, functions, generic procedures and generic functions
-     - one parameter per line
+     - on one line, if it fits into ``lineLength``, otherwise one parameter per line
    * - ``genericMap``
      - generic map aspects of instantiations, block statements, binding indications, package instantiations and
        subprogram instantiations
@@ -180,8 +180,9 @@ subprogram specification rules ``function_019``/``procedure_013`` and of the pro
    containing a list written on several lines is not written on a single line. An enclosing list is broken first, so an
    enclosed list is measured on its own line.
 
-The procedure call and function call styles are ``AssociationListStyle(NewLine.Remove, NewLine.Remove,
-NewLine.Remove)``. See vhdl-style-guide's :ref:`vsg:configuring-subprogram-specification-statement-rules` and
+The parameter list style is ``InterfaceListStyle(ignoreSingleLine=True)``, the procedure call and function call styles
+are ``AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)``. See vhdl-style-guide's
+:ref:`vsg:configuring-subprogram-specification-statement-rules` and
 :ref:`vsg:configuring-procedure-call-statement-rules`.
 
 .. code-block:: Python
@@ -190,8 +191,7 @@ NewLine.Remove)``. See vhdl-style-guide's :ref:`vsg:configuring-subprogram-speci
 
    writer = VHDLWriter(VHDLStyle(
      genericClause=InterfaceListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove),
-     portClause=InterfaceListStyle(NewLine.Remove, NewLine.Add),
-     parameterList=InterfaceListStyle(ignoreSingleLine=True)
+     portClause=InterfaceListStyle(NewLine.Remove, NewLine.Add)
    ))
 
 .. code-block:: VHDL
@@ -203,7 +203,7 @@ NewLine.Remove)``. See vhdl-style-guide's :ref:`vsg:configuring-subprogram-speci
      );
    end component counter;
 
-   -- parameterList: the first list fits, the second doesn't
+   -- parameterList (default): the first list fits, the second doesn't
    procedure p (constant a : in integer; variable b : out integer);
    procedure q (
      constant first_operand : in integer;
@@ -380,9 +380,10 @@ Subprograms
    items or statements is written as a subprogram body. One without them is written as a subprogram declaration
    (``procedure reset;``), if its parent is a package declaration, a protected type declaration or none, otherwise as
    an empty subprogram body (e.g. in a package body or an architecture). A subprogram body has a declarative part and a
-   statement part. By default, each parameter is written on its own line. A generic clause of a subprogram is followed
-   by the reserved word ``parameter`` before the parameter list. Generic procedures and functions are written in a
-   generic clause like any other generic. A method of a protected type is written like a procedure or function.
+   statement part. By default, the parameters are written on one line, if they fit, otherwise each on its own line. A
+   generic clause of a subprogram is followed by the reserved word ``parameter`` before the parameter list. Generic
+   procedures and functions are written in a generic clause like any other generic. A method of a protected type is
+   written like a procedure or function.
 
 Subprogram instantiations
    Procedure and function instantiations are written with their generic map aspect, by default one association per
@@ -395,9 +396,7 @@ Protected types
 
    function maximum generic (
      type T
-   ) parameter (
-     constant a, b : T
-   ) return T;
+   ) parameter (constant a, b : T) return T;
 
 Documentation comments of the model (:attr:`~pyVHDLModel.Base.DocumentedEntityMixin.Documentation`) are not written.
 

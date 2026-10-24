@@ -157,7 +157,7 @@ class Styles(Testcase):
 		self.assertEqual(["Got value '0'."], context.exception.__notes__)
 
 	def test_Default_Lists(self) -> None:
-		"""Interface lists and map aspects: one element per line; procedure and function calls: a single line."""
+		"""Interface lists and map aspects: one element per line, parameter lists if too long; calls: a single line."""
 		style = VHDLStyle()
 
 		self.assertEqual(120, style.LineLength)
@@ -165,7 +165,11 @@ class Styles(Testcase):
 			self.assertIs(NewLine.Add, listStyle.InterfaceElement)
 			self.assertIs(NewLine.Remove, listStyle.InterfaceListSemicolon)
 			self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
+
+		for listStyle in (style.GenericClause, style.PortClause, style.SubprogramGenericClause):
 			self.assertFalse(listStyle.IgnoreSingleLine)
+
+		self.assertTrue(style.ParameterList.IgnoreSingleLine)
 
 		for listStyle in (style.GenericMap, style.PortMap):
 			self.assertIs(NewLine.Add, listStyle.AssociationElement)

@@ -460,7 +460,8 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		                                line.
 		:param subprogramGenericClause: Optional, layout of generic clauses of subprograms. Default:
 		                                ``InterfaceListStyle()``, one generic per line.
-		:param parameterList:           Optional, layout of formal parameter lists. Default: ``InterfaceListStyle()``, one
+		:param parameterList:           Optional, layout of formal parameter lists. Default:
+		                                ``InterfaceListStyle(ignoreSingleLine=True)``, on one line if it fits, otherwise one
 		                                parameter per line.
 		:param genericMap:              Optional, layout of generic map aspects. Default: ``AssociationListStyle()``, one
 		                                association per line.
@@ -549,7 +550,8 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 				ex.add_note(f"Got type '{getFullyQualifiedName(listStyle)}'.")
 				raise ex
 
-		singleLine = AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
+		singleLine =    AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
+		oneLineIfFits = InterfaceListStyle(ignoreSingleLine=True)
 
 		self._keywordCase =             keywordCase
 		self._indentStyle =             indentStyle
@@ -558,7 +560,7 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		self._genericClause =           InterfaceListStyle() if genericClause is None else genericClause
 		self._portClause =              InterfaceListStyle() if portClause is None else portClause
 		self._subprogramGenericClause = InterfaceListStyle() if subprogramGenericClause is None else subprogramGenericClause
-		self._parameterList =           InterfaceListStyle() if parameterList is None else parameterList
+		self._parameterList =           oneLineIfFits if parameterList is None else parameterList
 		self._genericMap =              AssociationListStyle() if genericMap is None else genericMap
 		self._portMap =                 AssociationListStyle() if portMap is None else portMap
 		self._procedureCall =           singleLine if procedureCall is None else procedureCall

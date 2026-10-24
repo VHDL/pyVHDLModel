@@ -34,15 +34,20 @@ This module contains parts of an abstract document language model for VHDL.
 
 
 """
+from __future__             import annotations
+
 from enum                   import unique, Enum
-from typing                 import Iterable, Union, Optional as Nullable
+from typing                 import TYPE_CHECKING, ClassVar, Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators   import export, readonly
 
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ReservedWord as _ReservedWord
 from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Name       import Name
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor  import Visitor
 
 
 
@@ -83,6 +88,38 @@ class EntityClass(Enum):
 	View =          19  #: View
 	Others =        20  #: Others
 
+	__RESERVED_WORDS: ClassVar[dict[int, _ReservedWord]] = {
+		0:  _ReservedWord.Entity,
+		1:  _ReservedWord.Architecture,
+		2:  _ReservedWord.Configuration,
+		3:  _ReservedWord.Procedure,
+		4:  _ReservedWord.Function,
+		5:  _ReservedWord.Package,
+		6:  _ReservedWord.Type,
+		7:  _ReservedWord.Subtype,
+		8:  _ReservedWord.Constant,
+		9:  _ReservedWord.Signal,
+		10: _ReservedWord.Variable,
+		11: _ReservedWord.Component,
+		12: _ReservedWord.Label,
+		13: _ReservedWord.Literal,
+		14: _ReservedWord.Units,
+		15: _ReservedWord.Group,
+		16: _ReservedWord.File,
+		17: _ReservedWord.Property,
+		18: _ReservedWord.Sequence,
+		19: _ReservedWord.View
+	}  #: The reserved word of each entity class, by value; ``Others`` has none.
+
+	@readonly
+	def ReservedWord(self) -> Nullable[_ReservedWord]:
+		"""
+		Read-only property to return the reserved word of the entity class.
+
+		:returns: The reserved word, or ``None`` for ``EntityClass.Others``.
+		"""
+		return self.__RESERVED_WORDS.get(self.value, None)
+
 
 @export
 class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
@@ -119,6 +156,16 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		self._subtype = subtype
 		subtype.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this attribute declaration and its subtype with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAttribute(self)
+		self._subtype.Visit(visitor)
+		visitor.DepartAttribute(self)
 
 	@readonly
 	def Subtype(self) -> None:
@@ -179,9 +226,9 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		super().__init__(parent)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._identifiers = []  # TODO: convert to dict
+		self._identifiers = identifierList = []  # TODO: convert to dict
 		for identifier in identifiers:
-			self._identifiers.append(identifier)
+			identifierList.append(identifier)
 			identifier.Parent = self
 
 		self._attribute = attribute
@@ -191,6 +238,26 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 
 		self._expression = expression
 		expression.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this attribute specification, its attribute, its entity specification and its expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAttributeSpecification(self)
+		self._attribute.Visit(visitor)
+		visitor.VisitEntitySpecification(self)
+		for index, name in enumerate(self._identifiers):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			name.Visit(visitor)
+
+		visitor.DepartEntitySpecification(self)
+		visitor.VisitIs(self)
+		self._expression.Visit(visitor)
+		visitor.DepartAttributeSpecification(self)
 
 	@readonly
 	def Identifiers(self) -> list[Name]:
@@ -288,6 +355,20 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self._subtype = subtype
 		if subtype is not None:
 			subtype.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this alias declaration, its subtype (if any) and its name with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAlias(self)
+		if self._subtype is not None:
+			self._subtype.Visit(visitor)
+
+		visitor.VisitIs(self)
+		self._name.Visit(visitor)
+		visitor.DepartAlias(self)
 
 	@readonly
 	def Name(self) -> Symbol:

@@ -36,14 +36,18 @@ Objects are constants, variables, signals and files.
 """
 from __future__            import annotations
 
-from typing                import ClassVar, Iterable, Optional as Nullable, Self
+from typing                import TYPE_CHECKING, ClassVar, Iterable, Optional as Nullable, Self
 
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType, abstractclass
 from pyTooling.Graph       import Vertex
 
-from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion
+from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, \
+                                  ReservedWord
 from pyVHDLModel.Symbol    import Symbol
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor import Visitor
 
 
 @export
@@ -70,7 +74,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	   * :class:`File <pyVHDLModel.Object.File>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[str] = "object"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]]  #: The reserved words introducing this object class.
 
 	_subtype:      Symbol            #: Reference to the object's subtype.
 	_objectVertex: Nullable[Vertex]  #: The vertex representing this object in the design's object graph.
@@ -131,7 +135,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 
 		:returns: Formatted object declaration.
 		"""
-		return f"{self._OBJECT_KEYWORD} {', '.join(self._identifiers)} : {self._subtype}"
+		return f"{' '.join(self._OBJECT_KEYWORD)} {', '.join(self._identifiers)} : {self._subtype}"
 
 
 @export
@@ -170,6 +174,16 @@ class WithDefaultExpressionMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return self._defaultExpression
 
+	def _VisitDefaultExpression(self, visitor: Visitor) -> None:
+		"""
+		Walk the default expression, if any, after a variable assignment delimiter (``:=``) with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if self._defaultExpression is not None:
+			visitor.VisitVariableAssignment(self)
+			self._defaultExpression.Visit(visitor)
+
 
 @export
 @abstractclass
@@ -183,7 +197,7 @@ class BaseConstant(Obj):
 	   * :class:`Deferred constant <pyVHDLModel.Object.DeferredConstant>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[str] = "constant"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Constant,)  #: The reserved words introducing this object class.
 
 
 @export
@@ -237,6 +251,17 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
 		return self.__class__(self._identifiers, self._subtype.Copy(), defaultExpression, self._documentation)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this constant declaration, its subtype and its default expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConstant(self)
+		self._subtype.Visit(visitor)
+		self._VisitDefaultExpression(visitor)
+		visitor.DepartConstant(self)
+
 
 @export
 class DeferredConstant(BaseConstant):
@@ -272,6 +297,16 @@ class DeferredConstant(BaseConstant):
 		super().__init__(identifiers, subtype, documentation, parent)
 
 		self._constantReference = None
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this deferred constant declaration, its subtype with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitDeferredConstant(self)
+		self._subtype.Visit(visitor)
+		visitor.DepartDeferredConstant(self)
 
 	@readonly
 	def ConstantReference(self) -> Nullable[Constant]:
@@ -314,7 +349,7 @@ class Variable(Obj, WithDefaultExpressionMixin):
 	   * :class:`Parameter variable interface item <pyVHDLModel.Interface.ParameterVariableInterfaceItem>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[str] = "variable"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Variable,)  #: The reserved words introducing this object class.
 
 	def __init__(
 		self,
@@ -348,6 +383,17 @@ class Variable(Obj, WithDefaultExpressionMixin):
 		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
 		return self.__class__(self._identifiers, self._subtype.Copy(), defaultExpression, self._documentation)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this variable declaration, its subtype and its default expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitVariable(self)
+		self._subtype.Visit(visitor)
+		self._VisitDefaultExpression(visitor)
+		visitor.DepartVariable(self)
+
 
 @export
 class SharedVariable(Obj):
@@ -357,7 +403,17 @@ class SharedVariable(Obj):
 	.. todo:: Shared variable object not implemented.
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[str] = "shared variable"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Shared, ReservedWord.Variable)  #: The reserved words introducing this object class.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this shared variable declaration, its subtype with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSharedVariable(self)
+		self._subtype.Visit(visitor)
+		visitor.DepartSharedVariable(self)
 
 
 
@@ -380,7 +436,7 @@ class Signal(Obj, WithDefaultExpressionMixin):
 	   * :class:`Parameter signal interface item <pyVHDLModel.Interface.ParameterSignalInterfaceItem>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[str] = "signal"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Signal,)  #: The reserved words introducing this object class.
 
 	def __init__(
 		self,
@@ -414,6 +470,17 @@ class Signal(Obj, WithDefaultExpressionMixin):
 		defaultExpression = None if self._defaultExpression is None else self._defaultExpression.Copy()
 		return self.__class__(self._identifiers, self._subtype.Copy(), defaultExpression, self._documentation)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this signal declaration, its subtype and its default expression with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSignal(self)
+		self._subtype.Visit(visitor)
+		self._VisitDefaultExpression(visitor)
+		visitor.DepartSignal(self)
+
 
 @export
 class File(Obj):
@@ -427,4 +494,14 @@ class File(Obj):
 	   * :class:`Parameter file interface item <pyVHDLModel.Interface.ParameterFileInterfaceItem>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[str] = "file"  #: The VHDL keyword introducing this object class.
+	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.File,)  #: The reserved words introducing this object class.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this file declaration, its subtype with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitFile(self)
+		self._subtype.Visit(visitor)
+		visitor.DepartFile(self)

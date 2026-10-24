@@ -35,7 +35,7 @@ from pyTooling.Testing       import Testcase
 from pyVHDLModel.Association import ParameterAssociationItem
 from pyVHDLModel.Expression  import FunctionCall, IntegerLiteral
 from pyVHDLModel.Name        import SimpleName, SelectedName, IndexedName, ParenthesisName
-from pyVHDLModel.Symbol      import ConstrainedArraySubtypeSymbol, IndexedObjectOrFunctionCallSymbol
+from pyVHDLModel.Symbol      import ConstrainedCompositeSubtypeSymbol, IndexedObjectOrFunctionCallSymbol
 from pyVHDLModel.Visitor     import Visitor
 
 from tests.unit.Visitor      import NoOverrides, Recorder
@@ -49,6 +49,10 @@ if __name__ == "__main__":  # pragma: no cover
 
 class ParserName(SimpleName):
 	"""A parser's subclass of a model class, like the mirror classes of ``pyGHDL.dom``."""
+
+
+class ParserCompositeSubtypeSymbol(ConstrainedCompositeSubtypeSymbol):
+	"""A parser's subclass of an abstract model class without a walk of its own."""
 
 
 class Walks(Testcase):
@@ -164,7 +168,7 @@ class Unknowns(Testcase):
 
 	def test_Unknown_Symbol(self) -> None:
 		"""A constrained subtype symbol isn't walked as a symbol: its walk raises before its name is visited."""
-		symbol =   ConstrainedArraySubtypeSymbol(SimpleName("bit_vector"), [])
+		symbol =   ParserCompositeSubtypeSymbol(SimpleName("bit_vector"))
 		recorder = Recorder()
 
 		with self.assertRaises(NotImplementedError):

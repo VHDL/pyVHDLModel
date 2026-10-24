@@ -35,8 +35,8 @@ from pyVHDLModel.Association     import ParameterAssociationItem
 from pyVHDLModel.Exception       import VHDLWriterError
 from pyVHDLModel.Expression      import DescendingRangeExpression, IntegerLiteral
 from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
-from pyVHDLModel.Name            import SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName
-from pyVHDLModel.Name            import AttributeName, AllName, OpenName
+from pyVHDLModel.Name            import SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, \
+                                        AttributeName, AllName, OpenName
 
 from tests.unit.Writer           import _object
 

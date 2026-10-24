@@ -35,19 +35,13 @@ from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import SignalSymbol, VariableSymbol
 from pyVHDLModel.Base        import WaveformElement
 from pyVHDLModel.Expression  import IntegerLiteral, CharacterLiteral
-from pyVHDLModel.Sequential  import IndexedChoice
-from pyVHDLModel.Common      import (
-	ConditionalWaveform, ConditionalExpression,
-	SelectedWaveform, OthersSelectedWaveform,
-	SelectedExpression, OthersSelectedExpression,
-)
+from pyVHDLModel.Sequential  import IndexedChoice, SequentialVariableAssignment, \
+                                    SequentialConditionalVariableAssignment, SequentialConditionalSignalAssignment, \
+                                    SequentialSelectedVariableAssignment, SequentialSelectedSignalAssignment, \
+                                    SignalForceAssignment, SignalReleaseAssignment
+from pyVHDLModel.Common      import ConditionalWaveform, ConditionalExpression, SelectedWaveform, \
+                                    OthersSelectedWaveform, SelectedExpression, OthersSelectedExpression
 from pyVHDLModel.Concurrent  import ConcurrentConditionalSignalAssignment, ConcurrentSelectedSignalAssignment
-from pyVHDLModel.Sequential  import (
-	SequentialVariableAssignment,
-	SequentialConditionalVariableAssignment, SequentialConditionalSignalAssignment,
-	SequentialSelectedVariableAssignment, SequentialSelectedSignalAssignment,
-	SignalForceAssignment, SignalReleaseAssignment,
-)
 
 from tests.unit              import _signalSymbol, _variableSymbol
 

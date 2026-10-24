@@ -44,32 +44,29 @@ from pyTooling.Testing      import Testcase
 from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
-from pyVHDLModel.Expression import (
-	OperatorPrecedence, BaseExpression, Literal,
-	NullLiteral, EnumerationLiteral, IntegerLiteral, FloatingPointLiteral,
-	PhysicalIntegerLiteral, PhysicalFloatingLiteral, CharacterLiteral, StringLiteral,
-	BinaryBitStringLiteral, OctalBitStringLiteral, DecimalBitStringLiteral, HexadecimalBitStringLiteral,
-	UnaryExpression,
-	NegationExpression, IdentityExpression, InverseExpression,
-	UnaryAndExpression, UnaryNandExpression, UnaryOrExpression, UnaryNorExpression,
-	UnaryXorExpression, UnaryXnorExpression, AbsoluteExpression, TypeConversion, SubExpression,
-	BinaryExpression,
-	AscendingRangeExpression, DescendingRangeExpression,
-	AdditionExpression, SubtractionExpression, ConcatenationExpression,
-	MultiplyExpression, DivisionExpression, RemainderExpression, ModuloExpression, ExponentiationExpression,
-	AndExpression, NandExpression, OrExpression, NorExpression, XorExpression, XnorExpression,
-	EqualExpression, UnequalExpression, GreaterThanExpression, GreaterEqualExpression,
-	LessThanExpression, LessEqualExpression,
-	MatchingEqualExpression, MatchingUnequalExpression, MatchingGreaterThanExpression,
-	MatchingGreaterEqualExpression, MatchingLessThanExpression, MatchingLessEqualExpression,
-	ShiftRightLogicExpression, ShiftLeftLogicExpression,
-	ShiftRightArithmeticExpression, ShiftLeftArithmeticExpression,
-	RotateRightExpression, RotateLeftExpression,
-	QualifiedExpression, TernaryExpression, WhenElseExpression,
-	FunctionCall, SubtypeAllocation, QualifiedExpressionAllocation,
-	AggregateElement, SimpleAggregateElement, IndexedAggregateElement, RangedAggregateElement,
-	NamedAggregateElement, OthersAggregateElement, Aggregate,
-)
+from pyVHDLModel.Expression import OperatorPrecedence, BaseExpression, Literal, NullLiteral, EnumerationLiteral, \
+                                   IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral, \
+                                   PhysicalFloatingLiteral, CharacterLiteral, StringLiteral, BinaryBitStringLiteral, \
+                                   OctalBitStringLiteral, DecimalBitStringLiteral, HexadecimalBitStringLiteral, \
+                                   UnaryExpression, NegationExpression, IdentityExpression, InverseExpression, \
+                                   UnaryAndExpression, UnaryNandExpression, UnaryOrExpression, UnaryNorExpression, \
+                                   UnaryXorExpression, UnaryXnorExpression, AbsoluteExpression, TypeConversion, \
+                                   SubExpression, BinaryExpression, AscendingRangeExpression, \
+                                   DescendingRangeExpression, AdditionExpression, SubtractionExpression, \
+                                   ConcatenationExpression, MultiplyExpression, DivisionExpression, \
+                                   RemainderExpression, ModuloExpression, ExponentiationExpression, AndExpression, \
+                                   NandExpression, OrExpression, NorExpression, XorExpression, XnorExpression, \
+                                   EqualExpression, UnequalExpression, GreaterThanExpression, GreaterEqualExpression, \
+                                   LessThanExpression, LessEqualExpression, MatchingEqualExpression, \
+                                   MatchingUnequalExpression, MatchingGreaterThanExpression, \
+                                   MatchingGreaterEqualExpression, MatchingLessThanExpression, \
+                                   MatchingLessEqualExpression, ShiftRightLogicExpression, ShiftLeftLogicExpression, \
+                                   ShiftRightArithmeticExpression, ShiftLeftArithmeticExpression, \
+                                   RotateRightExpression, RotateLeftExpression, QualifiedExpression, \
+                                   TernaryExpression, WhenElseExpression, FunctionCall, SubtypeAllocation, \
+                                   QualifiedExpressionAllocation, AggregateElement, SimpleAggregateElement, \
+                                   IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
+                                   OthersAggregateElement, Aggregate
 
 
 if __name__ == "__main__":  # pragma: no cover

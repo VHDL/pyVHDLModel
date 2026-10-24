@@ -31,7 +31,7 @@
 """
 Shared helpers for the tests of the visitor protocol (:mod:`pyVHDLModel.Visitor`).
 """
-from typing               import Any
+from typing               import Any, Callable
 
 from pyTooling.Decorators import readonly
 
@@ -164,3 +164,36 @@ class Recorder(Visitor):
 
 	def DepartSimpleRange(self, rng: Any) -> None:
 		self._events.append(("DepartSimpleRange", rng))
+
+
+class FullRecorder(Visitor):
+	"""
+	A visitor recording every event of a walk as pairs of event name and element.
+
+	An event with an additional argument is recorded as a tuple of event name, element and argument.
+	"""
+
+	_events: list[tuple[Any, ...]]  #: List of recorded events.
+
+	def __init__(self) -> None:
+		super().__init__()
+
+		self._events = []
+
+	@readonly
+	def Events(self) -> list[tuple[Any, ...]]:
+		"""Recorded events."""
+		return self._events
+
+
+def _recordingEvent(eventName: str) -> Callable[..., None]:
+	"""Create an event method recording its name, its element and its additional arguments."""
+	def event(self: FullRecorder, element: Any, *arguments: Any) -> None:
+		self._events.append((eventName, element, *arguments))
+
+	return event
+
+
+for _eventName in dir(Visitor):
+	if _eventName.startswith(("Visit", "Depart")):
+		setattr(FullRecorder, _eventName, _recordingEvent(_eventName))

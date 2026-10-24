@@ -36,26 +36,28 @@ tbd.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, Any, ClassVar, Iterable, Optional as Nullable
+from typing                  import TYPE_CHECKING, Any, Callable, ClassVar, Generator, Iterable, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, expects
 from pyTooling.Warning       import WarningCollector
 
-from pyVHDLModel.Base        import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf
-from pyVHDLModel.Base        import normalizedIdentifiersOf, normalizedDeclaredNamesOf
-from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError
-from pyVHDLModel.Exception   import DuplicateGenericError, DuplicatePortError, DuplicateParameterError
-from pyVHDLModel.Exception   import DuplicateDeclarationError, DuplicateTypeError, DuplicateSubtypeError
-from pyVHDLModel.Exception   import DuplicateConstantError, DuplicateSignalError, DuplicateVariableError
-from pyVHDLModel.Exception   import DuplicateFileError, DuplicateComponentError, DuplicateSubprogramError
+from pyVHDLModel.Base        import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf, \
+                                    normalizedIdentifiersOf, normalizedDeclaredNamesOf
+from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError, \
+                                    DuplicateGenericError, DuplicatePortError, DuplicateParameterError, \
+                                    DuplicateDeclarationError, DuplicateTypeError, DuplicateSubtypeError, \
+                                    DuplicateConstantError, DuplicateSignalError, DuplicateVariableError, \
+                                    DuplicateFileError, DuplicateComponentError, DuplicateSubprogramError
 from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Object      import BaseConstant, Constant, DeferredConstant, SharedVariable, File, Variable, Signal
 if TYPE_CHECKING:
-	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin
-	from pyVHDLModel.Interface import PortSignalInterfaceItem
+	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
+	                                  PortSignalInterfaceItem, SingleGenericDeclarationMixin, \
+	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin
 	from pyVHDLModel.Type      import Subtype, FullType
+	from pyVHDLModel.Visitor   import Visitor
 
 # `pyVHDLModel.Subprogram` imports this module (Subprogram is a sequential declaration region), so
 # `Function`/`Procedure` are quoted in annotations and imported lazily where they're needed at runtime.
@@ -100,10 +102,10 @@ class WithGenericsMixin(
 
 		:param genericItems: List of all generics, in declaration order.
 		"""
-		self._genericItems = []
+		self._genericItems = genericItemList = []
 		if genericItems is not None:
 			for item in genericItems:
-				self._genericItems.append(item)
+				genericItemList.append(item)
 				item.Parent = self
 
 	@readonly
@@ -123,6 +125,34 @@ class WithGenericsMixin(
 		:returns: The generic count.
 		"""
 		return len(self._genericItems)
+
+	def IterateSingleGenericDeclarations(
+		self,
+		predicate: Nullable[Callable[[SingleGenericDeclarationMixin | GenericInterfaceItemMixin], bool]] = None
+	) -> Generator[SingleGenericDeclarationMixin | GenericInterfaceItemMixin, None, None]:
+		"""
+		Iterate all generics per declared identifier, in declaration order.
+
+		A generic constant yields one single declaration per identifier: ``generic (A, B : positive)`` yields two. A
+		generic type, subprogram or package declares exactly one identifier and is yielded itself.
+
+		:param predicate: Optional, filter function to select the yielded generics. Default: all.
+		:returns:         A generator to iterate all (selected) generics.
+		"""
+		if predicate is None:
+			for item in self._genericItems:
+				if isinstance(item, MultipleNamedEntityMixin):
+					yield from item.SingleDeclarations
+				else:
+					yield item
+		else:
+			for item in self._genericItems:
+				if isinstance(item, MultipleNamedEntityMixin):
+					for singleDeclaration in item.SingleDeclarations:
+						if predicate(singleDeclaration):
+							yield singleDeclaration
+				elif predicate(item):
+					yield item
 
 	def AddGenericItem(self, genericItem: GenericInterfaceItemMixin) -> None:
 		"""
@@ -360,6 +390,26 @@ class WithGenericsMixin(
 			for normalizedIdentifier in normalizedIdentifiersOf(item):
 				self._namespace.AddElement(normalizedIdentifier, item, overloadable=overloadable)
 
+	def _VisitGenericClause(self, visitor: Visitor) -> None:
+		"""
+		Walk the generic clause, if there are generics, with a visitor.
+
+		The generics are separated by semicolons.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if len(self._genericItems) == 0:
+			return
+
+		visitor.VisitGenericClause(self)
+		for index, item in enumerate(self._genericItems):
+			if index > 0:
+				visitor.VisitSemicolon(self)
+
+			item.Visit(visitor)
+
+		visitor.DepartGenericClause(self)
+
 
 @export
 class WithPortsMixin(
@@ -398,10 +448,10 @@ class WithPortsMixin(
 
 		:param portItems: List of all ports, in declaration order.
 		"""
-		self._portItems = []
+		self._portItems = portItemList = []
 		if portItems is not None:
 			for item in portItems:
-				self._portItems.append(item)
+				portItemList.append(item)
 				item.Parent = self
 
 	@readonly
@@ -421,6 +471,27 @@ class WithPortsMixin(
 		:returns: The port count.
 		"""
 		return len(self._portItems)
+
+	def IterateSinglePortDeclarations(
+		self,
+		predicate: Nullable[Callable[[SinglePortDeclarationMixin], bool]] = None
+	) -> Generator[SinglePortDeclarationMixin, None, None]:
+		"""
+		Iterate all ports per declared identifier, in declaration order.
+
+		A port yields one single declaration per identifier: ``port (a, b : in bit)`` yields two.
+
+		:param predicate: Optional, filter function to select the yielded ports. Default: all.
+		:returns:         A generator to iterate all (selected) ports.
+		"""
+		if predicate is None:
+			for item in self._portItems:
+				yield from item.SingleDeclarations
+		else:
+			for item in self._portItems:
+				for singleDeclaration in item.SingleDeclarations:
+					if predicate(singleDeclaration):
+						yield singleDeclaration
 
 	def AddPortItem(self, portItem: PortSignalInterfaceItem) -> None:
 		"""
@@ -640,6 +711,26 @@ class WithPortsMixin(
 			for normalizedIdentifier in normalizedIdentifiersOf(item):
 				self._namespace.AddElement(normalizedIdentifier, item)
 
+	def _VisitPortClause(self, visitor: Visitor) -> None:
+		"""
+		Walk the port clause, if there are ports, with a visitor.
+
+		The ports are separated by semicolons.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if len(self._portItems) == 0:
+			return
+
+		visitor.VisitPortClause(self)
+		for index, item in enumerate(self._portItems):
+			if index > 0:
+				visitor.VisitSemicolon(self)
+
+			item.Visit(visitor)
+
+		visitor.DepartPortClause(self)
+
 
 @export
 class WithParametersMixin(
@@ -679,10 +770,10 @@ class WithParametersMixin(
 
 		:param parameterItems: List of all parameters, in declaration order.
 		"""
-		self._parameterItems = []
+		self._parameterItems = parameterItemList = []
 		if parameterItems is not None:
 			for item in parameterItems:
-				self._parameterItems.append(item)
+				parameterItemList.append(item)
 				item.Parent = self
 
 	@readonly
@@ -702,6 +793,27 @@ class WithParametersMixin(
 		:returns: The parameter count.
 		"""
 		return len(self._parameterItems)
+
+	def IterateSingleParameterDeclarations(
+		self,
+		predicate: Nullable[Callable[[SingleParameterDeclarationMixin], bool]] = None
+	) -> Generator[SingleParameterDeclarationMixin, None, None]:
+		"""
+		Iterate all parameters per declared identifier, in declaration order.
+
+		A parameter yields one single declaration per identifier: ``(a, b : in integer)`` yields two.
+
+		:param predicate: Optional, filter function to select the yielded parameters. Default: all.
+		:returns:         A generator to iterate all (selected) parameters.
+		"""
+		if predicate is None:
+			for item in self._parameterItems:
+				yield from item.SingleDeclarations
+		else:
+			for item in self._parameterItems:
+				for singleDeclaration in item.SingleDeclarations:
+					if predicate(singleDeclaration):
+						yield singleDeclaration
 
 	def AddParameterItem(self, parameterItem: ParameterInterfaceItemMixin) -> None:
 		"""
@@ -925,6 +1037,26 @@ class WithParametersMixin(
 		for item in self._parameterItems:
 			for normalizedIdentifier in normalizedIdentifiersOf(item):
 				self._namespace.AddElement(normalizedIdentifier, item)
+
+	def _VisitFormalParameterList(self, visitor: Visitor) -> None:
+		"""
+		Walk the formal parameter list, if there are parameters, with a visitor.
+
+		The parameters are separated by semicolons.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if len(self._parameterItems) == 0:
+			return
+
+		visitor.VisitFormalParameterList(self)
+		for index, item in enumerate(self._parameterItems):
+			if index > 0:
+				visitor.VisitSemicolon(self)
+
+			item.Visit(visitor)
+
+		visitor.DepartFormalParameterList(self)
 
 
 @export
@@ -1747,6 +1879,15 @@ class DeclarationRegionMixin(
 		precedes = any(item is declaredItem for item in self._declaredItems[:index + 1])
 		self.MoveDeclaredItem(declaredItem, index if precedes else index + 1)
 
+	def _VisitDeclaredItems(self, visitor: Visitor) -> None:
+		"""
+		Walk the declared items in declaration order with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		for item in self._declaredItems:
+			item.Visit(visitor)
+
 
 @export
 class WithoutStatementsMixin(metaclass=ExtendedType, mixin=True):
@@ -1832,10 +1973,10 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		self._namespace = Namespace(namespaceName, sharesRegionWithParent=sharesRegionWithParent)
 
-		self._declaredItems = []  # TODO: convert to dict
+		self._declaredItems = declaredItemList = []  # TODO: convert to dict
 		if declaredItems is not None:
 			for item in declaredItems:
-				self._declaredItems.append(item)
+				declaredItemList.append(item)
 				item.Parent = self
 
 		self._types =       {}
@@ -2151,10 +2292,10 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		self._namespace = Namespace(namespaceName)
 
-		self._declaredItems = []  # TODO: convert to dict
+		self._declaredItems = declaredItemList = []  # TODO: convert to dict
 		if declaredItems is not None:
 			for item in declaredItems:
-				self._declaredItems.append(item)
+				declaredItemList.append(item)
 				item.Parent = self
 
 		self._types =      {}
@@ -2393,10 +2534,10 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		self._namespace = Namespace(namespaceName)
 
-		self._declaredItems = []  # TODO: convert to dict
+		self._declaredItems = declaredItemList = []  # TODO: convert to dict
 		if declaredItems is not None:
 			for item in declaredItems:
-				self._declaredItems.append(item)
+				declaredItemList.append(item)
 				item.Parent = self
 
 		self._functions =  {}

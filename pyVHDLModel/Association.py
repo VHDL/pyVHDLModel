@@ -43,8 +43,8 @@ from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity
-from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError
-from pyVHDLModel.Exception   import DuplicateGenericAssociationError, DuplicatePortAssociationError
+from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError, \
+                                    DuplicateGenericAssociationError, DuplicatePortAssociationError
 from pyVHDLModel.Name        import Name, SimpleName
 from pyVHDLModel.Symbol      import Symbol
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
@@ -203,10 +203,10 @@ class GenericMapAspectMixin(metaclass=ExtendedType, mixin=True):
 
 		:param genericAssociationItems: List of all generic associations.
 		"""
-		self._genericAssociationItems = []
+		self._genericAssociationItems = genericAssociationItemList = []
 		if genericAssociationItems is not None:
 			for association in genericAssociationItems:
-				self._genericAssociationItems.append(association)
+				genericAssociationItemList.append(association)
 				association.Parent = self
 
 	@readonly
@@ -217,6 +217,26 @@ class GenericMapAspectMixin(metaclass=ExtendedType, mixin=True):
 		:returns: List of generic association items.
 		"""
 		return self._genericAssociationItems
+
+	def _VisitGenericMapAspect(self, visitor: Visitor) -> None:
+		"""
+		Walk the generic map aspect, if there are generic associations, with a visitor.
+
+		The associations are separated by commas.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if len(self._genericAssociationItems) == 0:
+			return
+
+		visitor.VisitGenericMapAspect(self)
+		for index, item in enumerate(self._genericAssociationItems):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			item.Visit(visitor)
+
+		visitor.DepartGenericMapAspect(self)
 
 	def AddGenericAssociationItem(self, genericAssociationItem: GenericAssociationItem) -> None:
 		"""
@@ -413,10 +433,10 @@ class PortMapAspectMixin(metaclass=ExtendedType, mixin=True):
 
 		:param portAssociationItems: List of all port associations.
 		"""
-		self._portAssociationItems = []
+		self._portAssociationItems = portAssociationItemList = []
 		if portAssociationItems is not None:
 			for association in portAssociationItems:
-				self._portAssociationItems.append(association)
+				portAssociationItemList.append(association)
 				association.Parent = self
 
 	@readonly
@@ -427,6 +447,26 @@ class PortMapAspectMixin(metaclass=ExtendedType, mixin=True):
 		:returns: List of port association items.
 		"""
 		return self._portAssociationItems
+
+	def _VisitPortMapAspect(self, visitor: Visitor) -> None:
+		"""
+		Walk the port map aspect, if there are port associations, with a visitor.
+
+		The associations are separated by commas.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if len(self._portAssociationItems) == 0:
+			return
+
+		visitor.VisitPortMapAspect(self)
+		for index, item in enumerate(self._portAssociationItems):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			item.Visit(visitor)
+
+		visitor.DepartPortMapAspect(self)
 
 	def AddPortAssociationItem(self, portAssociationItem: PortAssociationItem) -> None:
 		"""

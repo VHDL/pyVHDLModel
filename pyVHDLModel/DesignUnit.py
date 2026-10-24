@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from __future__                import annotations
 
-from typing                    import ClassVar, Union, Iterable, Optional as Nullable
+from typing                    import TYPE_CHECKING, ClassVar, Union, Iterable, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators      import export, readonly
@@ -45,16 +45,19 @@ from pyTooling.Graph           import Vertex
 
 from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Exception     import VHDLModelException, AlreadyInDesignError, NotAChildError
-from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
-from pyVHDLModel.Base          import normalizedIdentifiersOf
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
+                                      normalizedIdentifiersOf
 from pyVHDLModel.Namespace     import Namespace
-from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin
-from pyVHDLModel.Regions       import WithoutStatementsMixin
+from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin, \
+                                      WithoutStatementsMixin
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin
 from pyVHDLModel.Object        import DeferredConstant
 from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor     import Visitor
 
 
 @export
@@ -92,6 +95,18 @@ class Reference(ModelEntity):
 		"""
 		return self._symbols
 
+	def _VisitSymbols(self, visitor: Visitor) -> None:
+		"""
+		Walk the referenced symbols, separated by commas, with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		for index, symbol in enumerate(self._symbols):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			symbol.Visit(visitor)
+
 
 @export
 class LibraryClause(Reference):
@@ -114,6 +129,16 @@ class LibraryClause(Reference):
 		"""
 		return self._symbols
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this library clause and its library names with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitLibraryClause(self)
+		self._VisitSymbols(visitor)
+		visitor.DepartLibraryClause(self)
+
 
 @export
 class UseClause(Reference):
@@ -126,6 +151,16 @@ class UseClause(Reference):
 
 	      use std.text_io.all, ieee.numeric_std.all;
 	"""
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this use clause and its selected names with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitUseClause(self)
+		self._VisitSymbols(visitor)
+		visitor.DepartUseClause(self)
 
 
 @export
@@ -141,6 +176,16 @@ class ContextReference(Reference):
 
 	      context ieee.ieee_std_context;
 	"""
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this context reference and its context names with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitContextReference(self)
+		self._VisitSymbols(visitor)
+		visitor.DepartContextReference(self)
 
 
 ContextUnion = Union[
@@ -221,21 +266,21 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		self._document = None
 
-		self._contextItems = []
-		self._libraryReferences = []
-		self._packageReferences = []
-		self._contextReferences = []
+		self._contextItems = contextItemList = []
+		self._libraryReferences = libraryReferences = []
+		self._packageReferences = packageReferences = []
+		self._contextReferences = contextReferences = []
 
 		if contextItems is not None:
 			for item in contextItems:
-				self._contextItems.append(item)
+				contextItemList.append(item)
 				item.Parent = self
 				if isinstance(item, UseClause):
-					self._packageReferences.append(item)
+					packageReferences.append(item)
 				elif isinstance(item, LibraryClause):
-					self._libraryReferences.append(item)
+					libraryReferences.append(item)
 				elif isinstance(item, ContextReference):
-					self._contextReferences.append(item)
+					contextReferences.append(item)
 
 		self._referencedLibraries = {}
 		self._referencedPackages = {}
@@ -297,6 +342,20 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:returns: Sequence of library clauses.
 		"""
 		return self._libraryReferences
+
+	def _VisitContextClause(self, visitor: Visitor) -> None:
+		"""
+		Walk the context clause, i.e. the context items preceding the design unit, with a visitor.
+
+		The context clause is reported, even if it has no context items.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitContextClause(self)
+		for item in self._contextItems:
+			item.Visit(visitor)
+
+		visitor.DepartContextClause(self)
 
 	@readonly
 	def PackageReferences(self) -> list[UseClause]:
@@ -649,6 +708,20 @@ class Context(PrimaryUnit):
 		"""
 		return self._contextReferences
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this context declaration and its context items with a visitor.
+
+		A context declaration has no context clause: its context items are walked inside the declaration.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitContext(self)
+		for item in self._contextItems:
+			item.Visit(visitor)
+
+		visitor.DepartContext(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the context declaration.
@@ -796,6 +869,18 @@ class Package(
 		"""
 		return () if self._packageBody is None else (self._packageBody, )
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this package declaration, its context clause, its generic clause and its declared items with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		self._VisitContextClause(visitor)
+		visitor.VisitPackage(self)
+		self._VisitGenericClause(visitor)
+		self._VisitDeclaredItems(visitor)
+		visitor.DepartPackage(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the package declaration.
@@ -922,6 +1007,17 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		package = self._package.Package
 		return () if package is None else (package, )
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this package body, its context clause and its declared items with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		self._VisitContextClause(visitor)
+		visitor.VisitPackageBody(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.DepartPackageBody(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the package body declaration.
@@ -1014,6 +1110,21 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		:returns: Dictionary of architectures, indexed by normalized identifier.
 		"""
 		return self._architectures
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this entity, its context clause, its interface, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		self._VisitContextClause(visitor)
+		visitor.VisitEntity(self)
+		self._VisitGenericClause(visitor)
+		self._VisitPortClause(visitor)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartEntity(self)
 
 	def __str__(self) -> str:
 		"""
@@ -1141,6 +1252,21 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		"""
 		return self._entity
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this architecture, its context clause, its entity, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		self._VisitContextClause(visitor)
+		visitor.VisitArchitecture(self)
+		self._entity.Visit(visitor)
+		visitor.VisitIs(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartArchitecture(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the architecture declaration.
@@ -1234,6 +1360,17 @@ class Component(
 
 		self._isBlackbox = None
 		self._entity =     None
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this component declaration, its generic clause and its port clause with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitComponent(self)
+		self._VisitGenericClause(visitor)
+		self._VisitPortClause(visitor)
+		visitor.DepartComponent(self)
 
 	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""
@@ -1381,6 +1518,19 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 		:returns: The block configuration.
 		"""
 		return self._blockConfiguration
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this configuration, its context clause, its entity and its block configuration with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		self._VisitContextClause(visitor)
+		visitor.VisitConfiguration(self)
+		self._entity.Visit(visitor)
+		visitor.VisitIs(self)
+		self._blockConfiguration.Visit(visitor)
+		visitor.DepartConfiguration(self)
 
 	def __str__(self) -> str:
 		"""

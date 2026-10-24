@@ -32,8 +32,8 @@
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, SimpleRange
-from pyVHDLModel.Expression import AdditionExpression, MultiplyExpression, IntegerLiteral, WhenElseExpression
-from pyVHDLModel.Expression import Aggregate, IndexedAggregateElement, OthersAggregateElement
+from pyVHDLModel.Expression import AdditionExpression, MultiplyExpression, IntegerLiteral, WhenElseExpression, \
+                                   Aggregate, IndexedAggregateElement, OthersAggregateElement
 
 from tests.unit.Visitor     import Recorder
 

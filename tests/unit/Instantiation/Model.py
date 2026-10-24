@@ -30,26 +30,27 @@
 # ==================================================================================================================== #
 #
 """Instantiation tests for the model's top-level composition: names, symbols, design, library and document."""
-from pathlib import Path
+from pathlib                   import Path
 
 from pyTooling.Graph           import Graph
 from pyTooling.Testing         import Testcase
 
-from pyVHDLModel import Design, Library, Document, IEEEFlavor, LibraryExistsInDesignError, VHDLModelException
-from pyVHDLModel.Base import Direction, SimpleRange
-from pyVHDLModel.Name import SelectedName, SimpleName, AllName, AttributeName
-from pyVHDLModel.Object import Constant, Signal
-from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMemberReferenceSymbol, SimpleSubtypeSymbol
-from pyVHDLModel.Symbol import AllPackageMembersReferenceSymbol, ContextReferenceSymbol, EntitySymbol
-from pyVHDLModel.Symbol import ArchitectureSymbol, PackageSymbol, EntityInstantiationSymbol
-from pyVHDLModel.Symbol import ComponentInstantiationSymbol, ConfigurationInstantiationSymbol
-from pyVHDLModel.Symbol import SubprogramReferenceSymbol, ConstrainedScalarSubtypeSymbol
-from pyVHDLModel.Symbol import Symbol, PossibleReference
+from pyVHDLModel               import Design, Library, Document, IEEEFlavor, LibraryExistsInDesignError, \
+                                      VHDLModelException
+from pyVHDLModel.Base          import Direction, SimpleRange
+from pyVHDLModel.Name          import SelectedName, SimpleName, AllName, AttributeName
+from pyVHDLModel.Object        import Constant, Signal
+from pyVHDLModel.Symbol        import LibraryReferenceSymbol, PackageReferenceSymbol, PackageMemberReferenceSymbol, \
+                                      SimpleSubtypeSymbol, AllPackageMembersReferenceSymbol, ContextReferenceSymbol, \
+                                      EntitySymbol, ArchitectureSymbol, PackageSymbol, EntityInstantiationSymbol, \
+                                      ComponentInstantiationSymbol, ConfigurationInstantiationSymbol, \
+                                      SubprogramReferenceSymbol, ConstrainedScalarSubtypeSymbol, Symbol, \
+                                      PossibleReference
 from pyVHDLModel.Configuration import BlockConfiguration
-from pyVHDLModel.Expression import IntegerLiteral, FloatingPointLiteral
+from pyVHDLModel.Expression    import IntegerLiteral, FloatingPointLiteral
 from pyVHDLModel.Type          import Subtype, IntegerType, RealType, ArrayType, RecordType
-from pyVHDLModel.DesignUnit    import Package, PackageBody, Context, Entity, Architecture, Configuration
-from pyVHDLModel.DesignUnit    import LibraryClause
+from pyVHDLModel.DesignUnit    import Package, PackageBody, Context, Entity, Architecture, Configuration, \
+                                      LibraryClause
 from pyVHDLModel.Association   import GenericAssociationItem
 from pyVHDLModel.Instantiation import PackageInstantiation, FunctionInstantiation, ProcedureInstantiation
 from pyVHDLModel.PSLModel      import DefaultClock

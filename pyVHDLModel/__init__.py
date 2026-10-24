@@ -50,7 +50,7 @@ __author__ =            "Patrick Lehmann"
 __email__ =             "Paebbels@gmail.com"
 __copyright__ =         "2016-2026, Patrick Lehmann"
 __license__ =           "Apache License, Version 2.0"
-__version__ =           "0.40.0rc2"
+__version__ =           "0.40.0rc3"
 # __keywords__ =          []
 __project_url__ =       "https://github.com/VHDL/pyVHDLModel"
 __documentation_url__ = "https://vhdl.github.io/pyVHDLModel"
@@ -60,32 +60,38 @@ __issue_tracker_url__ = "https://GitHub.com/VHDL/pyVHDLModel/issues"
 from enum                      import unique, Enum, Flag, auto
 from pathlib                   import Path
 
-from typing                    import Union, cast, Generator, Optional as Nullable
+from typing                    import TYPE_CHECKING, Union, cast, Generator, Optional as Nullable
 
-from pyTooling.Common          import getFullyQualifiedName
+from pyTooling.Common          import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators      import export, readonly
 from pyTooling.Graph           import Graph, Vertex, Edge
 from pyTooling.Warning         import WarningCollector
 
-from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning, BlackboxWarning
-from pyVHDLModel.Exception     import LibraryExistsInDesignError, LibraryRegisteredToForeignDesignError, LibraryNotRegisteredError, EntityExistsInLibraryError
-from pyVHDLModel.Exception     import ArchitectureExistsInLibraryError, PackageExistsInLibraryError, PackageBodyExistsError, ConfigurationExistsInLibraryError
-from pyVHDLModel.Exception     import ContextExistsInLibraryError, ReferencedLibraryNotExistingError
-from pyVHDLModel.Exception     import LibraryNotFoundError, EntityNotFoundError, PackageNotFoundError
-from pyVHDLModel.Exception     import ConfigurationNotFoundError, ContextNotFoundError
+from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning, BlackboxWarning, \
+                                      LibraryExistsInDesignError, LibraryRegisteredToForeignDesignError, \
+                                      LibraryNotRegisteredError, EntityExistsInLibraryError, \
+                                      ArchitectureExistsInLibraryError, PackageExistsInLibraryError, \
+                                      PackageBodyExistsError, ConfigurationExistsInLibraryError, \
+                                      ContextExistsInLibraryError, ReferencedLibraryNotExistingError, \
+                                      LibraryNotFoundError, EntityNotFoundError, PackageNotFoundError, \
+                                      ConfigurationNotFoundError, ContextNotFoundError, AlreadyInDesignError, \
+                                      NotAChildError, DuplicateDocumentError, DuplicateDesignUnitError, \
+                                      LibraryInUseError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant, SharedVariable, Variable, File
-from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
+                                      PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Common        import AllowBlackboxMixin
-from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
-from pyVHDLModel.Regions       import ProtectedTypeDeclarationRegionMixin
-from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation
-from pyVHDLModel.Concurrent    import GenerateStatement, IfGenerateStatement, ForGenerateStatement, CaseGenerateStatement
-from pyVHDLModel.Concurrent    import GenerateBranch, ConcurrentStatementsMixin, ConcurrentBlockStatement
-from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, Configuration, Package, Component
-from pyVHDLModel.DesignUnit    import UseClause
+from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
+                                      ProtectedTypeDeclarationRegionMixin
+from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation, \
+                                      GenerateStatement, IfGenerateStatement, ForGenerateStatement, \
+                                      CaseGenerateStatement, GenerateBranch, ConcurrentStatementsMixin, \
+                                      ConcurrentBlockStatement
+from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, \
+                                      Configuration, Package, Component, UseClause
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode, PSLEntity
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType, BaseType
@@ -93,6 +99,9 @@ from pyVHDLModel.Configuration import ComponentConfiguration
 from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
 from pyVHDLModel.Interface     import ModeViewDeclaration
 from pyVHDLModel.Subprogram    import Subprogram
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor     import Visitor
 
 
 # Classes of declared items each declarative region accepts (ClassVar _DECLARED_ITEM_TYPES).
@@ -531,6 +540,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	_name:              Nullable[str]         #: Name of the design.
 	_libraries:         dict[str, Library]    #: List of all libraries defined for a design.
 	_documents:         list[Document]        #: List of all documents loaded for a design.
+	_documentsByPath:   dict[Path, Document]  #: The documents loaded for a design, indexed by path.
 	_dependencyGraph:   Graph                 #: The graph of all dependencies in the designs.
 	_compileOrderGraph: Graph                 #: A graph derived from dependency graph containing the order of documents for compilation.
 	_hierarchyGraph:    Graph                 #: A graph derived from dependency graph containing the design hierarchy.
@@ -553,8 +563,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		self._name = name
 
-		self._libraries = {}
-		self._documents = []
+		self._libraries =       {}
+		self._documents =       []
+		self._documentsByPath = {}
 
 		self._compileOrderGraph = Graph()
 		self._dependencyGraph = Graph()
@@ -715,6 +726,54 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		self._libraries[libraryIdentifier] = library
 		library.Parent = self
+
+	def RemoveLibrary(self, library: Library) -> None:
+		"""
+		Remove a VHDL library from the design.
+
+		The library is detached: its parent is cleared. Its design units stay design units of the library, so the library
+		can be added to a design again (:meth:`AddLibrary`).
+
+		:param library:            The VHDL library to remove.
+		:raises ValueError:        If parameter 'library' is ``None``.
+		:raises TypeError:         If parameter 'library' is not of type :class:`Library`.
+		:raises NotAChildError:    If parameter 'library' is not a library of this design.
+		:raises LibraryInUseError: If documents of this design still use the library.
+
+		.. seealso::
+
+		   :meth:`AddLibrary`
+		      |rarr| Add a VHDL library to the design.
+		   :meth:`RemoveDocument`
+		      |rarr| Remove a document from the design.
+		"""
+		if library is None:
+			raise ValueError("Parameter 'library' is None.")
+		elif not isinstance(library, Library):
+			ex = TypeError("Parameter 'library' is not of type 'Library'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(library)}'.")
+			raise ex
+		elif self._libraries.get(library._normalizedIdentifier) is not library:
+			raise NotAChildError(
+				f"Library '{library._identifier}' is not a library of this design.",
+				element=library,
+				parent=self
+			)
+
+		users = tuple(document for document in self._documents if document._library is library)
+		if len(users) > 0:
+			paths = "', '".join(str(document._path) for document in users)
+			ex = LibraryInUseError(
+				f"Library '{library._identifier}' is used by {len(users)} document(s).",
+				element=library,
+				users=users
+			)
+			ex.add_note(f"Used by: '{paths}'.")
+			ex.add_note("Remove the documents from the design first.")
+			raise ex
+
+		del self._libraries[library._normalizedIdentifier]
+		library._parent = None
 
 	def GetLibrary(self, libraryName: str) -> Library:
 		"""
@@ -1032,40 +1091,25 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		Add a document (VHDL source file) to the design and register all embedded design units to the given VHDL library.
 
+		All checks are done, before the design, the document or the library is changed.
+
 		.. rubric:: Algorithm
 
-		1. Iterate all entities in the document
-
-		   1. Check if entity name might exist in target library.
-		   2. Add entity to library and update library membership.
-
-		2. Iterate all architectures in the document
-
-		   1. Check if architecture name might exist in target library.
-		   2. Add architecture to library and update library membership.
-
-		3. Iterate all packages in the document
-
-		   1. Check if package name might exist in target library.
-		   2. Add package to library and update library membership.
-
-		4. Iterate all package bodies in the document
-
-		   1. Check if package body name might exist in target library.
-		   2. Add package body to library and update library membership.
-
-		5. Iterate all configurations in the document
-
-		   1. Check if configuration name might exist in target library.
-		   2. Add configuration to library and update library membership.
-
-		6. Iterate all contexts in the document
-
-		   1. Check if context name might exist in target library.
-		   2. Add context to library and update library membership.
+		1. Check the document isn't a document of a design, and the design contains no document of the same path.
+		2. Check none of the document's entities, architectures, packages, package bodies, configurations and contexts
+		   exists in the library.
+		3. Add the document to the design and set the document's library.
+		4. Add the document's entities, architectures, packages, package bodies, configurations and contexts to the
+		   library and update their library membership.
 
 		:param document:                           The VHDL source code file.
 		:param library:                            The VHDL library used to register the embedded design units to.
+		:raises ValueError:                        If parameter 'document' is ``None``.
+		:raises TypeError:                         If parameter 'document' is not of type :class:`Document`.
+		:raises AlreadyInDesignError:              If parameter 'document' is already a document of a design.
+		:raises DuplicateDocumentError:            If the design already contains a document of the same path.
+		:raises ValueError:                        If parameter 'library' is ``None``.
+		:raises TypeError:                         If parameter 'library' is not of type :class:`Library`.
 		:raises LibraryNotRegisteredError:         If the given VHDL library is not a library in the design.
 		:raises EntityExistsInLibraryError:        If the processed entity's name is already existing in the VHDL library.
 		:raises ArchitectureExistsInLibraryError:  If the processed architecture's name is already existing in the VHDL library.
@@ -1073,68 +1117,171 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:raises PackageBodyExistsError:            If the processed package body's name is already existing in the VHDL library.
 		:raises ConfigurationExistsInLibraryError: If the processed configuration's name is already existing in the VHDL library.
 		:raises ContextExistsInLibraryError:       If the processed context's name is already existing in the VHDL library.
+
+		.. seealso::
+
+		   :meth:`RemoveDocument`
+		      |rarr| Remove a document from the design.
 		"""
-		# FIXME: this checks for the library name, but not the object
-		# should the libraries parent be checked too?
-		if library._normalizedIdentifier not in self._libraries:
+		if document is None:
+			raise ValueError("Parameter 'document' is None.")
+		elif not isinstance(document, Document):
+			ex = TypeError("Parameter 'document' is not of type 'Document'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(document)}'.")
+			raise ex
+		elif isinstance(document._parent, Design) and document._parent._documentsByPath.get(document._path) is document:
+			ex = AlreadyInDesignError(
+				f"Document '{document._path}' is already a document of a design.",
+				element=document,
+				parent=document._parent
+			)
+			ex.add_note("Remove it from its design first.")
+			raise ex
+
+		if (existing := self._documentsByPath.get(document._path)) is not None:
+			raise DuplicateDocumentError(
+				f"Design already contains a document of path '{document._path}'.",
+				path=document._path,
+				parent=self,
+				element=document,
+				existing=existing
+			)
+
+		if library is None:
+			raise ValueError("Parameter 'library' is None.")
+		elif not isinstance(library, Library):
+			ex = TypeError("Parameter 'library' is not of type 'Library'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(library)}'.")
+			raise ex
+		elif self._libraries.get(library._normalizedIdentifier) is not library:
 			raise LibraryNotRegisteredError(library)
-
-		self._documents.append(document)
-		document.Parent =  self
-		#document.Library = library
-
-		document._library = library
 
 		for entityIdentifier, entity in document._entities.items():
 			if entityIdentifier in library._entities:
 				raise EntityExistsInLibraryError(entity, library)
 
-			library._entities[entityIdentifier] = entity
-			entity.Library = library
-
 		for entityIdentifier, architectures in document._architectures.items():
-			try:
-				architecturesPerEntity = library._architectures[entityIdentifier]
-				for architectureIdentifier, architecture in architectures.items():
-					if architectureIdentifier in architecturesPerEntity:
-						raise ArchitectureExistsInLibraryError(architecture, library._entities[entityIdentifier], library)
-
-					architecturesPerEntity[architectureIdentifier] = architecture
-					architecture.Library = library
-			except KeyError:
-				architecturesPerEntity = document._architectures[entityIdentifier].copy()
-				library._architectures[entityIdentifier] = architecturesPerEntity
-
-				for architecture in architecturesPerEntity.values():
-					architecture.Library = library
+			architecturesPerEntity = library._architectures.get(entityIdentifier, {})
+			for architectureIdentifier, architecture in architectures.items():
+				if architectureIdentifier in architecturesPerEntity:
+					raise ArchitectureExistsInLibraryError(architecture, library._entities[entityIdentifier], library)
 
 		for packageIdentifier, package in document._packages.items():
 			if packageIdentifier in library._packages:
 				raise PackageExistsInLibraryError(package, library)
 
-			library._packages[packageIdentifier] = package
-			package.Library = library
-
 		for packageBodyIdentifier, packageBody in document._packageBodies.items():
 			if packageBodyIdentifier in library._packageBodies:
 				raise PackageBodyExistsError(packageBody, library)
-
-			library._packageBodies[packageBodyIdentifier] = packageBody
-			packageBody.Library = library
 
 		for configurationIdentifier, configuration in document._configurations.items():
 			if configurationIdentifier in library._configurations:
 				raise ConfigurationExistsInLibraryError(configuration, library)
 
-			library._configurations[configurationIdentifier] = configuration
-			configuration.Library = library
-
 		for contextIdentifier, context in document._contexts.items():
 			if contextIdentifier in library._contexts:
 				raise ContextExistsInLibraryError(context, library)
 
+		self._documents.append(document)
+		self._documentsByPath[document._path] = document
+		document.Parent = self
+		document._library = library
+
+		for entityIdentifier, entity in document._entities.items():
+			library._entities[entityIdentifier] = entity
+			entity.Library = library
+
+		for entityIdentifier, architectures in document._architectures.items():
+			architecturesPerEntity = library._architectures.setdefault(entityIdentifier, {})
+			for architectureIdentifier, architecture in architectures.items():
+				architecturesPerEntity[architectureIdentifier] = architecture
+				architecture.Library = library
+
+		for packageIdentifier, package in document._packages.items():
+			library._packages[packageIdentifier] = package
+			package.Library = library
+
+		for packageBodyIdentifier, packageBody in document._packageBodies.items():
+			library._packageBodies[packageBodyIdentifier] = packageBody
+			packageBody.Library = library
+
+		for configurationIdentifier, configuration in document._configurations.items():
+			library._configurations[configurationIdentifier] = configuration
+			configuration.Library = library
+
+		for contextIdentifier, context in document._contexts.items():
 			library._contexts[contextIdentifier] = context
 			context.Library = library
+
+	def RemoveDocument(self, document: Document) -> None:
+		"""
+		Remove a document (VHDL source file) from the design.
+
+		The document is detached: its parent and library are cleared. Its entities, architectures, packages, package bodies,
+		configurations and contexts leave the library, and their parent is cleared. The design units stay design units of
+		the document, so the document can be added to a design again.
+
+		:param document:        The VHDL source code file.
+		:raises ValueError:     If parameter 'document' is ``None``.
+		:raises TypeError:      If parameter 'document' is not of type :class:`Document`.
+		:raises NotAChildError: If parameter 'document' is not a document of this design.
+
+		.. seealso::
+
+		   :meth:`AddDocument`
+		      |rarr| Add a document to the design.
+		"""
+		if document is None:
+			raise ValueError("Parameter 'document' is None.")
+		elif not isinstance(document, Document):
+			ex = TypeError("Parameter 'document' is not of type 'Document'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(document)}'.")
+			raise ex
+
+		if self._documentsByPath.get(document._path) is not document:
+			raise NotAChildError(
+				f"Document '{document._path}' is not a document of this design.",
+				element=document,
+				parent=self
+			)
+
+		library = document._library
+		for entityIdentifier, entity in document._entities.items():
+			del library._entities[entityIdentifier]
+			entity._parent = None
+
+		for entityIdentifier, architectures in document._architectures.items():
+			architecturesPerEntity = library._architectures[entityIdentifier]
+			for architectureIdentifier, architecture in architectures.items():
+				del architecturesPerEntity[architectureIdentifier]
+				architecture._parent = None
+
+			if len(architecturesPerEntity) == 0:
+				del library._architectures[entityIdentifier]
+
+		for packageIdentifier, package in document._packages.items():
+			del library._packages[packageIdentifier]
+			package._parent = None
+
+		for packageBodyIdentifier, packageBody in document._packageBodies.items():
+			del library._packageBodies[packageBodyIdentifier]
+			packageBody._parent = None
+
+		for configurationIdentifier, configuration in document._configurations.items():
+			del library._configurations[configurationIdentifier]
+			configuration._parent = None
+
+		for contextIdentifier, context in document._contexts.items():
+			del library._contexts[contextIdentifier]
+			context._parent = None
+
+		for index, item in enumerate(self._documents):
+			if item is document:
+				del self._documents[index]
+				break
+		del self._documentsByPath[document._path]
+		document._parent = None
+		document._library = None
 
 	def IterateDesignUnits(self, filter: DesignUnitKind = DesignUnitKind.All) -> Generator[DesignUnit, None, None]:
 		"""
@@ -1170,13 +1317,20 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		Analyze the whole design.
 
+		The analysis can be repeated, e.g. after the design was changed: the previous analysis is reset first.
+
 		.. rubric:: Algorithm
 
-		1. Analyze dependencies of design units. |br|
+		1. Reset a previous analysis. |br|
+		   |rarr| :meth:`ResetAnalysis`
+		2. Analyze dependencies of design units. |br|
 		   This will also yield the design hierarchy and the compiler order.
-		2. Analyze dependencies of types and objects.
+		3. Analyze dependencies of types and objects.
 
 		.. seealso::
+
+		   :meth:`ResetAnalysis`
+		     Reset everything an analysis derived.
 
 		   :meth:`AnalyzeDependencies`
 		     Analyze the dependencies of design units.
@@ -1188,8 +1342,94 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
+		self.ResetAnalysis()
 		self.AnalyzeDependencies()
 		# self.AnalyzeObjects()
+
+	def ResetAnalysis(self) -> None:
+		"""
+		Reset everything an analysis (:meth:`Analyze`) derived, so the design can be analyzed again.
+
+		Everything built by the user is kept: libraries, documents, design units, declarations and the declarations in
+		namespaces. Lookup tables built by indexing (e.g. :meth:`IndexPackages`) are kept too, as indexing again yields
+		the same lookup tables. Resetting a design, which wasn't analyzed, changes nothing.
+
+		.. rubric:: Algorithm
+
+		1. Delete the dependency, compile-order, hierarchy and object graph (:meth:`~pyTooling.Graph.Graph.Delete`), so
+		   their vertices and edges are freed at once, replace them by empty graphs, and forget the top-level.
+		2. Clear the references to vertices of all libraries, documents and design units.
+		3. Clear the references of all design units: referenced libraries, packages and contexts, the symbols of library
+		   clauses, use clauses and context references, and the items imported into namespaces.
+		4. Unlink architectures from entities and package bodies from packages: an entity's architectures, a package's
+		   body, the symbols referencing the entity or package, and the link to the parent namespace.
+		5. Unlink package instantiations from their generic package: the symbol and the components copied from it.
+		6. Unbind all components: their entity and blackbox state.
+		7. Clear the symbols of entity and component instantiations.
+		"""
+		self._dependencyGraph.Delete()
+		self._compileOrderGraph.Delete()
+		self._hierarchyGraph.Delete()
+		self._objectGraph.Delete()
+
+		self._dependencyGraph =   Graph()
+		self._compileOrderGraph = Graph()
+		self._hierarchyGraph =    Graph()
+		self._objectGraph =       Graph()
+		self._toplevel =          None
+
+		for library in self._libraries.values():
+			library._dependencyVertex = None
+
+		for document in self._documents:
+			document._dependencyVertex =   None
+			document._compileOrderVertex = None
+
+		for designUnit in self.IterateDesignUnits():
+			designUnit._dependencyVertex = None
+			designUnit._hierarchyVertex =  None
+			designUnit._referencedLibraries.clear()
+			designUnit._referencedPackages.clear()
+			designUnit._referencedContexts.clear()
+			references = (*designUnit._libraryReferences, *designUnit._packageReferences, *designUnit._contextReferences)
+			for reference in references:
+				for symbol in reference._symbols:
+					symbol._reference = None
+
+		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):
+			designUnit._namespace.ClearImports()
+
+		for entity in self.IterateDesignUnits(DesignUnitKind.Entity):  # type: Entity
+			for architecture in entity._architectures.values():
+				architecture._namespace.ParentNamespace = None
+
+			entity._architectures.clear()
+
+		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):  # type: Architecture
+			architecture._entity._reference = None
+			architecture._namespace.ParentNamespace = None
+			for instance in architecture.IterateInstantiations():
+				if isinstance(instance, EntityInstantiation):
+					instance._entity._reference = None
+				elif isinstance(instance, ComponentInstantiation):
+					instance._component._reference = None
+
+		for package in self.IterateDesignUnits(DesignUnitKind.Package):  # type: Package
+			if package._packageBody is not None:
+				package._packageBody._namespace.ParentNamespace = None
+				package._packageBody = None
+
+			if isinstance(package, PackageInstantiation):
+				package._packageReference._reference = None
+				package._components.clear()
+
+		for packageBody in self.IterateDesignUnits(DesignUnitKind.PackageBody):  # type: PackageBody
+			packageBody._package._reference = None
+			packageBody._namespace.ParentNamespace = None
+
+		for _, component in self._IterateComponents():
+			component._entity =     None
+			component._isBlackbox = None
 
 	def AnalyzeDependencies(self) -> None:
 		"""
@@ -1203,29 +1443,31 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`CreateCompileOrderGraph`
 		3. Index all packages. |br|
 		   |rarr| :meth:`IndexPackages`
-		4. Index all architectures. |br|
+		4. Index all entities. |br|
+		   |rarr| :meth:`IndexEntities`
+		5. Index all architectures. |br|
 		   |rarr| :meth:`IndexArchitectures`
-		5. Link all contexts |br|
+		6. Link all contexts |br|
 		   |rarr| :meth:`LinkContexts`
-		6. Link all architectures. |br|
+		7. Link all architectures. |br|
 		   |rarr| :meth:`LinkArchitectures`
-		7. Link all package bodies. |br|
+		8. Link all package bodies. |br|
 		   |rarr| :meth:`LinkPackageBodies`
-		8. Link all package instances. |br|
+		9. Link all package instances. |br|
 		   |rarr| :meth:`LinkPackageInstances`
-		9. Link all library references. |br|
-		   |rarr| :meth:`LinkLibraryReferences`
-		10. Link all package references. |br|
+		10. Link all library references. |br|
+		    |rarr| :meth:`LinkLibraryReferences`
+		11. Link all package references. |br|
 		    |rarr| :meth:`LinkPackageReferences`
-		11. Link all context references. |br|
+		12. Link all context references. |br|
 		    |rarr| :meth:`LinkContextReferences`
-		12. Link all components. |br|
+		13. Link all components. |br|
 		    |rarr| :meth:`LinkComponents`
-		13. Link all instantiations. |br|
+		14. Link all instantiations. |br|
 		    |rarr| :meth:`LinkInstantiations`
-		14. Create the hierarchy graph. |br|
+		15. Create the hierarchy graph. |br|
 		    |rarr| :meth:`CreateHierarchyGraph`
-		15. Compute the compile order. |br|
+		16. Compute the compile order. |br|
 		    |rarr| :meth:`ComputeCompileOrder`
 
 		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
@@ -1236,6 +1478,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		self.CreateCompileOrderGraph()
 
 		self.IndexPackages()
+		self.IndexEntities()
 		self.IndexArchitectures()
 
 		self.LinkContexts()
@@ -2199,6 +2442,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		        1. Iterate declared components.
 		        2. Iterate
 
+		:raises VHDLModelException: If no entity is found for a component, which doesn't allow blackboxes.
+
 		.. seealso::
 
 		   :meth:`LinkInstantiations`
@@ -2206,29 +2451,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   :meth:`AnalyzeDependencies`
 		     Analyze dependencies in a design (calls this method).
 		"""
-		def linkStatements(library: Library, concurrent: ConcurrentStatementsMixin) -> None:
-			for statement in concurrent._statements:
-				if isinstance(statement, IfGenerateStatement):
-					linkComponents(library, statement._ifBranch)
-					linkStatements(library, statement._ifBranch)
-					for branch in statement._elsifBranches:
-						linkComponents(library, branch)
-						linkStatements(library, branch)
-					if (branch := statement._elseBranch) is not None:
-						linkComponents(library, branch)
-						linkStatements(library, branch)
-				elif isinstance(statement, ForGenerateStatement):
-					linkComponents(library, statement)
-					linkStatements(library, statement)
-				elif isinstance(statement, CaseGenerateStatement):
-					for case in statement._cases:
-						linkComponents(library, case)
-						linkStatements(library, case)
-				elif isinstance(statement, ConcurrentBlockStatement):
-					linkComponents(library, statement)
-					linkStatements(library, statement)
-
-		def searchEntityAndLinkComponent(library: Library, component: Component) -> None:
+		for library, component in self._IterateComponents():
 			# QUESTION: Add link in dependency graph as dashed line from component to entity?
 			#           Currently, component has no _dependencyVertex field
 			try:
@@ -2236,25 +2459,68 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			except KeyError:
 				if component.AllowBlackbox:
 					component._isBlackbox = True
-					return
+					continue
 				else:
 					raise VHDLModelException(
 						f"Entity '{component.Identifier}' not found for component '{component.Identifier}' in library '{library.Identifier}'.")
 
 			component.Entity = entity
 
-		def linkComponents(library: Library, declarationRegion: ConcurrentDeclarationRegionMixin) -> None:
+	def _IterateComponents(self) -> Generator[tuple[Library, Component], None, None]:
+		"""
+		Iterate all components of packages and architectures, including the components declared in blocks and generate
+		statements nested in architectures.
+
+		:returns: A generator to iterate tuples of the library of the design unit and a component.
+		"""
+		def iterateStatements(concurrent: ConcurrentStatementsMixin) -> Generator[Component, None, None]:
+			"""
+			Nested function for recursion.
+
+			:param concurrent: The language construct containing concurrent statements.
+			:returns:          A generator to iterate the components declared in the nested statements.
+			"""
+			for statement in concurrent._statements:
+				if isinstance(statement, IfGenerateStatement):
+					yield from iterateDeclaredItems(statement._ifBranch)
+					yield from iterateStatements(statement._ifBranch)
+					for branch in statement._elsifBranches:
+						yield from iterateDeclaredItems(branch)
+						yield from iterateStatements(branch)
+
+					if (branch := statement._elseBranch) is not None:
+						yield from iterateDeclaredItems(branch)
+						yield from iterateStatements(branch)
+				elif isinstance(statement, ForGenerateStatement):
+					yield from iterateDeclaredItems(statement)
+					yield from iterateStatements(statement)
+				elif isinstance(statement, CaseGenerateStatement):
+					for case in statement._cases:
+						yield from iterateDeclaredItems(case)
+						yield from iterateStatements(case)
+				elif isinstance(statement, ConcurrentBlockStatement):
+					yield from iterateDeclaredItems(statement)
+					yield from iterateStatements(statement)
+
+		def iterateDeclaredItems(declarationRegion: ConcurrentDeclarationRegionMixin) -> Generator[Component, None, None]:
+			"""
+			Nested function iterating the components declared in a declaration region.
+
+			:param declarationRegion: The declaration region.
+			:returns:                 A generator to iterate the declared components.
+			"""
 			for item in declarationRegion._declaredItems:
 				if isinstance(item, Component):
-					searchEntityAndLinkComponent(library, item)
+					yield item
 
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.Package | DesignUnitKind.Architecture):  # type: Union[Package, Architecture]
 			library = designUnit._parent
 			for component in designUnit._components.values():
-				searchEntityAndLinkComponent(library, component)
+				yield library, component
 
 			if isinstance(designUnit, Architecture):
-				linkStatements(library, designUnit)
+				for component in iterateStatements(designUnit):
+					yield library, component
 
 	def LinkInstantiations(self) -> None:
 		for architecture in self.IterateDesignUnits(DesignUnitKind.Architecture):  # type: Architecture
@@ -3096,6 +3362,18 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._dependencyVertex =   None
 		self._compileOrderVertex = None
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this document and its design units with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitDocument(self)
+		for designUnit in self._designUnits:
+			designUnit.Visit(visitor)
+
+		visitor.DepartDocument(self)
+
 	def _AddEntity(self, item: Entity) -> None:
 		"""
 		Add an entity to the document's lists of design units.
@@ -3332,6 +3610,262 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			ex = ValueError("Parameter 'item' is an unknown 'DesignUnit'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
 			raise ex
+
+	def AddDesignUnit(self, designUnit: DesignUnit) -> None:
+		"""
+		Add a design unit at the end of the document.
+
+		The design unit's document is set to this document. If the document is registered in a design
+		(:meth:`Design.AddDocument`), the design unit enters the document's library too.
+
+		:param designUnit:                         The design unit to add.
+		:raises ValueError:                        If parameter 'designUnit' is ``None``.
+		:raises TypeError:                         If parameter 'designUnit' is not of type
+		                                           :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
+		:raises AlreadyInDesignError:              If parameter 'designUnit' is already a design unit of a document.
+		:raises DuplicateDesignUnitError:          If the document contains a design unit of the same kind and identifier.
+		:raises EntityExistsInLibraryError:        If the library already contains an entity of the same identifier.
+		:raises ArchitectureExistsInLibraryError:  If the library already contains an architecture of the same identifier
+		                                           for the same entity.
+		:raises PackageExistsInLibraryError:       If the library already contains a package of the same identifier.
+		:raises PackageBodyExistsError:            If the library already contains a package body of the same identifier.
+		:raises ConfigurationExistsInLibraryError: If the library already contains a configuration of the same identifier.
+		:raises ContextExistsInLibraryError:       If the library already contains a context of the same identifier.
+
+		.. seealso::
+
+		   :meth:`InsertDesignUnit`
+		      |rarr| Insert a design unit at a position of the document.
+		   :meth:`RemoveDesignUnit`
+		      |rarr| Remove a design unit from the document.
+		"""
+		self.InsertDesignUnit(len(self._designUnits), designUnit)
+
+	def InsertDesignUnit(self, index: int, designUnit: DesignUnit) -> None:
+		"""
+		Insert a design unit at a position of the document.
+
+		The design units of a document are in source order. The design unit's document is set to this document. If the
+		document is registered in a design (:meth:`Design.AddDocument`), the design unit enters the document's library too:
+		the library becomes its parent. PSL verification units, properties and modes enter no library.
+
+		:param index:                              Position, from ``0`` (first) to the number of design units (append).
+		                                           A negative index counts from the end, as for :meth:`list.insert`.
+		:param designUnit:                         The design unit to insert.
+		:raises ValueError:                        If parameter 'index' is ``None``.
+		:raises TypeError:                         If parameter 'index' is not of type :class:`int`.
+		:raises ValueError:                        If parameter 'index' is out of range.
+		:raises ValueError:                        If parameter 'designUnit' is ``None``.
+		:raises TypeError:                         If parameter 'designUnit' is not of type
+		                                           :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
+		:raises AlreadyInDesignError:              If parameter 'designUnit' is already a design unit of a document.
+		:raises DuplicateDesignUnitError:          If the document contains a design unit of the same kind and identifier.
+		:raises EntityExistsInLibraryError:        If the library already contains an entity of the same identifier.
+		:raises ArchitectureExistsInLibraryError:  If the library already contains an architecture of the same identifier
+		                                           for the same entity.
+		:raises PackageExistsInLibraryError:       If the library already contains a package of the same identifier.
+		:raises PackageBodyExistsError:            If the library already contains a package body of the same identifier.
+		:raises ConfigurationExistsInLibraryError: If the library already contains a configuration of the same identifier.
+		:raises ContextExistsInLibraryError:       If the library already contains a context of the same identifier.
+
+		.. seealso::
+
+		   :meth:`AddDesignUnit`
+		      |rarr| Add a design unit at the end of the document.
+		   :meth:`RemoveDesignUnit`
+		      |rarr| Remove a design unit from the document.
+		"""
+		if index is None:
+			raise ValueError("Parameter 'index' is None.")
+		elif not isinstance(index, int):
+			ex = TypeError("Parameter 'index' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(index)}'.")
+			raise ex
+		elif not (-len(self._designUnits) <= index <= len(self._designUnits)):
+			ex = ValueError(f"Parameter 'index' is out of range {-len(self._designUnits)}..{len(self._designUnits)}.")
+			ex.add_note(f"Got value '{index}'.")
+			raise ex
+
+		if designUnit is None:
+			raise ValueError("Parameter 'designUnit' is None.")
+		elif not isinstance(designUnit, DesignUnit):
+			ex = TypeError("Parameter 'designUnit' is not of type 'DesignUnit'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
+			raise ex
+		elif designUnit._document is not None:
+			ex = AlreadyInDesignError(
+				f"{getTypeName(designUnit)} '{designUnit._identifier}' is already a design unit of a document.",
+				element=designUnit,
+				parent=designUnit._document
+			)
+			ex.add_note(f"Remove it from document '{designUnit._document._path}' first.")
+			raise ex
+
+		inDesign =   isinstance(self._parent, Design) and self._parent._documentsByPath.get(self._path) is self
+		library =    self._library if inDesign else None
+		identifier = designUnit._normalizedIdentifier
+		libraryUnits: Nullable[dict[str, DesignUnit]] = None
+		if isinstance(designUnit, Entity):
+			documentUnits = self._entities
+			if library is not None:
+				libraryUnits = library._entities
+		elif isinstance(designUnit, Architecture):
+			entityIdentifier = designUnit._entity.Name._normalizedIdentifier
+			documentUnits = self._architectures.get(entityIdentifier, {})
+			if library is not None:
+				libraryUnits = library._architectures.get(entityIdentifier, {})
+		elif isinstance(designUnit, Package):
+			documentUnits = self._packages
+			if library is not None:
+				libraryUnits = library._packages
+		elif isinstance(designUnit, PackageBody):
+			documentUnits = self._packageBodies
+			if library is not None:
+				libraryUnits = library._packageBodies
+		elif isinstance(designUnit, Context):
+			documentUnits = self._contexts
+			if library is not None:
+				libraryUnits = library._contexts
+		elif isinstance(designUnit, Configuration):
+			documentUnits = self._configurations
+			if library is not None:
+				libraryUnits = library._configurations
+		elif isinstance(designUnit, VerificationUnit):
+			documentUnits = self._verificationUnits
+		elif isinstance(designUnit, VerificationProperty):
+			documentUnits = self._verificationProperties
+		elif isinstance(designUnit, VerificationMode):
+			documentUnits = self._verificationModes
+		else:
+			ex = TypeError("Parameter 'designUnit' is not of a known type of design unit.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
+			raise ex
+
+		if (existing := documentUnits.get(identifier)) is not None:
+			ex = DuplicateDesignUnitError(
+				f"Document '{self._path}' already contains {getTypeName(existing)} '{existing._identifier}'.",
+				identifier=designUnit._identifier,
+				parent=self,
+				element=designUnit,
+				existing=existing
+			)
+			ex.add_note(f"Existing design unit is of type '{getFullyQualifiedName(existing)}'.")
+			raise ex
+
+		if libraryUnits is not None and identifier in libraryUnits:
+			if isinstance(designUnit, Entity):
+				raise EntityExistsInLibraryError(designUnit, library)
+			elif isinstance(designUnit, Architecture):
+				raise ArchitectureExistsInLibraryError(designUnit, library._entities[entityIdentifier], library)
+			elif isinstance(designUnit, Package):
+				raise PackageExistsInLibraryError(designUnit, library)
+			elif isinstance(designUnit, PackageBody):
+				raise PackageBodyExistsError(designUnit, library)
+			elif isinstance(designUnit, Context):
+				raise ContextExistsInLibraryError(designUnit, library)
+			else:
+				raise ConfigurationExistsInLibraryError(designUnit, library)
+
+		self._designUnits.insert(index, designUnit)
+		designUnit._document = self
+		if isinstance(designUnit, Architecture):
+			self._architectures.setdefault(entityIdentifier, {})[identifier] = designUnit
+			if library is not None:
+				library._architectures.setdefault(entityIdentifier, {})[identifier] = designUnit
+		else:
+			documentUnits[identifier] = designUnit
+			if libraryUnits is not None:
+				libraryUnits[identifier] = designUnit
+
+		if libraryUnits is not None:
+			designUnit._parent = library
+
+	def RemoveDesignUnit(self, designUnit: DesignUnit) -> None:
+		"""
+		Remove a design unit from the document.
+
+		The design unit is detached: its document is cleared. If the document is registered in a design
+		(:meth:`Design.AddDocument`), the design unit leaves the document's library too, and its parent is cleared. The
+		design unit itself is unchanged and can be added to another document, or inserted at another position.
+
+		:param designUnit:      The design unit to remove.
+		:raises ValueError:     If parameter 'designUnit' is ``None``.
+		:raises TypeError:      If parameter 'designUnit' is not of type :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
+		:raises NotAChildError: If parameter 'designUnit' is not a design unit of this document.
+
+		.. seealso::
+
+		   :meth:`AddDesignUnit`
+		      |rarr| Add a design unit at the end of the document.
+		   :meth:`InsertDesignUnit`
+		      |rarr| Insert a design unit at a position of the document.
+		"""
+		if designUnit is None:
+			raise ValueError("Parameter 'designUnit' is None.")
+		elif not isinstance(designUnit, DesignUnit):
+			ex = TypeError("Parameter 'designUnit' is not of type 'DesignUnit'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
+			raise ex
+
+		for index, item in enumerate(self._designUnits):
+			if item is designUnit:
+				break
+		else:
+			raise NotAChildError(
+				f"{getTypeName(designUnit)} '{designUnit._identifier}' is not a design unit of document '{self._path}'.",
+				element=designUnit,
+				parent=self
+			)
+
+		inDesign =   isinstance(self._parent, Design) and self._parent._documentsByPath.get(self._path) is self
+		library =    self._library if inDesign else None
+		identifier = designUnit._normalizedIdentifier
+		libraryUnits: Nullable[dict[str, DesignUnit]] = None
+		if isinstance(designUnit, Entity):
+			documentUnits = self._entities
+			if library is not None:
+				libraryUnits = library._entities
+		elif isinstance(designUnit, Architecture):
+			entityIdentifier = designUnit._entity.Name._normalizedIdentifier
+			documentUnits = self._architectures[entityIdentifier]
+			if library is not None:
+				libraryUnits = library._architectures[entityIdentifier]
+		elif isinstance(designUnit, Package):
+			documentUnits = self._packages
+			if library is not None:
+				libraryUnits = library._packages
+		elif isinstance(designUnit, PackageBody):
+			documentUnits = self._packageBodies
+			if library is not None:
+				libraryUnits = library._packageBodies
+		elif isinstance(designUnit, Context):
+			documentUnits = self._contexts
+			if library is not None:
+				libraryUnits = library._contexts
+		elif isinstance(designUnit, Configuration):
+			documentUnits = self._configurations
+			if library is not None:
+				libraryUnits = library._configurations
+		elif isinstance(designUnit, VerificationUnit):
+			documentUnits = self._verificationUnits
+		elif isinstance(designUnit, VerificationProperty):
+			documentUnits = self._verificationProperties
+		else:
+			documentUnits = self._verificationModes
+
+		del self._designUnits[index]
+		del documentUnits[identifier]
+		designUnit._document = None
+		if libraryUnits is not None:
+			del libraryUnits[identifier]
+			designUnit._parent = None
+
+		if isinstance(designUnit, Architecture):
+			if len(documentUnits) == 0:
+				del self._architectures[entityIdentifier]
+
+			if libraryUnits is not None and len(libraryUnits) == 0:
+				del library._architectures[entityIdentifier]
 
 	@readonly
 	def Path(self) -> Path:

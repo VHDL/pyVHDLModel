@@ -36,7 +36,7 @@ Subprograms are procedures, functions and methods.
 """
 from __future__             import annotations
 
-from typing                 import ClassVar, Iterable, Optional as Nullable
+from typing                 import TYPE_CHECKING, ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Common       import getFullyQualifiedName
 from pyTooling.Decorators   import export, readonly
@@ -45,9 +45,12 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf
 from pyVHDLModel.Symbol     import SubtypeSymbol
 from pyVHDLModel.Type       import ProtectedType
-from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
-from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, WithGenericsMixin, WithParametersMixin
+from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
+                                   ProtectedTypeDeclarationRegionMixin, WithGenericsMixin, WithParametersMixin
 from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixin
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor  import Visitor
 
 
 @export
@@ -311,6 +314,19 @@ class Subprogram(
 		"""
 		return self
 
+	def _VisitDeclarativeAndStatementPart(self, visitor: Visitor) -> None:
+		"""
+		Walk the declarative part and the statement part of this subprogram with a visitor.
+
+		The reserved word ``is`` precedes the declared items, the reserved word ``begin`` the statements.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIs(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+
 	def __str__(self) -> str:
 		"""
 		Formats the subprogram declaration.
@@ -379,6 +395,18 @@ class Procedure(Subprogram):
 		"""
 		super().__init__(identifier, False, genericItems, parameterItems, declaredItems, statements, documentation, parent)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this procedure, its generic clause, its parameters, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitProcedure(self)
+		self._VisitGenericClause(visitor)
+		self._VisitFormalParameterList(visitor)
+		self._VisitDeclarativeAndStatementPart(visitor)
+		visitor.DepartProcedure(self)
+
 
 @export
 class Function(Subprogram):
@@ -445,6 +473,21 @@ class Function(Subprogram):
 
 		self._returnType = returnType
 		returnType.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this function, its generic clause, its parameters, its return type, its declared items and its statements with
+		a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitFunction(self)
+		self._VisitGenericClause(visitor)
+		self._VisitFormalParameterList(visitor)
+		visitor.VisitReturn(self)
+		self._returnType.Visit(visitor)
+		self._VisitDeclarativeAndStatementPart(visitor)
+		visitor.DepartFunction(self)
 
 	@readonly
 	def ReturnType(self) -> SubtypeSymbol:

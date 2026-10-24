@@ -32,15 +32,13 @@
 from pyTooling.Testing         import Testcase
 
 from pyVHDLModel.Name          import SimpleName, SelectedName
-from pyVHDLModel.Symbol        import EntitySymbol, ArchitectureSymbol, ConfigurationSymbol
-from pyVHDLModel.Symbol        import ComponentInstantiationSymbol, Symbol, PossibleReference
+from pyVHDLModel.Symbol        import EntitySymbol, ArchitectureSymbol, ConfigurationSymbol, \
+                                      ComponentInstantiationSymbol, Symbol, PossibleReference
 from pyVHDLModel.Association   import GenericAssociationItem, PortAssociationItem
 from pyVHDLModel.Expression    import IntegerLiteral
-from pyVHDLModel.Configuration import (
-	EntityAspect, EntityAspectEntity, EntityAspectConfiguration, EntityAspectOpen,
-	BindingIndication, AllInstantiationList, OthersInstantiationList, ComponentConfiguration,
-	BlockConfiguration,
-)
+from pyVHDLModel.Configuration import EntityAspect, EntityAspectEntity, EntityAspectConfiguration, EntityAspectOpen, \
+                                      BindingIndication, AllInstantiationList, OthersInstantiationList, \
+                                      ComponentConfiguration, BlockConfiguration
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -36,18 +36,17 @@ from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Expression import IntegerLiteral
-from pyVHDLModel.Interface  import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement
-from pyVHDLModel.Interface  import PortSignalInterfaceItem, PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem
-from pyVHDLModel.Interface  import ParameterSignalInterfaceItem, ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem
-from pyVHDLModel.Interface  import (
-	GenericInterfaceItemMixin, GenericSubprogramInterfaceItemMixin,
-	GenericConstantInterfaceItem, GenericTypeInterfaceItem,
-	GenericProcedureInterfaceItem, GenericFunctionInterfaceItem,
-	InterfacePackage, GenericPackageInterfaceItem,
-	ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, ParameterFileInterfaceItem,
-	WithGenericsMixin, WithPortsMixin, WithParametersMixin,
-	InterfaceGroup, GenericGroup, PortGroup, ParameterGroup,
-)
+from pyVHDLModel.Interface  import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, \
+                                   PortSignalInterfaceItem, PortSimpleSignalInterfaceItem, \
+                                   PortViewSignalInterfaceItem, ParameterSignalInterfaceItem, \
+                                   ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem, \
+                                   GenericInterfaceItemMixin, GenericSubprogramInterfaceItemMixin, \
+                                   GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
+                                   GenericProcedureInterfaceItem, GenericFunctionInterfaceItem, InterfacePackage, \
+                                   GenericPackageInterfaceItem, ParameterConstantInterfaceItem, \
+                                   ParameterVariableInterfaceItem, ParameterFileInterfaceItem, WithGenericsMixin, \
+                                   WithPortsMixin, WithParametersMixin, InterfaceGroup, GenericGroup, PortGroup, \
+                                   ParameterGroup
 
 from tests.unit             import _subtypeSymbol
 

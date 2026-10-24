@@ -38,14 +38,14 @@ from pyVHDLModel                 import Interface as InterfaceModule
 from pyVHDLModel.Base            import Mode
 from pyVHDLModel.Expression      import IntegerLiteral
 from pyVHDLModel.Formatting.VHDL import VHDLWriter
-from pyVHDLModel.Interface       import SimpleModeViewElement, CompositeModeViewElement, GenericConstantInterfaceItem
-from pyVHDLModel.Interface       import GenericTypeInterfaceItem, GenericProcedureInterfaceItem
-from pyVHDLModel.Interface       import GenericFunctionInterfaceItem, GenericPackageInterfaceItem
-from pyVHDLModel.Interface       import PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem
-from pyVHDLModel.Interface       import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
-from pyVHDLModel.Interface       import ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem
-from pyVHDLModel.Interface       import ParameterFileInterfaceItem, ModeViewDeclaration, InterfaceGroup, GenericGroup
-from pyVHDLModel.Interface       import PortGroup, ParameterGroup
+from pyVHDLModel.Interface       import SimpleModeViewElement, CompositeModeViewElement, GenericConstantInterfaceItem, \
+                                        GenericTypeInterfaceItem, GenericProcedureInterfaceItem, \
+                                        GenericFunctionInterfaceItem, GenericPackageInterfaceItem, \
+                                        PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem, \
+                                        ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
+                                        ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem, \
+                                        ParameterFileInterfaceItem, ModeViewDeclaration, InterfaceGroup, GenericGroup, \
+                                        PortGroup, ParameterGroup
 from pyVHDLModel.Name            import SimpleName
 from pyVHDLModel.Symbol          import ModeViewSymbol
 
@@ -65,9 +65,16 @@ class _DerivedPortSimpleSignalInterfaceItem(PortSimpleSignalInterfaceItem):
 
 class CopyMethods(Testcase):
 	def test_Constructor(self) -> None:
-		"""Every interface item and mode view element class has a ``Copy()`` calling its own constructor."""
+		"""
+		Every interface item and mode view element class has a ``Copy()`` calling its own constructor.
+
+		A single declaration is a view of one identifier of its declaration, created when iterated, and has no copy.
+		"""
 		withoutCopy = (ModeViewDeclaration, InterfaceGroup, GenericGroup, PortGroup, ParameterGroup)
-		classes = [cls for cls in _concreteModelClasses(InterfaceModule) if cls not in withoutCopy]
+		classes = [
+			cls for cls in _concreteModelClasses(InterfaceModule)
+			if cls not in withoutCopy and not issubclass(cls, InterfaceModule.SingleDeclarationMixin)
+		]
 
 		self.assertIn(ParameterFileInterfaceItem, classes)
 		self.assertListEqual([], _copyAboveConstructor(classes))

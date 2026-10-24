@@ -228,3 +228,43 @@ ParameterFileInterfaceItem
 **Condensed definition of class** :class:`~pyVHDLModel.Interface.ParameterFileInterfaceItem`:
 
 .. condensed-class:: pyVHDLModel.Interface.ParameterFileInterfaceItem
+
+
+.. _vhdlmodel-singledeclarations:
+
+Single Declarations
+===================
+
+An interface item may declare several identifiers sharing one specification (``a, b : in bit``). IEEE Std 1076 defines
+it as equivalent to a sequence of single declarations, one per identifier, in list order. The iterators
+:meth:`~pyVHDLModel.Regions.WithGenericsMixin.IterateSingleGenericDeclarations`,
+:meth:`~pyVHDLModel.Regions.WithPortsMixin.IterateSinglePortDeclarations` and
+:meth:`~pyVHDLModel.Regions.WithParametersMixin.IterateSingleParameterDeclarations` yield one single declaration per
+identifier. A generic type, subprogram or package declares exactly one identifier and is yielded itself.
+
+A single declaration has its own identifier and its position in the identifier list. Its parent is the declaration;
+the subtype, mode, default expression, mode view indication and documentation are those of the declaration. An
+interface item creates its single declarations on first access of
+:data:`~pyVHDLModel.Interface.WithSingleDeclarationsMixin.SingleDeclarations` and keeps them. They aren't part of the
+model's declarations, so the model keeps the declaration as written.
+
+.. code-block:: Python
+
+   for port in entity.IterateSinglePortDeclarations():
+     print(f"{port.Identifier} : {port.Mode} {port.Subtype}")
+
+.. rubric:: Class Hierarchy
+
+.. inheritance-diagram:: pyVHDLModel.Interface.SingleGenericConstantDeclaration
+                         pyVHDLModel.Interface.SinglePortSimpleSignalDeclaration
+                         pyVHDLModel.Interface.SinglePortViewSignalDeclaration
+                         pyVHDLModel.Interface.SingleParameterConstantDeclaration
+                         pyVHDLModel.Interface.SingleParameterVariableDeclaration
+                         pyVHDLModel.Interface.SingleParameterSimpleSignalDeclaration
+                         pyVHDLModel.Interface.SingleParameterViewSignalDeclaration
+                         pyVHDLModel.Interface.SingleParameterFileDeclaration
+   :parts: 1
+
+**Condensed definition of class** :class:`~pyVHDLModel.Interface.SingleDeclarationMixin`:
+
+.. condensed-class:: pyVHDLModel.Interface.SingleDeclarationMixin

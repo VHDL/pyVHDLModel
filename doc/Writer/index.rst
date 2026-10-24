@@ -27,8 +27,12 @@ abstract literals (e.g. ``16#FF#`` becomes ``255``) are not preserved.
 
 .. rubric:: Supported language constructs
 
-The writer formats names, symbols, literals, expressions and association items. Declarations, design units and
-statements follow.
+The writer formats names, symbols, literals, expressions, association items, subtype indications, object
+declarations, interface items, component declarations, mode view declarations, type and subtype declarations, alias
+declarations, attribute declarations and attribute specifications, subprograms, subprogram instantiations and protected
+types (:ref:`WRITER/declarations`), context items, design units and documents (:ref:`WRITER/designunits`),
+concurrent signal assignments, concurrent procedure calls, concurrent assertions, processes, instantiations, block
+statements and generate statements (:ref:`WRITER/concurrent`), and sequential statements (:ref:`WRITER/sequential`).
 
 
 .. _WRITER/visitor:
@@ -39,7 +43,9 @@ Visitor
 The writer is a :class:`~pyVHDLModel.Visitor.Visitor`. A model element walks itself
 (:meth:`~pyVHDLModel.Base.ModelEntity.Visit`): it reports ``Visit<Class>`` to the visitor, walks its children in source
 order and reports ``Depart<Class>``. A token between two parts, which is not a model element itself, is reported by an
-event named after the token, e.g. ``VisitArrow`` for ``=>`` or ``VisitComma`` for ``,``. The writer appends the text of
+event named after the token, e.g. ``VisitArrow`` for ``=>`` or ``VisitComma`` for ``,``. A part of an element, which is
+not a model element itself, is reported by an event pair named after its production in IEEE Std 1076-2008, e.g.
+``VisitGenericClause`` and ``DepartGenericClause`` around the generics of a component. The writer appends the text of
 each event to a buffer, which :meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format` returns. A parser's subclass of a
 model class inherits the walk of that model class, so it's written like that model class.
 
@@ -79,14 +85,26 @@ Formatting Options
 :class:`~pyVHDLModel.Formatting.VHDL.VHDLStyle` holds the formatting options passed to the writer.
 
 ``keywordCase``
-   Letter case of reserved words: :attr:`~pyVHDLModel.Formatting.VHDL.KeywordCase.Lower` (default) or
-   :attr:`~pyVHDLModel.Formatting.VHDL.KeywordCase.Upper`. Identifiers keep their letter case.
+   Letter case of reserved words - the members of :class:`~pyVHDLModel.Base.ReservedWord`, which the writer writes
+   them from: :attr:`~pyVHDLModel.Formatting.VHDL.KeywordCase.Lower` (default) or
+   :attr:`~pyVHDLModel.Formatting.VHDL.KeywordCase.Upper`. Identifiers keep their letter case. See vhdl-style-guide's
+   :ref:`vsg:configuring-uppercase-and-lowercase-rules`.
+
+``indentStyle``
+   Indentation style, as vhdl-style-guide's option ``indent_style``:
+   :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.Spaces` (default, ``spaces``) or
+   :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.SmartTabs` (``smart_tabs``: one tab per indentation level). See
+   vhdl-style-guide's :ref:`vsg:configuring-indent-rules`.
+
+``indentSize``
+   Number of spaces per indentation level, as vhdl-style-guide's option ``indent_size`` (default: ``2``). It applies to
+   :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.Spaces`.
 
 .. code-block:: Python
 
-   from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
+   from pyVHDLModel.Formatting.VHDL import IndentStyle, KeywordCase, VHDLStyle, VHDLWriter
 
-   writer = VHDLWriter(VHDLStyle(KeywordCase.Upper))
+   writer = VHDLWriter(VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs))
 
 
 .. _WRITER/parentheses:
@@ -145,3 +163,219 @@ Examples:
 * ``(a and b) or c``, because different logical operators can't be mixed
 * ``a + (-b)``, because a sign can only start a simple expression; a negative number literal is written with a sign,
   too: ``a - (-1)``
+
+
+.. _WRITER/declarations:
+
+Declarations
+************
+
+A declaration is written on its own line, indented by its nesting level, and ends with a newline. A declaration
+containing other items (e.g. a component declaration) writes each item on its own line, indented one level deeper, and
+ends with ``end``, the reserved word of the declaration and its identifier:
+
+.. code-block:: VHDL
+
+   component counter is
+     generic (
+       BITS : positive := 8;
+       type T
+     );
+     port (
+       clk, rst : in bit;
+       q : out T
+     );
+   end component counter;
+
+Subtype indications
+   A constrained subtype symbol is written with its constraint: a range constraint
+   (:class:`~pyVHDLModel.Symbol.ConstrainedScalarSubtypeSymbol`, ``integer range 0 to 7``), an index constraint
+   (:class:`~pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol`, ``bit_vector(7 downto 0)``) or a record constraint
+   (:class:`~pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol`, ``frame_t(data(7 downto 0))``).
+
+Object declarations
+   Constants, deferred constants, variables, shared variables, signals and files are written with their identifiers,
+   their subtype indication and, if present, their default expression. The model has no file open information, so a
+   file declaration is written without one.
+
+Interface items
+   Each item of a generic clause or a port clause is written on its own line; the items are separated by semicolons.
+   A clause without items is not written. Generic constants and ports are written without an object class reserved word
+   (``BITS : positive``, ``clk : in bit``), parameters with one (``signal clk : in bit``). An item with
+   :attr:`Mode.Default <pyVHDLModel.Base.Mode.Default>` is written without a mode. Ports and parameters with a mode view
+   (VHDL-2019) are written with the reserved word ``view`` (``link : view master``).
+
+Mode view declarations
+   A mode view declaration (VHDL-2019) is written with one element per line. An element without a mode raises
+   :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
+
+Type and subtype declarations
+   Enumerated, integer, floating-point, physical, array, record, access, file and incomplete type declarations
+   (:class:`~pyVHDLModel.Type.AnonymousType`, ``type node;``) and subtype declarations. A physical type writes its
+   units and a record type its element declarations one per line. An index of an array type, which is a
+   :class:`~pyVHDLModel.Symbol.SimpleSubtypeSymbol`, is an unbounded index (``natural range <>``); any other index is a
+   range. The model's resolution function of a subtype declaration is not written.
+
+Alias and attribute declarations
+   Alias declarations with and without subtype indication, attribute declarations and attribute specifications. The
+   entity class :attr:`EntityClass.Others <pyVHDLModel.Declaration.EntityClass.Others>` has no VHDL notation and raises
+   :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
+
+Subprograms
+   The model doesn't distinguish a subprogram declaration from a subprogram body. A procedure or function with declared
+   items or statements is written as a subprogram body. One without them is written as a subprogram declaration
+   (``procedure reset;``), if its parent is a package declaration, a protected type declaration or none, otherwise as
+   an empty subprogram body (e.g. in a package body or an architecture). A subprogram body has a declarative part and a
+   statement part. Each parameter is written on its own line. A generic clause of a subprogram is followed by the
+   reserved word ``parameter`` before the parameter list. Generic procedures and functions are written in a generic
+   clause like any other generic. A method of a protected type is written like a procedure or function.
+
+Subprogram instantiations
+   Procedure and function instantiations are written with their generic map aspect, one association per line.
+
+Protected types
+   A protected type declaration writes its methods, a protected type body its declared items, one per line.
+
+.. code-block:: VHDL
+
+   function maximum generic (
+     type T
+   ) parameter (
+     constant a, b : T
+   ) return T;
+
+Documentation comments of the model (:attr:`~pyVHDLModel.Base.DocumentedEntityMixin.Documentation`) are not written.
+
+
+.. _WRITER/designunits:
+
+Design Units
+************
+
+:meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format` of a :class:`~pyVHDLModel.Document` writes all its design units
+in the document's order, separated by a blank line. Each design unit is preceded by its context items (library clauses,
+use clauses and context references), followed by a blank line.
+
+.. code-block:: VHDL
+
+   library ieee;
+   use ieee.std_logic_1164.all;
+
+   entity counter is
+     generic (
+       BITS : positive := 8
+     );
+     port (
+       clk : in std_logic;
+       count : out natural
+     );
+   end entity counter;
+
+   architecture rtl of counter is
+     signal value : natural := 0;
+   begin
+   end architecture rtl;
+
+Entities, architectures, packages, package bodies, package instantiations, context declarations and configurations are
+written with ``end``, the reserved words of the design unit and its identifier. An entity without statements has no
+``begin``.
+
+A configuration writes its block configuration, nested block configurations and component configurations, each ending
+with ``end for;``. A binding indication (``use entity work.sub(rtl)``) and its map aspects are indented one level deeper
+than its component configuration; each association of a map aspect is written on its own line.
+
+
+.. _WRITER/concurrent:
+
+Concurrent Statements
+*********************
+
+A concurrent statement is written on its own line, starting with its label, if any (``mux : ...``).
+
+Signal assignments
+   Simple, conditional and selected signal assignments are written on one line. The waveform elements of a waveform
+   are separated by commas, a delay follows the reserved word ``after``. The alternatives of a conditional signal
+   assignment are separated by the reserved word ``else``, the alternatives of a selected signal assignment by
+   commas; choices are separated by vertical lines (``when 1 | 2 to 3``).
+
+Procedure calls and assertions
+   A concurrent procedure call is written with its parameter associations in parentheses, if it has any; an assertion
+   with its report and severity, if given.
+
+Processes
+   A process is written with its sensitivity list, if any, the reserved word ``is``, its declared items, ``begin`` and
+   its statements. A sensitivity list consisting of a single :class:`~pyVHDLModel.Name.AllName` without prefix is
+   written as ``process (all)``.
+
+.. code-block:: VHDL
+
+   count : process (clk, rst) is
+     variable value : natural := 0;
+   begin
+   end process count;
+
+Instantiations
+   Component, entity and configuration instantiations are written with the reserved word ``component``, ``entity`` or
+   ``configuration``, followed by their generic and port map aspects, one association per line. An instantiation
+   without label raises :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
+
+Block statements
+   A block statement writes its block header (generic clause, generic map aspect, port clause, port map aspect), its
+   declared items, ``begin`` and its statements; each map aspect of the header ends with a semicolon.
+
+Generate statements
+   If-generate, case-generate and for-generate statements are written with their branches or alternatives and
+   ``end generate``. A branch or alternative with declared items writes ``begin`` before its statements; alternative
+   labels are written before the condition or the choices (``elsif middle : BITS > 4 generate``). A block or generate
+   statement without label raises :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
+
+.. code-block:: VHDL
+
+   gen : case MODE generate
+     when 0 | 1 to 2 =>
+       q <= a;
+     when others =>
+       signal t : bit;
+     begin
+       q <= t;
+   end generate gen;
+
+
+.. _WRITER/sequential:
+
+Sequential Statements
+*********************
+
+A sequential statement is written on its own line in the statement part of a process or subprogram body, starting
+with its label, if any.
+
+Assignments
+   Simple, conditional and selected signal and variable assignments, force assignments (``q <= force '1';``) and
+   release assignments (``q <= release;``). The alternatives are written as for concurrent signal assignments.
+
+Other statements
+   Procedure calls, report statements, assertions, null statements, return statements with and without value, and wait
+   statements with their sensitivity clause (``on``), condition clause (``until``) and timeout clause (``for``), if
+   given.
+
+Compound statements
+   If statements with their branches, case statements with their alternatives, and loops (for, while and without
+   iteration scheme) write the statements they contain on their own lines, indented one level deeper, and end with
+   ``end if``, ``end case`` or ``end loop`` and the label, if any. Next and exit statements are written with their
+   condition, if any; the model keeps no loop label for them, so none is written.
+
+.. code-block:: VHDL
+
+   p : process is
+     variable v : natural := 0;
+   begin
+     increment : v := v + 1;
+     q <= d after 1 ns;
+     outer : for i in 0 to 3 loop
+       next when skip;
+       if v = 0 then
+         null;
+       end if;
+     end loop outer;
+     wait on d until d = '1' for 10 ns;
+   end process p;

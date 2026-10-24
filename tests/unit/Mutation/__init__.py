@@ -37,8 +37,8 @@ updates all of them.
 from typing                 import Any
 
 from pyVHDLModel.Base       import Mode
-from pyVHDLModel.Interface  import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem
-from pyVHDLModel.Interface  import ParameterConstantInterfaceItem
+from pyVHDLModel.Interface  import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem, \
+                                   ParameterConstantInterfaceItem
 from pyVHDLModel.Object     import Constant, Signal, Variable
 from pyVHDLModel.Subprogram import Function, Procedure
 

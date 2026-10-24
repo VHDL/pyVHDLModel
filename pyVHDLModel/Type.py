@@ -36,17 +36,20 @@ Types.
 """
 from __future__             import annotations
 
-from typing                 import Union, Iterator, Iterable, Optional as Nullable, Mapping, Self
+from typing                 import TYPE_CHECKING, Union, Iterator, Iterable, Optional as Nullable, Self
 
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyTooling.Graph        import Vertex
 
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, Range
-from pyVHDLModel.Symbol     import Symbol
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, Range
+from pyVHDLModel.Symbol     import Symbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
-from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin
-from pyVHDLModel.Regions    import WithoutStatementsMixin
+from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
+                                   WithoutStatementsMixin
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor  import Visitor
 
 
 @export
@@ -129,7 +132,15 @@ class AnonymousType(Type):
 	        nextNode : ptr;
 	      end record;
 	"""
-	pass
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this incomplete type declaration with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAnonymousType(self)
+		visitor.DepartAnonymousType(self)
 
 
 @export
@@ -245,6 +256,16 @@ class Subtype(BaseType):
 		:returns: The resolution function.
 		"""
 		return self._resolutionFunction
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this subtype declaration and its subtype indication with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSubtype(self)
+		self._type.Visit(visitor)
+		visitor.DepartSubtype(self)
 
 	def __str__(self) -> str:
 		"""
@@ -378,10 +399,10 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		"""
 		super().__init__(identifier, documentation, parent)
 
-		self._literals = []
+		self._literals = literalList = []
 		if literals is not None:
 			for literal in literals:
-				self._literals.append(literal)
+				literalList.append(literal)
 				literal.Parent = self
 
 	@readonly
@@ -392,6 +413,21 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		:returns: List of literals.
 		"""
 		return self._literals
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this enumerated type and its literals with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitEnumeratedType(self)
+		for index, literal in enumerate(self._literals):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			literal.Visit(visitor)
+
+		visitor.DepartEnumeratedType(self)
 
 	def __str__(self) -> str:
 		"""
@@ -430,6 +466,16 @@ class IntegerType(RangedScalarType, NumericTypeMixin, DiscreteTypeMixin):
 		"""
 		super().__init__(identifier, rng, documentation, parent)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this integer type and its range with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIntegerType(self)
+		self._range.Visit(visitor)
+		visitor.DepartIntegerType(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the integer type definition.
@@ -467,6 +513,16 @@ class RealType(RangedScalarType, NumericTypeMixin):
 		:param parent:        The parent model entity of this entity.
 		"""
 		super().__init__(identifier, rng, documentation, parent)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this floating-point type and its range with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRealType(self)
+		self._range.Visit(visitor)
+		visitor.DepartRealType(self)
 
 	def __str__(self) -> str:
 		"""
@@ -530,9 +586,9 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 
 		self._primaryUnit = primaryUnit
 
-		self._secondaryUnits = []  # TODO: convert to dict
+		self._secondaryUnits = secondaryUnits = []  # TODO: convert to dict
 		for unit in units:
-			self._secondaryUnits.append(unit)
+			secondaryUnits.append(unit)
 			unit[1].Parent = self
 
 	@readonly
@@ -552,6 +608,22 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 		:returns: List of secondary units.
 		"""
 		return self._secondaryUnits
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this physical type, its range and its secondary units with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitPhysicalType(self)
+		self._range.Visit(visitor)
+		visitor.VisitUnits(self)
+		for identifier, value in self._secondaryUnits:
+			visitor.VisitSecondaryUnitDeclaration(self, identifier)
+			value.Visit(visitor)
+			visitor.DepartSecondaryUnitDeclaration(self, identifier)
+
+		visitor.DepartPhysicalType(self)
 
 	def __str__(self) -> str:
 		"""
@@ -629,9 +701,9 @@ class ArrayType(CompositeType):
 		"""
 		super().__init__(identifier, documentation, parent)
 
-		self._dimensions = []
+		self._dimensions = dimensions = []
 		for index in indices:
-			self._dimensions.append(index)
+			dimensions.append(index)
 			# index.Parent = self  # FIXME: indices are provided as empty list
 
 		self._elementType = elementSubtype
@@ -654,6 +726,27 @@ class ArrayType(CompositeType):
 		:returns: The element type.
 		"""
 		return self._elementType
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this array type, its index ranges and its element subtype with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitArrayType(self)
+		visitor.VisitIndexConstraint(self)
+		for index, dimension in enumerate(self._dimensions):
+			if index > 0:
+				visitor.VisitComma(self)
+
+			dimension.Visit(visitor)
+			if isinstance(dimension, SimpleSubtypeSymbol):
+				visitor.VisitBox(self)
+
+		visitor.DepartIndexConstraint(self)
+		visitor.VisitOf(self)
+		self._elementType.Visit(visitor)
+		visitor.DepartArrayType(self)
 
 	def __str__(self) -> str:
 		"""
@@ -733,6 +826,16 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		"""
 		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this record element declaration and its subtype with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRecordTypeElement(self)
+		self._subtype.Visit(visitor)
+		visitor.DepartRecordTypeElement(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the record element declaration.
@@ -783,10 +886,10 @@ class RecordType(CompositeType):
 		"""
 		super().__init__(identifier, documentation, parent)
 
-		self._elements = []  # TODO: convert to dict
+		self._elements = elementList = []  # TODO: convert to dict
 		if elements is not None:
 			for element in elements:
-				self._elements.append(element)
+				elementList.append(element)
 				element.Parent = self
 
 	@readonly
@@ -797,6 +900,18 @@ class RecordType(CompositeType):
 		:returns: List of elements.
 		"""
 		return self._elements
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this record type and its element declarations with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRecordType(self)
+		for element in self._elements:
+			element.Visit(visitor)
+
+		visitor.DepartRecordType(self)
 
 	def __str__(self) -> str:
 		"""
@@ -850,6 +965,16 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 		"""
 		super().__init__(identifier, documentation, parent)
 		ProtectedTypeDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this protected type declaration and its methods with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitProtectedType(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.DepartProtectedType(self)
 
 	@readonly
 	def Methods(self) -> list[Union[Procedure, Function]]:
@@ -909,6 +1034,16 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 		super().__init__(identifier, documentation, parent)
 		SequentialDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this protected type body and its declared items with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitProtectedTypeBody(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.DepartProtectedTypeBody(self)
+
 	# FIXME: needs to be declared items or so
 	@readonly
 	def Methods(self) -> list[Union[Procedure, Function]]:
@@ -966,6 +1101,16 @@ class AccessType(FullType):
 		"""
 		return self._designatedSubtype
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this access type and its designated subtype with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAccessType(self)
+		self._designatedSubtype.Visit(visitor)
+		visitor.DepartAccessType(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the access type definition.
@@ -1017,6 +1162,16 @@ class FileType(FullType):
 		:returns: The designated subtype.
 		"""
 		return self._designatedSubtype
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this file type and its designated subtype with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitFileType(self)
+		self._designatedSubtype.Visit(visitor)
+		visitor.DepartFileType(self)
 
 	def __str__(self) -> str:
 		"""

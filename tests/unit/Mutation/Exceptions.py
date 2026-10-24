@@ -31,15 +31,16 @@
 """
 Tests for the class hierarchy of the errors raised by the mutators.
 """
-from pyTooling.Exceptions  import AlreadyInHierarchyError, DuplicateElementError
+from pyTooling.Exceptions  import AlreadyInHierarchyError, DuplicateElementError, InUseError
 from pyTooling.Testing     import Testcase
 
-from pyVHDLModel.Exception import VHDLModelException, AlreadyInDesignError, NotAChildError, DuplicateGenericError
-from pyVHDLModel.Exception import DuplicatePortError, DuplicateParameterError, DuplicateDeclarationError
-from pyVHDLModel.Exception import DuplicateTypeError, DuplicateSubtypeError, DuplicateConstantError
-from pyVHDLModel.Exception import DuplicateSignalError, DuplicateVariableError, DuplicateFileError
-from pyVHDLModel.Exception import DuplicateComponentError, DuplicateSubprogramError
-from pyVHDLModel.Exception import NotInNamespaceError
+from pyVHDLModel.Exception import VHDLModelException, AlreadyInDesignError, NotAChildError, DuplicateGenericError, \
+                                  DuplicatePortError, DuplicateParameterError, DuplicateDeclarationError, \
+                                  DuplicateTypeError, DuplicateSubtypeError, DuplicateConstantError, \
+                                  DuplicateSignalError, DuplicateVariableError, DuplicateFileError, \
+                                  DuplicateComponentError, DuplicateSubprogramError, NotInNamespaceError, \
+                                  DuplicateDocumentError, DuplicateDesignUnitError, ElementInUseError, \
+                                  LibraryInUseError
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -91,3 +92,20 @@ class Exceptions(Testcase):
 		self.assertTrue(issubclass(DuplicateFileError, DuplicateDeclarationError))
 		self.assertTrue(issubclass(DuplicateComponentError, DuplicateDeclarationError))
 		self.assertTrue(issubclass(DuplicateSubprogramError, DuplicateDeclarationError))
+
+	def test_DuplicateDocumentError(self) -> None:
+		self.assertTrue(issubclass(DuplicateDocumentError, VHDLModelException))
+		self.assertTrue(issubclass(DuplicateDocumentError, DuplicateElementError))
+
+	def test_DuplicateDesignUnitError(self) -> None:
+		self.assertTrue(issubclass(DuplicateDesignUnitError, VHDLModelException))
+		self.assertTrue(issubclass(DuplicateDesignUnitError, DuplicateElementError))
+
+	def test_LibraryInUseError(self) -> None:
+		self.assertTrue(issubclass(LibraryInUseError, ElementInUseError))
+		self.assertTrue(issubclass(LibraryInUseError, VHDLModelException))
+		self.assertTrue(issubclass(LibraryInUseError, InUseError))
+
+	def test_ElementInUseError(self) -> None:
+		self.assertTrue(issubclass(ElementInUseError, VHDLModelException))
+		self.assertTrue(issubclass(ElementInUseError, InUseError))

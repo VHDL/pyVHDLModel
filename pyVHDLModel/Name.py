@@ -211,9 +211,9 @@ class ParenthesisName(Name):
 		"""
 		super().__init__("", prefix, parent)
 
-		self._associations = []
+		self._associations = associationList = []
 		for association in associations:
-			self._associations.append(association)
+			associationList.append(association)
 			association.Parent = self
 
 	@readonly
@@ -287,9 +287,9 @@ class IndexedName(Name):
 		"""
 		super().__init__("", prefix, parent)
 
-		self._indices = []
+		self._indices = indexList = []
 		for index in indices:
-			self._indices.append(index)
+			indexList.append(index)
 			index.Parent = self
 
 	@readonly
@@ -500,12 +500,14 @@ class AllName(SelectedName):
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this ``all`` name and its prefix with a visitor.
+		Walk this ``all`` name and its prefix (if any) with a visitor.
 
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitAllName(self)
-		self._prefix.Visit(visitor)
+		if self._prefix is not None:
+			self._prefix.Visit(visitor)
+
 		visitor.DepartAllName(self)
 
 

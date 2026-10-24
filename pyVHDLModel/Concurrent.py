@@ -36,31 +36,32 @@ Concurrent defines all concurrent statements used in entities, architectures, ge
 """
 from __future__              import annotations
 
-from typing                  import Union, Iterable, Generator, Optional as Nullable
+from typing                  import TYPE_CHECKING, Union, Iterable, Generator, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, BaseCase, IfBranchMixin
-from pyVHDLModel.Base        import ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, BlockStatementMixin, WaveformElement, ChoicesMixin
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, \
+                                    BaseCase, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, \
+                                    BlockStatementMixin, WaveformElement, ChoicesMixin
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
-from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin
-from pyVHDLModel.Regions     import WithGenericsMixin, WithPortsMixin
-from pyVHDLModel.Namespace   import Namespace
+from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
+                                    WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Name        import Name
-from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, ConfigurationInstantiationSymbol
-from pyVHDLModel.Symbol      import Symbol, SignalSymbol
+from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, \
+                                    ConfigurationInstantiationSymbol, Symbol, SignalSymbol
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
-from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem
-from pyVHDLModel.Association import GenericAssociationItem, PortAssociationItem
-from pyVHDLModel.Association import GenericMapAspectMixin, PortMapAspectMixin
+from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem, GenericAssociationItem, \
+                                    PortAssociationItem, GenericMapAspectMixin, PortMapAspectMixin
 from pyVHDLModel.Interface   import PortInterfaceItemMixin, GenericInterfaceItemMixin
-from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin, AllowBlackboxMixin
-from pyVHDLModel.Common      import ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform
-from pyVHDLModel.Common      import ConditionalWaveformsMixin, WaveformMixin
-from pyVHDLModel.Common      import ExpressionMixin, SelectedWaveformsMixin
+from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin, AllowBlackboxMixin, \
+                                    ConditionalWaveform, SelectedWaveform, ConditionalWaveformsMixin, WaveformMixin, \
+                                    ExpressionMixin, SelectedWaveformsMixin
 from pyVHDLModel.Sequential  import SequentialStatement, SequentialStatementsMixin
+
+if TYPE_CHECKING:
+	from pyVHDLModel.Visitor   import Visitor
 
 
 ExpressionUnion = Union[
@@ -121,7 +122,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 
 		:param statements: List of all concurrent statements in this construct.
 		"""
-		self._statements = []
+		self._statements = statementList = []
 
 		self._instantiations =       {}
 		self._hierarchy =            {}
@@ -129,7 +130,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 
 		if statements is not None:
 			for statement in statements:
-				self._statements.append(statement)
+				statementList.append(statement)
 				statement.Parent = self
 
 	@readonly
@@ -140,6 +141,15 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 		:returns: List of statements.
 		"""
 		return self._statements
+
+	def _VisitStatements(self, visitor: Visitor) -> None:
+		"""
+		Walk the concurrent statements in statement order with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		for statement in self._statements:
+			statement.Visit(visitor)
 
 	def _Labels(self) -> tuple[ConcurrentStatement, ...]:
 		"""
@@ -631,6 +641,15 @@ class Instantiation(ConcurrentStatement, GenericMapAspectMixin, PortMapAspectMix
 		GenericMapAspectMixin.__init__(self, genericAssociationItems)
 		PortMapAspectMixin.__init__(self, portAssociationItems)
 
+	def _VisitMapAspects(self, visitor: Visitor) -> None:
+		"""
+		Walk the generic map aspect and the port map aspect of this instantiation with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		self._VisitGenericMapAspect(visitor)
+		self._VisitPortMapAspect(visitor)
+
 
 
 
@@ -674,6 +693,17 @@ class ComponentInstantiation(Instantiation):
 
 		self._component = componentSymbol
 		componentSymbol.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this component instantiation, its component and its map aspects with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitComponentInstantiation(self)
+		self._component.Visit(visitor)
+		self._VisitMapAspects(visitor)
+		visitor.DepartComponentInstantiation(self)
 
 	@readonly
 	def Component(self) -> ComponentInstantiationSymbol:
@@ -734,6 +764,22 @@ class EntityInstantiation(Instantiation):
 		if architectureSymbol is not None:
 			architectureSymbol.Parent = self
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this entity instantiation, its entity, its architecture (if any) and its map aspects with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitEntityInstantiation(self)
+		self._entity.Visit(visitor)
+		if self._architecture is not None:
+			visitor.VisitLeftParenthesis(self)
+			self._architecture.Visit(visitor)
+			visitor.VisitRightParenthesis(self)
+
+		self._VisitMapAspects(visitor)
+		visitor.DepartEntityInstantiation(self)
+
 	@readonly
 	def Entity(self) -> EntityInstantiationSymbol:
 		"""
@@ -792,6 +838,17 @@ class ConfigurationInstantiation(Instantiation):
 
 		self._configuration = configurationSymbol
 		configurationSymbol.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this configuration instantiation, its configuration and its map aspects with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConfigurationInstantiation(self)
+		self._configuration.Visit(visitor)
+		self._VisitMapAspects(visitor)
+		visitor.DepartConfigurationInstantiation(self)
 
 	@readonly
 	def Configuration(self) -> ConfigurationInstantiationSymbol:
@@ -856,10 +913,33 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 		if sensitivityList is None:
 			self._sensitivityList = None
 		else:
-			self._sensitivityList = []  # TODO: convert to dict
+			self._sensitivityList = signalSymbols = []  # TODO: convert to dict
 			for signalSymbol in sensitivityList:
-				self._sensitivityList.append(signalSymbol)
+				signalSymbols.append(signalSymbol)
 				# signalSymbol._parent = self  # FIXME: currently str are provided
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this process, its sensitivity list (if any), its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitProcessStatement(self)
+		if self._sensitivityList is not None:
+			visitor.VisitSensitivityList(self)
+			for index, name in enumerate(self._sensitivityList):
+				if index > 0:
+					visitor.VisitComma(self)
+
+				name.Visit(visitor)
+
+			visitor.DepartSensitivityList(self)
+
+		visitor.VisitIs(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartProcessStatement(self)
 
 	@ConcurrentStatement.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
@@ -923,6 +1003,16 @@ class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
 		"""
 		super().__init__(label, parent)
 		ProcedureCallMixin.__init__(self, procedureName, parameterAssociationItems)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this concurrent procedure call, its procedure and its parameters with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConcurrentProcedureCall(self)
+		self._VisitProcedureCall(visitor)
+		visitor.DepartConcurrentProcedureCall(self)
 
 
 @export
@@ -1015,6 +1105,22 @@ class ConcurrentBlockStatement(
 		ConcurrentStatementsMixin.__init__(self, statements)
 		DocumentedEntityMixin.__init__(self, documentation)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this block, its block header, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConcurrentBlockStatement(self)
+		self._VisitGenericClause(visitor)
+		self._VisitGenericMapAspect(visitor)
+		self._VisitPortClause(visitor)
+		self._VisitPortMapAspect(visitor)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartConcurrentBlockStatement(self)
 
 	@ConcurrentStatement.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
@@ -1150,6 +1256,20 @@ class IfGenerateBranch(GenerateBranch, IfBranchMixin):
 		super().__init__(declaredItems, statements, alternativeLabel, allowBlackbox, parent)
 		IfBranchMixin.__init__(self, condition)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this if-generate branch, its condition, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIfGenerateBranch(self)
+		self._condition.Visit(visitor)
+		visitor.VisitGenerate(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartIfGenerateBranch(self)
+
 
 @export
 class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
@@ -1193,6 +1313,20 @@ class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
 		super().__init__(declaredItems, statements, alternativeLabel, allowBlackbox, parent)
 		ElsifBranchMixin.__init__(self, condition)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this elsif-generate branch, its condition, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitElsifGenerateBranch(self)
+		self._condition.Visit(visitor)
+		visitor.VisitGenerate(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartElsifGenerateBranch(self)
+
 
 @export
 class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
@@ -1233,6 +1367,19 @@ class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 		"""
 		super().__init__(declaredItems, statements, alternativeLabel, allowBlackbox, parent)
 		ElseBranchMixin.__init__(self)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this else-generate branch, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitElseGenerateBranch(self)
+		visitor.VisitGenerate(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartElseGenerateBranch(self)
 
 
 @export
@@ -1338,10 +1485,10 @@ class IfGenerateStatement(GenerateStatement):
 		self._ifBranch = ifBranch
 		ifBranch.Parent = self
 
-		self._elsifBranches = []
+		self._elsifBranches = elsifBranchList = []
 		if elsifBranches is not None:
 			for branch in elsifBranches:
-				self._elsifBranches.append(branch)
+				elsifBranchList.append(branch)
 				branch.Parent = self
 
 		if elseBranch is not None:
@@ -1350,10 +1497,24 @@ class IfGenerateStatement(GenerateStatement):
 		else:
 			self._elseBranch = None
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this if-generate statement and its branches with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIfGenerateStatement(self)
+		self._ifBranch.Visit(visitor)
+		for branch in self._elsifBranches:
+			branch.Visit(visitor)
+
+		if self._elseBranch is not None:
+			self._elseBranch.Visit(visitor)
+
+		visitor.DepartIfGenerateStatement(self)
+
 	@GenerateStatement.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
-		from pyVHDLModel.DesignUnit import Architecture
-
 		GenerateStatement.Parent.fset(self, parent)
 
 		# Connect namespaces
@@ -1451,6 +1612,16 @@ class IndexedGenerateChoice(ConcurrentChoice):
 		self._expression = expression
 		expression.Parent = self
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this case-generate choice and its value with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIndexedGenerateChoice(self)
+		self._expression.Visit(visitor)
+		visitor.DepartIndexedGenerateChoice(self)
+
 	@readonly
 	def Expression(self) -> ExpressionUnion:
 		"""
@@ -1498,6 +1669,16 @@ class RangedGenerateChoice(ConcurrentChoice):
 
 		self._range = rng
 		rng.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this case-generate choice and its range with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRangedGenerateChoice(self)
+		self._range.Visit(visitor)
+		visitor.DepartRangedGenerateChoice(self)
 
 	@readonly
 	def Range(self) -> Range:
@@ -1596,6 +1777,25 @@ class GenerateCase(ConcurrentCase):
 		"""
 		super().__init__(declaredItems, statements, alternativeLabel, choices, allowBlackbox, parent)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this case-generate alternative, its choices, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitGenerateCase(self)
+		for index, choice in enumerate(self._choices):
+			if index > 0:
+				visitor.VisitBar(self)
+
+			choice.Visit(visitor)
+
+		visitor.VisitArrow(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartGenerateCase(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the case-generate alternative.
@@ -1621,6 +1821,19 @@ class OthersGenerateCase(ConcurrentCase):
 	      when others =>
 	      --   ^^^^^^      <- the choice
 	"""
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this ``others`` case-generate alternative, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitOthersGenerateCase(self)
+		visitor.VisitArrow(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartOthersGenerateCase(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the ``others`` case-generate alternative.
@@ -1685,11 +1898,25 @@ class CaseGenerateStatement(GenerateStatement):
 		expression.Parent = self
 
 		# TODO: create a mixin for things with cases
-		self._cases = []
+		self._cases = caseList = []
 		if cases is not None:
 			for case in cases:
-				self._cases.append(case)
+				caseList.append(case)
 				case.Parent = self
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this case-generate statement, its selector and its alternatives with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitCaseGenerateStatement(self)
+		self._expression.Visit(visitor)
+		visitor.VisitGenerate(self)
+		for case in self._cases:
+			case.Visit(visitor)
+
+		visitor.DepartCaseGenerateStatement(self)
 
 	@GenerateStatement.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
@@ -1789,6 +2016,20 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 		self._range = rng
 		rng.Parent = self
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this for-generate statement, its range, its declared items and its statements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitForGenerateStatement(self)
+		self._range.Visit(visitor)
+		visitor.VisitGenerate(self)
+		self._VisitDeclaredItems(visitor)
+		visitor.VisitBegin(self)
+		self._VisitStatements(visitor)
+		visitor.DepartForGenerateStatement(self)
+
 	@GenerateStatement.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
 		GenerateStatement.Parent.fset(self, parent)
@@ -1886,6 +2127,18 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment, WaveformMixin
 		super().__init__(label, target, parent)
 		WaveformMixin.__init__(self, waveform)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this concurrent signal assignment, its target and its waveform with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConcurrentSimpleSignalAssignment(self)
+		self._target.Visit(visitor)
+		visitor.VisitSignalAssignment(self)
+		self._VisitWaveform(visitor)
+		visitor.DepartConcurrentSimpleSignalAssignment(self)
+
 
 @export
 class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment, ExpressionMixin, SelectedWaveformsMixin):
@@ -1934,6 +2187,20 @@ class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment, ExpressionM
 		ExpressionMixin.__init__(self, expression)
 		SelectedWaveformsMixin.__init__(self, selectedWaveforms)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this selected signal assignment, its selector, its target and its alternatives with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConcurrentSelectedSignalAssignment(self)
+		self._expression.Visit(visitor)
+		visitor.VisitSelect(self)
+		self._target.Visit(visitor)
+		visitor.VisitSignalAssignment(self)
+		self._VisitSelectedWaveforms(visitor)
+		visitor.DepartConcurrentSelectedSignalAssignment(self)
+
 
 @export
 class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment, ConditionalWaveformsMixin):
@@ -1978,6 +2245,18 @@ class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment, Conditio
 		super().__init__(label, target, parent)
 		ConditionalWaveformsMixin.__init__(self, conditionalWaveforms)
 
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this conditional signal assignment, its target and its alternatives with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConcurrentConditionalSignalAssignment(self)
+		self._target.Visit(visitor)
+		visitor.VisitSignalAssignment(self)
+		self._VisitConditionalWaveforms(visitor)
+		visitor.DepartConcurrentConditionalSignalAssignment(self)
+
 
 @export
 class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
@@ -2020,3 +2299,13 @@ class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
 		"""
 		super().__init__(label, parent)
 		AssertStatementMixin.__init__(self, condition, message, severity)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this concurrent assertion, its condition, its message and its severity with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConcurrentAssertStatement(self)
+		self._VisitAssertion(visitor)
+		visitor.DepartConcurrentAssertStatement(self)

@@ -41,15 +41,16 @@ from pyVHDLModel.Base            import Direction, SimpleRange, RangeFromName
 from pyVHDLModel.Expression      import IntegerLiteral, DescendingRangeExpression
 from pyVHDLModel.Formatting.VHDL import VHDLWriter
 from pyVHDLModel.Name            import SimpleName, SelectedName, AllName, AttributeName
-from pyVHDLModel.Symbol          import PossibleReference, Symbol, LibraryReferenceSymbol, PackageReferenceSymbol
-from pyVHDLModel.Symbol          import ModeViewSymbol, SubprogramReferenceSymbol, ConfigurationSymbol, VariableSymbol
-from pyVHDLModel.Symbol          import SignalSymbol, ContextReferenceSymbol, PackageMemberReferenceSymbol
-from pyVHDLModel.Symbol          import AllPackageMembersReferenceSymbol, EntityInstantiationSymbol
-from pyVHDLModel.Symbol          import ComponentInstantiationSymbol, ConfigurationInstantiationSymbol, EntitySymbol
-from pyVHDLModel.Symbol          import ArchitectureSymbol, PackageSymbol, RecordElementSymbol, RangeAttributeSymbol
-from pyVHDLModel.Symbol          import SubtypeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol
-from pyVHDLModel.Symbol          import ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol
-from pyVHDLModel.Symbol          import SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol
+from pyVHDLModel.Symbol          import PossibleReference, Symbol, LibraryReferenceSymbol, PackageReferenceSymbol, \
+                                        ModeViewSymbol, SubprogramReferenceSymbol, ConfigurationSymbol, \
+                                        VariableSymbol, SignalSymbol, ContextReferenceSymbol, \
+                                        PackageMemberReferenceSymbol, AllPackageMembersReferenceSymbol, \
+                                        EntityInstantiationSymbol, ComponentInstantiationSymbol, \
+                                        ConfigurationInstantiationSymbol, EntitySymbol, ArchitectureSymbol, \
+                                        PackageSymbol, RecordElementSymbol, RangeAttributeSymbol, SubtypeSymbol, \
+                                        SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
+                                        ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
+                                        SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol
 
 from tests.unit                  import _Element, _signal
 from tests.unit.Copy             import _concreteModelClasses, _copyAboveConstructor

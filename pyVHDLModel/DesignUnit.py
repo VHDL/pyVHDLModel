@@ -658,7 +658,8 @@ class Context(PrimaryUnit):
 	   * :class:`Use clause <pyVHDLModel.DesignUnit.UseClause>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Context,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Context,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                     #: The reserved words after ``end`` are optional.
 
 	def __init__(self, identifier: str, references: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -769,7 +770,8 @@ class Package(
 	   * :class:`Package body implementing it <pyVHDLModel.DesignUnit.PackageBody>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Package,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Package,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                     #: The reserved words after ``end`` are optional.
 
 	_packageBody:       Nullable[PackageBody]        #: The corresponding package body, or ``None`` if none was analyzed.
 
@@ -958,7 +960,8 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 	   * :class:`Package it implements <pyVHDLModel.DesignUnit.Package>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Package, ReservedWord.Body)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Package, ReservedWord.Body)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                                       #: The reserved words after ``end`` are optional.
 
 	_CONTINUES_PARENT_REGION: ClassVar[bool] = True  #: A package body continues its package's declarative region.
 
@@ -1078,7 +1081,8 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 	   * :class:`Configuration binding it <pyVHDLModel.DesignUnit.Configuration>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Entity,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Entity,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                    #: The reserved words after ``end`` are optional.
 
 	_architectures: dict[str, Architecture]  #: Dictionary of all architectures of this entity, indexed by name.
 
@@ -1224,7 +1228,8 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 	   * :class:`Entity it implements <pyVHDLModel.DesignUnit.Entity>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Architecture,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Architecture,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                          #: The reserved words after ``end`` are optional.
 
 	_CONTINUES_PARENT_REGION: ClassVar[bool] = True  #: An architecture continues its entity's declarative region.
 
@@ -1352,7 +1357,8 @@ class Component(
 	   * :class:`Component configuration <pyVHDLModel.Configuration.ComponentConfiguration>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Component,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Component,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                      #: The reserved words after ``end`` are optional.
 
 	_isBlackbox: Nullable[bool]    #: Component is a blackbox.
 	_entity:     Nullable[Entity]  #: Linked entity, or ``None`` if unresolved.
@@ -1494,7 +1500,8 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 	   * :class:`Block configuration <pyVHDLModel.Configuration.BlockConfiguration>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Configuration,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Configuration,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                           #: The reserved words after ``end`` are optional.
 
 	_entity:             EntitySymbol        #: Reference to the entity this configuration configures.
 	_blockConfiguration: BlockConfiguration  #: The configuration of the entity's architecture.

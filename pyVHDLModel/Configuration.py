@@ -342,7 +342,8 @@ class ComponentConfiguration(ModelEntity):
 	      --  Instantiation list
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.For,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.For,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                #: The reserved words after ``end`` are optional.
 
 	_instantiationList:  InstantiationListUnion        #: The instances this configuration applies to.
 	_componentName:      ComponentInstantiationSymbol  #: Reference to the component being configured.
@@ -450,7 +451,8 @@ class BlockConfiguration(ModelEntity):
 	      end for;
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.For,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.For,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                #: The reserved words after ``end`` are optional.
 
 	_blockSpecification: Symbol                                                    #: The configured block.
 	_items:               list[Union[BlockConfiguration, ComponentConfiguration]]  #: Nested configurations.

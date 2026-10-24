@@ -886,7 +886,8 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 	        end process;
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Process,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Process,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                    #: The reserved words after ``end`` are optional.
 
 	# TODO: implement a SignalSymbol
 	_sensitivityList: list[Name]  #: List of all signal names in the sensitivity list, or ``None`` if none was given.
@@ -1072,7 +1073,8 @@ class ConcurrentBlockStatement(
 	   * :class:`Generate statement <pyVHDLModel.Concurrent.GenerateStatement>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Block,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Block,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                  #: The reserved words after ``end`` are optional.
 	def __init__(
 		self,
 		label:                   str,
@@ -1409,7 +1411,8 @@ class GenerateStatement(ConcurrentStatement, AllowBlackboxMixin):
 	   * :class:`For generate statement <pyVHDLModel.Concurrent.ForGenerateStatement>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Generate,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Generate,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                     #: The reserved words after ``end`` are optional.
 
 	def __init__(
 		self,

@@ -468,7 +468,8 @@ class Procedure(Subprogram):
 	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Procedure,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Procedure,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                       #: The reserved words after ``end`` are optional.
 
 	_SUBPROGRAM_KEYWORD: ClassVar[str] = "procedure"  #: The VHDL keyword introducing this subprogram kind.
 
@@ -543,7 +544,8 @@ class Function(Subprogram):
 	   * :class:`Procedure <pyVHDLModel.Subprogram.Procedure>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Function,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Function,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                      #: The reserved words after ``end`` are optional.
 
 	_SUBPROGRAM_KEYWORD: ClassVar[str] = "function"  #: The VHDL keyword introducing this subprogram kind.
 	_returnType:         SubtypeSymbol               #: Reference to the subtype of the function's return value.

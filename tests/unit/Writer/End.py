@@ -70,6 +70,20 @@ def _process() -> ProcessStatement:
 	return ProcessStatement("p", statements=[IfStatement(IfBranch(_object("a"), [NullStatement()]), label="check")])
 
 
+class EndKeywordConstants(Testcase):
+	def test_Optional(self) -> None:
+		"""The reserved words after ``end`` of design units and subprogram bodies are optional."""
+		for cls in (Context, Package, PackageBody, Entity, Architecture, Configuration, Procedure, ProcedureMethod):
+			with self.subTest(cls=cls.__name__):
+				self.assertTrue(cls._END_KEYWORDS_OPTIONAL)
+
+	def test_Required(self) -> None:
+		for cls in (Component, RecordType, ProtectedType, ProtectedTypeBody, ProcessStatement, ConcurrentBlockStatement,
+		            ForGenerateStatement, IfStatement, ForLoopStatement, BlockConfiguration):
+			with self.subTest(cls=cls.__name__):
+				self.assertFalse(cls._END_KEYWORDS_OPTIONAL)
+
+
 class EndKeywords(Testcase):
 	def test_Entity(self) -> None:
 		writer = VHDLWriter(_style(OptionalItem.Remove, OptionalItem.Add))

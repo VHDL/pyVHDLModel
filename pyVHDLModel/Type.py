@@ -571,7 +571,8 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 	      end units;
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Units,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Units,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                  #: The reserved words after ``end`` are optional.
 	_primaryUnit:    str                                       #: The name of the type's primary unit.
 	_secondaryUnits: list[tuple[str, PhysicalIntegerLiteral]]  #: Secondary units as (name, value) pairs.
 
@@ -898,7 +899,8 @@ class RecordType(CompositeType):
 	   * :class:`Reference to a record element <pyVHDLModel.Symbol.RecordElementSymbol>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Record,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Record,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                   #: The reserved words after ``end`` are optional.
 	_elements: list[RecordTypeElement]  #: List of all element declarations, in declaration order.
 
 	def __init__(self, identifier: str, elements: Nullable[Iterable[RecordTypeElement]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
@@ -1031,7 +1033,8 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 	   * :class:`Method of a protected type <pyVHDLModel.Subprogram.ProcedureMethod>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Protected,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Protected,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                      #: The reserved words after ``end`` are optional.
 	def __init__(self, identifier: str, declaredItems: Union[list, Iterator] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a protected type declaration.
@@ -1103,7 +1106,8 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 	   * :class:`Protected type declaration <pyVHDLModel.Type.ProtectedType>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Protected, ReservedWord.Body)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Protected, ReservedWord.Body)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                                        #: The reserved words after ``end`` are optional.
 	def __init__(self, identifier: str, declaredItems: Union[list, Iterator] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a protected type body.

@@ -260,7 +260,8 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	   * :class:`Reference to a mode view <pyVHDLModel.Symbol.ModeViewSymbol>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.View,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.View,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                 #: The reserved words after ``end`` are optional.
 
 	_subtype:  SubtypeSymbol          #: Reference to the subtype this mode view applies to.
 	_elements: list[ModeViewElement]  #: List of all mode view elements, in declaration order.

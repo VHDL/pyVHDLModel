@@ -1384,7 +1384,8 @@ class IfStatement(CompoundStatement):
 	   * :class:`If-generate statement <pyVHDLModel.Concurrent.IfGenerateStatement>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.If,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.If,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False               #: The reserved words after ``end`` are optional.
 	_ifBranch: IfBranch                #: The mandatory ``if`` branch.
 	_elsifBranches: list[ElsifBranch]  #: List of all ``elsif`` branches, in the order they were written.
 	_elseBranch: Nullable[ElseBranch]  #: The optional ``else`` branch, or ``None`` if none was given.
@@ -1753,7 +1754,8 @@ class CaseStatement(CompoundStatement):
 	   * :class:`Case-generate statement <pyVHDLModel.Concurrent.CaseGenerateStatement>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Case,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Case,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                 #: The reserved words after ``end`` are optional.
 	_expression: ExpressionUnion       #: The expression being tested.
 	_cases:      list[SequentialCase]  #: List of all alternatives, in the order they were written.
 
@@ -1825,7 +1827,8 @@ class LoopStatement(CompoundStatement, SequentialStatementsMixin):
 	   * :class:`While loop statement <pyVHDLModel.Sequential.WhileLoopStatement>`
 	"""
 
-	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Loop,)  #: Reserved words after ``end``.
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Loop,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                 #: The reserved words after ``end`` are optional.
 
 	def __init__(self, statements: Nullable[Iterable[SequentialStatement]] = None, label: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""

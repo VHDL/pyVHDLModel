@@ -2375,9 +2375,10 @@ class VHDLWriter(Visitor):
 
 		**Format:** ``end entity counter`` or ``end if``
 
-		The reserved words after ``end`` are the element's ``_END_KEYWORDS``. They are optional after the end of a design
-		unit or a subprogram body and are written there by :attr:`VHDLStyle.EndKeyword`. The identifier or label, if
-		any, is written by :attr:`VHDLStyle.EndName`. A subprogram declaration has no end.
+		The reserved words after ``end`` are the element's ``_END_KEYWORDS``. Where they are optional
+		(``_END_KEYWORDS_OPTIONAL``: design units and subprogram bodies), they are written by
+		:attr:`VHDLStyle.EndKeyword`. The identifier or label, if any, is written by :attr:`VHDLStyle.EndName`. A subprogram
+		declaration has no end.
 
 		:param element: The element closed by ``end``.
 		"""
@@ -2390,7 +2391,7 @@ class VHDLWriter(Visitor):
 
 		self._WriteIndentation()
 		self._Write(self._Keyword(ReservedWord.End))
-		if not isinstance(element, (DesignUnit, Subprogram)) or self._style.EndKeyword is OptionalItem.Add:
+		if not element._END_KEYWORDS_OPTIONAL or self._style.EndKeyword is OptionalItem.Add:
 			self._Write(f" {self._Keywords(element._END_KEYWORDS)}")
 
 		if isinstance(element, LabeledEntityMixin):

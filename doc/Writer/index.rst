@@ -284,7 +284,8 @@ Ends and Terminators
 An element closed by ``end`` reports ``VisitEnd`` after its last child, a declaration, a statement, a context item or a
 design unit reports ``VisitTerminator`` for its semicolon; both come before ``Depart<Class>``. The reserved words after
 ``end`` are the class constant ``_END_KEYWORDS`` of the element's class, e.g. ``(ReservedWord.Package,
-ReservedWord.Body)`` of :class:`~pyVHDLModel.DesignUnit.PackageBody`. The writer writes them by the options
+ReservedWord.Body)`` of :class:`~pyVHDLModel.DesignUnit.PackageBody`; the class constant ``_END_KEYWORDS_OPTIONAL``
+is ``True``, where they are optional (design units and subprogram bodies). The writer writes them by the options
 ``endKeyword`` and ``endName`` (:ref:`WRITER/style`):
 
 .. code-block:: VHDL

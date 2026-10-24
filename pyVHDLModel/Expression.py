@@ -705,6 +705,9 @@ class BitStringLiteral(Literal):
 	(:data:`BinaryValue`, :data:`Bits`), together with the literal's length (:data:`Length`) and
 	whether it is signed (:data:`IsSigned`).
 
+	The binary form follows IEEE Std 1076-2008, clause 15.8. It is computed on first access of :data:`BinaryValue` or
+	:data:`Bits`, so a literal violating these rules can still be constructed, copied and formatted.
+
 	.. admonition:: Example
 
 	   .. code-block:: VHDL
@@ -722,8 +725,7 @@ class BitStringLiteral(Literal):
 	_BASE:        ClassVar[BitStringBase] = BitStringBase.NoBase  #: The base this literal is written in.
 
 	_value:       str             #: The literal as written in the source, without the enclosing double quotes.
-	_binaryValue: str             #: The literal's value expanded to base 2, one character per bit.
-	_bits:        int             #: The number of bits the literal represents.
+	_binaryValue: Nullable[str]   #: The literal's string value, one character per bit, or ``None`` until computed.
 	_length:      Nullable[int]   #: The explicitly given length, or ``None`` if the literal has no length specification.
 	_isSigned:    Nullable[bool]  #: ``True`` if signed, ``False`` if unsigned, ``None`` if unspecified.
 
@@ -731,17 +733,42 @@ class BitStringLiteral(Literal):
 		"""
 		Initializes a bit string literal.
 
-		:param value:    The literal as written in the source, without the enclosing double quotes.
-		:param length:   The explicitly given length, or ``None`` if the literal has no length specification.
-		:param isSigned: ``True`` if signed, ``False`` if unsigned, ``None`` if unspecified.
+		:param value:       The literal as written in the source, without the enclosing double quotes.
+		:param length:      The explicitly given length, or ``None`` if the literal has no length specification.
+		:param isSigned:    ``True`` if signed, ``False`` if unsigned, ``None`` if unspecified.
+		:raises ValueError: If parameter 'value' is None.
+		:raises TypeError:  If parameter 'value' is not of type :class:`str`.
+		:raises TypeError:  If parameter 'length' is not of type :class:`int`.
+		:raises ValueError: If parameter 'length' is negative.
+		:raises TypeError:  If parameter 'isSigned' is not of type :class:`bool`.
 		"""
 		super().__init__()
-		self._value = value
-		self._length = length
-		self._isSigned = isSigned
 
+		if value is None:
+			raise ValueError("Parameter 'value' is None.")
+		elif not isinstance(value, str):
+			ex = TypeError("Parameter 'value' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(value)}'.")
+			raise ex
+
+		if length is not None and not isinstance(length, int):
+			ex = TypeError("Parameter 'length' is not of type 'int'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(length)}'.")
+			raise ex
+		elif length is not None and length < 0:
+			ex = ValueError("Parameter 'length' is negative.")
+			ex.add_note(f"Got value '{length}'.")
+			raise ex
+
+		if isSigned is not None and not isinstance(isSigned, bool):
+			ex = TypeError("Parameter 'isSigned' is not of type 'bool'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(isSigned)}'.")
+			raise ex
+
+		self._value =       value
 		self._binaryValue = None
-		self._bits = None
+		self._length =      length
+		self._isSigned =    isSigned
 
 	@readonly
 	def Value(self) -> str:
@@ -755,20 +782,134 @@ class BitStringLiteral(Literal):
 	@readonly
 	def BinaryValue(self) -> str:
 		"""
-		Read-only property to access the binary value (:attr:`_binaryValue`).
+		Read-only property to return the literal's string value, one character per bit (:attr:`_binaryValue`).
 
-		:returns: The binary value.
+		The value follows IEEE Std 1076-2008, clause 15.8. It is computed from :data:`Value`, the base, :data:`Length`
+		and :data:`IsSigned` on first access and cached:
+
+		1. Underscores are removed.
+		2. Expansion:
+
+		   * Binary, octal and hexadecimal: each digit valid for the base is replaced by its 1, 3 or 4 bits; hexadecimal
+		     digits are case-insensitive. Each other graphic character, e.g. ``X``, ``Z`` or ``-``, is repeated 1, 3 or 4
+		     times, keeping its case.
+		   * Decimal: the digits are converted to binary with the minimal number of bits (none for ``0``).
+
+		3. With a length larger than the expanded value, the value is padded on the left: with ``0`` if unsigned or
+		   unspecified, with the leftmost character if signed.
+		4. With a length smaller than the expanded value, leftmost characters are deleted: only ``0`` if unsigned or
+		   unspecified, only copies of the leftmost remaining character if signed.
+
+		Example: ``12sx"F5"`` |rarr| ``111111110101``.
+
+		:returns:           The literal's string value, one character per bit.
+		:raises ValueError: If the value starts or ends with an underscore or contains two consecutive underscores.
+		:raises ValueError: If a decimal literal is signed or unsigned.
+		:raises ValueError: If a decimal literal contains a character other than a digit or an underscore.
+		:raises ValueError: If a digit is not allowed in the base, e.g. ``2`` in a binary literal.
+		:raises ValueError: If the value contains a non-graphic character.
+		:raises ValueError: If a signed literal with an empty expanded value has a non-zero length.
+		:raises ValueError: If the length of an unsigned or unspecified literal truncates a character other than ``0``. |br|
+		                    Only leading '0' characters can be truncated.
+		:raises ValueError: If the length of a signed literal truncates a character other than the sign. |br|
+		                    Only copies of the leftmost remaining character can be truncated.
 		"""
-		return self._binaryValue
+		if self._binaryValue is not None:
+			return self._binaryValue
+
+		if self._value.startswith("_") or self._value.endswith("_") or "__" in self._value:
+			ex = ValueError("Bit string literal has a leading, trailing or double underscore.")
+			ex.add_note(f"Got value '{self._value}'.")
+			raise ex
+
+		simplifiedValue = self._value.replace("_", "")
+		radix =           self._BASE.value
+
+		if self._BASE is BitStringBase.Decimal:
+			if self._isSigned is not None:
+				ex = ValueError("Decimal bit string literal can't be signed or unsigned.")
+				ex.add_note(f"Got value '{self}'.")
+				raise ex
+
+			for character in simplifiedValue:
+				if character not in "0123456789":
+					ex = ValueError("Decimal bit string literal contains a character other than a digit.")
+					ex.add_note(f"Got character '{character}' in value '{self._value}'.")
+					raise ex
+
+			number =        0 if simplifiedValue == "" else int(simplifiedValue)
+			expandedValue = "" if number == 0 else f"{number:b}"
+		else:
+			bitsPerDigit = radix.bit_length() - 1
+			bitList =      []
+			for character in simplifiedValue:
+				if character in "0123456789":
+					digit = int(character)
+					if digit >= radix:
+						ex = ValueError(f"Bit string literal contains a digit not allowed in base {radix}.")
+						ex.add_note(f"Got digit '{character}' in value '{self._value}'.")
+						raise ex
+				elif radix == 16 and character in "abcdefABCDEF":
+					digit = int(character, 16)
+				elif 32 <= ord(character) <= 126 or 160 <= ord(character) <= 255:
+					bitList.append(character * bitsPerDigit)
+					continue
+				else:
+					ex = ValueError("Bit string literal contains a non-graphic character.")
+					ex.add_note(f"Got value {self._value!r}.")
+					raise ex
+
+				bitList.append(f"{digit:0{bitsPerDigit}b}")
+
+			expandedValue = "".join(bitList)
+
+		expandedLength = len(expandedValue)
+		if self._length is None or self._length == expandedLength:
+			binaryValue = expandedValue
+		elif self._length > expandedLength:
+			if self._isSigned is not True:
+				padding = "0"
+			elif expandedLength == 0:
+				ex = ValueError("Signed bit string literal with an empty value can't be extended.")
+				ex.add_note(f"Got value '{self}'.")
+				raise ex
+			else:
+				padding = expandedValue[0]
+
+			binaryValue = padding * (self._length - expandedLength) + expandedValue
+		else:
+			deletedCount = expandedLength - self._length
+			deletedValue = expandedValue[:deletedCount]
+			binaryValue =  expandedValue[deletedCount:]
+			if self._isSigned is not True:
+				padding = "0"
+			elif self._length == 0:
+				padding = ""
+			else:
+				padding = binaryValue[0]
+
+			if deletedValue != padding * deletedCount:
+				ex = ValueError(f"Bit string literal's length {self._length} truncates significant characters.")
+				ex.add_note(f"Got value '{self}' expanded to '{expandedValue}'.")
+				if self._isSigned is True:
+					ex.add_note("Only copies of the leftmost remaining character can be truncated.")
+				else:
+					ex.add_note("Only leading '0' characters can be truncated.")
+				raise ex
+
+		self._binaryValue = binaryValue
+		return binaryValue
 
 	@readonly
-	def Bits(self) -> Nullable[int]:
+	def Bits(self) -> int:
 		"""
-		Read-only property to access the bits (:attr:`_bits`).
+		Read-only property to return the number of bits the literal represents.
 
-		:returns: The bits, or ``None`` if not set.
+		This is the length of :data:`BinaryValue`, computed the same way, so the same exceptions apply.
+
+		:returns: The number of bits.
 		"""
-		return self._bits
+		return len(self.BinaryValue)
 
 	@readonly
 	def Length(self) -> Nullable[int]:
@@ -784,7 +925,7 @@ class BitStringLiteral(Literal):
 		"""
 		Check if the bit string literal is signed (:attr:`_isSigned`).
 
-		:returns: ``True``, if the literal is signed; ``None``, if unspecified.
+		:returns: ``True``, if the literal is signed; ``False``, if unsigned; ``None``, if unspecified.
 		"""
 		return self._isSigned
 
@@ -858,8 +999,8 @@ class OctalBitStringLiteral(BitStringLiteral):
 
 	   .. code-block:: VHDL
 
-	      nine := o"240";
-	      --      ^^^^^^    <- Value
+	      res := o"240";
+	      --     ^^^^^^    <- Value
 	"""
 	_BASE: ClassVar[BitStringBase] = BitStringBase.Octal  #: The base this literal is written in.
 

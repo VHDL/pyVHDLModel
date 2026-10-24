@@ -243,8 +243,10 @@ it as equivalent to a sequence of single declarations, one per identifier, in li
 identifier. A generic type, subprogram or package declares exactly one identifier and is yielded itself.
 
 A single declaration has its own identifier and its position in the identifier list. Its parent is the declaration;
-the subtype, mode, default expression, mode view indication and documentation are those of the declaration. It isn't
-added to the declaration nor to the model, so the model keeps the declaration as written.
+the subtype, mode, default expression, mode view indication and documentation are those of the declaration. An
+interface item creates its single declarations on first access of
+:data:`~pyVHDLModel.Interface.WithSingleDeclarationsMixin.SingleDeclarations` and keeps them. They aren't part of the
+model's declarations, so the model keeps the declaration as written.
 
 .. code-block:: Python
 

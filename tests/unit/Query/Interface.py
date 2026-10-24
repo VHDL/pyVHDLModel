@@ -253,20 +253,50 @@ class SingleParameters(Testcase):
 		self.assertListEqual(["f"], [singleParameter.Identifier for singleParameter in singleParameters])
 
 
-class Construction(Testcase):
-	def test_Identifier_CaseInsensitive(self) -> None:
-		"""The identifier is matched case-insensitively and returned as declared."""
+class Cache(Testcase):
+	def test_SingleDeclarations(self) -> None:
+		"""The single declarations are created on first access, one per identifier in list order, and kept."""
 		port = PortSimpleSignalInterfaceItem(("Clock", "Reset"), Mode.In, _subtypeSymbol("bit"))
 
-		singlePort = SinglePortSimpleSignalDeclaration("RESET", parent=port)
+		singleDeclarations = port.SingleDeclarations
+
+		self.assertEqual(2, len(singleDeclarations))
+		self.assertIs(singleDeclarations, port.SingleDeclarations)
+		for position, singleDeclaration in enumerate(singleDeclarations):
+			self.assertIsInstance(singleDeclaration, SinglePortSimpleSignalDeclaration)
+			self.assertIs(port, singleDeclaration.Parent)
+			self.assertEqual(position, singleDeclaration.Position)
+
+		self.assertEqual("Reset", singleDeclarations[1].Identifier)
+		self.assertEqual("reset", singleDeclarations[1].NormalizedIdentifier)
+
+	def test_IterateTwice(self) -> None:
+		"""Iterating twice yields the same single declarations."""
+		port =   PortSimpleSignalInterfaceItem(("a", "b"), Mode.In, _subtypeSymbol("bit"))
+		entity = Entity("ent", portItems=[port])
+
+		first =  list(entity.IterateSinglePortDeclarations())
+		second = list(entity.IterateSinglePortDeclarations())
+
+		self.assertEqual(2, len(second))
+		for singlePort, again in zip(first, second):
+			self.assertIs(singlePort, again)
+
+
+class Construction(Testcase):
+	def test_Fields(self) -> None:
+		port = PortSimpleSignalInterfaceItem(("Clock", "Reset"), Mode.In, _subtypeSymbol("bit"))
+
+		singlePort = SinglePortSimpleSignalDeclaration("Reset", "reset", 1, parent=port)
 
 		self.assertEqual("Reset", singlePort.Identifier)
 		self.assertEqual("reset", singlePort.NormalizedIdentifier)
 		self.assertEqual(1, singlePort.Position)
+		self.assertIs(port, singlePort.Declaration)
 
 	def test_Parent_None(self) -> None:
 		with self.assertRaises(ValueError) as context:
-			_ = SinglePortSimpleSignalDeclaration("a", parent=None)
+			_ = SinglePortSimpleSignalDeclaration("a", "a", 0, parent=None)
 
 		self.assertEqual("Parameter 'parent' is None.", str(context.exception))
 
@@ -275,34 +305,8 @@ class Construction(Testcase):
 		generic = GenericConstantInterfaceItem(("a", ), Mode.In, _subtypeSymbol("bit"))
 
 		with self.assertRaises(TypeError) as context:
-			_ = SinglePortSimpleSignalDeclaration("a", parent=generic)
+			_ = SinglePortSimpleSignalDeclaration("a", "a", 0, parent=generic)
 
 		self.assertEqual("Parameter 'parent' is not of type 'PortSimpleSignalInterfaceItem'.", str(context.exception))
 		notes = ["Got type 'pyVHDLModel.Interface.GenericConstantInterfaceItem'."]
 		self.assertListEqual(notes, context.exception.__notes__)
-
-	def test_Identifier_None(self) -> None:
-		port = PortSimpleSignalInterfaceItem(("a", ), Mode.In, _subtypeSymbol("bit"))
-
-		with self.assertRaises(ValueError) as context:
-			_ = SinglePortSimpleSignalDeclaration(None, parent=port)
-
-		self.assertEqual("Parameter 'identifier' is None.", str(context.exception))
-
-	def test_Identifier_Type(self) -> None:
-		port = PortSimpleSignalInterfaceItem(("a", ), Mode.In, _subtypeSymbol("bit"))
-
-		with self.assertRaises(TypeError) as context:
-			_ = SinglePortSimpleSignalDeclaration(1, parent=port)
-
-		self.assertEqual("Parameter 'identifier' is not of type 'str'.", str(context.exception))
-		self.assertListEqual(["Got type 'int'."], context.exception.__notes__)
-
-	def test_Identifier_NotDeclared(self) -> None:
-		port = PortSimpleSignalInterfaceItem(("a", "b"), Mode.In, _subtypeSymbol("bit"))
-
-		with self.assertRaises(ValueError) as context:
-			_ = SinglePortSimpleSignalDeclaration("c", parent=port)
-
-		self.assertEqual("Parameter 'identifier' is not declared by parameter 'parent'.", str(context.exception))
-		self.assertListEqual(["Got identifier 'c'.", "Declared identifiers: a, b"], context.exception.__notes__)

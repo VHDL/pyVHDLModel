@@ -142,15 +142,13 @@ class WithGenericsMixin(
 		if predicate is None:
 			for item in self._genericItems:
 				if isinstance(item, MultipleNamedEntityMixin):
-					for identifier in item._identifiers:
-						yield item._SINGLE_DECLARATION(identifier, parent=item)
+					yield from item.SingleDeclarations
 				else:
 					yield item
 		else:
 			for item in self._genericItems:
 				if isinstance(item, MultipleNamedEntityMixin):
-					for identifier in item._identifiers:
-						singleDeclaration = item._SINGLE_DECLARATION(identifier, parent=item)
+					for singleDeclaration in item.SingleDeclarations:
 						if predicate(singleDeclaration):
 							yield singleDeclaration
 				elif predicate(item):
@@ -488,12 +486,10 @@ class WithPortsMixin(
 		"""
 		if predicate is None:
 			for item in self._portItems:
-				for identifier in item._identifiers:
-					yield item._SINGLE_DECLARATION(identifier, parent=item)
+				yield from item.SingleDeclarations
 		else:
 			for item in self._portItems:
-				for identifier in item._identifiers:
-					singleDeclaration = item._SINGLE_DECLARATION(identifier, parent=item)
+				for singleDeclaration in item.SingleDeclarations:
 					if predicate(singleDeclaration):
 						yield singleDeclaration
 
@@ -812,12 +808,10 @@ class WithParametersMixin(
 		"""
 		if predicate is None:
 			for item in self._parameterItems:
-				for identifier in item._identifiers:
-					yield item._SINGLE_DECLARATION(identifier, parent=item)
+				yield from item.SingleDeclarations
 		else:
 			for item in self._parameterItems:
-				for identifier in item._identifiers:
-					singleDeclaration = item._SINGLE_DECLARATION(identifier, parent=item)
+				for singleDeclaration in item.SingleDeclarations:
 					if predicate(singleDeclaration):
 						yield singleDeclaration
 

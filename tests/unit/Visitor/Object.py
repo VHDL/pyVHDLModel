@@ -150,6 +150,7 @@ class Objects(Testcase):
 			("VisitVariableAssignment", constant),
 			("VisitIntegerLiteral",     default),
 			("DepartIntegerLiteral",    default),
+			("VisitTerminator",         constant),
 			("DepartConstant",          constant),
 		], recorder.Events)
 
@@ -166,6 +167,7 @@ class Objects(Testcase):
 			("VisitSimpleName",        subtype.Name),
 			("DepartSimpleName",       subtype.Name),
 			("DepartSymbol",           subtype),
+			("VisitTerminator",        constant),
 			("DepartDeferredConstant", constant),
 		], recorder.Events)
 
@@ -178,7 +180,7 @@ class Objects(Testcase):
 
 		self.assertEqual(
 			["VisitVariable", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitVariableAssignment",
-			 "VisitIntegerLiteral", "DepartIntegerLiteral", "DepartVariable"],
+			 "VisitIntegerLiteral", "DepartIntegerLiteral", "VisitTerminator", "DepartVariable"],
 			[event[0] for event in recorder.Events]
 		)
 
@@ -189,7 +191,8 @@ class Objects(Testcase):
 		variable.Visit(recorder)
 
 		self.assertEqual(
-			["VisitVariable", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "DepartVariable"],
+			["VisitVariable", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitTerminator",
+			 "DepartVariable"],
 			[event[0] for event in recorder.Events]
 		)
 
@@ -201,7 +204,7 @@ class Objects(Testcase):
 
 		self.assertEqual(
 			["VisitSharedVariable", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol",
-			 "DepartSharedVariable"],
+			 "VisitTerminator", "DepartSharedVariable"],
 			[event[0] for event in recorder.Events]
 		)
 
@@ -214,7 +217,7 @@ class Objects(Testcase):
 
 		self.assertEqual(
 			["VisitSignal", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitVariableAssignment",
-			 "VisitIntegerLiteral", "DepartIntegerLiteral", "DepartSignal"],
+			 "VisitIntegerLiteral", "DepartIntegerLiteral", "VisitTerminator", "DepartSignal"],
 			[event[0] for event in recorder.Events]
 		)
 
@@ -225,6 +228,7 @@ class Objects(Testcase):
 		file.Visit(recorder)
 
 		self.assertEqual(
-			["VisitFile", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "DepartFile"],
+			["VisitFile", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitTerminator",
+			 "DepartFile"],
 			[event[0] for event in recorder.Events]
 		)

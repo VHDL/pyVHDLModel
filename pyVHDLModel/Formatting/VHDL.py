@@ -2120,14 +2120,6 @@ class VHDLWriter(Visitor):
 		self._WriteIndentation()
 		self._Write(f"{self._Keywords(obj._OBJECT_KEYWORD)} {', '.join(obj.Identifiers)} : ")
 
-	def DepartConstant(self, constant: Constant) -> None:
-		"""
-		Write the semicolon ending a constant declaration.
-
-		:param constant: The constant declaration.
-		"""
-		self._Write(";\n")
-
 	def VisitDeferredConstant(self, constant: DeferredConstant) -> None:
 		"""
 		Write the reserved word ``constant`` and the identifiers of a deferred constant declaration.
@@ -2137,14 +2129,6 @@ class VHDLWriter(Visitor):
 		:param constant: The deferred constant declaration.
 		"""
 		self._WriteObjectDeclaration(constant)
-
-	def DepartDeferredConstant(self, constant: DeferredConstant) -> None:
-		"""
-		Write the semicolon ending a deferred constant declaration.
-
-		:param constant: The deferred constant declaration.
-		"""
-		self._Write(";\n")
 
 	def VisitVariable(self, variable: Variable) -> None:
 		"""
@@ -2156,14 +2140,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteObjectDeclaration(variable)
 
-	def DepartVariable(self, variable: Variable) -> None:
-		"""
-		Write the semicolon ending a variable declaration.
-
-		:param variable: The variable declaration.
-		"""
-		self._Write(";\n")
-
 	def VisitSharedVariable(self, variable: SharedVariable) -> None:
 		"""
 		Write the reserved words ``shared variable`` and the identifiers of a shared variable declaration.
@@ -2174,14 +2150,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteObjectDeclaration(variable)
 
-	def DepartSharedVariable(self, variable: SharedVariable) -> None:
-		"""
-		Write the semicolon ending a shared variable declaration.
-
-		:param variable: The shared variable declaration.
-		"""
-		self._Write(";\n")
-
 	def VisitSignal(self, signal: Signal) -> None:
 		"""
 		Write the reserved word ``signal`` and the identifiers of a signal declaration.
@@ -2191,14 +2159,6 @@ class VHDLWriter(Visitor):
 		:param signal: The signal declaration.
 		"""
 		self._WriteObjectDeclaration(signal)
-
-	def DepartSignal(self, signal: Signal) -> None:
-		"""
-		Write the semicolon ending a signal declaration.
-
-		:param signal: The signal declaration.
-		"""
-		self._Write(";\n")
 
 	def VisitFile(self, file: File) -> None:
 		"""
@@ -2211,14 +2171,6 @@ class VHDLWriter(Visitor):
 		:param file: The file declaration.
 		"""
 		self._WriteObjectDeclaration(file)
-
-	def DepartFile(self, file: File) -> None:
-		"""
-		Write the semicolon ending a file declaration.
-
-		:param file: The file declaration.
-		"""
-		self._Write(";\n")
 
 	def VisitGenericConstantInterfaceItem(self, item: GenericConstantInterfaceItem) -> None:
 		"""
@@ -2369,6 +2321,14 @@ class VHDLWriter(Visitor):
 		else:
 			self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keywords(keywords)} {identifier};\n")
 
+	def VisitTerminator(self, element: ModelEntity) -> None:
+		"""
+		Write the semicolon ending a declaration, a statement or a context item, and end the line.
+
+		:param element: The declaration, statement or context item.
+		"""
+		self._Write(";\n")
+
 	def VisitSimpleModeViewElement(self, element: SimpleModeViewElement) -> None:
 		"""
 		Write an element of a mode view with a mode.
@@ -2382,7 +2342,7 @@ class VHDLWriter(Visitor):
 			raise VHDLWriterError("Mode view element has no mode.", element)
 
 		self._WriteIndentation()
-		self._Write(f"{', '.join(element.Identifiers)} : {self._Keyword(element.Mode.ReservedWord)};\n")
+		self._Write(f"{', '.join(element.Identifiers)} : {self._Keyword(element.Mode.ReservedWord)}")
 
 	def VisitCompositeModeViewElement(self, element: CompositeModeViewElement) -> None:
 		"""
@@ -2394,14 +2354,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteIndentation()
 		self._Write(f"{', '.join(element.Identifiers)} : {self._Keyword(ReservedWord.View)} ")
-
-	def DepartCompositeModeViewElement(self, element: CompositeModeViewElement) -> None:
-		"""
-		Write the semicolon ending an element of a mode view with a mode view.
-
-		:param element: The mode view element.
-		"""
-		self._Write(";\n")
 
 	def VisitComponent(self, component: Component) -> None:
 		"""
@@ -2502,7 +2454,7 @@ class VHDLWriter(Visitor):
 		:param declaration: The incomplete type declaration.
 		"""
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword(ReservedWord.Type)} {declaration.Identifier};\n")
+		self._Write(f"{self._Keyword(ReservedWord.Type)} {declaration.Identifier}")
 
 	def VisitSubtype(self, subtype: Subtype) -> None:
 		"""
@@ -2517,24 +2469,15 @@ class VHDLWriter(Visitor):
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Subtype)} {subtype.Identifier} {self._Keyword(ReservedWord.Is)} ")
 
-	def DepartSubtype(self, subtype: Subtype) -> None:
-		"""
-		Write the semicolon ending a subtype declaration.
-
-		:param subtype: The subtype declaration.
-		"""
-		self._Write(";\n")
-
 	def VisitEnumeratedType(self, enumeratedType: EnumeratedType) -> None:
 		"""
-		Write the header and the left parenthesis of an enumerated type declaration.
+		Write the header of an enumerated type declaration.
 
 		**Format:** ``type state is (Idle, Busy, Done);``
 
 		:param enumeratedType: The enumerated type.
 		"""
 		self._WriteTypeHeader(enumeratedType)
-		self._Write("(")
 
 	def _WriteTypeHeader(self, declaration: FullType) -> None:
 		"""
@@ -2545,13 +2488,21 @@ class VHDLWriter(Visitor):
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Type)} {declaration.Identifier} {self._Keyword(ReservedWord.Is)} ")
 
-	def DepartEnumeratedType(self, enumeratedType: EnumeratedType) -> None:
+	def VisitEnumerationTypeDefinition(self, enumeratedType: EnumeratedType) -> None:
 		"""
-		Write the right parenthesis ending an enumerated type declaration.
+		Write the left parenthesis of the literals of an enumerated type.
 
 		:param enumeratedType: The enumerated type.
 		"""
-		self._Write(");\n")
+		self._Write("(")
+
+	def DepartEnumerationTypeDefinition(self, enumeratedType: EnumeratedType) -> None:
+		"""
+		Write the right parenthesis of the literals of an enumerated type.
+
+		:param enumeratedType: The enumerated type.
+		"""
+		self._Write(")")
 
 	def VisitIntegerType(self, integerType: IntegerType) -> None:
 		"""
@@ -2565,14 +2516,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keyword(ReservedWord.Range)} ")
 		self._minimum = OperatorPrecedence.Range
 
-	def DepartIntegerType(self, integerType: IntegerType) -> None:
-		"""
-		Write the semicolon ending an integer type declaration.
-
-		:param integerType: The integer type.
-		"""
-		self._Write(";\n")
-
 	def VisitRealType(self, realType: RealType) -> None:
 		"""
 		Write the header and the reserved word ``range`` of a floating-point type declaration.
@@ -2584,14 +2527,6 @@ class VHDLWriter(Visitor):
 		self._WriteTypeHeader(realType)
 		self._Write(f"{self._Keyword(ReservedWord.Range)} ")
 		self._minimum = OperatorPrecedence.Range
-
-	def DepartRealType(self, realType: RealType) -> None:
-		"""
-		Write the semicolon ending a floating-point type declaration.
-
-		:param realType: The floating-point type.
-		"""
-		self._Write(";\n")
 
 	def VisitPhysicalType(self, physicalType: PhysicalType) -> None:
 		"""
@@ -2625,14 +2560,6 @@ class VHDLWriter(Visitor):
 		self._WriteTypeHeader(arrayType)
 		self._Write(f"{self._Keyword(ReservedWord.Array)} ")
 
-	def DepartArrayType(self, arrayType: ArrayType) -> None:
-		"""
-		Write the semicolon ending an array type declaration.
-
-		:param arrayType: The array type.
-		"""
-		self._Write(";\n")
-
 	def VisitRecordType(self, recordType: RecordType) -> None:
 		"""
 		Write the header of a record type declaration; its element declarations are indented.
@@ -2664,14 +2591,6 @@ class VHDLWriter(Visitor):
 		self._WriteIndentation()
 		self._Write(f"{', '.join(element.Identifiers)} : ")
 
-	def DepartRecordTypeElement(self, element: RecordTypeElement) -> None:
-		"""
-		Write the semicolon ending an element declaration of a record type.
-
-		:param element: The record element declaration.
-		"""
-		self._Write(";\n")
-
 	def VisitAccessType(self, accessType: AccessType) -> None:
 		"""
 		Write the header and the reserved word ``access`` of an access type declaration.
@@ -2683,14 +2602,6 @@ class VHDLWriter(Visitor):
 		self._WriteTypeHeader(accessType)
 		self._Write(f"{self._Keyword(ReservedWord.Access)} ")
 
-	def DepartAccessType(self, accessType: AccessType) -> None:
-		"""
-		Write the semicolon ending an access type declaration.
-
-		:param accessType: The access type.
-		"""
-		self._Write(";\n")
-
 	def VisitFileType(self, fileType: FileType) -> None:
 		"""
 		Write the header and the reserved words ``file of`` of a file type declaration.
@@ -2701,14 +2612,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteTypeHeader(fileType)
 		self._Write(f"{self._Keyword(ReservedWord.File)} {self._Keyword(ReservedWord.Of)} ")
-
-	def DepartFileType(self, fileType: FileType) -> None:
-		"""
-		Write the semicolon ending a file type declaration.
-
-		:param fileType: The file type.
-		"""
-		self._Write(";\n")
 
 	def VisitAlias(self, alias: Alias) -> None:
 		"""
@@ -2723,14 +2626,6 @@ class VHDLWriter(Visitor):
 		if alias.Subtype is not None:
 			self._Write(" : ")
 
-	def DepartAlias(self, alias: Alias) -> None:
-		"""
-		Write the semicolon ending an alias declaration.
-
-		:param alias: The alias declaration.
-		"""
-		self._Write(";\n")
-
 	def VisitAttribute(self, attribute: Attribute) -> None:
 		"""
 		Write the reserved word ``attribute`` and the identifier of an attribute declaration.
@@ -2741,14 +2636,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Attribute)} {attribute.Identifier} : ")
-
-	def DepartAttribute(self, attribute: Attribute) -> None:
-		"""
-		Write the semicolon ending an attribute declaration.
-
-		:param attribute: The attribute declaration.
-		"""
-		self._Write(";\n")
 
 	def VisitAttributeSpecification(self, specification: AttributeSpecification) -> None:
 		"""
@@ -2764,14 +2651,6 @@ class VHDLWriter(Visitor):
 
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Attribute)} ")
-
-	def DepartAttributeSpecification(self, specification: AttributeSpecification) -> None:
-		"""
-		Write the semicolon ending an attribute specification.
-
-		:param specification: The attribute specification.
-		"""
-		self._Write(";\n")
 
 	def VisitBegin(
 		self,
@@ -2999,14 +2878,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keyword(ReservedWord.Procedure)} {instantiation.Identifier} ")
 		self._Write(f"{self._Keyword(ReservedWord.Is)} {self._Keyword(ReservedWord.New)} ")
 
-	def DepartProcedureInstantiation(self, instantiation: ProcedureInstantiation) -> None:
-		"""
-		Write the semicolon ending a procedure instantiation.
-
-		:param instantiation: The procedure instantiation.
-		"""
-		self._Write(";\n")
-
 	def VisitFunctionInstantiation(self, instantiation: FunctionInstantiation) -> None:
 		"""
 		Write the reserved word ``function``, the designator and the reserved words ``is new`` of a function instantiation.
@@ -3018,14 +2889,6 @@ class VHDLWriter(Visitor):
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Function)} {instantiation.Identifier} ")
 		self._Write(f"{self._Keyword(ReservedWord.Is)} {self._Keyword(ReservedWord.New)} ")
-
-	def DepartFunctionInstantiation(self, instantiation: FunctionInstantiation) -> None:
-		"""
-		Write the semicolon ending a function instantiation.
-
-		:param instantiation: The function instantiation.
-		"""
-		self._Write(";\n")
 
 	def VisitProtectedType(self, protectedType: ProtectedType) -> None:
 		"""
@@ -3116,14 +2979,6 @@ class VHDLWriter(Visitor):
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Library)} ")
 
-	def DepartLibraryClause(self, clause: LibraryClause) -> None:
-		"""
-		Write the semicolon ending a library clause.
-
-		:param clause: The library clause.
-		"""
-		self._Write(";\n")
-
 	def VisitUseClause(self, clause: UseClause) -> None:
 		"""
 		Write the reserved word ``use`` of a use clause.
@@ -3135,14 +2990,6 @@ class VHDLWriter(Visitor):
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Use)} ")
 
-	def DepartUseClause(self, clause: UseClause) -> None:
-		"""
-		Write the semicolon ending a use clause.
-
-		:param clause: The use clause.
-		"""
-		self._Write(";\n")
-
 	def VisitContextReference(self, reference: ContextReference) -> None:
 		"""
 		Write the reserved word ``context`` of a context reference.
@@ -3153,14 +3000,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Context)} ")
-
-	def DepartContextReference(self, reference: ContextReference) -> None:
-		"""
-		Write the semicolon ending a context reference.
-
-		:param reference: The context reference.
-		"""
-		self._Write(";\n")
 
 	def VisitContext(self, context: Context) -> None:
 		"""
@@ -3238,14 +3077,6 @@ class VHDLWriter(Visitor):
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Package)} {instantiation.Identifier} ")
 		self._Write(f"{self._Keywords((ReservedWord.Is, ReservedWord.New))} ")
-
-	def DepartPackageInstantiation(self, instantiation: PackageInstantiation) -> None:
-		"""
-		Write the semicolon ending a package instantiation.
-
-		:param instantiation: The package instantiation.
-		"""
-		self._Write(";\n")
 
 	def VisitEntity(self, entity: Entity) -> None:
 		"""
@@ -3441,12 +3272,14 @@ class VHDLWriter(Visitor):
 		"""
 		Write the signal assignment delimiter (``<=``) between the target and the waveform of a signal assignment.
 
-		In a force assignment, the reserved word ``force`` follows.
+		In a force assignment, the reserved word ``force`` follows, in a release assignment the reserved word ``release``.
 
 		:param element: The signal assignment.
 		"""
 		if isinstance(element, SignalForceAssignment):
 			self._Write(f" <= {self._Keyword(ReservedWord.Force)} ")
+		elif isinstance(element, SignalReleaseAssignment):
+			self._Write(f" <= {self._Keyword(ReservedWord.Release)}")
 		else:
 			self._Write(" <= ")
 
@@ -3605,14 +3438,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteStatementStart(call)
 
-	def DepartConcurrentProcedureCall(self, call: ConcurrentProcedureCall) -> None:
-		"""
-		Write the semicolon ending a concurrent procedure call.
-
-		:param call: The procedure call.
-		"""
-		self._Write(";\n")
-
 	def VisitConcurrentSimpleSignalAssignment(self, assignment: ConcurrentSimpleSignalAssignment) -> None:
 		"""
 		Write the label, if any, of a concurrent simple signal assignment.
@@ -3622,14 +3447,6 @@ class VHDLWriter(Visitor):
 		:param assignment: The signal assignment.
 		"""
 		self._WriteStatementStart(assignment)
-
-	def DepartConcurrentSimpleSignalAssignment(self, assignment: ConcurrentSimpleSignalAssignment) -> None:
-		"""
-		Write the semicolon ending a concurrent simple signal assignment.
-
-		:param assignment: The signal assignment.
-		"""
-		self._Write(";\n")
 
 	def VisitConcurrentSelectedSignalAssignment(self, assignment: ConcurrentSelectedSignalAssignment) -> None:
 		"""
@@ -3643,14 +3460,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keyword(ReservedWord.With)} ")
 		self._minimum = OperatorPrecedence.Range
 
-	def DepartConcurrentSelectedSignalAssignment(self, assignment: ConcurrentSelectedSignalAssignment) -> None:
-		"""
-		Write the semicolon ending a concurrent selected signal assignment.
-
-		:param assignment: The signal assignment.
-		"""
-		self._Write(";\n")
-
 	def VisitConcurrentConditionalSignalAssignment(self, assignment: ConcurrentConditionalSignalAssignment) -> None:
 		"""
 		Write the label, if any, of a concurrent conditional signal assignment.
@@ -3660,14 +3469,6 @@ class VHDLWriter(Visitor):
 		:param assignment: The signal assignment.
 		"""
 		self._WriteStatementStart(assignment)
-
-	def DepartConcurrentConditionalSignalAssignment(self, assignment: ConcurrentConditionalSignalAssignment) -> None:
-		"""
-		Write the semicolon ending a concurrent conditional signal assignment.
-
-		:param assignment: The signal assignment.
-		"""
-		self._Write(";\n")
 
 	def VisitConcurrentAssertStatement(self, assertion: ConcurrentAssertStatement) -> None:
 		"""
@@ -3680,14 +3481,6 @@ class VHDLWriter(Visitor):
 		self._WriteStatementStart(assertion)
 		self._Write(f"{self._Keyword(ReservedWord.Assert)} ")
 		self._minimum = OperatorPrecedence.Range
-
-	def DepartConcurrentAssertStatement(self, assertion: ConcurrentAssertStatement) -> None:
-		"""
-		Write the semicolon ending a concurrent assertion.
-
-		:param assertion: The assertion.
-		"""
-		self._Write(";\n")
 
 	def VisitRightParenthesis(self, element: TypeConversion | EntityAspectEntity | EntityInstantiation) -> None:
 		"""
@@ -3721,14 +3514,6 @@ class VHDLWriter(Visitor):
 		self._WriteStatementStart(instantiation)
 		self._Write(f"{self._Keyword(ReservedWord.Component)} ")
 
-	def DepartComponentInstantiation(self, instantiation: ComponentInstantiation) -> None:
-		"""
-		Write the semicolon ending a component instantiation.
-
-		:param instantiation: The component instantiation.
-		"""
-		self._Write(";\n")
-
 	def VisitEntityInstantiation(self, instantiation: EntityInstantiation) -> None:
 		"""
 		Write the label and the reserved word ``entity`` of an entity instantiation.
@@ -3744,14 +3529,6 @@ class VHDLWriter(Visitor):
 		self._WriteStatementStart(instantiation)
 		self._Write(f"{self._Keyword(ReservedWord.Entity)} ")
 
-	def DepartEntityInstantiation(self, instantiation: EntityInstantiation) -> None:
-		"""
-		Write the semicolon ending an entity instantiation.
-
-		:param instantiation: The entity instantiation.
-		"""
-		self._Write(";\n")
-
 	def VisitConfigurationInstantiation(self, instantiation: ConfigurationInstantiation) -> None:
 		"""
 		Write the label and the reserved word ``configuration`` of a configuration instantiation.
@@ -3766,14 +3543,6 @@ class VHDLWriter(Visitor):
 
 		self._WriteStatementStart(instantiation)
 		self._Write(f"{self._Keyword(ReservedWord.Configuration)} ")
-
-	def DepartConfigurationInstantiation(self, instantiation: ConfigurationInstantiation) -> None:
-		"""
-		Write the semicolon ending a configuration instantiation.
-
-		:param instantiation: The configuration instantiation.
-		"""
-		self._Write(";\n")
 
 	def VisitConcurrentBlockStatement(self, block: ConcurrentBlockStatement) -> None:
 		"""
@@ -4034,14 +3803,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteStatementStart(call)
 
-	def DepartSequentialProcedureCall(self, call: SequentialProcedureCall) -> None:
-		"""
-		Write the semicolon ending a procedure call.
-
-		:param call: The procedure call.
-		"""
-		self._Write(";\n")
-
 	def VisitSequentialSimpleSignalAssignment(self, assignment: SequentialSimpleSignalAssignment) -> None:
 		"""
 		Write the label, if any, of a signal assignment.
@@ -4051,14 +3812,6 @@ class VHDLWriter(Visitor):
 		:param assignment: The signal assignment.
 		"""
 		self._WriteStatementStart(assignment)
-
-	def DepartSequentialSimpleSignalAssignment(self, assignment: SequentialSimpleSignalAssignment) -> None:
-		"""
-		Write the semicolon ending a signal assignment.
-
-		:param assignment: The signal assignment.
-		"""
-		self._Write(";\n")
 
 	def VisitSequentialVariableAssignment(self, assignment: SequentialVariableAssignment) -> None:
 		"""
@@ -4070,14 +3823,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteStatementStart(assignment)
 
-	def DepartSequentialVariableAssignment(self, assignment: SequentialVariableAssignment) -> None:
-		"""
-		Write the semicolon ending a variable assignment.
-
-		:param assignment: The variable assignment.
-		"""
-		self._Write(";\n")
-
 	def VisitSequentialConditionalVariableAssignment(self, assignment: SequentialConditionalVariableAssignment) -> None:
 		"""
 		Write the label, if any, of a conditional variable assignment.
@@ -4088,14 +3833,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteStatementStart(assignment)
 
-	def DepartSequentialConditionalVariableAssignment(self, assignment: SequentialConditionalVariableAssignment) -> None:
-		"""
-		Write the semicolon ending a conditional variable assignment.
-
-		:param assignment: The conditional variable assignment.
-		"""
-		self._Write(";\n")
-
 	def VisitSequentialConditionalSignalAssignment(self, assignment: SequentialConditionalSignalAssignment) -> None:
 		"""
 		Write the label, if any, of a conditional signal assignment.
@@ -4105,14 +3842,6 @@ class VHDLWriter(Visitor):
 		:param assignment: The conditional signal assignment.
 		"""
 		self._WriteStatementStart(assignment)
-
-	def DepartSequentialConditionalSignalAssignment(self, assignment: SequentialConditionalSignalAssignment) -> None:
-		"""
-		Write the semicolon ending a conditional signal assignment.
-
-		:param assignment: The conditional signal assignment.
-		"""
-		self._Write(";\n")
 
 	def VisitSequentialSelectedVariableAssignment(self, assignment: SequentialSelectedVariableAssignment) -> None:
 		"""
@@ -4126,14 +3855,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keyword(ReservedWord.With)} ")
 		self._minimum = OperatorPrecedence.Range
 
-	def DepartSequentialSelectedVariableAssignment(self, assignment: SequentialSelectedVariableAssignment) -> None:
-		"""
-		Write the semicolon ending a selected variable assignment.
-
-		:param assignment: The selected variable assignment.
-		"""
-		self._Write(";\n")
-
 	def VisitSequentialSelectedSignalAssignment(self, assignment: SequentialSelectedSignalAssignment) -> None:
 		"""
 		Write the label, if any, and the reserved word ``with`` of a selected signal assignment.
@@ -4146,14 +3867,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keyword(ReservedWord.With)} ")
 		self._minimum = OperatorPrecedence.Range
 
-	def DepartSequentialSelectedSignalAssignment(self, assignment: SequentialSelectedSignalAssignment) -> None:
-		"""
-		Write the semicolon ending a selected signal assignment.
-
-		:param assignment: The selected signal assignment.
-		"""
-		self._Write(";\n")
-
 	def VisitSignalForceAssignment(self, assignment: SignalForceAssignment) -> None:
 		"""
 		Write the label, if any, of a force assignment.
@@ -4163,14 +3876,6 @@ class VHDLWriter(Visitor):
 		:param assignment: The force assignment.
 		"""
 		self._WriteStatementStart(assignment)
-
-	def DepartSignalForceAssignment(self, assignment: SignalForceAssignment) -> None:
-		"""
-		Write the semicolon ending a force assignment.
-
-		:param assignment: The force assignment.
-		"""
-		self._Write(";\n")
 
 	def VisitSignalReleaseAssignment(self, assignment: SignalReleaseAssignment) -> None:
 		"""
@@ -4182,14 +3887,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteStatementStart(assignment)
 
-	def DepartSignalReleaseAssignment(self, assignment: SignalReleaseAssignment) -> None:
-		"""
-		Write the reserved word ``release`` and the semicolon ending a release assignment.
-
-		:param assignment: The release assignment.
-		"""
-		self._Write(f"{self._Keyword(ReservedWord.Release)};\n")
-
 	def VisitSequentialReportStatement(self, statement: SequentialReportStatement) -> None:
 		"""
 		Write the label, if any, of a report statement.
@@ -4199,14 +3896,6 @@ class VHDLWriter(Visitor):
 		:param statement: The report statement.
 		"""
 		self._WriteStatementStart(statement)
-
-	def DepartSequentialReportStatement(self, statement: SequentialReportStatement) -> None:
-		"""
-		Write the semicolon ending a report statement.
-
-		:param statement: The report statement.
-		"""
-		self._Write(";\n")
 
 	def VisitSequentialAssertStatement(self, assertion: SequentialAssertStatement) -> None:
 		"""
@@ -4220,14 +3909,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keyword(ReservedWord.Assert)} ")
 		self._minimum = OperatorPrecedence.Range
 
-	def DepartSequentialAssertStatement(self, assertion: SequentialAssertStatement) -> None:
-		"""
-		Write the semicolon ending an assertion.
-
-		:param assertion: The assertion.
-		"""
-		self._Write(";\n")
-
 	def VisitNullStatement(self, statement: NullStatement) -> None:
 		"""
 		Write a null statement.
@@ -4237,7 +3918,7 @@ class VHDLWriter(Visitor):
 		:param statement: The null statement.
 		"""
 		self._WriteStatementStart(statement)
-		self._Write(f"{self._Keyword(ReservedWord.Null)};\n")
+		self._Write(self._Keyword(ReservedWord.Null))
 
 	def VisitReturnStatement(self, statement: ReturnStatement) -> None:
 		"""
@@ -4253,14 +3934,6 @@ class VHDLWriter(Visitor):
 			self._Write(" ")
 			self._minimum = OperatorPrecedence.Range
 
-	def DepartReturnStatement(self, statement: ReturnStatement) -> None:
-		"""
-		Write the semicolon ending a return statement.
-
-		:param statement: The return statement.
-		"""
-		self._Write(";\n")
-
 	def VisitWaitStatement(self, statement: WaitStatement) -> None:
 		"""
 		Write the label, if any, and the reserved word ``wait`` of a wait statement.
@@ -4271,14 +3944,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteStatementStart(statement)
 		self._Write(self._Keyword(ReservedWord.Wait))
-
-	def DepartWaitStatement(self, statement: WaitStatement) -> None:
-		"""
-		Write the semicolon ending a wait statement.
-
-		:param statement: The wait statement.
-		"""
-		self._Write(";\n")
 
 	def VisitThen(self, branch: IfBranch | ElsifBranch) -> None:
 		"""
@@ -4502,14 +4167,6 @@ class VHDLWriter(Visitor):
 		self._WriteStatementStart(statement)
 		self._Write(self._Keyword(ReservedWord.Next))
 
-	def DepartNextStatement(self, statement: NextStatement) -> None:
-		"""
-		Write the semicolon ending a next statement.
-
-		:param statement: The next statement.
-		"""
-		self._Write(";\n")
-
 	def VisitExitStatement(self, statement: ExitStatement) -> None:
 		"""
 		Write the label, if any, and the reserved word ``exit`` of an exit statement.
@@ -4522,11 +4179,3 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteStatementStart(statement)
 		self._Write(self._Keyword(ReservedWord.Exit))
-
-	def DepartExitStatement(self, statement: ExitStatement) -> None:
-		"""
-		Write the semicolon ending an exit statement.
-
-		:param statement: The exit statement.
-		"""
-		self._Write(";\n")

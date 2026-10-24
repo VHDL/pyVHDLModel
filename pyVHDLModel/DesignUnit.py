@@ -137,6 +137,7 @@ class LibraryClause(Reference):
 		"""
 		visitor.VisitLibraryClause(self)
 		self._VisitSymbols(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartLibraryClause(self)
 
 
@@ -160,6 +161,7 @@ class UseClause(Reference):
 		"""
 		visitor.VisitUseClause(self)
 		self._VisitSymbols(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartUseClause(self)
 
 
@@ -185,6 +187,7 @@ class ContextReference(Reference):
 		"""
 		visitor.VisitContextReference(self)
 		self._VisitSymbols(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartContextReference(self)
 
 

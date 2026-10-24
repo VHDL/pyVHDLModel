@@ -703,6 +703,7 @@ class ComponentInstantiation(Instantiation):
 		visitor.VisitComponentInstantiation(self)
 		self._component.Visit(visitor)
 		self._VisitMapAspects(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartComponentInstantiation(self)
 
 	@readonly
@@ -778,6 +779,7 @@ class EntityInstantiation(Instantiation):
 			visitor.VisitRightParenthesis(self)
 
 		self._VisitMapAspects(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartEntityInstantiation(self)
 
 	@readonly
@@ -848,6 +850,7 @@ class ConfigurationInstantiation(Instantiation):
 		visitor.VisitConfigurationInstantiation(self)
 		self._configuration.Visit(visitor)
 		self._VisitMapAspects(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConfigurationInstantiation(self)
 
 	@readonly
@@ -1012,6 +1015,7 @@ class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
 		"""
 		visitor.VisitConcurrentProcedureCall(self)
 		self._VisitProcedureCall(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConcurrentProcedureCall(self)
 
 
@@ -2137,6 +2141,7 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment, WaveformMixin
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._VisitWaveform(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConcurrentSimpleSignalAssignment(self)
 
 
@@ -2199,6 +2204,7 @@ class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment, ExpressionM
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._VisitSelectedWaveforms(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConcurrentSelectedSignalAssignment(self)
 
 
@@ -2255,6 +2261,7 @@ class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment, Conditio
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._VisitConditionalWaveforms(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConcurrentConditionalSignalAssignment(self)
 
 
@@ -2308,4 +2315,5 @@ class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
 		"""
 		visitor.VisitConcurrentAssertStatement(self)
 		self._VisitAssertion(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConcurrentAssertStatement(self)

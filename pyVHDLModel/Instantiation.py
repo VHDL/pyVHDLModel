@@ -173,6 +173,7 @@ class ProcedureInstantiation(Procedure, SubprogramInstantiationMixin):
 		visitor.VisitProcedureInstantiation(self)
 		self._subprogramReference.Visit(visitor)
 		self._VisitGenericMapAspect(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartProcedureInstantiation(self)
 
 
@@ -234,6 +235,7 @@ class FunctionInstantiation(Function, SubprogramInstantiationMixin):
 		visitor.VisitFunctionInstantiation(self)
 		self._subprogramReference.Visit(visitor)
 		self._VisitGenericMapAspect(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartFunctionInstantiation(self)
 
 	@readonly
@@ -298,6 +300,7 @@ class PackageInstantiation(Package, GenericInstantiationMixin, GenericMapAspectM
 		visitor.VisitPackageInstantiation(self)
 		self._packageReference.Visit(visitor)
 		self._VisitGenericMapAspect(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartPackageInstantiation(self)
 
 	@readonly

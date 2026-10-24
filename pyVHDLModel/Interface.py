@@ -149,6 +149,7 @@ class SimpleModeViewElement(ModeViewElement):
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitSimpleModeViewElement(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartSimpleModeViewElement(self)
 
 	@readonly
@@ -215,6 +216,7 @@ class CompositeModeViewElement(ModeViewElement):
 		"""
 		visitor.VisitCompositeModeViewElement(self)
 		self._modeViewName.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartCompositeModeViewElement(self)
 
 	@readonly

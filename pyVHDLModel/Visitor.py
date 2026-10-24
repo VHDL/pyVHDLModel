@@ -56,6 +56,9 @@ element and then its children in source order as events to the visitor. A parser
    ``VisitAssociationListSeparator`` for the comma between two association elements). The parentheses of a list
    belong to the events of its element or part (e.g. ``VisitIndexList`` and ``DepartIndexList``);
    ``VisitLeftParenthesis`` and ``VisitRightParenthesis`` enclose a single item, which is no list.
+
+``VisitTerminator(element)``
+   The walk passes the semicolon ending a declaration, a statement or a context item, before ``Depart<Class>``.
 """
 from __future__                  import annotations
 
@@ -67,7 +70,7 @@ from pyTooling.MetaClasses       import ExtendedType, abstractclass
 if TYPE_CHECKING:
 	from pyVHDLModel               import Document
 	from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin, PortMapAspectMixin
-	from pyVHDLModel.Base          import SimpleRange, RangeFromName, WaveformElement, ReportStatementMixin
+	from pyVHDLModel.Base          import ModelEntity, SimpleRange, RangeFromName, WaveformElement, ReportStatementMixin
 	from pyVHDLModel.Common        import ProcedureCallMixin, SignalAssignmentMixin, WaveformMixin, ConditionalWaveform, \
 	                                      SelectedWaveform, OthersSelectedWaveform, ConditionalWaveformsMixin, \
 	                                      SelectedWaveformsMixin, AssignmentMixin, ConditionalExpression, \
@@ -310,6 +313,13 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Visit the reserved word ``begin`` between the declarative part and the statement part of an element.
 
 		:param element: The element.
+		"""
+
+	def VisitTerminator(self, element: ModelEntity) -> None:
+		"""
+		Visit the semicolon ending a declaration, a statement or a context item.
+
+		:param element: The declaration, statement or context item.
 		"""
 
 	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem) -> None:
@@ -1544,6 +1554,20 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	def DepartEnumeratedType(self, enumeratedType: EnumeratedType) -> None:
 		"""
 		Depart from an enumerated type declaration, after its last literal.
+
+		:param enumeratedType: The enumerated type.
+		"""
+
+	def VisitEnumerationTypeDefinition(self, enumeratedType: EnumeratedType) -> None:
+		"""
+		Visit the parenthesized list of literals of an enumerated type, before its first literal.
+
+		:param enumeratedType: The enumerated type.
+		"""
+
+	def DepartEnumerationTypeDefinition(self, enumeratedType: EnumeratedType) -> None:
+		"""
+		Depart from the parenthesized list of literals of an enumerated type, after its last literal.
 
 		:param enumeratedType: The enumerated type.
 		"""

@@ -165,6 +165,7 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		"""
 		visitor.VisitAttribute(self)
 		self._subtype.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartAttribute(self)
 
 	@readonly
@@ -257,6 +258,7 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		visitor.DepartEntitySpecification(self)
 		visitor.VisitIs(self)
 		self._expression.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartAttributeSpecification(self)
 
 	@readonly
@@ -368,6 +370,7 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		visitor.VisitIs(self)
 		self._name.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartAlias(self)
 
 	@readonly

@@ -71,6 +71,7 @@ class Assignments(Testcase):
 			("VisitVariableAssignment",            assignment),
 			("VisitIntegerLiteral",                value),
 			("DepartIntegerLiteral",               value),
+			("VisitTerminator",                    assignment),
 			("DepartSequentialVariableAssignment", assignment),
 		], recorder.Events)
 
@@ -144,7 +145,7 @@ class Assignments(Testcase):
 			"VisitSelectedAlternativeSeparator",
 			"VisitOthersSelectedExpression", "VisitIntegerLiteral", "DepartIntegerLiteral", "VisitWhen",
 			"DepartOthersSelectedExpression",
-			"DepartSequentialSelectedVariableAssignment",
+			"VisitTerminator", "DepartSequentialSelectedVariableAssignment",
 		], [event[0] for event in recorder.Events])
 
 
@@ -161,6 +162,7 @@ class Statements(Testcase):
 			("VisitReport",                     statement),
 			("VisitStringLiteral",              message),
 			("DepartStringLiteral",             message),
+			("VisitTerminator",                 statement),
 			("DepartSequentialReportStatement", statement),
 		], recorder.Events)
 
@@ -175,6 +177,7 @@ class Statements(Testcase):
 			("VisitReturnStatement",  statement),
 			("VisitIntegerLiteral",   value),
 			("DepartIntegerLiteral",  value),
+			("VisitTerminator",       statement),
 			("DepartReturnStatement", statement),
 		], recorder.Events)
 
@@ -199,7 +202,7 @@ class Statements(Testcase):
 			"VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol",
 			"VisitFor",
 			"VisitIntegerLiteral", "DepartIntegerLiteral",
-			"DepartWaitStatement",
+			"VisitTerminator", "DepartWaitStatement",
 		], [event[0] for event in recorder.Events])
 
 	def test_Process(self) -> None:
@@ -215,6 +218,7 @@ class Statements(Testcase):
 			("VisitIs",                process),
 			("VisitBegin",             process),
 			("VisitNullStatement",     statement),
+			("VisitTerminator",        statement),
 			("DepartNullStatement",    statement),
 			("DepartProcessStatement", process),
 		], recorder.Events)
@@ -243,6 +247,7 @@ class CompoundStatements(Testcase):
 			("DepartSymbol",        condition1),
 			("VisitThen",           ifBranch),
 			("VisitNullStatement",  statement1),
+			("VisitTerminator",     statement1),
 			("DepartNullStatement", statement1),
 			("DepartIfBranch",      ifBranch),
 			("VisitElsifBranch",    elsifBranch),
@@ -296,12 +301,12 @@ class CompoundStatements(Testcase):
 		whileLoop.Visit(recorder)
 
 		self.assertEqual([
-			"VisitEndlessLoopStatement", "VisitLoop", "VisitExitStatement", "DepartExitStatement",
+			"VisitEndlessLoopStatement", "VisitLoop", "VisitExitStatement", "VisitTerminator", "DepartExitStatement",
 			"DepartEndlessLoopStatement",
 			"VisitForLoopStatement", "VisitSimpleRange", "VisitIntegerLiteral", "DepartIntegerLiteral", "VisitDirection",
 			"VisitIntegerLiteral", "DepartIntegerLiteral", "DepartSimpleRange", "VisitLoop", "DepartForLoopStatement",
 			"VisitWhileLoopStatement", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitLoop",
-			"VisitNextStatement", "DepartNextStatement", "DepartWhileLoopStatement",
+			"VisitNextStatement", "VisitTerminator", "DepartNextStatement", "DepartWhileLoopStatement",
 		], [event[0] for event in recorder.Events])
 
 	def test_Exit_Condition(self) -> None:
@@ -313,6 +318,6 @@ class CompoundStatements(Testcase):
 
 		self.assertEqual(
 			["VisitExitStatement", "VisitWhen", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol",
-			 "DepartExitStatement"],
+			 "VisitTerminator", "DepartExitStatement"],
 			[event[0] for event in recorder.Events]
 		)

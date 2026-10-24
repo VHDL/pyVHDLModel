@@ -44,7 +44,7 @@ from typing                    import ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName
 from pyTooling.Decorators      import export, readonly
-from pyTooling.MetaClasses     import ExtendedType
+from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
 from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin, PortMapAspectMixin
 from pyVHDLModel.Base          import ModelElementUnion, ModelEntity, Mode, ReservedWord, SimpleRange, RangeFromName, \
@@ -161,61 +161,29 @@ class NewLine(Enum):
 
 
 @export
+@abstractclass
 class ListStyle(metaclass=ExtendedType, slots=True):
 	"""
-	Represents the layout of the parenthesized lists of one construct.
+	Base-class of the layouts of parenthesized lists: :class:`InterfaceListStyle` and :class:`AssociationListStyle`.
 
-	A :class:`VHDLStyle` has one list style per construct, e.g. for port clauses and for port map aspects. An interface
-	list separates its elements by semicolons, an association list by commas. The options follow vhdl-style-guide's
-	options of the subprogram specification rules ``function_019``/``procedure_013`` (interface lists) and of the
-	procedure call rule ``procedure_call_003`` (association lists).
-
-	.. seealso::
-
-	   :ref:`vsg:configuring-subprogram-specification-statement-rules`
-	      |rarr| vhdl-style-guide's options ``interface_element``, ``interface_list_semicolon`` and ``last_close_paren``.
-	   :ref:`vsg:configuring-procedure-call-statement-rules`
-	      |rarr| vhdl-style-guide's options ``association_element``, ``association_list_comma`` and ``last_close_paren``.
+	A :class:`VHDLStyle` has one list style per construct, e.g. for port clauses and for port map aspects. The options of
+	the derived classes are named after vhdl-style-guide's options of the subprogram specification rules
+	``function_019``/``procedure_013`` (interface lists) and of the procedure call rule ``procedure_call_003``
+	(association lists).
 	"""
 
-	_element:          NewLine  #: Line break before an element.
-	_separator:        NewLine  #: Line break before the separator between two elements.
-	_lastCloseParen:   NewLine  #: Line break before the right parenthesis.
+	_element:        NewLine  #: Line break before an element.
+	_separator:      NewLine  #: Line break before the separator between two elements.
+	_lastCloseParen: NewLine  #: Line break before the right parenthesis.
 
-	def __init__(
-		self,
-		element:          NewLine = NewLine.Add,
-		separator:        NewLine = NewLine.Remove,
-		lastCloseParen:   NewLine = NewLine.Add
-	) -> None:
+	def __init__(self, lastCloseParen: NewLine) -> None:
 		"""
 		Initializes the layout of a parenthesized list.
 
-		:param element:          Optional, line break before an element. Default: ``NewLine.Add``.
-		:param separator:        Optional, line break before the separator between two elements. Default:
-		                         ``NewLine.Remove``.
-		:param lastCloseParen:   Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
-		:raises ValueError:      If parameter 'element' is None.
-		:raises TypeError:       If parameter 'element' is not of type :class:`NewLine`.
-		:raises ValueError:      If parameter 'separator' is None.
-		:raises TypeError:       If parameter 'separator' is not of type :class:`NewLine`.
-		:raises ValueError:      If parameter 'lastCloseParen' is None.
-		:raises TypeError:       If parameter 'lastCloseParen' is not of type :class:`NewLine`.
+		:param lastCloseParen: Line break before the right parenthesis.
+		:raises ValueError:    If parameter 'lastCloseParen' is None.
+		:raises TypeError:     If parameter 'lastCloseParen' is not of type :class:`NewLine`.
 		"""
-		if element is None:
-			raise ValueError("Parameter 'element' is None.")
-		elif not isinstance(element, NewLine):
-			ex = TypeError("Parameter 'element' is not of type 'NewLine'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
-			raise ex
-
-		if separator is None:
-			raise ValueError("Parameter 'separator' is None.")
-		elif not isinstance(separator, NewLine):
-			ex = TypeError("Parameter 'separator' is not of type 'NewLine'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(separator)}'.")
-			raise ex
-
 		if lastCloseParen is None:
 			raise ValueError("Parameter 'lastCloseParen' is None.")
 		elif not isinstance(lastCloseParen, NewLine):
@@ -223,35 +191,7 @@ class ListStyle(metaclass=ExtendedType, slots=True):
 			ex.add_note(f"Got type '{getFullyQualifiedName(lastCloseParen)}'.")
 			raise ex
 
-		self._element =          element
-		self._separator =        separator
-		self._lastCloseParen =   lastCloseParen
-
-	@readonly
-	def Element(self) -> NewLine:
-		"""
-		Read-only property to access the line break before an element (:attr:`_element`).
-
-		It applies to every element, the first one after the left parenthesis included, as vhdl-style-guide's options
-		``interface_element`` and ``association_element``. ``NewLine.Add`` starts each element on its own line,
-		``NewLine.Remove`` continues the line.
-
-		:returns: The line break before an element.
-		"""
-		return self._element
-
-	@readonly
-	def Separator(self) -> NewLine:
-		"""
-		Read-only property to access the line break before the separator between two elements (:attr:`_separator`).
-
-		It applies to the semicolon of an interface list and the comma of an association list, as vhdl-style-guide's
-		options ``interface_list_semicolon`` and ``association_list_comma``. ``NewLine.Remove`` ends the line of the
-		previous element with the separator, ``NewLine.Add`` starts the next line with it.
-
-		:returns: The line break before the separator between two elements.
-		"""
-		return self._separator
+		self._lastCloseParen = lastCloseParen
 
 	@readonly
 	def LastCloseParen(self) -> NewLine:
@@ -267,12 +207,172 @@ class ListStyle(metaclass=ExtendedType, slots=True):
 
 
 @export
+class InterfaceListStyle(ListStyle):
+	"""
+	Represents the layout of the interface lists of one construct.
+
+	An interface list separates its elements by semicolons, e.g. the ports of a port clause. The options are
+	vhdl-style-guide's options of the subprogram specification rules ``function_019``/``procedure_013``.
+
+	.. seealso::
+
+	   :ref:`vsg:configuring-subprogram-specification-statement-rules`
+	      |rarr| vhdl-style-guide's options ``interface_element``, ``interface_list_semicolon`` and ``last_close_paren``.
+	"""
+
+	def __init__(
+		self,
+		interfaceElement:       NewLine = NewLine.Add,
+		interfaceListSemicolon: NewLine = NewLine.Remove,
+		lastCloseParen:         NewLine = NewLine.Add
+	) -> None:
+		"""
+		Initializes the layout of an interface list.
+
+		:param interfaceElement:       Optional, line break before an interface element. Default: ``NewLine.Add``.
+		:param interfaceListSemicolon: Optional, line break before the semicolon between two interface elements. Default:
+		                               ``NewLine.Remove``.
+		:param lastCloseParen:         Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
+		:raises ValueError:            If parameter 'lastCloseParen' is None.
+		:raises TypeError:             If parameter 'lastCloseParen' is not of type :class:`NewLine`.
+		:raises ValueError:            If parameter 'interfaceElement' is None.
+		:raises TypeError:             If parameter 'interfaceElement' is not of type :class:`NewLine`.
+		:raises ValueError:            If parameter 'interfaceListSemicolon' is None.
+		:raises TypeError:             If parameter 'interfaceListSemicolon' is not of type :class:`NewLine`.
+		"""
+		super().__init__(lastCloseParen)
+
+		if interfaceElement is None:
+			raise ValueError("Parameter 'interfaceElement' is None.")
+		elif not isinstance(interfaceElement, NewLine):
+			ex = TypeError("Parameter 'interfaceElement' is not of type 'NewLine'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(interfaceElement)}'.")
+			raise ex
+
+		if interfaceListSemicolon is None:
+			raise ValueError("Parameter 'interfaceListSemicolon' is None.")
+		elif not isinstance(interfaceListSemicolon, NewLine):
+			ex = TypeError("Parameter 'interfaceListSemicolon' is not of type 'NewLine'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(interfaceListSemicolon)}'.")
+			raise ex
+
+		self._element =   interfaceElement
+		self._separator = interfaceListSemicolon
+
+	@readonly
+	def InterfaceElement(self) -> NewLine:
+		"""
+		Read-only property to access the line break before an interface element (:attr:`_element`).
+
+		It applies to every interface element, the first one after the left parenthesis included, as vhdl-style-guide's
+		option ``interface_element``. ``NewLine.Add`` starts each element on its own line, ``NewLine.Remove`` continues the
+		line.
+
+		:returns: The line break before an interface element.
+		"""
+		return self._element
+
+	@readonly
+	def InterfaceListSemicolon(self) -> NewLine:
+		"""
+		Read-only property to access the line break before the semicolon between two interface elements
+		(:attr:`_separator`).
+
+		``NewLine.Remove`` ends the line of the previous element with the semicolon, ``NewLine.Add`` starts the next line
+		with it, as vhdl-style-guide's option ``interface_list_semicolon``.
+
+		:returns: The line break before the semicolon between two interface elements.
+		"""
+		return self._separator
+
+
+@export
+class AssociationListStyle(ListStyle):
+	"""
+	Represents the layout of the association lists of one construct.
+
+	An association list separates its elements by commas, e.g. the associations of a port map aspect. The options are
+	vhdl-style-guide's options of the procedure call rule ``procedure_call_003``.
+
+	.. seealso::
+
+	   :ref:`vsg:configuring-procedure-call-statement-rules`
+	      |rarr| vhdl-style-guide's options ``association_element``, ``association_list_comma`` and ``last_close_paren``.
+	"""
+
+	def __init__(
+		self,
+		associationElement:   NewLine = NewLine.Add,
+		associationListComma: NewLine = NewLine.Remove,
+		lastCloseParen:       NewLine = NewLine.Add
+	) -> None:
+		"""
+		Initializes the layout of an association list.
+
+		:param associationElement:   Optional, line break before an association element. Default: ``NewLine.Add``.
+		:param associationListComma: Optional, line break before the comma between two association elements. Default:
+		                             ``NewLine.Remove``.
+		:param lastCloseParen:       Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
+		:raises ValueError:          If parameter 'lastCloseParen' is None.
+		:raises TypeError:           If parameter 'lastCloseParen' is not of type :class:`NewLine`.
+		:raises ValueError:          If parameter 'associationElement' is None.
+		:raises TypeError:           If parameter 'associationElement' is not of type :class:`NewLine`.
+		:raises ValueError:          If parameter 'associationListComma' is None.
+		:raises TypeError:           If parameter 'associationListComma' is not of type :class:`NewLine`.
+		"""
+		super().__init__(lastCloseParen)
+
+		if associationElement is None:
+			raise ValueError("Parameter 'associationElement' is None.")
+		elif not isinstance(associationElement, NewLine):
+			ex = TypeError("Parameter 'associationElement' is not of type 'NewLine'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(associationElement)}'.")
+			raise ex
+
+		if associationListComma is None:
+			raise ValueError("Parameter 'associationListComma' is None.")
+		elif not isinstance(associationListComma, NewLine):
+			ex = TypeError("Parameter 'associationListComma' is not of type 'NewLine'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(associationListComma)}'.")
+			raise ex
+
+		self._element =   associationElement
+		self._separator = associationListComma
+
+	@readonly
+	def AssociationElement(self) -> NewLine:
+		"""
+		Read-only property to access the line break before an association element (:attr:`_element`).
+
+		It applies to every association element, the first one after the left parenthesis included, as
+		vhdl-style-guide's option ``association_element``. ``NewLine.Add`` starts each element on its own line,
+		``NewLine.Remove`` continues the line.
+
+		:returns: The line break before an association element.
+		"""
+		return self._element
+
+	@readonly
+	def AssociationListComma(self) -> NewLine:
+		"""
+		Read-only property to access the line break before the comma between two association elements
+		(:attr:`_separator`).
+
+		``NewLine.Remove`` ends the line of the previous element with the comma, ``NewLine.Add`` starts the next line with
+		it, as vhdl-style-guide's option ``association_list_comma``.
+
+		:returns: The line break before the comma between two association elements.
+		"""
+		return self._separator
+
+
+@export
 class VHDLStyle(metaclass=ExtendedType, slots=True):
 	"""
 	Represents the formatting options of the :class:`VHDL writer <VHDLWriter>`.
 
-	The options follow vhdl-style-guide's names and values. The layout of each kind of parenthesized list is a
-	:class:`ListStyle` per construct.
+	The options follow vhdl-style-guide's names and values. The layout of each kind of parenthesized list is an
+	:class:`InterfaceListStyle` or :class:`AssociationListStyle` per construct.
 
 	.. seealso::
 
@@ -282,31 +382,31 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 	      |rarr| vhdl-style-guide's options ``indent_style`` and ``indent_size``.
 	"""
 
-	_keywordCase:             KeywordCase  #: Letter case of reserved words.
-	_indentStyle:             IndentStyle  #: Indentation style.
-	_indentSize:              int          #: Number of spaces per indentation level.
-	_genericClause:           ListStyle    #: Layout of generic clauses of entities, components, packages and blocks.
-	_portClause:              ListStyle    #: Layout of port clauses.
-	_subprogramGenericClause: ListStyle    #: Layout of generic clauses of subprograms.
-	_parameterList:           ListStyle    #: Layout of formal parameter lists.
-	_genericMap:              ListStyle    #: Layout of generic map aspects.
-	_portMap:                 ListStyle    #: Layout of port map aspects.
-	_procedureCall:           ListStyle    #: Layout of actual parameter parts of procedure calls.
-	_functionCall:            ListStyle    #: Layout of association lists of function calls.
+	_keywordCase:             KeywordCase           #: Letter case of reserved words.
+	_indentStyle:             IndentStyle           #: Indentation style.
+	_indentSize:              int                   #: Number of spaces per indentation level.
+	_genericClause:           InterfaceListStyle    #: Layout of generic clauses, except of subprograms.
+	_portClause:              InterfaceListStyle    #: Layout of port clauses.
+	_subprogramGenericClause: InterfaceListStyle    #: Layout of generic clauses of subprograms.
+	_parameterList:           InterfaceListStyle    #: Layout of formal parameter lists.
+	_genericMap:              AssociationListStyle  #: Layout of generic map aspects.
+	_portMap:                 AssociationListStyle  #: Layout of port map aspects.
+	_procedureCall:           AssociationListStyle  #: Layout of actual parameter parts of procedure calls.
+	_functionCall:            AssociationListStyle  #: Layout of association lists of function calls.
 
 	def __init__(
 		self,
-		keywordCase:             KeywordCase =         KeywordCase.Lower,
-		indentStyle:             IndentStyle =         IndentStyle.Spaces,
-		indentSize:              int =                 2,
-		genericClause:           Nullable[ListStyle] = None,
-		portClause:              Nullable[ListStyle] = None,
-		subprogramGenericClause: Nullable[ListStyle] = None,
-		parameterList:           Nullable[ListStyle] = None,
-		genericMap:              Nullable[ListStyle] = None,
-		portMap:                 Nullable[ListStyle] = None,
-		procedureCall:           Nullable[ListStyle] = None,
-		functionCall:            Nullable[ListStyle] = None
+		keywordCase:             KeywordCase =                    KeywordCase.Lower,
+		indentStyle:             IndentStyle =                    IndentStyle.Spaces,
+		indentSize:              int =                            2,
+		genericClause:           Nullable[InterfaceListStyle] =   None,
+		portClause:              Nullable[InterfaceListStyle] =   None,
+		subprogramGenericClause: Nullable[InterfaceListStyle] =   None,
+		parameterList:           Nullable[InterfaceListStyle] =   None,
+		genericMap:              Nullable[AssociationListStyle] = None,
+		portMap:                 Nullable[AssociationListStyle] = None,
+		procedureCall:           Nullable[AssociationListStyle] = None,
+		functionCall:            Nullable[AssociationListStyle] = None
 	) -> None:
 		"""
 		Initializes the formatting options.
@@ -315,20 +415,23 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		:param indentStyle:             Optional, indentation style. Default: ``IndentStyle.Spaces``.
 		:param indentSize:              Optional, number of spaces per indentation level. Default: ``2``.
 		:param genericClause:           Optional, layout of generic clauses of entities, components, packages and blocks.
-		                                Default: ``ListStyle()``, one generic per line.
-		:param portClause:              Optional, layout of port clauses. Default: ``ListStyle()``, one port per line.
-		:param subprogramGenericClause: Optional, layout of generic clauses of subprograms. Default: ``ListStyle()``, one
-		                                generic per line.
-		:param parameterList:           Optional, layout of formal parameter lists. Default: ``ListStyle()``, one parameter
-		                                per line.
-		:param genericMap:              Optional, layout of generic map aspects. Default: ``ListStyle()``, one association
-		                                per line.
-		:param portMap:                 Optional, layout of port map aspects. Default: ``ListStyle()``, one association per
+		                                Default: ``InterfaceListStyle()``, one generic per line.
+		:param portClause:              Optional, layout of port clauses. Default: ``InterfaceListStyle()``, one port per
 		                                line.
+		:param subprogramGenericClause: Optional, layout of generic clauses of subprograms. Default:
+		                                ``InterfaceListStyle()``, one generic per line.
+		:param parameterList:           Optional, layout of formal parameter lists. Default: ``InterfaceListStyle()``, one
+		                                parameter per line.
+		:param genericMap:              Optional, layout of generic map aspects. Default: ``AssociationListStyle()``, one
+		                                association per line.
+		:param portMap:                 Optional, layout of port map aspects. Default: ``AssociationListStyle()``, one
+		                                association per line.
 		:param procedureCall:           Optional, layout of actual parameter parts of procedure calls. Default:
-		                                ``ListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)``, a single line.
+		                                ``AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)``, a single
+		                                line.
 		:param functionCall:            Optional, layout of association lists of function calls. Default:
-		                                ``ListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)``, a single line.
+		                                ``AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)``, a single
+		                                line.
 		:raises ValueError:             If parameter 'keywordCase' is None.
 		:raises TypeError:              If parameter 'keywordCase' is not of type :class:`KeywordCase`.
 		:raises ValueError:             If parameter 'indentStyle' is None.
@@ -336,14 +439,14 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		:raises ValueError:             If parameter 'indentSize' is None.
 		:raises TypeError:              If parameter 'indentSize' is not of type :class:`int`.
 		:raises ValueError:             If parameter 'indentSize' is less than 1.
-		:raises TypeError:              If parameter 'genericClause' is not of type :class:`ListStyle`.
-		:raises TypeError:              If parameter 'portClause' is not of type :class:`ListStyle`.
-		:raises TypeError:              If parameter 'subprogramGenericClause' is not of type :class:`ListStyle`.
-		:raises TypeError:              If parameter 'parameterList' is not of type :class:`ListStyle`.
-		:raises TypeError:              If parameter 'genericMap' is not of type :class:`ListStyle`.
-		:raises TypeError:              If parameter 'portMap' is not of type :class:`ListStyle`.
-		:raises TypeError:              If parameter 'procedureCall' is not of type :class:`ListStyle`.
-		:raises TypeError:              If parameter 'functionCall' is not of type :class:`ListStyle`.
+		:raises TypeError:              If parameter 'genericClause' is not of type :class:`InterfaceListStyle`.
+		:raises TypeError:              If parameter 'portClause' is not of type :class:`InterfaceListStyle`.
+		:raises TypeError:              If parameter 'subprogramGenericClause' is not of type :class:`InterfaceListStyle`.
+		:raises TypeError:              If parameter 'parameterList' is not of type :class:`InterfaceListStyle`.
+		:raises TypeError:              If parameter 'genericMap' is not of type :class:`AssociationListStyle`.
+		:raises TypeError:              If parameter 'portMap' is not of type :class:`AssociationListStyle`.
+		:raises TypeError:              If parameter 'procedureCall' is not of type :class:`AssociationListStyle`.
+		:raises TypeError:              If parameter 'functionCall' is not of type :class:`AssociationListStyle`.
 		"""
 		if keywordCase is None:
 			raise ValueError("Parameter 'keywordCase' is None.")
@@ -371,58 +474,58 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 			raise ex
 
 		if genericClause is None:
-			genericClause = ListStyle()
-		elif not isinstance(genericClause, ListStyle):
-			ex = TypeError("Parameter 'genericClause' is not of type 'ListStyle'.")
+			genericClause = InterfaceListStyle()
+		elif not isinstance(genericClause, InterfaceListStyle):
+			ex = TypeError("Parameter 'genericClause' is not of type 'InterfaceListStyle'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(genericClause)}'.")
 			raise ex
 
 		if portClause is None:
-			portClause = ListStyle()
-		elif not isinstance(portClause, ListStyle):
-			ex = TypeError("Parameter 'portClause' is not of type 'ListStyle'.")
+			portClause = InterfaceListStyle()
+		elif not isinstance(portClause, InterfaceListStyle):
+			ex = TypeError("Parameter 'portClause' is not of type 'InterfaceListStyle'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(portClause)}'.")
 			raise ex
 
 		if subprogramGenericClause is None:
-			subprogramGenericClause = ListStyle()
-		elif not isinstance(subprogramGenericClause, ListStyle):
-			ex = TypeError("Parameter 'subprogramGenericClause' is not of type 'ListStyle'.")
+			subprogramGenericClause = InterfaceListStyle()
+		elif not isinstance(subprogramGenericClause, InterfaceListStyle):
+			ex = TypeError("Parameter 'subprogramGenericClause' is not of type 'InterfaceListStyle'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(subprogramGenericClause)}'.")
 			raise ex
 
 		if parameterList is None:
-			parameterList = ListStyle()
-		elif not isinstance(parameterList, ListStyle):
-			ex = TypeError("Parameter 'parameterList' is not of type 'ListStyle'.")
+			parameterList = InterfaceListStyle()
+		elif not isinstance(parameterList, InterfaceListStyle):
+			ex = TypeError("Parameter 'parameterList' is not of type 'InterfaceListStyle'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(parameterList)}'.")
 			raise ex
 
 		if genericMap is None:
-			genericMap = ListStyle()
-		elif not isinstance(genericMap, ListStyle):
-			ex = TypeError("Parameter 'genericMap' is not of type 'ListStyle'.")
+			genericMap = AssociationListStyle()
+		elif not isinstance(genericMap, AssociationListStyle):
+			ex = TypeError("Parameter 'genericMap' is not of type 'AssociationListStyle'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(genericMap)}'.")
 			raise ex
 
 		if portMap is None:
-			portMap = ListStyle()
-		elif not isinstance(portMap, ListStyle):
-			ex = TypeError("Parameter 'portMap' is not of type 'ListStyle'.")
+			portMap = AssociationListStyle()
+		elif not isinstance(portMap, AssociationListStyle):
+			ex = TypeError("Parameter 'portMap' is not of type 'AssociationListStyle'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(portMap)}'.")
 			raise ex
 
 		if procedureCall is None:
-			procedureCall = ListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
-		elif not isinstance(procedureCall, ListStyle):
-			ex = TypeError("Parameter 'procedureCall' is not of type 'ListStyle'.")
+			procedureCall = AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
+		elif not isinstance(procedureCall, AssociationListStyle):
+			ex = TypeError("Parameter 'procedureCall' is not of type 'AssociationListStyle'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(procedureCall)}'.")
 			raise ex
 
 		if functionCall is None:
-			functionCall = ListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
-		elif not isinstance(functionCall, ListStyle):
-			ex = TypeError("Parameter 'functionCall' is not of type 'ListStyle'.")
+			functionCall = AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
+		elif not isinstance(functionCall, AssociationListStyle):
+			ex = TypeError("Parameter 'functionCall' is not of type 'AssociationListStyle'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(functionCall)}'.")
 			raise ex
 
@@ -466,7 +569,7 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		return self._indentSize
 
 	@readonly
-	def GenericClause(self) -> ListStyle:
+	def GenericClause(self) -> InterfaceListStyle:
 		"""
 		Read-only property to access the layout of generic clauses (:attr:`_genericClause`).
 
@@ -477,7 +580,7 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		return self._genericClause
 
 	@readonly
-	def PortClause(self) -> ListStyle:
+	def PortClause(self) -> InterfaceListStyle:
 		"""
 		Read-only property to access the layout of port clauses (:attr:`_portClause`).
 
@@ -488,7 +591,7 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		return self._portClause
 
 	@readonly
-	def SubprogramGenericClause(self) -> ListStyle:
+	def SubprogramGenericClause(self) -> InterfaceListStyle:
 		"""
 		Read-only property to access the layout of generic clauses of subprograms (:attr:`_subprogramGenericClause`).
 
@@ -497,7 +600,7 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		return self._subprogramGenericClause
 
 	@readonly
-	def ParameterList(self) -> ListStyle:
+	def ParameterList(self) -> InterfaceListStyle:
 		"""
 		Read-only property to access the layout of formal parameter lists (:attr:`_parameterList`).
 
@@ -508,7 +611,7 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		return self._parameterList
 
 	@readonly
-	def GenericMap(self) -> ListStyle:
+	def GenericMap(self) -> AssociationListStyle:
 		"""
 		Read-only property to access the layout of generic map aspects (:attr:`_genericMap`).
 
@@ -520,7 +623,7 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		return self._genericMap
 
 	@readonly
-	def PortMap(self) -> ListStyle:
+	def PortMap(self) -> AssociationListStyle:
 		"""
 		Read-only property to access the layout of port map aspects (:attr:`_portMap`).
 
@@ -531,7 +634,7 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		return self._portMap
 
 	@readonly
-	def ProcedureCall(self) -> ListStyle:
+	def ProcedureCall(self) -> AssociationListStyle:
 		"""
 		Read-only property to access the layout of actual parameter parts of procedure calls (:attr:`_procedureCall`).
 
@@ -542,7 +645,7 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		return self._procedureCall
 
 	@readonly
-	def FunctionCall(self) -> ListStyle:
+	def FunctionCall(self) -> AssociationListStyle:
 		"""
 		Read-only property to access the layout of association lists of function calls (:attr:`_functionCall`).
 
@@ -691,7 +794,7 @@ class VHDLWriter(Visitor):
 
 		**Format:** ``clk : in bit;`` ... ``rst : in bit``
 
-		The line breaks follow the :class:`ListStyle` of the interface list's construct, e.g. :attr:`VHDLStyle.PortClause`.
+		The line breaks follow the :class:`InterfaceListStyle` of the construct, e.g. :attr:`VHDLStyle.PortClause`.
 
 		:param element: The element containing the interface list.
 		"""
@@ -725,7 +828,7 @@ class VHDLWriter(Visitor):
 
 		**Format:** ``a => x, b => y``
 
-		The line breaks follow the :class:`ListStyle` of the association list's construct, e.g.
+		The line breaks follow the :class:`AssociationListStyle` of the construct, e.g.
 		:attr:`VHDLStyle.PortMap`.
 
 		:param element: The element containing the association list.

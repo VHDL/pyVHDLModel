@@ -114,7 +114,9 @@ Formatting Options
 List Layout
 ===========
 
-Each construct with a parenthesized list has its own :class:`~pyVHDLModel.Formatting.VHDL.ListStyle`:
+Each construct with a parenthesized list has its own list style: an
+:class:`~pyVHDLModel.Formatting.VHDL.InterfaceListStyle` for an interface list (separated by semicolons) or an
+:class:`~pyVHDLModel.Formatting.VHDL.AssociationListStyle` for an association list (separated by commas).
 
 .. list-table::
    :header-rows: 1
@@ -148,40 +150,40 @@ Each construct with a parenthesized list has its own :class:`~pyVHDLModel.Format
      - association lists of function calls (:class:`~pyVHDLModel.Name.ParenthesisName`, also an indexed or slice name)
      - a single line
 
-A :class:`~pyVHDLModel.Formatting.VHDL.ListStyle` has three options, named after vhdl-style-guide's options of the
-subprogram specification rules ``function_019``/``procedure_013`` (interface lists, separated by semicolons) and of the
-procedure call rule ``procedure_call_003`` (association lists, separated by commas):
+The first four options take an :class:`~pyVHDLModel.Formatting.VHDL.InterfaceListStyle`, the last four an
+:class:`~pyVHDLModel.Formatting.VHDL.AssociationListStyle`. Their options are vhdl-style-guide's options of the
+subprogram specification rules ``function_019``/``procedure_013`` and of the procedure call rule
+``procedure_call_003``, each with the values :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (``add_new_line``) and
+:attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove` (``remove_new_line``):
 
-``element``
-   Line break before each element, the first one after the left parenthesis included, as vhdl-style-guide's options
-   ``interface_element`` and ``association_element``: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (default,
-   ``add_new_line``: one element per line) or :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove`
-   (``remove_new_line``).
+``interfaceElement`` / ``associationElement``
+   Line break before each element, the first one after the left parenthesis included (``interface_element`` /
+   ``association_element``). Default: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add`, one element per line.
 
-``separator``
-   Line break before the separator between two elements, as vhdl-style-guide's options ``interface_list_semicolon`` and
-   ``association_list_comma``: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove` (default: the separator ends the
-   line) or :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (the separator starts the next line).
+``interfaceListSemicolon`` / ``associationListComma``
+   Line break before the separator between two elements (``interface_list_semicolon`` / ``association_list_comma``).
+   Default: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove`, the separator ends the line;
+   :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` starts the next line with it.
 
 ``lastCloseParen``
-   Line break before the right parenthesis, as vhdl-style-guide's option ``last_close_paren``:
-   :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (default: on its own line) or
-   :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove`.
+   Line break before the right parenthesis (``last_close_paren``). Default:
+   :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add`, on its own line.
 
-The procedure call and function call styles are ``ListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)``. See
-vhdl-style-guide's :ref:`vsg:configuring-subprogram-specification-statement-rules` and
+The procedure call and function call styles are ``AssociationListStyle(NewLine.Remove, NewLine.Remove,
+NewLine.Remove)``. See vhdl-style-guide's :ref:`vsg:configuring-subprogram-specification-statement-rules` and
 :ref:`vsg:configuring-procedure-call-statement-rules`.
 
 .. code-block:: Python
 
-   from pyVHDLModel.Formatting.VHDL import ListStyle, NewLine, VHDLStyle, VHDLWriter
+   from pyVHDLModel.Formatting.VHDL import InterfaceListStyle, NewLine, VHDLStyle, VHDLWriter
 
-   oneLine = ListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
-   writer =  VHDLWriter(VHDLStyle(genericClause=oneLine, portClause=ListStyle(NewLine.Remove, NewLine.Add)))
+   writer = VHDLWriter(VHDLStyle(
+     genericClause=InterfaceListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove),
+     portClause=InterfaceListStyle(NewLine.Remove, NewLine.Add)
+   ))
 
 .. code-block:: VHDL
 
-   -- genericClause=oneLine, portClause=ListStyle(NewLine.Remove, NewLine.Add)
    component counter is
      generic (BITS : positive := 8; type T);
      port (clk, rst : in bit

@@ -37,7 +37,8 @@ from pyVHDLModel.Base            import Mode
 from pyVHDLModel.DesignUnit      import Component
 from pyVHDLModel.Exception       import VHDLWriterError
 from pyVHDLModel.Expression      import IntegerLiteral, CharacterLiteral
-from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, NewLine, ListStyle, VHDLStyle, VHDLWriter
+from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, NewLine, InterfaceListStyle, VHDLStyle, \
+                                        VHDLWriter
 from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                         PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem, \
                                         ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
@@ -233,7 +234,7 @@ class Components(Testcase):
 
 	def test_InterfaceElement_Remove(self) -> None:
 		"""Interface elements and the right parenthesis continue the line: one line per clause."""
-		listStyle = ListStyle(NewLine.Remove, lastCloseParen=NewLine.Remove)
+		listStyle = InterfaceListStyle(NewLine.Remove, lastCloseParen=NewLine.Remove)
 		style =     VHDLStyle(genericClause=listStyle, portClause=listStyle)
 
 		self.assertEqual(dedent("""\
@@ -245,7 +246,7 @@ class Components(Testcase):
 
 	def test_InterfaceListSemicolon_Add(self) -> None:
 		"""The semicolon starts the line of the next interface element."""
-		listStyle = ListStyle(NewLine.Remove, NewLine.Add)
+		listStyle = InterfaceListStyle(NewLine.Remove, NewLine.Add)
 		style =     VHDLStyle(genericClause=listStyle, portClause=listStyle)
 
 		self.assertEqual(dedent("""\
@@ -261,7 +262,7 @@ class Components(Testcase):
 
 	def test_InterfaceListSemicolon_Add_InterfaceElement_Add(self) -> None:
 		"""The semicolon and the next interface element each start a new line."""
-		listStyle = ListStyle(separator=NewLine.Add)
+		listStyle = InterfaceListStyle(interfaceListSemicolon=NewLine.Add)
 		style =     VHDLStyle(genericClause=listStyle, portClause=listStyle)
 
 		self.assertEqual(dedent("""\

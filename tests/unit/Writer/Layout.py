@@ -41,7 +41,7 @@ from pyVHDLModel.Base            import Mode
 from pyVHDLModel.Concurrent      import ComponentInstantiation, ConcurrentProcedureCall
 from pyVHDLModel.DesignUnit      import UseClause, Component, Entity, Architecture, Package, PackageBody
 from pyVHDLModel.Expression      import IntegerLiteral
-from pyVHDLModel.Formatting.VHDL import NewLine, ListStyle, VHDLStyle, VHDLWriter
+from pyVHDLModel.Formatting.VHDL import NewLine, InterfaceListStyle, AssociationListStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                         PortSimpleSignalInterfaceItem, ParameterConstantInterfaceItem, \
                                         ParameterVariableInterfaceItem
@@ -62,7 +62,8 @@ if __name__ == "__main__":  # pragma: no cover
 	exit(1)
 
 
-_ONE_LINE = ListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)  #: All elements and parentheses on one line.
+_INTERFACES_ONE_LINE =   InterfaceListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)    #: On one line.
+_ASSOCIATIONS_ONE_LINE = AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)  #: On one line.
 
 
 def _component() -> Component:
@@ -109,7 +110,7 @@ def _call(name: str, *actuals: str) -> IndexedObjectOrFunctionCallSymbol:
 class InterfaceLists(Testcase):
 	def test_PerConstruct(self) -> None:
 		"""The generic clause and the port clause of one component have their own layout."""
-		style = VHDLStyle(genericClause=_ONE_LINE)
+		style = VHDLStyle(genericClause=_INTERFACES_ONE_LINE)
 
 		self.assertEqual(dedent("""\
 			component counter is
@@ -125,7 +126,7 @@ class InterfaceLists(Testcase):
 class AssociationLists(Testcase):
 	def test_PerConstruct(self) -> None:
 		"""The generic map and the port map of one instantiation have their own layout."""
-		style = VHDLStyle(genericMap=_ONE_LINE)
+		style = VHDLStyle(genericMap=_ASSOCIATIONS_ONE_LINE)
 
 		self.assertEqual(dedent("""\
 			u1 : component counter
@@ -137,7 +138,7 @@ class AssociationLists(Testcase):
 			"""), VHDLWriter(style).Format(_instantiation()))
 
 	def test_LeadingComma(self) -> None:
-		style = VHDLStyle(portMap=ListStyle(NewLine.Remove, NewLine.Add))
+		style = VHDLStyle(portMap=AssociationListStyle(NewLine.Remove, NewLine.Add))
 
 		self.assertEqual(dedent("""\
 			u1 : component counter
@@ -160,7 +161,7 @@ class AssociationLists(Testcase):
 			  clk,
 			  limit => 4
 			);
-			"""), VHDLWriter(VHDLStyle(procedureCall=ListStyle())).Format(call))
+			"""), VHDLWriter(VHDLStyle(procedureCall=AssociationListStyle())).Format(call))
 
 
 @skipIf(_GHDL is None, "GHDL is not on PATH.")
@@ -244,20 +245,22 @@ class GHDLOracle(Testcase):
 			)
 		)
 
-		for name, listStyle in (
-			("one line",          _ONE_LINE),
-			("leading separator", ListStyle(NewLine.Remove, NewLine.Add))
+		leadingInterfaces =   InterfaceListStyle(NewLine.Remove, NewLine.Add)
+		leadingAssociations = AssociationListStyle(NewLine.Remove, NewLine.Add)
+		for name, interfaces, associations in (
+			("one line",          _INTERFACES_ONE_LINE, _ASSOCIATIONS_ONE_LINE),
+			("leading separator", leadingInterfaces,    leadingAssociations)
 		):
 			with self.subTest(layout=name):
 				style = VHDLStyle(
-					genericClause=listStyle,
-					portClause=listStyle,
-					subprogramGenericClause=listStyle,
-					parameterList=listStyle,
-					genericMap=listStyle,
-					portMap=listStyle,
-					procedureCall=listStyle,
-					functionCall=listStyle
+					genericClause=interfaces,
+					portClause=interfaces,
+					subprogramGenericClause=interfaces,
+					parameterList=interfaces,
+					genericMap=associations,
+					portMap=associations,
+					procedureCall=associations,
+					functionCall=associations
 				)
 				document = Document(Path("oracle.vhdl"))
 				for designUnit in designUnits:

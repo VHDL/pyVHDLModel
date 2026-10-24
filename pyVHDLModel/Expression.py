@@ -820,7 +820,7 @@ class BitStringLiteral(Literal):
 			return self._binaryValue
 
 		if self._value.startswith("_") or self._value.endswith("_") or "__" in self._value:
-			ex = LiteralError("Bit string literal has a leading, trailing or double underscore.", self)
+			ex = LiteralError("Bit string literal has a leading, trailing or double underscore.", literal=self)
 			ex.add_note(f"Got value '{self}'.")
 			raise ex
 
@@ -829,13 +829,13 @@ class BitStringLiteral(Literal):
 
 		if self._BASE is BitStringBase.Decimal:
 			if self._isSigned is not None:
-				ex = LiteralError("Decimal bit string literal can't be signed or unsigned.", self)
+				ex = LiteralError("Decimal bit string literal can't be signed or unsigned.", literal=self)
 				ex.add_note(f"Got value '{self}'.")
 				raise ex
 
 			for character in simplifiedValue:
 				if character not in "0123456789":
-					ex = LiteralError("Decimal bit string literal contains a character other than a digit.", self)
+					ex = LiteralError("Decimal bit string literal contains a character other than a digit.", literal=self)
 					ex.add_note(f"Got character '{character}' in value '{self}'.")
 					raise ex
 
@@ -848,7 +848,7 @@ class BitStringLiteral(Literal):
 				if character in "0123456789":
 					digit = int(character)
 					if digit >= radix:
-						ex = LiteralError(f"Bit string literal contains a digit not allowed in base {radix}.", self)
+						ex = LiteralError(f"Bit string literal contains a digit not allowed in base {radix}.", literal=self)
 						ex.add_note(f"Got digit '{character}' in value '{self}'.")
 						raise ex
 				elif radix == 16 and character in "abcdefABCDEF":
@@ -857,7 +857,7 @@ class BitStringLiteral(Literal):
 					bitList.append(character * bitsPerDigit)
 					continue
 				else:
-					ex = LiteralError("Bit string literal contains a non-graphic character.", self)
+					ex = LiteralError("Bit string literal contains a non-graphic character.", literal=self)
 					ex.add_note(f"Got value {str(self)!r}.")
 					raise ex
 
@@ -872,7 +872,7 @@ class BitStringLiteral(Literal):
 			if self._isSigned is not True:
 				padding = "0"
 			elif expandedLength == 0:
-				ex = LiteralError("Signed bit string literal with an empty value can't be extended.", self)
+				ex = LiteralError("Signed bit string literal with an empty value can't be extended.", literal=self)
 				ex.add_note(f"Got value '{self}'.")
 				raise ex
 			else:
@@ -891,7 +891,7 @@ class BitStringLiteral(Literal):
 				padding = binaryValue[0]
 
 			if deletedValue != padding * deletedCount:
-				ex = LiteralError(f"Bit string literal's length {self._length} truncates significant characters.", self)
+				ex = LiteralError(f"Bit string literal's length {self._length} truncates significant characters.", literal=self)
 				ex.add_note(f"Got value '{self}' expanded to '{expandedValue}'.")
 				if self._isSigned is True:
 					ex.add_note("Only copies of the leftmost remaining character can be truncated.")

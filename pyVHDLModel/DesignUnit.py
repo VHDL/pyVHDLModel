@@ -266,21 +266,21 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		self._document = None
 
-		self._contextItems = []
-		self._libraryReferences = []
-		self._packageReferences = []
-		self._contextReferences = []
+		self._contextItems = contextItemList = []
+		self._libraryReferences = libraryReferences = []
+		self._packageReferences = packageReferences = []
+		self._contextReferences = contextReferences = []
 
 		if contextItems is not None:
 			for item in contextItems:
-				self._contextItems.append(item)
+				contextItemList.append(item)
 				item.Parent = self
 				if isinstance(item, UseClause):
-					self._packageReferences.append(item)
+					packageReferences.append(item)
 				elif isinstance(item, LibraryClause):
-					self._libraryReferences.append(item)
+					libraryReferences.append(item)
 				elif isinstance(item, ContextReference):
-					self._contextReferences.append(item)
+					contextReferences.append(item)
 
 		self._referencedLibraries = {}
 		self._referencedPackages = {}

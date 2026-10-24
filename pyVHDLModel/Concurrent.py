@@ -122,7 +122,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 
 		:param statements: List of all concurrent statements in this construct.
 		"""
-		self._statements = []
+		self._statements = statementList = []
 
 		self._instantiations =       {}
 		self._hierarchy =            {}
@@ -130,7 +130,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 
 		if statements is not None:
 			for statement in statements:
-				self._statements.append(statement)
+				statementList.append(statement)
 				statement.Parent = self
 
 	@readonly
@@ -913,9 +913,9 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 		if sensitivityList is None:
 			self._sensitivityList = None
 		else:
-			self._sensitivityList = []  # TODO: convert to dict
+			self._sensitivityList = signalSymbols = []  # TODO: convert to dict
 			for signalSymbol in sensitivityList:
-				self._sensitivityList.append(signalSymbol)
+				signalSymbols.append(signalSymbol)
 				# signalSymbol._parent = self  # FIXME: currently str are provided
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -1485,10 +1485,10 @@ class IfGenerateStatement(GenerateStatement):
 		self._ifBranch = ifBranch
 		ifBranch.Parent = self
 
-		self._elsifBranches = []
+		self._elsifBranches = elsifBranchList = []
 		if elsifBranches is not None:
 			for branch in elsifBranches:
-				self._elsifBranches.append(branch)
+				elsifBranchList.append(branch)
 				branch.Parent = self
 
 		if elseBranch is not None:
@@ -1898,10 +1898,10 @@ class CaseGenerateStatement(GenerateStatement):
 		expression.Parent = self
 
 		# TODO: create a mixin for things with cases
-		self._cases = []
+		self._cases = caseList = []
 		if cases is not None:
 			for case in cases:
-				self._cases.append(case)
+				caseList.append(case)
 				case.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:

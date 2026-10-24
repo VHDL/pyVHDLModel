@@ -102,10 +102,10 @@ class WithGenericsMixin(
 
 		:param genericItems: List of all generics, in declaration order.
 		"""
-		self._genericItems = []
+		self._genericItems = genericItemList = []
 		if genericItems is not None:
 			for item in genericItems:
-				self._genericItems.append(item)
+				genericItemList.append(item)
 				item.Parent = self
 
 	@readonly
@@ -448,10 +448,10 @@ class WithPortsMixin(
 
 		:param portItems: List of all ports, in declaration order.
 		"""
-		self._portItems = []
+		self._portItems = portItemList = []
 		if portItems is not None:
 			for item in portItems:
-				self._portItems.append(item)
+				portItemList.append(item)
 				item.Parent = self
 
 	@readonly
@@ -770,10 +770,10 @@ class WithParametersMixin(
 
 		:param parameterItems: List of all parameters, in declaration order.
 		"""
-		self._parameterItems = []
+		self._parameterItems = parameterItemList = []
 		if parameterItems is not None:
 			for item in parameterItems:
-				self._parameterItems.append(item)
+				parameterItemList.append(item)
 				item.Parent = self
 
 	@readonly
@@ -1973,10 +1973,10 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		self._namespace = Namespace(namespaceName, sharesRegionWithParent=sharesRegionWithParent)
 
-		self._declaredItems = []  # TODO: convert to dict
+		self._declaredItems = declaredItemList = []  # TODO: convert to dict
 		if declaredItems is not None:
 			for item in declaredItems:
-				self._declaredItems.append(item)
+				declaredItemList.append(item)
 				item.Parent = self
 
 		self._types =       {}
@@ -2292,10 +2292,10 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		self._namespace = Namespace(namespaceName)
 
-		self._declaredItems = []  # TODO: convert to dict
+		self._declaredItems = declaredItemList = []  # TODO: convert to dict
 		if declaredItems is not None:
 			for item in declaredItems:
-				self._declaredItems.append(item)
+				declaredItemList.append(item)
 				item.Parent = self
 
 		self._types =      {}
@@ -2534,10 +2534,10 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		self._namespace = Namespace(namespaceName)
 
-		self._declaredItems = []  # TODO: convert to dict
+		self._declaredItems = declaredItemList = []  # TODO: convert to dict
 		if declaredItems is not None:
 			for item in declaredItems:
-				self._declaredItems.append(item)
+				declaredItemList.append(item)
 				item.Parent = self
 
 		self._functions =  {}

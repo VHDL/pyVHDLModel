@@ -48,7 +48,7 @@ from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
 from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin, PortMapAspectMixin
 from pyVHDLModel.Base          import ModelElementUnion, ModelEntity, Mode, ReservedWord, SimpleRange, RangeFromName, \
-                                      WaveformElement, ReportStatementMixin
+                                      WaveformElement, ReportStatementMixin, NamedEntityMixin, LabeledEntityMixin
 from pyVHDLModel.Common        import Statement, ProcedureCallMixin, SignalAssignmentMixin, WaveformMixin, \
                                       ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform, \
                                       ConditionalWaveformsMixin, SelectedWaveformsMixin, AssignmentMixin, \
@@ -159,6 +159,22 @@ class NewLine(Enum):
 
 	Add =    0  #: The token starts a new line (VSG: ``add_new_line``).
 	Remove = 1  #: The token continues the line (VSG: ``remove_new_line``).
+
+
+@export
+@unique
+class OptionalItem(Enum):
+	"""
+	An enumeration of actions for an optional item of the written source text, as vhdl-style-guide's option ``action``.
+
+	.. seealso::
+
+	   :ref:`vsg:configuring-optional-items`
+	      |rarr| vhdl-style-guide's option ``action`` of the rules in group ``structure::optional``.
+	"""
+
+	Add =    0  #: The optional item is written (VSG: ``add``).
+	Remove = 1  #: The optional item is not written (VSG: ``remove``).
 
 
 @export
@@ -418,6 +434,8 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 	      |rarr| vhdl-style-guide's options ``indent_style`` and ``indent_size``.
 	   :ref:`vsg:configuring-length-rules`
 	      |rarr| vhdl-style-guide's option ``length``.
+	   :ref:`vsg:configuring-optional-items`
+	      |rarr| vhdl-style-guide's option ``action`` of the end keyword and end name rules.
 	"""
 
 	_keywordCase:             KeywordCase           #: Letter case of reserved words.
@@ -432,6 +450,8 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 	_portMap:                 AssociationListStyle  #: Layout of port map aspects.
 	_procedureCall:           AssociationListStyle  #: Layout of actual parameter parts of procedure calls.
 	_functionCall:            AssociationListStyle  #: Layout of association lists of function calls.
+	_endKeyword:              OptionalItem          #: Reserved words after ``end`` of design units and subprogram bodies.
+	_endName:                 OptionalItem          #: Name or label after ``end``.
 
 	def __init__(
 		self,
@@ -446,7 +466,9 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		genericMap:              Nullable[AssociationListStyle] = None,
 		portMap:                 Nullable[AssociationListStyle] = None,
 		procedureCall:           Nullable[AssociationListStyle] = None,
-		functionCall:            Nullable[AssociationListStyle] = None
+		functionCall:            Nullable[AssociationListStyle] = None,
+		endKeyword:              OptionalItem =                   OptionalItem.Add,
+		endName:                 OptionalItem =                   OptionalItem.Add
 	) -> None:
 		"""
 		Initializes the formatting options.
@@ -474,6 +496,9 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		:param functionCall:            Optional, layout of association lists of function calls. Default:
 		                                ``AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)``, a single
 		                                line.
+		:param endKeyword:              Optional, reserved words after ``end`` of design units and subprogram bodies.
+		                                Default: ``OptionalItem.Add``.
+		:param endName:                 Optional, name or label after ``end``. Default: ``OptionalItem.Add``.
 		:raises ValueError:             If parameter 'keywordCase' is None.
 		:raises TypeError:              If parameter 'keywordCase' is not of type :class:`KeywordCase`.
 		:raises ValueError:             If parameter 'indentStyle' is None.
@@ -492,6 +517,10 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		:raises TypeError:              If parameter 'portMap' is not of type :class:`AssociationListStyle`.
 		:raises TypeError:              If parameter 'procedureCall' is not of type :class:`AssociationListStyle`.
 		:raises TypeError:              If parameter 'functionCall' is not of type :class:`AssociationListStyle`.
+		:raises ValueError:             If parameter 'endKeyword' is None.
+		:raises TypeError:              If parameter 'endKeyword' is not of type :class:`OptionalItem`.
+		:raises ValueError:             If parameter 'endName' is None.
+		:raises TypeError:              If parameter 'endName' is not of type :class:`OptionalItem`.
 		"""
 		if keywordCase is None:
 			raise ValueError("Parameter 'keywordCase' is None.")
@@ -547,6 +576,20 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		singleLine =    AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
 		oneLineIfFits = InterfaceListStyle(ignoreSingleLine=True)
 
+		if endKeyword is None:
+			raise ValueError("Parameter 'endKeyword' is None.")
+		elif not isinstance(endKeyword, OptionalItem):
+			ex = TypeError("Parameter 'endKeyword' is not of type 'OptionalItem'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(endKeyword)}'.")
+			raise ex
+
+		if endName is None:
+			raise ValueError("Parameter 'endName' is None.")
+		elif not isinstance(endName, OptionalItem):
+			ex = TypeError("Parameter 'endName' is not of type 'OptionalItem'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(endName)}'.")
+			raise ex
+
 		self._keywordCase =             keywordCase
 		self._indentStyle =             indentStyle
 		self._indentSize =              indentSize
@@ -559,6 +602,8 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		self._portMap =                 AssociationListStyle() if portMap is None else portMap
 		self._procedureCall =           singleLine if procedureCall is None else procedureCall
 		self._functionCall =            singleLine if functionCall is None else functionCall
+		self._endKeyword =              endKeyword
+		self._endName =                 endName
 
 	@readonly
 	def KeywordCase(self) -> KeywordCase:
@@ -686,6 +731,34 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		:returns: The layout of association lists of function calls.
 		"""
 		return self._functionCall
+
+	@readonly
+	def EndKeyword(self) -> OptionalItem:
+		"""
+		Read-only property to access if the reserved words after ``end`` of design units and subprogram bodies are written
+		(:attr:`_endKeyword`).
+
+		The reserved words are optional after ``end`` of entities, architectures, packages, package bodies,
+		configurations, contexts and subprogram bodies (``end entity`` or ``end``), as vhdl-style-guide's rules
+		``entity_015``, ``architecture_010``, ``package_007``, ``package_body_002``, ``function_018``, ``procedure_012``
+		and ``context_021``. All other ends always have them (``end process``, ``end component``).
+
+		:returns: ``OptionalItem.Add``, if the reserved words are written.
+		"""
+		return self._endKeyword
+
+	@readonly
+	def EndName(self) -> OptionalItem:
+		"""
+		Read-only property to access if the name or label after ``end`` is written (:attr:`_endName`).
+
+		It applies to every end with an identifier or a label (``end entity counter``, ``end process p``), as
+		vhdl-style-guide's rules ``entity_019``, ``architecture_024``, ``component_022``, ``process_018`` or
+		``generate_011``. A statement without label has none.
+
+		:returns: ``OptionalItem.Add``, if the name or label is written.
+		"""
+		return self._endName
 
 
 @export
@@ -2290,42 +2363,51 @@ class VHDLWriter(Visitor):
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.View)} {declaration.Identifier} {self._Keyword(ReservedWord.Of)} ")
 
-	def DepartModeViewDeclaration(self, declaration: ModeViewDeclaration) -> None:
+	def VisitEnd(
+		self,
+		element: Context | Package | PackageBody | Entity | Architecture | Configuration | Component |
+		         ModeViewDeclaration | PhysicalType | RecordType | ProtectedType | ProtectedTypeBody | BlockConfiguration |
+		         ComponentConfiguration | ProcessStatement | ConcurrentBlockStatement | IfGenerateStatement |
+		         CaseGenerateStatement | ForGenerateStatement | IfStatement | CaseStatement | LoopStatement | Subprogram
+	) -> None:
 		"""
-		Write the end of a mode view declaration.
+		Leave the indented body and write the reserved word ``end``, the reserved words of the element and its name.
 
-		:param declaration: The mode view declaration.
-		"""
-		self._WriteEnd((ReservedWord.View,), declaration.Identifier)
+		**Format:** ``end entity counter`` or ``end if``
 
-	def _WriteEnd(self, keywords: tuple[ReservedWord, ...], identifier: Nullable[str]) -> None:
-		"""
-		Leave the indented body and write the reserved word ``end``, the given reserved words and the identifier.
+		The reserved words after ``end`` are the element's ``_END_KEYWORDS``. They are optional after the end of a design
+		unit or a subprogram body and are written there by :attr:`VHDLStyle.EndKeyword`. The identifier or label, if
+		any, is written by :attr:`VHDLStyle.EndName`. A subprogram declaration has no end.
 
-		:param keywords:   The reserved words after ``end``.
-		:param identifier: The identifier or label of the declaration or statement, or ``None`` if it has none.
+		:param element: The element closed by ``end``.
 		"""
-		self._indentation -= 1
-		self._WriteEndLine(keywords, identifier)
+		if isinstance(element, Subprogram) and not self._IsSubprogramBody(element):
+			return
+		elif isinstance(element, ComponentConfiguration):
+			self._Write("\n")
+		elif not isinstance(element, (IfStatement, IfGenerateStatement)):
+			self._indentation -= 1
 
-	def _WriteEndLine(self, keywords: tuple[ReservedWord, ...], identifier: Nullable[str]) -> None:
-		"""
-		Write the reserved word ``end``, the given reserved words and the identifier on a line of the current level.
-
-		:param keywords:   The reserved words after ``end``.
-		:param identifier: The identifier or label of the declaration or statement, or ``None`` if it has none.
-		"""
 		self._WriteIndentation()
-		if identifier is None:
-			self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keywords(keywords)};\n")
+		self._Write(self._Keyword(ReservedWord.End))
+		if not isinstance(element, (DesignUnit, Subprogram)) or self._style.EndKeyword is OptionalItem.Add:
+			self._Write(f" {self._Keywords(element._END_KEYWORDS)}")
+
+		if isinstance(element, LabeledEntityMixin):
+			name = element.Label
+		elif isinstance(element, NamedEntityMixin):
+			name = element.Identifier
 		else:
-			self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keywords(keywords)} {identifier};\n")
+			name = None
+
+		if name is not None and self._style.EndName is OptionalItem.Add:
+			self._Write(f" {name}")
 
 	def VisitTerminator(self, element: ModelEntity) -> None:
 		"""
-		Write the semicolon ending a declaration, a statement or a context item, and end the line.
+		Write the semicolon ending a declaration, a statement, a context item or a design unit, and end the line.
 
-		:param element: The declaration, statement or context item.
+		:param element: The declaration, statement, context item or design unit.
 		"""
 		self._Write(";\n")
 
@@ -2366,14 +2448,6 @@ class VHDLWriter(Visitor):
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Component)} {component.Identifier} {self._Keyword(ReservedWord.Is)}\n")
 		self._indentation += 1
-
-	def DepartComponent(self, component: Component) -> None:
-		"""
-		Write the end of a component declaration.
-
-		:param component: The component declaration.
-		"""
-		self._WriteEnd((ReservedWord.Component,), component.Identifier)
 
 	def VisitBox(self, arrayType: ArrayType) -> None:
 		"""
@@ -2542,11 +2616,10 @@ class VHDLWriter(Visitor):
 
 	def DepartPhysicalType(self, physicalType: PhysicalType) -> None:
 		"""
-		Write the end of the units of a physical type declaration.
+		Leave the indentation level of the units of a physical type declaration.
 
 		:param physicalType: The physical type.
 		"""
-		self._WriteEnd((ReservedWord.Units,), physicalType.Identifier)
 		self._indentation -= 1
 
 	def VisitArrayType(self, arrayType: ArrayType) -> None:
@@ -2571,14 +2644,6 @@ class VHDLWriter(Visitor):
 		self._WriteTypeHeader(recordType)
 		self._Write(f"{self._Keyword(ReservedWord.Record)}\n")
 		self._indentation += 1
-
-	def DepartRecordType(self, recordType: RecordType) -> None:
-		"""
-		Write the end of a record type declaration.
-
-		:param recordType: The record type.
-		"""
-		self._WriteEnd((ReservedWord.Record,), recordType.Identifier)
 
 	def VisitRecordTypeElement(self, element: RecordTypeElement) -> None:
 		"""
@@ -2799,17 +2864,6 @@ class VHDLWriter(Visitor):
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Procedure)} {procedure.Identifier}")
 
-	def DepartProcedure(self, procedure: Procedure) -> None:
-		"""
-		Write the semicolon ending a procedure declaration, or the end of a procedure body.
-
-		:param procedure: The procedure.
-		"""
-		if self._IsSubprogramBody(procedure):
-			self._WriteEnd((ReservedWord.Procedure,), procedure.Identifier)
-		else:
-			self._Write(";\n")
-
 	def VisitFunction(self, function: Function) -> None:
 		"""
 		Write the reserved word ``impure``, if impure, ``function`` and the designator of a function declaration or body.
@@ -2833,17 +2887,6 @@ class VHDLWriter(Visitor):
 			self._Write(f"{self._Keyword(ReservedWord.Impure)} ")
 
 		self._Write(f"{self._Keyword(ReservedWord.Function)} {function.Identifier}")
-
-	def DepartFunction(self, function: Function) -> None:
-		"""
-		Write the semicolon ending a function declaration, or the end of a function body.
-
-		:param function: The function.
-		"""
-		if self._IsSubprogramBody(function):
-			self._WriteEnd((ReservedWord.Function,), function.Identifier)
-		else:
-			self._Write(";\n")
 
 	def VisitGenericProcedureInterfaceItem(self, item: GenericProcedureInterfaceItem) -> None:
 		"""
@@ -2902,14 +2945,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keyword(ReservedWord.Protected)}\n")
 		self._indentation += 1
 
-	def DepartProtectedType(self, protectedType: ProtectedType) -> None:
-		"""
-		Write the end of a protected type declaration.
-
-		:param protectedType: The protected type.
-		"""
-		self._WriteEnd((ReservedWord.Protected,), protectedType.Identifier)
-
 	def VisitProtectedTypeBody(self, body: ProtectedTypeBody) -> None:
 		"""
 		Write the header of a protected type body; its declared items are indented.
@@ -2921,14 +2956,6 @@ class VHDLWriter(Visitor):
 		self._WriteTypeHeader(body)
 		self._Write(f"{self._Keyword(ReservedWord.Protected)} {self._Keyword(ReservedWord.Body)}\n")
 		self._indentation += 1
-
-	def DepartProtectedTypeBody(self, body: ProtectedTypeBody) -> None:
-		"""
-		Write the end of a protected type body.
-
-		:param body: The protected type body.
-		"""
-		self._WriteEnd((ReservedWord.Protected, ReservedWord.Body), body.Identifier)
 
 	def VisitPortMapAspect(self, element: PortMapAspectMixin) -> None:
 		"""
@@ -3022,14 +3049,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keywords(keywords)} {identifier} {self._Keyword(ReservedWord.Is)}\n")
 		self._indentation += 1
 
-	def DepartContext(self, context: Context) -> None:
-		"""
-		Write the end of a context declaration.
-
-		:param context: The context declaration.
-		"""
-		self._WriteEnd((ReservedWord.Context,), context.Identifier)
-
 	def VisitPackage(self, package: Package) -> None:
 		"""
 		Write the header of a package declaration; its generic clause and declared items are indented.
@@ -3040,14 +3059,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteUnitHeader((ReservedWord.Package,), package.Identifier)
 
-	def DepartPackage(self, package: Package) -> None:
-		"""
-		Write the end of a package declaration.
-
-		:param package: The package declaration.
-		"""
-		self._WriteEnd((ReservedWord.Package,), package.Identifier)
-
 	def VisitPackageBody(self, body: PackageBody) -> None:
 		"""
 		Write the header of a package body; its declared items are indented.
@@ -3057,14 +3068,6 @@ class VHDLWriter(Visitor):
 		:param body: The package body.
 		"""
 		self._WriteUnitHeader((ReservedWord.Package, ReservedWord.Body), body.Identifier)
-
-	def DepartPackageBody(self, body: PackageBody) -> None:
-		"""
-		Write the end of a package body.
-
-		:param body: The package body.
-		"""
-		self._WriteEnd((ReservedWord.Package, ReservedWord.Body), body.Identifier)
 
 	def VisitPackageInstantiation(self, instantiation: PackageInstantiation) -> None:
 		"""
@@ -3088,14 +3091,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteUnitHeader((ReservedWord.Entity,), entity.Identifier)
 
-	def DepartEntity(self, entity: Entity) -> None:
-		"""
-		Write the end of an entity declaration.
-
-		:param entity: The entity declaration.
-		"""
-		self._WriteEnd((ReservedWord.Entity,), entity.Identifier)
-
 	def VisitArchitecture(self, architecture: Architecture) -> None:
 		"""
 		Write the reserved word ``architecture``, the identifier and the reserved word ``of`` of an architecture body.
@@ -3108,14 +3103,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keyword(ReservedWord.Architecture)} {architecture.Identifier} ")
 		self._Write(f"{self._Keyword(ReservedWord.Of)} ")
 
-	def DepartArchitecture(self, architecture: Architecture) -> None:
-		"""
-		Write the end of an architecture body.
-
-		:param architecture: The architecture body.
-		"""
-		self._WriteEnd((ReservedWord.Architecture,), architecture.Identifier)
-
 	def VisitConfiguration(self, configuration: Configuration) -> None:
 		"""
 		Write the reserved word ``configuration``, the identifier and the reserved word ``of`` of a configuration.
@@ -3127,14 +3114,6 @@ class VHDLWriter(Visitor):
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Configuration)} {configuration.Identifier} ")
 		self._Write(f"{self._Keyword(ReservedWord.Of)} ")
-
-	def DepartConfiguration(self, configuration: Configuration) -> None:
-		"""
-		Write the end of a configuration declaration.
-
-		:param configuration: The configuration declaration.
-		"""
-		self._WriteEnd((ReservedWord.Configuration,), configuration.Identifier)
 
 	def VisitBlockConfiguration(self, configuration: BlockConfiguration) -> None:
 		"""
@@ -3156,16 +3135,6 @@ class VHDLWriter(Visitor):
 		self._Write("\n")
 		self._indentation += 1
 
-	def DepartBlockConfiguration(self, configuration: BlockConfiguration) -> None:
-		"""
-		Write the end of a block configuration.
-
-		:param configuration: The block configuration.
-		"""
-		self._indentation -= 1
-		self._WriteIndentation()
-		self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keyword(ReservedWord.For)};\n")
-
 	def VisitComponentConfiguration(self, configuration: ComponentConfiguration) -> None:
 		"""
 		Write the reserved word ``for`` of a component configuration.
@@ -3184,16 +3153,6 @@ class VHDLWriter(Visitor):
 		:param configuration: The component configuration.
 		"""
 		self._Write(" : ")
-
-	def DepartComponentConfiguration(self, configuration: ComponentConfiguration) -> None:
-		"""
-		Write the end of a component configuration on its own line.
-
-		:param configuration: The component configuration.
-		"""
-		self._Write("\n")
-		self._WriteIndentation()
-		self._Write(f"{self._Keyword(ReservedWord.End)} {self._Keyword(ReservedWord.For)};\n")
 
 	def VisitBindingIndication(self, indication: BindingIndication) -> None:
 		"""
@@ -3420,14 +3379,6 @@ class VHDLWriter(Visitor):
 		if statement.Label is not None:
 			self._Write(f"{statement.Label} : ")
 
-	def DepartProcessStatement(self, process: ProcessStatement) -> None:
-		"""
-		Write the end of a process statement.
-
-		:param process: The process.
-		"""
-		self._WriteEnd((ReservedWord.Process,), process.Label)
-
 	def VisitConcurrentProcedureCall(self, call: ConcurrentProcedureCall) -> None:
 		"""
 		Write the label, if any, of a concurrent procedure call.
@@ -3560,14 +3511,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keyword(ReservedWord.Block)}\n")
 		self._indentation += 1
 
-	def DepartConcurrentBlockStatement(self, block: ConcurrentBlockStatement) -> None:
-		"""
-		Write the end of a block statement.
-
-		:param block: The block statement.
-		"""
-		self._WriteEnd((ReservedWord.Block,), block.Label)
-
 	def VisitIfGenerateStatement(self, statement: IfGenerateStatement) -> None:
 		"""
 		Write the label of an if-generate statement; its branches follow.
@@ -3581,14 +3524,6 @@ class VHDLWriter(Visitor):
 			raise VHDLWriterError("If-generate statement has no label.", statement)
 
 		self._WriteStatementStart(statement)
-
-	def DepartIfGenerateStatement(self, statement: IfGenerateStatement) -> None:
-		"""
-		Write the end of an if-generate statement.
-
-		:param statement: The if-generate statement.
-		"""
-		self._WriteEndLine((ReservedWord.Generate,), statement.Label)
 
 	def VisitIfGenerateBranch(self, branch: IfGenerateBranch) -> None:
 		"""
@@ -3671,14 +3606,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keyword(ReservedWord.Case)} ")
 		self._minimum = OperatorPrecedence.Range
 
-	def DepartCaseGenerateStatement(self, statement: CaseGenerateStatement) -> None:
-		"""
-		Write the end of a case-generate statement.
-
-		:param statement: The case-generate statement.
-		"""
-		self._WriteEnd((ReservedWord.Generate,), statement.Label)
-
 	def VisitGenerateCase(self, case: GenerateCase) -> None:
 		"""
 		Write the reserved word ``when`` and the alternative label, if any, of an alternative of a case-generate statement.
@@ -3748,14 +3675,6 @@ class VHDLWriter(Visitor):
 		self._WriteStatementStart(statement)
 		self._Write(f"{self._Keyword(ReservedWord.For)} {statement.LoopIndex} {self._Keyword(ReservedWord.In)} ")
 		self._minimum = OperatorPrecedence.Range
-
-	def DepartForGenerateStatement(self, statement: ForGenerateStatement) -> None:
-		"""
-		Write the end of a for-generate statement.
-
-		:param statement: The for-generate statement.
-		"""
-		self._WriteEnd((ReservedWord.Generate,), statement.Label)
 
 	def VisitOn(self, statement: WaitStatement) -> None:
 		"""
@@ -3977,14 +3896,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteStatementStart(statement)
 
-	def DepartIfStatement(self, statement: IfStatement) -> None:
-		"""
-		Write the end of an if statement.
-
-		:param statement: The if statement.
-		"""
-		self._WriteEndLine((ReservedWord.If,), statement.Label)
-
 	def VisitIfBranch(self, branch: IfBranch) -> None:
 		"""
 		Write the reserved word ``if`` of the if branch of an if statement.
@@ -4050,14 +3961,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keyword(ReservedWord.Case)} ")
 		self._minimum = OperatorPrecedence.Range
 
-	def DepartCaseStatement(self, statement: CaseStatement) -> None:
-		"""
-		Write the end of a case statement.
-
-		:param statement: The case statement.
-		"""
-		self._WriteEnd((ReservedWord.Case,), statement.Label)
-
 	def VisitCase(self, case: Case) -> None:
 		"""
 		Write the reserved word ``when`` of an alternative of a case statement.
@@ -4106,14 +4009,6 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteStatementStart(statement)
 
-	def DepartEndlessLoopStatement(self, statement: EndlessLoopStatement) -> None:
-		"""
-		Write the end of a loop statement without iteration scheme.
-
-		:param statement: The loop statement.
-		"""
-		self._WriteEnd((ReservedWord.Loop,), statement.Label)
-
 	def VisitForLoopStatement(self, statement: ForLoopStatement) -> None:
 		"""
 		Write the label, if any, the reserved word ``for``, the loop index and ``in`` of a for-loop statement.
@@ -4126,14 +4021,6 @@ class VHDLWriter(Visitor):
 		self._Write(f"{self._Keyword(ReservedWord.For)} {statement.LoopIndex} {self._Keyword(ReservedWord.In)} ")
 		self._minimum = OperatorPrecedence.Range
 
-	def DepartForLoopStatement(self, statement: ForLoopStatement) -> None:
-		"""
-		Write the end of a for-loop statement.
-
-		:param statement: The loop statement.
-		"""
-		self._WriteEnd((ReservedWord.Loop,), statement.Label)
-
 	def VisitWhileLoopStatement(self, statement: WhileLoopStatement) -> None:
 		"""
 		Write the label, if any, and the reserved word ``while`` of a while-loop statement.
@@ -4145,14 +4032,6 @@ class VHDLWriter(Visitor):
 		self._WriteStatementStart(statement)
 		self._Write(f"{self._Keyword(ReservedWord.While)} ")
 		self._minimum = OperatorPrecedence.Range
-
-	def DepartWhileLoopStatement(self, statement: WhileLoopStatement) -> None:
-		"""
-		Write the end of a while-loop statement.
-
-		:param statement: The loop statement.
-		"""
-		self._WriteEnd((ReservedWord.Loop,), statement.Label)
 
 	def VisitNextStatement(self, statement: NextStatement) -> None:
 		"""

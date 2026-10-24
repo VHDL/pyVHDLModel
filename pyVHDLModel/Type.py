@@ -36,14 +36,15 @@ Types.
 """
 from __future__             import annotations
 
-from typing                 import TYPE_CHECKING, Union, Iterator, Iterable, Optional as Nullable, Self
+from typing                 import TYPE_CHECKING, ClassVar, Union, Iterator, Iterable, Optional as Nullable, Self
 
 from pyTooling.Common       import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyTooling.Graph        import Vertex
 
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, Range
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
+                                   Range, ReservedWord
 from pyVHDLModel.Exception  import NotAChildError
 from pyVHDLModel.Symbol     import Symbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
@@ -569,6 +570,8 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 	      --^^^^^^^^^^^^^                             <- SecondaryUnits[1]
 	      end units;
 	"""
+
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Units,)  #: Reserved words after ``end``.
 	_primaryUnit:    str                                       #: The name of the type's primary unit.
 	_secondaryUnits: list[tuple[str, PhysicalIntegerLiteral]]  #: Secondary units as (name, value) pairs.
 
@@ -632,6 +635,8 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 			value.Visit(visitor)
 			visitor.DepartSecondaryUnitDeclaration(self, identifier)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartPhysicalType(self)
 
 	def __str__(self) -> str:
@@ -892,6 +897,8 @@ class RecordType(CompositeType):
 	   * :class:`Record element <pyVHDLModel.Type.RecordTypeElement>`
 	   * :class:`Reference to a record element <pyVHDLModel.Symbol.RecordElementSymbol>`
 	"""
+
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Record,)  #: Reserved words after ``end``.
 	_elements: list[RecordTypeElement]  #: List of all element declarations, in declaration order.
 
 	def __init__(self, identifier: str, elements: Nullable[Iterable[RecordTypeElement]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
@@ -978,6 +985,8 @@ class RecordType(CompositeType):
 		for element in self._elements:
 			element.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartRecordType(self)
 
 	def __str__(self) -> str:
@@ -1021,6 +1030,8 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 	   * :class:`Protected type body <pyVHDLModel.Type.ProtectedTypeBody>`
 	   * :class:`Method of a protected type <pyVHDLModel.Subprogram.ProcedureMethod>`
 	"""
+
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Protected,)  #: Reserved words after ``end``.
 	def __init__(self, identifier: str, declaredItems: Union[list, Iterator] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a protected type declaration.
@@ -1041,6 +1052,8 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 		"""
 		visitor.VisitProtectedType(self)
 		self._VisitDeclaredItems(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartProtectedType(self)
 
 	@readonly
@@ -1089,6 +1102,8 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 
 	   * :class:`Protected type declaration <pyVHDLModel.Type.ProtectedType>`
 	"""
+
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Protected, ReservedWord.Body)  #: Reserved words after ``end``.
 	def __init__(self, identifier: str, declaredItems: Union[list, Iterator] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a protected type body.
@@ -1109,6 +1124,8 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 		"""
 		visitor.VisitProtectedTypeBody(self)
 		self._VisitDeclaredItems(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartProtectedTypeBody(self)
 
 	# FIXME: needs to be declared items or so

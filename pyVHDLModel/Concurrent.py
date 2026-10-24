@@ -36,7 +36,7 @@ Concurrent defines all concurrent statements used in entities, architectures, ge
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, Union, Iterable, Generator, Optional as Nullable
+from typing                  import TYPE_CHECKING, ClassVar, Union, Iterable, Generator, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
@@ -44,7 +44,7 @@ from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, \
                                     BaseCase, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, \
-                                    BlockStatementMixin, WaveformElement, ChoicesMixin
+                                    BlockStatementMixin, WaveformElement, ChoicesMixin, ReservedWord
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
 from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
                                     WithGenericsMixin, WithPortsMixin
@@ -886,6 +886,8 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 	        end process;
 	"""
 
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Process,)  #: Reserved words after ``end``.
+
 	# TODO: implement a SignalSymbol
 	_sensitivityList: list[Name]  #: List of all signal names in the sensitivity list, or ``None`` if none was given.
 
@@ -942,6 +944,8 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 		self._VisitDeclaredItems(visitor)
 		visitor.VisitBegin(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartProcessStatement(self)
 
 	@ConcurrentStatement.Parent.setter
@@ -1067,6 +1071,8 @@ class ConcurrentBlockStatement(
 
 	   * :class:`Generate statement <pyVHDLModel.Concurrent.GenerateStatement>`
 	"""
+
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Block,)  #: Reserved words after ``end``.
 	def __init__(
 		self,
 		label:                   str,
@@ -1124,6 +1130,8 @@ class ConcurrentBlockStatement(
 		self._VisitDeclaredItems(visitor)
 		visitor.VisitBegin(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartConcurrentBlockStatement(self)
 
 	@ConcurrentStatement.Parent.setter
@@ -1401,6 +1409,8 @@ class GenerateStatement(ConcurrentStatement, AllowBlackboxMixin):
 	   * :class:`For generate statement <pyVHDLModel.Concurrent.ForGenerateStatement>`
 	"""
 
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Generate,)  #: Reserved words after ``end``.
+
 	def __init__(
 		self,
 		label:         Nullable[str] = None,
@@ -1515,6 +1525,8 @@ class IfGenerateStatement(GenerateStatement):
 		if self._elseBranch is not None:
 			self._elseBranch.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartIfGenerateStatement(self)
 
 	@GenerateStatement.Parent.setter
@@ -1920,6 +1932,8 @@ class CaseGenerateStatement(GenerateStatement):
 		for case in self._cases:
 			case.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartCaseGenerateStatement(self)
 
 	@GenerateStatement.Parent.setter
@@ -2032,6 +2046,8 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 		self._VisitDeclaredItems(visitor)
 		visitor.VisitBegin(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartForGenerateStatement(self)
 
 	@GenerateStatement.Parent.setter

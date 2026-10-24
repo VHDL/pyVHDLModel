@@ -46,7 +46,7 @@ from pyTooling.Graph           import Vertex
 from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Exception     import VHDLModelException, AlreadyInDesignError, NotAChildError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
-                                      normalizedIdentifiersOf
+                                      normalizedIdentifiersOf, ReservedWord
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin, \
                                       WithoutStatementsMixin
@@ -658,6 +658,8 @@ class Context(PrimaryUnit):
 	   * :class:`Use clause <pyVHDLModel.DesignUnit.UseClause>`
 	"""
 
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Context,)  #: Reserved words after ``end``.
+
 	def __init__(self, identifier: str, references: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a context declaration.
@@ -723,6 +725,8 @@ class Context(PrimaryUnit):
 		for item in self._contextItems:
 			item.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartContext(self)
 
 	def __str__(self) -> str:
@@ -764,6 +768,8 @@ class Package(
 	   * :class:`Predefined package <pyVHDLModel.Predefined.PredefinedPackage>`
 	   * :class:`Package body implementing it <pyVHDLModel.DesignUnit.PackageBody>`
 	"""
+
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Package,)  #: Reserved words after ``end``.
 
 	_packageBody:       Nullable[PackageBody]        #: The corresponding package body, or ``None`` if none was analyzed.
 
@@ -882,6 +888,8 @@ class Package(
 		visitor.VisitPackage(self)
 		self._VisitGenericClause(visitor)
 		self._VisitDeclaredItems(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartPackage(self)
 
 	def __str__(self) -> str:
@@ -949,6 +957,8 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 	   * :class:`Predefined package body <pyVHDLModel.Predefined.PredefinedPackageBody>`
 	   * :class:`Package it implements <pyVHDLModel.DesignUnit.Package>`
 	"""
+
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Package, ReservedWord.Body)  #: Reserved words after ``end``.
 
 	_CONTINUES_PARENT_REGION: ClassVar[bool] = True  #: A package body continues its package's declarative region.
 
@@ -1019,6 +1029,8 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		self._VisitContextClause(visitor)
 		visitor.VisitPackageBody(self)
 		self._VisitDeclaredItems(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartPackageBody(self)
 
 	def __str__(self) -> str:
@@ -1065,6 +1077,8 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 	   * :class:`Component declaring the same interface <pyVHDLModel.DesignUnit.Component>`
 	   * :class:`Configuration binding it <pyVHDLModel.DesignUnit.Configuration>`
 	"""
+
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Entity,)  #: Reserved words after ``end``.
 
 	_architectures: dict[str, Architecture]  #: Dictionary of all architectures of this entity, indexed by name.
 
@@ -1127,6 +1141,8 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		self._VisitDeclaredItems(visitor)
 		visitor.VisitBegin(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartEntity(self)
 
 	def __str__(self) -> str:
@@ -1208,6 +1224,8 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 	   * :class:`Entity it implements <pyVHDLModel.DesignUnit.Entity>`
 	"""
 
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Architecture,)  #: Reserved words after ``end``.
+
 	_CONTINUES_PARENT_REGION: ClassVar[bool] = True  #: An architecture continues its entity's declarative region.
 
 	_entity:                EntitySymbol           #: Reference to the entity this architecture implements.
@@ -1268,6 +1286,8 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		self._VisitDeclaredItems(visitor)
 		visitor.VisitBegin(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartArchitecture(self)
 
 	def __str__(self) -> str:
@@ -1332,6 +1352,8 @@ class Component(
 	   * :class:`Component configuration <pyVHDLModel.Configuration.ComponentConfiguration>`
 	"""
 
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Component,)  #: Reserved words after ``end``.
+
 	_isBlackbox: Nullable[bool]    #: Component is a blackbox.
 	_entity:     Nullable[Entity]  #: Linked entity, or ``None`` if unresolved.
 
@@ -1373,6 +1395,8 @@ class Component(
 		visitor.VisitComponent(self)
 		self._VisitGenericClause(visitor)
 		self._VisitPortClause(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartComponent(self)
 
 	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
@@ -1470,6 +1494,8 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 	   * :class:`Block configuration <pyVHDLModel.Configuration.BlockConfiguration>`
 	"""
 
+	_END_KEYWORDS: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Configuration,)  #: Reserved words after ``end``.
+
 	_entity:             EntitySymbol        #: Reference to the entity this configuration configures.
 	_blockConfiguration: BlockConfiguration  #: The configuration of the entity's architecture.
 	_namespace:          Namespace           #: The namespace of this configuration's declarative region.
@@ -1533,6 +1559,8 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 		self._entity.Visit(visitor)
 		visitor.VisitIs(self)
 		self._blockConfiguration.Visit(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartConfiguration(self)
 
 	def __str__(self) -> str:

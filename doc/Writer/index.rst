@@ -47,10 +47,10 @@ event named after the token, e.g. ``VisitArrow`` for ``=>``. A separator is repo
 it separates, so the writer can lay out each kind of list on its own (see :ref:`WRITER/separators`). A part of an
 element, which is not a model element itself, is reported by an event pair named after its production in
 IEEE Std 1076-2008, e.g. ``VisitGenericClause`` and ``DepartGenericClause`` around the generics of a component. The
-semicolon ending a declaration, a statement or a context item is reported by ``VisitTerminator`` before
-``Depart<Class>``. The writer appends the text of each event to a buffer, which
-:meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format` returns. A parser's subclass of a model class inherits the walk
-of that model class, so it's written like that model class.
+``end`` of an element and the semicolon ending a declaration, a statement, a context item or a design unit are reported
+by ``VisitEnd`` and ``VisitTerminator`` before ``Depart<Class>`` (see :ref:`WRITER/ends`). The writer appends the text
+of each event to a buffer, which :meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format` returns. A parser's subclass
+of a model class inherits the walk of that model class, so it's written like that model class.
 
 An element of a class without a walk of its own raises :exc:`NotImplementedError` when it is visited. The writer raises
 :exc:`~pyVHDLModel.Exception.VHDLWriterError` for an element without VHDL notation, e.g. a string literal containing a
@@ -107,6 +107,21 @@ Formatting Options
    Maximum line length of a list written on a single line, as vhdl-style-guide's option ``length`` of rule
    ``length_001`` (default: ``120``). A tab counts as ``indentSize`` characters. The writer wraps no other lines. See
    vhdl-style-guide's :ref:`vsg:configuring-length-rules`.
+
+``endKeyword``
+   Reserved words after ``end`` of entities, architectures, packages, package bodies, configurations, contexts and
+   subprogram bodies, as vhdl-style-guide's option ``action`` of the rules ``entity_015``, ``architecture_010``,
+   ``package_007``, ``package_body_002``, ``function_018``, ``procedure_012`` and ``context_021``:
+   :attr:`~pyVHDLModel.Formatting.VHDL.OptionalItem.Add` (default, ``add``: ``end entity counter``) or
+   :attr:`~pyVHDLModel.Formatting.VHDL.OptionalItem.Remove` (``remove``: ``end counter``). The reserved words after
+   ``end`` of other elements are required (``end component``, ``end process``, ``end if``). See vhdl-style-guide's
+   :ref:`vsg:configuring-optional-items`.
+
+``endName``
+   Identifier or label after ``end``, as vhdl-style-guide's option ``action`` of the rules ``entity_019``,
+   ``architecture_024``, ``component_022``, ``process_018``, ``generate_011`` and others:
+   :attr:`~pyVHDLModel.Formatting.VHDL.OptionalItem.Add` (default: ``end process count``) or
+   :attr:`~pyVHDLModel.Formatting.VHDL.OptionalItem.Remove` (``end process``). A statement without label has none.
 
 .. code-block:: Python
 
@@ -261,6 +276,35 @@ and ``VisitRightParenthesis`` enclose a single item, which is no list: the opera
 architecture name of an entity aspect.
 
 
+.. _WRITER/ends:
+
+Ends and Terminators
+********************
+
+An element closed by ``end`` reports ``VisitEnd`` after its last child, a declaration, a statement, a context item or a
+design unit reports ``VisitTerminator`` for its semicolon; both come before ``Depart<Class>``. The reserved words after
+``end`` are the class constant ``_END_KEYWORDS`` of the element's class, e.g. ``(ReservedWord.Package,
+ReservedWord.Body)`` of :class:`~pyVHDLModel.DesignUnit.PackageBody`. The writer writes them by the options
+``endKeyword`` and ``endName`` (:ref:`WRITER/style`):
+
+.. code-block:: VHDL
+
+   -- default
+   end package body utilities;
+   end process count;
+
+   -- endKeyword=OptionalItem.Remove
+   end utilities;
+   end process count;
+
+   -- endName=OptionalItem.Remove
+   end package body;
+   end process;
+
+A subprogram reports ``VisitEnd`` whether it's written as a body or as a declaration; a declaration has no end. A
+block configuration and a component configuration end with ``end for;``, which has no name.
+
+
 .. _WRITER/parentheses:
 
 Parentheses
@@ -326,7 +370,7 @@ Declarations
 
 A declaration is written on its own line, indented by its nesting level, and ends with a newline. A declaration
 containing other items (e.g. a component declaration) writes each item on its own line, indented one level deeper, and
-ends with ``end``, the reserved word of the declaration and its identifier:
+ends with ``end``, the reserved word of the declaration and, by default, its identifier (:ref:`WRITER/ends`):
 
 .. code-block:: VHDL
 
@@ -432,8 +476,8 @@ use clauses and context references), followed by a blank line.
    end architecture rtl;
 
 Entities, architectures, packages, package bodies, package instantiations, context declarations and configurations are
-written with ``end``, the reserved words of the design unit and its identifier. An entity without statements has no
-``begin``.
+written with ``end`` and, by default, the reserved words of the design unit and its identifier (:ref:`WRITER/ends`).
+An entity without statements has no ``begin``.
 
 A configuration writes its block configuration, nested block configurations and component configurations, each ending
 with ``end for;``. A binding indication (``use entity work.sub(rtl)``) and its map aspects are indented one level deeper
@@ -516,8 +560,8 @@ Other statements
 Compound statements
    If statements with their branches, case statements with their alternatives, and loops (for, while and without
    iteration scheme) write the statements they contain on their own lines, indented one level deeper, and end with
-   ``end if``, ``end case`` or ``end loop`` and the label, if any. Next and exit statements are written with their
-   condition, if any; the model keeps no loop label for them, so none is written.
+   ``end if``, ``end case`` or ``end loop`` and, by default, the label, if any. Next and exit statements are written
+   with their condition, if any; the model keeps no loop label for them, so none is written.
 
 .. code-block:: VHDL
 

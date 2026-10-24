@@ -35,7 +35,7 @@ from pyTooling.Testing           import Testcase
 from pyVHDLModel.Expression      import AndExpression, EnumerationLiteral, FunctionCall, IntegerLiteral, \
                                         InverseExpression, ModuloExpression, NullLiteral, OrExpression
 from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, NewLine, ListStyle, InterfaceListStyle, \
-                                        AssociationListStyle, VHDLStyle, VHDLWriter
+                                        AssociationListStyle, OptionalItem, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, OpenName
 from pyVHDLModel.Symbol          import ConstrainedCompositeSubtypeSymbol
 from pyVHDLModel.Visitor         import Visitor
@@ -279,6 +279,44 @@ class Styles(Testcase):
 			VHDLStyle(functionCall=InterfaceListStyle())
 
 		self.assertEqual("Parameter 'functionCall' is not of type 'AssociationListStyle'.", str(context.exception))
+
+	def test_Default_Ends(self) -> None:
+		style = VHDLStyle()
+
+		self.assertIs(OptionalItem.Add, style.EndKeyword)
+		self.assertIs(OptionalItem.Add, style.EndName)
+
+	def test_EndKeyword(self) -> None:
+		self.assertIs(OptionalItem.Remove, VHDLStyle(endKeyword=OptionalItem.Remove).EndKeyword)
+
+	def test_EndKeyword_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			VHDLStyle(endKeyword=None)
+
+		self.assertEqual("Parameter 'endKeyword' is None.", str(context.exception))
+
+	def test_EndKeyword_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(endKeyword="remove")
+
+		self.assertEqual("Parameter 'endKeyword' is not of type 'OptionalItem'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_EndName(self) -> None:
+		self.assertIs(OptionalItem.Remove, VHDLStyle(endName=OptionalItem.Remove).EndName)
+
+	def test_EndName_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			VHDLStyle(endName=None)
+
+		self.assertEqual("Parameter 'endName' is None.", str(context.exception))
+
+	def test_EndName_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(endName="remove")
+
+		self.assertEqual("Parameter 'endName' is not of type 'OptionalItem'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
 
 class InterfaceListStyles(Testcase):

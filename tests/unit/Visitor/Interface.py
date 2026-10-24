@@ -143,6 +143,8 @@ class Components(Testcase):
 			("DepartSymbol",                        output.Subtype),
 			("DepartPortSimpleSignalInterfaceItem", output),
 			("DepartPortClause",                    component),
+			("VisitEnd",                            component),
+			("VisitTerminator",                     component),
 			("DepartComponent",                     component),
 		], recorder.Events)
 
@@ -153,7 +155,12 @@ class Components(Testcase):
 
 		component.Visit(recorder)
 
-		self.assertEqual([("VisitComponent", component), ("DepartComponent", component)], recorder.Events)
+		self.assertEqual([
+			("VisitComponent",  component),
+			("VisitEnd",        component),
+			("VisitTerminator", component),
+			("DepartComponent", component),
+		], recorder.Events)
 
 
 class ModeViews(Testcase):
@@ -184,5 +191,7 @@ class ModeViews(Testcase):
 			("DepartSymbol",                   view),
 			("VisitTerminator",                composite),
 			("DepartCompositeModeViewElement", composite),
+			("VisitEnd",                       declaration),
+			("VisitTerminator",                declaration),
 			("DepartModeViewDeclaration",      declaration),
 		], recorder.Events)

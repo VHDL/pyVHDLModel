@@ -57,8 +57,11 @@ element and then its children in source order as events to the visitor. A parser
    belong to the events of its element or part (e.g. ``VisitIndexList`` and ``DepartIndexList``);
    ``VisitLeftParenthesis`` and ``VisitRightParenthesis`` enclose a single item, which is no list.
 
-``VisitTerminator(element)``
-   The walk passes the semicolon ending a declaration, a statement or a context item, before ``Depart<Class>``.
+``VisitEnd(element)`` and ``VisitTerminator(element)``
+   The walk passes the end of an element, before ``Depart<Class>``: ``VisitEnd`` the ``end`` of an element closed by
+   ``end`` and its reserved words (e.g. ``end entity counter``), ``VisitTerminator`` the semicolon ending a declaration,
+   a statement, a context item or a design unit. The reserved words after ``end`` are the class constant
+   ``_END_KEYWORDS`` of the element's class.
 """
 from __future__                  import annotations
 
@@ -315,11 +318,27 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The element.
 		"""
 
+	def VisitEnd(
+		self,
+		element: Context | Package | PackageBody | Entity | Architecture | Configuration | Component |
+		         ModeViewDeclaration | PhysicalType | RecordType | ProtectedType | ProtectedTypeBody | BlockConfiguration |
+		         ComponentConfiguration | ProcessStatement | ConcurrentBlockStatement | IfGenerateStatement |
+		         CaseGenerateStatement | ForGenerateStatement | IfStatement | CaseStatement | LoopStatement | Subprogram
+	) -> None:
+		"""
+		Visit the end of an element: the reserved word ``end``, the reserved words of the element and its name or label.
+
+		The reserved words after ``end`` are the class constant ``_END_KEYWORDS`` of the element's class. A subprogram
+		reports it whether it's written as a subprogram body or as a subprogram declaration.
+
+		:param element: The element.
+		"""
+
 	def VisitTerminator(self, element: ModelEntity) -> None:
 		"""
-		Visit the semicolon ending a declaration, a statement or a context item.
+		Visit the semicolon ending a declaration, a statement, a context item or a design unit.
 
-		:param element: The declaration, statement or context item.
+		:param element: The declaration, statement, context item or design unit.
 		"""
 
 	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem) -> None:

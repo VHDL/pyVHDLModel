@@ -36,7 +36,7 @@ from pyVHDLModel.Interface   import ParameterConstantInterfaceItem
 from pyVHDLModel.Name        import SelectedName, SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
 from pyVHDLModel.Sequential  import NullStatement
-from pyVHDLModel.Type        import ProtectedType
+from pyVHDLModel.Type        import ProtectedType, Subtype
 from pyVHDLModel.Subprogram  import Procedure, Function, ProcedureMethod, FunctionMethod, SubprogramSignature
 
 
@@ -231,3 +231,136 @@ class Signatures(Testcase):
 				with self.assertRaises(exception):
 					SubprogramSignature(parameterTypes, returnType)
 
+
+
+class SignatureComparisons(Testcase):
+	def test_Equal(self) -> None:
+		"""Two overloads' signatures compare by their profile, not by their parent."""
+		first =  Function("f", _returnType("natural"), parameterItems=[_parameter(("a", "b"), _returnType("bit"))])
+		second = Function("g", _returnType("natural"), parameterItems=[
+			_parameter(("x", ), _returnType("bit")),
+			_parameter(("y", ), _returnType("bit"))
+		])
+
+		self.assertIsNot(first.Signature.Parent, second.Signature.Parent)
+		self.assertEqual(first.Signature, second.Signature)
+		self.assertFalse(first.Signature != second.Signature)
+		self.assertEqual(hash(first.Signature), hash(second.Signature))
+
+	def test_Equal_Normalized(self) -> None:
+		"""Type mark names compare normalized (lower case)."""
+		upperName = SelectedName("UNSIGNED", SimpleName("Numeric_Std"))
+		lowerName = SelectedName("unsigned", SimpleName("numeric_std"))
+		upper =     SubprogramSignature([SimpleSubtypeSymbol(upperName)], _returnType("Natural"))
+		lower =     SubprogramSignature([SimpleSubtypeSymbol(lowerName)], _returnType("natural"))
+
+		self.assertEqual(("numeric_std.unsigned", ), upper.NormalizedParameterTypeNames)
+		self.assertEqual("natural", upper.NormalizedReturnTypeName)
+		self.assertEqual(upper, lower)
+		self.assertEqual(hash(upper), hash(lower))
+
+	def test_Equal_Procedure(self) -> None:
+		first =  Procedure("p", parameterItems=[_parameter(("a", ), _returnType("bit"))])
+		second = Procedure("q", parameterItems=[_parameter(("b", ), _returnType("bit"))])
+
+		self.assertIsNone(first.Signature.NormalizedReturnTypeName)
+		self.assertEqual(first.Signature, second.Signature)
+		self.assertEqual(hash(first.Signature), hash(second.Signature))
+
+	def test_Unequal_ParameterType(self) -> None:
+		first =  SubprogramSignature([_returnType("bit"), _returnType("natural")], _returnType("boolean"))
+		second = SubprogramSignature([_returnType("bit"), _returnType("integer")], _returnType("boolean"))
+
+		self.assertNotEqual(first, second)
+		self.assertFalse(first == second)
+
+	def test_Unequal_ParameterOrder(self) -> None:
+		first =  SubprogramSignature([_returnType("bit"), _returnType("natural")])
+		second = SubprogramSignature([_returnType("natural"), _returnType("bit")])
+
+		self.assertNotEqual(first, second)
+
+	def test_Unequal_ParameterCount(self) -> None:
+		first =  SubprogramSignature([_returnType("bit")], _returnType("boolean"))
+		second = SubprogramSignature([_returnType("bit"), _returnType("bit")], _returnType("boolean"))
+
+		self.assertNotEqual(first, second)
+
+	def test_Unequal_ReturnType(self) -> None:
+		first =  SubprogramSignature([_returnType("bit")], _returnType("boolean"))
+		second = SubprogramSignature([_returnType("bit")], _returnType("bit"))
+
+		self.assertNotEqual(first, second)
+
+	def test_Unequal_ProcedureFunction(self) -> None:
+		"""A procedure's signature has no return type mark, so it differs from a function's with the same parameters."""
+		procedure = SubprogramSignature([_returnType("bit")])
+		function =  SubprogramSignature([_returnType("bit")], _returnType("bit"))
+
+		self.assertNotEqual(procedure, function)
+
+	def test_Unequal_AsWritten(self) -> None:
+		"""Type marks aren't resolved: a simple name and a selected name of the same type differ."""
+		simple =   SubprogramSignature([_returnType("natural")])
+		name =     SelectedName("natural", SelectedName("standard", SimpleName("std")))
+		selected = SubprogramSignature([SimpleSubtypeSymbol(name)])
+
+		self.assertEqual(("std.standard.natural", ), selected.NormalizedParameterTypeNames)
+		self.assertNotEqual(simple, selected)
+
+	def test_Hash_Kept(self) -> None:
+		"""Resolving a type mark doesn't change the hash."""
+		natural =   _returnType("natural")
+		signature = SubprogramSignature([natural])
+		before =    hash(signature)
+
+		natural.Subtype = Subtype("natural", _returnType("integer"))
+
+		self.assertEqual(before, hash(signature))
+
+	def test_Hash_ParameterItemsChanged(self) -> None:
+		"""A changed parameter list gives a new signature; the previous one keeps its profile and hash."""
+		function =  Function("f", _returnType("natural"), parameterItems=[_parameter(("a", ), _returnType("bit"))])
+		signature = function.Signature
+		before =    hash(signature)
+
+		function.AddParameterItem(_parameter(("b", ), _returnType("bit")))
+
+		self.assertEqual(before, hash(signature))
+		self.assertEqual(("bit", ), signature.NormalizedParameterTypeNames)
+		self.assertNotEqual(signature, function.Signature)
+
+	def test_DictionaryKey(self) -> None:
+		first =  Function("f", _returnType("natural"), parameterItems=[_parameter(("a", ), _returnType("bit"))])
+		second = Function("f", _returnType("natural"), parameterItems=[_parameter(("b", ), _returnType("BIT"))])
+		third =  Function("f", _returnType("natural"), parameterItems=[_parameter(("a", ), _returnType("bit_vector"))])
+
+		overloads = {first.Signature: first}
+
+		self.assertIn(second.Signature, overloads)
+		self.assertIs(first, overloads[second.Signature])
+		self.assertNotIn(third.Signature, overloads)
+
+	def test_SetMember(self) -> None:
+		signatures = {
+			SubprogramSignature([_returnType("bit")]),
+			SubprogramSignature([_returnType("Bit")]),
+			SubprogramSignature([_returnType("bit")], _returnType("bit")),
+			SubprogramSignature([])
+		}
+
+		self.assertEqual(3, len(signatures))
+		self.assertIn(SubprogramSignature([]), signatures)
+
+	def test_OtherType(self) -> None:
+		signature = SubprogramSignature([])
+
+		with self.assertRaises(TypeError) as context:
+			_ = signature == "[]"
+
+		self.assertEqual("Second operand is not supported by == operator.", str(context.exception))
+
+		with self.assertRaises(TypeError) as context:
+			_ = signature != "[]"
+
+		self.assertEqual("Second operand is not supported by != operator.", str(context.exception))

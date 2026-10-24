@@ -38,11 +38,13 @@ from __future__             import annotations
 
 from typing                 import TYPE_CHECKING, Union, Iterator, Iterable, Optional as Nullable, Self
 
+from pyTooling.Common       import getTypeName
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyTooling.Graph        import Vertex
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, Range
+from pyVHDLModel.Exception  import NotAChildError
 from pyVHDLModel.Symbol     import Symbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
@@ -826,6 +828,14 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		"""
 		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
+	def _InsertSplitDeclarations(self, declarations: list[Self]) -> None:
+		"""
+		Insert the element declarations split from this element declaration right after it into its record type.
+
+		:param declarations: The new element declarations, one per identifier after the first.
+		"""
+		self._parent._InsertSplitElements(self, declarations)
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this record element declaration and its subtype with a visitor.
@@ -900,6 +910,32 @@ class RecordType(CompositeType):
 		:returns: List of elements.
 		"""
 		return self._elements
+
+	def _InsertSplitElements(self, element: RecordTypeElement, declarations: list[RecordTypeElement]) -> None:
+		"""
+		Insert the element declarations split from an element declaration right after it.
+
+		The element declaration keeps its first identifier.
+
+		:param element:         The split element declaration, with all its identifiers.
+		:param declarations:    The new element declarations, one per identifier after the first.
+		:raises NotAChildError: If parameter 'element' is not an element declaration of this record type.
+		"""
+		for index, item in enumerate(self._elements):
+			if item is element:
+				break
+		else:
+			identifiers = ", ".join(element._identifiers)
+			raise NotAChildError(
+				f"{getTypeName(element)} '{identifiers}' is not an element of this {getTypeName(self)}.",
+				element=element,
+				parent=self
+			)
+
+		element._KeepIdentifier(0)
+		self._elements[index + 1:index + 1] = declarations
+		for declaration in declarations:
+			declaration.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

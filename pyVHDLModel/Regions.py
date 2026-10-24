@@ -380,6 +380,42 @@ class WithGenericsMixin(
 		if isOverload:
 			self._AddToNamespace(genericItem)
 
+	def _InsertSplitGenericItems(
+		self,
+		genericItem:  GenericInterfaceItemMixin,
+		declarations: list[GenericInterfaceItemMixin]
+	) -> None:
+		"""
+		Insert the generics split from a generic right after it into the generic clause.
+
+		The generic keeps its first identifier. If the language construct has a namespace, the entries of the other
+		identifiers refer to the new generics.
+
+		:param genericItem:          The split generic, with all its identifiers.
+		:param declarations:         The new generics, one per identifier after the first.
+		:raises NotAChildError:      If parameter 'genericItem' is not a generic of this language construct.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the generic refers to another
+		                             element, e.g. a duplicate declaration.
+		"""
+		for index, item in enumerate(self._genericItems):
+			if item is genericItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(genericItem))
+			raise NotAChildError(
+				f"{getTypeName(genericItem)} '{identifiers}' is not a generic of this {getTypeName(self)}.",
+				element=genericItem,
+				parent=self
+			)
+
+		self._RemoveFromNamespace(genericItem)
+		genericItem._KeepIdentifier(0)
+		self._genericItems[index + 1:index + 1] = declarations
+		self._AddToNamespace(genericItem)
+		for declaration in declarations:
+			declaration.Parent = self
+			self._AddToNamespace(declaration)
+
 	@expects("_namespace")
 	def _IndexGenericItems(self) -> None:
 		"""Add the generics to the host's namespace; a generic subprogram is an overload."""
@@ -703,6 +739,42 @@ class WithPortsMixin(
 		newIndex = index if index >= 0 else len(self._portItems) + index
 		del self._portItems[currentIndex]
 		self._portItems.insert(newIndex, portItem)
+
+	def _InsertSplitPortItems(
+		self,
+		portItem:     PortSignalInterfaceItem,
+		declarations: list[PortSignalInterfaceItem]
+	) -> None:
+		"""
+		Insert the ports split from a port right after it into the port clause.
+
+		The port keeps its first identifier. If the language construct has a namespace, the entries of the other
+		identifiers refer to the new ports.
+
+		:param portItem:             The split port, with all its identifiers.
+		:param declarations:         The new ports, one per identifier after the first.
+		:raises NotAChildError:      If parameter 'portItem' is not a port of this language construct.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the port refers to another
+		                             element, e.g. a duplicate declaration.
+		"""
+		for index, item in enumerate(self._portItems):
+			if item is portItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(portItem))
+			raise NotAChildError(
+				f"{getTypeName(portItem)} '{identifiers}' is not a port of this {getTypeName(self)}.",
+				element=portItem,
+				parent=self
+			)
+
+		self._RemoveFromNamespace(portItem)
+		portItem._KeepIdentifier(0)
+		self._portItems[index + 1:index + 1] = declarations
+		self._AddToNamespace(portItem)
+		for declaration in declarations:
+			declaration.Parent = self
+			self._AddToNamespace(declaration)
 
 	@expects("_namespace")
 	def _IndexPortItems(self) -> None:
@@ -1029,6 +1101,43 @@ class WithParametersMixin(
 		newIndex = index if index >= 0 else len(self._parameterItems) + index
 		del self._parameterItems[currentIndex]
 		self._parameterItems.insert(newIndex, parameterItem)
+		self._ParameterItemsChanged()
+
+	def _InsertSplitParameterItems(
+		self,
+		parameterItem: ParameterInterfaceItemMixin,
+		declarations:  list[ParameterInterfaceItemMixin]
+	) -> None:
+		"""
+		Insert the parameters split from a parameter right after it into the parameter list.
+
+		The parameter keeps its first identifier. If the language construct has a namespace, the entries of the other
+		identifiers refer to the new parameters.
+
+		:param parameterItem:        The split parameter, with all its identifiers.
+		:param declarations:         The new parameters, one per identifier after the first.
+		:raises NotAChildError:      If parameter 'parameterItem' is not a parameter of this language construct.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the parameter refers to another
+		                             element, e.g. a duplicate declaration.
+		"""
+		for index, item in enumerate(self._parameterItems):
+			if item is parameterItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(parameterItem))
+			raise NotAChildError(
+				f"{getTypeName(parameterItem)} '{identifiers}' is not a parameter of this {getTypeName(self)}.",
+				element=parameterItem,
+				parent=self
+			)
+
+		self._RemoveFromNamespace(parameterItem)
+		parameterItem._KeepIdentifier(0)
+		self._parameterItems[index + 1:index + 1] = declarations
+		self._AddToNamespace(parameterItem)
+		for declaration in declarations:
+			declaration.Parent = self
+			self._AddToNamespace(declaration)
 		self._ParameterItemsChanged()
 
 	@expects("_namespace")
@@ -1878,6 +1987,47 @@ class DeclarationRegionMixin(
 
 		precedes = any(item is declaredItem for item in self._declaredItems[:index + 1])
 		self.MoveDeclaredItem(declaredItem, index if precedes else index + 1)
+
+	def _InsertSplitDeclaredItems(
+		self,
+		declaredItem: MultipleNamedEntityMixin,
+		declarations: list[MultipleNamedEntityMixin]
+	) -> None:
+		"""
+		Insert the declarations split from a declared item right after it into the declarative region.
+
+		The declared item keeps its first identifier. If the region is indexed, the namespace and lookup table entries of
+		its other identifiers refer to the new declarations; they are checked before anything is changed.
+
+		:param declaredItem:         The split declared item, with all its identifiers.
+		:param declarations:         The new declarations, one per identifier after the first.
+		:raises NotAChildError:      If parameter 'declaredItem' is not a declared item of this declarative region.
+		:raises NotInNamespaceError: If the region is indexed, and an identifier of the declared item refers to another
+		                             declaration, e.g. a duplicate declaration.
+		"""
+		for index, item in enumerate(self._declaredItems):
+			if item is declaredItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(declaredItem))
+			raise NotAChildError(
+				f"{getTypeName(declaredItem)} '{identifiers}' is not a declared item of this {getTypeName(self)}.",
+				element=declaredItem,
+				parent=self
+			)
+
+		if self._areDeclaredItemsIndexed:
+			self._UnindexDeclaredItem(declaredItem)
+
+		declaredItem._KeepIdentifier(0)
+		self._declaredItems[index + 1:index + 1] = declarations
+		for declaration in declarations:
+			declaration.Parent = self
+
+		if self._areDeclaredItemsIndexed:
+			self._IndexDeclaredItem(declaredItem)
+			for declaration in declarations:
+				self._IndexDeclaredItem(declaration)
 
 	def _VisitDeclaredItems(self, visitor: Visitor) -> None:
 		"""

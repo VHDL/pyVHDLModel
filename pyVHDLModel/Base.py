@@ -43,8 +43,9 @@ from pyTooling.Common      import StringEnum, getFullyQualifiedName
 from pyTooling.Decorators  import export, notimplemented, readonly
 from pyTooling.MetaClasses import ExtendedType, abstractclass
 if TYPE_CHECKING:
-	from pyVHDLModel.Symbol  import Symbol
-	from pyVHDLModel.Visitor import Visitor
+	from pyVHDLModel.Interface import SingleDeclarationMixin
+	from pyVHDLModel.Symbol    import Symbol
+	from pyVHDLModel.Visitor   import Visitor
 
 
 __all__ = ["ExpressionUnion", "ModelElementUnion"]
@@ -448,13 +449,20 @@ class OptionallyNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
-class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
+class MultipleNamedEntityMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=("_parent", "Copy", "_InsertSplitDeclarations")
+):
 	"""
 	A ``MultipleNamedEntityMixin`` is a mixin class for all VHDL entities that declare multiple instances at once by
 	defining multiple identifiers.
 
 	Protected variables :attr:`_identifiers` and :attr:`_normalizedIdentifiers` are available to derived classes as well
 	as two readonly properties :attr:`Identifiers` and :attr:`NormalizedIdentifiers` for public access.
+
+	The host class provides ``Copy()`` and ``_InsertSplitDeclarations(declarations)``, called by :meth:`Split`: the
+	latter inserts the new declarations after the declaration into its parent.
 
 	.. seealso::
 
@@ -463,17 +471,19 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Record type element <pyVHDLModel.Type.RecordTypeElement>`
 	"""
 
-	_identifiers:           tuple[str]  #: A list of identifiers.
-	_normalizedIdentifiers: tuple[str]  #: A list of normalized (lower case) identifiers.
+	_identifiers:           tuple[str]                              #: A list of identifiers.
+	_normalizedIdentifiers: tuple[str]                              #: A list of normalized (lower case) identifiers.
+	_singleDeclarations:    Nullable[list[SingleDeclarationMixin]]  #: Cached single declarations, or ``None``.
 
 	def __init__(self, identifiers: Iterable[str]) -> None:
 		"""
-		Initializes a multiple-named entity.
+		Initializes a multiple-named entity without single declarations yet.
 
 		:param identifiers: Sequence of identifiers (names) of the model entity.
 		"""
 		self._identifiers =           tuple(identifiers)
 		self._normalizedIdentifiers = tuple([identifier.lower() for identifier in self._identifiers])
+		self._singleDeclarations =    None
 
 	@readonly
 	def Identifiers(self) -> tuple[str]:
@@ -492,6 +502,55 @@ class MultipleNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		:returns: Tuple of normalized identifiers.
 		"""
 		return self._normalizedIdentifiers
+
+	def Split(self) -> tuple[Self, ...]:
+		"""
+		Split this declaration into one declaration per identifier.
+
+		IEEE Std 1076 defines a declaration with an identifier list as equivalent to a sequence of single declarations,
+		one per identifier, in list order: ``signal a, b : bit;`` declares the same as ``signal a : bit; signal b : bit;``.
+		This declaration keeps its first identifier. For every other identifier, a new declaration is created by
+		``Copy()``: it has its own copy of the subtype indication and of the default expression, and the same
+		documentation. Single declarations created before are dropped.
+
+		If this declaration has a parent, the new declarations are inserted right after it, in list order, and their
+		parent is set. If the parent is an indexed declarative region, the namespace and lookup table entries of the other
+		identifiers refer to the new declarations. Without a parent, the new declarations have no parent either: the
+		caller places them.
+
+		A declaration with one identifier is unchanged.
+
+		:returns:                    Tuple of declarations, one per identifier in list order, starting with this
+		                             declaration.
+		:raises NotAChildError:      If this declaration's parent doesn't list it.
+		:raises NotInNamespaceError: If the parent is an indexed declarative region, and an identifier of this declaration
+		                             refers to another element, e.g. a duplicate declaration.
+		"""
+		if len(self._identifiers) == 1:
+			return (self, )
+
+		declarations = []
+		for position in range(1, len(self._identifiers)):
+			declaration = self.Copy()
+			declaration._KeepIdentifier(position)
+			declarations.append(declaration)
+
+		if self._parent is None:
+			self._KeepIdentifier(0)
+		else:
+			self._InsertSplitDeclarations(declarations)
+
+		return (self, *declarations)
+
+	def _KeepIdentifier(self, position: int) -> None:
+		"""
+		Reduce the identifier list to the identifier at a position and drop the single declarations.
+
+		:param position: The position of the identifier to keep.
+		"""
+		self._identifiers =           (self._identifiers[position], )
+		self._normalizedIdentifiers = (self._normalizedIdentifiers[position], )
+		self._singleDeclarations =    None
 
 
 @export

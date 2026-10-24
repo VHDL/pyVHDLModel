@@ -127,6 +127,14 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 		"""
 		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
+	def _InsertSplitDeclarations(self, declarations: list[Self]) -> None:
+		"""
+		Insert the declarations split from this object declaration right after it into its parent's declared items.
+
+		:param declarations: The new object declarations, one per identifier after the first.
+		"""
+		self._parent._InsertSplitDeclaredItems(self, declarations)
+
 	def __str__(self) -> str:
 		"""
 		Formats the object declaration.

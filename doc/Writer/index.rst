@@ -102,6 +102,11 @@ Formatting Options
    Number of spaces per indentation level, as vhdl-style-guide's option ``indent_size`` (default: ``2``). It applies to
    :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.Spaces`.
 
+``lineLength``
+   Maximum line length of a list written on a single line, as vhdl-style-guide's option ``length`` of rule
+   ``length_001`` (default: ``120``). A tab counts as ``indentSize`` characters. The writer wraps no other lines. See
+   vhdl-style-guide's :ref:`vsg:configuring-length-rules`.
+
 .. code-block:: Python
 
    from pyVHDLModel.Formatting.VHDL import IndentStyle, KeywordCase, VHDLStyle, VHDLWriter
@@ -153,8 +158,8 @@ Each construct with a parenthesized list has its own list style: an
 The first four options take an :class:`~pyVHDLModel.Formatting.VHDL.InterfaceListStyle`, the last four an
 :class:`~pyVHDLModel.Formatting.VHDL.AssociationListStyle`. Their options are vhdl-style-guide's options of the
 subprogram specification rules ``function_019``/``procedure_013`` and of the procedure call rule
-``procedure_call_003``, each with the values :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (``add_new_line``) and
-:attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove` (``remove_new_line``):
+``procedure_call_003``; the first three take the values :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add`
+(``add_new_line``) and :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove` (``remove_new_line``):
 
 ``interfaceElement`` / ``associationElement``
    Line break before each element, the first one after the left parenthesis included (``interface_element`` /
@@ -169,6 +174,12 @@ subprogram specification rules ``function_019``/``procedure_013`` and of the pro
    Line break before the right parenthesis (``last_close_paren``). Default:
    :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add`, on its own line.
 
+``ignoreSingleLine``
+   Write the list on a single line, if its line fits into ``lineLength``; a longer line is written with the line breaks
+   of the three options above (``ignore_single_line``, which accepts such a list). Default: ``False``. A list
+   containing a list written on several lines is not written on a single line. An enclosing list is broken first, so an
+   enclosed list is measured on its own line.
+
 The procedure call and function call styles are ``AssociationListStyle(NewLine.Remove, NewLine.Remove,
 NewLine.Remove)``. See vhdl-style-guide's :ref:`vsg:configuring-subprogram-specification-statement-rules` and
 :ref:`vsg:configuring-procedure-call-statement-rules`.
@@ -179,7 +190,8 @@ NewLine.Remove)``. See vhdl-style-guide's :ref:`vsg:configuring-subprogram-speci
 
    writer = VHDLWriter(VHDLStyle(
      genericClause=InterfaceListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove),
-     portClause=InterfaceListStyle(NewLine.Remove, NewLine.Add)
+     portClause=InterfaceListStyle(NewLine.Remove, NewLine.Add),
+     parameterList=InterfaceListStyle(ignoreSingleLine=True)
    ))
 
 .. code-block:: VHDL
@@ -190,6 +202,14 @@ NewLine.Remove)``. See vhdl-style-guide's :ref:`vsg:configuring-subprogram-speci
        ; q : out T
      );
    end component counter;
+
+   -- parameterList: the first list fits, the second doesn't
+   procedure p (constant a : in integer; variable b : out integer);
+   procedure q (
+     constant first_operand : in integer;
+     constant second_operand : in integer;
+     variable result_of_the_operation : out integer
+   );
 
 
 .. _WRITER/separators:

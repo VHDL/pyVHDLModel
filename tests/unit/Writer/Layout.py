@@ -41,7 +41,8 @@ from pyVHDLModel.Base            import Mode
 from pyVHDLModel.Concurrent      import ComponentInstantiation, ConcurrentProcedureCall
 from pyVHDLModel.DesignUnit      import UseClause, Component, Entity, Architecture, Package, PackageBody
 from pyVHDLModel.Expression      import IntegerLiteral
-from pyVHDLModel.Formatting.VHDL import NewLine, InterfaceListStyle, AssociationListStyle, VHDLStyle, VHDLWriter
+from pyVHDLModel.Formatting.VHDL import IndentStyle, NewLine, InterfaceListStyle, AssociationListStyle, VHDLStyle, \
+                                        VHDLWriter
 from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                         PortSimpleSignalInterfaceItem, ParameterConstantInterfaceItem, \
                                         ParameterVariableInterfaceItem
@@ -64,6 +65,8 @@ if __name__ == "__main__":  # pragma: no cover
 
 _INTERFACES_ONE_LINE =   InterfaceListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)    #: On one line.
 _ASSOCIATIONS_ONE_LINE = AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)  #: On one line.
+_INTERFACES_FITTING =    InterfaceListStyle(ignoreSingleLine=True)                            #: One line if it fits.
+_ASSOCIATIONS_FITTING =  AssociationListStyle(ignoreSingleLine=True)                          #: One line if it fits.
 
 
 def _component() -> Component:
@@ -122,11 +125,114 @@ class InterfaceLists(Testcase):
 			end component counter;
 			"""), VHDLWriter(style).Format(_component()))
 
+	def test_IgnoreSingleLine(self) -> None:
+		style = VHDLStyle(genericClause=_INTERFACES_FITTING, portClause=_INTERFACES_FITTING)
+
+		self.assertEqual(dedent("""\
+			component counter is
+			  generic (BITS : positive := 8; type T);
+			  port (clk, rst : in bit; q : out T);
+			end component counter;
+			"""), VHDLWriter(style).Format(_component()))
+
+	def test_IgnoreSingleLine_TooLong(self) -> None:
+		"""The generic clause's line is one character too long (41), the port clause's line fits (38)."""
+		style = VHDLStyle(lineLength=40, genericClause=_INTERFACES_FITTING, portClause=_INTERFACES_FITTING)
+
+		self.assertEqual(dedent("""\
+			component counter is
+			  generic (
+			    BITS : positive := 8;
+			    type T
+			  );
+			  port (clk, rst : in bit; q : out T);
+			end component counter;
+			"""), VHDLWriter(style).Format(_component()))
+
+	def test_IgnoreSingleLine_MaximumLength(self) -> None:
+		"""A line of the maximum line length fits."""
+		style = VHDLStyle(lineLength=38, portClause=_INTERFACES_FITTING)
+
+		self.assertEqual(dedent("""\
+			component counter is
+			  generic (
+			    BITS : positive := 8;
+			    type T
+			  );
+			  port (clk, rst : in bit; q : out T);
+			end component counter;
+			"""), VHDLWriter(style).Format(_component()))
+
+	def test_IgnoreSingleLine_SmartTabs(self) -> None:
+		"""A tab counts as indentation size characters: the port clause's line is one character too long (40)."""
+		style = VHDLStyle(indentStyle=IndentStyle.SmartTabs, indentSize=4, lineLength=39, portClause=_INTERFACES_FITTING)
+
+		self.assertEqual(dedent("""\
+			component counter is
+			\tgeneric (
+			\t\tBITS : positive := 8;
+			\t\ttype T
+			\t);
+			\tport (
+			\t\tclk, rst : in bit;
+			\t\tq : out T
+			\t);
+			end component counter;
+			"""), VHDLWriter(style).Format(_component()))
+
+	def test_Parameters_IgnoreSingleLine(self) -> None:
+		style = VHDLStyle(parameterList=_INTERFACES_FITTING)
+
+		self.assertEqual(
+			"procedure p (constant a : in integer; variable b : out integer);\n",
+			VHDLWriter(style).Format(Procedure("p", parameterItems=_parameters()))
+		)
+
+	def test_Parameters_IgnoreSingleLine_TooLong(self) -> None:
+		"""The text after the right parenthesis counts: ``return integer;`` doesn't fit."""
+		function = Function("f", _subtypeSymbol("integer"), parameterItems=_parameters())
+		style =    VHDLStyle(lineLength=70, parameterList=_INTERFACES_FITTING)
+
+		self.assertEqual(dedent("""\
+			function f (
+			  constant a : in integer;
+			  variable b : out integer
+			) return integer;
+			"""), VHDLWriter(style).Format(function))
+
+	def test_SubprogramGenerics_IgnoreSingleLine(self) -> None:
+		"""The generic clause is broken first; the parameter list fits on the line of its right parenthesis."""
+		function = Function(
+			"maximum",
+			_subtypeSymbol("T"),
+			genericItems=[GenericTypeInterfaceItem("T")],
+			parameterItems=[ParameterConstantInterfaceItem(["a", "b"], Mode.Default, _subtypeSymbol("T"))]
+		)
+		style = VHDLStyle(lineLength=41, subprogramGenericClause=_INTERFACES_FITTING, parameterList=_INTERFACES_FITTING)
+
+		self.assertEqual(dedent("""\
+			function maximum generic (
+			  type T
+			) parameter (constant a, b : T) return T;
+			"""), VHDLWriter(style).Format(function))
+
 
 class AssociationLists(Testcase):
 	def test_PerConstruct(self) -> None:
 		"""The generic map and the port map of one instantiation have their own layout."""
 		style = VHDLStyle(genericMap=_ASSOCIATIONS_ONE_LINE)
+
+		self.assertEqual(dedent("""\
+			u1 : component counter
+			  generic map (BITS => 8)
+			  port map (
+			    clk => clock,
+			    q => count
+			  );
+			"""), VHDLWriter(style).Format(_instantiation()))
+
+	def test_IgnoreSingleLine(self) -> None:
+		style = VHDLStyle(lineLength=34, genericMap=_ASSOCIATIONS_FITTING, portMap=_ASSOCIATIONS_FITTING)
 
 		self.assertEqual(dedent("""\
 			u1 : component counter
@@ -162,6 +268,35 @@ class AssociationLists(Testcase):
 			  limit => 4
 			);
 			"""), VHDLWriter(VHDLStyle(procedureCall=AssociationListStyle())).Format(call))
+
+	def test_FunctionCall_Nested(self) -> None:
+		"""The enclosing call is broken, the enclosed call fits on its own line."""
+		call =  _call("f", "alpha", "beta")
+		outer = IndexedObjectOrFunctionCallSymbol(ParenthesisName(SimpleName("g"), [
+			ParameterAssociationItem(None, call),
+			ParameterAssociationItem(None, _object("gamma"))
+		]))
+		style = VHDLStyle(lineLength=20, functionCall=_ASSOCIATIONS_FITTING)
+
+		self.assertEqual(dedent("""\
+			g(
+			  f(alpha, beta),
+			  gamma
+			)"""), VHDLWriter(style).Format(outer))
+
+	def test_FunctionCall_NestedOnSeveralLines(self) -> None:
+		"""A list containing a list written on several lines is broken, whatever its length."""
+		call = ConcurrentProcedureCall(None, _object("check"), [ParameterAssociationItem(None, _call("f", "a", "b"))])
+		style = VHDLStyle(procedureCall=_ASSOCIATIONS_FITTING, functionCall=AssociationListStyle())
+
+		self.assertEqual(dedent("""\
+			check(
+			  f(
+			    a,
+			    b
+			  )
+			);
+			"""), VHDLWriter(style).Format(call))
 
 
 @skipIf(_GHDL is None, "GHDL is not on PATH.")
@@ -247,12 +382,15 @@ class GHDLOracle(Testcase):
 
 		leadingInterfaces =   InterfaceListStyle(NewLine.Remove, NewLine.Add)
 		leadingAssociations = AssociationListStyle(NewLine.Remove, NewLine.Add)
-		for name, interfaces, associations in (
-			("one line",          _INTERFACES_ONE_LINE, _ASSOCIATIONS_ONE_LINE),
-			("leading separator", leadingInterfaces,    leadingAssociations)
+		for name, interfaces, associations, lineLength in (
+			("one line",          _INTERFACES_ONE_LINE, _ASSOCIATIONS_ONE_LINE, 120),
+			("leading separator", leadingInterfaces,    leadingAssociations,    120),
+			("fitting",           _INTERFACES_FITTING,  _ASSOCIATIONS_FITTING,  120),
+			("too long",          _INTERFACES_FITTING,  _ASSOCIATIONS_FITTING,  20)
 		):
 			with self.subTest(layout=name):
 				style = VHDLStyle(
+					lineLength=lineLength,
 					genericClause=interfaces,
 					portClause=interfaces,
 					subprogramGenericClause=interfaces,

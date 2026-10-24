@@ -1,1 +1,1 @@
-pyTooling >= 10.0.0rc7, < 11.0
+pyTooling >= 10.0.0rc8, < 11.0

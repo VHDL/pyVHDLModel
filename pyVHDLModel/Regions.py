@@ -36,7 +36,7 @@ tbd.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, Any, ClassVar, Iterable, Optional as Nullable
+from typing                  import TYPE_CHECKING, Any, Callable, ClassVar, Generator, Iterable, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
@@ -54,7 +54,8 @@ from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Object      import BaseConstant, Constant, DeferredConstant, SharedVariable, File, Variable, Signal
 if TYPE_CHECKING:
 	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
-	                                  PortSignalInterfaceItem
+	                                  PortSignalInterfaceItem, SingleGenericDeclarationMixin, \
+	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin
 	from pyVHDLModel.Type      import Subtype, FullType
 	from pyVHDLModel.Visitor   import Visitor
 
@@ -124,6 +125,34 @@ class WithGenericsMixin(
 		:returns: The generic count.
 		"""
 		return len(self._genericItems)
+
+	def IterateSingleGenericDeclarations(
+		self,
+		predicate: Nullable[Callable[[SingleGenericDeclarationMixin | GenericInterfaceItemMixin], bool]] = None
+	) -> Generator[SingleGenericDeclarationMixin | GenericInterfaceItemMixin, None, None]:
+		"""
+		Iterate all generics per declared identifier, in declaration order.
+
+		A generic constant yields one single declaration per identifier: ``generic (A, B : positive)`` yields two. A
+		generic type, subprogram or package declares exactly one identifier and is yielded itself.
+
+		:param predicate: Optional, filter function to select the yielded generics. Default: all.
+		:returns:         A generator to iterate all (selected) generics.
+		"""
+		if predicate is None:
+			for item in self._genericItems:
+				if isinstance(item, MultipleNamedEntityMixin):
+					yield from item.SingleDeclarations
+				else:
+					yield item
+		else:
+			for item in self._genericItems:
+				if isinstance(item, MultipleNamedEntityMixin):
+					for singleDeclaration in item.SingleDeclarations:
+						if predicate(singleDeclaration):
+							yield singleDeclaration
+				elif predicate(item):
+					yield item
 
 	def AddGenericItem(self, genericItem: GenericInterfaceItemMixin) -> None:
 		"""
@@ -443,6 +472,27 @@ class WithPortsMixin(
 		"""
 		return len(self._portItems)
 
+	def IterateSinglePortDeclarations(
+		self,
+		predicate: Nullable[Callable[[SinglePortDeclarationMixin], bool]] = None
+	) -> Generator[SinglePortDeclarationMixin, None, None]:
+		"""
+		Iterate all ports per declared identifier, in declaration order.
+
+		A port yields one single declaration per identifier: ``port (a, b : in bit)`` yields two.
+
+		:param predicate: Optional, filter function to select the yielded ports. Default: all.
+		:returns:         A generator to iterate all (selected) ports.
+		"""
+		if predicate is None:
+			for item in self._portItems:
+				yield from item.SingleDeclarations
+		else:
+			for item in self._portItems:
+				for singleDeclaration in item.SingleDeclarations:
+					if predicate(singleDeclaration):
+						yield singleDeclaration
+
 	def AddPortItem(self, portItem: PortSignalInterfaceItem) -> None:
 		"""
 		Add a port at the end of the port clause.
@@ -743,6 +793,27 @@ class WithParametersMixin(
 		:returns: The parameter count.
 		"""
 		return len(self._parameterItems)
+
+	def IterateSingleParameterDeclarations(
+		self,
+		predicate: Nullable[Callable[[SingleParameterDeclarationMixin], bool]] = None
+	) -> Generator[SingleParameterDeclarationMixin, None, None]:
+		"""
+		Iterate all parameters per declared identifier, in declaration order.
+
+		A parameter yields one single declaration per identifier: ``(a, b : in integer)`` yields two.
+
+		:param predicate: Optional, filter function to select the yielded parameters. Default: all.
+		:returns:         A generator to iterate all (selected) parameters.
+		"""
+		if predicate is None:
+			for item in self._parameterItems:
+				yield from item.SingleDeclarations
+		else:
+			for item in self._parameterItems:
+				for singleDeclaration in item.SingleDeclarations:
+					if predicate(singleDeclaration):
+						yield singleDeclaration
 
 	def AddParameterItem(self, parameterItem: ParameterInterfaceItemMixin) -> None:
 		"""

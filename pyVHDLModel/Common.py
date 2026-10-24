@@ -197,7 +197,7 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 		visitor.VisitActualParameterPart(self)
 		for index, item in enumerate(self._parameterAssociationItems):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitAssociationListSeparator(self)
 
 			item.Visit(visitor)
 
@@ -533,7 +533,7 @@ class WaveformMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		for index, element in enumerate(self._waveform):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitWaveformSeparator(self)
 
 			element.Visit(visitor)
 
@@ -956,7 +956,7 @@ class SelectedWaveformsMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		for index, selectedWaveform in enumerate(self._selectedWaveforms):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitSelectedAlternativeSeparator(self)
 
 			selectedWaveform.Visit(visitor)
 
@@ -1002,7 +1002,7 @@ class SelectedExpressionsMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		for index, selectedExpression in enumerate(self._selectedExpressions):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitSelectedAlternativeSeparator(self)
 
 			selectedExpression.Visit(visitor)
 

@@ -113,7 +113,7 @@ class Walks(Testcase):
 			("VisitIntegerLiteral",           first),
 			("DepartIntegerLiteral",          first),
 			("DepartIndexedAggregateElement", indexed),
-			("VisitComma",                    aggregate),
+			("VisitElementSeparator",         aggregate),
 			("VisitOthersAggregateElement",   others),
 			("VisitIntegerLiteral",           second),
 			("DepartIntegerLiteral",          second),

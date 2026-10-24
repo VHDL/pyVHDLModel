@@ -103,7 +103,7 @@ class Reference(ModelEntity):
 		"""
 		for index, symbol in enumerate(self._symbols):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitNameListSeparator(self)
 
 			symbol.Visit(visitor)
 

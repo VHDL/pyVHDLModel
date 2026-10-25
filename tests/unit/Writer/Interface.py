@@ -233,7 +233,7 @@ class Components(Testcase):
 
 	def test_InterfaceElement_Remove(self) -> None:
 		"""Interface elements and the right parenthesis continue the line: one line per clause."""
-		style = VHDLStyle(interfaceElement=NewLine.Remove, interfaceLastCloseParen=NewLine.Remove)
+		style = VHDLStyle(interfaceElement=NewLine.Remove, interfaceLastCloseParenthesis=NewLine.Remove)
 
 		self.assertEqual(dedent("""\
 			component counter is

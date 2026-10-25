@@ -113,7 +113,7 @@ Formatting Options
    ``interface_list_semicolon``: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove` (default: the semicolon ends the
    line) or :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (the semicolon starts the next line).
 
-``interfaceLastCloseParen``
+``interfaceLastCloseParenthesis``
    Line break before the right parenthesis of an interface list, as vhdl-style-guide's option ``last_close_paren``:
    :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (default: on its own line) or
    :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove`.
@@ -135,7 +135,7 @@ clauses, too.
      ; q : out T
    );
 
-   -- interfaceElement=NewLine.Remove, interfaceLastCloseParen=NewLine.Remove
+   -- interfaceElement=NewLine.Remove, interfaceLastCloseParenthesis=NewLine.Remove
    procedure p (constant a : in integer; variable b : out integer);
 
 

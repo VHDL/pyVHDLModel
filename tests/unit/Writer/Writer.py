@@ -133,7 +133,7 @@ class Styles(Testcase):
 
 		self.assertIs(NewLine.Add, style.InterfaceElement)
 		self.assertIs(NewLine.Remove, style.InterfaceListSemicolon)
-		self.assertIs(NewLine.Add, style.InterfaceLastCloseParen)
+		self.assertIs(NewLine.Add, style.InterfaceLastCloseParenthesis)
 
 	def test_InterfaceElement(self) -> None:
 		style = VHDLStyle(interfaceElement=NewLine.Remove)
@@ -171,22 +171,22 @@ class Styles(Testcase):
 		self.assertEqual("Parameter 'interfaceListSemicolon' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
-	def test_InterfaceLastCloseParen(self) -> None:
-		style = VHDLStyle(interfaceLastCloseParen=NewLine.Remove)
+	def test_InterfaceLastCloseParenthesis(self) -> None:
+		style = VHDLStyle(interfaceLastCloseParenthesis=NewLine.Remove)
 
-		self.assertIs(NewLine.Remove, style.InterfaceLastCloseParen)
+		self.assertIs(NewLine.Remove, style.InterfaceLastCloseParenthesis)
 
-	def test_InterfaceLastCloseParen_None(self) -> None:
+	def test_InterfaceLastCloseParenthesis_None(self) -> None:
 		with self.assertRaises(ValueError) as context:
-			VHDLStyle(interfaceLastCloseParen=None)
+			VHDLStyle(interfaceLastCloseParenthesis=None)
 
-		self.assertEqual("Parameter 'interfaceLastCloseParen' is None.", str(context.exception))
+		self.assertEqual("Parameter 'interfaceLastCloseParenthesis' is None.", str(context.exception))
 
-	def test_InterfaceLastCloseParen_Type(self) -> None:
+	def test_InterfaceLastCloseParenthesis_Type(self) -> None:
 		with self.assertRaises(TypeError) as context:
-			VHDLStyle(interfaceLastCloseParen="remove_new_line")
+			VHDLStyle(interfaceLastCloseParenthesis="remove_new_line")
 
-		self.assertEqual("Parameter 'interfaceLastCloseParen' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual("Parameter 'interfaceLastCloseParenthesis' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
 

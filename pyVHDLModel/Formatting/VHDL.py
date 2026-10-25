@@ -175,46 +175,46 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 	      |rarr| vhdl-style-guide's options ``interface_element``, ``interface_list_semicolon`` and ``last_close_paren``.
 	"""
 
-	_keywordCase:             KeywordCase  #: Letter case of reserved words.
-	_indentStyle:             IndentStyle  #: Indentation style.
-	_indentSize:              int          #: Number of spaces per indentation level.
-	_interfaceElement:        NewLine      #: Line break before an interface element.
-	_interfaceListSemicolon:  NewLine      #: Line break before the semicolon between two interface elements.
-	_interfaceLastCloseParen: NewLine      #: Line break before the right parenthesis of an interface list.
+	_keywordCase:                   KeywordCase  #: Letter case of reserved words.
+	_indentStyle:                   IndentStyle  #: Indentation style.
+	_indentSize:                    int          #: Number of spaces per indentation level.
+	_interfaceElement:              NewLine      #: Line break before an interface element.
+	_interfaceListSemicolon:        NewLine      #: Line break before the semicolon between two interface elements.
+	_interfaceLastCloseParenthesis: NewLine      #: Line break before the right parenthesis of an interface list.
 
 	def __init__(
 		self,
-		keywordCase:             KeywordCase = KeywordCase.Lower,
-		indentStyle:             IndentStyle = IndentStyle.Spaces,
-		indentSize:              int =         2,
-		interfaceElement:        NewLine =     NewLine.Add,
-		interfaceListSemicolon:  NewLine =     NewLine.Remove,
-		interfaceLastCloseParen: NewLine =     NewLine.Add
+		keywordCase:                   KeywordCase = KeywordCase.Lower,
+		indentStyle:                   IndentStyle = IndentStyle.Spaces,
+		indentSize:                    int =         2,
+		interfaceElement:              NewLine =     NewLine.Add,
+		interfaceListSemicolon:        NewLine =     NewLine.Remove,
+		interfaceLastCloseParenthesis: NewLine =     NewLine.Add
 	) -> None:
 		"""
 		Initializes the formatting options.
 
-		:param keywordCase:             Optional, letter case of reserved words. Default: ``KeywordCase.Lower``.
-		:param indentStyle:             Optional, indentation style. Default: ``IndentStyle.Spaces``.
-		:param indentSize:              Optional, number of spaces per indentation level. Default: ``2``.
-		:param interfaceElement:        Optional, line break before an interface element. Default: ``NewLine.Add``.
-		:param interfaceListSemicolon:  Optional, line break before the semicolon between two interface elements. Default:
-		                                ``NewLine.Remove``.
-		:param interfaceLastCloseParen: Optional, line break before the right parenthesis of an interface list. Default:
-		                                ``NewLine.Add``.
-		:raises ValueError:             If parameter 'keywordCase' is None.
-		:raises TypeError:              If parameter 'keywordCase' is not of type :class:`KeywordCase`.
-		:raises ValueError:             If parameter 'indentStyle' is None.
-		:raises TypeError:              If parameter 'indentStyle' is not of type :class:`IndentStyle`.
-		:raises ValueError:             If parameter 'indentSize' is None.
-		:raises TypeError:              If parameter 'indentSize' is not of type :class:`int`.
-		:raises ValueError:             If parameter 'indentSize' is less than 1.
-		:raises ValueError:             If parameter 'interfaceElement' is None.
-		:raises TypeError:              If parameter 'interfaceElement' is not of type :class:`NewLine`.
-		:raises ValueError:             If parameter 'interfaceListSemicolon' is None.
-		:raises TypeError:              If parameter 'interfaceListSemicolon' is not of type :class:`NewLine`.
-		:raises ValueError:             If parameter 'interfaceLastCloseParen' is None.
-		:raises TypeError:              If parameter 'interfaceLastCloseParen' is not of type :class:`NewLine`.
+		:param keywordCase:                   Optional, letter case of reserved words. Default: ``KeywordCase.Lower``.
+		:param indentStyle:                   Optional, indentation style. Default: ``IndentStyle.Spaces``.
+		:param indentSize:                    Optional, number of spaces per indentation level. Default: ``2``.
+		:param interfaceElement:              Optional, line break before an interface element. Default: ``NewLine.Add``.
+		:param interfaceListSemicolon:        Optional, line break before the semicolon between two interface elements.
+		                                      Default: ``NewLine.Remove``.
+		:param interfaceLastCloseParenthesis: Optional, line break before the right parenthesis of an interface list.
+		                                      Default: ``NewLine.Add``.
+		:raises ValueError:                   If parameter 'keywordCase' is None.
+		:raises TypeError:                    If parameter 'keywordCase' is not of type :class:`KeywordCase`.
+		:raises ValueError:                   If parameter 'indentStyle' is None.
+		:raises TypeError:                    If parameter 'indentStyle' is not of type :class:`IndentStyle`.
+		:raises ValueError:                   If parameter 'indentSize' is None.
+		:raises TypeError:                    If parameter 'indentSize' is not of type :class:`int`.
+		:raises ValueError:                   If parameter 'indentSize' is less than 1.
+		:raises ValueError:                   If parameter 'interfaceElement' is None.
+		:raises TypeError:                    If parameter 'interfaceElement' is not of type :class:`NewLine`.
+		:raises ValueError:                   If parameter 'interfaceListSemicolon' is None.
+		:raises TypeError:                    If parameter 'interfaceListSemicolon' is not of type :class:`NewLine`.
+		:raises ValueError:                   If parameter 'interfaceLastCloseParenthesis' is None.
+		:raises TypeError:                    If parameter 'interfaceLastCloseParenthesis' is not of type :class:`NewLine`.
 		"""
 		if keywordCase is None:
 			raise ValueError("Parameter 'keywordCase' is None.")
@@ -255,19 +255,19 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 			ex.add_note(f"Got type '{getFullyQualifiedName(interfaceListSemicolon)}'.")
 			raise ex
 
-		if interfaceLastCloseParen is None:
-			raise ValueError("Parameter 'interfaceLastCloseParen' is None.")
-		elif not isinstance(interfaceLastCloseParen, NewLine):
-			ex = TypeError("Parameter 'interfaceLastCloseParen' is not of type 'NewLine'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(interfaceLastCloseParen)}'.")
+		if interfaceLastCloseParenthesis is None:
+			raise ValueError("Parameter 'interfaceLastCloseParenthesis' is None.")
+		elif not isinstance(interfaceLastCloseParenthesis, NewLine):
+			ex = TypeError("Parameter 'interfaceLastCloseParenthesis' is not of type 'NewLine'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(interfaceLastCloseParenthesis)}'.")
 			raise ex
 
-		self._keywordCase =             keywordCase
-		self._indentStyle =             indentStyle
-		self._indentSize =              indentSize
-		self._interfaceElement =        interfaceElement
-		self._interfaceListSemicolon =  interfaceListSemicolon
-		self._interfaceLastCloseParen = interfaceLastCloseParen
+		self._keywordCase =                   keywordCase
+		self._indentStyle =                   indentStyle
+		self._indentSize =                    indentSize
+		self._interfaceElement =              interfaceElement
+		self._interfaceListSemicolon =        interfaceListSemicolon
+		self._interfaceLastCloseParenthesis = interfaceLastCloseParenthesis
 
 	@readonly
 	def KeywordCase(self) -> KeywordCase:
@@ -323,16 +323,16 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		return self._interfaceListSemicolon
 
 	@readonly
-	def InterfaceLastCloseParen(self) -> NewLine:
+	def InterfaceLastCloseParenthesis(self) -> NewLine:
 		"""
 		Read-only property to access the line break before the right parenthesis of an interface list
-		(:attr:`_interfaceLastCloseParen`).
+		(:attr:`_interfaceLastCloseParenthesis`).
 
 		``NewLine.Add`` writes the right parenthesis on its own line, ``NewLine.Remove`` after the last interface element.
 
 		:returns: The line break before the right parenthesis of an interface list.
 		"""
-		return self._interfaceLastCloseParen
+		return self._interfaceLastCloseParenthesis
 
 
 
@@ -1499,11 +1499,11 @@ class VHDLWriter(Visitor):
 		"""
 		Write the right parenthesis of an interface list, one indentation level up.
 
-		By default, the right parenthesis starts a new line (:data:`VHDLStyle.InterfaceLastCloseParen`).
+		By default, the right parenthesis starts a new line (:data:`VHDLStyle.InterfaceLastCloseParenthesis`).
 
 		:param terminator: The text following the right parenthesis.
 		"""
-		if self._style.InterfaceLastCloseParen is NewLine.Add:
+		if self._style.InterfaceLastCloseParenthesis is NewLine.Add:
 			self._WriteClosingParenthesis(terminator)
 		else:
 			self._indentation -= 1

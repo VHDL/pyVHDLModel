@@ -80,7 +80,7 @@ class Declarations(Testcase):
 			"""), VHDLWriter().Format(Procedure("p", parameterItems=_parameters())))
 
 	def test_Procedure_Parameters_OneLine(self) -> None:
-		style = VHDLStyle(interfaceElement=NewLine.Remove, interfaceLastCloseParen=NewLine.Remove)
+		style = VHDLStyle(interfaceElement=NewLine.Remove, interfaceLastCloseParenthesis=NewLine.Remove)
 
 		self.assertEqual(
 			"procedure p (constant a : in integer; variable b : out integer);\n",

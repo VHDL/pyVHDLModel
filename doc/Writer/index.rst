@@ -165,7 +165,7 @@ subprogram specification rules ``function_019``/``procedure_013`` and of the pro
    Default: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove`, the separator ends the line;
    :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` starts the next line with it.
 
-``lastCloseParen``
+``lastCloseParenthesis``
    Line break before the right parenthesis (``last_close_paren``). Default:
    :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add`, on its own line.
 

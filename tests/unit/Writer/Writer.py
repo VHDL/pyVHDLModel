@@ -137,17 +137,17 @@ class Styles(Testcase):
 		for listStyle in (style.GenericClause, style.PortClause, style.SubprogramGenericClause, style.ParameterList):
 			self.assertIs(NewLine.Add, listStyle.InterfaceElement)
 			self.assertIs(NewLine.Remove, listStyle.InterfaceListSemicolon)
-			self.assertIs(NewLine.Add, listStyle.LastCloseParen)
+			self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
 
 		for listStyle in (style.GenericMap, style.PortMap):
 			self.assertIs(NewLine.Add, listStyle.AssociationElement)
 			self.assertIs(NewLine.Remove, listStyle.AssociationListComma)
-			self.assertIs(NewLine.Add, listStyle.LastCloseParen)
+			self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
 
 		for listStyle in (style.ProcedureCall, style.FunctionCall):
 			self.assertIs(NewLine.Remove, listStyle.AssociationElement)
 			self.assertIs(NewLine.Remove, listStyle.AssociationListComma)
-			self.assertIs(NewLine.Remove, listStyle.LastCloseParen)
+			self.assertIs(NewLine.Remove, listStyle.LastCloseParenthesis)
 
 	def test_GenericClause(self) -> None:
 		listStyle = InterfaceListStyle(NewLine.Remove)
@@ -253,7 +253,7 @@ class InterfaceListStyles(Testcase):
 
 		self.assertIs(NewLine.Add, listStyle.InterfaceElement)
 		self.assertIs(NewLine.Remove, listStyle.InterfaceListSemicolon)
-		self.assertIs(NewLine.Add, listStyle.LastCloseParen)
+		self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
 
 	def test_InterfaceElement(self) -> None:
 		self.assertIs(NewLine.Remove, InterfaceListStyle(NewLine.Remove).InterfaceElement)
@@ -287,20 +287,20 @@ class InterfaceListStyles(Testcase):
 		self.assertEqual("Parameter 'interfaceListSemicolon' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
-	def test_LastCloseParen(self) -> None:
-		self.assertIs(NewLine.Remove, InterfaceListStyle(lastCloseParen=NewLine.Remove).LastCloseParen)
+	def test_LastCloseParenthesis(self) -> None:
+		self.assertIs(NewLine.Remove, InterfaceListStyle(lastCloseParenthesis=NewLine.Remove).LastCloseParenthesis)
 
-	def test_LastCloseParen_None(self) -> None:
+	def test_LastCloseParenthesis_None(self) -> None:
 		with self.assertRaises(ValueError) as context:
-			InterfaceListStyle(lastCloseParen=None)
+			InterfaceListStyle(lastCloseParenthesis=None)
 
-		self.assertEqual("Parameter 'lastCloseParen' is None.", str(context.exception))
+		self.assertEqual("Parameter 'lastCloseParenthesis' is None.", str(context.exception))
 
-	def test_LastCloseParen_Type(self) -> None:
+	def test_LastCloseParenthesis_Type(self) -> None:
 		with self.assertRaises(TypeError) as context:
-			InterfaceListStyle(lastCloseParen="remove_new_line")
+			InterfaceListStyle(lastCloseParenthesis="remove_new_line")
 
-		self.assertEqual("Parameter 'lastCloseParen' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual("Parameter 'lastCloseParenthesis' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
 class AssociationListStyles(Testcase):
@@ -309,7 +309,7 @@ class AssociationListStyles(Testcase):
 
 		self.assertIs(NewLine.Add, listStyle.AssociationElement)
 		self.assertIs(NewLine.Remove, listStyle.AssociationListComma)
-		self.assertIs(NewLine.Add, listStyle.LastCloseParen)
+		self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
 
 	def test_AssociationElement(self) -> None:
 		self.assertIs(NewLine.Remove, AssociationListStyle(NewLine.Remove).AssociationElement)
@@ -343,20 +343,20 @@ class AssociationListStyles(Testcase):
 		self.assertEqual("Parameter 'associationListComma' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
-	def test_LastCloseParen(self) -> None:
-		self.assertIs(NewLine.Remove, AssociationListStyle(lastCloseParen=NewLine.Remove).LastCloseParen)
+	def test_LastCloseParenthesis(self) -> None:
+		self.assertIs(NewLine.Remove, AssociationListStyle(lastCloseParenthesis=NewLine.Remove).LastCloseParenthesis)
 
-	def test_LastCloseParen_None(self) -> None:
+	def test_LastCloseParenthesis_None(self) -> None:
 		with self.assertRaises(ValueError) as context:
-			AssociationListStyle(lastCloseParen=None)
+			AssociationListStyle(lastCloseParenthesis=None)
 
-		self.assertEqual("Parameter 'lastCloseParen' is None.", str(context.exception))
+		self.assertEqual("Parameter 'lastCloseParenthesis' is None.", str(context.exception))
 
-	def test_LastCloseParen_Type(self) -> None:
+	def test_LastCloseParenthesis_Type(self) -> None:
 		with self.assertRaises(TypeError) as context:
-			AssociationListStyle(lastCloseParen="remove_new_line")
+			AssociationListStyle(lastCloseParenthesis="remove_new_line")
 
-		self.assertEqual("Parameter 'lastCloseParen' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual("Parameter 'lastCloseParenthesis' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
 

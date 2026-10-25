@@ -172,38 +172,38 @@ class ListStyle(metaclass=ExtendedType, slots=True):
 	(association lists).
 	"""
 
-	_element:        NewLine  #: Line break before an element.
-	_separator:      NewLine  #: Line break before the separator between two elements.
-	_lastCloseParen: NewLine  #: Line break before the right parenthesis.
+	_element:              NewLine  #: Line break before an element.
+	_separator:            NewLine  #: Line break before the separator between two elements.
+	_lastCloseParenthesis: NewLine  #: Line break before the right parenthesis.
 
-	def __init__(self, lastCloseParen: NewLine) -> None:
+	def __init__(self, lastCloseParenthesis: NewLine) -> None:
 		"""
 		Initializes the layout of a parenthesized list.
 
-		:param lastCloseParen: Line break before the right parenthesis.
-		:raises ValueError:    If parameter 'lastCloseParen' is None.
-		:raises TypeError:     If parameter 'lastCloseParen' is not of type :class:`NewLine`.
+		:param lastCloseParenthesis: Line break before the right parenthesis.
+		:raises ValueError:          If parameter 'lastCloseParenthesis' is None.
+		:raises TypeError:           If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
 		"""
-		if lastCloseParen is None:
-			raise ValueError("Parameter 'lastCloseParen' is None.")
-		elif not isinstance(lastCloseParen, NewLine):
-			ex = TypeError("Parameter 'lastCloseParen' is not of type 'NewLine'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(lastCloseParen)}'.")
+		if lastCloseParenthesis is None:
+			raise ValueError("Parameter 'lastCloseParenthesis' is None.")
+		elif not isinstance(lastCloseParenthesis, NewLine):
+			ex = TypeError("Parameter 'lastCloseParenthesis' is not of type 'NewLine'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(lastCloseParenthesis)}'.")
 			raise ex
 
-		self._lastCloseParen = lastCloseParen
+		self._lastCloseParenthesis = lastCloseParenthesis
 
 	@readonly
-	def LastCloseParen(self) -> NewLine:
+	def LastCloseParenthesis(self) -> NewLine:
 		"""
-		Read-only property to access the line break before the right parenthesis (:attr:`_lastCloseParen`).
+		Read-only property to access the line break before the right parenthesis (:attr:`_lastCloseParenthesis`).
 
 		``NewLine.Add`` writes the right parenthesis on its own line, ``NewLine.Remove`` after the last element, as
 		vhdl-style-guide's option ``last_close_paren``.
 
 		:returns: The line break before the right parenthesis.
 		"""
-		return self._lastCloseParen
+		return self._lastCloseParenthesis
 
 
 @export
@@ -224,7 +224,7 @@ class InterfaceListStyle(ListStyle):
 		self,
 		interfaceElement:       NewLine = NewLine.Add,
 		interfaceListSemicolon: NewLine = NewLine.Remove,
-		lastCloseParen:         NewLine = NewLine.Add
+		lastCloseParenthesis:   NewLine = NewLine.Add
 	) -> None:
 		"""
 		Initializes the layout of an interface list.
@@ -232,15 +232,15 @@ class InterfaceListStyle(ListStyle):
 		:param interfaceElement:       Optional, line break before an interface element. Default: ``NewLine.Add``.
 		:param interfaceListSemicolon: Optional, line break before the semicolon between two interface elements. Default:
 		                               ``NewLine.Remove``.
-		:param lastCloseParen:         Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
-		:raises ValueError:            If parameter 'lastCloseParen' is None.
-		:raises TypeError:             If parameter 'lastCloseParen' is not of type :class:`NewLine`.
+		:param lastCloseParenthesis:   Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
+		:raises ValueError:            If parameter 'lastCloseParenthesis' is None.
+		:raises TypeError:             If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
 		:raises ValueError:            If parameter 'interfaceElement' is None.
 		:raises TypeError:             If parameter 'interfaceElement' is not of type :class:`NewLine`.
 		:raises ValueError:            If parameter 'interfaceListSemicolon' is None.
 		:raises TypeError:             If parameter 'interfaceListSemicolon' is not of type :class:`NewLine`.
 		"""
-		super().__init__(lastCloseParen)
+		super().__init__(lastCloseParenthesis)
 
 		if interfaceElement is None:
 			raise ValueError("Parameter 'interfaceElement' is None.")
@@ -304,7 +304,7 @@ class AssociationListStyle(ListStyle):
 		self,
 		associationElement:   NewLine = NewLine.Add,
 		associationListComma: NewLine = NewLine.Remove,
-		lastCloseParen:       NewLine = NewLine.Add
+		lastCloseParenthesis: NewLine = NewLine.Add
 	) -> None:
 		"""
 		Initializes the layout of an association list.
@@ -312,15 +312,15 @@ class AssociationListStyle(ListStyle):
 		:param associationElement:   Optional, line break before an association element. Default: ``NewLine.Add``.
 		:param associationListComma: Optional, line break before the comma between two association elements. Default:
 		                             ``NewLine.Remove``.
-		:param lastCloseParen:       Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
-		:raises ValueError:          If parameter 'lastCloseParen' is None.
-		:raises TypeError:           If parameter 'lastCloseParen' is not of type :class:`NewLine`.
+		:param lastCloseParenthesis: Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
+		:raises ValueError:          If parameter 'lastCloseParenthesis' is None.
+		:raises TypeError:           If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
 		:raises ValueError:          If parameter 'associationElement' is None.
 		:raises TypeError:           If parameter 'associationElement' is not of type :class:`NewLine`.
 		:raises ValueError:          If parameter 'associationListComma' is None.
 		:raises TypeError:           If parameter 'associationListComma' is not of type :class:`NewLine`.
 		"""
-		super().__init__(lastCloseParen)
+		super().__init__(lastCloseParenthesis)
 
 		if associationElement is None:
 			raise ValueError("Parameter 'associationElement' is None.")
@@ -1718,7 +1718,7 @@ class VHDLWriter(Visitor):
 		:param writtenList: The list.
 		:returns:           The right parenthesis with its line break and indentation.
 		"""
-		if writtenList._style._lastCloseParen is NewLine.Add:
+		if writtenList._style._lastCloseParenthesis is NewLine.Add:
 			return f"\n{self._Indentation(writtenList._indentation)})"
 
 		return ")"

@@ -1875,23 +1875,23 @@ class LiteralError(VHDLModelException, ValueError):
 	converting an invalid text to a number.
 	"""
 
-	_literal: Nullable[_Literal]  #: The literal with the invalid value.
+	_literal: _Literal  #: The literal with the invalid value.
 
-	def __init__(self, message: str, /, *, literal: Nullable[_Literal] = None) -> None:
+	def __init__(self, message: str, /, *, literal: _Literal) -> None:
 		"""
 		Initializes the exception with a message and the literal with the invalid value.
 
 		:param message: The error message.
-		:param literal: Optional, the literal with the invalid value.
+		:param literal: The literal with the invalid value.
 		"""
 		super().__init__(message)
 		self._literal = literal
 
 	@readonly
-	def Literal(self) -> Nullable[_Literal]:
+	def Literal(self) -> _Literal:
 		"""
 		Read-only property to access the literal with the invalid value (:attr:`_literal`).
 
-		:returns: The literal, or ``None`` if not given.
+		:returns: The literal with the invalid value.
 		"""
 		return self._literal

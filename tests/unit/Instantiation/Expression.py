@@ -251,12 +251,16 @@ class BitStringLiterals(Testcase):
 	def test_LiteralError_KeywordOnly(self) -> None:
 		literal = BinaryBitStringLiteral("2")
 
-		ex = LiteralError("Message.")
+		ex = LiteralError("Message.", literal=literal)
 		self.assertEqual("Message.", str(ex))
-		self.assertIsNone(ex.Literal)
+		self.assertIs(literal, ex.Literal)
 
 		with self.assertRaises(TypeError):
 			_ = LiteralError("Message.", literal)
+
+	def test_LiteralError_Required(self) -> None:
+		with self.assertRaises(TypeError):
+			_ = LiteralError("Message.")
 
 	def test_Cached(self) -> None:
 		literal = HexadecimalBitStringLiteral("A5")

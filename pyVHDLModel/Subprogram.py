@@ -82,8 +82,11 @@ class SubprogramSignature(ModelEntity):
 	"""
 	_parameterTypes:               tuple[SubtypeSymbol, ...]  #: Type marks of the parameters, one per identifier.
 	_returnType:                   Nullable[SubtypeSymbol]    #: Type mark of a function's return value, if a function.
+	_parameterTypeNames:           tuple[str, ...]            #: Names of the parameters' type marks, as written.
+	_returnTypeName:               Nullable[str]              #: Name of the return type mark, as written.
 	_normalizedParameterTypeNames: tuple[str, ...]            #: Normalized names of the parameters' type marks.
 	_normalizedReturnTypeName:     Nullable[str]              #: Normalized name of the return type mark.
+	_hash:                         int                        #: Hash value of the parameter and result type profile.
 
 	def __init__(
 		self,
@@ -119,16 +122,19 @@ class SubprogramSignature(ModelEntity):
 			ex.add_note(f"Got type '{getFullyQualifiedName(parameterTypes)}'.")
 			raise ex
 
-		types = []
-		names = []
+		types =           []
+		names =           []
+		normalizedNames = []
 		for parameterType in parameterTypes:
 			if not isinstance(parameterType, SubtypeSymbol):
 				ex = TypeError("Element of parameter 'parameterTypes' is not of type 'SubtypeSymbol'.")
 				ex.add_note(f"Got type '{getFullyQualifiedName(parameterType)}'.")
 				raise ex
 
+			typeMark = parameterType.TypeMark
 			types.append(parameterType)
-			names.append(parameterType.TypeMark.lower())
+			names.append(typeMark)
+			normalizedNames.append(typeMark.lower())
 
 		if returnType is not None and not isinstance(returnType, SubtypeSymbol):
 			ex = TypeError("Parameter 'returnType' is not of type 'SubtypeSymbol'.")
@@ -137,8 +143,17 @@ class SubprogramSignature(ModelEntity):
 
 		self._parameterTypes =               tuple(types)
 		self._returnType =                   returnType
-		self._normalizedParameterTypeNames = tuple(names)
-		self._normalizedReturnTypeName =     None if returnType is None else returnType.TypeMark.lower()
+		self._parameterTypeNames =           tuple(names)
+		self._normalizedParameterTypeNames = tuple(normalizedNames)
+
+		if returnType is None:
+			self._returnTypeName =           None
+			self._normalizedReturnTypeName = None
+		else:
+			self._returnTypeName =           returnType.TypeMark
+			self._normalizedReturnTypeName = self._returnTypeName.lower()
+
+		self._hash = hash((self._normalizedParameterTypeNames, self._normalizedReturnTypeName))
 
 	@readonly
 	def ParameterTypes(self) -> tuple[SubtypeSymbol, ...]:
@@ -161,22 +176,22 @@ class SubprogramSignature(ModelEntity):
 	@readonly
 	def ParameterTypeNames(self) -> tuple[str, ...]:
 		"""
-		Read-only property to return the names of the parameters' type marks, as written.
+		Read-only property to access the names of the parameters' type marks, as written (:attr:`_parameterTypeNames`).
 
 		Each name is a type mark's :data:`~pyVHDLModel.Symbol.SubtypeSymbol.TypeMark`.
 
 		:returns: Tuple of the type marks' names, one per parameter identifier, in declaration order.
 		"""
-		return tuple(parameterType.TypeMark for parameterType in self._parameterTypes)
+		return self._parameterTypeNames
 
 	@readonly
 	def ReturnTypeName(self) -> Nullable[str]:
 		"""
-		Read-only property to return the name of a function's return type mark, as written.
+		Read-only property to access the name of a function's return type mark, as written (:attr:`_returnTypeName`).
 
 		:returns: The return type mark's name, or ``None`` for a procedure.
 		"""
-		return None if self._returnType is None else self._returnType.TypeMark
+		return self._returnTypeName
 
 	@readonly
 	def NormalizedParameterTypeNames(self) -> tuple[str, ...]:
@@ -242,11 +257,12 @@ class SubprogramSignature(ModelEntity):
 
 	def __hash__(self) -> int:
 		"""
-		Return the hash of the signature over the normalized names of the parameters' and the return type marks.
+		Return the hash of the signature over the normalized names of the parameters' and the return type marks
+		(:attr:`_hash`).
 
 		:returns: Hash value of the parameter and result type profile.
 		"""
-		return hash((self._normalizedParameterTypeNames, self._normalizedReturnTypeName))
+		return self._hash
 
 	def __str__(self) -> str:
 		"""
@@ -255,9 +271,9 @@ class SubprogramSignature(ModelEntity):
 
 		:returns: The signature, e.g. ``[unsigned, positive, positive return natural]`` or ``[natural]``.
 		"""
-		signature = ", ".join(parameterType.TypeMark for parameterType in self._parameterTypes)
-		if self._returnType is not None:
-			returnType = f"return {self._returnType.TypeMark}"
+		signature = ", ".join(self._parameterTypeNames)
+		if self._returnTypeName is not None:
+			returnType = f"return {self._returnTypeName}"
 			signature = returnType if signature == "" else f"{signature} {returnType}"
 
 		return f"[{signature}]"

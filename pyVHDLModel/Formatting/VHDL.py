@@ -233,12 +233,12 @@ class InterfaceListStyle(ListStyle):
 		:param interfaceListSemicolon: Optional, line break before the semicolon between two interface elements. Default:
 		                               ``NewLine.Remove``.
 		:param lastCloseParenthesis:   Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
-		:raises ValueError:            If parameter 'lastCloseParenthesis' is None.
-		:raises TypeError:             If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
 		:raises ValueError:            If parameter 'interfaceElement' is None.
 		:raises TypeError:             If parameter 'interfaceElement' is not of type :class:`NewLine`.
 		:raises ValueError:            If parameter 'interfaceListSemicolon' is None.
 		:raises TypeError:             If parameter 'interfaceListSemicolon' is not of type :class:`NewLine`.
+		:raises ValueError:            If parameter 'lastCloseParenthesis' is None.
+		:raises TypeError:             If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
 		"""
 		super().__init__(lastCloseParenthesis)
 
@@ -313,12 +313,12 @@ class AssociationListStyle(ListStyle):
 		:param associationListComma: Optional, line break before the comma between two association elements. Default:
 		                             ``NewLine.Remove``.
 		:param lastCloseParenthesis: Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
-		:raises ValueError:          If parameter 'lastCloseParenthesis' is None.
-		:raises TypeError:           If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
 		:raises ValueError:          If parameter 'associationElement' is None.
 		:raises TypeError:           If parameter 'associationElement' is not of type :class:`NewLine`.
 		:raises ValueError:          If parameter 'associationListComma' is None.
 		:raises TypeError:           If parameter 'associationListComma' is not of type :class:`NewLine`.
+		:raises ValueError:          If parameter 'lastCloseParenthesis' is None.
+		:raises TypeError:           If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
 		"""
 		super().__init__(lastCloseParenthesis)
 

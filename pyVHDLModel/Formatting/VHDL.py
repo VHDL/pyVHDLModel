@@ -263,14 +263,14 @@ class InterfaceListStyle(ListStyle):
 		:param lastCloseParenthesis:   Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
 		:param ignoreSingleLine:       Optional, write the list on a single line, if it fits into the maximum line length.
 		                               Default: ``False``.
-		:raises ValueError:            If parameter 'ignoreSingleLine' is None.
-		:raises TypeError:             If parameter 'ignoreSingleLine' is not of type :class:`bool`.
 		:raises ValueError:            If parameter 'interfaceElement' is None.
 		:raises TypeError:             If parameter 'interfaceElement' is not of type :class:`NewLine`.
 		:raises ValueError:            If parameter 'interfaceListSemicolon' is None.
 		:raises TypeError:             If parameter 'interfaceListSemicolon' is not of type :class:`NewLine`.
 		:raises ValueError:            If parameter 'lastCloseParenthesis' is None.
 		:raises TypeError:             If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
+		:raises ValueError:            If parameter 'ignoreSingleLine' is None.
+		:raises TypeError:             If parameter 'ignoreSingleLine' is not of type :class:`bool`.
 		"""
 		super().__init__(lastCloseParenthesis, ignoreSingleLine)
 
@@ -349,14 +349,14 @@ class AssociationListStyle(ListStyle):
 		:param lastCloseParenthesis: Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
 		:param ignoreSingleLine:     Optional, write the list on a single line, if it fits into the maximum line length.
 		                             Default: ``False``.
-		:raises ValueError:          If parameter 'ignoreSingleLine' is None.
-		:raises TypeError:           If parameter 'ignoreSingleLine' is not of type :class:`bool`.
 		:raises ValueError:          If parameter 'associationElement' is None.
 		:raises TypeError:           If parameter 'associationElement' is not of type :class:`NewLine`.
 		:raises ValueError:          If parameter 'associationListComma' is None.
 		:raises TypeError:           If parameter 'associationListComma' is not of type :class:`NewLine`.
 		:raises ValueError:          If parameter 'lastCloseParenthesis' is None.
 		:raises TypeError:           If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
+		:raises ValueError:          If parameter 'ignoreSingleLine' is None.
+		:raises TypeError:           If parameter 'ignoreSingleLine' is not of type :class:`bool`.
 		"""
 		super().__init__(lastCloseParenthesis, ignoreSingleLine)
 

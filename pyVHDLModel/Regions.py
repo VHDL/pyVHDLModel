@@ -1544,13 +1544,13 @@ class DeclarationRegionMixin(
 
 		:param declaredItem:               The declared item to insert.
 		:param before:                     The declared item of this declarative region to insert before.
-		:raises ValueError:                If parameter 'before' is ``None``.
-		:raises TypeError:                 If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError:            If parameter 'before' is not a declared item of this declarative region.
 		:raises ValueError:                If parameter 'declaredItem' is ``None``.
 		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
 		                                   region.
 		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
+		:raises ValueError:                If parameter 'before' is ``None``.
+		:raises TypeError:                 If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:            If parameter 'before' is not a declared item of this declarative region.
 		:raises DuplicateDeclarationError: If an existing declaration of the declarative region shares an
 		                                   identifier with the declared item.
 
@@ -1592,13 +1592,13 @@ class DeclarationRegionMixin(
 
 		:param declaredItem:               The declared item to insert.
 		:param after:                      The declared item of this declarative region to insert after.
-		:raises ValueError:                If parameter 'after' is ``None``.
-		:raises TypeError:                 If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError:            If parameter 'after' is not a declared item of this declarative region.
 		:raises ValueError:                If parameter 'declaredItem' is ``None``.
 		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
 		                                   region.
 		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
+		:raises ValueError:                If parameter 'after' is ``None``.
+		:raises TypeError:                 If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:            If parameter 'after' is not a declared item of this declarative region.
 		:raises DuplicateDeclarationError: If an existing declaration of the declarative region shares an
 		                                   identifier with the declared item.
 
@@ -1796,12 +1796,12 @@ class DeclarationRegionMixin(
 
 		:param declaredItem:    The declared item to move.
 		:param before:          The declared item of this declarative region to move before.
-		:raises ValueError:     If parameter 'before' is ``None``.
-		:raises TypeError:      If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError: If parameter 'before' is not a declared item of this declarative region.
 		:raises ValueError:     If parameter 'declaredItem' is ``None``.
 		:raises TypeError:      If parameter 'declaredItem' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
 		:raises NotAChildError: If parameter 'declaredItem' is not a declared item of this declarative region.
+		:raises ValueError:     If parameter 'before' is ``None``.
+		:raises TypeError:      If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'before' is not a declared item of this declarative region.
 
 		.. seealso::
 
@@ -1842,12 +1842,12 @@ class DeclarationRegionMixin(
 
 		:param declaredItem:    The declared item to move.
 		:param after:           The declared item of this declarative region to move after.
-		:raises ValueError:     If parameter 'after' is ``None``.
-		:raises TypeError:      If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError: If parameter 'after' is not a declared item of this declarative region.
 		:raises ValueError:     If parameter 'declaredItem' is ``None``.
 		:raises TypeError:      If parameter 'declaredItem' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
 		:raises NotAChildError: If parameter 'declaredItem' is not a declared item of this declarative region.
+		:raises ValueError:     If parameter 'after' is ``None``.
+		:raises TypeError:      If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'after' is not a declared item of this declarative region.
 
 		.. seealso::
 

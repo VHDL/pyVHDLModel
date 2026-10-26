@@ -101,12 +101,12 @@ class SubprogramSignature(ModelEntity):
 		:param parameterTypes: The type marks of the parameters, one per parameter identifier.
 		:param returnType:     Optional, the type mark of a function's return value. Default: ``None``, a procedure.
 		:param parent:         Optional, the subprogram declaring this signature. Default: ``None``.
-		:raises TypeError:     If parameter 'parent' is not of type :class:`~pyVHDLModel.Subprogram.Subprogram`.
 		:raises ValueError:    If parameter 'parameterTypes' is ``None``.
 		:raises TypeError:     If parameter 'parameterTypes' is not iterable.
 		:raises TypeError:     If an element of parameter 'parameterTypes' is not of type
 		                       :class:`~pyVHDLModel.Symbol.SubtypeSymbol`.
 		:raises TypeError:     If parameter 'returnType' is not of type :class:`~pyVHDLModel.Symbol.SubtypeSymbol`.
+		:raises TypeError:     If parameter 'parent' is not of type :class:`~pyVHDLModel.Subprogram.Subprogram`.
 		"""
 		super().__init__(parent)
 

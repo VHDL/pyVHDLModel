@@ -320,12 +320,12 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 
 		:param statement:             The concurrent statement to insert.
 		:param before:                The statement of this construct to insert before.
-		:raises ValueError:           If parameter 'before' is ``None``.
-		:raises TypeError:            If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError:       If parameter 'before' is not a statement of this construct.
 		:raises ValueError:           If parameter 'statement' is ``None``.
 		:raises TypeError:            If parameter 'statement' is not of type :class:`ConcurrentStatement`.
 		:raises AlreadyInDesignError: If parameter 'statement' already has a parent.
+		:raises ValueError:           If parameter 'before' is ``None``.
+		:raises TypeError:            If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:       If parameter 'before' is not a statement of this construct.
 		:raises DuplicateLabelError:  If the declarative region already declares the statement's label.
 
 		.. seealso::
@@ -366,12 +366,12 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 
 		:param statement:             The concurrent statement to insert.
 		:param after:                 The statement of this construct to insert after.
-		:raises ValueError:           If parameter 'after' is ``None``.
-		:raises TypeError:            If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError:       If parameter 'after' is not a statement of this construct.
 		:raises ValueError:           If parameter 'statement' is ``None``.
 		:raises TypeError:            If parameter 'statement' is not of type :class:`ConcurrentStatement`.
 		:raises AlreadyInDesignError: If parameter 'statement' already has a parent.
+		:raises ValueError:           If parameter 'after' is ``None``.
+		:raises TypeError:            If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:       If parameter 'after' is not a statement of this construct.
 		:raises DuplicateLabelError:  If the declarative region already declares the statement's label.
 
 		.. seealso::
@@ -525,12 +525,12 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 
 		:param statement:       The concurrent statement to move.
 		:param before:          The statement of this construct to move before.
-		:raises ValueError:     If parameter 'before' is ``None``.
-		:raises TypeError:      If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError: If parameter 'before' is not a statement of this construct.
 		:raises ValueError:     If parameter 'statement' is ``None``.
 		:raises TypeError:      If parameter 'statement' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
 		:raises NotAChildError: If parameter 'statement' is not a statement of this construct.
+		:raises ValueError:     If parameter 'before' is ``None``.
+		:raises TypeError:      If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'before' is not a statement of this construct.
 
 		.. seealso::
 
@@ -571,12 +571,12 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 
 		:param statement:       The concurrent statement to move.
 		:param after:           The statement of this construct to move after.
-		:raises ValueError:     If parameter 'after' is ``None``.
-		:raises TypeError:      If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError: If parameter 'after' is not a statement of this construct.
 		:raises ValueError:     If parameter 'statement' is ``None``.
 		:raises TypeError:      If parameter 'statement' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
 		:raises NotAChildError: If parameter 'statement' is not a statement of this construct.
+		:raises ValueError:     If parameter 'after' is ``None``.
+		:raises TypeError:      If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'after' is not a statement of this construct.
 
 		.. seealso::
 

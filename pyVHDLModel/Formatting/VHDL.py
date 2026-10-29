@@ -241,26 +241,17 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 			ex.add_note(f"Got value '{indentSize}'.")
 			raise ex
 
-		if interfaceElement is None:
-			raise ValueError("Parameter 'interfaceElement' is None.")
-		elif not isinstance(interfaceElement, NewLine):
-			ex = TypeError("Parameter 'interfaceElement' is not of type 'NewLine'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(interfaceElement)}'.")
-			raise ex
-
-		if interfaceListSemicolon is None:
-			raise ValueError("Parameter 'interfaceListSemicolon' is None.")
-		elif not isinstance(interfaceListSemicolon, NewLine):
-			ex = TypeError("Parameter 'interfaceListSemicolon' is not of type 'NewLine'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(interfaceListSemicolon)}'.")
-			raise ex
-
-		if interfaceLastCloseParenthesis is None:
-			raise ValueError("Parameter 'interfaceLastCloseParenthesis' is None.")
-		elif not isinstance(interfaceLastCloseParenthesis, NewLine):
-			ex = TypeError("Parameter 'interfaceLastCloseParenthesis' is not of type 'NewLine'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(interfaceLastCloseParenthesis)}'.")
-			raise ex
+		for name, newLine in (
+			("interfaceElement",              interfaceElement),
+			("interfaceListSemicolon",        interfaceListSemicolon),
+			("interfaceLastCloseParenthesis", interfaceLastCloseParenthesis)
+		):
+			if newLine is None:
+				raise ValueError(f"Parameter '{name}' is None.")
+			elif not isinstance(newLine, NewLine):
+				ex = TypeError(f"Parameter '{name}' is not of type 'NewLine'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(newLine)}'.")
+				raise ex
 
 		self._keywordCase =                   keywordCase
 		self._indentStyle =                   indentStyle

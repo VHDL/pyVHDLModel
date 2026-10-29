@@ -242,19 +242,16 @@ class InterfaceListStyle(ListStyle):
 		"""
 		super().__init__(lastCloseParenthesis)
 
-		if interfaceElement is None:
-			raise ValueError("Parameter 'interfaceElement' is None.")
-		elif not isinstance(interfaceElement, NewLine):
-			ex = TypeError("Parameter 'interfaceElement' is not of type 'NewLine'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(interfaceElement)}'.")
-			raise ex
-
-		if interfaceListSemicolon is None:
-			raise ValueError("Parameter 'interfaceListSemicolon' is None.")
-		elif not isinstance(interfaceListSemicolon, NewLine):
-			ex = TypeError("Parameter 'interfaceListSemicolon' is not of type 'NewLine'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(interfaceListSemicolon)}'.")
-			raise ex
+		for name, newLine in (
+			("interfaceElement",       interfaceElement),
+			("interfaceListSemicolon", interfaceListSemicolon)
+		):
+			if newLine is None:
+				raise ValueError(f"Parameter '{name}' is None.")
+			elif not isinstance(newLine, NewLine):
+				ex = TypeError(f"Parameter '{name}' is not of type 'NewLine'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(newLine)}'.")
+				raise ex
 
 		self._element =   interfaceElement
 		self._separator = interfaceListSemicolon
@@ -322,19 +319,16 @@ class AssociationListStyle(ListStyle):
 		"""
 		super().__init__(lastCloseParenthesis)
 
-		if associationElement is None:
-			raise ValueError("Parameter 'associationElement' is None.")
-		elif not isinstance(associationElement, NewLine):
-			ex = TypeError("Parameter 'associationElement' is not of type 'NewLine'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(associationElement)}'.")
-			raise ex
-
-		if associationListComma is None:
-			raise ValueError("Parameter 'associationListComma' is None.")
-		elif not isinstance(associationListComma, NewLine):
-			ex = TypeError("Parameter 'associationListComma' is not of type 'NewLine'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(associationListComma)}'.")
-			raise ex
+		for name, newLine in (
+			("associationElement",   associationElement),
+			("associationListComma", associationListComma)
+		):
+			if newLine is None:
+				raise ValueError(f"Parameter '{name}' is None.")
+			elif not isinstance(newLine, NewLine):
+				ex = TypeError(f"Parameter '{name}' is not of type 'NewLine'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(newLine)}'.")
+				raise ex
 
 		self._element =   associationElement
 		self._separator = associationListComma

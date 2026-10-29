@@ -127,6 +127,14 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 		"""
 		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
+	def _SplitInParent(self) -> tuple[Self, ...]:
+		"""
+		Split this object declaration by the mutator of its parent (``SplitDeclaredItem()``).
+
+		:returns: Tuple of declarations, one per identifier in list order, starting with this object declaration.
+		"""
+		return self._parent.SplitDeclaredItem(self)
+
 	def __str__(self) -> str:
 		"""
 		Formats the object declaration.

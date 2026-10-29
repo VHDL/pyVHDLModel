@@ -404,7 +404,7 @@ class WithGenericsMixin(
 		visitor.VisitGenericClause(self)
 		for index, item in enumerate(self._genericItems):
 			if index > 0:
-				visitor.VisitSemicolon(self)
+				visitor.VisitInterfaceListSeparator(self)
 
 			item.Visit(visitor)
 
@@ -725,7 +725,7 @@ class WithPortsMixin(
 		visitor.VisitPortClause(self)
 		for index, item in enumerate(self._portItems):
 			if index > 0:
-				visitor.VisitSemicolon(self)
+				visitor.VisitInterfaceListSeparator(self)
 
 			item.Visit(visitor)
 
@@ -1052,7 +1052,7 @@ class WithParametersMixin(
 		visitor.VisitFormalParameterList(self)
 		for index, item in enumerate(self._parameterItems):
 			if index > 0:
-				visitor.VisitSemicolon(self)
+				visitor.VisitInterfaceListSeparator(self)
 
 			item.Visit(visitor)
 

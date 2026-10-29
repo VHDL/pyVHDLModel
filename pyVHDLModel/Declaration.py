@@ -250,7 +250,7 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		visitor.VisitEntitySpecification(self)
 		for index, name in enumerate(self._identifiers):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitNameListSeparator(self)
 
 			name.Visit(visitor)
 

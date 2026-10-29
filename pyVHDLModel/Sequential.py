@@ -2248,7 +2248,7 @@ class WaitStatement(SequentialStatement, ConditionalMixin):
 			visitor.VisitOn(self)
 			for index, name in enumerate(self._sensitivityList):
 				if index > 0:
-					visitor.VisitComma(self)
+					visitor.VisitNameListSeparator(self)
 
 				name.Visit(visitor)
 

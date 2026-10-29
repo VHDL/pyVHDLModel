@@ -37,7 +37,7 @@ from pyVHDLModel.Base            import Mode
 from pyVHDLModel.DesignUnit      import Component
 from pyVHDLModel.Exception       import VHDLWriterError
 from pyVHDLModel.Expression      import IntegerLiteral, CharacterLiteral
-from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
+from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, NewLine, VHDLStyle, VHDLWriter
 from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                         PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem, \
                                         ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
@@ -230,6 +230,51 @@ class Components(Testcase):
 			  );
 			END COMPONENT inverter;
 			"""), VHDLWriter(VHDLStyle(KeywordCase.Upper)).Format(component))
+
+	def test_InterfaceElement_Remove(self) -> None:
+		"""Interface elements and the right parenthesis continue the line: one line per clause."""
+		style = VHDLStyle(interfaceElement=NewLine.Remove, interfaceLastCloseParenthesis=NewLine.Remove)
+
+		self.assertEqual(dedent("""\
+			component counter is
+			  generic (BITS : positive := 8; type T);
+			  port (clk, rst : in bit; q : out T);
+			end component counter;
+			"""), VHDLWriter(style).Format(_component()))
+
+	def test_InterfaceListSemicolon_Add(self) -> None:
+		"""The semicolon starts the line of the next interface element."""
+		style = VHDLStyle(interfaceElement=NewLine.Remove, interfaceListSemicolon=NewLine.Add)
+
+		self.assertEqual(dedent("""\
+			component counter is
+			  generic (BITS : positive := 8
+			    ; type T
+			  );
+			  port (clk, rst : in bit
+			    ; q : out T
+			  );
+			end component counter;
+			"""), VHDLWriter(style).Format(_component()))
+
+	def test_InterfaceListSemicolon_Add_InterfaceElement_Add(self) -> None:
+		"""The semicolon and the next interface element each start a new line."""
+		style = VHDLStyle(interfaceListSemicolon=NewLine.Add)
+
+		self.assertEqual(dedent("""\
+			component counter is
+			  generic (
+			    BITS : positive := 8
+			    ;
+			    type T
+			  );
+			  port (
+			    clk, rst : in bit
+			    ;
+			    q : out T
+			  );
+			end component counter;
+			"""), VHDLWriter(style).Format(_component()))
 
 
 class ModeViews(Testcase):

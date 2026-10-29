@@ -43,11 +43,13 @@ Visitor
 The writer is a :class:`~pyVHDLModel.Visitor.Visitor`. A model element walks itself
 (:meth:`~pyVHDLModel.Base.ModelEntity.Visit`): it reports ``Visit<Class>`` to the visitor, walks its children in source
 order and reports ``Depart<Class>``. A token between two parts, which is not a model element itself, is reported by an
-event named after the token, e.g. ``VisitArrow`` for ``=>`` or ``VisitComma`` for ``,``. A part of an element, which is
-not a model element itself, is reported by an event pair named after its production in IEEE Std 1076-2008, e.g.
-``VisitGenericClause`` and ``DepartGenericClause`` around the generics of a component. The writer appends the text of
-each event to a buffer, which :meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format` returns. A parser's subclass of a
-model class inherits the walk of that model class, so it's written like that model class.
+event named after the token, e.g. ``VisitArrow`` for ``=>``. A separator is reported by an event named after the list
+it separates, so the writer can lay out each kind of list on its own (see :ref:`WRITER/separators`). A part of an
+element, which is not a model element itself, is reported by an event pair named after its production in
+IEEE Std 1076-2008, e.g. ``VisitGenericClause`` and ``DepartGenericClause`` around the generics of a component. The
+writer appends the text of each event to a buffer, which :meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format`
+returns. A parser's subclass of a model class inherits the walk of that model class, so it's written like that model
+class.
 
 An element of a class without a walk of its own raises :exc:`NotImplementedError` when it is visited. The writer raises
 :exc:`~pyVHDLModel.Exception.VHDLWriterError` for an element without VHDL notation, e.g. a string literal containing a
@@ -100,11 +102,89 @@ Formatting Options
    Number of spaces per indentation level, as vhdl-style-guide's option ``indent_size`` (default: ``2``). It applies to
    :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.Spaces`.
 
+``interfaceElement``
+   Line break before each interface element of a generic clause, a port clause or a formal parameter list, as
+   vhdl-style-guide's option ``interface_element``: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (default,
+   ``add_new_line``: one element per line) or :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove`
+   (``remove_new_line``).
+
+``interfaceListSemicolon``
+   Line break before the semicolon between two interface elements, as vhdl-style-guide's option
+   ``interface_list_semicolon``: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove` (default: the semicolon ends the
+   line) or :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (the semicolon starts the next line).
+
+``interfaceLastCloseParenthesis``
+   Line break before the right parenthesis of an interface list, as vhdl-style-guide's option ``last_close_paren``:
+   :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` (default: on its own line) or
+   :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove`.
+
+vhdl-style-guide has these three options for subprogram specifications
+(:ref:`vsg:configuring-subprogram-specification-statement-rules`); the writer applies them to generic clauses and port
+clauses, too.
+
 .. code-block:: Python
 
    from pyVHDLModel.Formatting.VHDL import IndentStyle, KeywordCase, VHDLStyle, VHDLWriter
 
    writer = VHDLWriter(VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs))
+
+.. code-block:: VHDL
+
+   -- interfaceElement=NewLine.Remove, interfaceListSemicolon=NewLine.Add
+   port (clk, rst : in bit
+     ; q : out T
+   );
+
+   -- interfaceElement=NewLine.Remove, interfaceLastCloseParenthesis=NewLine.Remove
+   procedure p (constant a : in integer; variable b : out integer);
+
+
+.. _WRITER/separators:
+
+Separators and Parentheses
+**************************
+
+Each list reports the separator between two of its items by an event named after the list:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Event
+     - Separator
+     - Lists
+     - Written as
+   * - ``VisitInterfaceListSeparator``
+     - ``;``
+     - generic clause, port clause, formal parameter list
+     - ``;``, then a new line (``interfaceElement``, ``interfaceListSemicolon``)
+   * - ``VisitAssociationListSeparator``
+     - ``,``
+     - associations of a parenthesis name, generic and port map aspects, actual parameters of a procedure call
+     - ``,`` and a new line in a map aspect, otherwise ``,`` and a space
+   * - ``VisitElementSeparator``
+     - ``,``
+     - indices of an indexed name, element associations of an aggregate, index and record constraints, literals of an
+       enumerated type, index ranges of an array type
+     - ``,`` and a space
+   * - ``VisitNameListSeparator``
+     - ``,``
+     - entity name list of an attribute specification, names of a library clause, use clause or context reference,
+       instantiation list, sensitivity list of a process or wait statement
+     - ``,`` and a space
+   * - ``VisitWaveformSeparator``
+     - ``,``
+     - waveform elements of a waveform
+     - ``,`` and a space
+   * - ``VisitSelectedAlternativeSeparator``
+     - ``,``
+     - alternatives of selected waveforms and selected expressions
+     - ``,`` and a space
+
+The parentheses of a list are written at the events of its element or part, e.g. ``VisitIndexList`` and
+``DepartIndexList`` around the indices of an indexed name, ``VisitAssociationList`` and ``DepartAssociationList`` around
+the associations of a parenthesis name, or ``VisitGenericClause`` and ``DepartGenericClause``. ``VisitLeftParenthesis``
+and ``VisitRightParenthesis`` enclose a single item, which is no list: the operand of a type conversion or the
+architecture name of an entity aspect.
 
 
 .. _WRITER/parentheses:

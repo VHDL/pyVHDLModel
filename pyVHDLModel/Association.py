@@ -232,7 +232,7 @@ class GenericMapAspectMixin(metaclass=ExtendedType, mixin=True):
 		visitor.VisitGenericMapAspect(self)
 		for index, item in enumerate(self._genericAssociationItems):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitAssociationListSeparator(self)
 
 			item.Visit(visitor)
 
@@ -462,7 +462,7 @@ class PortMapAspectMixin(metaclass=ExtendedType, mixin=True):
 		visitor.VisitPortMapAspect(self)
 		for index, item in enumerate(self._portAssociationItems):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitAssociationListSeparator(self)
 
 			item.Visit(visitor)
 

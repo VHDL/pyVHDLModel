@@ -1416,6 +1416,7 @@ class TypeConversion(UnaryExpression):
 		self._targetSubtype.Visit(visitor)
 		visitor.VisitLeftParenthesis(self)
 		self._operand.Visit(visitor)
+		visitor.VisitRightParenthesis(self)
 		visitor.DepartTypeConversion(self)
 
 	def __str__(self) -> str:
@@ -3299,7 +3300,7 @@ class Aggregate(BaseExpression):
 		visitor.VisitAggregate(self)
 		for position, element in enumerate(self._elements):
 			if position > 0:
-				visitor.VisitComma(self)
+				visitor.VisitElementSeparator(self)
 
 			element.Visit(visitor)
 

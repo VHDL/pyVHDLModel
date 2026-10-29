@@ -1380,7 +1380,7 @@ class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol, ArrayCons
 		visitor.VisitIndexConstraint(self)
 		for index, constraint in enumerate(self._constraints):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitElementSeparator(self)
 
 			constraint.Visit(visitor)
 
@@ -1436,7 +1436,7 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 		visitor.VisitRecordConstraint(self)
 		for index, (element, constraint) in enumerate(self._constraints.items()):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitElementSeparator(self)
 
 			element.Visit(visitor)
 			visitor.VisitIndexConstraint(self)

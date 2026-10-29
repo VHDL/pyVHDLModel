@@ -44,7 +44,7 @@ from typing                    import ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName
 from pyTooling.Decorators      import export, readonly
-from pyTooling.MetaClasses     import ExtendedType
+from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
 from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin, PortMapAspectMixin
 from pyVHDLModel.Base          import ModelElementUnion, ModelEntity, Mode, ReservedWord, SimpleRange, RangeFromName, \
@@ -152,6 +152,8 @@ class NewLine(Enum):
 
 	   :ref:`vsg:configuring-subprogram-specification-statement-rules`
 	      |rarr| vhdl-style-guide's options ``interface_element``, ``interface_list_semicolon`` and ``last_close_paren``.
+	   :ref:`vsg:configuring-procedure-call-statement-rules`
+	      |rarr| vhdl-style-guide's options ``association_element``, ``association_list_comma`` and ``last_close_paren``.
 	"""
 
 	Add =    0  #: The token starts a new line (VSG: ``add_new_line``).
@@ -159,11 +161,216 @@ class NewLine(Enum):
 
 
 @export
+@abstractclass
+class ListStyle(metaclass=ExtendedType, slots=True):
+	"""
+	Base-class of the layouts of parenthesized lists: :class:`InterfaceListStyle` and :class:`AssociationListStyle`.
+
+	A :class:`VHDLStyle` has one list style per construct, e.g. for port clauses and for port map aspects. The options of
+	the derived classes are named after vhdl-style-guide's options of the subprogram specification rules
+	``function_019``/``procedure_013`` (interface lists) and of the procedure call rule ``procedure_call_003``
+	(association lists).
+	"""
+
+	_lastCloseParenthesis: NewLine  #: Line break before the right parenthesis.
+
+	def __init__(self, lastCloseParenthesis: NewLine) -> None:
+		"""
+		Initializes the layout of a parenthesized list.
+
+		:param lastCloseParenthesis: Line break before the right parenthesis.
+		:raises ValueError:          If parameter 'lastCloseParenthesis' is None.
+		:raises TypeError:           If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
+		"""
+		if lastCloseParenthesis is None:
+			raise ValueError("Parameter 'lastCloseParenthesis' is None.")
+		elif not isinstance(lastCloseParenthesis, NewLine):
+			ex = TypeError("Parameter 'lastCloseParenthesis' is not of type 'NewLine'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(lastCloseParenthesis)}'.")
+			raise ex
+
+		self._lastCloseParenthesis = lastCloseParenthesis
+
+	@readonly
+	def LastCloseParenthesis(self) -> NewLine:
+		"""
+		Read-only property to access the line break before the right parenthesis (:attr:`_lastCloseParenthesis`).
+
+		``NewLine.Add`` writes the right parenthesis on its own line, ``NewLine.Remove`` after the last element, as
+		vhdl-style-guide's option ``last_close_paren``.
+
+		:returns: The line break before the right parenthesis.
+		"""
+		return self._lastCloseParenthesis
+
+
+@export
+class InterfaceListStyle(ListStyle):
+	"""
+	Represents the layout of the interface lists of one construct.
+
+	An interface list separates its elements by semicolons, e.g. the ports of a port clause. The options are
+	vhdl-style-guide's options of the subprogram specification rules ``function_019``/``procedure_013``.
+
+	.. seealso::
+
+	   :ref:`vsg:configuring-subprogram-specification-statement-rules`
+	      |rarr| vhdl-style-guide's options ``interface_element``, ``interface_list_semicolon`` and ``last_close_paren``.
+	"""
+
+	_interfaceElement:       NewLine  #: Line break before an interface element.
+	_interfaceListSemicolon: NewLine  #: Line break before the semicolon between two interface elements.
+
+	def __init__(
+		self,
+		interfaceElement:       NewLine = NewLine.Add,
+		interfaceListSemicolon: NewLine = NewLine.Remove,
+		lastCloseParenthesis:   NewLine = NewLine.Add
+	) -> None:
+		"""
+		Initializes the layout of an interface list.
+
+		:param interfaceElement:       Optional, line break before an interface element. Default: ``NewLine.Add``.
+		:param interfaceListSemicolon: Optional, line break before the semicolon between two interface elements. Default:
+		                               ``NewLine.Remove``.
+		:param lastCloseParenthesis:   Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
+		:raises ValueError:            If parameter 'interfaceElement' is None.
+		:raises TypeError:             If parameter 'interfaceElement' is not of type :class:`NewLine`.
+		:raises ValueError:            If parameter 'interfaceListSemicolon' is None.
+		:raises TypeError:             If parameter 'interfaceListSemicolon' is not of type :class:`NewLine`.
+		:raises ValueError:            If parameter 'lastCloseParenthesis' is None.
+		:raises TypeError:             If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
+		"""
+		super().__init__(lastCloseParenthesis)
+
+		for name, newLine in (
+			("interfaceElement",       interfaceElement),
+			("interfaceListSemicolon", interfaceListSemicolon)
+		):
+			if newLine is None:
+				raise ValueError(f"Parameter '{name}' is None.")
+			elif not isinstance(newLine, NewLine):
+				ex = TypeError(f"Parameter '{name}' is not of type 'NewLine'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(newLine)}'.")
+				raise ex
+
+		self._interfaceElement =       interfaceElement
+		self._interfaceListSemicolon = interfaceListSemicolon
+
+	@readonly
+	def InterfaceElement(self) -> NewLine:
+		"""
+		Read-only property to access the line break before an interface element (:attr:`_interfaceElement`).
+
+		It applies to every interface element, the first one after the left parenthesis included, as vhdl-style-guide's
+		option ``interface_element``. ``NewLine.Add`` starts each element on its own line, ``NewLine.Remove`` continues the
+		line.
+
+		:returns: The line break before an interface element.
+		"""
+		return self._interfaceElement
+
+	@readonly
+	def InterfaceListSemicolon(self) -> NewLine:
+		"""
+		Read-only property to access the line break before the semicolon between two interface elements
+		(:attr:`_interfaceListSemicolon`).
+
+		``NewLine.Remove`` ends the line of the previous element with the semicolon, ``NewLine.Add`` starts the next line
+		with it, as vhdl-style-guide's option ``interface_list_semicolon``.
+
+		:returns: The line break before the semicolon between two interface elements.
+		"""
+		return self._interfaceListSemicolon
+
+
+@export
+class AssociationListStyle(ListStyle):
+	"""
+	Represents the layout of the association lists of one construct.
+
+	An association list separates its elements by commas, e.g. the associations of a port map aspect. The options are
+	vhdl-style-guide's options of the procedure call rule ``procedure_call_003``.
+
+	.. seealso::
+
+	   :ref:`vsg:configuring-procedure-call-statement-rules`
+	      |rarr| vhdl-style-guide's options ``association_element``, ``association_list_comma`` and ``last_close_paren``.
+	"""
+
+	_associationElement:   NewLine  #: Line break before an association element.
+	_associationListComma: NewLine  #: Line break before the comma between two association elements.
+
+	def __init__(
+		self,
+		associationElement:   NewLine = NewLine.Add,
+		associationListComma: NewLine = NewLine.Remove,
+		lastCloseParenthesis: NewLine = NewLine.Add
+	) -> None:
+		"""
+		Initializes the layout of an association list.
+
+		:param associationElement:   Optional, line break before an association element. Default: ``NewLine.Add``.
+		:param associationListComma: Optional, line break before the comma between two association elements. Default:
+		                             ``NewLine.Remove``.
+		:param lastCloseParenthesis: Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
+		:raises ValueError:          If parameter 'associationElement' is None.
+		:raises TypeError:           If parameter 'associationElement' is not of type :class:`NewLine`.
+		:raises ValueError:          If parameter 'associationListComma' is None.
+		:raises TypeError:           If parameter 'associationListComma' is not of type :class:`NewLine`.
+		:raises ValueError:          If parameter 'lastCloseParenthesis' is None.
+		:raises TypeError:           If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
+		"""
+		super().__init__(lastCloseParenthesis)
+
+		for name, newLine in (
+			("associationElement",   associationElement),
+			("associationListComma", associationListComma)
+		):
+			if newLine is None:
+				raise ValueError(f"Parameter '{name}' is None.")
+			elif not isinstance(newLine, NewLine):
+				ex = TypeError(f"Parameter '{name}' is not of type 'NewLine'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(newLine)}'.")
+				raise ex
+
+		self._associationElement =   associationElement
+		self._associationListComma = associationListComma
+
+	@readonly
+	def AssociationElement(self) -> NewLine:
+		"""
+		Read-only property to access the line break before an association element (:attr:`_associationElement`).
+
+		It applies to every association element, the first one after the left parenthesis included, as
+		vhdl-style-guide's option ``association_element``. ``NewLine.Add`` starts each element on its own line,
+		``NewLine.Remove`` continues the line.
+
+		:returns: The line break before an association element.
+		"""
+		return self._associationElement
+
+	@readonly
+	def AssociationListComma(self) -> NewLine:
+		"""
+		Read-only property to access the line break before the comma between two association elements
+		(:attr:`_associationListComma`).
+
+		``NewLine.Remove`` ends the line of the previous element with the comma, ``NewLine.Add`` starts the next line with
+		it, as vhdl-style-guide's option ``association_list_comma``.
+
+		:returns: The line break before the comma between two association elements.
+		"""
+		return self._associationListComma
+
+
+@export
 class VHDLStyle(metaclass=ExtendedType, slots=True):
 	"""
 	Represents the formatting options of the :class:`VHDL writer <VHDLWriter>`.
 
-	The options follow vhdl-style-guide's names and values.
+	The options follow vhdl-style-guide's names and values. The layout of each kind of parenthesized list is an
+	:class:`InterfaceListStyle` or :class:`AssociationListStyle` per construct.
 
 	.. seealso::
 
@@ -171,50 +378,73 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 	      |rarr| vhdl-style-guide's option ``case``.
 	   :ref:`vsg:configuring-indent-rules`
 	      |rarr| vhdl-style-guide's options ``indent_style`` and ``indent_size``.
-	   :ref:`vsg:configuring-subprogram-specification-statement-rules`
-	      |rarr| vhdl-style-guide's options ``interface_element``, ``interface_list_semicolon`` and ``last_close_paren``.
 	"""
 
-	_keywordCase:                   KeywordCase  #: Letter case of reserved words.
-	_indentStyle:                   IndentStyle  #: Indentation style.
-	_indentSize:                    int          #: Number of spaces per indentation level.
-	_interfaceElement:              NewLine      #: Line break before an interface element.
-	_interfaceListSemicolon:        NewLine      #: Line break before the semicolon between two interface elements.
-	_interfaceLastCloseParenthesis: NewLine      #: Line break before the right parenthesis of an interface list.
+	_keywordCase:             KeywordCase           #: Letter case of reserved words.
+	_indentStyle:             IndentStyle           #: Indentation style.
+	_indentSize:              int                   #: Number of spaces per indentation level.
+	_genericClause:           InterfaceListStyle    #: Layout of generic clauses, except of subprograms.
+	_portClause:              InterfaceListStyle    #: Layout of port clauses.
+	_subprogramGenericClause: InterfaceListStyle    #: Layout of generic clauses of subprograms.
+	_parameterList:           InterfaceListStyle    #: Layout of formal parameter lists.
+	_genericMap:              AssociationListStyle  #: Layout of generic map aspects.
+	_portMap:                 AssociationListStyle  #: Layout of port map aspects.
+	_procedureCall:           AssociationListStyle  #: Layout of actual parameter parts of procedure calls.
+	_functionCall:            AssociationListStyle  #: Layout of association lists of function calls.
 
 	def __init__(
 		self,
-		keywordCase:                   KeywordCase = KeywordCase.Lower,
-		indentStyle:                   IndentStyle = IndentStyle.Spaces,
-		indentSize:                    int =         2,
-		interfaceElement:              NewLine =     NewLine.Add,
-		interfaceListSemicolon:        NewLine =     NewLine.Remove,
-		interfaceLastCloseParenthesis: NewLine =     NewLine.Add
+		keywordCase:             KeywordCase =                    KeywordCase.Lower,
+		indentStyle:             IndentStyle =                    IndentStyle.Spaces,
+		indentSize:              int =                            2,
+		genericClause:           Nullable[InterfaceListStyle] =   None,
+		portClause:              Nullable[InterfaceListStyle] =   None,
+		subprogramGenericClause: Nullable[InterfaceListStyle] =   None,
+		parameterList:           Nullable[InterfaceListStyle] =   None,
+		genericMap:              Nullable[AssociationListStyle] = None,
+		portMap:                 Nullable[AssociationListStyle] = None,
+		procedureCall:           Nullable[AssociationListStyle] = None,
+		functionCall:            Nullable[AssociationListStyle] = None
 	) -> None:
 		"""
 		Initializes the formatting options.
 
-		:param keywordCase:                   Optional, letter case of reserved words. Default: ``KeywordCase.Lower``.
-		:param indentStyle:                   Optional, indentation style. Default: ``IndentStyle.Spaces``.
-		:param indentSize:                    Optional, number of spaces per indentation level. Default: ``2``.
-		:param interfaceElement:              Optional, line break before an interface element. Default: ``NewLine.Add``.
-		:param interfaceListSemicolon:        Optional, line break before the semicolon between two interface elements.
-		                                      Default: ``NewLine.Remove``.
-		:param interfaceLastCloseParenthesis: Optional, line break before the right parenthesis of an interface list.
-		                                      Default: ``NewLine.Add``.
-		:raises ValueError:                   If parameter 'keywordCase' is None.
-		:raises TypeError:                    If parameter 'keywordCase' is not of type :class:`KeywordCase`.
-		:raises ValueError:                   If parameter 'indentStyle' is None.
-		:raises TypeError:                    If parameter 'indentStyle' is not of type :class:`IndentStyle`.
-		:raises ValueError:                   If parameter 'indentSize' is None.
-		:raises TypeError:                    If parameter 'indentSize' is not of type :class:`int`.
-		:raises ValueError:                   If parameter 'indentSize' is less than 1.
-		:raises ValueError:                   If parameter 'interfaceElement' is None.
-		:raises TypeError:                    If parameter 'interfaceElement' is not of type :class:`NewLine`.
-		:raises ValueError:                   If parameter 'interfaceListSemicolon' is None.
-		:raises TypeError:                    If parameter 'interfaceListSemicolon' is not of type :class:`NewLine`.
-		:raises ValueError:                   If parameter 'interfaceLastCloseParenthesis' is None.
-		:raises TypeError:                    If parameter 'interfaceLastCloseParenthesis' is not of type :class:`NewLine`.
+		:param keywordCase:             Optional, letter case of reserved words. Default: ``KeywordCase.Lower``.
+		:param indentStyle:             Optional, indentation style. Default: ``IndentStyle.Spaces``.
+		:param indentSize:              Optional, number of spaces per indentation level. Default: ``2``.
+		:param genericClause:           Optional, layout of generic clauses of entities, components, packages and blocks.
+		                                Default: ``InterfaceListStyle()``, one generic per line.
+		:param portClause:              Optional, layout of port clauses. Default: ``InterfaceListStyle()``, one port per
+		                                line.
+		:param subprogramGenericClause: Optional, layout of generic clauses of subprograms. Default:
+		                                ``InterfaceListStyle()``, one generic per line.
+		:param parameterList:           Optional, layout of formal parameter lists. Default: ``InterfaceListStyle()``, one
+		                                parameter per line.
+		:param genericMap:              Optional, layout of generic map aspects. Default: ``AssociationListStyle()``, one
+		                                association per line.
+		:param portMap:                 Optional, layout of port map aspects. Default: ``AssociationListStyle()``, one
+		                                association per line.
+		:param procedureCall:           Optional, layout of actual parameter parts of procedure calls. Default:
+		                                ``AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)``, a single
+		                                line.
+		:param functionCall:            Optional, layout of association lists of function calls. Default:
+		                                ``AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)``, a single
+		                                line.
+		:raises ValueError:             If parameter 'keywordCase' is None.
+		:raises TypeError:              If parameter 'keywordCase' is not of type :class:`KeywordCase`.
+		:raises ValueError:             If parameter 'indentStyle' is None.
+		:raises TypeError:              If parameter 'indentStyle' is not of type :class:`IndentStyle`.
+		:raises ValueError:             If parameter 'indentSize' is None.
+		:raises TypeError:              If parameter 'indentSize' is not of type :class:`int`.
+		:raises ValueError:             If parameter 'indentSize' is less than 1.
+		:raises TypeError:              If parameter 'genericClause' is not of type :class:`InterfaceListStyle`.
+		:raises TypeError:              If parameter 'portClause' is not of type :class:`InterfaceListStyle`.
+		:raises TypeError:              If parameter 'subprogramGenericClause' is not of type :class:`InterfaceListStyle`.
+		:raises TypeError:              If parameter 'parameterList' is not of type :class:`InterfaceListStyle`.
+		:raises TypeError:              If parameter 'genericMap' is not of type :class:`AssociationListStyle`.
+		:raises TypeError:              If parameter 'portMap' is not of type :class:`AssociationListStyle`.
+		:raises TypeError:              If parameter 'procedureCall' is not of type :class:`AssociationListStyle`.
+		:raises TypeError:              If parameter 'functionCall' is not of type :class:`AssociationListStyle`.
 		"""
 		if keywordCase is None:
 			raise ValueError("Parameter 'keywordCase' is None.")
@@ -241,24 +471,41 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 			ex.add_note(f"Got value '{indentSize}'.")
 			raise ex
 
-		for name, newLine in (
-			("interfaceElement",              interfaceElement),
-			("interfaceListSemicolon",        interfaceListSemicolon),
-			("interfaceLastCloseParenthesis", interfaceLastCloseParenthesis)
+		for name, listStyle in (
+			("genericClause",           genericClause),
+			("portClause",              portClause),
+			("subprogramGenericClause", subprogramGenericClause),
+			("parameterList",           parameterList)
 		):
-			if newLine is None:
-				raise ValueError(f"Parameter '{name}' is None.")
-			elif not isinstance(newLine, NewLine):
-				ex = TypeError(f"Parameter '{name}' is not of type 'NewLine'.")
-				ex.add_note(f"Got type '{getFullyQualifiedName(newLine)}'.")
+			if listStyle is not None and not isinstance(listStyle, InterfaceListStyle):
+				ex = TypeError(f"Parameter '{name}' is not of type 'InterfaceListStyle'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(listStyle)}'.")
 				raise ex
 
-		self._keywordCase =                   keywordCase
-		self._indentStyle =                   indentStyle
-		self._indentSize =                    indentSize
-		self._interfaceElement =              interfaceElement
-		self._interfaceListSemicolon =        interfaceListSemicolon
-		self._interfaceLastCloseParenthesis = interfaceLastCloseParenthesis
+		for name, listStyle in (
+			("genericMap",    genericMap),
+			("portMap",       portMap),
+			("procedureCall", procedureCall),
+			("functionCall",  functionCall)
+		):
+			if listStyle is not None and not isinstance(listStyle, AssociationListStyle):
+				ex = TypeError(f"Parameter '{name}' is not of type 'AssociationListStyle'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(listStyle)}'.")
+				raise ex
+
+		singleLine = AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
+
+		self._keywordCase =             keywordCase
+		self._indentStyle =             indentStyle
+		self._indentSize =              indentSize
+		self._genericClause =           InterfaceListStyle() if genericClause is None else genericClause
+		self._portClause =              InterfaceListStyle() if portClause is None else portClause
+		self._subprogramGenericClause = InterfaceListStyle() if subprogramGenericClause is None else subprogramGenericClause
+		self._parameterList =           InterfaceListStyle() if parameterList is None else parameterList
+		self._genericMap =              AssociationListStyle() if genericMap is None else genericMap
+		self._portMap =                 AssociationListStyle() if portMap is None else portMap
+		self._procedureCall =           singleLine if procedureCall is None else procedureCall
+		self._functionCall =            singleLine if functionCall is None else functionCall
 
 	@readonly
 	def KeywordCase(self) -> KeywordCase:
@@ -288,44 +535,128 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		return self._indentSize
 
 	@readonly
-	def InterfaceElement(self) -> NewLine:
+	def GenericClause(self) -> InterfaceListStyle:
 		"""
-		Read-only property to access the line break before an interface element (:attr:`_interfaceElement`).
+		Read-only property to access the layout of generic clauses (:attr:`_genericClause`).
 
-		It applies to every interface element of a generic clause, a port clause or a formal parameter list, the first one
-		after the left parenthesis included. ``NewLine.Add`` starts each element on its own line, ``NewLine.Remove``
-		continues the line.
+		It applies to the generic clauses of entities, components, packages and block statements.
 
-		:returns: The line break before an interface element.
+		:returns: The layout of generic clauses.
 		"""
-		return self._interfaceElement
+		return self._genericClause
 
 	@readonly
-	def InterfaceListSemicolon(self) -> NewLine:
+	def PortClause(self) -> InterfaceListStyle:
 		"""
-		Read-only property to access the line break before the semicolon between two interface elements
-		(:attr:`_interfaceListSemicolon`).
+		Read-only property to access the layout of port clauses (:attr:`_portClause`).
 
-		``NewLine.Remove`` ends the line of the previous element with the semicolon, ``NewLine.Add`` starts the next line
-		with it.
+		It applies to the port clauses of entities, components and block statements.
 
-		:returns: The line break before the semicolon between two interface elements.
+		:returns: The layout of port clauses.
 		"""
-		return self._interfaceListSemicolon
+		return self._portClause
 
 	@readonly
-	def InterfaceLastCloseParenthesis(self) -> NewLine:
+	def SubprogramGenericClause(self) -> InterfaceListStyle:
 		"""
-		Read-only property to access the line break before the right parenthesis of an interface list
-		(:attr:`_interfaceLastCloseParenthesis`).
+		Read-only property to access the layout of generic clauses of subprograms (:attr:`_subprogramGenericClause`).
 
-		``NewLine.Add`` writes the right parenthesis on its own line, ``NewLine.Remove`` after the last interface element.
-
-		:returns: The line break before the right parenthesis of an interface list.
+		:returns: The layout of generic clauses of subprograms.
 		"""
-		return self._interfaceLastCloseParenthesis
+		return self._subprogramGenericClause
+
+	@readonly
+	def ParameterList(self) -> InterfaceListStyle:
+		"""
+		Read-only property to access the layout of formal parameter lists (:attr:`_parameterList`).
+
+		It applies to the parameters of procedures, functions, generic procedures and generic functions.
+
+		:returns: The layout of formal parameter lists.
+		"""
+		return self._parameterList
+
+	@readonly
+	def GenericMap(self) -> AssociationListStyle:
+		"""
+		Read-only property to access the layout of generic map aspects (:attr:`_genericMap`).
+
+		It applies to the generic map aspects of instantiations, block statements, binding indications, package
+		instantiations and subprogram instantiations.
+
+		:returns: The layout of generic map aspects.
+		"""
+		return self._genericMap
+
+	@readonly
+	def PortMap(self) -> AssociationListStyle:
+		"""
+		Read-only property to access the layout of port map aspects (:attr:`_portMap`).
+
+		It applies to the port map aspects of instantiations, block statements and binding indications.
+
+		:returns: The layout of port map aspects.
+		"""
+		return self._portMap
+
+	@readonly
+	def ProcedureCall(self) -> AssociationListStyle:
+		"""
+		Read-only property to access the layout of actual parameter parts of procedure calls (:attr:`_procedureCall`).
+
+		It applies to concurrent and sequential procedure calls.
+
+		:returns: The layout of actual parameter parts of procedure calls.
+		"""
+		return self._procedureCall
+
+	@readonly
+	def FunctionCall(self) -> AssociationListStyle:
+		"""
+		Read-only property to access the layout of association lists of function calls (:attr:`_functionCall`).
+
+		It applies to the association list of a :class:`~pyVHDLModel.Name.ParenthesisName`, which is a function call, an
+		indexed name or a slice name.
+
+		:returns: The layout of association lists of function calls.
+		"""
+		return self._functionCall
 
 
+@export
+class WrittenList(metaclass=ExtendedType, slots=True):
+	"""
+	Represents a parenthesized list while the :class:`VHDL writer <VHDLWriter>` writes it.
+	"""
+
+	_separator:            str      #: Separator between two elements: a semicolon or a comma.
+	_elementNewLine:       NewLine  #: Line break before an element.
+	_separatorNewLine:     NewLine  #: Line break before the separator between two elements.
+	_lastCloseParenthesis: NewLine  #: Line break before the right parenthesis.
+	_indentation:          int      #: Indentation level of the line with the left parenthesis.
+
+	def __init__(
+		self,
+		separator:            str,
+		elementNewLine:       NewLine,
+		separatorNewLine:     NewLine,
+		lastCloseParenthesis: NewLine,
+		indentation:          int
+	) -> None:
+		"""
+		Initializes a list being written.
+
+		:param separator:            The separator between two elements.
+		:param elementNewLine:       The line break before an element.
+		:param separatorNewLine:     The line break before the separator between two elements.
+		:param lastCloseParenthesis: The line break before the right parenthesis.
+		:param indentation:          The indentation level of the line with the left parenthesis.
+		"""
+		self._separator =            separator
+		self._elementNewLine =       elementNewLine
+		self._separatorNewLine =     separatorNewLine
+		self._lastCloseParenthesis = lastCloseParenthesis
+		self._indentation =          indentation
 
 
 @export
@@ -353,6 +684,7 @@ class VHDLWriter(Visitor):
 	_minimum:     OperatorPrecedence                     #: Loosest precedence of the next operand without parentheses.
 	_frames:      list[tuple[OperatorPrecedence, bool]]  #: Stack of entered operands: precedence and if in parentheses.
 	_indentation: int                                    #: Indentation level of the next line.
+	_lists:       list[WrittenList]                      #: Stack of the parenthesized lists being written.
 
 	def __init__(self, style: Nullable[VHDLStyle] = None) -> None:
 		"""
@@ -375,6 +707,7 @@ class VHDLWriter(Visitor):
 		self._minimum =     OperatorPrecedence.Range
 		self._frames =      []
 		self._indentation = 0
+		self._lists =       []
 
 	@readonly
 	def Style(self) -> VHDLStyle:
@@ -411,6 +744,7 @@ class VHDLWriter(Visitor):
 		self._minimum =     OperatorPrecedence.Range
 		self._frames =      []
 		self._indentation = 0
+		self._lists =       []
 		element.Visit(self)
 		return "".join(self._buffer)
 
@@ -439,21 +773,29 @@ class VHDLWriter(Visitor):
 
 		**Format:** ``clk : in bit;`` ... ``rst : in bit``
 
-		By default, the semicolon ends the line and the next interface element starts on a new line
-		(:data:`VHDLStyle.InterfaceListSemicolon`, :data:`VHDLStyle.InterfaceElement`).
+		The line breaks follow the :class:`InterfaceListStyle` of the construct, e.g. :attr:`VHDLStyle.PortClause`.
 
 		:param element: The element containing the interface list.
 		"""
-		if self._style.InterfaceListSemicolon is NewLine.Add:
-			self._Write("\n")
-			self._WriteIndentation()
+		self._WriteListSeparator()
 
-		self._Write(";")
-		if self._style.InterfaceElement is NewLine.Add:
-			self._Write("\n")
-			self._WriteIndentation()
-		else:
-			self._Write(" ")
+	def _WriteListSeparator(self) -> None:
+		"""
+		Write the separator between two elements of the innermost list being written.
+		"""
+		self._Write(self._ListSeparator(self._lists[-1]))
+
+	def _ListSeparator(self, writtenList: WrittenList) -> str:
+		"""
+		Format the separator between two elements of a list with the line breaks of its layout.
+
+		:param writtenList: The list.
+		:returns:           The separator with its line breaks and indentation.
+		"""
+		indentation = self._Indentation(writtenList._indentation + 1)
+		before =      f"\n{indentation}" if writtenList._separatorNewLine is NewLine.Add else ""
+		after =       f"\n{indentation}" if writtenList._elementNewLine is NewLine.Add else " "
+		return f"{before}{writtenList._separator}{after}"
 
 	def VisitAssociationListSeparator(
 		self,
@@ -464,16 +806,12 @@ class VHDLWriter(Visitor):
 
 		**Format:** ``a => x, b => y``
 
-		In a map aspect, the next association starts on a new line.
+		The line breaks follow the :class:`AssociationListStyle` of the construct, e.g.
+		:attr:`VHDLStyle.PortMap`.
 
 		:param element: The element containing the association list.
 		"""
-		if isinstance(element, (GenericMapAspectMixin, PortMapAspectMixin)):
-			self._Write(",\n")
-			self._WriteIndentation()
-		else:
-			self._Write(", ")
-
+		self._WriteListSeparator()
 		self._minimum = OperatorPrecedence.Range
 
 	def VisitElementSeparator(
@@ -1304,10 +1642,62 @@ class VHDLWriter(Visitor):
 
 		**Format:** ``resize(a, 8)``
 
+		The line breaks follow :attr:`VHDLStyle.FunctionCall`.
+
 		:param name: The parenthesis name.
 		"""
-		self._Write("(")
+		self._OpenAssociationList(self._style.FunctionCall)
 		self._minimum = OperatorPrecedence.Range
+
+	def _OpenInterfaceList(self, style: InterfaceListStyle) -> None:
+		"""
+		Write the left parenthesis of an interface list, whose elements are separated by semicolons.
+
+		:param style: The layout of the interface list.
+		"""
+		self._OpenList(WrittenList(
+			";",
+			style._interfaceElement,
+			style._interfaceListSemicolon,
+			style._lastCloseParenthesis,
+			self._indentation
+		))
+
+	def _OpenAssociationList(self, style: AssociationListStyle) -> None:
+		"""
+		Write the left parenthesis of an association list, whose elements are separated by commas.
+
+		:param style: The layout of the association list.
+		"""
+		self._OpenList(WrittenList(
+			",",
+			style._associationElement,
+			style._associationListComma,
+			style._lastCloseParenthesis,
+			self._indentation
+		))
+
+	def _OpenList(self, writtenList: WrittenList) -> None:
+		"""
+		Write the left parenthesis of a list; its elements are indented one level deeper.
+
+		:param writtenList: The list.
+		"""
+		self._lists.append(writtenList)
+		self._indentation += 1
+		self._Write(self._LeftParenthesis(writtenList))
+
+	def _LeftParenthesis(self, writtenList: WrittenList) -> str:
+		"""
+		Format the left parenthesis of a list with the line break of its layout.
+
+		:param writtenList: The list.
+		:returns:           The left parenthesis with its line break and indentation.
+		"""
+		if writtenList._elementNewLine is NewLine.Add:
+			return f"(\n{self._Indentation(writtenList._indentation + 1)}"
+
+		return "("
 
 	def DepartAssociationList(self, name: ParenthesisName) -> None:
 		"""
@@ -1315,7 +1705,27 @@ class VHDLWriter(Visitor):
 
 		:param name: The parenthesis name.
 		"""
-		self._Write(")")
+		self._CloseList()
+
+	def _CloseList(self) -> None:
+		"""
+		Write the right parenthesis of the innermost list being written, one indentation level up.
+		"""
+		self._indentation -= 1
+		self._Write(self._RightParenthesis(self._lists[-1]))
+		self._lists.pop()
+
+	def _RightParenthesis(self, writtenList: WrittenList) -> str:
+		"""
+		Format the right parenthesis of a list with the line break of its layout.
+
+		:param writtenList: The list.
+		:returns:           The right parenthesis with its line break and indentation.
+		"""
+		if writtenList._lastCloseParenthesis is NewLine.Add:
+			return f"\n{self._Indentation(writtenList._indentation)})"
+
+		return ")"
 
 	def VisitSlicedName(self, name: SlicedName) -> None:
 		"""
@@ -1355,10 +1765,19 @@ class VHDLWriter(Visitor):
 		"""
 		Write the indentation of the current indentation level.
 		"""
+		self._Write(self._Indentation(self._indentation))
+
+	def _Indentation(self, level: int) -> str:
+		"""
+		Format the indentation of an indentation level.
+
+		:param level: The indentation level.
+		:returns:     The indentation.
+		"""
 		if self._style.IndentStyle is IndentStyle.SmartTabs:
-			self._Write("\t" * self._indentation)
-		else:
-			self._Write(" " * (self._indentation * self._style.IndentSize))
+			return "\t" * level
+
+		return " " * (level * self._style.IndentSize)
 
 	def VisitVariableAssignment(self, element: WithDefaultExpressionMixin | AssignmentMixin) -> None:
 		"""
@@ -1451,29 +1870,18 @@ class VHDLWriter(Visitor):
 
 		**Format:** ``generic (`` ... ``);``
 
-		The generic clause of a subprogram follows its designator on the same line and ends without a semicolon.
+		The generic clause of a subprogram follows its designator on the same line and ends without a semicolon. The line
+		breaks follow :attr:`VHDLStyle.SubprogramGenericClause` for a subprogram, otherwise :attr:`VHDLStyle.GenericClause`.
 
 		:param element: The element with generics.
 		"""
 		if isinstance(element, Subprogram):
-			self._Write(" ")
+			self._Write(f" {self._Keyword(ReservedWord.Generic)} ")
+			self._OpenInterfaceList(self._style.SubprogramGenericClause)
 		else:
 			self._WriteIndentation()
-
-		self._Write(f"{self._Keyword(ReservedWord.Generic)} ")
-		self._WriteInterfaceListStart()
-
-	def _WriteInterfaceListStart(self) -> None:
-		"""
-		Write the left parenthesis of an interface list; its interface elements are indented one level deeper.
-
-		By default, the first interface element starts on a new line (:data:`VHDLStyle.InterfaceElement`).
-		"""
-		self._Write("(")
-		self._indentation += 1
-		if self._style.InterfaceElement is NewLine.Add:
-			self._Write("\n")
-			self._WriteIndentation()
+			self._Write(f"{self._Keyword(ReservedWord.Generic)} ")
+			self._OpenInterfaceList(self._style.GenericClause)
 
 	def DepartGenericClause(self, element: WithGenericsMixin) -> None:
 		"""
@@ -1481,35 +1889,9 @@ class VHDLWriter(Visitor):
 
 		:param element: The element with generics.
 		"""
-		if isinstance(element, Subprogram):
-			self._WriteInterfaceListEnd("")
-		else:
-			self._WriteInterfaceListEnd(";\n")
-
-	def _WriteInterfaceListEnd(self, terminator: str) -> None:
-		"""
-		Write the right parenthesis of an interface list, one indentation level up.
-
-		By default, the right parenthesis starts a new line (:data:`VHDLStyle.InterfaceLastCloseParenthesis`).
-
-		:param terminator: The text following the right parenthesis.
-		"""
-		if self._style.InterfaceLastCloseParenthesis is NewLine.Add:
-			self._WriteClosingParenthesis(terminator)
-		else:
-			self._indentation -= 1
-			self._Write(f"){terminator}")
-
-	def _WriteClosingParenthesis(self, terminator: str) -> None:
-		"""
-		Write the right parenthesis closing a list on its own line, one indentation level up.
-
-		:param terminator: The text following the right parenthesis.
-		"""
-		self._Write("\n")
-		self._indentation -= 1
-		self._WriteIndentation()
-		self._Write(f"){terminator}")
+		self._CloseList()
+		if not isinstance(element, Subprogram):
+			self._Write(";\n")
 
 	def VisitPortClause(self, element: WithPortsMixin) -> None:
 		"""
@@ -1517,11 +1899,13 @@ class VHDLWriter(Visitor):
 
 		**Format:** ``port (`` ... ``);``
 
+		The line breaks follow :attr:`VHDLStyle.PortClause`.
+
 		:param element: The element with ports.
 		"""
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Port)} ")
-		self._WriteInterfaceListStart()
+		self._OpenInterfaceList(self._style.PortClause)
 
 	def DepartPortClause(self, element: WithPortsMixin) -> None:
 		"""
@@ -1529,7 +1913,8 @@ class VHDLWriter(Visitor):
 
 		:param element: The element with ports.
 		"""
-		self._WriteInterfaceListEnd(";\n")
+		self._CloseList()
+		self._Write(";\n")
 
 	def VisitConstant(self, constant: Constant) -> None:
 		"""
@@ -2259,7 +2644,8 @@ class VHDLWriter(Visitor):
 
 		**Format:** ``procedure p (`` ... ``)``
 
-		After a generic clause, the reserved word ``parameter`` precedes the left parenthesis.
+		After a generic clause, the reserved word ``parameter`` precedes the left parenthesis. The line breaks follow
+		:attr:`VHDLStyle.ParameterList`.
 
 		:param element: The element with parameters.
 		"""
@@ -2268,7 +2654,7 @@ class VHDLWriter(Visitor):
 		else:
 			self._Write(" ")
 
-		self._WriteInterfaceListStart()
+		self._OpenInterfaceList(self._style.ParameterList)
 
 	def DepartFormalParameterList(self, element: WithParametersMixin) -> None:
 		"""
@@ -2276,22 +2662,27 @@ class VHDLWriter(Visitor):
 
 		:param element: The element with parameters.
 		"""
-		self._WriteInterfaceListEnd("")
+		self._CloseList()
 
 	def VisitGenericMapAspect(self, element: GenericMapAspectMixin) -> None:
 		"""
-		Write the reserved words ``generic map`` and the left parenthesis on a new line; each association is on its own
-		line.
+		Write the reserved words ``generic map`` and the left parenthesis on a new line.
 
 		**Format:** ``generic map (`` ... ``)``
 
-		The generic map aspect of a block statement is written like its generic clause and ends with a semicolon.
+		The generic map aspect of a block statement is written like its generic clause and ends with a semicolon. The line
+		breaks follow :attr:`VHDLStyle.GenericMap`.
 
 		:param element: The element with a generic map aspect.
 		"""
-		self._WriteMapAspect(ReservedWord.Generic, element)
+		self._WriteMapAspect(ReservedWord.Generic, element, self._style.GenericMap)
 
-	def _WriteMapAspect(self, keyword: ReservedWord, element: GenericMapAspectMixin | PortMapAspectMixin) -> None:
+	def _WriteMapAspect(
+		self,
+		keyword: ReservedWord,
+		element: GenericMapAspectMixin | PortMapAspectMixin,
+		style:   AssociationListStyle
+	) -> None:
 		"""
 		Write the reserved words of a map aspect and the left parenthesis on a new line, one indentation level deeper.
 
@@ -2299,19 +2690,19 @@ class VHDLWriter(Visitor):
 
 		:param keyword: The reserved word ``generic`` or ``port``.
 		:param element: The element with the map aspect.
+		:param style:   The layout of the map aspect's association list.
 		"""
 		if not isinstance(element, ConcurrentBlockStatement):
 			self._Write("\n")
 			self._indentation += 1
 
 		self._WriteIndentation()
-		self._Write(f"{self._Keyword(keyword)} {self._Keyword(ReservedWord.Map)} (\n")
-		self._indentation += 1
-		self._WriteIndentation()
+		self._Write(f"{self._Keyword(keyword)} {self._Keyword(ReservedWord.Map)} ")
+		self._OpenAssociationList(style)
 
 	def DepartGenericMapAspect(self, element: GenericMapAspectMixin) -> None:
 		"""
-		Write the right parenthesis of a generic map aspect on its own line.
+		Write the right parenthesis of a generic map aspect.
 
 		:param element: The element with a generic map aspect.
 		"""
@@ -2319,16 +2710,16 @@ class VHDLWriter(Visitor):
 
 	def _WriteMapAspectEnd(self, element: GenericMapAspectMixin | PortMapAspectMixin) -> None:
 		"""
-		Write the right parenthesis of a map aspect on its own line and leave its indentation level.
+		Write the right parenthesis of a map aspect and leave its indentation level.
 
 		In a block statement, a semicolon follows the right parenthesis.
 
 		:param element: The element with the map aspect.
 		"""
+		self._CloseList()
 		if isinstance(element, ConcurrentBlockStatement):
-			self._WriteClosingParenthesis(";\n")
+			self._Write(";\n")
 		else:
-			self._WriteClosingParenthesis("")
 			self._indentation -= 1
 
 	def VisitProcedure(self, procedure: Procedure) -> None:
@@ -2493,17 +2884,19 @@ class VHDLWriter(Visitor):
 
 	def VisitPortMapAspect(self, element: PortMapAspectMixin) -> None:
 		"""
-		Write the reserved words ``port map`` and the left parenthesis on a new line; each association is on its own line.
+		Write the reserved words ``port map`` and the left parenthesis on a new line.
 
 		**Format:** ``port map (`` ... ``)``
 
+		The line breaks follow :attr:`VHDLStyle.PortMap`.
+
 		:param element: The element with a port map aspect.
 		"""
-		self._WriteMapAspect(ReservedWord.Port, element)
+		self._WriteMapAspect(ReservedWord.Port, element, self._style.PortMap)
 
 	def DepartPortMapAspect(self, element: PortMapAspectMixin) -> None:
 		"""
-		Write the right parenthesis of a port map aspect on its own line.
+		Write the right parenthesis of a port map aspect.
 
 		:param element: The element with a port map aspect.
 		"""
@@ -2950,9 +3343,11 @@ class VHDLWriter(Visitor):
 		"""
 		Write the left parenthesis of the actual parameter part of a procedure call.
 
+		The line breaks follow :attr:`VHDLStyle.ProcedureCall`.
+
 		:param call: The procedure call.
 		"""
-		self._Write("(")
+		self._OpenAssociationList(self._style.ProcedureCall)
 		self._minimum = OperatorPrecedence.Range
 
 	def DepartActualParameterPart(self, call: ProcedureCallMixin) -> None:
@@ -2961,7 +3356,7 @@ class VHDLWriter(Visitor):
 
 		:param call: The procedure call.
 		"""
-		self._Write(")")
+		self._CloseList()
 
 	def DepartOthersSelectedWaveform(self, waveform: OthersSelectedWaveform) -> None:
 		"""

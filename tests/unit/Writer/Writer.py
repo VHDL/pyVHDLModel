@@ -29,11 +29,13 @@
 # ==================================================================================================================== #
 #
 """Tests for the infrastructure of pyVHDLModel.Formatting.VHDL: style object, dispatch, error reporting."""
+from pyTooling.MetaClasses       import AbstractClassError
 from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Expression      import AndExpression, EnumerationLiteral, FunctionCall, IntegerLiteral, \
                                         InverseExpression, ModuloExpression, NullLiteral, OrExpression
-from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, NewLine, VHDLStyle, VHDLWriter
+from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, NewLine, ListStyle, InterfaceListStyle, \
+                                        AssociationListStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, OpenName
 from pyVHDLModel.Symbol          import ConstrainedCompositeSubtypeSymbol
 from pyVHDLModel.Visitor         import Visitor
@@ -128,66 +130,241 @@ class Styles(Testcase):
 		self.assertEqual("Parameter 'indentSize' is less than 1.", str(context.exception))
 		self.assertEqual(["Got value '0'."], context.exception.__notes__)
 
-	def test_Default_InterfaceList(self) -> None:
+	def test_Default_Lists(self) -> None:
+		"""Interface lists and map aspects: one element per line; procedure and function calls: a single line."""
 		style = VHDLStyle()
 
-		self.assertIs(NewLine.Add, style.InterfaceElement)
-		self.assertIs(NewLine.Remove, style.InterfaceListSemicolon)
-		self.assertIs(NewLine.Add, style.InterfaceLastCloseParenthesis)
+		for listStyle in (style.GenericClause, style.PortClause, style.SubprogramGenericClause, style.ParameterList):
+			self.assertIs(NewLine.Add, listStyle.InterfaceElement)
+			self.assertIs(NewLine.Remove, listStyle.InterfaceListSemicolon)
+			self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
+
+		for listStyle in (style.GenericMap, style.PortMap):
+			self.assertIs(NewLine.Add, listStyle.AssociationElement)
+			self.assertIs(NewLine.Remove, listStyle.AssociationListComma)
+			self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
+
+		for listStyle in (style.ProcedureCall, style.FunctionCall):
+			self.assertIs(NewLine.Remove, listStyle.AssociationElement)
+			self.assertIs(NewLine.Remove, listStyle.AssociationListComma)
+			self.assertIs(NewLine.Remove, listStyle.LastCloseParenthesis)
+
+	def test_GenericClause(self) -> None:
+		listStyle = InterfaceListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(genericClause=listStyle).GenericClause)
+
+	def test_GenericClause_Type(self) -> None:
+		"""An association list style is rejected."""
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(genericClause=AssociationListStyle())
+
+		self.assertEqual("Parameter 'genericClause' is not of type 'InterfaceListStyle'.", str(context.exception))
+		self.assertEqual(["Got type 'pyVHDLModel.Formatting.VHDL.AssociationListStyle'."], context.exception.__notes__)
+
+	def test_PortClause(self) -> None:
+		listStyle = InterfaceListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(portClause=listStyle).PortClause)
+
+	def test_PortClause_Type(self) -> None:
+		"""An association list style is rejected."""
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(portClause=AssociationListStyle())
+
+		self.assertEqual("Parameter 'portClause' is not of type 'InterfaceListStyle'.", str(context.exception))
+
+	def test_SubprogramGenericClause(self) -> None:
+		listStyle = InterfaceListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(subprogramGenericClause=listStyle).SubprogramGenericClause)
+
+	def test_SubprogramGenericClause_Type(self) -> None:
+		"""An association list style is rejected."""
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(subprogramGenericClause=AssociationListStyle())
+
+		self.assertEqual("Parameter 'subprogramGenericClause' is not of type 'InterfaceListStyle'.", str(context.exception))
+
+	def test_ParameterList(self) -> None:
+		listStyle = InterfaceListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(parameterList=listStyle).ParameterList)
+
+	def test_ParameterList_Type(self) -> None:
+		"""An association list style is rejected."""
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(parameterList=AssociationListStyle())
+
+		self.assertEqual("Parameter 'parameterList' is not of type 'InterfaceListStyle'.", str(context.exception))
+
+	def test_GenericMap(self) -> None:
+		listStyle = AssociationListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(genericMap=listStyle).GenericMap)
+
+	def test_GenericMap_Type(self) -> None:
+		"""An interface list style is rejected."""
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(genericMap=InterfaceListStyle())
+
+		self.assertEqual("Parameter 'genericMap' is not of type 'AssociationListStyle'.", str(context.exception))
+
+	def test_PortMap(self) -> None:
+		listStyle = AssociationListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(portMap=listStyle).PortMap)
+
+	def test_PortMap_Type(self) -> None:
+		"""An interface list style is rejected."""
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(portMap=InterfaceListStyle())
+
+		self.assertEqual("Parameter 'portMap' is not of type 'AssociationListStyle'.", str(context.exception))
+
+	def test_ProcedureCall(self) -> None:
+		listStyle = AssociationListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(procedureCall=listStyle).ProcedureCall)
+
+	def test_ProcedureCall_Type(self) -> None:
+		"""An interface list style is rejected."""
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(procedureCall=InterfaceListStyle())
+
+		self.assertEqual("Parameter 'procedureCall' is not of type 'AssociationListStyle'.", str(context.exception))
+
+	def test_FunctionCall(self) -> None:
+		listStyle = AssociationListStyle(NewLine.Remove)
+
+		self.assertIs(listStyle, VHDLStyle(functionCall=listStyle).FunctionCall)
+
+	def test_FunctionCall_Type(self) -> None:
+		"""An interface list style is rejected."""
+		with self.assertRaises(TypeError) as context:
+			VHDLStyle(functionCall=InterfaceListStyle())
+
+		self.assertEqual("Parameter 'functionCall' is not of type 'AssociationListStyle'.", str(context.exception))
+
+
+class InterfaceListStyles(Testcase):
+	def test_Default(self) -> None:
+		listStyle = InterfaceListStyle()
+
+		self.assertIs(NewLine.Add, listStyle.InterfaceElement)
+		self.assertIs(NewLine.Remove, listStyle.InterfaceListSemicolon)
+		self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
 
 	def test_InterfaceElement(self) -> None:
-		style = VHDLStyle(interfaceElement=NewLine.Remove)
-
-		self.assertIs(NewLine.Remove, style.InterfaceElement)
+		self.assertIs(NewLine.Remove, InterfaceListStyle(NewLine.Remove).InterfaceElement)
 
 	def test_InterfaceElement_None(self) -> None:
 		with self.assertRaises(ValueError) as context:
-			VHDLStyle(interfaceElement=None)
+			InterfaceListStyle(None)
 
 		self.assertEqual("Parameter 'interfaceElement' is None.", str(context.exception))
 
 	def test_InterfaceElement_Type(self) -> None:
 		with self.assertRaises(TypeError) as context:
-			VHDLStyle(interfaceElement="remove_new_line")
+			InterfaceListStyle("remove_new_line")
 
 		self.assertEqual("Parameter 'interfaceElement' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
 	def test_InterfaceListSemicolon(self) -> None:
-		style = VHDLStyle(interfaceListSemicolon=NewLine.Add)
-
-		self.assertIs(NewLine.Add, style.InterfaceListSemicolon)
+		self.assertIs(NewLine.Add, InterfaceListStyle(interfaceListSemicolon=NewLine.Add).InterfaceListSemicolon)
 
 	def test_InterfaceListSemicolon_None(self) -> None:
 		with self.assertRaises(ValueError) as context:
-			VHDLStyle(interfaceListSemicolon=None)
+			InterfaceListStyle(interfaceListSemicolon=None)
 
 		self.assertEqual("Parameter 'interfaceListSemicolon' is None.", str(context.exception))
 
 	def test_InterfaceListSemicolon_Type(self) -> None:
 		with self.assertRaises(TypeError) as context:
-			VHDLStyle(interfaceListSemicolon="add_new_line")
+			InterfaceListStyle(interfaceListSemicolon="add_new_line")
 
 		self.assertEqual("Parameter 'interfaceListSemicolon' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
-	def test_InterfaceLastCloseParenthesis(self) -> None:
-		style = VHDLStyle(interfaceLastCloseParenthesis=NewLine.Remove)
+	def test_LastCloseParenthesis(self) -> None:
+		self.assertIs(NewLine.Remove, InterfaceListStyle(lastCloseParenthesis=NewLine.Remove).LastCloseParenthesis)
 
-		self.assertIs(NewLine.Remove, style.InterfaceLastCloseParenthesis)
-
-	def test_InterfaceLastCloseParenthesis_None(self) -> None:
+	def test_LastCloseParenthesis_None(self) -> None:
 		with self.assertRaises(ValueError) as context:
-			VHDLStyle(interfaceLastCloseParenthesis=None)
+			InterfaceListStyle(lastCloseParenthesis=None)
 
-		self.assertEqual("Parameter 'interfaceLastCloseParenthesis' is None.", str(context.exception))
+		self.assertEqual("Parameter 'lastCloseParenthesis' is None.", str(context.exception))
 
-	def test_InterfaceLastCloseParenthesis_Type(self) -> None:
+	def test_LastCloseParenthesis_Type(self) -> None:
 		with self.assertRaises(TypeError) as context:
-			VHDLStyle(interfaceLastCloseParenthesis="remove_new_line")
+			InterfaceListStyle(lastCloseParenthesis="remove_new_line")
 
-		self.assertEqual("Parameter 'interfaceLastCloseParenthesis' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual("Parameter 'lastCloseParenthesis' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
+class AssociationListStyles(Testcase):
+	def test_Default(self) -> None:
+		listStyle = AssociationListStyle()
+
+		self.assertIs(NewLine.Add, listStyle.AssociationElement)
+		self.assertIs(NewLine.Remove, listStyle.AssociationListComma)
+		self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
+
+	def test_AssociationElement(self) -> None:
+		self.assertIs(NewLine.Remove, AssociationListStyle(NewLine.Remove).AssociationElement)
+
+	def test_AssociationElement_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			AssociationListStyle(None)
+
+		self.assertEqual("Parameter 'associationElement' is None.", str(context.exception))
+
+	def test_AssociationElement_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			AssociationListStyle("remove_new_line")
+
+		self.assertEqual("Parameter 'associationElement' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_AssociationListComma(self) -> None:
+		self.assertIs(NewLine.Add, AssociationListStyle(associationListComma=NewLine.Add).AssociationListComma)
+
+	def test_AssociationListComma_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			AssociationListStyle(associationListComma=None)
+
+		self.assertEqual("Parameter 'associationListComma' is None.", str(context.exception))
+
+	def test_AssociationListComma_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			AssociationListStyle(associationListComma="add_new_line")
+
+		self.assertEqual("Parameter 'associationListComma' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_LastCloseParenthesis(self) -> None:
+		self.assertIs(NewLine.Remove, AssociationListStyle(lastCloseParenthesis=NewLine.Remove).LastCloseParenthesis)
+
+	def test_LastCloseParenthesis_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			AssociationListStyle(lastCloseParenthesis=None)
+
+		self.assertEqual("Parameter 'lastCloseParenthesis' is None.", str(context.exception))
+
+	def test_LastCloseParenthesis_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			AssociationListStyle(lastCloseParenthesis="remove_new_line")
+
+		self.assertEqual("Parameter 'lastCloseParenthesis' is not of type 'NewLine'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
+
+class ListStyles(Testcase):
+	def test_Abstract(self) -> None:
+		"""Only the interface list style and the association list style are instantiated."""
+		with self.assertRaises(AbstractClassError):
+			ListStyle(NewLine.Add)
 
 
 class Writers(Testcase):

@@ -506,27 +506,20 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 			ex.add_note(f"Got type '{getFullyQualifiedName(indentStyle)}'.")
 			raise ex
 
-		if indentSize is None:
-			raise ValueError("Parameter 'indentSize' is None.")
-		elif not isinstance(indentSize, int) or isinstance(indentSize, bool):
-			ex = TypeError("Parameter 'indentSize' is not of type 'int'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(indentSize)}'.")
-			raise ex
-		elif indentSize < 1:
-			ex = ValueError("Parameter 'indentSize' is less than 1.")
-			ex.add_note(f"Got value '{indentSize}'.")
-			raise ex
-
-		if lineLength is None:
-			raise ValueError("Parameter 'lineLength' is None.")
-		elif not isinstance(lineLength, int) or isinstance(lineLength, bool):
-			ex = TypeError("Parameter 'lineLength' is not of type 'int'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(lineLength)}'.")
-			raise ex
-		elif lineLength < 1:
-			ex = ValueError("Parameter 'lineLength' is less than 1.")
-			ex.add_note(f"Got value '{lineLength}'.")
-			raise ex
+		for name, size in (
+			("indentSize", indentSize),
+			("lineLength", lineLength)
+		):
+			if size is None:
+				raise ValueError(f"Parameter '{name}' is None.")
+			elif not isinstance(size, int) or isinstance(size, bool):
+				ex = TypeError(f"Parameter '{name}' is not of type 'int'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(size)}'.")
+				raise ex
+			elif size < 1:
+				ex = ValueError(f"Parameter '{name}' is less than 1.")
+				ex.add_note(f"Got value '{size}'.")
+				raise ex
 
 		for name, listStyle in (
 			("genericClause",           genericClause),

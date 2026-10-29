@@ -107,7 +107,7 @@ class Attributes(Testcase):
 			("VisitEntitySpecification",     specification),
 			("VisitSimpleName",              first),
 			("DepartSimpleName",             first),
-			("VisitComma",                   specification),
+			("VisitNameListSeparator",       specification),
 			("VisitSimpleName",              second),
 			("DepartSimpleName",             second),
 			("DepartEntitySpecification",    specification),

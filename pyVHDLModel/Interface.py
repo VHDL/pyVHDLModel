@@ -38,7 +38,7 @@ from __future__             import annotations
 
 from typing                 import TYPE_CHECKING, ClassVar, Iterable, Optional as Nullable, Iterator, Self
 
-from pyTooling.Common       import getFullyQualifiedName
+from pyTooling.Common       import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
 
@@ -46,6 +46,7 @@ from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin, \
                                    MultipleNamedEntityMixin, identifiersOf, normalizedIdentifiersOf, ExpressionUnion, \
                                    Mode
+from pyVHDLModel.Exception  import NotAChildError
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
 from pyVHDLModel.Regions    import WithGenericsMixin, WithPortsMixin, WithParametersMixin
 from pyVHDLModel.Subprogram import Procedure, Function
@@ -86,6 +87,14 @@ class ModeViewElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMix
 		super().__init__(parent)
 		MultipleNamedEntityMixin.__init__(self, identifiers)
 		DocumentedEntityMixin.__init__(self, documentation)
+
+	def _SplitInParent(self) -> tuple[Self, ...]:
+		"""
+		Split this mode view element by the mutator of its parent (``SplitElement()``).
+
+		:returns: Tuple of mode view elements, one per identifier in list order, starting with this mode view element.
+		"""
+		return self._parent.SplitElement(self)
 
 	def __str__(self) -> str:
 		"""
@@ -314,6 +323,54 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		"""
 		return self._elements
 
+	def SplitElement(self, element: ModeViewElement) -> tuple[ModeViewElement, ...]:
+		"""
+		Split an element with an identifier list into one element per identifier.
+
+		The element keeps its first identifier. For every other identifier, a new element is created by its ``Copy()``
+		and inserted right after it, in list order; its parent is set to this mode view declaration. An element
+		declaring one identifier is unchanged.
+
+		:param element:         The element to split.
+		:returns:               Tuple of elements, one per identifier in list order, starting with the split element.
+		:raises ValueError:     If parameter 'element' is ``None``.
+		:raises TypeError:      If parameter 'element' is not of type :class:`ModeViewElement`.
+		:raises NotAChildError: If parameter 'element' is not an element of this mode view declaration.
+
+		.. seealso::
+
+		   :meth:`~pyVHDLModel.Base.MultipleNamedEntityMixin.Split`
+		      |rarr| Split a declaration with an identifier list.
+		"""
+		if element is None:
+			raise ValueError("Parameter 'element' is None.")
+		elif not isinstance(element, ModeViewElement):
+			ex = TypeError("Parameter 'element' is not of type 'ModeViewElement'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+			raise ex
+
+		for index, item in enumerate(self._elements):
+			if item is element:
+				break
+		else:
+			identifiers = ", ".join(element._identifiers)
+			raise NotAChildError(
+				f"{getTypeName(element)} '{identifiers}' is not an element of this {getTypeName(self)}.",
+				element=element,
+				parent=self
+			)
+
+		if len(element._identifiers) == 1:
+			return (element, )
+
+		declarations = element._SplitCopies()
+		element._KeepIdentifier(0)
+		self._elements[index + 1:index + 1] = declarations
+		for declaration in declarations:
+			declaration.Parent = self
+
+		return (element, *declarations)
+
 	def __str__(self) -> str:
 		"""
 		Formats the mode view declaration.
@@ -459,13 +516,13 @@ class ParameterInterfaceItemMixin(InterfaceItemMixin, mixin=True):
 class WithSingleDeclarationsMixin(
 	metaclass=ExtendedType,
 	mixin=True,
-	expects=("_identifiers", "_normalizedIdentifiers")
+	expects=("_identifiers", "_normalizedIdentifiers", "_singleDeclarations")
 ):
 	"""
 	A mixin-class for interface items declaring several identifiers, which offer one single declaration per identifier.
 
 	The single declarations are created on first access of :data:`SingleDeclarations` and kept in
-	:attr:`_singleDeclarations`.
+	:attr:`~pyVHDLModel.Base.MultipleNamedEntityMixin._singleDeclarations`.
 
 	.. seealso::
 
@@ -475,20 +532,14 @@ class WithSingleDeclarationsMixin(
 
 	_SINGLE_DECLARATION: ClassVar[type[SingleDeclarationMixin]]  #: The class of a single declaration of one identifier.
 
-	_singleDeclarations: Nullable[list[SingleDeclarationMixin]]  #: Cached single declarations, or ``None``.
-
-	def __init__(self) -> None:
-		"""
-		Initializes an interface item without single declarations yet.
-		"""
-		self._singleDeclarations = None
-
 	@readonly
 	def SingleDeclarations(self) -> list[SingleDeclarationMixin]:
 		"""
-		Read-only property to access the single declarations (:attr:`_singleDeclarations`).
+		Read-only property to access the single declarations
+		(:attr:`~pyVHDLModel.Base.MultipleNamedEntityMixin._singleDeclarations`).
 
 		The list is created on first access, one single declaration per identifier in list order.
+		:meth:`~pyVHDLModel.Base.MultipleNamedEntityMixin.Split` drops it.
 
 		:returns: The single declarations.
 		"""
@@ -544,7 +595,6 @@ class GenericConstantInterfaceItem(
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
-		WithSingleDeclarationsMixin.__init__(self)
 
 	def Copy(self) -> Self:
 		"""
@@ -563,6 +613,14 @@ class GenericConstantInterfaceItem(
 			defaultExpression,
 			self._documentation
 		)
+
+	def _SplitInParent(self) -> tuple[Self, ...]:
+		"""
+		Split this generic constant by the mutator of its parent (``SplitGenericItem()``).
+
+		:returns: Tuple of generic constants, one per identifier in list order, starting with this generic constant.
+		"""
+		return self._parent.SplitGenericItem(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -818,6 +876,14 @@ class PortSignalInterfaceItem(Signal, InterfaceItemMixin):
 	   * :class:`Port view signal interface item <pyVHDLModel.Interface.PortViewSignalInterfaceItem>`
 	"""
 
+	def _SplitInParent(self) -> tuple[Self, ...]:
+		"""
+		Split this port by the mutator of its parent (``SplitPortItem()``).
+
+		:returns: Tuple of ports, one per identifier in list order, starting with this port.
+		"""
+		return self._parent.SplitPortItem(self)
+
 
 @export
 class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem, InterfaceItemWithModeMixin, WithSingleDeclarationsMixin):
@@ -861,7 +927,6 @@ class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem, InterfaceItemWithMo
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		InterfaceItemWithModeMixin.__init__(self, mode)
-		WithSingleDeclarationsMixin.__init__(self)
 
 	def Copy(self) -> Self:
 		"""
@@ -941,7 +1006,6 @@ class PortViewSignalInterfaceItem(PortSignalInterfaceItem, WithSingleDeclaration
 		:param parent:             The parent model entity of this entity.
 		"""
 		super().__init__(identifiers, modeViewIndication, None, documentation, parent)
-		WithSingleDeclarationsMixin.__init__(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1025,7 +1089,6 @@ class ParameterConstantInterfaceItem(
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
-		WithSingleDeclarationsMixin.__init__(self)
 
 	def Copy(self) -> Self:
 		"""
@@ -1044,6 +1107,14 @@ class ParameterConstantInterfaceItem(
 			defaultExpression,
 			self._documentation
 		)
+
+	def _SplitInParent(self) -> tuple[Self, ...]:
+		"""
+		Split this constant parameter by the mutator of its parent (``SplitParameterItem()``).
+
+		:returns: Tuple of constant parameters, one per identifier in list order, starting with this constant parameter.
+		"""
+		return self._parent.SplitParameterItem(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1108,7 +1179,6 @@ class ParameterVariableInterfaceItem(
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
-		WithSingleDeclarationsMixin.__init__(self)
 
 	def Copy(self) -> Self:
 		"""
@@ -1127,6 +1197,14 @@ class ParameterVariableInterfaceItem(
 			defaultExpression,
 			self._documentation
 		)
+
+	def _SplitInParent(self) -> tuple[Self, ...]:
+		"""
+		Split this variable parameter by the mutator of its parent (``SplitParameterItem()``).
+
+		:returns: Tuple of variable parameters, one per identifier in list order, starting with this variable parameter.
+		"""
+		return self._parent.SplitParameterItem(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1170,6 +1248,14 @@ class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItemMixin):
 	   * :class:`Parameter simple signal interface item <pyVHDLModel.Interface.ParameterSimpleSignalInterfaceItem>`
 	   * :class:`Parameter view signal interface item <pyVHDLModel.Interface.ParameterViewSignalInterfaceItem>`
 	"""
+
+	def _SplitInParent(self) -> tuple[Self, ...]:
+		"""
+		Split this signal parameter by the mutator of its parent (``SplitParameterItem()``).
+
+		:returns: Tuple of signal parameters, one per identifier in list order, starting with this signal parameter.
+		"""
+		return self._parent.SplitParameterItem(self)
 
 
 @export
@@ -1215,7 +1301,6 @@ class ParameterSimpleSignalInterfaceItem(
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
-		WithSingleDeclarationsMixin.__init__(self)
 
 	def Copy(self) -> Self:
 		"""
@@ -1296,7 +1381,6 @@ class ParameterViewSignalInterfaceItem(ParameterSignalInterfaceItem, WithSingleD
 		"""
 		super().__init__(identifiers, modeViewIndication, None, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
-		WithSingleDeclarationsMixin.__init__(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1369,7 +1453,6 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin, WithSingleDe
 		"""
 		super().__init__(identifiers, subtype, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
-		WithSingleDeclarationsMixin.__init__(self)
 
 	def Copy(self) -> Self:
 		"""
@@ -1380,6 +1463,14 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin, WithSingleDe
 		:returns: The new file parameter.
 		"""
 		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
+
+	def _SplitInParent(self) -> tuple[Self, ...]:
+		"""
+		Split this file parameter by the mutator of its parent (``SplitParameterItem()``).
+
+		:returns: Tuple of file parameters, one per identifier in list order, starting with this file parameter.
+		"""
+		return self._parent.SplitParameterItem(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

@@ -110,9 +110,34 @@ the mandatory dependencies too.
 Packaging (Optional)
 ********************
 
-The build requirements - ``setuptools`` and ``pyTooling``, whose :mod:`pyTooling.Packaging` describes the package in
-:file:`setup.py` - are declared in :file:`pyproject.toml` (``[build-system]``). ``pip`` and ``python -m build``
-install them into an isolated build environment.
+Additional Python packages needed for installation package generation. These packages are only needed for developers or
+on a CI server.
+
+.. rubric:: Building an Installation Package
+
+:file:`pyproject.toml` lists them as build requirements (``[build-system]``), so ``build`` installs them into an
+isolated build environment itself.
+
+.. tab-set::
+
+   .. tab-item:: Linux/macOS
+      :sync: Linux
+
+      .. code-block:: bash
+
+         python3 -m build --wheel
+
+   .. tab-item:: Windows
+      :sync: Windows
+
+      .. code-block:: powershell
+
+         python -m build --wheel
+
+.. rubric:: Dependency List
+
+.. dependency-table:: packaging
+   :caption: Dependencies for generating an installation package.
 
 
 .. _DEP/publishing:

@@ -268,3 +268,32 @@ model's declarations, so the model keeps the declaration as written.
 **Condensed definition of class** :class:`~pyVHDLModel.Interface.SingleDeclarationMixin`:
 
 .. condensed-class:: pyVHDLModel.Interface.SingleDeclarationMixin
+
+
+.. _vhdlmodel-split:
+
+Splitting a Declaration
+=======================
+
+:meth:`~pyVHDLModel.Base.MultipleNamedEntityMixin.Split` turns a declaration with an identifier list into one
+declaration per identifier: ``port (a, b : in bit);`` becomes ``port (a : in bit; b : in bit);``. It is available for
+interface items, object declarations, record element declarations and mode view elements. The declaration keeps its
+first identifier. For every other identifier, a new declaration of the same class is created by ``Copy()``, with its
+own copy of the subtype indication and of the default expression.
+
+For a declaration without a parent, ``Split()`` returns the new declarations without a parent; the caller places them.
+For a declaration in a language construct, ``Split()`` calls the construct's mutator, which can also be called
+directly. It inserts the new declarations right after the declaration; the namespace of an indexed declarative region
+refers to them:
+
+* :meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.SplitDeclaredItem` for a declared item,
+* :meth:`~pyVHDLModel.Regions.WithGenericsMixin.SplitGenericItem`,
+  :meth:`~pyVHDLModel.Regions.WithPortsMixin.SplitPortItem` and
+  :meth:`~pyVHDLModel.Regions.WithParametersMixin.SplitParameterItem` for an interface item,
+* :meth:`RecordType.SplitElement <pyVHDLModel.Type.RecordType.SplitElement>` and
+  :meth:`ModeViewDeclaration.SplitElement <pyVHDLModel.Interface.ModeViewDeclaration.SplitElement>` for an element.
+
+.. code-block:: Python
+
+   for port in list(entity.PortItems):
+     entity.SplitPortItem(port)

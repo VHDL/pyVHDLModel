@@ -243,13 +243,14 @@ class ParenthesisName(Name):
 		"""
 		visitor.VisitParenthesisName(self)
 		self._prefix.Visit(visitor)
-		visitor.VisitLeftParenthesis(self)
+		visitor.VisitAssociationList(self)
 		for position, association in enumerate(self._associations):
 			if position > 0:
-				visitor.VisitComma(self)
+				visitor.VisitAssociationListSeparator(self)
 
 			association.Visit(visitor)
 
+		visitor.DepartAssociationList(self)
 		visitor.DepartParenthesisName(self)
 
 	def __str__(self) -> str:
@@ -319,13 +320,14 @@ class IndexedName(Name):
 		"""
 		visitor.VisitIndexedName(self)
 		self._prefix.Visit(visitor)
-		visitor.VisitLeftParenthesis(self)
+		visitor.VisitIndexList(self)
 		for position, index in enumerate(self._indices):
 			if position > 0:
-				visitor.VisitComma(self)
+				visitor.VisitElementSeparator(self)
 
 			index.Visit(visitor)
 
+		visitor.DepartIndexList(self)
 		visitor.DepartIndexedName(self)
 
 	def __str__(self) -> str:

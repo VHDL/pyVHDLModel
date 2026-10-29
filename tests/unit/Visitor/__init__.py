@@ -60,8 +60,11 @@ class Recorder(Visitor):
 	def VisitLeftParenthesis(self, element: Any) -> None:
 		self._events.append(("VisitLeftParenthesis", element))
 
-	def VisitComma(self, element: Any) -> None:
-		self._events.append(("VisitComma", element))
+	def VisitAssociationListSeparator(self, element: Any) -> None:
+		self._events.append(("VisitAssociationListSeparator", element))
+
+	def VisitElementSeparator(self, element: Any) -> None:
+		self._events.append(("VisitElementSeparator", element))
 
 	def VisitArrow(self, element: Any) -> None:
 		self._events.append(("VisitArrow", element))
@@ -105,11 +108,23 @@ class Recorder(Visitor):
 	def DepartIndexedName(self, name: Any) -> None:
 		self._events.append(("DepartIndexedName", name))
 
+	def VisitIndexList(self, name: Any) -> None:
+		self._events.append(("VisitIndexList", name))
+
+	def DepartIndexList(self, name: Any) -> None:
+		self._events.append(("DepartIndexList", name))
+
 	def VisitParenthesisName(self, name: Any) -> None:
 		self._events.append(("VisitParenthesisName", name))
 
 	def DepartParenthesisName(self, name: Any) -> None:
 		self._events.append(("DepartParenthesisName", name))
+
+	def VisitAssociationList(self, name: Any) -> None:
+		self._events.append(("VisitAssociationList", name))
+
+	def DepartAssociationList(self, name: Any) -> None:
+		self._events.append(("DepartAssociationList", name))
 
 	def VisitSymbol(self, symbol: Any) -> None:
 		self._events.append(("VisitSymbol", symbol))

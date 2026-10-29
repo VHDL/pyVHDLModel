@@ -37,7 +37,7 @@ from pyVHDLModel.Association     import GenericAssociationItem
 from pyVHDLModel.Base            import Mode
 from pyVHDLModel.DesignUnit      import Component
 from pyVHDLModel.Expression      import IntegerLiteral
-from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
+from pyVHDLModel.Formatting.VHDL import KeywordCase, NewLine, InterfaceListStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Instantiation   import ProcedureInstantiation, FunctionInstantiation
 from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                         GenericProcedureInterfaceItem, GenericFunctionInterfaceItem, \
@@ -72,23 +72,36 @@ class Declarations(Testcase):
 		self.assertEqual("procedure reset;\n", VHDLWriter().Format(Procedure("reset")))
 
 	def test_Procedure_Parameters(self) -> None:
+		"""By default, a parameter list fitting into the maximum line length is written on one line."""
+		self.assertEqual(
+			"procedure p (constant a : in integer; variable b : out integer);\n",
+			VHDLWriter().Format(Procedure("p", parameterItems=_parameters()))
+		)
+
+	def test_Procedure_Parameters_OnePerLine(self) -> None:
+		style = VHDLStyle(parameterList=InterfaceListStyle())
+
 		self.assertEqual(dedent("""\
 			procedure p (
 			  constant a : in integer;
 			  variable b : out integer
 			);
-			"""), VHDLWriter().Format(Procedure("p", parameterItems=_parameters())))
+			"""), VHDLWriter(style).Format(Procedure("p", parameterItems=_parameters())))
+
+	def test_Procedure_Parameters_OneLine(self) -> None:
+		style = VHDLStyle(parameterList=InterfaceListStyle(NewLine.Remove, lastCloseParenthesis=NewLine.Remove))
+
+		self.assertEqual(
+			"procedure p (constant a : in integer; variable b : out integer);\n",
+			VHDLWriter(style).Format(Procedure("p", parameterItems=_parameters()))
+		)
 
 	def test_Function(self) -> None:
 		function = Function("parity", _subtypeSymbol("bit"), parameterItems=[
 			ParameterSimpleSignalInterfaceItem(["data"], Mode.In, _subtypeSymbol("bit_vector"))
 		])
 
-		self.assertEqual(dedent("""\
-			function parity (
-			  signal data : in bit_vector
-			) return bit;
-			"""), VHDLWriter().Format(function))
+		self.assertEqual("function parity (signal data : in bit_vector) return bit;\n", VHDLWriter().Format(function))
 
 	def test_Function_Impure(self) -> None:
 		function = Function("value", _subtypeSymbol("natural"), False)
@@ -107,9 +120,7 @@ class Declarations(Testcase):
 		self.assertEqual(dedent("""\
 			function maximum generic (
 			  type T
-			) parameter (
-			  constant a, b : T
-			) return T;
+			) parameter (constant a, b : T) return T;
 			"""), VHDLWriter().Format(function))
 
 	def test_Procedure_Generics(self) -> None:
@@ -138,10 +149,7 @@ class Bodies(Testcase):
 		])
 
 		self.assertEqual(dedent("""\
-			procedure p (
-			  constant a : in integer;
-			  variable b : out integer
-			) is
+			procedure p (constant a : in integer; variable b : out integer) is
 			  variable tmp : integer;
 			begin
 			end procedure p;
@@ -209,7 +217,7 @@ class GenericSubprograms(Testcase):
 		procedure = GenericProcedureInterfaceItem("log")
 		procedure.AddParameterItem(ParameterConstantInterfaceItem(["message"], Mode.In, _subtypeSymbol("string")))
 
-		self.assertEqual("procedure log (\n  constant message : in string\n)", VHDLWriter().Format(procedure))
+		self.assertEqual("procedure log (constant message : in string)", VHDLWriter().Format(procedure))
 
 	def test_Function(self) -> None:
 		function = GenericFunctionInterfaceItem("compare", _subtypeSymbol("boolean"))
@@ -225,9 +233,7 @@ class GenericSubprograms(Testcase):
 			component logger is
 			  generic (
 			    type T;
-			    procedure log (
-			      constant message : in string
-			    )
+			    procedure log (constant message : in string)
 			  );
 			end component logger;
 			"""), VHDLWriter().Format(component))

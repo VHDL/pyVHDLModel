@@ -43,11 +43,13 @@ Visitor
 The writer is a :class:`~pyVHDLModel.Visitor.Visitor`. A model element walks itself
 (:meth:`~pyVHDLModel.Base.ModelEntity.Visit`): it reports ``Visit<Class>`` to the visitor, walks its children in source
 order and reports ``Depart<Class>``. A token between two parts, which is not a model element itself, is reported by an
-event named after the token, e.g. ``VisitArrow`` for ``=>`` or ``VisitComma`` for ``,``. A part of an element, which is
-not a model element itself, is reported by an event pair named after its production in IEEE Std 1076-2008, e.g.
-``VisitGenericClause`` and ``DepartGenericClause`` around the generics of a component. The writer appends the text of
-each event to a buffer, which :meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format` returns. A parser's subclass of a
-model class inherits the walk of that model class, so it's written like that model class.
+event named after the token, e.g. ``VisitArrow`` for ``=>``. A separator is reported by an event named after the list
+it separates, so the writer can lay out each kind of list on its own (see :ref:`WRITER/separators`). A part of an
+element, which is not a model element itself, is reported by an event pair named after its production in
+IEEE Std 1076-2008, e.g. ``VisitGenericClause`` and ``DepartGenericClause`` around the generics of a component. The
+writer appends the text of each event to a buffer, which :meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format`
+returns. A parser's subclass of a model class inherits the walk of that model class, so it's written like that model
+class.
 
 An element of a class without a walk of its own raises :exc:`NotImplementedError` when it is visited. The writer raises
 :exc:`~pyVHDLModel.Exception.VHDLWriterError` for an element without VHDL notation, e.g. a string literal containing a
@@ -100,11 +102,162 @@ Formatting Options
    Number of spaces per indentation level, as vhdl-style-guide's option ``indent_size`` (default: ``2``). It applies to
    :attr:`~pyVHDLModel.Formatting.VHDL.IndentStyle.Spaces`.
 
+``lineLength``
+   Maximum line length of a list written on a single line, as vhdl-style-guide's option ``length`` of rule
+   ``length_001`` (default: ``120``). A tab counts as ``indentSize`` characters. The writer wraps no other lines. See
+   vhdl-style-guide's :ref:`vsg:configuring-length-rules`.
+
 .. code-block:: Python
 
    from pyVHDLModel.Formatting.VHDL import IndentStyle, KeywordCase, VHDLStyle, VHDLWriter
 
    writer = VHDLWriter(VHDLStyle(KeywordCase.Upper, IndentStyle.SmartTabs))
+
+
+.. _WRITER/style/lists:
+
+List Layout
+===========
+
+Each construct with a parenthesized list has its own list style: an
+:class:`~pyVHDLModel.Formatting.VHDL.InterfaceListStyle` for an interface list (separated by semicolons) or an
+:class:`~pyVHDLModel.Formatting.VHDL.AssociationListStyle` for an association list (separated by commas).
+
+.. list-table::
+   :header-rows: 1
+
+   * - Option
+     - Construct
+     - Default
+   * - ``genericClause``
+     - generic clauses of entities, components, packages and block statements
+     - one generic per line
+   * - ``portClause``
+     - port clauses of entities, components and block statements
+     - one port per line
+   * - ``subprogramGenericClause``
+     - generic clauses of procedures and functions
+     - one generic per line
+   * - ``parameterList``
+     - formal parameter lists of procedures, functions, generic procedures and generic functions
+     - on one line, if it fits into ``lineLength``, otherwise one parameter per line
+   * - ``genericMap``
+     - generic map aspects of instantiations, block statements, binding indications, package instantiations and
+       subprogram instantiations
+     - one association per line
+   * - ``portMap``
+     - port map aspects of instantiations, block statements and binding indications
+     - one association per line
+   * - ``procedureCall``
+     - actual parameter parts of concurrent and sequential procedure calls
+     - a single line
+   * - ``functionCall``
+     - association lists of function calls (:class:`~pyVHDLModel.Name.ParenthesisName`, also an indexed or slice name)
+     - a single line
+
+The first four options take an :class:`~pyVHDLModel.Formatting.VHDL.InterfaceListStyle`, the last four an
+:class:`~pyVHDLModel.Formatting.VHDL.AssociationListStyle`. Their options are vhdl-style-guide's options of the
+subprogram specification rules ``function_019``/``procedure_013`` and of the procedure call rule
+``procedure_call_003``; the first three take the values :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add`
+(``add_new_line``) and :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove` (``remove_new_line``):
+
+``interfaceElement`` / ``associationElement``
+   Line break before each element, the first one after the left parenthesis included (``interface_element`` /
+   ``association_element``). Default: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add`, one element per line.
+
+``interfaceListSemicolon`` / ``associationListComma``
+   Line break before the separator between two elements (``interface_list_semicolon`` / ``association_list_comma``).
+   Default: :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Remove`, the separator ends the line;
+   :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add` starts the next line with it.
+
+``lastCloseParenthesis``
+   Line break before the right parenthesis (``last_close_paren``). Default:
+   :attr:`~pyVHDLModel.Formatting.VHDL.NewLine.Add`, on its own line.
+
+``ignoreSingleLine``
+   Write the list on a single line, if its line fits into ``lineLength``; a longer line is written with the line breaks
+   of the three options above (``ignore_single_line``, which accepts such a list). Default: ``False``. A list
+   containing a list written on several lines is not written on a single line. An enclosing list is broken first, so an
+   enclosed list is measured on its own line.
+
+The parameter list style is ``InterfaceListStyle(ignoreSingleLine=True)``, the procedure call and function call styles
+are ``AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)``. See vhdl-style-guide's
+:ref:`vsg:configuring-subprogram-specification-statement-rules` and
+:ref:`vsg:configuring-procedure-call-statement-rules`.
+
+.. code-block:: Python
+
+   from pyVHDLModel.Formatting.VHDL import InterfaceListStyle, NewLine, VHDLStyle, VHDLWriter
+
+   writer = VHDLWriter(VHDLStyle(
+     genericClause=InterfaceListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove),
+     portClause=InterfaceListStyle(NewLine.Remove, NewLine.Add)
+   ))
+
+.. code-block:: VHDL
+
+   component counter is
+     generic (BITS : positive := 8; type T);
+     port (clk, rst : in bit
+       ; q : out T
+     );
+   end component counter;
+
+   -- parameterList (default): the first list fits, the second doesn't
+   procedure p (constant a : in integer; variable b : out integer);
+   procedure q (
+     constant first_operand : in integer;
+     constant second_operand : in integer;
+     variable result_of_the_operation : out integer
+   );
+
+
+.. _WRITER/separators:
+
+Separators and Parentheses
+**************************
+
+Each list reports the separator between two of its items by an event named after the list:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Event
+     - Separator
+     - Lists
+     - Written as
+   * - ``VisitInterfaceListSeparator``
+     - ``;``
+     - generic clause, port clause, formal parameter list
+     - by the construct's list style (:ref:`WRITER/style/lists`), by default ``;`` and a new line
+   * - ``VisitAssociationListSeparator``
+     - ``,``
+     - associations of a parenthesis name, generic and port map aspects, actual parameters of a procedure call
+     - by the construct's list style, by default ``,`` and a new line in a map aspect, otherwise ``,`` and a space
+   * - ``VisitElementSeparator``
+     - ``,``
+     - indices of an indexed name, element associations of an aggregate, index and record constraints, literals of an
+       enumerated type, index ranges of an array type
+     - ``,`` and a space
+   * - ``VisitNameListSeparator``
+     - ``,``
+     - entity name list of an attribute specification, names of a library clause, use clause or context reference,
+       instantiation list, sensitivity list of a process or wait statement
+     - ``,`` and a space
+   * - ``VisitWaveformSeparator``
+     - ``,``
+     - waveform elements of a waveform
+     - ``,`` and a space
+   * - ``VisitSelectedAlternativeSeparator``
+     - ``,``
+     - alternatives of selected waveforms and selected expressions
+     - ``,`` and a space
+
+The parentheses of a list are written at the events of its element or part, e.g. ``VisitIndexList`` and
+``DepartIndexList`` around the indices of an indexed name, ``VisitAssociationList`` and ``DepartAssociationList`` around
+the associations of a parenthesis name, or ``VisitGenericClause`` and ``DepartGenericClause``. ``VisitLeftParenthesis``
+and ``VisitRightParenthesis`` enclose a single item, which is no list: the operand of a type conversion or the
+architecture name of an entity aspect.
 
 
 .. _WRITER/parentheses:
@@ -199,7 +352,8 @@ Object declarations
    file declaration is written without one.
 
 Interface items
-   Each item of a generic clause or a port clause is written on its own line; the items are separated by semicolons.
+   By default, each item of a generic clause or a port clause is written on its own line
+   (:ref:`WRITER/style/lists`); the items are separated by semicolons.
    A clause without items is not written. Generic constants and ports are written without an object class reserved word
    (``BITS : positive``, ``clk : in bit``), parameters with one (``signal clk : in bit``). An item with
    :attr:`Mode.Default <pyVHDLModel.Base.Mode.Default>` is written without a mode. Ports and parameters with a mode view
@@ -226,12 +380,14 @@ Subprograms
    items or statements is written as a subprogram body. One without them is written as a subprogram declaration
    (``procedure reset;``), if its parent is a package declaration, a protected type declaration or none, otherwise as
    an empty subprogram body (e.g. in a package body or an architecture). A subprogram body has a declarative part and a
-   statement part. Each parameter is written on its own line. A generic clause of a subprogram is followed by the
-   reserved word ``parameter`` before the parameter list. Generic procedures and functions are written in a generic
-   clause like any other generic. A method of a protected type is written like a procedure or function.
+   statement part. By default, the parameters are written on one line, if they fit, otherwise each on its own line. A
+   generic clause of a subprogram is followed by the reserved word ``parameter`` before the parameter list. Generic
+   procedures and functions are written in a generic clause like any other generic. A method of a protected type is
+   written like a procedure or function.
 
 Subprogram instantiations
-   Procedure and function instantiations are written with their generic map aspect, one association per line.
+   Procedure and function instantiations are written with their generic map aspect, by default one association per
+   line.
 
 Protected types
    A protected type declaration writes its methods, a protected type body its declared items, one per line.
@@ -240,9 +396,7 @@ Protected types
 
    function maximum generic (
      type T
-   ) parameter (
-     constant a, b : T
-   ) return T;
+   ) parameter (constant a, b : T) return T;
 
 Documentation comments of the model (:attr:`~pyVHDLModel.Base.DocumentedEntityMixin.Documentation`) are not written.
 
@@ -282,7 +436,7 @@ written with ``end``, the reserved words of the design unit and its identifier. 
 
 A configuration writes its block configuration, nested block configurations and component configurations, each ending
 with ``end for;``. A binding indication (``use entity work.sub(rtl)``) and its map aspects are indented one level deeper
-than its component configuration; each association of a map aspect is written on its own line.
+than its component configuration; by default, each association of a map aspect is written on its own line.
 
 
 .. _WRITER/concurrent:
@@ -316,8 +470,8 @@ Processes
 
 Instantiations
    Component, entity and configuration instantiations are written with the reserved word ``component``, ``entity`` or
-   ``configuration``, followed by their generic and port map aspects, one association per line. An instantiation
-   without label raises :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
+   ``configuration``, followed by their generic and port map aspects, by default one association per line. An
+   instantiation without label raises :exc:`~pyVHDLModel.Exception.VHDLWriterError`.
 
 Block statements
    A block statement writes its block header (generic clause, generic map aspect, port clause, port map aspect), its

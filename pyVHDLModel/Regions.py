@@ -380,6 +380,69 @@ class WithGenericsMixin(
 		if isOverload:
 			self._AddToNamespace(genericItem)
 
+	def SplitGenericItem(
+		self,
+		genericItem: GenericInterfaceItemMixin
+	) -> tuple[GenericInterfaceItemMixin, ...]:
+		"""
+		Split a generic with an identifier list into one generic per identifier.
+
+		The generic keeps its first identifier. For every other identifier, a new generic is created by its
+		``Copy()`` and inserted right after it, in list order; its parent is set to this language construct. If the
+		language construct has a namespace, the entries of the other identifiers refer to the new generics.
+		A generic declaring one identifier is unchanged.
+
+		:param genericItem:          The generic to split.
+		:returns:                    Tuple of generics, one per identifier in list order, starting with the split
+		                             generic.
+		:raises ValueError:          If parameter 'genericItem' is ``None``.
+		:raises TypeError:           If parameter 'genericItem' is not of type
+		                             :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises NotAChildError:      If parameter 'genericItem' is not a generic of this language construct.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the generic refers to another
+		                             element, e.g. a duplicate declaration.
+
+		.. seealso::
+
+		   :meth:`~pyVHDLModel.Base.MultipleNamedEntityMixin.Split`
+		      |rarr| Split a declaration with an identifier list.
+		   :meth:`RemoveGenericItem`
+		      |rarr| Remove a generic from the generic clause.
+		"""
+		from pyVHDLModel.Interface import GenericInterfaceItemMixin
+
+		if genericItem is None:
+			raise ValueError("Parameter 'genericItem' is None.")
+		elif not isinstance(genericItem, GenericInterfaceItemMixin):
+			ex = TypeError("Parameter 'genericItem' is not of type 'GenericInterfaceItemMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(genericItem)}'.")
+			raise ex
+
+		for index, item in enumerate(self._genericItems):
+			if item is genericItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(genericItem))
+			raise NotAChildError(
+				f"{getTypeName(genericItem)} '{identifiers}' is not a generic of this {getTypeName(self)}.",
+				element=genericItem,
+				parent=self
+			)
+
+		if not isinstance(genericItem, MultipleNamedEntityMixin) or len(genericItem._identifiers) == 1:
+			return (genericItem, )
+
+		declarations = genericItem._SplitCopies()
+		self._RemoveFromNamespace(genericItem)
+		genericItem._KeepIdentifier(0)
+		self._genericItems[index + 1:index + 1] = declarations
+		self._AddToNamespace(genericItem)
+		for declaration in declarations:
+			declaration.Parent = self
+			self._AddToNamespace(declaration)
+
+		return (genericItem, *declarations)
+
 	@expects("_namespace")
 	def _IndexGenericItems(self) -> None:
 		"""Add the generics to the host's namespace; a generic subprogram is an overload."""
@@ -404,7 +467,7 @@ class WithGenericsMixin(
 		visitor.VisitGenericClause(self)
 		for index, item in enumerate(self._genericItems):
 			if index > 0:
-				visitor.VisitSemicolon(self)
+				visitor.VisitInterfaceListSeparator(self)
 
 			item.Visit(visitor)
 
@@ -704,6 +767,69 @@ class WithPortsMixin(
 		del self._portItems[currentIndex]
 		self._portItems.insert(newIndex, portItem)
 
+	def SplitPortItem(
+		self,
+		portItem: PortSignalInterfaceItem
+	) -> tuple[PortSignalInterfaceItem, ...]:
+		"""
+		Split a port with an identifier list into one port per identifier.
+
+		The port keeps its first identifier. For every other identifier, a new port is created by its
+		``Copy()`` and inserted right after it, in list order; its parent is set to this language construct. If the
+		language construct has a namespace, the entries of the other identifiers refer to the new ports.
+		A port declaring one identifier is unchanged.
+
+		:param portItem:             The port to split.
+		:returns:                    Tuple of ports, one per identifier in list order, starting with the split
+		                             port.
+		:raises ValueError:          If parameter 'portItem' is ``None``.
+		:raises TypeError:           If parameter 'portItem' is not of type
+		                             :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises NotAChildError:      If parameter 'portItem' is not a port of this language construct.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the port refers to another
+		                             element, e.g. a duplicate declaration.
+
+		.. seealso::
+
+		   :meth:`~pyVHDLModel.Base.MultipleNamedEntityMixin.Split`
+		      |rarr| Split a declaration with an identifier list.
+		   :meth:`RemovePortItem`
+		      |rarr| Remove a port from the port clause.
+		"""
+		from pyVHDLModel.Interface import PortSignalInterfaceItem
+
+		if portItem is None:
+			raise ValueError("Parameter 'portItem' is None.")
+		elif not isinstance(portItem, PortSignalInterfaceItem):
+			ex = TypeError("Parameter 'portItem' is not of type 'PortSignalInterfaceItem'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(portItem)}'.")
+			raise ex
+
+		for index, item in enumerate(self._portItems):
+			if item is portItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(portItem))
+			raise NotAChildError(
+				f"{getTypeName(portItem)} '{identifiers}' is not a port of this {getTypeName(self)}.",
+				element=portItem,
+				parent=self
+			)
+
+		if not isinstance(portItem, MultipleNamedEntityMixin) or len(portItem._identifiers) == 1:
+			return (portItem, )
+
+		declarations = portItem._SplitCopies()
+		self._RemoveFromNamespace(portItem)
+		portItem._KeepIdentifier(0)
+		self._portItems[index + 1:index + 1] = declarations
+		self._AddToNamespace(portItem)
+		for declaration in declarations:
+			declaration.Parent = self
+			self._AddToNamespace(declaration)
+
+		return (portItem, *declarations)
+
 	@expects("_namespace")
 	def _IndexPortItems(self) -> None:
 		"""Add the ports to the host's namespace."""
@@ -725,7 +851,7 @@ class WithPortsMixin(
 		visitor.VisitPortClause(self)
 		for index, item in enumerate(self._portItems):
 			if index > 0:
-				visitor.VisitSemicolon(self)
+				visitor.VisitInterfaceListSeparator(self)
 
 			item.Visit(visitor)
 
@@ -1031,6 +1157,70 @@ class WithParametersMixin(
 		self._parameterItems.insert(newIndex, parameterItem)
 		self._ParameterItemsChanged()
 
+	def SplitParameterItem(
+		self,
+		parameterItem: ParameterInterfaceItemMixin
+	) -> tuple[ParameterInterfaceItemMixin, ...]:
+		"""
+		Split a parameter with an identifier list into one parameter per identifier.
+
+		The parameter keeps its first identifier. For every other identifier, a new parameter is created by its
+		``Copy()`` and inserted right after it, in list order; its parent is set to this language construct. If the
+		language construct has a namespace, the entries of the other identifiers refer to the new parameters.
+		A parameter declaring one identifier is unchanged.
+
+		:param parameterItem:        The parameter to split.
+		:returns:                    Tuple of parameters, one per identifier in list order, starting with the split
+		                             parameter.
+		:raises ValueError:          If parameter 'parameterItem' is ``None``.
+		:raises TypeError:           If parameter 'parameterItem' is not of type
+		                             :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises NotAChildError:      If parameter 'parameterItem' is not a parameter of this language construct.
+		:raises NotInNamespaceError: If the namespace is indexed, and an identifier of the parameter refers to another
+		                             element, e.g. a duplicate declaration.
+
+		.. seealso::
+
+		   :meth:`~pyVHDLModel.Base.MultipleNamedEntityMixin.Split`
+		      |rarr| Split a declaration with an identifier list.
+		   :meth:`RemoveParameterItem`
+		      |rarr| Remove a parameter from the parameter list.
+		"""
+		from pyVHDLModel.Interface import ParameterInterfaceItemMixin
+
+		if parameterItem is None:
+			raise ValueError("Parameter 'parameterItem' is None.")
+		elif not isinstance(parameterItem, ParameterInterfaceItemMixin):
+			ex = TypeError("Parameter 'parameterItem' is not of type 'ParameterInterfaceItemMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parameterItem)}'.")
+			raise ex
+
+		for index, item in enumerate(self._parameterItems):
+			if item is parameterItem:
+				break
+		else:
+			identifiers = ", ".join(identifiersOf(parameterItem))
+			raise NotAChildError(
+				f"{getTypeName(parameterItem)} '{identifiers}' is not a parameter of this {getTypeName(self)}.",
+				element=parameterItem,
+				parent=self
+			)
+
+		if not isinstance(parameterItem, MultipleNamedEntityMixin) or len(parameterItem._identifiers) == 1:
+			return (parameterItem, )
+
+		declarations = parameterItem._SplitCopies()
+		self._RemoveFromNamespace(parameterItem)
+		parameterItem._KeepIdentifier(0)
+		self._parameterItems[index + 1:index + 1] = declarations
+		self._AddToNamespace(parameterItem)
+		for declaration in declarations:
+			declaration.Parent = self
+			self._AddToNamespace(declaration)
+		self._ParameterItemsChanged()
+
+		return (parameterItem, *declarations)
+
 	@expects("_namespace")
 	def _IndexParameterItems(self) -> None:
 		"""Add the parameters to the host's namespace."""
@@ -1052,7 +1242,7 @@ class WithParametersMixin(
 		visitor.VisitFormalParameterList(self)
 		for index, item in enumerate(self._parameterItems):
 			if index > 0:
-				visitor.VisitSemicolon(self)
+				visitor.VisitInterfaceListSeparator(self)
 
 			item.Visit(visitor)
 
@@ -1544,13 +1734,13 @@ class DeclarationRegionMixin(
 
 		:param declaredItem:               The declared item to insert.
 		:param before:                     The declared item of this declarative region to insert before.
-		:raises ValueError:                If parameter 'before' is ``None``.
-		:raises TypeError:                 If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError:            If parameter 'before' is not a declared item of this declarative region.
 		:raises ValueError:                If parameter 'declaredItem' is ``None``.
 		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
 		                                   region.
 		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
+		:raises ValueError:                If parameter 'before' is ``None``.
+		:raises TypeError:                 If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:            If parameter 'before' is not a declared item of this declarative region.
 		:raises DuplicateDeclarationError: If an existing declaration of the declarative region shares an
 		                                   identifier with the declared item.
 
@@ -1592,13 +1782,13 @@ class DeclarationRegionMixin(
 
 		:param declaredItem:               The declared item to insert.
 		:param after:                      The declared item of this declarative region to insert after.
-		:raises ValueError:                If parameter 'after' is ``None``.
-		:raises TypeError:                 If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError:            If parameter 'after' is not a declared item of this declarative region.
 		:raises ValueError:                If parameter 'declaredItem' is ``None``.
 		:raises TypeError:                 If parameter 'declaredItem' is not a declaration allowed in this declarative
 		                                   region.
 		:raises AlreadyInDesignError:      If parameter 'declaredItem' already has a parent.
+		:raises ValueError:                If parameter 'after' is ``None``.
+		:raises TypeError:                 If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:            If parameter 'after' is not a declared item of this declarative region.
 		:raises DuplicateDeclarationError: If an existing declaration of the declarative region shares an
 		                                   identifier with the declared item.
 
@@ -1796,12 +1986,12 @@ class DeclarationRegionMixin(
 
 		:param declaredItem:    The declared item to move.
 		:param before:          The declared item of this declarative region to move before.
-		:raises ValueError:     If parameter 'before' is ``None``.
-		:raises TypeError:      If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError: If parameter 'before' is not a declared item of this declarative region.
 		:raises ValueError:     If parameter 'declaredItem' is ``None``.
 		:raises TypeError:      If parameter 'declaredItem' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
 		:raises NotAChildError: If parameter 'declaredItem' is not a declared item of this declarative region.
+		:raises ValueError:     If parameter 'before' is ``None``.
+		:raises TypeError:      If parameter 'before' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'before' is not a declared item of this declarative region.
 
 		.. seealso::
 
@@ -1842,12 +2032,12 @@ class DeclarationRegionMixin(
 
 		:param declaredItem:    The declared item to move.
 		:param after:           The declared item of this declarative region to move after.
-		:raises ValueError:     If parameter 'after' is ``None``.
-		:raises TypeError:      If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
-		:raises NotAChildError: If parameter 'after' is not a declared item of this declarative region.
 		:raises ValueError:     If parameter 'declaredItem' is ``None``.
 		:raises TypeError:      If parameter 'declaredItem' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
 		:raises NotAChildError: If parameter 'declaredItem' is not a declared item of this declarative region.
+		:raises ValueError:     If parameter 'after' is ``None``.
+		:raises TypeError:      If parameter 'after' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError: If parameter 'after' is not a declared item of this declarative region.
 
 		.. seealso::
 
@@ -1878,6 +2068,70 @@ class DeclarationRegionMixin(
 
 		precedes = any(item is declaredItem for item in self._declaredItems[:index + 1])
 		self.MoveDeclaredItem(declaredItem, index if precedes else index + 1)
+
+	def SplitDeclaredItem(self, declaredItem: ModelEntity) -> tuple[ModelEntity, ...]:
+		"""
+		Split a declared item with an identifier list into one declaration per identifier.
+
+		The declared item keeps its first identifier. For every other identifier, a new declaration is created by its
+		``Copy()`` and inserted right after it, in list order; its parent is set to this declarative region. If the region
+		is indexed, the namespace and lookup table entries of the other identifiers refer to the new declarations; they
+		are checked before anything is changed. A declared item declaring one identifier is unchanged.
+
+		:param declaredItem:         The declared item to split.
+		:returns:                    Tuple of declarations, one per identifier in list order, starting with the split
+		                             declared item.
+		:raises ValueError:          If parameter 'declaredItem' is ``None``.
+		:raises TypeError:           If parameter 'declaredItem' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
+		:raises NotAChildError:      If parameter 'declaredItem' is not a declared item of this declarative region.
+		:raises NotInNamespaceError: If the region is indexed, and an identifier of the declared item refers to another
+		                             declaration, e.g. a duplicate declaration.
+
+		.. seealso::
+
+		   :meth:`~pyVHDLModel.Base.MultipleNamedEntityMixin.Split`
+		      |rarr| Split a declaration with an identifier list.
+		   :meth:`RemoveDeclaredItem`
+		      |rarr| Remove a declared item from the declarative region.
+		"""
+		if declaredItem is None:
+			raise ValueError("Parameter 'declaredItem' is None.")
+		elif not isinstance(declaredItem, ModelEntity):
+			ex = TypeError("Parameter 'declaredItem' is not of type 'ModelEntity'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(declaredItem)}'.")
+			raise ex
+
+		for index, item in enumerate(self._declaredItems):
+			if item is declaredItem:
+				break
+		else:
+			identifiers = ""
+			if isinstance(declaredItem, (NamedEntityMixin, MultipleNamedEntityMixin)):
+				identifiers = f" '{', '.join(identifiersOf(declaredItem))}'"
+			raise NotAChildError(
+				f"{getTypeName(declaredItem)}{identifiers} is not a declared item of this {getTypeName(self)}.",
+				element=declaredItem,
+				parent=self
+			)
+
+		if not isinstance(declaredItem, MultipleNamedEntityMixin) or len(declaredItem._identifiers) == 1:
+			return (declaredItem, )
+
+		if self._areDeclaredItemsIndexed:
+			self._UnindexDeclaredItem(declaredItem)
+
+		declarations = declaredItem._SplitCopies()
+		declaredItem._KeepIdentifier(0)
+		self._declaredItems[index + 1:index + 1] = declarations
+		for declaration in declarations:
+			declaration.Parent = self
+
+		if self._areDeclaredItemsIndexed:
+			self._IndexDeclaredItem(declaredItem)
+			for declaration in declarations:
+				self._IndexDeclaredItem(declaration)
+
+		return (declaredItem, *declarations)
 
 	def _VisitDeclaredItems(self, visitor: Visitor) -> None:
 		"""

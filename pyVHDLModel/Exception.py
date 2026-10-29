@@ -51,6 +51,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	from pyVHDLModel.Base       import ModelElementUnion, ModelEntity
 	from pyVHDLModel.Concurrent import ComponentInstantiation
 	from pyVHDLModel.DesignUnit import Component as _Component
+	from pyVHDLModel.Expression import Literal as _Literal
 	from pyVHDLModel.Namespace  import Namespace as _Namespace
 
 
@@ -309,6 +310,7 @@ class VHDLModelException(ExceptionBase):
 	   * :class:`Configuration not found error <pyVHDLModel.Exception.ConfigurationNotFoundError>`
 	   * :class:`Context not found error <pyVHDLModel.Exception.ContextNotFoundError>`
 	   * :class:`VHDL writer error <pyVHDLModel.Exception.VHDLWriterError>`
+	   * :class:`Literal error <pyVHDLModel.Exception.LiteralError>`
 	"""
 
 
@@ -1862,3 +1864,34 @@ class VHDLWriterError(VHDLModelException):
 		:returns: The model element.
 		"""
 		return self._element
+
+
+@export
+class LiteralError(VHDLModelException, ValueError):
+	"""
+	This exception is raised, when a literal's value violates the rules of its literal kind.
+
+	E.g. a bit string literal's length truncates significant characters. It's a :exc:`ValueError` too, like
+	converting an invalid text to a number.
+	"""
+
+	_literal: _Literal  #: The literal with the invalid value.
+
+	def __init__(self, message: str, /, *, literal: _Literal) -> None:
+		"""
+		Initializes the exception with a message and the literal with the invalid value.
+
+		:param message: The error message.
+		:param literal: The literal with the invalid value.
+		"""
+		super().__init__(message)
+		self._literal = literal
+
+	@readonly
+	def Literal(self) -> _Literal:
+		"""
+		Read-only property to access the literal with the invalid value (:attr:`_literal`).
+
+		:returns: The literal with the invalid value.
+		"""
+		return self._literal

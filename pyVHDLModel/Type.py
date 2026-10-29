@@ -38,11 +38,13 @@ from __future__             import annotations
 
 from typing                 import TYPE_CHECKING, Union, Iterator, Iterable, Optional as Nullable, Self
 
+from pyTooling.Common       import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyTooling.Graph        import Vertex
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, Range
+from pyVHDLModel.Exception  import NotAChildError
 from pyVHDLModel.Symbol     import Symbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
@@ -423,7 +425,7 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		visitor.VisitEnumeratedType(self)
 		for index, literal in enumerate(self._literals):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitElementSeparator(self)
 
 			literal.Visit(visitor)
 
@@ -737,7 +739,7 @@ class ArrayType(CompositeType):
 		visitor.VisitIndexConstraint(self)
 		for index, dimension in enumerate(self._dimensions):
 			if index > 0:
-				visitor.VisitComma(self)
+				visitor.VisitElementSeparator(self)
 
 			dimension.Visit(visitor)
 			if isinstance(dimension, SimpleSubtypeSymbol):
@@ -826,6 +828,14 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		"""
 		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
 
+	def _SplitInParent(self) -> tuple[Self, ...]:
+		"""
+		Split this element declaration by the mutator of its parent (``SplitElement()``).
+
+		:returns: Tuple of element declarations, one per identifier in list order, starting with this element declaration.
+		"""
+		return self._parent.SplitElement(self)
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this record element declaration and its subtype with a visitor.
@@ -900,6 +910,54 @@ class RecordType(CompositeType):
 		:returns: List of elements.
 		"""
 		return self._elements
+
+	def SplitElement(self, element: RecordTypeElement) -> tuple[RecordTypeElement, ...]:
+		"""
+		Split an element with an identifier list into one element per identifier.
+
+		The element keeps its first identifier. For every other identifier, a new element is created by its ``Copy()``
+		and inserted right after it, in list order; its parent is set to this record type. An element declaring one
+		identifier is unchanged.
+
+		:param element:         The element to split.
+		:returns:               Tuple of elements, one per identifier in list order, starting with the split element.
+		:raises ValueError:     If parameter 'element' is ``None``.
+		:raises TypeError:      If parameter 'element' is not of type :class:`RecordTypeElement`.
+		:raises NotAChildError: If parameter 'element' is not an element of this record type.
+
+		.. seealso::
+
+		   :meth:`~pyVHDLModel.Base.MultipleNamedEntityMixin.Split`
+		      |rarr| Split a declaration with an identifier list.
+		"""
+		if element is None:
+			raise ValueError("Parameter 'element' is None.")
+		elif not isinstance(element, RecordTypeElement):
+			ex = TypeError("Parameter 'element' is not of type 'RecordTypeElement'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+			raise ex
+
+		for index, item in enumerate(self._elements):
+			if item is element:
+				break
+		else:
+			identifiers = ", ".join(element._identifiers)
+			raise NotAChildError(
+				f"{getTypeName(element)} '{identifiers}' is not an element of this {getTypeName(self)}.",
+				element=element,
+				parent=self
+			)
+
+		if len(element._identifiers) == 1:
+			return (element, )
+
+		declarations = element._SplitCopies()
+		element._KeepIdentifier(0)
+		self._elements[index + 1:index + 1] = declarations
+		for declaration in declarations:
+			declaration.Parent = self
+
+		return (element, *declarations)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

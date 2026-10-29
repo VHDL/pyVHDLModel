@@ -91,16 +91,17 @@ class Walks(Testcase):
 		name.Visit(recorder)
 
 		self.assertEqual([
-			("VisitIndexedName",     name),
-			("VisitSimpleName",      prefix),
-			("DepartSimpleName",     prefix),
-			("VisitLeftParenthesis", name),
-			("VisitIntegerLiteral",  first),
-			("DepartIntegerLiteral", first),
-			("VisitComma",           name),
-			("VisitIntegerLiteral",  second),
-			("DepartIntegerLiteral", second),
-			("DepartIndexedName",    name),
+			("VisitIndexedName",      name),
+			("VisitSimpleName",       prefix),
+			("DepartSimpleName",      prefix),
+			("VisitIndexList",        name),
+			("VisitIntegerLiteral",   first),
+			("DepartIntegerLiteral",  first),
+			("VisitElementSeparator", name),
+			("VisitIntegerLiteral",   second),
+			("DepartIntegerLiteral",  second),
+			("DepartIndexList",       name),
+			("DepartIndexedName",     name),
 		], recorder.Events)
 
 	def test_FunctionCall(self) -> None:
@@ -118,25 +119,26 @@ class Walks(Testcase):
 		symbol.Visit(recorder)
 
 		self.assertEqual([
-			("VisitSymbol",           symbol),
-			("VisitParenthesisName",  name),
-			("VisitSimpleName",       function),
-			("DepartSimpleName",      function),
-			("VisitLeftParenthesis",  name),
-			("VisitAssociationItem",  positional),
-			("VisitSimpleName",       actual),
-			("DepartSimpleName",      actual),
-			("DepartAssociationItem", positional),
-			("VisitComma",            name),
-			("VisitAssociationItem",  named),
-			("VisitSimpleName",       formal),
-			("DepartSimpleName",      formal),
-			("VisitArrow",            named),
-			("VisitIntegerLiteral",   size),
-			("DepartIntegerLiteral",  size),
-			("DepartAssociationItem", named),
-			("DepartParenthesisName", name),
-			("DepartSymbol",          symbol),
+			("VisitSymbol",                   symbol),
+			("VisitParenthesisName",          name),
+			("VisitSimpleName",               function),
+			("DepartSimpleName",              function),
+			("VisitAssociationList",          name),
+			("VisitAssociationItem",          positional),
+			("VisitSimpleName",               actual),
+			("DepartSimpleName",              actual),
+			("DepartAssociationItem",         positional),
+			("VisitAssociationListSeparator", name),
+			("VisitAssociationItem",          named),
+			("VisitSimpleName",               formal),
+			("DepartSimpleName",              formal),
+			("VisitArrow",                    named),
+			("VisitIntegerLiteral",           size),
+			("DepartIntegerLiteral",          size),
+			("DepartAssociationItem",         named),
+			("DepartAssociationList",         name),
+			("DepartParenthesisName",         name),
+			("DepartSymbol",                  symbol),
 		], recorder.Events)
 
 	def test_ParserSubclass(self) -> None:

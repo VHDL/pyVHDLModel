@@ -254,4 +254,8 @@ subprogram differ in it. Its string form is VHDL's notation of a signature (IEEE
 (:attr:`SubtypeSymbol.TypeMark <pyVHDLModel.Symbol.SubtypeSymbol.TypeMark>`): the model doesn't resolve type marks yet.
 The signature's parent is its subprogram, which keeps the signature until its parameter list changes.
 
+Two signatures are equal and have the same hash, if their type marks have the same normalized (lower case) names; the
+parent isn't compared. So a signature can be used as dictionary key or set member to tell overloads apart. A changed
+parameter list gives the subprogram a new signature; a signature already used as key keeps its profile.
+
 .. condensed-class:: pyVHDLModel.Subprogram.SubprogramSignature

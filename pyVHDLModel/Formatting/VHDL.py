@@ -173,14 +173,18 @@ class ListStyle(metaclass=ExtendedType, slots=True):
 	"""
 
 	_lastCloseParenthesis: NewLine  #: Line break before the right parenthesis.
+	_ignoreSingleLine:     bool     #: Write the list on a single line, if it fits into the maximum line length.
 
-	def __init__(self, lastCloseParenthesis: NewLine) -> None:
+	def __init__(self, lastCloseParenthesis: NewLine, ignoreSingleLine: bool) -> None:
 		"""
 		Initializes the layout of a parenthesized list.
 
 		:param lastCloseParenthesis: Line break before the right parenthesis.
+		:param ignoreSingleLine:     Write the list on a single line, if it fits into the maximum line length.
 		:raises ValueError:          If parameter 'lastCloseParenthesis' is None.
 		:raises TypeError:           If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
+		:raises ValueError:          If parameter 'ignoreSingleLine' is None.
+		:raises TypeError:           If parameter 'ignoreSingleLine' is not of type :class:`bool`.
 		"""
 		if lastCloseParenthesis is None:
 			raise ValueError("Parameter 'lastCloseParenthesis' is None.")
@@ -189,7 +193,15 @@ class ListStyle(metaclass=ExtendedType, slots=True):
 			ex.add_note(f"Got type '{getFullyQualifiedName(lastCloseParenthesis)}'.")
 			raise ex
 
+		if ignoreSingleLine is None:
+			raise ValueError("Parameter 'ignoreSingleLine' is None.")
+		elif not isinstance(ignoreSingleLine, bool):
+			ex = TypeError("Parameter 'ignoreSingleLine' is not of type 'bool'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(ignoreSingleLine)}'.")
+			raise ex
+
 		self._lastCloseParenthesis = lastCloseParenthesis
+		self._ignoreSingleLine =     ignoreSingleLine
 
 	@readonly
 	def LastCloseParenthesis(self) -> NewLine:
@@ -203,6 +215,19 @@ class ListStyle(metaclass=ExtendedType, slots=True):
 		"""
 		return self._lastCloseParenthesis
 
+	@readonly
+	def IgnoreSingleLine(self) -> bool:
+		"""
+		Read-only property to access if a list fitting on one line is written on a single line (:attr:`_ignoreSingleLine`).
+
+		``True`` writes the whole list on the line of its left parenthesis, as long as that line fits into
+		:attr:`VHDLStyle.LineLength`; a longer line is written with the line breaks of the list style's options. Such a
+		list is accepted by vhdl-style-guide's option ``ignore_single_line``.
+
+		:returns: ``True``, if a list fitting on one line is written on a single line.
+		"""
+		return self._ignoreSingleLine
+
 
 @export
 class InterfaceListStyle(ListStyle):
@@ -215,7 +240,8 @@ class InterfaceListStyle(ListStyle):
 	.. seealso::
 
 	   :ref:`vsg:configuring-subprogram-specification-statement-rules`
-	      |rarr| vhdl-style-guide's options ``interface_element``, ``interface_list_semicolon`` and ``last_close_paren``.
+	      |rarr| vhdl-style-guide's options ``interface_element``, ``interface_list_semicolon``, ``last_close_paren`` and
+	      ``ignore_single_line``.
 	"""
 
 	_interfaceElement:       NewLine  #: Line break before an interface element.
@@ -225,7 +251,8 @@ class InterfaceListStyle(ListStyle):
 		self,
 		interfaceElement:       NewLine = NewLine.Add,
 		interfaceListSemicolon: NewLine = NewLine.Remove,
-		lastCloseParenthesis:   NewLine = NewLine.Add
+		lastCloseParenthesis:   NewLine = NewLine.Add,
+		ignoreSingleLine:       bool =    False
 	) -> None:
 		"""
 		Initializes the layout of an interface list.
@@ -234,14 +261,18 @@ class InterfaceListStyle(ListStyle):
 		:param interfaceListSemicolon: Optional, line break before the semicolon between two interface elements. Default:
 		                               ``NewLine.Remove``.
 		:param lastCloseParenthesis:   Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
+		:param ignoreSingleLine:       Optional, write the list on a single line, if it fits into the maximum line length.
+		                               Default: ``False``.
 		:raises ValueError:            If parameter 'interfaceElement' is None.
 		:raises TypeError:             If parameter 'interfaceElement' is not of type :class:`NewLine`.
 		:raises ValueError:            If parameter 'interfaceListSemicolon' is None.
 		:raises TypeError:             If parameter 'interfaceListSemicolon' is not of type :class:`NewLine`.
 		:raises ValueError:            If parameter 'lastCloseParenthesis' is None.
 		:raises TypeError:             If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
+		:raises ValueError:            If parameter 'ignoreSingleLine' is None.
+		:raises TypeError:             If parameter 'ignoreSingleLine' is not of type :class:`bool`.
 		"""
-		super().__init__(lastCloseParenthesis)
+		super().__init__(lastCloseParenthesis, ignoreSingleLine)
 
 		for name, newLine in (
 			("interfaceElement",       interfaceElement),
@@ -295,7 +326,8 @@ class AssociationListStyle(ListStyle):
 	.. seealso::
 
 	   :ref:`vsg:configuring-procedure-call-statement-rules`
-	      |rarr| vhdl-style-guide's options ``association_element``, ``association_list_comma`` and ``last_close_paren``.
+	      |rarr| vhdl-style-guide's options ``association_element``, ``association_list_comma``, ``last_close_paren`` and
+	      ``ignore_single_line``.
 	"""
 
 	_associationElement:   NewLine  #: Line break before an association element.
@@ -305,7 +337,8 @@ class AssociationListStyle(ListStyle):
 		self,
 		associationElement:   NewLine = NewLine.Add,
 		associationListComma: NewLine = NewLine.Remove,
-		lastCloseParenthesis: NewLine = NewLine.Add
+		lastCloseParenthesis: NewLine = NewLine.Add,
+		ignoreSingleLine:     bool =    False
 	) -> None:
 		"""
 		Initializes the layout of an association list.
@@ -314,14 +347,18 @@ class AssociationListStyle(ListStyle):
 		:param associationListComma: Optional, line break before the comma between two association elements. Default:
 		                             ``NewLine.Remove``.
 		:param lastCloseParenthesis: Optional, line break before the right parenthesis. Default: ``NewLine.Add``.
+		:param ignoreSingleLine:     Optional, write the list on a single line, if it fits into the maximum line length.
+		                             Default: ``False``.
 		:raises ValueError:          If parameter 'associationElement' is None.
 		:raises TypeError:           If parameter 'associationElement' is not of type :class:`NewLine`.
 		:raises ValueError:          If parameter 'associationListComma' is None.
 		:raises TypeError:           If parameter 'associationListComma' is not of type :class:`NewLine`.
 		:raises ValueError:          If parameter 'lastCloseParenthesis' is None.
 		:raises TypeError:           If parameter 'lastCloseParenthesis' is not of type :class:`NewLine`.
+		:raises ValueError:          If parameter 'ignoreSingleLine' is None.
+		:raises TypeError:           If parameter 'ignoreSingleLine' is not of type :class:`bool`.
 		"""
-		super().__init__(lastCloseParenthesis)
+		super().__init__(lastCloseParenthesis, ignoreSingleLine)
 
 		for name, newLine in (
 			("associationElement",   associationElement),
@@ -378,11 +415,14 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 	      |rarr| vhdl-style-guide's option ``case``.
 	   :ref:`vsg:configuring-indent-rules`
 	      |rarr| vhdl-style-guide's options ``indent_style`` and ``indent_size``.
+	   :ref:`vsg:configuring-length-rules`
+	      |rarr| vhdl-style-guide's option ``length``.
 	"""
 
 	_keywordCase:             KeywordCase           #: Letter case of reserved words.
 	_indentStyle:             IndentStyle           #: Indentation style.
 	_indentSize:              int                   #: Number of spaces per indentation level.
+	_lineLength:              int                   #: Maximum line length of a list written on a single line.
 	_genericClause:           InterfaceListStyle    #: Layout of generic clauses, except of subprograms.
 	_portClause:              InterfaceListStyle    #: Layout of port clauses.
 	_subprogramGenericClause: InterfaceListStyle    #: Layout of generic clauses of subprograms.
@@ -397,6 +437,7 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		keywordCase:             KeywordCase =                    KeywordCase.Lower,
 		indentStyle:             IndentStyle =                    IndentStyle.Spaces,
 		indentSize:              int =                            2,
+		lineLength:              int =                            120,
 		genericClause:           Nullable[InterfaceListStyle] =   None,
 		portClause:              Nullable[InterfaceListStyle] =   None,
 		subprogramGenericClause: Nullable[InterfaceListStyle] =   None,
@@ -412,13 +453,15 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		:param keywordCase:             Optional, letter case of reserved words. Default: ``KeywordCase.Lower``.
 		:param indentStyle:             Optional, indentation style. Default: ``IndentStyle.Spaces``.
 		:param indentSize:              Optional, number of spaces per indentation level. Default: ``2``.
+		:param lineLength:              Optional, maximum line length of a list written on a single line. Default: ``120``.
 		:param genericClause:           Optional, layout of generic clauses of entities, components, packages and blocks.
 		                                Default: ``InterfaceListStyle()``, one generic per line.
 		:param portClause:              Optional, layout of port clauses. Default: ``InterfaceListStyle()``, one port per
 		                                line.
 		:param subprogramGenericClause: Optional, layout of generic clauses of subprograms. Default:
 		                                ``InterfaceListStyle()``, one generic per line.
-		:param parameterList:           Optional, layout of formal parameter lists. Default: ``InterfaceListStyle()``, one
+		:param parameterList:           Optional, layout of formal parameter lists. Default:
+		                                ``InterfaceListStyle(ignoreSingleLine=True)``, on one line if it fits, otherwise one
 		                                parameter per line.
 		:param genericMap:              Optional, layout of generic map aspects. Default: ``AssociationListStyle()``, one
 		                                association per line.
@@ -437,6 +480,9 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		:raises ValueError:             If parameter 'indentSize' is None.
 		:raises TypeError:              If parameter 'indentSize' is not of type :class:`int`.
 		:raises ValueError:             If parameter 'indentSize' is less than 1.
+		:raises ValueError:             If parameter 'lineLength' is None.
+		:raises TypeError:              If parameter 'lineLength' is not of type :class:`int`.
+		:raises ValueError:             If parameter 'lineLength' is less than 1.
 		:raises TypeError:              If parameter 'genericClause' is not of type :class:`InterfaceListStyle`.
 		:raises TypeError:              If parameter 'portClause' is not of type :class:`InterfaceListStyle`.
 		:raises TypeError:              If parameter 'subprogramGenericClause' is not of type :class:`InterfaceListStyle`.
@@ -460,16 +506,20 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 			ex.add_note(f"Got type '{getFullyQualifiedName(indentStyle)}'.")
 			raise ex
 
-		if indentSize is None:
-			raise ValueError("Parameter 'indentSize' is None.")
-		elif not isinstance(indentSize, int) or isinstance(indentSize, bool):
-			ex = TypeError("Parameter 'indentSize' is not of type 'int'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(indentSize)}'.")
-			raise ex
-		elif indentSize < 1:
-			ex = ValueError("Parameter 'indentSize' is less than 1.")
-			ex.add_note(f"Got value '{indentSize}'.")
-			raise ex
+		for name, size in (
+			("indentSize", indentSize),
+			("lineLength", lineLength)
+		):
+			if size is None:
+				raise ValueError(f"Parameter '{name}' is None.")
+			elif not isinstance(size, int) or isinstance(size, bool):
+				ex = TypeError(f"Parameter '{name}' is not of type 'int'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(size)}'.")
+				raise ex
+			elif size < 1:
+				ex = ValueError(f"Parameter '{name}' is less than 1.")
+				ex.add_note(f"Got value '{size}'.")
+				raise ex
 
 		for name, listStyle in (
 			("genericClause",           genericClause),
@@ -493,15 +543,17 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 				ex.add_note(f"Got type '{getFullyQualifiedName(listStyle)}'.")
 				raise ex
 
-		singleLine = AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
+		singleLine =    AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
+		oneLineIfFits = InterfaceListStyle(ignoreSingleLine=True)
 
 		self._keywordCase =             keywordCase
 		self._indentStyle =             indentStyle
 		self._indentSize =              indentSize
+		self._lineLength =              lineLength
 		self._genericClause =           InterfaceListStyle() if genericClause is None else genericClause
 		self._portClause =              InterfaceListStyle() if portClause is None else portClause
 		self._subprogramGenericClause = InterfaceListStyle() if subprogramGenericClause is None else subprogramGenericClause
-		self._parameterList =           InterfaceListStyle() if parameterList is None else parameterList
+		self._parameterList =           oneLineIfFits if parameterList is None else parameterList
 		self._genericMap =              AssociationListStyle() if genericMap is None else genericMap
 		self._portMap =                 AssociationListStyle() if portMap is None else portMap
 		self._procedureCall =           singleLine if procedureCall is None else procedureCall
@@ -533,6 +585,18 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		:returns: The number of spaces per indentation level.
 		"""
 		return self._indentSize
+
+	@readonly
+	def LineLength(self) -> int:
+		"""
+		Read-only property to access the maximum line length of a list written on a single line (:attr:`_lineLength`).
+
+		A list, whose list style has :attr:`~ListStyle.IgnoreSingleLine` set, is written on a single line, if the
+		line fits into this length; a tab counts as :attr:`IndentSize` characters. Other lines are not wrapped.
+
+		:returns: The maximum line length of a list written on a single line.
+		"""
+		return self._lineLength
 
 	@readonly
 	def GenericClause(self) -> InterfaceListStyle:
@@ -627,13 +691,18 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 class WrittenList(metaclass=ExtendedType, slots=True):
 	"""
 	Represents a parenthesized list while the :class:`VHDL writer <VHDLWriter>` writes it.
+
+	A list, whose list style has :attr:`~ListStyle.IgnoreSingleLine` set, is written on a single line first. The
+	writer keeps the buffer indices of its parentheses and separators, so it can break the list afterwards.
 	"""
 
-	_separator:            str      #: Separator between two elements: a semicolon or a comma.
-	_elementNewLine:       NewLine  #: Line break before an element.
-	_separatorNewLine:     NewLine  #: Line break before the separator between two elements.
-	_lastCloseParenthesis: NewLine  #: Line break before the right parenthesis.
-	_indentation:          int      #: Indentation level of the line with the left parenthesis.
+	_separator:            str        #: Separator between two elements: a semicolon or a comma.
+	_elementNewLine:       NewLine    #: Line break before an element.
+	_separatorNewLine:     NewLine    #: Line break before the separator between two elements.
+	_lastCloseParenthesis: NewLine    #: Line break before the right parenthesis.
+	_indentation:          int        #: Indentation level of the line with the left parenthesis.
+	_singleLine:           bool       #: Written on a single line.
+	_fragments:            list[int]  #: Buffer indices of the left parenthesis, the separators and the right parenthesis.
 
 	def __init__(
 		self,
@@ -641,7 +710,8 @@ class WrittenList(metaclass=ExtendedType, slots=True):
 		elementNewLine:       NewLine,
 		separatorNewLine:     NewLine,
 		lastCloseParenthesis: NewLine,
-		indentation:          int
+		indentation:          int,
+		singleLine:           bool
 	) -> None:
 		"""
 		Initializes a list being written.
@@ -651,12 +721,16 @@ class WrittenList(metaclass=ExtendedType, slots=True):
 		:param separatorNewLine:     The line break before the separator between two elements.
 		:param lastCloseParenthesis: The line break before the right parenthesis.
 		:param indentation:          The indentation level of the line with the left parenthesis.
+		:param singleLine:           Write the list on a single line first, if its style ignores line breaks for lists
+		                             that fit (:attr:`ListStyle.IgnoreSingleLine`).
 		"""
 		self._separator =            separator
 		self._elementNewLine =       elementNewLine
 		self._separatorNewLine =     separatorNewLine
 		self._lastCloseParenthesis = lastCloseParenthesis
 		self._indentation =          indentation
+		self._singleLine =           singleLine
+		self._fragments =            []
 
 
 @export
@@ -685,6 +759,7 @@ class VHDLWriter(Visitor):
 	_frames:      list[tuple[OperatorPrecedence, bool]]  #: Stack of entered operands: precedence and if in parentheses.
 	_indentation: int                                    #: Indentation level of the next line.
 	_lists:       list[WrittenList]                      #: Stack of the parenthesized lists being written.
+	_singleLines: list[WrittenList]                      #: Lists written on a single line, in the order of their start.
 
 	def __init__(self, style: Nullable[VHDLStyle] = None) -> None:
 		"""
@@ -708,6 +783,7 @@ class VHDLWriter(Visitor):
 		self._frames =      []
 		self._indentation = 0
 		self._lists =       []
+		self._singleLines = []
 
 	@readonly
 	def Style(self) -> VHDLStyle:
@@ -723,7 +799,8 @@ class VHDLWriter(Visitor):
 		Format a model element as VHDL source text.
 
 		Each call starts with an empty buffer at indentation level 0. A declaration, a statement or a design unit ends with
-		a newline.
+		a newline. A list written on a single line (:attr:`ListStyle.IgnoreSingleLine`), whose line is longer than
+		:attr:`VHDLStyle.LineLength`, is written with the line breaks of its list style.
 
 		:param element:              The model element to format.
 		:returns:                    The VHDL source text.
@@ -745,8 +822,44 @@ class VHDLWriter(Visitor):
 		self._frames =      []
 		self._indentation = 0
 		self._lists =       []
+		self._singleLines = []
 		element.Visit(self)
+		self._BreakLongLines()
 		return "".join(self._buffer)
+
+	def _BreakLongLines(self) -> None:
+		"""
+		Break each list written on a single line, whose line is too long or contains a nested list on several lines.
+
+		Enclosing lists are checked before the lists they contain, so a contained list is checked on its line after the
+		enclosing list is broken.
+		"""
+		buffer =     self._buffer
+		lineLength = self._style.LineLength
+		tabSize =    self._style.IndentSize
+		for writtenList in self._singleLines:
+			fragments = writtenList._fragments
+			first =     fragments[0]
+			last =      fragments[-1]
+
+			start = first
+			while start > 0 and "\n" not in buffer[start - 1]:
+				start -= 1
+
+			end = last
+			while end + 1 < len(buffer) and "\n" not in buffer[end + 1]:
+				end += 1
+
+			head = buffer[start - 1].rpartition("\n")[2] if start > 0 else ""
+			tail = buffer[end + 1].partition("\n")[0] if end + 1 < len(buffer) else ""
+			line = f"{head}{''.join(buffer[start:end + 1])}{tail}"
+			if "\n" in line or len(line.expandtabs(tabSize)) > lineLength:
+				writtenList._singleLine = False
+				buffer[first] = self._LeftParenthesis(writtenList)
+				for index in fragments[1:-1]:
+					buffer[index] = self._ListSeparator(writtenList)
+
+				buffer[last] = self._RightParenthesis(writtenList)
 
 	def VisitLeftParenthesis(self, element: TypeConversion | EntityAspectEntity | EntityInstantiation) -> None:
 		"""
@@ -783,7 +896,21 @@ class VHDLWriter(Visitor):
 		"""
 		Write the separator between two elements of the innermost list being written.
 		"""
-		self._Write(self._ListSeparator(self._lists[-1]))
+		self._WriteListFragment(self._ListSeparator(self._lists[-1]))
+
+	def _WriteListFragment(self, text: str) -> None:
+		"""
+		Append a parenthesis or a separator of the innermost list being written to the buffer.
+
+		The buffer index is kept for a list written on a single line, so :meth:`Format` can break it.
+
+		:param text: The VHDL source text of the parenthesis or separator, with its line breaks.
+		"""
+		writtenList = self._lists[-1]
+		if writtenList._singleLine:
+			writtenList._fragments.append(len(self._buffer))
+
+		self._buffer.append(text)
 
 	def _ListSeparator(self, writtenList: WrittenList) -> str:
 		"""
@@ -792,6 +919,9 @@ class VHDLWriter(Visitor):
 		:param writtenList: The list.
 		:returns:           The separator with its line breaks and indentation.
 		"""
+		if writtenList._singleLine:
+			return f"{writtenList._separator} "
+
 		indentation = self._Indentation(writtenList._indentation + 1)
 		before =      f"\n{indentation}" if writtenList._separatorNewLine is NewLine.Add else ""
 		after =       f"\n{indentation}" if writtenList._elementNewLine is NewLine.Add else " "
@@ -1660,7 +1790,8 @@ class VHDLWriter(Visitor):
 			style._interfaceElement,
 			style._interfaceListSemicolon,
 			style._lastCloseParenthesis,
-			self._indentation
+			self._indentation,
+			style._ignoreSingleLine
 		))
 
 	def _OpenAssociationList(self, style: AssociationListStyle) -> None:
@@ -1674,7 +1805,8 @@ class VHDLWriter(Visitor):
 			style._associationElement,
 			style._associationListComma,
 			style._lastCloseParenthesis,
-			self._indentation
+			self._indentation,
+			style._ignoreSingleLine
 		))
 
 	def _OpenList(self, writtenList: WrittenList) -> None:
@@ -1684,8 +1816,11 @@ class VHDLWriter(Visitor):
 		:param writtenList: The list.
 		"""
 		self._lists.append(writtenList)
+		if writtenList._singleLine:
+			self._singleLines.append(writtenList)
+
 		self._indentation += 1
-		self._Write(self._LeftParenthesis(writtenList))
+		self._WriteListFragment(self._LeftParenthesis(writtenList))
 
 	def _LeftParenthesis(self, writtenList: WrittenList) -> str:
 		"""
@@ -1694,7 +1829,7 @@ class VHDLWriter(Visitor):
 		:param writtenList: The list.
 		:returns:           The left parenthesis with its line break and indentation.
 		"""
-		if writtenList._elementNewLine is NewLine.Add:
+		if not writtenList._singleLine and writtenList._elementNewLine is NewLine.Add:
 			return f"(\n{self._Indentation(writtenList._indentation + 1)}"
 
 		return "("
@@ -1712,7 +1847,7 @@ class VHDLWriter(Visitor):
 		Write the right parenthesis of the innermost list being written, one indentation level up.
 		"""
 		self._indentation -= 1
-		self._Write(self._RightParenthesis(self._lists[-1]))
+		self._WriteListFragment(self._RightParenthesis(self._lists[-1]))
 		self._lists.pop()
 
 	def _RightParenthesis(self, writtenList: WrittenList) -> str:
@@ -1722,7 +1857,7 @@ class VHDLWriter(Visitor):
 		:param writtenList: The list.
 		:returns:           The right parenthesis with its line break and indentation.
 		"""
-		if writtenList._lastCloseParenthesis is NewLine.Add:
+		if not writtenList._singleLine and writtenList._lastCloseParenthesis is NewLine.Add:
 			return f"\n{self._Indentation(writtenList._indentation)})"
 
 		return ")"

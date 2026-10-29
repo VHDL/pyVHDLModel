@@ -130,24 +130,58 @@ class Styles(Testcase):
 		self.assertEqual("Parameter 'indentSize' is less than 1.", str(context.exception))
 		self.assertEqual(["Got value '0'."], context.exception.__notes__)
 
+	def test_LineLength(self) -> None:
+		style = VHDLStyle(lineLength=80)
+
+		self.assertEqual(80, style.LineLength)
+
+	def test_LineLength_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			VHDLStyle(lineLength=None)
+
+		self.assertEqual("Parameter 'lineLength' is None.", str(context.exception))
+
+	def test_LineLength_Type(self) -> None:
+		for value in ("80", 80.0, True):
+			with self.subTest(value=value):
+				with self.assertRaises(TypeError) as context:
+					VHDLStyle(lineLength=value)
+
+				self.assertEqual("Parameter 'lineLength' is not of type 'int'.", str(context.exception))
+
+	def test_LineLength_Value(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			VHDLStyle(lineLength=0)
+
+		self.assertEqual("Parameter 'lineLength' is less than 1.", str(context.exception))
+		self.assertEqual(["Got value '0'."], context.exception.__notes__)
+
 	def test_Default_Lists(self) -> None:
-		"""Interface lists and map aspects: one element per line; procedure and function calls: a single line."""
+		"""Interface lists and map aspects: one element per line, parameter lists if too long; calls: a single line."""
 		style = VHDLStyle()
 
+		self.assertEqual(120, style.LineLength)
 		for listStyle in (style.GenericClause, style.PortClause, style.SubprogramGenericClause, style.ParameterList):
 			self.assertIs(NewLine.Add, listStyle.InterfaceElement)
 			self.assertIs(NewLine.Remove, listStyle.InterfaceListSemicolon)
 			self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
 
+		for listStyle in (style.GenericClause, style.PortClause, style.SubprogramGenericClause):
+			self.assertFalse(listStyle.IgnoreSingleLine)
+
+		self.assertTrue(style.ParameterList.IgnoreSingleLine)
+
 		for listStyle in (style.GenericMap, style.PortMap):
 			self.assertIs(NewLine.Add, listStyle.AssociationElement)
 			self.assertIs(NewLine.Remove, listStyle.AssociationListComma)
 			self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
+			self.assertFalse(listStyle.IgnoreSingleLine)
 
 		for listStyle in (style.ProcedureCall, style.FunctionCall):
 			self.assertIs(NewLine.Remove, listStyle.AssociationElement)
 			self.assertIs(NewLine.Remove, listStyle.AssociationListComma)
 			self.assertIs(NewLine.Remove, listStyle.LastCloseParenthesis)
+			self.assertFalse(listStyle.IgnoreSingleLine)
 
 	def test_GenericClause(self) -> None:
 		listStyle = InterfaceListStyle(NewLine.Remove)
@@ -254,6 +288,7 @@ class InterfaceListStyles(Testcase):
 		self.assertIs(NewLine.Add, listStyle.InterfaceElement)
 		self.assertIs(NewLine.Remove, listStyle.InterfaceListSemicolon)
 		self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
+		self.assertFalse(listStyle.IgnoreSingleLine)
 
 	def test_InterfaceElement(self) -> None:
 		self.assertIs(NewLine.Remove, InterfaceListStyle(NewLine.Remove).InterfaceElement)
@@ -303,6 +338,22 @@ class InterfaceListStyles(Testcase):
 		self.assertEqual("Parameter 'lastCloseParenthesis' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
+	def test_IgnoreSingleLine(self) -> None:
+		self.assertTrue(InterfaceListStyle(ignoreSingleLine=True).IgnoreSingleLine)
+
+	def test_IgnoreSingleLine_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			InterfaceListStyle(ignoreSingleLine=None)
+
+		self.assertEqual("Parameter 'ignoreSingleLine' is None.", str(context.exception))
+
+	def test_IgnoreSingleLine_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			InterfaceListStyle(ignoreSingleLine="yes")
+
+		self.assertEqual("Parameter 'ignoreSingleLine' is not of type 'bool'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
 class AssociationListStyles(Testcase):
 	def test_Default(self) -> None:
 		listStyle = AssociationListStyle()
@@ -310,6 +361,7 @@ class AssociationListStyles(Testcase):
 		self.assertIs(NewLine.Add, listStyle.AssociationElement)
 		self.assertIs(NewLine.Remove, listStyle.AssociationListComma)
 		self.assertIs(NewLine.Add, listStyle.LastCloseParenthesis)
+		self.assertFalse(listStyle.IgnoreSingleLine)
 
 	def test_AssociationElement(self) -> None:
 		self.assertIs(NewLine.Remove, AssociationListStyle(NewLine.Remove).AssociationElement)
@@ -359,12 +411,28 @@ class AssociationListStyles(Testcase):
 		self.assertEqual("Parameter 'lastCloseParenthesis' is not of type 'NewLine'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
+	def test_IgnoreSingleLine(self) -> None:
+		self.assertTrue(AssociationListStyle(ignoreSingleLine=True).IgnoreSingleLine)
+
+	def test_IgnoreSingleLine_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			AssociationListStyle(ignoreSingleLine=None)
+
+		self.assertEqual("Parameter 'ignoreSingleLine' is None.", str(context.exception))
+
+	def test_IgnoreSingleLine_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			AssociationListStyle(ignoreSingleLine="yes")
+
+		self.assertEqual("Parameter 'ignoreSingleLine' is not of type 'bool'.", str(context.exception))
+		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
+
 
 class ListStyles(Testcase):
 	def test_Abstract(self) -> None:
 		"""Only the interface list style and the association list style are instantiated."""
 		with self.assertRaises(AbstractClassError):
-			ListStyle(NewLine.Add)
+			ListStyle(NewLine.Add, False)
 
 
 class Writers(Testcase):

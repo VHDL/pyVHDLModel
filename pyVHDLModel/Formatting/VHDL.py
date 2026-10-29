@@ -471,73 +471,41 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 			ex.add_note(f"Got value '{indentSize}'.")
 			raise ex
 
-		if genericClause is None:
-			genericClause = InterfaceListStyle()
-		elif not isinstance(genericClause, InterfaceListStyle):
-			ex = TypeError("Parameter 'genericClause' is not of type 'InterfaceListStyle'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(genericClause)}'.")
-			raise ex
+		for name, listStyle in (
+			("genericClause",           genericClause),
+			("portClause",              portClause),
+			("subprogramGenericClause", subprogramGenericClause),
+			("parameterList",           parameterList)
+		):
+			if listStyle is not None and not isinstance(listStyle, InterfaceListStyle):
+				ex = TypeError(f"Parameter '{name}' is not of type 'InterfaceListStyle'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(listStyle)}'.")
+				raise ex
 
-		if portClause is None:
-			portClause = InterfaceListStyle()
-		elif not isinstance(portClause, InterfaceListStyle):
-			ex = TypeError("Parameter 'portClause' is not of type 'InterfaceListStyle'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(portClause)}'.")
-			raise ex
+		for name, listStyle in (
+			("genericMap",    genericMap),
+			("portMap",       portMap),
+			("procedureCall", procedureCall),
+			("functionCall",  functionCall)
+		):
+			if listStyle is not None and not isinstance(listStyle, AssociationListStyle):
+				ex = TypeError(f"Parameter '{name}' is not of type 'AssociationListStyle'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(listStyle)}'.")
+				raise ex
 
-		if subprogramGenericClause is None:
-			subprogramGenericClause = InterfaceListStyle()
-		elif not isinstance(subprogramGenericClause, InterfaceListStyle):
-			ex = TypeError("Parameter 'subprogramGenericClause' is not of type 'InterfaceListStyle'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(subprogramGenericClause)}'.")
-			raise ex
-
-		if parameterList is None:
-			parameterList = InterfaceListStyle()
-		elif not isinstance(parameterList, InterfaceListStyle):
-			ex = TypeError("Parameter 'parameterList' is not of type 'InterfaceListStyle'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(parameterList)}'.")
-			raise ex
-
-		if genericMap is None:
-			genericMap = AssociationListStyle()
-		elif not isinstance(genericMap, AssociationListStyle):
-			ex = TypeError("Parameter 'genericMap' is not of type 'AssociationListStyle'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(genericMap)}'.")
-			raise ex
-
-		if portMap is None:
-			portMap = AssociationListStyle()
-		elif not isinstance(portMap, AssociationListStyle):
-			ex = TypeError("Parameter 'portMap' is not of type 'AssociationListStyle'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(portMap)}'.")
-			raise ex
-
-		if procedureCall is None:
-			procedureCall = AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
-		elif not isinstance(procedureCall, AssociationListStyle):
-			ex = TypeError("Parameter 'procedureCall' is not of type 'AssociationListStyle'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(procedureCall)}'.")
-			raise ex
-
-		if functionCall is None:
-			functionCall = AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
-		elif not isinstance(functionCall, AssociationListStyle):
-			ex = TypeError("Parameter 'functionCall' is not of type 'AssociationListStyle'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(functionCall)}'.")
-			raise ex
+		singleLine = AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
 
 		self._keywordCase =             keywordCase
 		self._indentStyle =             indentStyle
 		self._indentSize =              indentSize
-		self._genericClause =           genericClause
-		self._portClause =              portClause
-		self._subprogramGenericClause = subprogramGenericClause
-		self._parameterList =           parameterList
-		self._genericMap =              genericMap
-		self._portMap =                 portMap
-		self._procedureCall =           procedureCall
-		self._functionCall =            functionCall
+		self._genericClause =           InterfaceListStyle() if genericClause is None else genericClause
+		self._portClause =              InterfaceListStyle() if portClause is None else portClause
+		self._subprogramGenericClause = InterfaceListStyle() if subprogramGenericClause is None else subprogramGenericClause
+		self._parameterList =           InterfaceListStyle() if parameterList is None else parameterList
+		self._genericMap =              AssociationListStyle() if genericMap is None else genericMap
+		self._portMap =                 AssociationListStyle() if portMap is None else portMap
+		self._procedureCall =           singleLine if procedureCall is None else procedureCall
+		self._functionCall =            singleLine if functionCall is None else functionCall
 
 	@readonly
 	def KeywordCase(self) -> KeywordCase:

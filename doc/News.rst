@@ -9,7 +9,7 @@ See :gh:`pyVHDLModel Release Pages <VHDL/pyVHDLModel/releases>` for detail relea
 Version 0.40.0 (2026)
 *********************
 
-.. topic:: :gh:`v0.40.0 - unreleased <VHDL/pyVHDLModel/releases/v0.40.0>`
+.. topic:: :gh:`v0.40.0 - 29.10.2026 <VHDL/pyVHDLModel/releases/v0.40.0>`
 
    .. rubric:: New Features
 

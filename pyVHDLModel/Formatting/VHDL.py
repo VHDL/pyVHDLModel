@@ -172,8 +172,6 @@ class ListStyle(metaclass=ExtendedType, slots=True):
 	(association lists).
 	"""
 
-	_element:              NewLine  #: Line break before an element.
-	_separator:            NewLine  #: Line break before the separator between two elements.
 	_lastCloseParenthesis: NewLine  #: Line break before the right parenthesis.
 
 	def __init__(self, lastCloseParenthesis: NewLine) -> None:
@@ -220,6 +218,9 @@ class InterfaceListStyle(ListStyle):
 	      |rarr| vhdl-style-guide's options ``interface_element``, ``interface_list_semicolon`` and ``last_close_paren``.
 	"""
 
+	_interfaceElement:       NewLine  #: Line break before an interface element.
+	_interfaceListSemicolon: NewLine  #: Line break before the semicolon between two interface elements.
+
 	def __init__(
 		self,
 		interfaceElement:       NewLine = NewLine.Add,
@@ -253,13 +254,13 @@ class InterfaceListStyle(ListStyle):
 				ex.add_note(f"Got type '{getFullyQualifiedName(newLine)}'.")
 				raise ex
 
-		self._element =   interfaceElement
-		self._separator = interfaceListSemicolon
+		self._interfaceElement =       interfaceElement
+		self._interfaceListSemicolon = interfaceListSemicolon
 
 	@readonly
 	def InterfaceElement(self) -> NewLine:
 		"""
-		Read-only property to access the line break before an interface element (:attr:`_element`).
+		Read-only property to access the line break before an interface element (:attr:`_interfaceElement`).
 
 		It applies to every interface element, the first one after the left parenthesis included, as vhdl-style-guide's
 		option ``interface_element``. ``NewLine.Add`` starts each element on its own line, ``NewLine.Remove`` continues the
@@ -267,20 +268,20 @@ class InterfaceListStyle(ListStyle):
 
 		:returns: The line break before an interface element.
 		"""
-		return self._element
+		return self._interfaceElement
 
 	@readonly
 	def InterfaceListSemicolon(self) -> NewLine:
 		"""
 		Read-only property to access the line break before the semicolon between two interface elements
-		(:attr:`_separator`).
+		(:attr:`_interfaceListSemicolon`).
 
 		``NewLine.Remove`` ends the line of the previous element with the semicolon, ``NewLine.Add`` starts the next line
 		with it, as vhdl-style-guide's option ``interface_list_semicolon``.
 
 		:returns: The line break before the semicolon between two interface elements.
 		"""
-		return self._separator
+		return self._interfaceListSemicolon
 
 
 @export
@@ -296,6 +297,9 @@ class AssociationListStyle(ListStyle):
 	   :ref:`vsg:configuring-procedure-call-statement-rules`
 	      |rarr| vhdl-style-guide's options ``association_element``, ``association_list_comma`` and ``last_close_paren``.
 	"""
+
+	_associationElement:   NewLine  #: Line break before an association element.
+	_associationListComma: NewLine  #: Line break before the comma between two association elements.
 
 	def __init__(
 		self,
@@ -330,13 +334,13 @@ class AssociationListStyle(ListStyle):
 				ex.add_note(f"Got type '{getFullyQualifiedName(newLine)}'.")
 				raise ex
 
-		self._element =   associationElement
-		self._separator = associationListComma
+		self._associationElement =   associationElement
+		self._associationListComma = associationListComma
 
 	@readonly
 	def AssociationElement(self) -> NewLine:
 		"""
-		Read-only property to access the line break before an association element (:attr:`_element`).
+		Read-only property to access the line break before an association element (:attr:`_associationElement`).
 
 		It applies to every association element, the first one after the left parenthesis included, as
 		vhdl-style-guide's option ``association_element``. ``NewLine.Add`` starts each element on its own line,
@@ -344,20 +348,20 @@ class AssociationListStyle(ListStyle):
 
 		:returns: The line break before an association element.
 		"""
-		return self._element
+		return self._associationElement
 
 	@readonly
 	def AssociationListComma(self) -> NewLine:
 		"""
 		Read-only property to access the line break before the comma between two association elements
-		(:attr:`_separator`).
+		(:attr:`_associationListComma`).
 
 		``NewLine.Remove`` ends the line of the previous element with the comma, ``NewLine.Add`` starts the next line with
 		it, as vhdl-style-guide's option ``association_list_comma``.
 
 		:returns: The line break before the comma between two association elements.
 		"""
-		return self._separator
+		return self._associationListComma
 
 
 @export
@@ -657,21 +661,34 @@ class WrittenList(metaclass=ExtendedType, slots=True):
 	Represents a parenthesized list while the :class:`VHDL writer <VHDLWriter>` writes it.
 	"""
 
-	_style:       ListStyle  #: Layout of the list.
-	_separator:   str        #: Separator between two elements: a semicolon or a comma.
-	_indentation: int        #: Indentation level of the line with the left parenthesis.
+	_separator:            str      #: Separator between two elements: a semicolon or a comma.
+	_elementNewLine:       NewLine  #: Line break before an element.
+	_separatorNewLine:     NewLine  #: Line break before the separator between two elements.
+	_lastCloseParenthesis: NewLine  #: Line break before the right parenthesis.
+	_indentation:          int      #: Indentation level of the line with the left parenthesis.
 
-	def __init__(self, style: ListStyle, separator: str, indentation: int) -> None:
+	def __init__(
+		self,
+		separator:            str,
+		elementNewLine:       NewLine,
+		separatorNewLine:     NewLine,
+		lastCloseParenthesis: NewLine,
+		indentation:          int
+	) -> None:
 		"""
 		Initializes a list being written.
 
-		:param style:       The layout of the list.
-		:param separator:   The separator between two elements.
-		:param indentation: The indentation level of the line with the left parenthesis.
+		:param separator:            The separator between two elements.
+		:param elementNewLine:       The line break before an element.
+		:param separatorNewLine:     The line break before the separator between two elements.
+		:param lastCloseParenthesis: The line break before the right parenthesis.
+		:param indentation:          The indentation level of the line with the left parenthesis.
 		"""
-		self._style =       style
-		self._separator =   separator
-		self._indentation = indentation
+		self._separator =            separator
+		self._elementNewLine =       elementNewLine
+		self._separatorNewLine =     separatorNewLine
+		self._lastCloseParenthesis = lastCloseParenthesis
+		self._indentation =          indentation
 
 
 @export
@@ -807,10 +824,9 @@ class VHDLWriter(Visitor):
 		:param writtenList: The list.
 		:returns:           The separator with its line breaks and indentation.
 		"""
-		style =       writtenList._style
 		indentation = self._Indentation(writtenList._indentation + 1)
-		before =      f"\n{indentation}" if style._separator is NewLine.Add else ""
-		after =       f"\n{indentation}" if style._element is NewLine.Add else " "
+		before =      f"\n{indentation}" if writtenList._separatorNewLine is NewLine.Add else ""
+		after =       f"\n{indentation}" if writtenList._elementNewLine is NewLine.Add else " "
 		return f"{before}{writtenList._separator}{after}"
 
 	def VisitAssociationListSeparator(
@@ -1662,17 +1678,43 @@ class VHDLWriter(Visitor):
 
 		:param name: The parenthesis name.
 		"""
-		self._OpenList(self._style.FunctionCall, ",")
+		self._OpenAssociationList(self._style.FunctionCall)
 		self._minimum = OperatorPrecedence.Range
 
-	def _OpenList(self, style: ListStyle, separator: str) -> None:
+	def _OpenInterfaceList(self, style: InterfaceListStyle) -> None:
+		"""
+		Write the left parenthesis of an interface list, whose elements are separated by semicolons.
+
+		:param style: The layout of the interface list.
+		"""
+		self._OpenList(WrittenList(
+			";",
+			style._interfaceElement,
+			style._interfaceListSemicolon,
+			style._lastCloseParenthesis,
+			self._indentation
+		))
+
+	def _OpenAssociationList(self, style: AssociationListStyle) -> None:
+		"""
+		Write the left parenthesis of an association list, whose elements are separated by commas.
+
+		:param style: The layout of the association list.
+		"""
+		self._OpenList(WrittenList(
+			",",
+			style._associationElement,
+			style._associationListComma,
+			style._lastCloseParenthesis,
+			self._indentation
+		))
+
+	def _OpenList(self, writtenList: WrittenList) -> None:
 		"""
 		Write the left parenthesis of a list; its elements are indented one level deeper.
 
-		:param style:     The layout of the list.
-		:param separator: The separator between two elements.
+		:param writtenList: The list.
 		"""
-		writtenList = WrittenList(style, separator, self._indentation)
 		self._lists.append(writtenList)
 		self._indentation += 1
 		self._Write(self._LeftParenthesis(writtenList))
@@ -1684,7 +1726,7 @@ class VHDLWriter(Visitor):
 		:param writtenList: The list.
 		:returns:           The left parenthesis with its line break and indentation.
 		"""
-		if writtenList._style._element is NewLine.Add:
+		if writtenList._elementNewLine is NewLine.Add:
 			return f"(\n{self._Indentation(writtenList._indentation + 1)}"
 
 		return "("
@@ -1712,7 +1754,7 @@ class VHDLWriter(Visitor):
 		:param writtenList: The list.
 		:returns:           The right parenthesis with its line break and indentation.
 		"""
-		if writtenList._style._lastCloseParenthesis is NewLine.Add:
+		if writtenList._lastCloseParenthesis is NewLine.Add:
 			return f"\n{self._Indentation(writtenList._indentation)})"
 
 		return ")"
@@ -1867,11 +1909,11 @@ class VHDLWriter(Visitor):
 		"""
 		if isinstance(element, Subprogram):
 			self._Write(f" {self._Keyword(ReservedWord.Generic)} ")
-			self._OpenList(self._style.SubprogramGenericClause, ";")
+			self._OpenInterfaceList(self._style.SubprogramGenericClause)
 		else:
 			self._WriteIndentation()
 			self._Write(f"{self._Keyword(ReservedWord.Generic)} ")
-			self._OpenList(self._style.GenericClause, ";")
+			self._OpenInterfaceList(self._style.GenericClause)
 
 	def DepartGenericClause(self, element: WithGenericsMixin) -> None:
 		"""
@@ -1895,7 +1937,7 @@ class VHDLWriter(Visitor):
 		"""
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(ReservedWord.Port)} ")
-		self._OpenList(self._style.PortClause, ";")
+		self._OpenInterfaceList(self._style.PortClause)
 
 	def DepartPortClause(self, element: WithPortsMixin) -> None:
 		"""
@@ -2644,7 +2686,7 @@ class VHDLWriter(Visitor):
 		else:
 			self._Write(" ")
 
-		self._OpenList(self._style.ParameterList, ";")
+		self._OpenInterfaceList(self._style.ParameterList)
 
 	def DepartFormalParameterList(self, element: WithParametersMixin) -> None:
 		"""
@@ -2671,7 +2713,7 @@ class VHDLWriter(Visitor):
 		self,
 		keyword: ReservedWord,
 		element: GenericMapAspectMixin | PortMapAspectMixin,
-		style:   ListStyle
+		style:   AssociationListStyle
 	) -> None:
 		"""
 		Write the reserved words of a map aspect and the left parenthesis on a new line, one indentation level deeper.
@@ -2688,7 +2730,7 @@ class VHDLWriter(Visitor):
 
 		self._WriteIndentation()
 		self._Write(f"{self._Keyword(keyword)} {self._Keyword(ReservedWord.Map)} ")
-		self._OpenList(style, ",")
+		self._OpenAssociationList(style)
 
 	def DepartGenericMapAspect(self, element: GenericMapAspectMixin) -> None:
 		"""
@@ -3337,7 +3379,7 @@ class VHDLWriter(Visitor):
 
 		:param call: The procedure call.
 		"""
-		self._OpenList(self._style.ProcedureCall, ",")
+		self._OpenAssociationList(self._style.ProcedureCall)
 		self._minimum = OperatorPrecedence.Range
 
 	def DepartActualParameterPart(self, call: ProcedureCallMixin) -> None:

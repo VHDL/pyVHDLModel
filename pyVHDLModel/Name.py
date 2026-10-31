@@ -76,8 +76,8 @@ class Name(ModelEntity):
 		Initializes a name.
 
 		:param identifier: The name's identifier.
-		:param prefix:     Reference to the name's prefix, or ``None`` for a simple name.
-		:param parent:     The parent model entity of this entity.
+		:param prefix:     Optional, reference to the name's prefix. Default: ``None``, a simple name.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -207,7 +207,7 @@ class ParenthesisName(Name):
 
 		:param prefix:       Reference to the name's prefix, or ``None`` for a simple name.
 		:param associations: List of all associations in the parenthesis.
-		:param parent:       The parent model entity of this entity.
+		:param parent:       Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__("", prefix, parent)
 
@@ -284,7 +284,7 @@ class IndexedName(Name):
 
 		:param prefix:  Reference to the name's prefix, or ``None`` for a simple name.
 		:param indices: List of all index expressions, one per dimension.
-		:param parent:  The parent model entity of this entity.
+		:param parent:  Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__("", prefix, parent)
 
@@ -386,7 +386,7 @@ class SelectedName(Name):
 
 		:param identifier: The name's identifier.
 		:param prefix:     Reference to the name's prefix, or ``None`` for a simple name.
-		:param parent:     The parent model entity of this entity.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, prefix, parent)
 
@@ -439,7 +439,7 @@ class AttributeName(Name):
 
 		:param identifier: The name's identifier.
 		:param prefix:     Reference to the name's prefix, or ``None`` for a simple name.
-		:param parent:     The parent model entity of this entity.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, prefix, parent)
 
@@ -486,7 +486,7 @@ class AllName(SelectedName):
 		Initializes an ``all`` name.
 
 		:param prefix: Reference to the name's prefix, or ``None`` for a simple name.
-		:param parent: The parent model entity of this entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__("all", prefix, parent)  # TODO: the case of 'ALL' is not preserved
 
@@ -524,7 +524,7 @@ class OpenName(Name):
 		"""
 		Initializes an ``open`` name.
 
-		:param parent: The parent model entity of this entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__("open", parent=parent)  # TODO: the case of 'OPEN' is not preserved
 

@@ -78,8 +78,10 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		Initializes underlying ``BaseType``.
 
 		:param identifier:    Name of the type.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        Reference to the logical parent in the model hierarchy.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, reference to the logical parent in the model hierarchy.
+		                      Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
@@ -215,8 +217,9 @@ class Subtype(BaseType):
 
 		:param identifier:    The identifier of a model entity.
 		:param symbol:        Reference to the type or subtype this subtype is derived from.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 
@@ -322,8 +325,8 @@ class RangedScalarType(ScalarType):
 
 		:param identifier:    The type's identifier.
 		:param rng:           The type's range.
-		:param documentation: The type's documentation.
-		:param parent:        The parent model entity.
+		:param documentation: Optional, the type's documentation. Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 		self._range = rng
@@ -399,8 +402,9 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 
 		:param identifier:    The identifier of a model entity.
 		:param literals:      List of all enumeration literals, in declaration order.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 
@@ -469,8 +473,9 @@ class IntegerType(RangedScalarType, NumericTypeMixin, DiscreteTypeMixin):
 
 		:param identifier:    The identifier of a model entity.
 		:param rng:           The range constraining this scalar type.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, rng, documentation, parent)
 
@@ -518,8 +523,9 @@ class RealType(RangedScalarType, NumericTypeMixin):
 
 		:param identifier:    The identifier of a model entity.
 		:param rng:           The range constraining this scalar type.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, rng, documentation, parent)
 
@@ -592,8 +598,9 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 		:param rng:           The range constraining this scalar type.
 		:param primaryUnit:   The name of the type's primary unit.
 		:param units:         Iterable of the secondary units as (name, value) pairs.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, rng, documentation, parent)
 
@@ -711,8 +718,9 @@ class ArrayType(CompositeType):
 		:param identifier:     The identifier of a model entity.
 		:param indices:        List of all index ranges, one per dimension.
 		:param elementSubtype: Reference to the subtype of the array's elements.
-		:param documentation:  The documentation comment associated with this declaration.
-		:param parent:         The parent model entity of this entity.
+		:param documentation:  Optional, the documentation comment associated with this declaration.
+		                       Default: ``None``, no documentation.
+		:param parent:         Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 
@@ -813,8 +821,9 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 
 		:param identifiers:   A list of identifiers.
 		:param subtype:       Reference to the subtype shared by all identifiers of this element declaration.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		MultipleNamedEntityMixin.__init__(self, identifiers)
@@ -908,9 +917,11 @@ class RecordType(CompositeType):
 		Initializes a record type definition.
 
 		:param identifier:    The identifier of a model entity.
-		:param elements:      List of all element declarations, in declaration order.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param elements:      Optional, list of all element declarations, in declaration order.
+		                      Default: ``None``, no elements.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 
@@ -1040,9 +1051,11 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 		Initializes a protected type declaration.
 
 		:param identifier:    The identifier of a model entity.
-		:param declaredItems: All items declared by this protected type; only subprograms are legal.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param declaredItems: Optional, all items declared by this protected type; only subprograms are legal.
+		                      Default: ``None``, no declared items.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 		ProtectedTypeDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
@@ -1113,9 +1126,10 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 		Initializes a protected type body.
 
 		:param identifier:    The identifier of a model entity.
-		:param declaredItems: Iterable of all items declared in this body.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param declaredItems: Optional, iterable of all items declared in this body. Default: ``None``, no declared items.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 		SequentialDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
@@ -1172,8 +1186,9 @@ class AccessType(FullType):
 
 		:param identifier:        The identifier of a model entity.
 		:param designatedSubtype: Reference to the subtype the access values designate.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 
@@ -1235,8 +1250,9 @@ class FileType(FullType):
 
 		:param identifier:        The identifier of a model entity.
 		:param designatedSubtype: Reference to the subtype of the values stored in the file.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 

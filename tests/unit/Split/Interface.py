@@ -199,13 +199,20 @@ class Generics(Testcase):
 		self.assertIs(component, declarations[1].Parent)
 
 	def test_Split_Group(self) -> None:
+		"""The new generics follow the split generic in its generic group."""
+		first = _generic("FIRST")
 		original = _generic("A", "B")
-		group = GenericGroup([original])
+		last = _generic("LAST")
+		group = GenericGroup([first, original])
+		other = GenericGroup([last])
+		entity = Entity("e", genericItems=[first, original, last], genericGroups=[group, other])
 
 		declarations = original.Split()
 
-		self.assertListEqual(list(declarations), group.GenericItems)
-		self.assertIs(group, declarations[1].Parent)
+		self.assertListEqual([first, *declarations], group.GenericItems)
+		self.assertListEqual([last], other.GenericItems)
+		self.assertIs(entity, declarations[1].Parent)
+		self.assertIs(group, declarations[1].Group)
 
 	def test_Split_NotAChild(self) -> None:
 		original = _generic("A", "B")
@@ -265,13 +272,20 @@ class Ports(Testcase):
 		self.assertIs(component, declarations[1].Parent)
 
 	def test_Split_Group(self) -> None:
+		"""The new ports follow the split port in its port group."""
+		first = _port("first")
 		original = _port("a", "b")
-		group = PortGroup([original])
+		last = _port("last")
+		group = PortGroup([first, original])
+		other = PortGroup([last])
+		entity = Entity("e", portItems=[first, original, last], portGroups=[group, other])
 
 		declarations = original.Split()
 
-		self.assertListEqual(list(declarations), group.PortItems)
-		self.assertIs(group, declarations[1].Parent)
+		self.assertListEqual([first, *declarations], group.PortItems)
+		self.assertListEqual([last], other.PortItems)
+		self.assertIs(entity, declarations[1].Parent)
+		self.assertIs(group, declarations[1].Group)
 
 	def test_Split_NotAChild(self) -> None:
 		original = _port("a", "b")
@@ -346,13 +360,20 @@ class Parameters(Testcase):
 		self.assertIs(declarations[1], procedure.Namespace._elements["b"])
 
 	def test_Split_Group(self) -> None:
+		"""The new parameters follow the split parameter in its parameter group."""
+		first = _parameter("first")
 		original = _parameter("a", "b")
-		group = ParameterGroup([original])
+		last = _parameter("last")
+		group = ParameterGroup([first, original])
+		other = ParameterGroup([last])
+		procedure = Procedure("p", parameterItems=[first, original, last], parameterGroups=[group, other])
 
 		declarations = original.Split()
 
-		self.assertListEqual(list(declarations), group.ParameterItems)
-		self.assertIs(group, declarations[1].Parent)
+		self.assertListEqual([first, *declarations], group.ParameterItems)
+		self.assertListEqual([last], other.ParameterItems)
+		self.assertIs(procedure, declarations[1].Parent)
+		self.assertIs(group, declarations[1].Group)
 
 	def test_Split_NotAChild(self) -> None:
 		original = _parameter("a", "b")

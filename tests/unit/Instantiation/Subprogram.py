@@ -32,7 +32,7 @@
 from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Base        import Mode
-from pyVHDLModel.Interface   import ParameterConstantInterfaceItem
+from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, GenericTypeInterfaceItem
 from pyVHDLModel.Name        import SelectedName, SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
 from pyVHDLModel.Sequential  import NullStatement
@@ -77,11 +77,9 @@ class Procedures(Testcase):
 		self.assertIs(procedure, statement.Parent)
 
 	def test_WithGenericAndParameterItems(self) -> None:
-		"""Uses bare ``Procedure`` stand-ins for the generic/parameter items - only ``.Parent``-wiring
-		is exercised here, and real ``GenericInterfaceItemMixin``/``ParameterInterfaceItemMixin``
-		classes are covered in tests/unit/Interface.py."""
-		genericItem = Procedure("generic_item")
-		parameterItem = Procedure("parameter_item")
+		"""A generic and a parameter are checked by their group, so they are real interface items."""
+		genericItem = GenericTypeInterfaceItem("T")
+		parameterItem = _parameter(("a", ), _returnType())
 		procedure = Procedure("proc", genericItems=[genericItem], parameterItems=[parameterItem])
 
 		self.assertEqual(1, len(procedure.GenericItems))

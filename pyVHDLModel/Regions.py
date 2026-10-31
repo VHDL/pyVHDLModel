@@ -55,7 +55,8 @@ from pyVHDLModel.Object      import BaseConstant, Constant, DeferredConstant, Sh
 if TYPE_CHECKING:
 	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
 	                                  PortSignalInterfaceItem, SingleGenericDeclarationMixin, \
-	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin
+	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin, \
+	                                  GenericGroup, PortGroup, ParameterGroup
 	from pyVHDLModel.Type      import Subtype, FullType
 	from pyVHDLModel.Visitor   import Visitor
 
@@ -83,30 +84,95 @@ class WithGenericsMixin(
 	Indexing the generics (``_IndexGenericItems()``) needs the host's namespace ``_namespace``; a host without one, e.g.
 	a component, can't index them.
 
+	The generic groups (:data:`GenericGroups`) partition the generic clause: concatenated in order, they list every
+	generic exactly once, in declaration order. The mutators keep this partition.
+
 	.. seealso::
 
 	   * :class:`Package <pyVHDLModel.DesignUnit.Package>`
 	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
 	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
+	   * :class:`Concurrent block statement <pyVHDLModel.Concurrent.ConcurrentBlockStatement>`
 	   * :class:`Subprogram <pyVHDLModel.Subprogram.Subprogram>`
 	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
 	"""
-	_genericItems: list[GenericInterfaceItemMixin]  #: List of all generics, in declaration order.
+	_genericItems:  list[GenericInterfaceItemMixin]  #: List of all generics, in declaration order.
+	_genericGroups: list[GenericGroup]               #: List of all generic groups, in declaration order.
 
 	def __init__(
 		self,
-		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
- 	) -> None:
+		genericItems:  Nullable[Iterable[GenericInterfaceItemMixin]] = None,
+		genericGroups: Nullable[Iterable[GenericGroup]] = None
+	) -> None:
 		"""
 		Initializes a language construct with a generic clause.
 
-		:param genericItems: List of all generics, in declaration order.
+		The language construct becomes the parent of each generic group, and each generic refers to its generic group.
+		Without generic groups, all generics form one unnamed generic group; no generics form no generic group.
+
+		:param genericItems:  Optional, list of all generics, in declaration order. Default: ``None``, no generics.
+		:param genericGroups: Optional, list of generic groups partitioning the generics, in declaration order. Default:
+		                      ``None``, one unnamed generic group.
+		:raises TypeError:    If parameter 'genericGroups' is ``None`` and an element of parameter 'genericItems' is not
+		                      of type :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises ValueError:   If parameter 'genericGroups' is ``None`` and an element of parameter 'genericItems' is in a
+		                      generic group of another language construct.
+		:raises TypeError:    If parameter 'genericGroups' is not iterable.
+		:raises TypeError:    If an element of parameter 'genericGroups' is not of type
+		                      :class:`~pyVHDLModel.Interface.GenericGroup`.
+		:raises ValueError:   If parameter 'genericGroups' doesn't list every generic of parameter 'genericItems' exactly
+		                      once, in declaration order.
 		"""
+		from pyVHDLModel.Interface import GenericGroup
+
 		self._genericItems = genericItemList = []
 		if genericItems is not None:
 			for item in genericItems:
 				genericItemList.append(item)
 				item.Parent = self
+
+		self._genericGroups = genericGroupList = []
+		if genericGroups is None:
+			if len(genericItemList) > 0:
+				genericGroup = GenericGroup(genericItemList, parent=self)
+				genericGroupList.append(genericGroup)
+				for item in genericItemList:
+					item._group = genericGroup
+
+			return
+
+		if not isinstance(genericGroups, Iterable):
+			ex = TypeError("Parameter 'genericGroups' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(genericGroups)}'.")
+			raise ex
+
+		groupedItems = []
+		for genericGroup in genericGroups:
+			if not isinstance(genericGroup, GenericGroup):
+				ex = TypeError("Element of parameter 'genericGroups' is not of type 'GenericGroup'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(genericGroup)}'.")
+				raise ex
+
+			genericGroupList.append(genericGroup)
+			groupedItems.extend(genericGroup._genericItems)
+
+		isPartition = len(groupedItems) == len(genericItemList) and all(
+			grouped is item for grouped, item in zip(groupedItems, genericItemList)
+		)
+		if not isPartition:
+			groups = " | ".join(
+				", ".join(name for item in genericGroup._genericItems for name in identifiersOf(item))
+				for genericGroup in genericGroupList
+			)
+			generics = ", ".join(name for item in genericItemList for name in identifiersOf(item))
+			ex = ValueError("Parameter 'genericGroups' doesn't partition parameter 'genericItems'.")
+			ex.add_note(f"Got generic groups '{groups}' for generics '{generics}'.")
+			raise ex
+
+		for genericGroup in genericGroupList:
+			genericGroup.Parent = self
+			for item in genericGroup._genericItems:
+				item._group = genericGroup
 
 	@readonly
 	def GenericItems(self) -> list[GenericInterfaceItemMixin]:
@@ -125,6 +191,18 @@ class WithGenericsMixin(
 		:returns: The generic count.
 		"""
 		return len(self._genericItems)
+
+	@readonly
+	def GenericGroups(self) -> list[GenericGroup]:
+		"""
+		Read-only property to access the generic groups (:attr:`_genericGroups`).
+
+		The generic groups partition the generic clause: concatenated in order, they list every generic exactly once, in
+		declaration order.
+
+		:returns: List of generic groups, in declaration order.
+		"""
+		return self._genericGroups
 
 	def IterateSingleGenericDeclarations(
 		self,
@@ -154,18 +232,23 @@ class WithGenericsMixin(
 				elif predicate(item):
 					yield item
 
-	def AddGenericItem(self, genericItem: GenericInterfaceItemMixin) -> None:
+	def AddGenericItem(self, genericItem: GenericInterfaceItemMixin, group: Nullable[GenericGroup] = None) -> None:
 		"""
-		Add a generic at the end of the generic clause.
+		Add a generic at the end of the generic clause, or at the end of a generic group.
 
 		The generic's parent is set to this language construct, and its identifiers are added to the language construct's
-		namespace, if it has one.
+		namespace, if it has one. Without a generic group, the generic joins the last generic group, or forms a new
+		unnamed generic group if there are no generics.
 
 		:param genericItem:            The generic to add.
+		:param group:                  Optional, the generic group of this language construct to add the generic to, at
+		                               its end. Default: ``None``, the end of the generic clause.
 		:raises ValueError:            If parameter 'genericItem' is ``None``.
 		:raises TypeError:             If parameter 'genericItem' is not of type
 		                               :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
 		:raises AlreadyInDesignError:  If parameter 'genericItem' already has a parent.
+		:raises TypeError:             If parameter 'group' is not of type :class:`~pyVHDLModel.Interface.GenericGroup`.
+		:raises NotAChildError:        If parameter 'group' is not a generic group of this language construct.
 		:raises DuplicateGenericError: If an existing declaration of the language construct shares an identifier
 		                               with the generic.
 
@@ -176,19 +259,38 @@ class WithGenericsMixin(
 		   :meth:`RemoveGenericItem`
 		      |rarr| Remove a generic from the generic clause.
 		"""
-		self.InsertGenericItem(len(self._genericItems), genericItem)
+		index = len(self._genericItems)
+		if group is not None:
+			index = 0
+			for genericGroup in self._genericGroups:
+				index += len(genericGroup._genericItems)
+				if genericGroup is group:
+					break
 
-	def InsertGenericItem(self, index: int, genericItem: GenericInterfaceItemMixin) -> None:
+		self.InsertGenericItem(index, genericItem, group)
+
+	def InsertGenericItem(
+		self,
+		index:       int,
+		genericItem: GenericInterfaceItemMixin,
+		group:       Nullable[GenericGroup] = None
+	) -> None:
 		"""
 		Insert a generic at a position of the generic clause.
 
 		The generic's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
+		Without a generic group, the generic joins the generic group of the generic before ``index``; at index ``0``, the
+		generic group of the first generic. If there are no generics, the generic forms a new unnamed generic group. A
+		generic group given must contain ``index`` or end at it, so the generic groups stay contiguous.
+
 		:param index:                  Position, from ``0`` (first) to :data:`GenericCount` (append).
 		                               A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
 		                               before the last generic.
 		:param genericItem:            The generic to insert.
+		:param group:                  Optional, the generic group of this language construct to insert the generic into.
+		                               Default: ``None``, the generic group of the generic before ``index``.
 		:raises ValueError:            If parameter 'index' is ``None``.
 		:raises TypeError:             If parameter 'index' is not of type :class:`int`.
 		:raises ValueError:            If parameter 'index' is out of range.
@@ -196,6 +298,9 @@ class WithGenericsMixin(
 		:raises TypeError:             If parameter 'genericItem' is not of type
 		                               :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
 		:raises AlreadyInDesignError:  If parameter 'genericItem' already has a parent.
+		:raises TypeError:             If parameter 'group' is not of type :class:`~pyVHDLModel.Interface.GenericGroup`.
+		:raises NotAChildError:        If parameter 'group' is not a generic group of this language construct.
+		:raises ValueError:            If parameter 'group' neither contains nor ends at parameter 'index'.
 		:raises DuplicateGenericError: If an existing declaration of the language construct shares an identifier
 		                               with the generic.
 
@@ -208,7 +313,7 @@ class WithGenericsMixin(
 		   :meth:`MoveGenericItem`
 		      |rarr| Move a generic to a position of the generic clause.
 		"""
-		from pyVHDLModel.Interface import GenericInterfaceItemMixin
+		from pyVHDLModel.Interface import GenericInterfaceItemMixin, GenericGroup
 
 		if index is None:
 			raise ValueError("Parameter 'index' is None.")
@@ -237,6 +342,33 @@ class WithGenericsMixin(
 			ex.add_note(f"Remove it from its {getTypeName(genericItem._parent)} first.")
 			raise ex
 
+		position = index if index >= 0 else len(self._genericItems) + index
+		if group is not None:
+			if not isinstance(group, GenericGroup):
+				ex = TypeError("Parameter 'group' is not of type 'GenericGroup'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(group)}'.")
+				raise ex
+
+			groupStart = 0
+			for genericGroup in self._genericGroups:
+				if genericGroup is group:
+					break
+
+				groupStart += len(genericGroup._genericItems)
+			else:
+				groupName = getTypeName(group) if group._identifier is None else f"{getTypeName(group)} '{group._identifier}'"
+				raise NotAChildError(
+					f"{groupName} is not a generic group of this {getTypeName(self)}.",
+					element=group,
+					parent=self
+				)
+
+			groupEnd = groupStart + len(group._genericItems)
+			if not (groupStart <= position <= groupEnd):
+				ex = ValueError(f"Parameter 'index' is outside of parameter 'group' at {groupStart}..{groupEnd}.")
+				ex.add_note(f"Got value '{index}'.")
+				raise ex
+
 		if len(clashes := self._ClashingDeclarations(genericItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(genericItem), normalizedIdentifiersOf(genericItem))
@@ -251,17 +383,51 @@ class WithGenericsMixin(
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
-		self._genericItems.insert(index, genericItem)
+		self._genericItems.insert(position, genericItem)
 		genericItem.Parent = self
+		if group is None:
+			self._AddToGenericGroup(position, genericItem)
+		else:
+			group._genericItems.insert(position - groupStart, genericItem)
+			genericItem._group = group
+
 		self._AddToNamespace(genericItem)
+
+	def _AddToGenericGroup(self, position: int, genericItem: GenericInterfaceItemMixin) -> None:
+		"""
+		Add a generic to the generic group of the generic before ``position``.
+
+		At position ``0``, the generic joins the generic group of the first generic. If there are no generic groups, the
+		generic forms a new unnamed generic group.
+
+		:param position:    Position of the generic in the generic clause, from ``0`` (first) to :data:`GenericCount`
+		                    (last).
+		:param genericItem: The generic to add, which isn't in a generic group.
+		"""
+		from pyVHDLModel.Interface import GenericGroup
+
+		groupStart = 0
+		for genericGroup in self._genericGroups:
+			groupEnd = groupStart + len(genericGroup._genericItems)
+			if position <= groupEnd:
+				genericGroup._genericItems.insert(position - groupStart, genericItem)
+				genericItem._group = genericGroup
+				return
+
+			groupStart = groupEnd
+
+		genericGroup = GenericGroup((genericItem, ), parent=self)
+		self._genericGroups.append(genericGroup)
+		genericItem._group = genericGroup
 
 	def RemoveGenericItem(self, genericItem: GenericInterfaceItemMixin) -> None:
 		"""
 		Remove a generic from the generic clause.
 
-		The generic is detached: its parent is cleared and its identifiers are removed from the language construct's
-		namespace, if it has one. The generic itself is unchanged and can be added to another language construct, or
-		inserted at another position.
+		The generic is detached: its parent and generic group are cleared and its identifiers are removed from the
+		language construct's namespace, if it has one. A generic group, which becomes empty, is removed from
+		:data:`GenericGroups` and its parent is cleared. The generic itself is unchanged and can be added to another
+		language construct, or inserted at another position.
 
 		:param genericItem:          The generic to remove.
 		:raises ValueError:          If parameter 'genericItem' is ``None``.
@@ -303,7 +469,29 @@ class WithGenericsMixin(
 
 		self._RemoveFromNamespace(genericItem)
 		del self._genericItems[index]
+		self._RemoveFromGenericGroup(genericItem)
 		genericItem._parent = None
+
+	def _RemoveFromGenericGroup(self, genericItem: GenericInterfaceItemMixin) -> None:
+		"""
+		Remove a generic from its generic group and clear the generic's group.
+
+		A generic group, which becomes empty, is removed from :data:`GenericGroups` and its parent is cleared.
+
+		:param genericItem: The generic to remove from its generic group.
+		"""
+		genericGroup = genericItem._group
+		groupItems = genericGroup._genericItems
+		for index, item in enumerate(groupItems):
+			if item is genericItem:
+				del groupItems[index]
+				break
+
+		if len(groupItems) == 0:
+			self._genericGroups.remove(genericGroup)
+			genericGroup._parent = None
+
+		genericItem._group = None
 
 	def MoveGenericItem(self, genericItem: GenericInterfaceItemMixin, index: int) -> None:
 		"""
@@ -312,6 +500,10 @@ class WithGenericsMixin(
 		The generic stays a generic of this language construct: only the order of the generic clause changes. A generic
 		subprogram is an overload: if the language construct's namespace is indexed, it refers to the overload declared
 		last afterwards.
+
+		The generic leaves its generic group, like :meth:`RemoveGenericItem`, and joins a generic group, like
+		:meth:`InsertGenericItem` without a generic group: the generic group of the generic before its new position; at
+		index ``0``, the generic group of the first generic. A move to the generic's current position changes nothing.
 
 		:param genericItem:          The generic to move.
 		:param index:                Position of the generic after the move, from ``0`` (first) to :data:`GenericCount`
@@ -376,6 +568,8 @@ class WithGenericsMixin(
 
 		del self._genericItems[currentIndex]
 		self._genericItems.insert(newIndex, genericItem)
+		self._RemoveFromGenericGroup(genericItem)
+		self._AddToGenericGroup(newIndex, genericItem)
 
 		if isOverload:
 			self._AddToNamespace(genericItem)
@@ -388,9 +582,9 @@ class WithGenericsMixin(
 		Split a generic with an identifier list into one generic per identifier.
 
 		The generic keeps its first identifier. For every other identifier, a new generic is created by its
-		``Copy()`` and inserted right after it, in list order; its parent is set to this language construct. If the
-		language construct has a namespace, the entries of the other identifiers refer to the new generics.
-		A generic declaring one identifier is unchanged.
+		``Copy()`` and inserted right after it, in list order, in the generic clause and in the generic's generic group;
+		its parent is set to this language construct. If the language construct has a namespace, the entries of the other
+		identifiers refer to the new generics. A generic declaring one identifier is unchanged.
 
 		:param genericItem:          The generic to split.
 		:returns:                    Tuple of generics, one per identifier in list order, starting with the split
@@ -432,13 +626,21 @@ class WithGenericsMixin(
 		if not isinstance(genericItem, MultipleNamedEntityMixin) or len(genericItem._identifiers) == 1:
 			return (genericItem, )
 
+		genericGroup = genericItem._group
+		groupItems = genericGroup._genericItems
+		for groupIndex, item in enumerate(groupItems):
+			if item is genericItem:
+				break
+
 		declarations = genericItem._SplitCopies()
 		self._RemoveFromNamespace(genericItem)
 		genericItem._KeepIdentifier(0)
 		self._genericItems[index + 1:index + 1] = declarations
+		groupItems[groupIndex + 1:groupIndex + 1] = declarations
 		self._AddToNamespace(genericItem)
 		for declaration in declarations:
 			declaration.Parent = self
+			declaration._group = genericGroup
 			self._AddToNamespace(declaration)
 
 		return (genericItem, *declarations)
@@ -493,6 +695,9 @@ class WithPortsMixin(
 	Indexing the ports (``_IndexPortItems()``) needs the host's namespace ``_namespace``; a host without one, e.g.
 	a component, can't index them.
 
+	The port groups (:data:`PortGroups`) partition the port clause: concatenated in order, they list every port exactly
+	once, in declaration order. The mutators keep this partition.
+
 	.. seealso::
 
 	   * :class:`Concurrent block statement <pyVHDLModel.Concurrent.ConcurrentBlockStatement>`
@@ -500,22 +705,82 @@ class WithPortsMixin(
 	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
 	   * :class:`Port group <pyVHDLModel.Interface.PortGroup>`
 	"""
-	_portItems: list[PortInterfaceItemMixin]  #: List of all ports, in declaration order.
+	_portItems:  list[PortInterfaceItemMixin]  #: List of all ports, in declaration order.
+	_portGroups: list[PortGroup]               #: List of all port groups, in declaration order.
 
 	def __init__(
 		self,
-		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
+		portItems:  Nullable[Iterable[PortInterfaceItemMixin]] = None,
+		portGroups: Nullable[Iterable[PortGroup]] = None
 	) -> None:
 		"""
 		Initializes a language construct with a port clause.
 
-		:param portItems: List of all ports, in declaration order.
+		The language construct becomes the parent of each port group, and each port refers to its port group. Without
+		port groups, all ports form one unnamed port group; no ports form no port group.
+
+		:param portItems:   Optional, list of all ports, in declaration order. Default: ``None``, no ports.
+		:param portGroups:  Optional, list of port groups partitioning the ports, in declaration order. Default:
+		                    ``None``, one unnamed port group.
+		:raises TypeError:  If parameter 'portGroups' is ``None`` and an element of parameter 'portItems' is not of type
+		                    :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises ValueError: If parameter 'portGroups' is ``None`` and an element of parameter 'portItems' is in a port
+		                    group of another language construct.
+		:raises TypeError:  If parameter 'portGroups' is not iterable.
+		:raises TypeError:  If an element of parameter 'portGroups' is not of type
+		                    :class:`~pyVHDLModel.Interface.PortGroup`.
+		:raises ValueError: If parameter 'portGroups' doesn't list every port of parameter 'portItems' exactly once,
+		                    in declaration order.
 		"""
+		from pyVHDLModel.Interface import PortGroup
+
 		self._portItems = portItemList = []
 		if portItems is not None:
 			for item in portItems:
 				portItemList.append(item)
 				item.Parent = self
+
+		self._portGroups = portGroupList = []
+		if portGroups is None:
+			if len(portItemList) > 0:
+				portGroup = PortGroup(portItemList, parent=self)
+				portGroupList.append(portGroup)
+				for item in portItemList:
+					item._group = portGroup
+
+			return
+
+		if not isinstance(portGroups, Iterable):
+			ex = TypeError("Parameter 'portGroups' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(portGroups)}'.")
+			raise ex
+
+		groupedItems = []
+		for portGroup in portGroups:
+			if not isinstance(portGroup, PortGroup):
+				ex = TypeError("Element of parameter 'portGroups' is not of type 'PortGroup'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(portGroup)}'.")
+				raise ex
+
+			portGroupList.append(portGroup)
+			groupedItems.extend(portGroup._portItems)
+
+		isPartition = len(groupedItems) == len(portItemList) and all(
+			grouped is item for grouped, item in zip(groupedItems, portItemList)
+		)
+		if not isPartition:
+			groups = " | ".join(
+				", ".join(name for item in portGroup._portItems for name in item._identifiers) for portGroup in portGroupList
+			)
+			ports = ", ".join(name for item in portItemList for name in item._identifiers)
+			ex = ValueError("Parameter 'portGroups' doesn't partition parameter 'portItems'.")
+			ex.add_note(f"Got port groups '{groups}' for ports '{ports}'.")
+			raise ex
+
+		for portGroup in portGroupList:
+			portGroup.Parent = self
+			for item in portGroup._portItems:
+				item._group = portGroup
 
 	@readonly
 	def PortItems(self) -> list[PortInterfaceItemMixin]:
@@ -534,6 +799,18 @@ class WithPortsMixin(
 		:returns: The port count.
 		"""
 		return len(self._portItems)
+
+	@readonly
+	def PortGroups(self) -> list[PortGroup]:
+		"""
+		Read-only property to access the port groups (:attr:`_portGroups`).
+
+		The port groups partition the port clause: concatenated in order, they list every port exactly once, in
+		declaration order.
+
+		:returns: List of port groups, in declaration order.
+		"""
+		return self._portGroups
 
 	def IterateSinglePortDeclarations(
 		self,
@@ -556,18 +833,23 @@ class WithPortsMixin(
 					if predicate(singleDeclaration):
 						yield singleDeclaration
 
-	def AddPortItem(self, portItem: PortSignalInterfaceItem) -> None:
+	def AddPortItem(self, portItem: PortSignalInterfaceItem, group: Nullable[PortGroup] = None) -> None:
 		"""
-		Add a port at the end of the port clause.
+		Add a port at the end of the port clause, or at the end of a port group.
 
 		The port's parent is set to this language construct, and its identifiers are added to the language construct's
-		namespace, if it has one.
+		namespace, if it has one. Without a port group, the port joins the last port group, or forms a new unnamed port
+		group if there are no ports.
 
 		:param portItem:              The port to add.
+		:param group:                 Optional, the port group of this language construct to add the port to, at its end.
+		                              Default: ``None``, the end of the port clause.
 		:raises ValueError:           If parameter 'portItem' is ``None``.
 		:raises TypeError:            If parameter 'portItem' is not of type
 		                              :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
 		:raises AlreadyInDesignError: If parameter 'portItem' already has a parent.
+		:raises TypeError:            If parameter 'group' is not of type :class:`~pyVHDLModel.Interface.PortGroup`.
+		:raises NotAChildError:       If parameter 'group' is not a port group of this language construct.
 		:raises DuplicatePortError:   If an existing declaration of the language construct shares an identifier
 		                              with the port.
 
@@ -578,19 +860,33 @@ class WithPortsMixin(
 		   :meth:`RemovePortItem`
 		      |rarr| Remove a port from the port clause.
 		"""
-		self.InsertPortItem(len(self._portItems), portItem)
+		index = len(self._portItems)
+		if group is not None:
+			index = 0
+			for portGroup in self._portGroups:
+				index += len(portGroup._portItems)
+				if portGroup is group:
+					break
 
-	def InsertPortItem(self, index: int, portItem: PortSignalInterfaceItem) -> None:
+		self.InsertPortItem(index, portItem, group)
+
+	def InsertPortItem(self, index: int, portItem: PortSignalInterfaceItem, group: Nullable[PortGroup] = None) -> None:
 		"""
 		Insert a port at a position of the port clause.
 
 		The port's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
+		Without a port group, the port joins the port group of the port before ``index``; at index ``0``, the port group
+		of the first port. If there are no ports, the port forms a new unnamed port group. A port group given must
+		contain ``index`` or end at it, so the port groups stay contiguous.
+
 		:param index:                 Position, from ``0`` (first) to :data:`PortCount` (append).
 		                              A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
 		                              before the last port.
 		:param portItem:              The port to insert.
+		:param group:                 Optional, the port group of this language construct to insert the port into.
+		                              Default: ``None``, the port group of the port before ``index``.
 		:raises ValueError:           If parameter 'index' is ``None``.
 		:raises TypeError:            If parameter 'index' is not of type :class:`int`.
 		:raises ValueError:           If parameter 'index' is out of range.
@@ -598,6 +894,9 @@ class WithPortsMixin(
 		:raises TypeError:            If parameter 'portItem' is not of type
 		                              :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
 		:raises AlreadyInDesignError: If parameter 'portItem' already has a parent.
+		:raises TypeError:            If parameter 'group' is not of type :class:`~pyVHDLModel.Interface.PortGroup`.
+		:raises NotAChildError:       If parameter 'group' is not a port group of this language construct.
+		:raises ValueError:           If parameter 'group' neither contains nor ends at parameter 'index'.
 		:raises DuplicatePortError:   If an existing declaration of the language construct shares an identifier
 		                              with the port.
 
@@ -610,7 +909,7 @@ class WithPortsMixin(
 		   :meth:`MovePortItem`
 		      |rarr| Move a port to a position of the port clause.
 		"""
-		from pyVHDLModel.Interface import PortSignalInterfaceItem
+		from pyVHDLModel.Interface import PortSignalInterfaceItem, PortGroup
 
 		if index is None:
 			raise ValueError("Parameter 'index' is None.")
@@ -639,6 +938,33 @@ class WithPortsMixin(
 			ex.add_note(f"Remove it from its {getTypeName(portItem._parent)} first.")
 			raise ex
 
+		position = index if index >= 0 else len(self._portItems) + index
+		if group is not None:
+			if not isinstance(group, PortGroup):
+				ex = TypeError("Parameter 'group' is not of type 'PortGroup'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(group)}'.")
+				raise ex
+
+			groupStart = 0
+			for portGroup in self._portGroups:
+				if portGroup is group:
+					break
+
+				groupStart += len(portGroup._portItems)
+			else:
+				groupName = getTypeName(group) if group._identifier is None else f"{getTypeName(group)} '{group._identifier}'"
+				raise NotAChildError(
+					f"{groupName} is not a port group of this {getTypeName(self)}.",
+					element=group,
+					parent=self
+				)
+
+			groupEnd = groupStart + len(group._portItems)
+			if not (groupStart <= position <= groupEnd):
+				ex = ValueError(f"Parameter 'index' is outside of parameter 'group' at {groupStart}..{groupEnd}.")
+				ex.add_note(f"Got value '{index}'.")
+				raise ex
+
 		if len(clashes := self._ClashingDeclarations(portItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(portItem), normalizedIdentifiersOf(portItem))
@@ -653,17 +979,49 @@ class WithPortsMixin(
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
-		self._portItems.insert(index, portItem)
+		self._portItems.insert(position, portItem)
 		portItem.Parent = self
+		if group is None:
+			self._AddToPortGroup(position, portItem)
+		else:
+			group._portItems.insert(position - groupStart, portItem)
+			portItem._group = group
+
 		self._AddToNamespace(portItem)
+
+	def _AddToPortGroup(self, position: int, portItem: PortSignalInterfaceItem) -> None:
+		"""
+		Add a port to the port group of the port before ``position``; at position ``0``, the port group of the first port.
+
+		If there are no port groups, the port forms a new unnamed port group.
+
+		:param position: Position of the port in the port clause, from ``0`` (first) to :data:`PortCount` (last).
+		:param portItem: The port to add, which isn't in a port group.
+		"""
+		from pyVHDLModel.Interface import PortGroup
+
+		groupStart = 0
+		for portGroup in self._portGroups:
+			groupEnd = groupStart + len(portGroup._portItems)
+			if position <= groupEnd:
+				portGroup._portItems.insert(position - groupStart, portItem)
+				portItem._group = portGroup
+				return
+
+			groupStart = groupEnd
+
+		portGroup = PortGroup((portItem, ), parent=self)
+		self._portGroups.append(portGroup)
+		portItem._group = portGroup
 
 	def RemovePortItem(self, portItem: PortSignalInterfaceItem) -> None:
 		"""
 		Remove a port from the port clause.
 
-		The port is detached: its parent is cleared and its identifiers are removed from the language construct's
-		namespace, if it has one. The port itself is unchanged and can be added to another language construct, or
-		inserted at another position.
+		The port is detached: its parent and port group are cleared and its identifiers are removed from the language
+		construct's namespace, if it has one. A port group, which becomes empty, is removed from :data:`PortGroups` and its
+		parent is cleared. The port itself is unchanged and can be added to another language construct, or inserted at
+		another position.
 
 		:param portItem:             The port to remove.
 		:raises ValueError:          If parameter 'portItem' is ``None``.
@@ -705,13 +1063,38 @@ class WithPortsMixin(
 
 		self._RemoveFromNamespace(portItem)
 		del self._portItems[index]
+		self._RemoveFromPortGroup(portItem)
 		portItem._parent = None
+
+	def _RemoveFromPortGroup(self, portItem: PortSignalInterfaceItem) -> None:
+		"""
+		Remove a port from its port group and clear the port's group.
+
+		A port group, which becomes empty, is removed from :data:`PortGroups` and its parent is cleared.
+
+		:param portItem: The port to remove from its port group.
+		"""
+		portGroup = portItem._group
+		groupItems = portGroup._portItems
+		for index, item in enumerate(groupItems):
+			if item is portItem:
+				del groupItems[index]
+				break
+
+		if len(groupItems) == 0:
+			self._portGroups.remove(portGroup)
+			portGroup._parent = None
+
+		portItem._group = None
 
 	def MovePortItem(self, portItem: PortSignalInterfaceItem, index: int) -> None:
 		"""
 		Move a port to a position of the port clause.
 
-		The port stays a port of this language construct: only the order of the port clause changes.
+		The port stays a port of this language construct: only the order of the port clause changes. The port leaves its
+		port group, like :meth:`RemovePortItem`, and joins a port group, like :meth:`InsertPortItem` without a port group:
+		the port group of the port before its new position; at index ``0``, the port group of the first port. A move to
+		the port's current position changes nothing.
 
 		:param portItem:        The port to move.
 		:param index:           Position of the port after the move, from ``0`` (first) to :data:`PortCount` minus one
@@ -764,8 +1147,13 @@ class WithPortsMixin(
 			raise ex
 
 		newIndex = index if index >= 0 else len(self._portItems) + index
+		if newIndex == currentIndex:
+			return
+
 		del self._portItems[currentIndex]
 		self._portItems.insert(newIndex, portItem)
+		self._RemoveFromPortGroup(portItem)
+		self._AddToPortGroup(newIndex, portItem)
 
 	def SplitPortItem(
 		self,
@@ -775,9 +1163,9 @@ class WithPortsMixin(
 		Split a port with an identifier list into one port per identifier.
 
 		The port keeps its first identifier. For every other identifier, a new port is created by its
-		``Copy()`` and inserted right after it, in list order; its parent is set to this language construct. If the
-		language construct has a namespace, the entries of the other identifiers refer to the new ports.
-		A port declaring one identifier is unchanged.
+		``Copy()`` and inserted right after it, in list order, in the port clause and in the port's port group; its parent
+		is set to this language construct. If the language construct has a namespace, the entries of the other identifiers
+		refer to the new ports. A port declaring one identifier is unchanged.
 
 		:param portItem:             The port to split.
 		:returns:                    Tuple of ports, one per identifier in list order, starting with the split
@@ -819,13 +1207,21 @@ class WithPortsMixin(
 		if not isinstance(portItem, MultipleNamedEntityMixin) or len(portItem._identifiers) == 1:
 			return (portItem, )
 
+		portGroup = portItem._group
+		groupItems = portGroup._portItems
+		for groupIndex, item in enumerate(groupItems):
+			if item is portItem:
+				break
+
 		declarations = portItem._SplitCopies()
 		self._RemoveFromNamespace(portItem)
 		portItem._KeepIdentifier(0)
 		self._portItems[index + 1:index + 1] = declarations
+		groupItems[groupIndex + 1:groupIndex + 1] = declarations
 		self._AddToNamespace(portItem)
 		for declaration in declarations:
 			declaration.Parent = self
+			declaration._group = portGroup
 			self._AddToNamespace(declaration)
 
 		return (portItem, *declarations)
@@ -875,32 +1271,96 @@ class WithParametersMixin(
 	declarations sharing an identifier with the new item.
 
 	The host class provides ``_ParameterItemsChanged()`` too, called after a parameter is inserted, removed or moved:
-	:class:`~pyVHDLModel.Subprogram.Subprogram` clears its signature, a parameter group does nothing.
+	:class:`~pyVHDLModel.Subprogram.Subprogram` clears its signature.
 
-	Indexing the parameters (``_IndexParameterItems()``) needs the host's namespace ``_namespace``; a host without one,
-	e.g. a parameter group, can't index them.
+	Indexing the parameters (``_IndexParameterItems()``) needs the host's namespace ``_namespace``.
+
+	The parameter groups (:data:`ParameterGroups`) partition the parameter list: concatenated in order, they list every
+	parameter exactly once, in declaration order. The mutators keep this partition.
 
 	.. seealso::
 
 	   * :class:`Subprogram <pyVHDLModel.Subprogram.Subprogram>`
 	   * :class:`Parameter group <pyVHDLModel.Interface.ParameterGroup>`
 	"""
-	_parameterItems: list[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.
+	_parameterItems:  list[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.
+	_parameterGroups: list[ParameterGroup]               #: List of all parameter groups, in declaration order.
 
 	def __init__(
 		self,
-		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+		parameterItems:  Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+		parameterGroups: Nullable[Iterable[ParameterGroup]] = None
 	) -> None:
 		"""
 		Initializes a language construct with a parameter list.
 
-		:param parameterItems: List of all parameters, in declaration order.
+		The language construct becomes the parent of each parameter group, and each parameter refers to its parameter
+		group. Without parameter groups, all parameters form one unnamed parameter group; no parameters form no parameter
+		group.
+
+		:param parameterItems:  Optional, list of all parameters, in declaration order. Default: ``None``, no parameters.
+		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
+		                        Default: ``None``, one unnamed parameter group.
+		:raises TypeError:      If parameter 'parameterGroups' is ``None`` and an element of parameter 'parameterItems' is
+		                        not of type :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises ValueError:     If parameter 'parameterGroups' is ``None`` and an element of parameter 'parameterItems' is
+		                        in a parameter group of another language construct.
+		:raises TypeError:      If parameter 'parameterGroups' is not iterable.
+		:raises TypeError:      If an element of parameter 'parameterGroups' is not of type
+		                        :class:`~pyVHDLModel.Interface.ParameterGroup`.
+		:raises ValueError:     If parameter 'parameterGroups' doesn't list every parameter of parameter 'parameterItems'
+		                        exactly once, in declaration order.
 		"""
+		from pyVHDLModel.Interface import ParameterGroup
+
 		self._parameterItems = parameterItemList = []
 		if parameterItems is not None:
 			for item in parameterItems:
 				parameterItemList.append(item)
 				item.Parent = self
+
+		self._parameterGroups = parameterGroupList = []
+		if parameterGroups is None:
+			if len(parameterItemList) > 0:
+				parameterGroup = ParameterGroup(parameterItemList, parent=self)
+				parameterGroupList.append(parameterGroup)
+				for item in parameterItemList:
+					item._group = parameterGroup
+
+			return
+
+		if not isinstance(parameterGroups, Iterable):
+			ex = TypeError("Parameter 'parameterGroups' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parameterGroups)}'.")
+			raise ex
+
+		groupedItems = []
+		for parameterGroup in parameterGroups:
+			if not isinstance(parameterGroup, ParameterGroup):
+				ex = TypeError("Element of parameter 'parameterGroups' is not of type 'ParameterGroup'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(parameterGroup)}'.")
+				raise ex
+
+			parameterGroupList.append(parameterGroup)
+			groupedItems.extend(parameterGroup._parameterItems)
+
+		isPartition = len(groupedItems) == len(parameterItemList) and all(
+			grouped is item for grouped, item in zip(groupedItems, parameterItemList)
+		)
+		if not isPartition:
+			groups = " | ".join(
+				", ".join(name for item in parameterGroup._parameterItems for name in item._identifiers)
+				for parameterGroup in parameterGroupList
+			)
+			parameters = ", ".join(name for item in parameterItemList for name in item._identifiers)
+			ex = ValueError("Parameter 'parameterGroups' doesn't partition parameter 'parameterItems'.")
+			ex.add_note(f"Got parameter groups '{groups}' for parameters '{parameters}'.")
+			raise ex
+
+		for parameterGroup in parameterGroupList:
+			parameterGroup.Parent = self
+			for item in parameterGroup._parameterItems:
+				item._group = parameterGroup
 
 	@readonly
 	def ParameterItems(self) -> list[ParameterInterfaceItemMixin]:
@@ -919,6 +1379,18 @@ class WithParametersMixin(
 		:returns: The parameter count.
 		"""
 		return len(self._parameterItems)
+
+	@readonly
+	def ParameterGroups(self) -> list[ParameterGroup]:
+		"""
+		Read-only property to access the parameter groups (:attr:`_parameterGroups`).
+
+		The parameter groups partition the parameter list: concatenated in order, they list every parameter exactly once,
+		in declaration order.
+
+		:returns: List of parameter groups, in declaration order.
+		"""
+		return self._parameterGroups
 
 	def IterateSingleParameterDeclarations(
 		self,
@@ -941,18 +1413,27 @@ class WithParametersMixin(
 					if predicate(singleDeclaration):
 						yield singleDeclaration
 
-	def AddParameterItem(self, parameterItem: ParameterInterfaceItemMixin) -> None:
+	def AddParameterItem(
+		self,
+		parameterItem: ParameterInterfaceItemMixin,
+		group:         Nullable[ParameterGroup] = None
+	) -> None:
 		"""
-		Add a parameter at the end of the parameter list.
+		Add a parameter at the end of the parameter list, or at the end of a parameter group.
 
 		The parameter's parent is set to this language construct, and its identifiers are added to the language construct's
-		namespace, if it has one.
+		namespace, if it has one. Without a parameter group, the parameter joins the last parameter group, or forms a new
+		unnamed parameter group if there are no parameters.
 
 		:param parameterItem:            The parameter to add.
+		:param group:                    Optional, the parameter group of this language construct to add the parameter to,
+		                                 at its end. Default: ``None``, the end of the parameter list.
 		:raises ValueError:              If parameter 'parameterItem' is ``None``.
 		:raises TypeError:               If parameter 'parameterItem' is not of type
 		                                 :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
 		:raises AlreadyInDesignError:    If parameter 'parameterItem' already has a parent.
+		:raises TypeError:               If parameter 'group' is not of type :class:`~pyVHDLModel.Interface.ParameterGroup`.
+		:raises NotAChildError:          If parameter 'group' is not a parameter group of this language construct.
 		:raises DuplicateParameterError: If an existing declaration of the language construct shares an identifier
 		                                 with the parameter.
 
@@ -963,19 +1444,39 @@ class WithParametersMixin(
 		   :meth:`RemoveParameterItem`
 		      |rarr| Remove a parameter from the parameter list.
 		"""
-		self.InsertParameterItem(len(self._parameterItems), parameterItem)
+		index = len(self._parameterItems)
+		if group is not None:
+			index = 0
+			for parameterGroup in self._parameterGroups:
+				index += len(parameterGroup._parameterItems)
+				if parameterGroup is group:
+					break
 
-	def InsertParameterItem(self, index: int, parameterItem: ParameterInterfaceItemMixin) -> None:
+		self.InsertParameterItem(index, parameterItem, group)
+
+	def InsertParameterItem(
+		self,
+		index:         int,
+		parameterItem: ParameterInterfaceItemMixin,
+		group:         Nullable[ParameterGroup] = None
+	) -> None:
 		"""
 		Insert a parameter at a position of the parameter list.
 
 		The parameter's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
+		Without a parameter group, the parameter joins the parameter group of the parameter before ``index``; at index
+		``0``, the parameter group of the first parameter. If there are no parameters, the parameter forms a new unnamed
+		parameter group. A parameter group given must contain ``index`` or end at it, so the parameter groups stay
+		contiguous.
+
 		:param index:                    Position, from ``0`` (first) to :data:`ParameterCount` (append).
 		                                 A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
 		                                 before the last parameter.
 		:param parameterItem:            The parameter to insert.
+		:param group:                    Optional, the parameter group of this language construct to insert the parameter
+		                                 into. Default: ``None``, the parameter group of the parameter before ``index``.
 		:raises ValueError:              If parameter 'index' is ``None``.
 		:raises TypeError:               If parameter 'index' is not of type :class:`int`.
 		:raises ValueError:              If parameter 'index' is out of range.
@@ -983,6 +1484,9 @@ class WithParametersMixin(
 		:raises TypeError:               If parameter 'parameterItem' is not of type
 		                                 :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
 		:raises AlreadyInDesignError:    If parameter 'parameterItem' already has a parent.
+		:raises TypeError:               If parameter 'group' is not of type :class:`~pyVHDLModel.Interface.ParameterGroup`.
+		:raises NotAChildError:          If parameter 'group' is not a parameter group of this language construct.
+		:raises ValueError:              If parameter 'group' neither contains nor ends at parameter 'index'.
 		:raises DuplicateParameterError: If an existing declaration of the language construct shares an identifier
 		                                 with the parameter.
 
@@ -995,7 +1499,7 @@ class WithParametersMixin(
 		   :meth:`MoveParameterItem`
 		      |rarr| Move a parameter to a position of the parameter list.
 		"""
-		from pyVHDLModel.Interface import ParameterInterfaceItemMixin
+		from pyVHDLModel.Interface import ParameterInterfaceItemMixin, ParameterGroup
 
 		if index is None:
 			raise ValueError("Parameter 'index' is None.")
@@ -1024,6 +1528,33 @@ class WithParametersMixin(
 			ex.add_note(f"Remove it from its {getTypeName(parameterItem._parent)} first.")
 			raise ex
 
+		position = index if index >= 0 else len(self._parameterItems) + index
+		if group is not None:
+			if not isinstance(group, ParameterGroup):
+				ex = TypeError("Parameter 'group' is not of type 'ParameterGroup'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(group)}'.")
+				raise ex
+
+			groupStart = 0
+			for parameterGroup in self._parameterGroups:
+				if parameterGroup is group:
+					break
+
+				groupStart += len(parameterGroup._parameterItems)
+			else:
+				groupName = getTypeName(group) if group._identifier is None else f"{getTypeName(group)} '{group._identifier}'"
+				raise NotAChildError(
+					f"{groupName} is not a parameter group of this {getTypeName(self)}.",
+					element=group,
+					parent=self
+				)
+
+			groupEnd = groupStart + len(group._parameterItems)
+			if not (groupStart <= position <= groupEnd):
+				ex = ValueError(f"Parameter 'index' is outside of parameter 'group' at {groupStart}..{groupEnd}.")
+				ex.add_note(f"Got value '{index}'.")
+				raise ex
+
 		if len(clashes := self._ClashingDeclarations(parameterItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(parameterItem), normalizedIdentifiersOf(parameterItem))
@@ -1038,18 +1569,52 @@ class WithParametersMixin(
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
-		self._parameterItems.insert(index, parameterItem)
+		self._parameterItems.insert(position, parameterItem)
 		parameterItem.Parent = self
+		if group is None:
+			self._AddToParameterGroup(position, parameterItem)
+		else:
+			group._parameterItems.insert(position - groupStart, parameterItem)
+			parameterItem._group = group
+
 		self._AddToNamespace(parameterItem)
 		self._ParameterItemsChanged()
+
+	def _AddToParameterGroup(self, position: int, parameterItem: ParameterInterfaceItemMixin) -> None:
+		"""
+		Add a parameter to the parameter group of the parameter before ``position``.
+
+		At position ``0``, the parameter joins the parameter group of the first parameter. If there are no parameter
+		groups, the parameter forms a new unnamed parameter group.
+
+		:param position:      Position of the parameter in the parameter list, from ``0`` (first) to
+		                      :data:`ParameterCount` (last).
+		:param parameterItem: The parameter to add, which isn't in a parameter group.
+		"""
+		from pyVHDLModel.Interface import ParameterGroup
+
+		groupStart = 0
+		for parameterGroup in self._parameterGroups:
+			groupEnd = groupStart + len(parameterGroup._parameterItems)
+			if position <= groupEnd:
+				parameterGroup._parameterItems.insert(position - groupStart, parameterItem)
+				parameterItem._group = parameterGroup
+				return
+
+			groupStart = groupEnd
+
+		parameterGroup = ParameterGroup((parameterItem, ), parent=self)
+		self._parameterGroups.append(parameterGroup)
+		parameterItem._group = parameterGroup
 
 	def RemoveParameterItem(self, parameterItem: ParameterInterfaceItemMixin) -> None:
 		"""
 		Remove a parameter from the parameter list.
 
-		The parameter is detached: its parent is cleared and its identifiers are removed from the language construct's
-		namespace, if it has one. The parameter itself is unchanged and can be added to another language construct, or
-		inserted at another position.
+		The parameter is detached: its parent and parameter group are cleared and its identifiers are removed from the
+		language construct's namespace, if it has one. A parameter group, which becomes empty, is removed from
+		:data:`ParameterGroups` and its parent is cleared. The parameter itself is unchanged and can be added to another
+		language construct, or inserted at another position.
 
 		:param parameterItem:        The parameter to remove.
 		:raises ValueError:          If parameter 'parameterItem' is ``None``.
@@ -1091,14 +1656,41 @@ class WithParametersMixin(
 
 		self._RemoveFromNamespace(parameterItem)
 		del self._parameterItems[index]
+		self._RemoveFromParameterGroup(parameterItem)
 		parameterItem._parent = None
 		self._ParameterItemsChanged()
+
+	def _RemoveFromParameterGroup(self, parameterItem: ParameterInterfaceItemMixin) -> None:
+		"""
+		Remove a parameter from its parameter group and clear the parameter's group.
+
+		A parameter group, which becomes empty, is removed from :data:`ParameterGroups` and its parent is cleared.
+
+		:param parameterItem: The parameter to remove from its parameter group.
+		"""
+		parameterGroup = parameterItem._group
+		groupItems = parameterGroup._parameterItems
+		for index, item in enumerate(groupItems):
+			if item is parameterItem:
+				del groupItems[index]
+				break
+
+		if len(groupItems) == 0:
+			self._parameterGroups.remove(parameterGroup)
+			parameterGroup._parent = None
+
+		parameterItem._group = None
 
 	def MoveParameterItem(self, parameterItem: ParameterInterfaceItemMixin, index: int) -> None:
 		"""
 		Move a parameter to a position of the parameter list.
 
 		The parameter stays a parameter of this language construct: only the order of the parameter list changes.
+
+		The parameter leaves its parameter group, like :meth:`RemoveParameterItem`, and joins a parameter group, like
+		:meth:`InsertParameterItem` without a parameter group: the parameter group of the parameter before its new
+		position; at index ``0``, the parameter group of the first parameter. A move to the parameter's current position
+		changes nothing.
 
 		:param parameterItem:   The parameter to move.
 		:param index:           Position of the parameter after the move, from ``0`` (first) to :data:`ParameterCount`
@@ -1153,8 +1745,13 @@ class WithParametersMixin(
 			raise ex
 
 		newIndex = index if index >= 0 else len(self._parameterItems) + index
+		if newIndex == currentIndex:
+			return
+
 		del self._parameterItems[currentIndex]
 		self._parameterItems.insert(newIndex, parameterItem)
+		self._RemoveFromParameterGroup(parameterItem)
+		self._AddToParameterGroup(newIndex, parameterItem)
 		self._ParameterItemsChanged()
 
 	def SplitParameterItem(
@@ -1165,9 +1762,9 @@ class WithParametersMixin(
 		Split a parameter with an identifier list into one parameter per identifier.
 
 		The parameter keeps its first identifier. For every other identifier, a new parameter is created by its
-		``Copy()`` and inserted right after it, in list order; its parent is set to this language construct. If the
-		language construct has a namespace, the entries of the other identifiers refer to the new parameters.
-		A parameter declaring one identifier is unchanged.
+		``Copy()`` and inserted right after it, in list order, in the parameter list and in the parameter's parameter
+		group; its parent is set to this language construct. If the language construct has a namespace, the entries of the
+		other identifiers refer to the new parameters. A parameter declaring one identifier is unchanged.
 
 		:param parameterItem:        The parameter to split.
 		:returns:                    Tuple of parameters, one per identifier in list order, starting with the split
@@ -1209,13 +1806,21 @@ class WithParametersMixin(
 		if not isinstance(parameterItem, MultipleNamedEntityMixin) or len(parameterItem._identifiers) == 1:
 			return (parameterItem, )
 
+		parameterGroup = parameterItem._group
+		groupItems = parameterGroup._parameterItems
+		for groupIndex, item in enumerate(groupItems):
+			if item is parameterItem:
+				break
+
 		declarations = parameterItem._SplitCopies()
 		self._RemoveFromNamespace(parameterItem)
 		parameterItem._KeepIdentifier(0)
 		self._parameterItems[index + 1:index + 1] = declarations
+		groupItems[groupIndex + 1:groupIndex + 1] = declarations
 		self._AddToNamespace(parameterItem)
 		for declaration in declarations:
 			declaration.Parent = self
+			declaration._group = parameterGroup
 			self._AddToNamespace(declaration)
 		self._ParameterItemsChanged()
 
@@ -2218,8 +2823,10 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		Initializes a concurrent declaration region.
 
-		:param namespaceName:          Name of this region's namespace, usually the host's label or identifier.
-		:param declaredItems:          List of all declared items in this concurrent declaration region.
+		:param namespaceName:          Optional, name of this region's namespace, usually the host's label or identifier.
+		                               Default: ``None``.
+		:param declaredItems:          Optional, list of all declared items in this concurrent declaration region.
+		                               Default: ``None``, no declared items.
 		:param sharesRegionWithParent: Optional, ``True`` if this region continues its parent's declarative region (an
 		                               architecture its entity's, a package body its package's). Default: ``False``.
 		"""
@@ -2539,8 +3146,9 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		Initialize a sequential declaration region.
 
-		:param namespaceName:  Name of this region's namespace, usually the host's label or identifier.
-		:param declaredItems:  The items declared in this region.
+		:param namespaceName:  Optional, name of this region's namespace, usually the host's label or identifier.
+		                       Default: ``None``.
+		:param declaredItems:  Optional, the items declared in this region. Default: ``None``, no declared items.
 		"""
 		DeclarationRegionMixin.__init__(self)
 
@@ -2781,8 +3389,9 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		Initialize a protected type declaration region.
 
-		:param namespaceName: Name of this region's namespace, usually the protected type's identifier.
-		:param declaredItems: The items declared in this region.
+		:param namespaceName: Optional, name of this region's namespace, usually the protected type's identifier.
+		                      Default: ``None``.
+		:param declaredItems: Optional, the items declared in this region. Default: ``None``, no declared items.
 		"""
 		DeclarationRegionMixin.__init__(self)
 

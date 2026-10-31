@@ -106,7 +106,8 @@ class Ieee(PredefinedLibrary):
 		"""
 		Initializes the ``ieee`` library.
 
-		:param flavor:               The flavor of the ``ieee`` library this instance provides.
+		:param flavor:               Optional, the flavor of the ``ieee`` library this instance provides.
+		                             Default: ``None``, the IEEE flavor.
 		:raises VHDLModelException: If the given IEEE library flavor is unknown.
 		"""
 		super().__init__(PACKAGES)

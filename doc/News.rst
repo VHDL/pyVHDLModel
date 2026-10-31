@@ -6,6 +6,31 @@ News
 See :gh:`pyVHDLModel Release Pages <VHDL/pyVHDLModel/releases>` for detail release notes on every release.
 
 
+Version 0.42.0 (2026)
+*********************
+
+.. topic:: :gh:`v0.42.0 - 31.10.2026 <VHDL/pyVHDLModel/releases/v0.42.0>`
+
+   .. rubric:: New Features
+
+   * Interface groups partition the generic clause, the port clause and the parameter list of a language construct:
+     constructor parameters ``genericGroups``, ``portGroups`` and ``parameterGroups``, properties
+     :data:`~pyVHDLModel.Regions.WithGenericsMixin.GenericGroups`,
+     :data:`~pyVHDLModel.Regions.WithPortsMixin.PortGroups` and
+     :data:`~pyVHDLModel.Regions.WithParametersMixin.ParameterGroups`. Each interface item refers to its group
+     (:data:`~pyVHDLModel.Interface.InterfaceItemMixin.Group`). ``Add***Item()`` and ``Insert***Item()`` take an
+     optional group; all mutators keep the partition.
+
+   .. rubric:: Changes
+
+   * Breaking change: :class:`~pyVHDLModel.Interface.GenericGroup`, :class:`~pyVHDLModel.Interface.PortGroup` and
+     :class:`~pyVHDLModel.Interface.ParameterGroup` are non-owning views of a language construct's interface items: an
+     item's parent stays the language construct, and a group has no mutators any more. A group rejects an empty or
+     already grouped item list.
+   * Breaking change: a language construct constructed without groups checks its interface items' types: an item of
+     the wrong type raises :exc:`TypeError`, where it was accepted before.
+
+
 Version 0.41.0 (2026)
 *********************
 

@@ -185,7 +185,7 @@ class EnumerationLiteral(Literal):
 		Initializes an enumeration literal.
 
 		:param value:  The enumeration literal's name.
-		:param parent: The parent model entity of this entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -252,7 +252,7 @@ class CharacterEnumerationLiteral(EnumerationLiteral):
 		Initializes a character enumeration literal.
 
 		:param value:       The literal's character without apostrophes.
-		:param parent:      The parent model entity of this entity.
+		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		:raises ValueError: If parameter 'value' is None.
 		:raises TypeError:  If parameter 'value' is not of type :class:`str`.
 		:raises ValueError: If parameter 'value' is not a single character.
@@ -807,8 +807,8 @@ class BitStringLiteral(Literal):
 		Initializes a bit string literal.
 
 		:param value:       The literal as written in the source, without the enclosing double quotes.
-		:param length:      The explicitly given length, or ``None`` if the literal has no length specification.
-		:param isSigned:    ``True`` if signed, ``False`` if unsigned, ``None`` if unspecified.
+		:param length:      Optional, the explicitly given length. Default: ``None``, no length specification.
+		:param isSigned:    Optional, ``True`` if signed, ``False`` if unsigned. Default: ``None``, unspecified.
 		:raises ValueError: If parameter 'value' is None.
 		:raises TypeError:  If parameter 'value' is not of type :class:`str`.
 		:raises TypeError:  If parameter 'length' is not of type :class:`int`.
@@ -1154,7 +1154,7 @@ class UnaryExpression(BaseExpression):
 		Initializes a unary expression.
 
 		:param operand: The expression the operator is applied to.
-		:param parent:  The parent model entity of this entity.
+		:param parent:  Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -1481,7 +1481,7 @@ class TypeConversion(UnaryExpression):
 
 		:param targetSubtype: Reference to the subtype the expression is converted to.
 		:param operand:       The expression the operator is applied to.
-		:param parent:        The parent model entity of this entity.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(operand, parent)
 
@@ -1590,7 +1590,7 @@ class BinaryExpression(BaseExpression):
 
 		:param leftOperand:  The expression left of the operator.
 		:param rightOperand: The expression right of the operator.
-		:param parent:       The parent model entity of this entity.
+		:param parent:       Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -2613,7 +2613,7 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 
 		:param subtype: Reference to the subtype qualifying the expression.
 		:param operand: The expression being qualified.
-		:param parent:  The parent model entity of this entity.
+		:param parent:  Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -2704,7 +2704,7 @@ class TernaryExpression(BaseExpression):
 		:param firstOperand:  The operator's first operand.
 		:param secondOperand: The operator's second operand.
 		:param thirdOperand:  The operator's third operand.
-		:param parent:        The parent model entity of this entity.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -2771,7 +2771,7 @@ class WhenElseExpression(TernaryExpression):
 		:param thenValue: The value if the condition holds.
 		:param condition: The condition selecting between both values.
 		:param elseValue: The value if the condition does not hold.
-		:param parent:    The parent model entity of this entity.
+		:param parent:    Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(thenValue, condition, elseValue, parent)
 
@@ -2885,7 +2885,7 @@ class SubtypeAllocation(Allocation):
 		Initializes an allocation of a subtype via ``new``.
 
 		:param subtype: Reference to the subtype being allocated.
-		:param parent:  The parent model entity of this entity.
+		:param parent:  Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -2953,7 +2953,7 @@ class QualifiedExpressionAllocation(Allocation):
 		Initializes an allocation initialized by a qualified expression.
 
 		:param qualifiedExpression: The qualified expression the allocated object is initialized with.
-		:param parent:              The parent model entity of this entity.
+		:param parent:              Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -3024,7 +3024,7 @@ class AggregateElement(ModelEntity):
 		Initializes an aggregate element.
 
 		:param expression: The expression this aggregate element supplies.
-		:param parent:     The parent model entity of this entity.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -3109,7 +3109,7 @@ class IndexedAggregateElement(AggregateElement):
 
 		:param index:      The index expression selecting the element this value is assigned to.
 		:param expression: The expression this aggregate element supplies.
-		:param parent:     The parent model entity of this entity.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(expression, parent)
 
@@ -3180,7 +3180,7 @@ class RangedAggregateElement(AggregateElement):
 
 		:param rng:        The range selecting the elements this value is assigned to.
 		:param expression: The expression this aggregate element supplies.
-		:param parent:     The parent model entity of this entity.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(expression, parent)
 
@@ -3252,7 +3252,7 @@ class NamedAggregateElement(AggregateElement):
 
 		:param name:       Reference to the name selecting the element this value is assigned to.
 		:param expression: The expression this aggregate element supplies.
-		:param parent:     The parent model entity of this entity.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(expression, parent)
 
@@ -3364,7 +3364,7 @@ class Aggregate(BaseExpression):
 		Initializes an aggregate.
 
 		:param elements: List of all elements of this aggregate, in the order they were written.
-		:param parent:   The parent model entity of this entity.
+		:param parent:   Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 

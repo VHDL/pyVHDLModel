@@ -103,7 +103,8 @@ class SubprogramInstantiationMixin(GenericInstantiationMixin, GenericMapAspectMi
 		Initializes a subprogram instantiation.
 
 		:param subprogramReference:     Reference to the instantiated generic subprogram.
-		:param genericAssociationItems: List of all generic associations in the generic map aspect.
+		:param genericAssociationItems: Optional, list of all generic associations in the generic map aspect.
+		                                Default: ``None``, no generic associations.
 		"""
 		super().__init__()
 		GenericMapAspectMixin.__init__(self, genericAssociationItems)
@@ -146,22 +147,44 @@ class ProcedureInstantiation(Procedure, SubprogramInstantiationMixin):
 		declaredItems: Nullable[Iterable] = None,
 		statements: Nullable[Iterable] = None,
 		documentation: Nullable[str] = None,
-		parent: Nullable[ModelEntity] = None
+		parent: Nullable[ModelEntity] = None,
+		genericGroups: Nullable[Iterable] = None,
+		parameterGroups: Nullable[Iterable] = None
 	) -> None:
 		"""
 		Initializes a procedure instantiation.
 
 		:param identifier:              The identifier of a model entity.
 		:param subprogramReference:     Reference to the instantiated generic subprogram.
-		:param genericAssociationItems: List of all generic associations in the generic map aspect.
-		:param genericItems:            List of all generics, in declaration order.
-		:param parameterItems:          List of all parameters, in declaration order.
-		:param declaredItems:           List of all declared items in this sequential declaration region.
-		:param statements:              List of all sequential statements in the subprogram's body.
-		:param documentation:           The documentation comment associated with this declaration.
-		:param parent:                  The parent model entity of this entity.
+		:param genericAssociationItems: Optional, list of all generic associations in the generic map aspect.
+		                                Default: ``None``, no generic associations.
+		:param genericItems:            Optional, list of all generics, in declaration order.
+		                                Default: ``None``, no generics.
+		:param parameterItems:          Optional, list of all parameters, in declaration order.
+		                                Default: ``None``, no parameters.
+		:param declaredItems:           Optional, list of all declared items in this sequential declaration region.
+		                                Default: ``None``, no declared items.
+		:param statements:              Optional, list of all sequential statements in the subprogram's body.
+		                                Default: ``None``, no statements.
+		:param documentation:           Optional, the documentation comment associated with this declaration.
+		                                Default: ``None``, no documentation.
+		:param parent:                  Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param genericGroups:           Optional, list of generic groups partitioning the generics, in declaration
+		                                order. Default: ``None``, one unnamed generic group.
+		:param parameterGroups:         Optional, list of parameter groups partitioning the parameters, in declaration
+		                                order. Default: ``None``, one unnamed parameter group.
 		"""
-		super().__init__(identifier, genericItems, parameterItems, declaredItems, statements, documentation, parent)
+		super().__init__(
+			identifier,
+			genericItems,
+			parameterItems,
+			declaredItems,
+			statements,
+			documentation,
+			parent,
+			genericGroups,
+			parameterGroups
+		)
 		SubprogramInstantiationMixin.__init__(self, subprogramReference, genericAssociationItems)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -202,7 +225,9 @@ class FunctionInstantiation(Function, SubprogramInstantiationMixin):
 		declaredItems: Nullable[Iterable] = None,
 		statements: Nullable[Iterable] = None,
 		documentation: Nullable[str] = None,
-		parent: Nullable[ModelEntity] = None
+		parent: Nullable[ModelEntity] = None,
+		genericGroups: Nullable[Iterable] = None,
+		parameterGroups: Nullable[Iterable] = None
 	) -> None:
 		# NOTE: deliberately calls Subprogram.__init__ directly, not super().__init__() (which would
 		# resolve to Function.__init__ and require a returnType that can never be known here - see
@@ -212,16 +237,38 @@ class FunctionInstantiation(Function, SubprogramInstantiationMixin):
 
 		:param identifier:              The identifier of a model entity.
 		:param subprogramReference:     Reference to the instantiated generic subprogram.
-		:param isPure:                  ``True`` if the subprogram was declared pure.
-		:param genericAssociationItems: List of all generic associations in the generic map aspect.
-		:param genericItems:            List of all generics, in declaration order.
-		:param parameterItems:          List of all parameters, in declaration order.
-		:param declaredItems:           List of all declared items in this sequential declaration region.
-		:param statements:              List of all sequential statements in the subprogram's body.
-		:param documentation:           The documentation comment associated with this declaration.
-		:param parent:                  The parent model entity of this entity.
+		:param isPure:                  Optional, ``True`` if the subprogram was declared pure. Default: ``True``.
+		:param genericAssociationItems: Optional, list of all generic associations in the generic map aspect.
+		                                Default: ``None``, no generic associations.
+		:param genericItems:            Optional, list of all generics, in declaration order.
+		                                Default: ``None``, no generics.
+		:param parameterItems:          Optional, list of all parameters, in declaration order.
+		                                Default: ``None``, no parameters.
+		:param declaredItems:           Optional, list of all declared items in this sequential declaration region.
+		                                Default: ``None``, no declared items.
+		:param statements:              Optional, list of all sequential statements in the subprogram's body.
+		                                Default: ``None``, no statements.
+		:param documentation:           Optional, the documentation comment associated with this declaration.
+		                                Default: ``None``, no documentation.
+		:param parent:                  Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param genericGroups:           Optional, list of generic groups partitioning the generics, in declaration
+		                                order. Default: ``None``, one unnamed generic group.
+		:param parameterGroups:         Optional, list of parameter groups partitioning the parameters, in declaration
+		                                order. Default: ``None``, one unnamed parameter group.
 		"""
-		Subprogram.__init__(self, identifier, isPure, genericItems, parameterItems, declaredItems, statements, documentation, parent)
+		Subprogram.__init__(
+			self,
+			identifier,
+			isPure,
+			genericItems,
+			parameterItems,
+			declaredItems,
+			statements,
+			documentation,
+			parent,
+			genericGroups,
+			parameterGroups
+		)
 		SubprogramInstantiationMixin.__init__(self, subprogramReference, genericAssociationItems)
 
 		self._returnType = None
@@ -278,10 +325,13 @@ class PackageInstantiation(Package, GenericInstantiationMixin, GenericMapAspectM
 
 		:param identifier:              The identifier of a model entity.
 		:param genericPackage:          Reference to the instantiated generic package.
-		:param contextItems:            List of all context items (library, use and context clauses).
-		:param genericAssociationItems: List of all generic associations in the generic map aspect.
-		:param documentation:           The documentation comment associated with this declaration.
-		:param parent:                  The parent model entity of this entity.
+		:param contextItems:            Optional, list of all context items (library, use and context clauses).
+		                                Default: ``None``, no context items.
+		:param genericAssociationItems: Optional, list of all generic associations in the generic map aspect.
+		                                Default: ``None``, no generic associations.
+		:param documentation:           Optional, the documentation comment associated with this declaration.
+		                                Default: ``None``, no documentation.
+		:param parent:                  Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, contextItems, documentation=documentation, parent=parent)
 		GenericEntityInstantiationMixin.__init__(self)

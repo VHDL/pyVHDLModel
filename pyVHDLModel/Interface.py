@@ -44,11 +44,9 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
 
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin, \
-                                   MultipleNamedEntityMixin, identifiersOf, normalizedIdentifiersOf, ExpressionUnion, \
-                                   Mode, ReservedWord
+                                   MultipleNamedEntityMixin, identifiersOf, ExpressionUnion, Mode, ReservedWord
 from pyVHDLModel.Exception  import NotAChildError
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
-from pyVHDLModel.Regions    import WithGenericsMixin, WithPortsMixin, WithParametersMixin
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
 
@@ -81,8 +79,9 @@ class ModeViewElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMix
 		Initializes a mode view element.
 
 		:param identifiers:   A list of identifiers.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		MultipleNamedEntityMixin.__init__(self, identifiers)
@@ -136,8 +135,9 @@ class SimpleModeViewElement(ModeViewElement):
 
 		:param identifiers:   A list of identifiers.
 		:param mode:          The element's mode.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, documentation, parent)
 		self._mode = mode
@@ -200,8 +200,9 @@ class CompositeModeViewElement(ModeViewElement):
 
 		:param identifiers:   A list of identifiers.
 		:param modeViewName:  Reference to the mode view applied to this element.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, documentation, parent)
 
@@ -279,9 +280,11 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		:param identifier:    The identifier of a model entity.
 		:param subtype:       Reference to the subtype this mode view applies to.
-		:param elements:      List of all mode view elements, in declaration order.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param elements:      Optional, list of all mode view elements, in declaration order.
+		                      Default: ``None``, no elements.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
@@ -405,6 +408,25 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Port signal interface item <pyVHDLModel.Interface.PortSignalInterfaceItem>`
 	"""
 
+	_group: Nullable[InterfaceGroup]  #: The interface group listing this item, or ``None``.
+
+	def __init__(self) -> None:
+		"""
+		Initializes an interface item, which is in no interface group.
+		"""
+		self._group = None
+
+	@readonly
+	def Group(self) -> Nullable[InterfaceGroup]:
+		"""
+		Read-only property to access the interface group listing this item (:attr:`_group`).
+
+		Every interface item of a language construct is in exactly one of the language construct's interface groups.
+
+		:returns: The interface group, or ``None`` if not set.
+		"""
+		return self._group
+
 	@expects("_OBJECT_KEYWORD", "_identifiers", "_subtype")
 	def _FormatInterfaceItem(self, mode: Nullable[Mode] = None, isModeView: bool = False) -> str:
 		"""
@@ -415,8 +437,9 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 		adds it, for the derived class's :meth:`__str__` to return. The host class provides the object's reserved words
 		``_OBJECT_KEYWORD``, identifiers ``_identifiers`` and subtype ``_subtype``.
 
-		:param mode:       This item's mode, or ``None`` when it declares none.
-		:param isModeView: ``True`` if the subtype position holds a mode view (VHDL-2019), not a subtype.
+		:param mode:       Optional, this item's mode. Default: ``None``, no mode declared.
+		:param isModeView: Optional, ``True`` if the subtype position holds a mode view (VHDL-2019), not a subtype.
+		                   Default: ``False``.
 		:returns:          Formatted interface item.
 		"""
 		prefix = "" if mode is None or mode is Mode.Default else f"{mode!s} "
@@ -595,9 +618,10 @@ class GenericConstantInterfaceItem(
 		:param identifiers:       A list of identifiers.
 		:param mode:              The interface item's mode.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
@@ -670,8 +694,9 @@ class GenericTypeInterfaceItem(Type, GenericInterfaceItemMixin):
 		Initializes a type in a generic clause.
 
 		:param identifier:    The identifier of a model entity.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
@@ -714,8 +739,9 @@ class GenericProcedureInterfaceItem(Procedure, GenericSubprogramInterfaceItemMix
 		Initializes a procedure in a generic clause.
 
 		:param identifier:    The identifier of a model entity.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation=documentation, parent=parent)
 		GenericSubprogramInterfaceItemMixin.__init__(self)
@@ -771,8 +797,9 @@ class GenericFunctionInterfaceItem(Function, GenericSubprogramInterfaceItemMixin
 
 		:param identifier:    The identifier of a model entity.
 		:param returnType:    Reference to the subtype of the function's return value.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, returnType, documentation=documentation, parent=parent)
 		GenericSubprogramInterfaceItemMixin.__init__(self)
@@ -821,8 +848,9 @@ class InterfacePackage(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		Initializes a package as a generic of a design unit.
 
 		:param identifier:    The identifier of a model entity.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
@@ -851,8 +879,9 @@ class GenericPackageInterfaceItem(InterfacePackage, GenericInterfaceItemMixin):
 		Initializes a package in a generic clause.
 
 		:param identifier:    The identifier of a model entity.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
@@ -928,11 +957,13 @@ class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem, InterfaceItemWithMo
 		:param identifiers:       A list of identifiers.
 		:param mode:              The interface item's mode.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
+		InterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
 	def Copy(self) -> Self:
@@ -1009,10 +1040,12 @@ class PortViewSignalInterfaceItem(PortSignalInterfaceItem, WithSingleDeclaration
 
 		:param identifiers:        A list of identifiers.
 		:param modeViewIndication: Reference to the mode view applied to this port.
-		:param documentation:      The documentation comment associated with this declaration.
-		:param parent:             The parent model entity of this entity.
+		:param documentation:      Optional, the documentation comment associated with this declaration.
+		                           Default: ``None``, no documentation.
+		:param parent:             Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, modeViewIndication, None, documentation, parent)
+		InterfaceItemMixin.__init__(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1089,9 +1122,10 @@ class ParameterConstantInterfaceItem(
 		:param identifiers:       A list of identifiers.
 		:param mode:              The interface item's mode.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
@@ -1179,9 +1213,10 @@ class ParameterVariableInterfaceItem(
 		:param identifiers:       A list of identifiers.
 		:param mode:              The interface item's mode.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
@@ -1301,9 +1336,10 @@ class ParameterSimpleSignalInterfaceItem(
 		:param identifiers:       A list of identifiers.
 		:param mode:              The interface item's mode.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
@@ -1383,8 +1419,9 @@ class ParameterViewSignalInterfaceItem(ParameterSignalInterfaceItem, WithSingleD
 
 		:param identifiers:        A list of identifiers.
 		:param modeViewIndication: Reference to the mode view applied to this parameter.
-		:param documentation:      The documentation comment associated with this declaration.
-		:param parent:             The parent model entity of this entity.
+		:param documentation:      Optional, the documentation comment associated with this declaration.
+		                           Default: ``None``, no documentation.
+		:param parent:             Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, modeViewIndication, None, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
@@ -1455,8 +1492,9 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin, WithSingleDe
 
 		:param identifiers:   A list of identifiers.
 		:param subtype:       Reference to the object's subtype.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
@@ -2084,9 +2122,16 @@ ParameterFileInterfaceItem._SINGLE_DECLARATION = SingleParameterFileDeclaration
 @export
 class InterfaceGroup(ModelEntity, OptionallyNamedEntityMixin, DocumentedEntityMixin):
 	"""
-	Represents a group of interface items sharing one clause.
+	Represents a group of interface items of a language construct.
 
-	The group may be named (:data:`Identifier`), which is optional.
+	VHDL has no syntax for interface groups: a group structures and documents the interface items of a language
+	construct, e.g. the ports of one bus interface. A group is a non-owning view: it lists interface items in declaration
+	order, while each item's parent stays the language construct. The group's parent is the language construct too.
+
+	The groups of a language construct partition its interface items of one kind: concatenated in order, the groups list
+	every item exactly once, in declaration order. A run of items without a named group forms an unnamed group (its
+	:data:`Identifier` is ``None``). Each item refers to its group by
+	:data:`~pyVHDLModel.Interface.InterfaceItemMixin.Group`.
 
 	.. seealso::
 
@@ -2096,48 +2141,39 @@ class InterfaceGroup(ModelEntity, OptionallyNamedEntityMixin, DocumentedEntityMi
 	"""
 	def __init__(
 		self,
-		name:   Nullable[str] = None,
+		name:          Nullable[str] = None,
 		documentation: Nullable[str] = None,
-		parent: Nullable[ModelEntity] = None
+		parent:        Nullable[ModelEntity] = None
 	) -> None:
 		"""
-		Initializes a group of interface items sharing one clause.
+		Initializes a group of interface items.
 
-		:param name:          The group's name.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param name:          Optional, the group's name. Default: ``None``, an unnamed group.
+		:param documentation: Optional, the documentation comment associated with this group. Default: ``None``.
+		:param parent:        Optional, the language construct of the grouped interface items. Default: ``None``.
 		"""
 		super().__init__(parent)
 		OptionallyNamedEntityMixin.__init__(self, name)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
-		"""
-		Add nothing, because an interface group has no namespace.
-
-		:param element: The named element, e.g. an interface item.
-		"""
-
-	def _RemoveFromNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
-		"""
-		Remove nothing, because an interface group has no namespace.
-
-		:param element: The named element, e.g. an interface item.
-		"""
-
 
 @export
-class GenericGroup(InterfaceGroup, WithGenericsMixin):
+class GenericGroup(InterfaceGroup):
 	"""
-	Represents the generic clause of a design unit.
+	Represents a group of generics of a language construct.
 
-	The generics are available as :data:`GenericItems`.
+	A generic group is a non-owning view: it lists generics (:data:`GenericItems`) of a language construct, e.g. an
+	entity, in declaration order, while the generics' parent stays the language construct. The generic groups of a
+	language construct partition its generic clause (:data:`~pyVHDLModel.Regions.WithGenericsMixin.GenericGroups`):
+	concatenated in order, they list every generic exactly once, in declaration order.
 
 	.. seealso::
 
-	   * :class:`Port clause <pyVHDLModel.Interface.PortGroup>`
-	   * :class:`Parameter list <pyVHDLModel.Interface.ParameterGroup>`
+	   * :class:`Port group <pyVHDLModel.Interface.PortGroup>`
+	   * :class:`Parameter group <pyVHDLModel.Interface.ParameterGroup>`
 	"""
+	_genericItems: list[GenericInterfaceItemMixin]  #: List of the grouped generics, in declaration order.
+
 	def __init__(
 		self,
 		genericItems:  Iterable[GenericInterfaceItemMixin],
@@ -2148,13 +2184,53 @@ class GenericGroup(InterfaceGroup, WithGenericsMixin):
 		"""
 		Initializes a generic group.
 
-		:param genericItems:  List of all generics, in declaration order.
-		:param name:          The group's name.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		The generics are recorded, but not changed: the language construct accepting the group sets the group's parent
+		and each generic's :data:`~pyVHDLModel.Interface.InterfaceItemMixin.Group`.
+
+		:param genericItems:  List of the grouped generics, in declaration order.
+		:param name:          Optional, the group's name. Default: ``None``, an unnamed group.
+		:param documentation: Optional, the documentation comment associated with this group. Default: ``None``.
+		:param parent:        Optional, the language construct of the grouped generics. Default: ``None``.
+		:raises ValueError:   If parameter 'genericItems' is ``None``.
+		:raises TypeError:    If parameter 'genericItems' is not iterable.
+		:raises TypeError:    If an element of parameter 'genericItems' is not of type
+		                      :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises ValueError:   If an element of parameter 'genericItems' is in a generic group of a language construct.
+		:raises ValueError:   If parameter 'genericItems' is empty.
 		"""
 		super().__init__(name, documentation, parent)
-		WithGenericsMixin.__init__(self, genericItems)
+
+		if genericItems is None:
+			raise ValueError("Parameter 'genericItems' is None.")
+		elif not isinstance(genericItems, Iterable):
+			ex = TypeError("Parameter 'genericItems' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(genericItems)}'.")
+			raise ex
+
+		self._genericItems = genericItemList = []
+		for item in genericItems:
+			if not isinstance(item, GenericInterfaceItemMixin):
+				ex = TypeError("Element of parameter 'genericItems' is not of type 'GenericInterfaceItemMixin'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+				raise ex
+			elif item._group is not None:
+				ex = ValueError("Element of parameter 'genericItems' is in a generic group of a language construct.")
+				ex.add_note(f"Got generic '{', '.join(identifiersOf(item))}' of {getTypeName(item._parent)}.")
+				raise ex
+
+			genericItemList.append(item)
+
+		if len(genericItemList) == 0:
+			raise ValueError("Parameter 'genericItems' is empty.")
+
+	@readonly
+	def GenericItems(self) -> list[GenericInterfaceItemMixin]:
+		"""
+		Read-only property to access the grouped generics (:attr:`_genericItems`).
+
+		:returns: List of generics, in declaration order.
+		"""
+		return self._genericItems
 
 	def __len__(self) -> int:
 		"""
@@ -2183,35 +2259,27 @@ class GenericGroup(InterfaceGroup, WithGenericsMixin):
 		names = ", ".join(name for item in self._genericItems for name in identifiersOf(item))
 		return f"GenericGroup: {self._identifier} ({len(self._genericItems)}): {names}"
 
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
-		"""
-		Return the generics of this group sharing an identifier with the given item.
-
-		:param item: The new generic.
-		:returns:    Tuple of clashing generics.
-		"""
-		identifiers = set(normalizedIdentifiersOf(item))
-		return tuple(
-			declaration for declaration in self._genericItems
-			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-		)
-
 
 @export
-class PortGroup(InterfaceGroup, WithPortsMixin):
+class PortGroup(InterfaceGroup):
 	"""
-	Represents the port clause of a design unit.
+	Represents a group of ports of a language construct.
 
-	The ports are available as :data:`PortItems`.
+	A port group is a non-owning view: it lists ports (:data:`PortItems`) of a language construct, e.g. an entity, in
+	declaration order, while the ports' parent stays the language construct. The port groups of a language construct
+	partition its port clause (:data:`~pyVHDLModel.Regions.WithPortsMixin.PortGroups`): concatenated in order, they
+	list every port exactly once, in declaration order.
 
 	.. seealso::
 
-	   * :class:`Generic clause <pyVHDLModel.Interface.GenericGroup>`
-	   * :class:`Parameter list <pyVHDLModel.Interface.ParameterGroup>`
+	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
+	   * :class:`Parameter group <pyVHDLModel.Interface.ParameterGroup>`
 	"""
+	_portItems: list[PortSignalInterfaceItem]  #: List of the grouped ports, in declaration order.
+
 	def __init__(
 		self,
-		portItems:     Iterable[PortInterfaceItemMixin],
+		portItems:     Iterable[PortSignalInterfaceItem],
 		name:          Nullable[str] = None,
 		documentation: Nullable[str] = None,
 		parent:        Nullable[ModelEntity] = None
@@ -2219,13 +2287,53 @@ class PortGroup(InterfaceGroup, WithPortsMixin):
 		"""
 		Initializes a port group.
 
-		:param portItems:     List of all ports, in declaration order.
-		:param name:          The group's name.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		The ports are recorded, but not changed: the language construct accepting the group sets the group's parent and
+		each port's :data:`~pyVHDLModel.Interface.InterfaceItemMixin.Group`.
+
+		:param portItems:     List of the grouped ports, in declaration order.
+		:param name:          Optional, the group's name. Default: ``None``, an unnamed group.
+		:param documentation: Optional, the documentation comment associated with this group. Default: ``None``.
+		:param parent:        Optional, the language construct of the grouped ports. Default: ``None``.
+		:raises ValueError:   If parameter 'portItems' is ``None``.
+		:raises TypeError:    If parameter 'portItems' is not iterable.
+		:raises TypeError:    If an element of parameter 'portItems' is not of type
+		                      :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises ValueError:   If an element of parameter 'portItems' is in a port group of a language construct.
+		:raises ValueError:   If parameter 'portItems' is empty.
 		"""
 		super().__init__(name, documentation, parent)
-		WithPortsMixin.__init__(self, portItems)
+
+		if portItems is None:
+			raise ValueError("Parameter 'portItems' is None.")
+		elif not isinstance(portItems, Iterable):
+			ex = TypeError("Parameter 'portItems' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(portItems)}'.")
+			raise ex
+
+		self._portItems = portItemList = []
+		for item in portItems:
+			if not isinstance(item, PortSignalInterfaceItem):
+				ex = TypeError("Element of parameter 'portItems' is not of type 'PortSignalInterfaceItem'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+				raise ex
+			elif item._group is not None:
+				ex = ValueError("Element of parameter 'portItems' is in a port group of a language construct.")
+				ex.add_note(f"Got port '{', '.join(item._identifiers)}' of {getTypeName(item._parent)}.")
+				raise ex
+
+			portItemList.append(item)
+
+		if len(portItemList) == 0:
+			raise ValueError("Parameter 'portItems' is empty.")
+
+	@readonly
+	def PortItems(self) -> list[PortSignalInterfaceItem]:
+		"""
+		Read-only property to access the grouped ports (:attr:`_portItems`).
+
+		:returns: List of ports, in declaration order.
+		"""
+		return self._portItems
 
 	def __len__(self) -> int:
 		"""
@@ -2235,7 +2343,7 @@ class PortGroup(InterfaceGroup, WithPortsMixin):
 		"""
 		return len(self._portItems)
 
-	def __iter__(self) -> Iterator[PortInterfaceItemMixin]:
+	def __iter__(self) -> Iterator[PortSignalInterfaceItem]:
 		"""
 		Iterates the ports in this group.
 
@@ -2254,32 +2362,24 @@ class PortGroup(InterfaceGroup, WithPortsMixin):
 		names = ", ".join(name for item in self._portItems for name in identifiersOf(item))
 		return f"PortGroup: {self._identifier} ({len(self._portItems)}): {names}"
 
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
-		"""
-		Return the ports of this group sharing an identifier with the given item.
-
-		:param item: The new port.
-		:returns:    Tuple of clashing ports.
-		"""
-		identifiers = set(normalizedIdentifiersOf(item))
-		return tuple(
-			declaration for declaration in self._portItems
-			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-		)
-
 
 @export
-class ParameterGroup(InterfaceGroup, WithParametersMixin):
+class ParameterGroup(InterfaceGroup):
 	"""
-	Represents the parameter list of a subprogram.
+	Represents a group of parameters of a subprogram.
 
-	The parameters are available as :data:`ParameterItems`.
+	A parameter group is a non-owning view: it lists parameters (:data:`ParameterItems`) of a subprogram in declaration
+	order, while the parameters' parent stays the subprogram. The parameter groups of a subprogram partition its
+	parameter list (:data:`~pyVHDLModel.Regions.WithParametersMixin.ParameterGroups`): concatenated in order, they list
+	every parameter exactly once, in declaration order.
 
 	.. seealso::
 
-	   * :class:`Generic clause <pyVHDLModel.Interface.GenericGroup>`
-	   * :class:`Port clause <pyVHDLModel.Interface.PortGroup>`
+	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
+	   * :class:`Port group <pyVHDLModel.Interface.PortGroup>`
 	"""
+	_parameterItems: list[ParameterInterfaceItemMixin]  #: List of the grouped parameters, in declaration order.
+
 	def __init__(
 		self,
 		parameterItems: Iterable[ParameterInterfaceItemMixin],
@@ -2290,13 +2390,53 @@ class ParameterGroup(InterfaceGroup, WithParametersMixin):
 		"""
 		Initializes a parameter group.
 
-		:param parameterItems: List of all parameters, in declaration order.
-		:param name:           The group's name.
-		:param documentation:  The documentation comment associated with this declaration.
-		:param parent:         The parent model entity of this entity.
+		The parameters are recorded, but not changed: the subprogram accepting the group sets the group's parent and each
+		parameter's :data:`~pyVHDLModel.Interface.InterfaceItemMixin.Group`.
+
+		:param parameterItems: List of the grouped parameters, in declaration order.
+		:param name:           Optional, the group's name. Default: ``None``, an unnamed group.
+		:param documentation:  Optional, the documentation comment associated with this group. Default: ``None``.
+		:param parent:         Optional, the subprogram of the grouped parameters. Default: ``None``.
+		:raises ValueError:    If parameter 'parameterItems' is ``None``.
+		:raises TypeError:     If parameter 'parameterItems' is not iterable.
+		:raises TypeError:     If an element of parameter 'parameterItems' is not of type
+		                       :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises ValueError:    If an element of parameter 'parameterItems' is in a parameter group of a subprogram.
+		:raises ValueError:    If parameter 'parameterItems' is empty.
 		"""
 		super().__init__(name, documentation, parent)
-		WithParametersMixin.__init__(self, parameterItems)
+
+		if parameterItems is None:
+			raise ValueError("Parameter 'parameterItems' is None.")
+		elif not isinstance(parameterItems, Iterable):
+			ex = TypeError("Parameter 'parameterItems' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parameterItems)}'.")
+			raise ex
+
+		self._parameterItems = parameterItemList = []
+		for item in parameterItems:
+			if not isinstance(item, ParameterInterfaceItemMixin):
+				ex = TypeError("Element of parameter 'parameterItems' is not of type 'ParameterInterfaceItemMixin'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+				raise ex
+			elif item._group is not None:
+				ex = ValueError("Element of parameter 'parameterItems' is in a parameter group of a subprogram.")
+				ex.add_note(f"Got parameter '{', '.join(item._identifiers)}' of {getTypeName(item._parent)}.")
+				raise ex
+
+			parameterItemList.append(item)
+
+		if len(parameterItemList) == 0:
+			raise ValueError("Parameter 'parameterItems' is empty.")
+
+	@readonly
+	def ParameterItems(self) -> list[ParameterInterfaceItemMixin]:
+		"""
+		Read-only property to access the grouped parameters (:attr:`_parameterItems`).
+
+		:returns: List of parameters, in declaration order.
+		"""
+		return self._parameterItems
 
 	def __len__(self) -> int:
 		"""
@@ -2324,19 +2464,3 @@ class ParameterGroup(InterfaceGroup, WithParametersMixin):
 		"""
 		names = ", ".join(name for item in self._parameterItems for name in identifiersOf(item))
 		return f"ParameterGroup: {self._identifier} ({len(self._parameterItems)}): {names}"
-
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
-		"""
-		Return the parameters of this group sharing an identifier with the given item.
-
-		:param item: The new parameter.
-		:returns:    Tuple of clashing parameters.
-		"""
-		identifiers = set(normalizedIdentifiersOf(item))
-		return tuple(
-			declaration for declaration in self._parameterItems
-			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-		)
-
-	def _ParameterItemsChanged(self) -> None:
-		"""Do nothing, because a parameter group keeps nothing derived from its parameters."""

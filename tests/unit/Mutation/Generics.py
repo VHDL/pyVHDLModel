@@ -31,8 +31,8 @@
 """
 Mutation tests for generic clauses (:class:`~pyVHDLModel.Regions.WithGenericsMixin`).
 
-The mutators are tested on an entity and a subprogram (declarative regions with a namespace), a component (no
-namespace) and a generic group.
+The mutators are tested on an entity and a subprogram (declarative regions with a namespace) and a component (no
+namespace). The generic groups of the language construct stay a partition of its generic clause.
 """
 from pyTooling.MetaClasses  import UnfulfilledExpectationError
 from pyTooling.Warning      import WarningCollector
@@ -41,11 +41,12 @@ from pyTooling.Testing      import Testcase
 from pyVHDLModel.Base       import ModelEntity
 from pyVHDLModel.DesignUnit import Component, Entity
 from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicateGenericError, NotInNamespaceError
-from pyVHDLModel.Interface  import GenericTypeInterfaceItem, GenericGroup
+from pyVHDLModel.Interface  import GenericTypeInterfaceItem, GenericFunctionInterfaceItem, GenericGroup
 from pyVHDLModel.Regions    import WithGenericsMixin
 from pyVHDLModel.Subprogram import Procedure
 
-from tests.unit.Mutation    import _generic, _port
+from tests.unit             import _subtypeSymbol
+from tests.unit.Mutation    import _generic, _port, _reindexed
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -86,15 +87,6 @@ class Generics(Testcase):
 
 		self.assertListEqual([bits], component.GenericItems)
 		self.assertIs(component, bits.Parent)
-
-	def test_Add_Group(self) -> None:
-		group = GenericGroup([])
-		bits = _generic("BITS")
-
-		group.AddGenericItem(bits)
-
-		self.assertListEqual([bits], group.GenericItems)
-		self.assertIs(group, bits.Parent)
 
 	def test_Add_Subprogram(self) -> None:
 		procedure = Procedure("p")
@@ -466,3 +458,265 @@ class Generics(Testcase):
 			],
 			context.exception.__notes__
 		)
+
+
+class GenericGroups(Testcase):
+	def _Entity(self) -> tuple[Entity, GenericGroup, GenericGroup, GenericGroup]:
+		"""Return an entity with the generic groups ``WIDTH, DEPTH | IN_WIDTH, IN_DEPTH | DEBUG``."""
+		sizes = GenericGroup([_generic("WIDTH"), _generic("DEPTH")])
+		inbound =  GenericGroup([_generic("IN_WIDTH"), _generic("IN_DEPTH")], name="In")
+		debugging =   GenericGroup([_generic("DEBUG")])
+		entity =   Entity("e", genericItems=[*sizes, *inbound, *debugging], genericGroups=[sizes, inbound, debugging])
+
+		return entity, sizes, inbound, debugging
+
+	def assertPartition(self, entity: Entity) -> None:
+		"""Assert the generic groups list every generic once, in declaration order, and each generic refers to its group."""
+		self.assertListEqual(entity.GenericItems, [generic for group in entity.GenericGroups for generic in group])
+		for group in entity.GenericGroups:
+			self.assertIs(entity, group.Parent)
+			self.assertGreater(len(group), 0)
+			for generic in group:
+				self.assertIs(group, generic.Group)
+
+	def test_Add(self) -> None:
+		entity, sizes, inbound, debugging = self._Entity()
+		trace = _generic("TRACE")
+
+		entity.AddGenericItem(trace)
+
+		self.assertIs(debugging, trace.Group)
+		self.assertListEqual([sizes, inbound, debugging], entity.GenericGroups)
+		self.assertPartition(entity)
+
+	def test_Add_NoGenerics(self) -> None:
+		entity = Entity("e")
+		width = _generic("WIDTH")
+
+		entity.AddGenericItem(width)
+
+		self.assertEqual(1, len(entity.GenericGroups))
+		self.assertIsNone(entity.GenericGroups[0].Identifier)
+		self.assertListEqual([width], entity.GenericGroups[0].GenericItems)
+		self.assertPartition(entity)
+
+	def test_Add_Group(self) -> None:
+		entity, sizes, inbound, debugging = self._Entity()
+		inLatency = _generic("IN_LATENCY")
+
+		entity.AddGenericItem(inLatency, inbound)
+
+		self.assertIs(inbound, inLatency.Group)
+		self.assertIs(inLatency, inbound.GenericItems[-1])
+		self.assertIs(inLatency, entity.GenericItems[4])
+		self.assertPartition(entity)
+
+	def test_Add_Group_Foreign(self) -> None:
+		entity, sizes, inbound, debugging = self._Entity()
+		other, _, otherInbound, _ = self._Entity()
+		inLatency = _generic("IN_LATENCY")
+
+		with self.assertRaises(NotAChildError) as context:
+			entity.AddGenericItem(inLatency, otherInbound)
+
+		self.assertEqual("GenericGroup 'In' is not a generic group of this Entity.", str(context.exception))
+		self.assertIs(otherInbound, context.exception.Element)
+		self.assertIs(entity, context.exception.Parent)
+		self.assertIsNone(inLatency.Parent)
+		self.assertIsNone(inLatency.Group)
+
+	def test_Insert_Middle(self) -> None:
+		"""Without a generic group, the generic joins the generic group of the generic before it."""
+		entity, sizes, inbound, debugging = self._Entity()
+		size = _generic("SIZE")
+
+		entity.InsertGenericItem(2, size)
+
+		self.assertIs(sizes, size.Group)
+		self.assertListEqual(["WIDTH", "DEPTH", "SIZE"], [generic.Identifiers[0] for generic in sizes])
+		self.assertPartition(entity)
+
+	def test_Insert_Start(self) -> None:
+		"""At index 0, the generic joins the generic group of the first generic."""
+		entity, sizes, inbound, debugging = self._Entity()
+		size = _generic("SIZE")
+
+		entity.InsertGenericItem(0, size)
+
+		self.assertIs(sizes, size.Group)
+		self.assertIs(size, sizes.GenericItems[0])
+		self.assertPartition(entity)
+
+	def test_Insert_Negative(self) -> None:
+		entity, sizes, inbound, debugging = self._Entity()
+		size = _generic("SIZE")
+
+		entity.InsertGenericItem(-1, size)
+
+		self.assertIs(inbound, size.Group)
+		self.assertIs(size, entity.GenericItems[4])
+		self.assertPartition(entity)
+
+	def test_Insert_Group(self) -> None:
+		entity, sizes, inbound, debugging = self._Entity()
+		inLatency = _generic("IN_LATENCY")
+
+		entity.InsertGenericItem(3, inLatency, inbound)
+
+		self.assertIs(inbound, inLatency.Group)
+		self.assertListEqual(["IN_WIDTH", "IN_LATENCY", "IN_DEPTH"], [generic.Identifiers[0] for generic in inbound])
+		self.assertPartition(entity)
+
+	def test_Insert_Group_Start(self) -> None:
+		"""A generic group given takes a generic at its start, although the generic before is in another generic group."""
+		entity, sizes, inbound, debugging = self._Entity()
+		inLatency = _generic("IN_LATENCY")
+
+		entity.InsertGenericItem(2, inLatency, inbound)
+
+		self.assertIs(inbound, inLatency.Group)
+		self.assertIs(inLatency, inbound.GenericItems[0])
+		self.assertPartition(entity)
+
+	def test_Insert_Group_End(self) -> None:
+		entity, sizes, inbound, debugging = self._Entity()
+		inLatency = _generic("IN_LATENCY")
+
+		entity.InsertGenericItem(4, inLatency, inbound)
+
+		self.assertIs(inbound, inLatency.Group)
+		self.assertIs(inLatency, inbound.GenericItems[-1])
+		self.assertPartition(entity)
+
+	def test_Insert_Group_Outside(self) -> None:
+		entity, sizes, inbound, debugging = self._Entity()
+		inLatency = _generic("IN_LATENCY")
+
+		with self.assertRaises(ValueError) as context:
+			entity.InsertGenericItem(5, inLatency, inbound)
+
+		self.assertEqual("Parameter 'index' is outside of parameter 'group' at 2..4.", str(context.exception))
+		self.assertListEqual(["Got value '5'."], context.exception.__notes__)
+		self.assertIsNone(inLatency.Parent)
+		self.assertIsNone(inLatency.Group)
+		self.assertEqual(5, entity.GenericCount)
+
+	def test_Insert_Group_Foreign(self) -> None:
+		entity, sizes, inbound, debugging = self._Entity()
+		group = GenericGroup([_generic("X")])
+		inLatency = _generic("IN_LATENCY")
+
+		with self.assertRaises(NotAChildError) as context:
+			entity.InsertGenericItem(0, inLatency, group)
+
+		self.assertEqual("GenericGroup is not a generic group of this Entity.", str(context.exception))
+		self.assertIs(group, context.exception.Element)
+		self.assertIsNone(inLatency.Parent)
+
+	def test_Insert_Group_WrongType(self) -> None:
+		entity, sizes, inbound, debugging = self._Entity()
+		inLatency = _generic("IN_LATENCY")
+
+		with self.assertRaises(TypeError) as context:
+			entity.InsertGenericItem(0, inLatency, "In")
+
+		self.assertEqual("Parameter 'group' is not of type 'GenericGroup'.", str(context.exception))
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
+		self.assertIsNone(inLatency.Parent)
+
+	def test_Remove(self) -> None:
+		entity, sizes, inbound, debugging = self._Entity()
+		inDepth = inbound.GenericItems[1]
+
+		entity.RemoveGenericItem(inDepth)
+
+		self.assertIsNone(inDepth.Group)
+		self.assertListEqual(["IN_WIDTH"], [generic.Identifiers[0] for generic in inbound])
+		self.assertListEqual([sizes, inbound, debugging], entity.GenericGroups)
+		self.assertPartition(entity)
+
+	def test_Remove_LastGenericOfGroup(self) -> None:
+		"""A generic group, which becomes empty, is removed from the language construct."""
+		entity, sizes, inbound, debugging = self._Entity()
+		debug = debugging.GenericItems[0]
+
+		entity.RemoveGenericItem(debug)
+
+		self.assertIsNone(debug.Group)
+		self.assertIsNone(debugging.Parent)
+		self.assertListEqual([sizes, inbound], entity.GenericGroups)
+		self.assertPartition(entity)
+
+	def test_Remove_AddElsewhere(self) -> None:
+		entity, sizes, inbound, debugging = self._Entity()
+		debug = debugging.GenericItems[0]
+		component = Component("c")
+
+		entity.RemoveGenericItem(debug)
+		component.AddGenericItem(debug)
+
+		self.assertIs(component.GenericGroups[0], debug.Group)
+		self.assertPartition(component)
+
+	def test_Move(self) -> None:
+		"""A moved generic leaves its generic group and joins the generic group of the generic before its new position."""
+		entity, sizes, inbound, debugging = self._Entity()
+		depth = sizes.GenericItems[1]
+
+		entity.MoveGenericItem(depth, 2)
+
+		self.assertIs(inbound, depth.Group)
+		self.assertListEqual(["WIDTH"], [generic.Identifiers[0] for generic in sizes])
+		self.assertListEqual(["IN_WIDTH", "DEPTH", "IN_DEPTH"], [generic.Identifiers[0] for generic in inbound])
+		self.assertPartition(entity)
+
+	def test_Move_Start(self) -> None:
+		entity, sizes, inbound, debugging = self._Entity()
+		inDepth = inbound.GenericItems[1]
+
+		entity.MoveGenericItem(inDepth, 0)
+
+		self.assertIs(sizes, inDepth.Group)
+		self.assertIs(inDepth, sizes.GenericItems[0])
+		self.assertPartition(entity)
+
+	def test_Move_LastGenericOfGroup(self) -> None:
+		"""Moving the only generic of a generic group removes the generic group."""
+		entity, sizes, inbound, debugging = self._Entity()
+		debug = debugging.GenericItems[0]
+
+		entity.MoveGenericItem(debug, 0)
+
+		self.assertIs(sizes, debug.Group)
+		self.assertIsNone(debugging.Parent)
+		self.assertListEqual([sizes, inbound], entity.GenericGroups)
+		self.assertPartition(entity)
+
+	def test_Move_SamePosition(self) -> None:
+		"""A move to the generic's current position keeps its generic group."""
+		entity, sizes, inbound, debugging = self._Entity()
+		inWidth = inbound.GenericItems[0]
+
+		entity.MoveGenericItem(inWidth, 2)
+
+		self.assertIs(inbound, inWidth.Group)
+		self.assertPartition(entity)
+
+	def test_Move_Overload(self) -> None:
+		"""A moved generic subprogram changes its generic group; the namespace refers to the overload declared last."""
+		overload1 = GenericFunctionInterfaceItem("f", _subtypeSymbol("integer"))
+		overload2 = GenericFunctionInterfaceItem("f", _subtypeSymbol("integer"))
+		first =     GenericGroup([overload1])
+		second =    GenericGroup([overload2])
+		entity =    Entity("e", genericItems=[overload1, overload2], genericGroups=[first, second])
+		entity.IndexDeclaredItems()
+
+		entity.MoveGenericItem(overload2, 0)
+
+		self.assertListEqual([overload2, overload1], entity.GenericItems)
+		self.assertIs(first, overload2.Group)
+		self.assertListEqual([first], entity.GenericGroups)
+		self.assertIsNone(second.Parent)
+		self.assertIs(overload1, entity._namespace._elements["f"])
+		self.assertDictEqual(*_reindexed(entity))
+		self.assertPartition(entity)

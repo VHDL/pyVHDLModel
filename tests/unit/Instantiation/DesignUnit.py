@@ -41,6 +41,7 @@ from pyTooling.Warning      import CriticalWarning
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import VHDLModelException
+from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Exception  import BlackboxWarning, VHDLModelWarning
 from pyVHDLModel.Name       import SimpleName, SelectedName
 from pyVHDLModel.Symbol     import EntitySymbol, PackageSymbol, LibraryReferenceSymbol, SimpleSubtypeSymbol
@@ -50,8 +51,9 @@ from pyVHDLModel.Subprogram import Function, Procedure
 from pyVHDLModel.DesignUnit import Reference, LibraryClause, UseClause, ContextReference, DesignUnit, PrimaryUnit, \
                                    SecondaryUnit, Context, Package, PackageBody, Entity, Architecture, Component, \
                                    Configuration
+from pyVHDLModel.Interface  import GenericTypeInterfaceItem, PortSimpleSignalInterfaceItem
 
-from tests.unit             import _Element, _entitySymbol
+from tests.unit             import _Element, _entitySymbol, _subtypeSymbol
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -340,12 +342,9 @@ class Components(Testcase):
 		self.assertIsNone(component.Entity)
 
 	def test_WithGenericAndPortItems(self) -> None:
-		"""Uses bare ``ModelEntity`` stand-ins - ``Component``'s own generic-/port-item loops only
-		append and set ``.Parent``, they don't care about the item's real type (real
-		``GenericInterfaceItemMixin``/``PortInterfaceItemMixin`` classes are covered in their own
-		slice)."""
-		genericItem = _Element()
-		portItem = _Element()
+		"""A generic and a port are checked by their group, so they are real interface items."""
+		genericItem = GenericTypeInterfaceItem("T")
+		portItem = PortSimpleSignalInterfaceItem(["p"], Mode.In, _subtypeSymbol("bit"))
 		component = Component("comp", genericItems=[genericItem], portItems=[portItem])
 
 		self.assertEqual(1, len(component.GenericItems))

@@ -92,7 +92,8 @@ class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True, expects=("_parent",
 		"""
 		Initializes a hierarchical model entity allow for blackboxes.
 
-		:param allowBlackbox: Allow blackboxes for components in language entity.
+		:param allowBlackbox: Optional, allow blackboxes for components in language entity.
+		                      Default: ``None``, inherited from the parent.
 		"""
 		self._allowBlackbox = allowBlackbox
 
@@ -140,8 +141,8 @@ class Statement(ModelEntity, LabeledEntityMixin):
 		"""
 		Initializes a statement.
 
-		:param label:  The label of a model entity.
-		:param parent: The parent model entity of this entity.
+		:param label:  Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		LabeledEntityMixin.__init__(self, label)
@@ -172,7 +173,8 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 		Initializes a procedure call.
 
 		:param procedureName:             Reference to the called procedure.
-		:param parameterAssociationItems: List of all parameter associations of the call.
+		:param parameterAssociationItems: Optional, list of all parameter associations of the call.
+		                                  Default: ``None``, no parameter associations.
 		"""
 		self._procedure = procedureName
 		procedureName.Parent = self
@@ -616,8 +618,9 @@ class ConditionalWaveform(ModelEntity, WaveformMixin, ConditionalMixin):
 		Initializes a conditional waveform.
 
 		:param waveform:  List of all waveform elements, in the order they were written.
-		:param condition: The condition selecting this alternative.
-		:param parent:    The parent model entity of this entity.
+		:param condition: Optional, the condition selecting this alternative.
+		                  Default: ``None``, the final alternative without ``when``.
+		:param parent:    Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		WaveformMixin.__init__(self, waveform)
@@ -669,8 +672,9 @@ class ConditionalExpression(ModelEntity, ExpressionMixin, ConditionalMixin):
 		Initializes a conditional expression.
 
 		:param expression: The value assigned when the condition holds.
-		:param condition:  The condition selecting this alternative.
-		:param parent:     The parent model entity of this entity.
+		:param condition:  Optional, the condition selecting this alternative.
+		                   Default: ``None``, the final alternative without ``when``.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		ExpressionMixin.__init__(self, expression)
@@ -769,7 +773,7 @@ class SelectedWaveform(BaseCase, WaveformMixin, ChoicesMixin):
 
 		:param choices:  List of all choices selecting this alternative.
 		:param waveform: List of all waveform elements, in the order they were written.
-		:param parent:   The parent model entity of this entity.
+		:param parent:   Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		WaveformMixin.__init__(self, waveform)
@@ -813,7 +817,7 @@ class OthersSelectedWaveform(BaseCase, WaveformMixin):
 		Initializes an others selected waveform.
 
 		:param waveform: List of all waveform elements, in the order they were written.
-		:param parent:   The parent model entity of this entity.
+		:param parent:   Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		WaveformMixin.__init__(self, waveform)
@@ -861,7 +865,7 @@ class SelectedExpression(BaseCase, ExpressionMixin, ChoicesMixin):
 
 		:param choices:    List of all choices selecting this alternative.
 		:param expression: The value assigned for the matching choices.
-		:param parent:     The parent model entity of this entity.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		ExpressionMixin.__init__(self, expression)
@@ -905,7 +909,7 @@ class OthersSelectedExpression(BaseCase, ExpressionMixin):
 		Initializes an others selected expression.
 
 		:param expression: The value assigned for every unnamed choice.
-		:param parent:     The parent model entity of this entity.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		ExpressionMixin.__init__(self, expression)

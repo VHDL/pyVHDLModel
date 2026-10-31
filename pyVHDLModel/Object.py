@@ -85,8 +85,9 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 
 		:param identifiers:   A list of identifiers.
 		:param subtype:       Reference to the object's subtype.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		MultipleNamedEntityMixin.__init__(self, identifiers)
@@ -167,7 +168,7 @@ class WithDefaultExpressionMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Initializes an object with a default expression.
 
-		:param defaultExpression: The default value, or ``None`` if none was given.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
 		"""
 		self._defaultExpression = defaultExpression
 		if defaultExpression is not None:
@@ -240,9 +241,10 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 
 		:param identifiers:       A list of identifiers.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, documentation, parent)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
@@ -300,8 +302,9 @@ class DeferredConstant(BaseConstant):
 
 		:param identifiers:   A list of identifiers.
 		:param subtype:       Reference to the object's subtype.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, documentation, parent)
 
@@ -374,9 +377,10 @@ class Variable(Obj, WithDefaultExpressionMixin):
 
 		:param identifiers:       A list of identifiers.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, documentation, parent)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)
@@ -463,9 +467,10 @@ class Signal(Obj, WithDefaultExpressionMixin):
 
 		:param identifiers:       A list of identifiers.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, documentation, parent)
 		WithDefaultExpressionMixin.__init__(self, defaultExpression)

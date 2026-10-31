@@ -50,7 +50,7 @@ __author__ =            "Patrick Lehmann"
 __email__ =             "Paebbels@gmail.com"
 __copyright__ =         "2016-2026, Patrick Lehmann"
 __license__ =           "Apache License, Version 2.0"
-__version__ =           "0.41.0"
+__version__ =           "0.42.0"
 # __keywords__ =          []
 __project_url__ =       "https://github.com/VHDL/pyVHDLModel"
 __documentation_url__ = "https://vhdl.github.io/pyVHDLModel"
@@ -555,8 +555,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		Initialize a VHDL design.
 
-		:param name:          Name of the design.
-		:param allowBlackbox: Specify if blackboxes are allowed in this design.
+		:param name:          Optional, name of the design. Default: ``None``, an unnamed design.
+		:param allowBlackbox: Optional, specify if blackboxes are allowed in this design. Default: ``False``.
 		"""
 		super().__init__()
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
@@ -691,7 +691,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		This will create a virtual source code file ``ieee.vhdl`` and register VHDL design units of library ``ieee`` to that file.
 
-		:param flavor: Select the IEEE library flavor: IEEE, Synopsys, MentorGraphics.
+		:param flavor: Optional, select the IEEE library flavor: IEEE, Synopsys, MentorGraphics.
+		               Default: ``None``, the IEEE flavor.
 		:returns:      The library object of library ``ieee``.
 		"""
 		from pyVHDLModel.IEEE import Ieee
@@ -1300,7 +1301,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   5. Iterate all architectures in that library.
 		   6. Iterate all configurations in that library.
 
-		:param filter: An enumeration with possibly multiple flags to filter the returned design units.
+		:param filter: Optional, an enumeration with possibly multiple flags to filter the returned design units.
+		               Default: ``DesignUnitKind.All``.
 		:returns:      A generator to iterate all matched design units in the design.
 
 		.. seealso::
@@ -2864,9 +2866,11 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		Initialize a VHDL library.
 
 		:param identifier:    Name of the VHDL library.
-		:param documentation: Documentation of this VHDL library, if the caller has one to supply.
-		:param allowBlackbox: Specify if blackboxes are allowed in this design.
-		:param parent:        The parent model entity (design) of this VHDL library.
+		:param documentation: Optional, documentation of this VHDL library, if the caller has one to supply.
+		                      Default: ``None``, no documentation.
+		:param allowBlackbox: Optional, specify if blackboxes are allowed in this design.
+		                      Default: ``None``, inherited from the parent.
+		:param parent:        Optional, the parent model entity (design) of this VHDL library. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
@@ -2982,7 +2986,8 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		5. Iterate all architectures in that library.
 		6. Iterate all configurations in that library.
 
-		:param filter: An enumeration with possibly multiple flags to filter the returned design units.
+		:param filter: Optional, an enumeration with possibly multiple flags to filter the returned design units.
+		               Default: ``DesignUnitKind.All``.
 		:returns:      A generator to iterate all matched design units in the library.
 
 		.. seealso::
@@ -3328,10 +3333,12 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		Initializes a VHDL document.
 
 		:param path:          Path to the document.
-		:param documentation: The documentation comment associated with this declaration.
-		:param vhdlVersion:   VHDL version used for analyzing this source file.
-		:param library:       VHDL library used for analyzing the source file's content into.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param vhdlVersion:   Optional, VHDL version used for analyzing this source file. Default: ``VHDLVersion.VHDL2008``.
+		:param library:       Optional, VHDL library used for analyzing the source file's content into.
+		                      Default: ``None``, assigned by :meth:`~pyVHDLModel.Design.AddDocument`.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		:raises ValueError:   If parameter 'path' is None.
 		:raises TypeError:    If parameter 'path' is not of type :class:`~pathlib.Path`.
 		"""
@@ -4035,7 +4042,8 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		  1. Iterate all configurations in that library.
 
-		:param filter: An enumeration with possibly multiple flags to filter the returned design units.
+		:param filter: Optional, an enumeration with possibly multiple flags to filter the returned design units.
+		               Default: ``DesignUnitKind.All``.
 		:returns:      A generator to iterate all matched design units in the document.
 
 		.. seealso::

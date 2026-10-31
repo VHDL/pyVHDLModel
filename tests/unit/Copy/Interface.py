@@ -36,6 +36,7 @@ from pyTooling.Testing           import Testcase
 
 from pyVHDLModel                 import Interface as InterfaceModule
 from pyVHDLModel.Base            import Mode
+from pyVHDLModel.DesignUnit      import Entity
 from pyVHDLModel.Expression      import IntegerLiteral
 from pyVHDLModel.Formatting.VHDL import VHDLWriter
 from pyVHDLModel.Interface       import SimpleModeViewElement, CompositeModeViewElement, GenericConstantInterfaceItem, \
@@ -47,6 +48,7 @@ from pyVHDLModel.Interface       import SimpleModeViewElement, CompositeModeView
                                         ParameterFileInterfaceItem, ModeViewDeclaration, InterfaceGroup, GenericGroup, \
                                         PortGroup, ParameterGroup
 from pyVHDLModel.Name            import SimpleName
+from pyVHDLModel.Subprogram      import Procedure
 from pyVHDLModel.Symbol          import ModeViewSymbol
 
 from tests.unit                  import _Element, _subtypeSymbol
@@ -124,6 +126,38 @@ class InterfaceItemsWithMode(Testcase):
 
 		self.assertIs(_DerivedPortSimpleSignalInterfaceItem, type(copy))
 		self.assertEqual("signal Clock : in std_logic?", str(copy))
+
+
+class Groups(Testcase):
+	def test_Generic(self) -> None:
+		"""A copy of a generic is in no generic group."""
+		original = GenericConstantInterfaceItem(("WIDTH", ), Mode.Default, _subtypeSymbol("positive"))
+		entity =   Entity("e", genericItems=[original])
+
+		copy = original.Copy()
+
+		self.assertIs(entity.GenericGroups[0], original.Group)
+		self.assertIsNone(copy.Group)
+
+	def test_Port(self) -> None:
+		"""A copy of a port is in no port group."""
+		original = PortSimpleSignalInterfaceItem(("Clock", ), Mode.In, _subtypeSymbol("std_logic"))
+		entity =   Entity("e", portItems=[original])
+
+		copy = original.Copy()
+
+		self.assertIs(entity.PortGroups[0], original.Group)
+		self.assertIsNone(copy.Group)
+
+	def test_Parameter(self) -> None:
+		"""A copy of a parameter is in no parameter group."""
+		original =  ParameterConstantInterfaceItem(("a", ), Mode.In, _subtypeSymbol("integer"))
+		procedure = Procedure("p", parameterItems=[original])
+
+		copy = original.Copy()
+
+		self.assertIs(procedure.ParameterGroups[0], original.Group)
+		self.assertIsNone(copy.Group)
 
 
 class InterfaceItemsWithModeView(Testcase):

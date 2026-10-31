@@ -31,8 +31,8 @@
 """
 Mutation tests for port clauses (:class:`~pyVHDLModel.Regions.WithPortsMixin`).
 
-The mutators are tested on an entity (a declarative region with a namespace), a component (no namespace) and a port
-group.
+The mutators are tested on an entity (a declarative region with a namespace) and a component (no namespace). The port
+groups of the language construct stay a partition of its port clause.
 """
 from pyTooling.MetaClasses  import UnfulfilledExpectationError
 from pyTooling.Warning      import WarningCollector
@@ -77,15 +77,6 @@ class Ports(Testcase):
 
 		self.assertListEqual([clock], component.PortItems)
 		self.assertIs(component, clock.Parent)
-
-	def test_Add_Group(self) -> None:
-		group = PortGroup([])
-		clock = _port("Clock")
-
-		group.AddPortItem(clock)
-
-		self.assertListEqual([clock], group.PortItems)
-		self.assertIs(group, clock.Parent)
 
 	def test_Add_None(self) -> None:
 		entity = Entity("e")
@@ -346,3 +337,246 @@ class Ports(Testcase):
 			],
 			context.exception.__notes__
 		)
+
+
+class PortGroups(Testcase):
+	def _Entity(self) -> tuple[Entity, PortGroup, PortGroup, PortGroup]:
+		"""Return an entity with the port groups ``clock, reset | In_Valid, In_Data | error``."""
+		clocking = PortGroup([_port("clock"), _port("reset")])
+		inbound =  PortGroup([_port("In_Valid"), _port("In_Data")], name="In")
+		errors =   PortGroup([_port("error")])
+		entity =   Entity("e", portItems=[*clocking, *inbound, *errors], portGroups=[clocking, inbound, errors])
+
+		return entity, clocking, inbound, errors
+
+	def assertPartition(self, entity: Entity) -> None:
+		"""Assert the port groups list every port exactly once, in declaration order, and each port refers to its group."""
+		self.assertListEqual(entity.PortItems, [port for group in entity.PortGroups for port in group])
+		for group in entity.PortGroups:
+			self.assertIs(entity, group.Parent)
+			self.assertGreater(len(group), 0)
+			for port in group:
+				self.assertIs(group, port.Group)
+
+	def test_Add(self) -> None:
+		entity, clocking, inbound, errors = self._Entity()
+		warning = _port("warning")
+
+		entity.AddPortItem(warning)
+
+		self.assertIs(errors, warning.Group)
+		self.assertListEqual([clocking, inbound, errors], entity.PortGroups)
+		self.assertPartition(entity)
+
+	def test_Add_NoPorts(self) -> None:
+		entity = Entity("e")
+		clock = _port("clock")
+
+		entity.AddPortItem(clock)
+
+		self.assertEqual(1, len(entity.PortGroups))
+		self.assertIsNone(entity.PortGroups[0].Identifier)
+		self.assertListEqual([clock], entity.PortGroups[0].PortItems)
+		self.assertPartition(entity)
+
+	def test_Add_Group(self) -> None:
+		entity, clocking, inbound, errors = self._Entity()
+		inAck = _port("In_Ack")
+
+		entity.AddPortItem(inAck, inbound)
+
+		self.assertIs(inbound, inAck.Group)
+		self.assertIs(inAck, inbound.PortItems[-1])
+		self.assertIs(inAck, entity.PortItems[4])
+		self.assertPartition(entity)
+
+	def test_Add_Group_Foreign(self) -> None:
+		entity, clocking, inbound, errors = self._Entity()
+		other, _, otherInbound, _ = self._Entity()
+		inAck = _port("In_Ack")
+
+		with self.assertRaises(NotAChildError) as context:
+			entity.AddPortItem(inAck, otherInbound)
+
+		self.assertEqual("PortGroup 'In' is not a port group of this Entity.", str(context.exception))
+		self.assertIs(otherInbound, context.exception.Element)
+		self.assertIs(entity, context.exception.Parent)
+		self.assertIsNone(inAck.Parent)
+		self.assertIsNone(inAck.Group)
+
+	def test_Insert_Middle(self) -> None:
+		"""Without a port group, the port joins the port group of the port before it."""
+		entity, clocking, inbound, errors = self._Entity()
+		enable = _port("enable")
+
+		entity.InsertPortItem(2, enable)
+
+		self.assertIs(clocking, enable.Group)
+		self.assertListEqual(["clock", "reset", "enable"], [port.Identifiers[0] for port in clocking])
+		self.assertPartition(entity)
+
+	def test_Insert_Start(self) -> None:
+		"""At index 0, the port joins the port group of the first port."""
+		entity, clocking, inbound, errors = self._Entity()
+		enable = _port("enable")
+
+		entity.InsertPortItem(0, enable)
+
+		self.assertIs(clocking, enable.Group)
+		self.assertIs(enable, clocking.PortItems[0])
+		self.assertPartition(entity)
+
+	def test_Insert_Negative(self) -> None:
+		entity, clocking, inbound, errors = self._Entity()
+		enable = _port("enable")
+
+		entity.InsertPortItem(-1, enable)
+
+		self.assertIs(inbound, enable.Group)
+		self.assertIs(enable, entity.PortItems[4])
+		self.assertPartition(entity)
+
+	def test_Insert_Group(self) -> None:
+		entity, clocking, inbound, errors = self._Entity()
+		inAck = _port("In_Ack")
+
+		entity.InsertPortItem(3, inAck, inbound)
+
+		self.assertIs(inbound, inAck.Group)
+		self.assertListEqual(["In_Valid", "In_Ack", "In_Data"], [port.Identifiers[0] for port in inbound])
+		self.assertPartition(entity)
+
+	def test_Insert_Group_Start(self) -> None:
+		"""A port group given takes a port at its start, although the port before belongs to another port group."""
+		entity, clocking, inbound, errors = self._Entity()
+		inAck = _port("In_Ack")
+
+		entity.InsertPortItem(2, inAck, inbound)
+
+		self.assertIs(inbound, inAck.Group)
+		self.assertIs(inAck, inbound.PortItems[0])
+		self.assertPartition(entity)
+
+	def test_Insert_Group_End(self) -> None:
+		entity, clocking, inbound, errors = self._Entity()
+		inAck = _port("In_Ack")
+
+		entity.InsertPortItem(4, inAck, inbound)
+
+		self.assertIs(inbound, inAck.Group)
+		self.assertIs(inAck, inbound.PortItems[-1])
+		self.assertPartition(entity)
+
+	def test_Insert_Group_Outside(self) -> None:
+		entity, clocking, inbound, errors = self._Entity()
+		inAck = _port("In_Ack")
+
+		with self.assertRaises(ValueError) as context:
+			entity.InsertPortItem(5, inAck, inbound)
+
+		self.assertEqual("Parameter 'index' is outside of parameter 'group' at 2..4.", str(context.exception))
+		self.assertListEqual(["Got value '5'."], context.exception.__notes__)
+		self.assertIsNone(inAck.Parent)
+		self.assertIsNone(inAck.Group)
+		self.assertEqual(5, entity.PortCount)
+
+	def test_Insert_Group_Foreign(self) -> None:
+		entity, clocking, inbound, errors = self._Entity()
+		group = PortGroup([_port("x")])
+		inAck = _port("In_Ack")
+
+		with self.assertRaises(NotAChildError) as context:
+			entity.InsertPortItem(0, inAck, group)
+
+		self.assertEqual("PortGroup is not a port group of this Entity.", str(context.exception))
+		self.assertIs(group, context.exception.Element)
+		self.assertIsNone(inAck.Parent)
+
+	def test_Insert_Group_WrongType(self) -> None:
+		entity, clocking, inbound, errors = self._Entity()
+		inAck = _port("In_Ack")
+
+		with self.assertRaises(TypeError) as context:
+			entity.InsertPortItem(0, inAck, "In")
+
+		self.assertEqual("Parameter 'group' is not of type 'PortGroup'.", str(context.exception))
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
+		self.assertIsNone(inAck.Parent)
+
+	def test_Remove(self) -> None:
+		entity, clocking, inbound, errors = self._Entity()
+		inData = inbound.PortItems[1]
+
+		entity.RemovePortItem(inData)
+
+		self.assertIsNone(inData.Group)
+		self.assertListEqual(["In_Valid"], [port.Identifiers[0] for port in inbound])
+		self.assertListEqual([clocking, inbound, errors], entity.PortGroups)
+		self.assertPartition(entity)
+
+	def test_Remove_LastPortOfGroup(self) -> None:
+		"""A port group, which becomes empty, is removed from the language construct."""
+		entity, clocking, inbound, errors = self._Entity()
+		error = errors.PortItems[0]
+
+		entity.RemovePortItem(error)
+
+		self.assertIsNone(error.Group)
+		self.assertIsNone(errors.Parent)
+		self.assertListEqual([clocking, inbound], entity.PortGroups)
+		self.assertPartition(entity)
+
+	def test_Remove_AddElsewhere(self) -> None:
+		entity, clocking, inbound, errors = self._Entity()
+		error = errors.PortItems[0]
+		component = Component("c")
+
+		entity.RemovePortItem(error)
+		component.AddPortItem(error)
+
+		self.assertIs(component.PortGroups[0], error.Group)
+		self.assertPartition(component)
+
+	def test_Move(self) -> None:
+		"""A moved port leaves its port group and joins the port group of the port before its new position."""
+		entity, clocking, inbound, errors = self._Entity()
+		reset = clocking.PortItems[1]
+
+		entity.MovePortItem(reset, 2)
+
+		self.assertIs(inbound, reset.Group)
+		self.assertListEqual(["clock"], [port.Identifiers[0] for port in clocking])
+		self.assertListEqual(["In_Valid", "reset", "In_Data"], [port.Identifiers[0] for port in inbound])
+		self.assertPartition(entity)
+
+	def test_Move_Start(self) -> None:
+		entity, clocking, inbound, errors = self._Entity()
+		inData = inbound.PortItems[1]
+
+		entity.MovePortItem(inData, 0)
+
+		self.assertIs(clocking, inData.Group)
+		self.assertIs(inData, clocking.PortItems[0])
+		self.assertPartition(entity)
+
+	def test_Move_LastPortOfGroup(self) -> None:
+		"""Moving the only port of a port group removes the port group."""
+		entity, clocking, inbound, errors = self._Entity()
+		error = errors.PortItems[0]
+
+		entity.MovePortItem(error, 0)
+
+		self.assertIs(clocking, error.Group)
+		self.assertIsNone(errors.Parent)
+		self.assertListEqual([clocking, inbound], entity.PortGroups)
+		self.assertPartition(entity)
+
+	def test_Move_SamePosition(self) -> None:
+		"""A move to the port's current position keeps its port group."""
+		entity, clocking, inbound, errors = self._Entity()
+		inValid = inbound.PortItems[0]
+
+		entity.MovePortItem(inValid, 2)
+
+		self.assertIs(inbound, inValid.Group)
+		self.assertPartition(entity)

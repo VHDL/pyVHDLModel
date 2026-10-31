@@ -201,7 +201,8 @@ class GenericMapAspectMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Initializes a generic map aspect.
 
-		:param genericAssociationItems: List of all generic associations.
+		:param genericAssociationItems: Optional, list of all generic associations.
+		                                Default: ``None``, no generic associations.
 		"""
 		self._genericAssociationItems = genericAssociationItemList = []
 		if genericAssociationItems is not None:
@@ -431,7 +432,7 @@ class PortMapAspectMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Initializes a port map aspect.
 
-		:param portAssociationItems: List of all port associations.
+		:param portAssociationItems: Optional, list of all port associations. Default: ``None``, no port associations.
 		"""
 		self._portAssociationItems = portAssociationItemList = []
 		if portAssociationItems is not None:

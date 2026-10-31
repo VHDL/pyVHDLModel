@@ -39,6 +39,7 @@ from pyVHDLModel.Concurrent import ConcurrentBlockStatement, ProcessStatement
 from pyVHDLModel.DesignUnit import Architecture, Component, Context, ContextReference, Entity, LibraryClause, Package, \
                                    PackageBody
 from pyVHDLModel.Exception  import UnresolvedNameWarning
+from pyVHDLModel.Interface  import GenericTypeInterfaceItem
 from pyVHDLModel.Name       import SelectedName, SimpleName
 from pyVHDLModel.Symbol     import ContextReferenceSymbol, LibraryReferenceSymbol
 from pyVHDLModel.Type       import Subtype
@@ -51,6 +52,16 @@ if __name__ == "__main__":  # pragma: no cover
 	print("ERROR: you called a testcase declaration file as an executable module.")
 	print("Use: 'python -m unitest <testcase module>'")
 	exit(1)
+
+
+def _libraryClause(identifier: str) -> LibraryClause:
+	"""A library clause of one library."""
+	return LibraryClause([LibraryReferenceSymbol(SimpleName(identifier))])
+
+
+def _contextReference(library: str, identifier: str) -> ContextReference:
+	"""A context reference ``library.identifier``."""
+	return ContextReference([ContextReferenceSymbol(SelectedName(identifier, SimpleName(library)))])
 
 
 class UseAll(Testcase):
@@ -358,3 +369,96 @@ class ImplicitUseClause(Testcase):
 		_design(entity)
 
 		self.assertFalse(entity._namespace.Lookup("standard").IsVisible)
+
+
+class ContextDeclarations(Testcase):
+	"""Context declarations: nested contexts, missing members, and a use clause after the context reference."""
+
+	def setUp(self) -> None:
+		self._type =    _enumeration("T", "a", "b")
+		self._package = Package("p", declaredItems=[self._type])
+
+	def test_NestedContexts(self) -> None:
+		"""``context c2`` references ``context c1``, which uses ``lib1.p.all`` (GHDL accepts)."""
+		first = Context("c1", [_libraryClause("lib1"), _use("lib1.p.all")])
+		second = Context("c2", [_libraryClause("lib1"), _contextReference("lib1", "c1")])
+		entity = Entity("e", [_libraryClause("lib1"), _contextReference("lib1", "c2")])
+		_design(entity, libraries=[("lib1", [self._package, first, second])])
+
+		self.assertTupleEqual((self._type, ), entity._namespace.Lookup("t").Declarations)
+		self.assertTupleEqual((self._type.Literals[0], ), entity._namespace.Lookup("a").Declarations)
+
+	def test_MissingMember(self) -> None:
+		"""``use lib1.p.nothere;`` in a context declaration."""
+		useClause = _use("lib1.p.nothere")
+		context = Context("c1", [_libraryClause("lib1"), useClause])
+
+		with WarningCollector() as collector:
+			_design(Entity("e"), libraries=[("lib1", [self._package, context])])
+
+		self.assertEqual(1, len(collector.Warnings))
+		warning = collector.Warnings[0]
+		self.assertIsInstance(warning, UnresolvedNameWarning)
+		self.assertEqual("Package 'p' has no declaration 'nothere'.", str(warning))
+		self.assertIs(useClause, warning.Place)
+
+	def test_UseClauseAfterContextReference(self) -> None:
+		"""``context lib1.ctx;`` imports ``T`` before ``signal s : T;``, a later use clause of ``p`` doesn't hide it."""
+		context = Context("ctx", [_libraryClause("lib1"), _use("lib1.p.all")])
+		signal = _signal("s", "T")
+		contextItems = [_libraryClause("lib1"), _contextReference("lib1", "ctx")]
+		architecture = Architecture("rtl", _entitySymbol("e"), contextItems, [signal, _use("lib1.p.all")])
+		_design(Entity("e"), architecture, libraries=[("lib1", [self._package, context])])
+
+		self.assertTupleEqual((self._type, ), architecture._namespace.Lookup("t", signal).Declarations)
+
+
+class UseClauseDiagnostics(Testcase):
+	"""Use clauses, which name nothing usable, are an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`."""
+
+	def test_PrefixNotAPackage(self) -> None:
+		"""``use K.all;`` with a constant ``K``."""
+		useClause = _use("k.all")
+		entity = Entity("e", declaredItems=[_constant("K", "integer"), useClause])
+
+		with WarningCollector() as collector:
+			_design(entity)
+
+		self.assertEqual(1, len(collector.Warnings))
+		self.assertEqual("Prefix 'k' of use clause 'k.all' isn't a visible package.", str(collector.Warnings[0]))
+		self.assertIs(useClause, collector.Warnings[0].Place)
+
+	def test_PrimaryUnitMissing(self) -> None:
+		"""``use work.nothere;``."""
+		entity = Entity("e", [_use("work.nothere")])
+
+		with WarningCollector() as collector:
+			_design(entity)
+
+		self.assertEqual(1, len(collector.Warnings))
+		self.assertEqual("Library 'lib' has no primary unit 'nothere'.", str(collector.Warnings[0]))
+
+	def test_GenericPackage(self) -> None:
+		"""``use work.gp.all;`` with an uninstantiated generic package (A086)."""
+		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")], declaredItems=[_constant("K", "integer")])
+		entity = Entity("e", [_use("work.gp.all")])
+
+		with WarningCollector() as collector:
+			_design(genericPackage, entity)
+
+		self.assertEqual(1, len(collector.Warnings))
+		self.assertEqual("Use clause 'work.gp.all' names the uninstantiated generic package 'gp'.", str(collector.Warnings[0]))
+		self.assertFalse(entity._namespace.Lookup("k").IsVisible)
+
+
+class UseItemSubtype(Testcase):
+	"""``use work.p.ST;`` with a subtype of an enumerated type brings the base type's literals along (A093)."""
+
+	def test_UserSubtype(self) -> None:
+		enumeration = _enumeration("T", "a", "b")
+		first = Subtype("ST1", _subtypeSymbol("T"))
+		second = Subtype("ST2", _subtypeSymbol("ST1"))
+		entity = Entity("e", [_use("work.p.ST2")])
+		_design(Package("p", declaredItems=[enumeration, first, second]), entity)
+
+		self.assertTupleEqual((enumeration.Literals[1], ), entity._namespace.Lookup("b").Declarations)

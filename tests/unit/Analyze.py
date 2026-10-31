@@ -189,6 +189,7 @@ class VHDLLibrary(Testcase):
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
+		design.LinkContexts()
 		design.LinkArchitectures()
 		design.LinkPackageBodies()
 		design.LinkLibraryReferences()

@@ -8,18 +8,30 @@ Literals and Expressions
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.EnumerationLiteral pyVHDLModel.SyntaxModel.IntegerLiteral pyVHDLModel.SyntaxModel.FloatingPointLiteral pyVHDLModel.SyntaxModel.PhysicalLiteral pyVHDLModel.SyntaxModel.CharacterLiteral pyVHDLModel.SyntaxModel.StringLiteral pyVHDLModel.SyntaxModel.BitStringLiteral
+.. inheritance-diagram:: pyVHDLModel.Expression.NullLiteral
+                         pyVHDLModel.Expression.EnumerationLiteral
+                         pyVHDLModel.Expression.CharacterEnumerationLiteral
+                         pyVHDLModel.Expression.IntegerLiteral
+                         pyVHDLModel.Expression.FloatingPointLiteral
+                         pyVHDLModel.Expression.PhysicalIntegerLiteral
+                         pyVHDLModel.Expression.PhysicalFloatingLiteral
+                         pyVHDLModel.Expression.CharacterLiteral
+                         pyVHDLModel.Expression.StringLiteral
+                         pyVHDLModel.Expression.BinaryBitStringLiteral
+                         pyVHDLModel.Expression.OctalBitStringLiteral
+                         pyVHDLModel.Expression.DecimalBitStringLiteral
+                         pyVHDLModel.Expression.HexadecimalBitStringLiteral
    :parts: 1
 
 .. _vhdlmodel-literals:
 
 Literals
-========
+********
 
 .. _vhdlmodel-enumerationliteral:
 
 Enumeration Literal
--------------------
+===================
 
 .. todo::
 
@@ -30,7 +42,7 @@ Enumeration Literal
 .. _vhdlmodel-integerliteral:
 
 Integer Literal
----------------
+===============
 
 .. todo::
 
@@ -41,7 +53,7 @@ Integer Literal
 .. _vhdlmodel-realliteral:
 
 Floating Point Literal
-----------------------
+======================
 
 .. todo::
 
@@ -52,7 +64,7 @@ Floating Point Literal
 .. _vhdlmodel-physicalliteral:
 
 Physical Literal
-----------------
+================
 
 .. todo::
 
@@ -63,11 +75,23 @@ Physical Literal
 .. _vhdlmodel-expressions:
 
 Expressions
-===========
+***********
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.UnaryExpression pyVHDLModel.SyntaxModel.AddingExpression pyVHDLModel.SyntaxModel.MultiplyingExpression pyVHDLModel.SyntaxModel.LogicalExpression pyVHDLModel.SyntaxModel.ShiftExpression pyVHDLModel.SyntaxModel.TernaryExpression
+.. inheritance-diagram:: pyVHDLModel.Expression.UnaryExpression
+                         pyVHDLModel.Expression.AddingExpression
+                         pyVHDLModel.Expression.MultiplyingExpression
+                         pyVHDLModel.Expression.LogicalExpression
+                         pyVHDLModel.Expression.RelationalExpression
+                         pyVHDLModel.Expression.ShiftExpression
+                         pyVHDLModel.Expression.RangeExpression
+                         pyVHDLModel.Expression.TernaryExpression
+                         pyVHDLModel.Expression.QualifiedExpression
+                         pyVHDLModel.Expression.FunctionCall
+                         pyVHDLModel.Expression.SubtypeAllocation
+                         pyVHDLModel.Expression.QualifiedExpressionAllocation
+                         pyVHDLModel.Expression.Aggregate
    :parts: 1
 
 .. todo::
@@ -79,11 +103,23 @@ Expressions
 .. _vhdlmodel-unary:
 
 Unary Expressions
------------------
+=================
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.InverseExpression pyVHDLModel.SyntaxModel.IdentityExpression pyVHDLModel.SyntaxModel.NegationExpression pyVHDLModel.SyntaxModel.AbsoluteExpression pyVHDLModel.SyntaxModel.TypeConversion pyVHDLModel.SyntaxModel.FunctionCall pyVHDLModel.SyntaxModel.QualifiedExpression
+.. inheritance-diagram:: pyVHDLModel.Expression.InverseExpression
+                         pyVHDLModel.Expression.IdentityExpression
+                         pyVHDLModel.Expression.NegationExpression
+                         pyVHDLModel.Expression.AbsoluteExpression
+                         pyVHDLModel.Expression.ConditionExpression
+                         pyVHDLModel.Expression.UnaryAndExpression
+                         pyVHDLModel.Expression.UnaryNandExpression
+                         pyVHDLModel.Expression.UnaryOrExpression
+                         pyVHDLModel.Expression.UnaryNorExpression
+                         pyVHDLModel.Expression.UnaryXorExpression
+                         pyVHDLModel.Expression.UnaryXnorExpression
+                         pyVHDLModel.Expression.TypeConversion
+                         pyVHDLModel.Expression.SubExpression
    :parts: 1
 
 .. todo::
@@ -95,11 +131,16 @@ Unary Expressions
 .. _vhdlmodel-binary:
 
 Binary Expressions
-------------------
+==================
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.AddingExpression pyVHDLModel.SyntaxModel.MultiplyingExpression pyVHDLModel.SyntaxModel.LogicalExpression pyVHDLModel.SyntaxModel.RelationalExpression pyVHDLModel.SyntaxModel.ShiftExpression
+.. inheritance-diagram:: pyVHDLModel.Expression.AddingExpression
+                         pyVHDLModel.Expression.MultiplyingExpression
+                         pyVHDLModel.Expression.LogicalExpression
+                         pyVHDLModel.Expression.RelationalExpression
+                         pyVHDLModel.Expression.ShiftExpression
+                         pyVHDLModel.Expression.RangeExpression
    :parts: 1
 
 .. todo::
@@ -111,11 +152,13 @@ Binary Expressions
 .. _vhdlmodel-addingexpression:
 
 Adding Expressions
-~~~~~~~~~~~~~~~~~~
+------------------
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.AdditionExpression pyVHDLModel.SyntaxModel.SubtractionExpression pyVHDLModel.SyntaxModel.ConcatenationExpression
+.. inheritance-diagram:: pyVHDLModel.Expression.AdditionExpression
+                         pyVHDLModel.Expression.SubtractionExpression
+                         pyVHDLModel.Expression.ConcatenationExpression
    :parts: 1
 
 .. todo::
@@ -127,11 +170,15 @@ Adding Expressions
 .. _vhdlmodel-multiplyingexpressions:
 
 Multiplying Expressions
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.MultiplyExpression pyVHDLModel.SyntaxModel.DivisionExpression pyVHDLModel.SyntaxModel.RemainderExpression pyVHDLModel.SyntaxModel.ModuloExpression pyVHDLModel.SyntaxModel.ExponentiationExpression
+.. inheritance-diagram:: pyVHDLModel.Expression.MultiplyExpression
+                         pyVHDLModel.Expression.DivisionExpression
+                         pyVHDLModel.Expression.RemainderExpression
+                         pyVHDLModel.Expression.ModuloExpression
+                         pyVHDLModel.Expression.ExponentiationExpression
    :parts: 1
 
 .. todo::
@@ -143,11 +190,16 @@ Multiplying Expressions
 .. _vhdlmodel-logicalexpressions:
 
 Logical Expressions
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.AndExpression pyVHDLModel.SyntaxModel.NandExpression pyVHDLModel.SyntaxModel.OrExpression pyVHDLModel.SyntaxModel.NorExpression pyVHDLModel.SyntaxModel.XorExpression	pyVHDLModel.SyntaxModel.XnorExpression
+.. inheritance-diagram:: pyVHDLModel.Expression.AndExpression
+                         pyVHDLModel.Expression.NandExpression
+                         pyVHDLModel.Expression.OrExpression
+                         pyVHDLModel.Expression.NorExpression
+                         pyVHDLModel.Expression.XorExpression
+                         pyVHDLModel.Expression.XnorExpression
    :parts: 1
 
 .. todo::
@@ -159,11 +211,22 @@ Logical Expressions
 .. _vhdlmodel-relationalexpressions:
 
 Relational Expressions
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.EqualExpression pyVHDLModel.SyntaxModel.UnequalExpression pyVHDLModel.SyntaxModel.GreaterThanExpression pyVHDLModel.SyntaxModel.GreaterEqualExpression pyVHDLModel.SyntaxModel.LessThanExpression
+.. inheritance-diagram:: pyVHDLModel.Expression.EqualExpression
+                         pyVHDLModel.Expression.UnequalExpression
+                         pyVHDLModel.Expression.GreaterThanExpression
+                         pyVHDLModel.Expression.GreaterEqualExpression
+                         pyVHDLModel.Expression.LessThanExpression
+                         pyVHDLModel.Expression.LessEqualExpression
+                         pyVHDLModel.Expression.MatchingEqualExpression
+                         pyVHDLModel.Expression.MatchingUnequalExpression
+                         pyVHDLModel.Expression.MatchingGreaterThanExpression
+                         pyVHDLModel.Expression.MatchingGreaterEqualExpression
+                         pyVHDLModel.Expression.MatchingLessThanExpression
+                         pyVHDLModel.Expression.MatchingLessEqualExpression
    :parts: 1
 
 .. todo::
@@ -175,11 +238,16 @@ Relational Expressions
 .. _vhdlmodel-shiftingexpressions:
 
 Shifting Expressions
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.ShiftRightLogicExpression pyVHDLModel.SyntaxModel.ShiftLeftLogicExpression pyVHDLModel.SyntaxModel.ShiftRightArithmeticExpression pyVHDLModel.SyntaxModel.ShiftLeftArithmeticExpression pyVHDLModel.SyntaxModel.RotateRightExpression pyVHDLModel.SyntaxModel.RotateLeftExpression
+.. inheritance-diagram:: pyVHDLModel.Expression.ShiftRightLogicExpression
+                         pyVHDLModel.Expression.ShiftLeftLogicExpression
+                         pyVHDLModel.Expression.ShiftRightArithmeticExpression
+                         pyVHDLModel.Expression.ShiftLeftArithmeticExpression
+                         pyVHDLModel.Expression.RotateRightExpression
+                         pyVHDLModel.Expression.RotateLeftExpression
    :parts: 1
 
 .. todo::
@@ -191,7 +259,12 @@ Shifting Expressions
 .. _vhdlmodel-ternary:
 
 Ternary Expressions
--------------------
+===================
+
+.. rubric:: Class Hierarchy
+
+.. inheritance-diagram:: pyVHDLModel.Expression.WhenElseExpression
+   :parts: 1
 
 .. todo::
 

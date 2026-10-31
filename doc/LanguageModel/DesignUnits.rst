@@ -11,40 +11,51 @@ between *primary* and *secondary* design units.
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.Architecture pyVHDLModel.SyntaxModel.Context pyVHDLModel.SyntaxModel.Configuration pyVHDLModel.SyntaxModel.Entity pyVHDLModel.SyntaxModel.Package pyVHDLModel.SyntaxModel.PackageBody
+.. inheritance-diagram:: pyVHDLModel.DesignUnit.Architecture
+                         pyVHDLModel.DesignUnit.Context
+                         pyVHDLModel.DesignUnit.Configuration
+                         pyVHDLModel.DesignUnit.Entity
+                         pyVHDLModel.DesignUnit.Package
+                         pyVHDLModel.DesignUnit.PackageBody
    :parts: 1
 
 .. _vhdlmodel-primary:
 
 Primary Units
-=============
+*************
 
 .. _vhdlmodel-context:
 
 Context
--------
+=======
 
 .. todo::
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.DesignUnit.Context`:
+
+.. condensed-class:: pyVHDLModel.DesignUnit.Context
 
 
 .. _vhdlmodel-configuration:
 
 Configuration
--------------
+=============
 
 .. todo::
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.DesignUnit.Configuration`:
+
+.. condensed-class:: pyVHDLModel.DesignUnit.Configuration
 
 
 .. _vhdlmodel-entity:
 
 Entity
-------
+======
 
 An ``Entity`` represents a VHDL entity declaration. Libraries and package
 references declared ahead an entity are consumed by that entity and made
@@ -52,173 +63,53 @@ available as lists. An entities also provides lists of generic and port items.
 The list of declared items (e.g. objects) also contains defined items (e.g.
 types). An entity's list of statements is called body items.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Entity`:
+**Condensed definition of class** :class:`~pyVHDLModel.DesignUnit.Entity`:
 
-.. code-block:: Python
-
-   @export
-   class Entity(PrimaryUnit, MixinDesignUnitWithContext):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from MixinDesignUnitWithContext
-     @property
-     def LibraryReferences(self) -> list[LibraryClause]:
-
-     @property
-     def PackageReferences(self) -> list[UseClause]:
-
-     @property
-     def ContextReferences(self) -> list[Context]:
-
-     # from Entity
-     @property
-     def GenericItems(self) -> list[GenericInterfaceItem]:
-
-     @property
-     def PortItems(self) -> list[PortInterfaceItem]:
-
-     @property
-     def DeclaredItems(self) -> List:
-
-     @property
-     def BodyItems(self) -> list[ConcurrentStatement]:
-
+.. condensed-class:: pyVHDLModel.DesignUnit.Entity
 
 
 .. _vhdlmodel-package:
 
 Package
--------
+=======
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Package`:
+**Condensed definition of class** :class:`~pyVHDLModel.DesignUnit.Package`:
 
-.. code-block:: Python
-
-   @export
-   class Package(PrimaryUnit, MixinDesignUnitWithContext):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from MixinDesignUnitWithContext
-     @property
-     def LibraryReferences(self) -> list[LibraryClause]:
-
-     @property
-     def PackageReferences(self) -> list[UseClause]:
-
-     @property
-     def ContextReferences(self) -> list[Context]:
-
-     # from Package
-     @property
-     def GenericItems(self) -> list[GenericInterfaceItem]:
-
-     @property
-     def DeclaredItems(self) -> List:
-
+.. condensed-class:: pyVHDLModel.DesignUnit.Package
 
 
 .. _vhdlmodel-secondary:
 
 Secondary Units
-===============
+***************
 
-.. _vhdlmodel-architeture:
+.. _vhdlmodel-architecture:
 
-Architeture
------------
+Architecture
+============
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Architecture`:
+**Condensed definition of class** :class:`~pyVHDLModel.DesignUnit.Architecture`:
 
-.. code-block:: Python
-
-   @export
-   class Architecture(SecondaryUnit, MixinDesignUnitWithContext):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from MixinDesignUnitWithContext
-     @property
-     def LibraryReferences(self) -> list[LibraryClause]:
-
-     @property
-     def PackageReferences(self) -> list[UseClause]:
-
-     @property
-     def ContextReferences(self) -> list[Context]:
-
-     # from Architecture
-     @property
-     def Entity(self) -> Entity:
-
-     @property
-     def DeclaredItems(self) -> List:
-
-     @property
-     def BodyItems(self) -> list[ConcurrentStatement]:
-
+.. condensed-class:: pyVHDLModel.DesignUnit.Architecture
 
 
 .. _vhdlmodel-packagebody:
 
 Package Body
-------------
+============
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.PackageBody`:
+**Condensed definition of class** :class:`~pyVHDLModel.DesignUnit.PackageBody`:
 
-.. code-block:: Python
-
-   @export
-   class PackageBody(SecondaryUnit, MixinDesignUnitWithContext):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from MixinDesignUnitWithContext
-     @property
-     def LibraryReferences(self) -> list[LibraryClause]:
-
-     @property
-     def PackageReferences(self) -> list[UseClause]:
-
-     @property
-     def ContextReferences(self) -> list[Context]:
-
-     # from Package Body
-     @property
-     def Package(self) -> Package:
-
-     @property
-     def DeclaredItems(self) -> List:
+.. condensed-class:: pyVHDLModel.DesignUnit.PackageBody

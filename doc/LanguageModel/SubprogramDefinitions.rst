@@ -1,22 +1,29 @@
 .. _vhdlmodel-subprog:
 
 Subprogram Declarations
-########################
+#######################
 
 .. contents:: Table of Content
    :local:
 
-.. #rubric:: Class Hierarchy
+.. rubric:: Class Hierarchy
 
-.. #inheritance-diagram:: pyVHDLModel.SyntaxModel.Procedure pyVHDLModel.SyntaxModel.ProcedureMethod pyVHDLModel.SyntaxModel.GenericProcedureInterfaceItem pyVHDLModel.SyntaxModel.Function pyVHDLModel.SyntaxModel.FunctionMethod pyVHDLModel.SyntaxModel.GenericFunctionInterfaceItem
+.. inheritance-diagram:: pyVHDLModel.Subprogram.Procedure
+                         pyVHDLModel.Subprogram.ProcedureMethod
+                         pyVHDLModel.Interface.GenericProcedureInterfaceItem
+                         pyVHDLModel.Subprogram.Function
+                         pyVHDLModel.Subprogram.FunctionMethod
+                         pyVHDLModel.Interface.GenericFunctionInterfaceItem
    :parts: 1
 
 .. _vhdlmodel-procedures:
 
 Procedures
-==========
+**********
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.Procedure pyVHDLModel.SyntaxModel.ProcedureMethod pyVHDLModel.SyntaxModel.GenericProcedureInterfaceItem
+.. inheritance-diagram:: pyVHDLModel.Subprogram.Procedure
+                         pyVHDLModel.Subprogram.ProcedureMethod
+                         pyVHDLModel.Interface.GenericProcedureInterfaceItem
    :parts: 1
 
 
@@ -24,44 +31,17 @@ Procedures
 .. _vhdlmodel-procedure:
 
 Procedure
----------
+=========
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Procedure`:
+**Condensed definition of class** :class:`~pyVHDLModel.Subprogram.Procedure`:
 
-.. code-block:: Python
-
-   @export
-   class Procedure(SubProgramm):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from Subprogram
-     @property
-     def GenericItems(self) -> list[GenericInterfaceItem]:
-
-     @property
-     def ParameterItems(self) -> list[ParameterInterfaceItem]:
-
-     @property
-     def DeclaredItems(self) -> List:
-
-     @property
-     def BodyItems(self) -> list[SequentialStatement]:
-
-     @property
-     def IsPure(self) -> bool:
-
+.. condensed-class:: pyVHDLModel.Subprogram.Procedure
 
 
 .. _vhdlmodel-procedureinstantiation:
 
 Procedure Instantiation
------------------------
+=======================
 
 .. todo::
 
@@ -72,48 +52,17 @@ Procedure Instantiation
 .. _vhdlmodel-proceduremethod:
 
 Procedure as Method
--------------------
+===================
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ProcedureMethod`:
+**Condensed definition of class** :class:`~pyVHDLModel.Subprogram.ProcedureMethod`:
 
-.. code-block:: Python
-
-   @export
-   class ProcedureMethod(SubProgramm):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from Subprogram
-     @property
-     def GenericItems(self) -> list[GenericInterfaceItem]:
-
-     @property
-     def ParameterItems(self) -> list[ParameterInterfaceItem]:
-
-     @property
-     def DeclaredItems(self) -> List:
-
-     @property
-     def BodyItems(self) -> list[SequentialStatement]:
-
-     @property
-     def IsPure(self) -> bool:
-
-     # inherited from Method
-     @property
-     def ProtectedType(self) -> ProtectedType:
-
+.. condensed-class:: pyVHDLModel.Subprogram.ProcedureMethod
 
 
 .. _vhdlmodel-sub-genericprocedure:
 
 Generic Procedure
------------------
+=================
 
 A generic procedure is a *regular* procedure.
 
@@ -126,9 +75,11 @@ A generic procedure is a *regular* procedure.
 .. _vhdlmodel-functions:
 
 Functions
-=========
+*********
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.Function pyVHDLModel.SyntaxModel.FunctionMethod pyVHDLModel.SyntaxModel.GenericFunctionInterfaceItem
+.. inheritance-diagram:: pyVHDLModel.Subprogram.Function
+                         pyVHDLModel.Subprogram.FunctionMethod
+                         pyVHDLModel.Interface.GenericFunctionInterfaceItem
    :parts: 1
 
 
@@ -136,48 +87,17 @@ Functions
 .. _vhdlmodel-function:
 
 Function
---------
+========
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.Function`:
+**Condensed definition of class** :class:`~pyVHDLModel.Subprogram.Function`:
 
-.. code-block:: Python
-
-   @export
-   class Function(SubProgramm):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from Subprogram
-     @property
-     def GenericItems(self) -> list[GenericInterfaceItem]:
-
-     @property
-     def ParameterItems(self) -> list[ParameterInterfaceItem]:
-
-     @property
-     def DeclaredItems(self) -> List:
-
-     @property
-     def BodyItems(self) -> list[SequentialStatement]:
-
-     @property
-     def IsPure(self) -> bool:
-
-     # from Function
-     @property
-     def ReturnType(self) -> Subtype:
-
+.. condensed-class:: pyVHDLModel.Subprogram.Function
 
 
 .. _vhdlmodel-functioninstantiation:
 
 Function Instantiation
-----------------------
+======================
 
 .. todo::
 
@@ -188,52 +108,17 @@ Function Instantiation
 .. _vhdlmodel-functionmethod:
 
 Function as Method
-------------------
+==================
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.FunctionMethod`:
+**Condensed definition of class** :class:`~pyVHDLModel.Subprogram.FunctionMethod`:
 
-.. code-block:: Python
-
-   @export
-   class Function(SubProgramm):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from Subprogram
-     @property
-     def GenericItems(self) -> list[GenericInterfaceItem]:
-
-     @property
-     def ParameterItems(self) -> list[ParameterInterfaceItem]:
-
-     @property
-     def DeclaredItems(self) -> List:
-
-     @property
-     def BodyItems(self) -> list[SequentialStatement]:
-
-     @property
-     def IsPure(self) -> bool:
-
-     # inherited from Function
-     @property
-     def ReturnType(self) -> Subtype:
-
-     # inherited from Method
-     @property
-     def ProtectedType(self) -> ProtectedType:
-
+.. condensed-class:: pyVHDLModel.Subprogram.FunctionMethod
 
 
 .. _vhdlmodel-sub-genericfunction:
 
 Generic Function
-----------------
+================
 
 A generic function is a *regular* function.
 
@@ -245,7 +130,7 @@ A generic function is a *regular* function.
 .. _vhdlmodel-signature:
 
 Signatures
-==========
+**********
 
 A subprogram's signature (:attr:`Subprogram.Signature <pyVHDLModel.Subprogram.Subprogram.Signature>`) holds the type
 marks of its parameters - one per parameter identifier - and of a function's return value; the overloads of a

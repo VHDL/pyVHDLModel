@@ -31,6 +31,10 @@ Version 0.41.0 (2026)
    * ``IEEE.std_ulogic``'s literals are written as character literals; ``STD.character``'s literal at position 92 is
      ``'\'``.
 
+   .. rubric:: Documentation
+
+   * The language model pages render their classes from the source (``condensed-class``) and name the current modules.
+
 
 Version 0.40.0 (2026)
 *********************

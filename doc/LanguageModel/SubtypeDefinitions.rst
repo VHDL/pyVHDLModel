@@ -10,9 +10,13 @@ VHDL has subtypes to constrain types.
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.Subtype
+.. inheritance-diagram:: pyVHDLModel.Type.Subtype
    :parts: 1
 
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Type.Subtype`:
+
+.. condensed-class:: pyVHDLModel.Type.Subtype

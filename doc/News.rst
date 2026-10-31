@@ -23,9 +23,7 @@ Version 0.43.0 (2026)
      through context references, also nested ones. A missing package member or primary unit, a prefix, which isn't a
      visible package, and an uninstantiated generic package are an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
    * Enumeration literals and physical units of a region's types are declarations of the region
-     (:meth:`Namespace.ImplicitDeclarations() <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`); a physical
-     type's units are :class:`~pyVHDLModel.Type.PhysicalUnit` (:attr:`PhysicalType.Units
-     <pyVHDLModel.Type.PhysicalType.Units>`).
+     (:meth:`Namespace.ImplicitDeclarations() <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`).
    * Aliases, attribute declarations and packages declared in a region are added to its namespace.
 
    .. rubric:: Changes
@@ -33,9 +31,11 @@ Version 0.43.0 (2026)
    * Breaking change: :meth:`Namespace.Imports() <pyVHDLModel.Namespace.Namespace.Imports>` returns a list of
      :class:`~pyVHDLModel.Namespace.Import` (declaration and use clause) per identifier;
      :meth:`~pyVHDLModel.Namespace.Namespace.AddImport` takes the use clause.
-   * Breaking change: :attr:`PhysicalType.SecondaryUnits <pyVHDLModel.Type.PhysicalType.SecondaryUnits>` returns a
-     tuple computed from the unit declarations (was the list the type owned); a secondary unit's value has the unit as
-     parent (was the physical type).
+   * Breaking change: a physical type's units are :class:`~pyVHDLModel.Type.PhysicalUnit` declarations:
+     :attr:`PhysicalType.PrimaryUnit <pyVHDLModel.Type.PhysicalType.PrimaryUnit>` returns the primary unit, which has no
+     value (was its name; formatted, it's still the name), :attr:`PhysicalType.SecondaryUnits
+     <pyVHDLModel.Type.PhysicalType.SecondaryUnits>` the list of secondary units (was (name, value) pairs); a secondary
+     unit's value has the unit as parent (was the physical type).
    * Aliases without a subtype indication, which may denote a subprogram, are overloadable; aliases, attribute
      declarations and packages declared in a region are checked for duplicate declarations.
 

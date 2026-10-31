@@ -480,7 +480,8 @@ class Namespace(Generic[K, O]):
 		if isinstance(element, EnumeratedType):
 			return tuple((Namespace.NormalizedDesignatorOf(literal), literal) for literal in element._literals)
 		elif isinstance(element, PhysicalType):
-			return tuple((unit._normalizedIdentifier, unit) for unit in element._units)
+			units = (element._primaryUnit, *element._secondaryUnits)
+			return tuple((unit._normalizedIdentifier, unit) for unit in units)
 
 		return ()
 

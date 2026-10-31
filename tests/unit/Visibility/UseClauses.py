@@ -32,20 +32,24 @@
 Use clauses (IEEE Std 1076-2008, 12.4): what ``use lib.pkg.all``, ``use lib.pkg.item``, ``use lib.pkg`` and
 ``use lib.all`` make potentially visible, and where.
 """
-from pyTooling.Warning      import WarningCollector
-from pyTooling.Testing      import Testcase
+from pathlib                   import Path
 
-from pyVHDLModel.Concurrent import ConcurrentBlockStatement, ProcessStatement
-from pyVHDLModel.DesignUnit import Architecture, Component, Context, ContextReference, Entity, LibraryClause, Package, \
-                                   PackageBody
-from pyVHDLModel.Exception  import UnresolvedNameWarning
-from pyVHDLModel.Interface  import GenericTypeInterfaceItem
-from pyVHDLModel.Name       import SelectedName, SimpleName
-from pyVHDLModel.Symbol     import ContextReferenceSymbol, LibraryReferenceSymbol
-from pyVHDLModel.Type       import Subtype
+from pyTooling.Warning         import WarningCollector
+from pyTooling.Testing         import Testcase
 
-from tests.unit             import _entitySymbol, _signal, _subtypeSymbol
-from tests.unit.Visibility  import _constant, _design, _distance, _enumeration, _function, _packageSymbol, _use
+from pyVHDLModel               import Design, Document
+from pyVHDLModel.Concurrent    import ConcurrentBlockStatement, ProcessStatement
+from pyVHDLModel.DesignUnit    import Architecture, Component, Context, ContextReference, Entity, LibraryClause, \
+                                      Package, PackageBody
+from pyVHDLModel.Exception     import UnresolvedNameWarning, VHDLModelException
+from pyVHDLModel.Instantiation import PackageInstantiation
+from pyVHDLModel.Interface     import GenericTypeInterfaceItem
+from pyVHDLModel.Name          import SelectedName, SimpleName
+from pyVHDLModel.Symbol        import ContextReferenceSymbol, LibraryReferenceSymbol, PackageReferenceSymbol
+from pyVHDLModel.Type          import Subtype
+
+from tests.unit                import _entitySymbol, _signal, _subtypeSymbol
+from tests.unit.Visibility     import _constant, _design, _distance, _enumeration, _function, _packageSymbol, _use
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -110,7 +114,7 @@ class UseAll(Testcase):
 		self.assertEqual(3, len(declarations))
 
 	def test_PhysicalUnit(self) -> None:
-		self.assertTupleEqual((self._distance.Units[1], ), self._namespace.Lookup("cm").Declarations)
+		self.assertTupleEqual((self._distance.SecondaryUnits[0], ), self._namespace.Lookup("cm").Declarations)
 
 	def test_Component(self) -> None:
 		self.assertTupleEqual((self._component, ), self._namespace.Lookup("comp").Declarations)
@@ -165,7 +169,7 @@ class UseItem(Testcase):
 		entity = Entity("e", [_use("work.p.distance")])
 		_design(self._package, entity)
 
-		self.assertTupleEqual((self._distance.Units[1], ), entity._namespace.Lookup("cm").Declarations)
+		self.assertTupleEqual((self._distance.SecondaryUnits[0], ), entity._namespace.Lookup("cm").Declarations)
 
 	def test_Subtype_BaseTypeLiterals(self) -> None:
 		"""``use ieee.std_logic_1164.std_logic;`` brings the literals of ``std_ulogic`` along."""
@@ -466,3 +470,53 @@ class UseItemSubtype(Testcase):
 		_design(Package("p", declaredItems=[enumeration, first, second]), entity)
 
 		self.assertTupleEqual((enumeration.Literals[1], ), entity._namespace.Lookup("b").Declarations)
+
+
+class LinkingOrder(Testcase):
+	"""Linking steps called out of order raise an exception with a message."""
+
+	def test_PackageInstantiation_NotLinked(self) -> None:
+		"""The declarations of a package instantiation, which isn't linked to its generic package."""
+		instantiation = PackageInstantiation("inst", PackageReferenceSymbol(SelectedName("gp", SimpleName("work"))))
+
+		with self.assertRaises(VHDLModelException) as context:
+			list(Design._GetPackageDeclarations(instantiation))
+
+		self.assertEqual(
+			"Package instantiation 'inst' isn't linked to its generic package 'work.gp'.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Call 'LinkPackageInstances()' before linking use clauses."], context.exception.__notes__)
+
+	def test_LinkPackageReferences_WithoutLibraries(self) -> None:
+		"""``LinkPackageReferences()`` before ``LinkLibraryReferences()``."""
+		design = Design("design")
+		document = Document(Path("design.vhdl"))
+		document._AddDesignUnit(Entity("e"))
+		design.AddDocument(document, design.GetLibrary("lib"))
+		design.CreateDependencyGraph()
+
+		with self.assertRaises(VHDLModelException) as context:
+			design.LinkPackageReferences()
+
+		self.assertEqual("Design unit 'e' doesn't reference library 'std'.", str(context.exception))
+
+
+class ContextGenericPackage(Testcase):
+	"""A use clause of a context declaration naming an uninstantiated generic package."""
+
+	def test_Warning(self) -> None:
+		constant = _constant("K", "integer")
+		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")], declaredItems=[constant])
+		context = Context("c1", [_libraryClause("lib1"), _use("lib1.gp.all")])
+		entity = Entity("e", [_libraryClause("lib1"), _contextReference("lib1", "c1")])
+
+		with WarningCollector() as collector:
+			_design(entity, libraries=[("lib1", [genericPackage, context])])
+
+		self.assertEqual(1, len(collector.Warnings))
+		self.assertEqual(
+			"Use clause 'lib1.gp.all' names the uninstantiated generic package 'gp'.",
+			str(collector.Warnings[0])
+		)
+		self.assertFalse(entity._namespace.Lookup("k").IsVisible)

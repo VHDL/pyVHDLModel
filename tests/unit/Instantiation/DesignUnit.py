@@ -51,7 +51,7 @@ from pyVHDLModel.Subprogram import Function, Procedure
 from pyVHDLModel.DesignUnit import Reference, LibraryClause, UseClause, ContextReference, DesignUnit, PrimaryUnit, \
                                    SecondaryUnit, Context, Package, PackageBody, Entity, Architecture, Component, \
                                    Configuration
-from pyVHDLModel.Interface  import PortSimpleSignalInterfaceItem
+from pyVHDLModel.Interface  import GenericTypeInterfaceItem, PortSimpleSignalInterfaceItem
 
 from tests.unit             import _Element, _entitySymbol, _subtypeSymbol
 
@@ -342,9 +342,8 @@ class Components(Testcase):
 		self.assertIsNone(component.Entity)
 
 	def test_WithGenericAndPortItems(self) -> None:
-		"""Uses a bare ``ModelEntity`` stand-in for the generic - ``Component``'s own generic-item loop only
-		appends and sets ``.Parent``. A port is checked by its port group, so it is a real port."""
-		genericItem = _Element()
+		"""A generic and a port are checked by their group, so they are real interface items."""
+		genericItem = GenericTypeInterfaceItem("T")
 		portItem = PortSimpleSignalInterfaceItem(["p"], Mode.In, _subtypeSymbol("bit"))
 		component = Component("comp", genericItems=[genericItem], portItems=[portItem])
 

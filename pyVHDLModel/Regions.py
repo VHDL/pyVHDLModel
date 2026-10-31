@@ -55,7 +55,7 @@ from pyVHDLModel.Object      import BaseConstant, Constant, DeferredConstant, Sh
 if TYPE_CHECKING:
 	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
 	                                  PortSignalInterfaceItem, SingleGenericDeclarationMixin, \
-	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin, PortGroup
+	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin, GenericGroup, PortGroup
 	from pyVHDLModel.Type      import Subtype, FullType
 	from pyVHDLModel.Visitor   import Visitor
 
@@ -83,30 +83,95 @@ class WithGenericsMixin(
 	Indexing the generics (``_IndexGenericItems()``) needs the host's namespace ``_namespace``; a host without one, e.g.
 	a component, can't index them.
 
+	The generic groups (:data:`GenericGroups`) partition the generic clause: concatenated in order, they list every
+	generic exactly once, in declaration order. The mutators keep this partition.
+
 	.. seealso::
 
 	   * :class:`Package <pyVHDLModel.DesignUnit.Package>`
 	   * :class:`Entity <pyVHDLModel.DesignUnit.Entity>`
 	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
+	   * :class:`Concurrent block statement <pyVHDLModel.Concurrent.ConcurrentBlockStatement>`
 	   * :class:`Subprogram <pyVHDLModel.Subprogram.Subprogram>`
 	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
 	"""
-	_genericItems: list[GenericInterfaceItemMixin]  #: List of all generics, in declaration order.
+	_genericItems:  list[GenericInterfaceItemMixin]  #: List of all generics, in declaration order.
+	_genericGroups: list[GenericGroup]               #: List of all generic groups, in declaration order.
 
 	def __init__(
 		self,
-		genericItems: Nullable[Iterable[GenericInterfaceItemMixin]] = None,
- 	) -> None:
+		genericItems:  Nullable[Iterable[GenericInterfaceItemMixin]] = None,
+		genericGroups: Nullable[Iterable[GenericGroup]] = None
+	) -> None:
 		"""
 		Initializes a language construct with a generic clause.
 
-		:param genericItems: List of all generics, in declaration order.
+		The language construct becomes the parent of each generic group, and each generic refers to its generic group.
+		Without generic groups, all generics form one unnamed generic group; no generics form no generic group.
+
+		:param genericItems:  Optional, list of all generics, in declaration order. Default: ``None``, no generics.
+		:param genericGroups: Optional, list of generic groups partitioning the generics, in declaration order. Default:
+		                      ``None``, one unnamed generic group.
+		:raises TypeError:    If parameter 'genericGroups' is ``None`` and an element of parameter 'genericItems' is not
+		                      of type :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises ValueError:   If parameter 'genericGroups' is ``None`` and an element of parameter 'genericItems' is in a
+		                      generic group of another language construct.
+		:raises TypeError:    If parameter 'genericGroups' is not iterable.
+		:raises TypeError:    If an element of parameter 'genericGroups' is not of type
+		                      :class:`~pyVHDLModel.Interface.GenericGroup`.
+		:raises ValueError:   If parameter 'genericGroups' doesn't list every generic of parameter 'genericItems' exactly
+		                      once, in declaration order.
 		"""
+		from pyVHDLModel.Interface import GenericGroup
+
 		self._genericItems = genericItemList = []
 		if genericItems is not None:
 			for item in genericItems:
 				genericItemList.append(item)
 				item.Parent = self
+
+		self._genericGroups = genericGroupList = []
+		if genericGroups is None:
+			if len(genericItemList) > 0:
+				genericGroup = GenericGroup(genericItemList, parent=self)
+				genericGroupList.append(genericGroup)
+				for item in genericItemList:
+					item._group = genericGroup
+
+			return
+
+		if not isinstance(genericGroups, Iterable):
+			ex = TypeError("Parameter 'genericGroups' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(genericGroups)}'.")
+			raise ex
+
+		groupedItems = []
+		for genericGroup in genericGroups:
+			if not isinstance(genericGroup, GenericGroup):
+				ex = TypeError("Element of parameter 'genericGroups' is not of type 'GenericGroup'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(genericGroup)}'.")
+				raise ex
+
+			genericGroupList.append(genericGroup)
+			groupedItems.extend(genericGroup._genericItems)
+
+		isPartition = len(groupedItems) == len(genericItemList) and all(
+			grouped is item for grouped, item in zip(groupedItems, genericItemList)
+		)
+		if not isPartition:
+			groups = " | ".join(
+				", ".join(name for item in genericGroup._genericItems for name in identifiersOf(item))
+				for genericGroup in genericGroupList
+			)
+			generics = ", ".join(name for item in genericItemList for name in identifiersOf(item))
+			ex = ValueError("Parameter 'genericGroups' doesn't partition parameter 'genericItems'.")
+			ex.add_note(f"Got generic groups '{groups}' for generics '{generics}'.")
+			raise ex
+
+		for genericGroup in genericGroupList:
+			genericGroup.Parent = self
+			for item in genericGroup._genericItems:
+				item._group = genericGroup
 
 	@readonly
 	def GenericItems(self) -> list[GenericInterfaceItemMixin]:
@@ -125,6 +190,18 @@ class WithGenericsMixin(
 		:returns: The generic count.
 		"""
 		return len(self._genericItems)
+
+	@readonly
+	def GenericGroups(self) -> list[GenericGroup]:
+		"""
+		Read-only property to access the generic groups (:attr:`_genericGroups`).
+
+		The generic groups partition the generic clause: concatenated in order, they list every generic exactly once, in
+		declaration order.
+
+		:returns: List of generic groups, in declaration order.
+		"""
+		return self._genericGroups
 
 	def IterateSingleGenericDeclarations(
 		self,
@@ -154,18 +231,23 @@ class WithGenericsMixin(
 				elif predicate(item):
 					yield item
 
-	def AddGenericItem(self, genericItem: GenericInterfaceItemMixin) -> None:
+	def AddGenericItem(self, genericItem: GenericInterfaceItemMixin, group: Nullable[GenericGroup] = None) -> None:
 		"""
-		Add a generic at the end of the generic clause.
+		Add a generic at the end of the generic clause, or at the end of a generic group.
 
 		The generic's parent is set to this language construct, and its identifiers are added to the language construct's
-		namespace, if it has one.
+		namespace, if it has one. Without a generic group, the generic joins the last generic group, or forms a new
+		unnamed generic group if there are no generics.
 
 		:param genericItem:            The generic to add.
+		:param group:                  Optional, the generic group of this language construct to add the generic to, at
+		                               its end. Default: ``None``, the end of the generic clause.
 		:raises ValueError:            If parameter 'genericItem' is ``None``.
 		:raises TypeError:             If parameter 'genericItem' is not of type
 		                               :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
 		:raises AlreadyInDesignError:  If parameter 'genericItem' already has a parent.
+		:raises TypeError:             If parameter 'group' is not of type :class:`~pyVHDLModel.Interface.GenericGroup`.
+		:raises NotAChildError:        If parameter 'group' is not a generic group of this language construct.
 		:raises DuplicateGenericError: If an existing declaration of the language construct shares an identifier
 		                               with the generic.
 
@@ -176,19 +258,38 @@ class WithGenericsMixin(
 		   :meth:`RemoveGenericItem`
 		      |rarr| Remove a generic from the generic clause.
 		"""
-		self.InsertGenericItem(len(self._genericItems), genericItem)
+		index = len(self._genericItems)
+		if group is not None:
+			index = 0
+			for genericGroup in self._genericGroups:
+				index += len(genericGroup._genericItems)
+				if genericGroup is group:
+					break
 
-	def InsertGenericItem(self, index: int, genericItem: GenericInterfaceItemMixin) -> None:
+		self.InsertGenericItem(index, genericItem, group)
+
+	def InsertGenericItem(
+		self,
+		index:       int,
+		genericItem: GenericInterfaceItemMixin,
+		group:       Nullable[GenericGroup] = None
+	) -> None:
 		"""
 		Insert a generic at a position of the generic clause.
 
 		The generic's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
+		Without a generic group, the generic joins the generic group of the generic before ``index``; at index ``0``, the
+		generic group of the first generic. If there are no generics, the generic forms a new unnamed generic group. A
+		generic group given must contain ``index`` or end at it, so the generic groups stay contiguous.
+
 		:param index:                  Position, from ``0`` (first) to :data:`GenericCount` (append).
 		                               A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
 		                               before the last generic.
 		:param genericItem:            The generic to insert.
+		:param group:                  Optional, the generic group of this language construct to insert the generic into.
+		                               Default: ``None``, the generic group of the generic before ``index``.
 		:raises ValueError:            If parameter 'index' is ``None``.
 		:raises TypeError:             If parameter 'index' is not of type :class:`int`.
 		:raises ValueError:            If parameter 'index' is out of range.
@@ -196,6 +297,9 @@ class WithGenericsMixin(
 		:raises TypeError:             If parameter 'genericItem' is not of type
 		                               :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
 		:raises AlreadyInDesignError:  If parameter 'genericItem' already has a parent.
+		:raises TypeError:             If parameter 'group' is not of type :class:`~pyVHDLModel.Interface.GenericGroup`.
+		:raises NotAChildError:        If parameter 'group' is not a generic group of this language construct.
+		:raises ValueError:            If parameter 'group' neither contains nor ends at parameter 'index'.
 		:raises DuplicateGenericError: If an existing declaration of the language construct shares an identifier
 		                               with the generic.
 
@@ -208,7 +312,7 @@ class WithGenericsMixin(
 		   :meth:`MoveGenericItem`
 		      |rarr| Move a generic to a position of the generic clause.
 		"""
-		from pyVHDLModel.Interface import GenericInterfaceItemMixin
+		from pyVHDLModel.Interface import GenericInterfaceItemMixin, GenericGroup
 
 		if index is None:
 			raise ValueError("Parameter 'index' is None.")
@@ -237,6 +341,33 @@ class WithGenericsMixin(
 			ex.add_note(f"Remove it from its {getTypeName(genericItem._parent)} first.")
 			raise ex
 
+		position = index if index >= 0 else len(self._genericItems) + index
+		if group is not None:
+			if not isinstance(group, GenericGroup):
+				ex = TypeError("Parameter 'group' is not of type 'GenericGroup'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(group)}'.")
+				raise ex
+
+			groupStart = 0
+			for genericGroup in self._genericGroups:
+				if genericGroup is group:
+					break
+
+				groupStart += len(genericGroup._genericItems)
+			else:
+				groupName = getTypeName(group) if group._identifier is None else f"{getTypeName(group)} '{group._identifier}'"
+				raise NotAChildError(
+					f"{groupName} is not a generic group of this {getTypeName(self)}.",
+					element=group,
+					parent=self
+				)
+
+			groupEnd = groupStart + len(group._genericItems)
+			if not (groupStart <= position <= groupEnd):
+				ex = ValueError(f"Parameter 'index' is outside of parameter 'group' at {groupStart}..{groupEnd}.")
+				ex.add_note(f"Got value '{index}'.")
+				raise ex
+
 		if len(clashes := self._ClashingDeclarations(genericItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(genericItem), normalizedIdentifiersOf(genericItem))
@@ -251,17 +382,51 @@ class WithGenericsMixin(
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
-		self._genericItems.insert(index, genericItem)
+		self._genericItems.insert(position, genericItem)
 		genericItem.Parent = self
+		if group is None:
+			self._AddToGenericGroup(position, genericItem)
+		else:
+			group._genericItems.insert(position - groupStart, genericItem)
+			genericItem._group = group
+
 		self._AddToNamespace(genericItem)
+
+	def _AddToGenericGroup(self, position: int, genericItem: GenericInterfaceItemMixin) -> None:
+		"""
+		Add a generic to the generic group of the generic before ``position``.
+
+		At position ``0``, the generic joins the generic group of the first generic. If there are no generic groups, the
+		generic forms a new unnamed generic group.
+
+		:param position:    Position of the generic in the generic clause, from ``0`` (first) to :data:`GenericCount`
+		                    (last).
+		:param genericItem: The generic to add, which isn't in a generic group.
+		"""
+		from pyVHDLModel.Interface import GenericGroup
+
+		groupStart = 0
+		for genericGroup in self._genericGroups:
+			groupEnd = groupStart + len(genericGroup._genericItems)
+			if position <= groupEnd:
+				genericGroup._genericItems.insert(position - groupStart, genericItem)
+				genericItem._group = genericGroup
+				return
+
+			groupStart = groupEnd
+
+		genericGroup = GenericGroup((genericItem, ), parent=self)
+		self._genericGroups.append(genericGroup)
+		genericItem._group = genericGroup
 
 	def RemoveGenericItem(self, genericItem: GenericInterfaceItemMixin) -> None:
 		"""
 		Remove a generic from the generic clause.
 
-		The generic is detached: its parent is cleared and its identifiers are removed from the language construct's
-		namespace, if it has one. The generic itself is unchanged and can be added to another language construct, or
-		inserted at another position.
+		The generic is detached: its parent and generic group are cleared and its identifiers are removed from the
+		language construct's namespace, if it has one. A generic group, which becomes empty, is removed from
+		:data:`GenericGroups` and its parent is cleared. The generic itself is unchanged and can be added to another
+		language construct, or inserted at another position.
 
 		:param genericItem:          The generic to remove.
 		:raises ValueError:          If parameter 'genericItem' is ``None``.
@@ -303,7 +468,29 @@ class WithGenericsMixin(
 
 		self._RemoveFromNamespace(genericItem)
 		del self._genericItems[index]
+		self._RemoveFromGenericGroup(genericItem)
 		genericItem._parent = None
+
+	def _RemoveFromGenericGroup(self, genericItem: GenericInterfaceItemMixin) -> None:
+		"""
+		Remove a generic from its generic group and clear the generic's group.
+
+		A generic group, which becomes empty, is removed from :data:`GenericGroups` and its parent is cleared.
+
+		:param genericItem: The generic to remove from its generic group.
+		"""
+		genericGroup = genericItem._group
+		groupItems = genericGroup._genericItems
+		for index, item in enumerate(groupItems):
+			if item is genericItem:
+				del groupItems[index]
+				break
+
+		if len(groupItems) == 0:
+			self._genericGroups.remove(genericGroup)
+			genericGroup._parent = None
+
+		genericItem._group = None
 
 	def MoveGenericItem(self, genericItem: GenericInterfaceItemMixin, index: int) -> None:
 		"""
@@ -312,6 +499,10 @@ class WithGenericsMixin(
 		The generic stays a generic of this language construct: only the order of the generic clause changes. A generic
 		subprogram is an overload: if the language construct's namespace is indexed, it refers to the overload declared
 		last afterwards.
+
+		The generic leaves its generic group, like :meth:`RemoveGenericItem`, and joins a generic group, like
+		:meth:`InsertGenericItem` without a generic group: the generic group of the generic before its new position; at
+		index ``0``, the generic group of the first generic. A move to the generic's current position changes nothing.
 
 		:param genericItem:          The generic to move.
 		:param index:                Position of the generic after the move, from ``0`` (first) to :data:`GenericCount`
@@ -376,6 +567,8 @@ class WithGenericsMixin(
 
 		del self._genericItems[currentIndex]
 		self._genericItems.insert(newIndex, genericItem)
+		self._RemoveFromGenericGroup(genericItem)
+		self._AddToGenericGroup(newIndex, genericItem)
 
 		if isOverload:
 			self._AddToNamespace(genericItem)
@@ -388,9 +581,9 @@ class WithGenericsMixin(
 		Split a generic with an identifier list into one generic per identifier.
 
 		The generic keeps its first identifier. For every other identifier, a new generic is created by its
-		``Copy()`` and inserted right after it, in list order; its parent is set to this language construct. If the
-		language construct has a namespace, the entries of the other identifiers refer to the new generics.
-		A generic declaring one identifier is unchanged.
+		``Copy()`` and inserted right after it, in list order, in the generic clause and in the generic's generic group;
+		its parent is set to this language construct. If the language construct has a namespace, the entries of the other
+		identifiers refer to the new generics. A generic declaring one identifier is unchanged.
 
 		:param genericItem:          The generic to split.
 		:returns:                    Tuple of generics, one per identifier in list order, starting with the split
@@ -432,13 +625,21 @@ class WithGenericsMixin(
 		if not isinstance(genericItem, MultipleNamedEntityMixin) or len(genericItem._identifiers) == 1:
 			return (genericItem, )
 
+		genericGroup = genericItem._group
+		groupItems = genericGroup._genericItems
+		for groupIndex, item in enumerate(groupItems):
+			if item is genericItem:
+				break
+
 		declarations = genericItem._SplitCopies()
 		self._RemoveFromNamespace(genericItem)
 		genericItem._KeepIdentifier(0)
 		self._genericItems[index + 1:index + 1] = declarations
+		groupItems[groupIndex + 1:groupIndex + 1] = declarations
 		self._AddToNamespace(genericItem)
 		for declaration in declarations:
 			declaration.Parent = self
+			declaration._group = genericGroup
 			self._AddToNamespace(declaration)
 
 		return (genericItem, *declarations)

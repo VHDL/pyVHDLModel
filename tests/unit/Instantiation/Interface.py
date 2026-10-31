@@ -34,10 +34,11 @@ from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Concurrent import ConcurrentBlockStatement
-from pyVHDLModel.DesignUnit import Component, Entity
+from pyVHDLModel.DesignUnit import Component, Entity, Package
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Expression import IntegerLiteral
+from pyVHDLModel.Subprogram import Procedure
 from pyVHDLModel.Interface  import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, \
                                    PortSignalInterfaceItem, PortSimpleSignalInterfaceItem, \
                                    PortViewSignalInterfaceItem, ParameterSignalInterfaceItem, \
@@ -51,7 +52,7 @@ from pyVHDLModel.Interface  import ModeViewDeclaration, SimpleModeViewElement, C
 from pyVHDLModel.Regions    import WithGenericsMixin, WithPortsMixin, WithParametersMixin
 
 from tests.unit             import _subtypeSymbol
-from tests.unit.Mutation    import _port
+from tests.unit.Mutation    import _generic, _port
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -413,12 +414,6 @@ class Groups(Testcase):
 		self.assertEqual([item], list(group))
 		self.assertEqual("GenericGroup: generics (1): T", str(group))
 
-	def test_GenericGroup_Empty(self) -> None:
-		group = GenericGroup([])
-
-		self.assertEqual(0, len(group))
-		self.assertEqual("GenericGroup: None (0): ", str(group))
-
 	def test_GenericGroup_MixedItemShapes(self) -> None:
 		"""``generic (type T; G : positive := 8);`` - a single generic clause legally mixes a
 		``NamedEntityMixin``-based item (``GenericTypeInterfaceItem``) with a
@@ -659,4 +654,239 @@ class PortGroups(Testcase):
 			Entity("e", portItems=[clock], portGroups=1)
 
 		self.assertEqual("Parameter 'portGroups' is not iterable.", str(context.exception))
+		self.assertListEqual(["Got type 'int'."], context.exception.__notes__)
+
+
+class GenericGroups(Testcase):
+	def test_Constructor(self) -> None:
+		"""A generic group records its generics, but changes neither their parent nor their group."""
+		width = _generic("WIDTH")
+		depth = _generic("DEPTH")
+
+		group = GenericGroup((generic for generic in (width, depth)), name="sizes", documentation="Bus sizes.")
+
+		self.assertEqual("sizes", group.Identifier)
+		self.assertEqual("Bus sizes.", group.Documentation)
+		self.assertListEqual([width, depth], group.GenericItems)
+		self.assertIsNone(group.Parent)
+		self.assertIsNone(width.Parent)
+		self.assertIsNone(width.Group)
+
+	def test_Constructor_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			GenericGroup(None)
+
+		self.assertEqual("Parameter 'genericItems' is None.", str(context.exception))
+
+	def test_Constructor_NotIterable(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			GenericGroup(_generic("WIDTH"))
+
+		self.assertEqual("Parameter 'genericItems' is not iterable.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Interface.GenericConstantInterfaceItem'."],
+			context.exception.__notes__
+		)
+
+	def test_Constructor_WrongElementType(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			GenericGroup([_generic("WIDTH"), "DEPTH"])
+
+		self.assertEqual(
+			"Element of parameter 'genericItems' is not of type 'GenericInterfaceItemMixin'.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_Constructor_Empty(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			GenericGroup([])
+
+		self.assertEqual("Parameter 'genericItems' is empty.", str(context.exception))
+
+	def test_Constructor_InGroup(self) -> None:
+		"""A generic in a generic group of a language construct can't be grouped again."""
+		width = _generic("WIDTH")
+		Entity("e", genericItems=[width])
+
+		with self.assertRaises(ValueError) as context:
+			GenericGroup([width])
+
+		self.assertEqual(
+			"Element of parameter 'genericItems' is in a generic group of a language construct.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Got generic 'WIDTH' of Entity."], context.exception.__notes__)
+
+	def test_Default(self) -> None:
+		"""Without generic groups, all generics form one unnamed generic group."""
+		width = _generic("WIDTH")
+		depth = _generic("DEPTH")
+
+		entity = Entity("e", genericItems=[width, depth])
+
+		self.assertEqual(1, len(entity.GenericGroups))
+		group = entity.GenericGroups[0]
+		self.assertIsNone(group.Identifier)
+		self.assertListEqual([width, depth], group.GenericItems)
+		self.assertIsNot(entity.GenericItems, group.GenericItems)
+		self.assertIs(entity, group.Parent)
+		self.assertIs(entity, width.Parent)
+		self.assertIs(group, width.Group)
+		self.assertIs(group, depth.Group)
+
+	def test_Default_NoGenerics(self) -> None:
+		entity = Entity("e")
+
+		self.assertListEqual([], entity.GenericGroups)
+
+	def test_Partition(self) -> None:
+		"""``WIDTH, DEPTH | IN_WIDTH, IN_DEPTH, IN_LATENCY | DEBUG | OUT_WIDTH, OUT_DEPTH, OUT_LATENCY``"""
+		names = ("WIDTH", "DEPTH", "IN_WIDTH", "IN_DEPTH", "IN_LATENCY", "DEBUG", "OUT_WIDTH", "OUT_DEPTH", "OUT_LATENCY")
+		generics = [_generic(name) for name in names]
+		groups = [
+			GenericGroup(generics[0:2]),
+			GenericGroup(generics[2:5], name="In"),
+			GenericGroup(generics[5:6]),
+			GenericGroup(generics[6:9], name="Out")
+		]
+
+		entity = Entity("e", genericItems=generics, genericGroups=groups)
+
+		self.assertListEqual(groups, entity.GenericGroups)
+		self.assertListEqual([None, "In", None, "Out"], [group.Identifier for group in entity.GenericGroups])
+		for group in groups:
+			self.assertIs(entity, group.Parent)
+			for generic in group:
+				self.assertIs(entity, generic.Parent)
+				self.assertIs(group, generic.Group)
+
+	def test_Partition_Component(self) -> None:
+		width = _generic("WIDTH")
+		group = GenericGroup([width], name="sizes")
+
+		component = Component("c", genericItems=[width], genericGroups=[group])
+
+		self.assertListEqual([group], component.GenericGroups)
+		self.assertIs(component, group.Parent)
+		self.assertIs(group, width.Group)
+
+	def test_Partition_Block(self) -> None:
+		width = _generic("WIDTH")
+		group = GenericGroup([width], name="sizes")
+
+		block = ConcurrentBlockStatement("blk", genericItems=[width], genericGroups=[group])
+
+		self.assertListEqual([group], block.GenericGroups)
+		self.assertIs(block, group.Parent)
+		self.assertIs(group, width.Group)
+
+	def test_Partition_NoGenerics(self) -> None:
+		entity = Entity("e", genericGroups=[])
+
+		self.assertListEqual([], entity.GenericGroups)
+
+	def test_Partition_Package(self) -> None:
+		width = _generic("WIDTH")
+		group = GenericGroup([width], name="sizes")
+
+		package = Package("p", genericItems=[width], genericGroups=[group])
+
+		self.assertListEqual([group], package.GenericGroups)
+		self.assertIs(package, group.Parent)
+		self.assertIs(group, width.Group)
+
+	def test_Partition_Subprogram(self) -> None:
+		width = _generic("WIDTH")
+		group = GenericGroup([width], name="sizes")
+
+		procedure = Procedure("p", genericItems=[width], genericGroups=[group])
+
+		self.assertListEqual([group], procedure.GenericGroups)
+		self.assertIs(procedure, group.Parent)
+		self.assertIs(group, width.Group)
+
+	def test_Partition_WrongOrder(self) -> None:
+		"""A generic type has one identifier, a generic constant an identifier list: both are named in the note."""
+		typeItem = GenericTypeInterfaceItem("T")
+		width =    _generic("WIDTH")
+
+		with self.assertRaises(ValueError) as context:
+			Entity("e", genericItems=[typeItem, width], genericGroups=[GenericGroup([width]), GenericGroup([typeItem])])
+
+		self.assertEqual(
+			"Parameter 'genericGroups' doesn't partition parameter 'genericItems'.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Got generic groups 'WIDTH | T' for generics 'T, WIDTH'."], context.exception.__notes__)
+
+	def test_Partition_MissingGeneric(self) -> None:
+		width = _generic("WIDTH")
+		depth = _generic("DEPTH")
+		debug = _generic("DEBUG")
+
+		with self.assertRaises(ValueError) as context:
+			Entity("e", genericItems=[width, depth, debug], genericGroups=[GenericGroup([width, depth])])
+
+		self.assertEqual(
+			"Parameter 'genericGroups' doesn't partition parameter 'genericItems'.",
+			str(context.exception)
+		)
+		self.assertListEqual(
+			["Got generic groups 'WIDTH, DEPTH' for generics 'WIDTH, DEPTH, DEBUG'."],
+			context.exception.__notes__
+		)
+
+	def test_Partition_ForeignGeneric(self) -> None:
+		width = _generic("WIDTH")
+		depth = _generic("DEPTH")
+		foreign = _generic("DEPTH")
+
+		with self.assertRaises(ValueError) as context:
+			Entity("e", genericItems=[width, depth], genericGroups=[GenericGroup([width, foreign])])
+
+		self.assertEqual(
+			"Parameter 'genericGroups' doesn't partition parameter 'genericItems'.",
+			str(context.exception)
+		)
+		self.assertListEqual(
+			["Got generic groups 'WIDTH, DEPTH' for generics 'WIDTH, DEPTH'."],
+			context.exception.__notes__
+		)
+
+	def test_Partition_GenericInTwoGroups(self) -> None:
+		width = _generic("WIDTH")
+		depth = _generic("DEPTH")
+
+		with self.assertRaises(ValueError) as context:
+			Entity("e", genericItems=[width, depth], genericGroups=[GenericGroup([width, depth]), GenericGroup([depth])])
+
+		self.assertEqual(
+			"Parameter 'genericGroups' doesn't partition parameter 'genericItems'.",
+			str(context.exception)
+		)
+		self.assertListEqual(
+			["Got generic groups 'WIDTH, DEPTH | DEPTH' for generics 'WIDTH, DEPTH'."],
+			context.exception.__notes__
+		)
+
+	def test_Partition_WrongElementType(self) -> None:
+		width = _generic("WIDTH")
+
+		with self.assertRaises(TypeError) as context:
+			Entity("e", genericItems=[width], genericGroups=[width])
+
+		self.assertEqual("Element of parameter 'genericGroups' is not of type 'GenericGroup'.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Interface.GenericConstantInterfaceItem'."],
+			context.exception.__notes__
+		)
+
+	def test_Partition_NotIterable(self) -> None:
+		width = _generic("WIDTH")
+
+		with self.assertRaises(TypeError) as context:
+			Entity("e", genericItems=[width], genericGroups=1)
+
+		self.assertEqual("Parameter 'genericGroups' is not iterable.", str(context.exception))
 		self.assertListEqual(["Got type 'int'."], context.exception.__notes__)

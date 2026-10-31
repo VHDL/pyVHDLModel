@@ -128,6 +128,16 @@ class InterfaceItemsWithMode(Testcase):
 
 
 class Groups(Testcase):
+	def test_Generic(self) -> None:
+		"""A copy of a generic is in no generic group."""
+		original = GenericConstantInterfaceItem(("WIDTH", ), Mode.Default, _subtypeSymbol("positive"))
+		entity =   Entity("e", genericItems=[original])
+
+		copy = original.Copy()
+
+		self.assertIs(entity.GenericGroups[0], original.Group)
+		self.assertIsNone(copy.Group)
+
 	def test_Port(self) -> None:
 		"""A copy of a port is in no port group."""
 		original = PortSimpleSignalInterfaceItem(("Clock", ), Mode.In, _subtypeSymbol("std_logic"))

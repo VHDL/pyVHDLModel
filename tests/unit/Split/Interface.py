@@ -199,13 +199,20 @@ class Generics(Testcase):
 		self.assertIs(component, declarations[1].Parent)
 
 	def test_Split_Group(self) -> None:
+		"""The new generics follow the split generic in its generic group."""
+		first = _generic("FIRST")
 		original = _generic("A", "B")
-		group = GenericGroup([original])
+		last = _generic("LAST")
+		group = GenericGroup([first, original])
+		other = GenericGroup([last])
+		entity = Entity("e", genericItems=[first, original, last], genericGroups=[group, other])
 
 		declarations = original.Split()
 
-		self.assertListEqual(list(declarations), group.GenericItems)
-		self.assertIs(group, declarations[1].Parent)
+		self.assertListEqual([first, *declarations], group.GenericItems)
+		self.assertListEqual([last], other.GenericItems)
+		self.assertIs(entity, declarations[1].Parent)
+		self.assertIs(group, declarations[1].Group)
 
 	def test_Split_NotAChild(self) -> None:
 		original = _generic("A", "B")

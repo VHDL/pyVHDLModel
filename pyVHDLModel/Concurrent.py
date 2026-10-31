@@ -54,7 +54,7 @@ from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstanti
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem, GenericAssociationItem, \
                                     PortAssociationItem, GenericMapAspectMixin, PortMapAspectMixin
-from pyVHDLModel.Interface   import PortInterfaceItemMixin, GenericInterfaceItemMixin, PortGroup
+from pyVHDLModel.Interface   import PortInterfaceItemMixin, GenericInterfaceItemMixin, GenericGroup, PortGroup
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin, AllowBlackboxMixin, \
                                     ConditionalWaveform, SelectedWaveform, ConditionalWaveformsMixin, WaveformMixin, \
                                     ExpressionMixin, SelectedWaveformsMixin
@@ -1087,6 +1087,7 @@ class ConcurrentBlockStatement(
 		documentation:           Nullable[str] = None,
 		allowBlackbox:           Nullable[bool] = None,
 		parent:                  Nullable[ModelEntity] = None,
+		genericGroups:           Nullable[Iterable[GenericGroup]] = None,
 		portGroups:              Nullable[Iterable[PortGroup]] = None
 	) -> None:
 		"""
@@ -1102,6 +1103,8 @@ class ConcurrentBlockStatement(
 		:param documentation:           The documentation comment associated with this declaration.
 		:param allowBlackbox:           Allow blackboxes for components in language entity.
 		:param parent:                  The parent model entity of this entity.
+		:param genericGroups:           Optional, list of generic groups partitioning the generics, in declaration
+		                                order. Default: ``None``, one unnamed generic group.
 		:param portGroups:              Optional, list of port groups partitioning the ports, in declaration order.
 		                                Default: ``None``, one unnamed port group.
 		"""
@@ -1113,7 +1116,7 @@ class ConcurrentBlockStatement(
 		if parent is not None:
 			self._namespace.ParentNamespace = parent._namespace
 
-		WithGenericsMixin.__init__(self, genericItems)
+		WithGenericsMixin.__init__(self, genericItems, genericGroups)
 		WithPortsMixin.__init__(self, portItems, portGroups)
 		GenericMapAspectMixin.__init__(self, genericAssociationItems)
 		PortMapAspectMixin.__init__(self, portAssociationItems)

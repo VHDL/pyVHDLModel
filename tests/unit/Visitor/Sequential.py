@@ -101,6 +101,7 @@ class Assignments(Testcase):
 			("VisitVariableAssignment",            assignment),
 			("VisitIntegerLiteral",                value),
 			("DepartIntegerLiteral",               value),
+			("VisitTerminator",                    assignment),
 			("DepartSequentialVariableAssignment", assignment),
 		], recorder.Events)
 

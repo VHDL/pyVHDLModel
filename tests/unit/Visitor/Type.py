@@ -91,11 +91,14 @@ class Types(Testcase):
 
 		self.assertEqual([
 			("VisitEnumeratedType",               enumeratedType),
+			("VisitEnumerationTypeDefinition",    enumeratedType),
 			("VisitCharacterEnumerationLiteral",  first),
 			("DepartCharacterEnumerationLiteral", first),
 			("VisitElementSeparator",             enumeratedType),
 			("VisitEnumerationLiteral",           second),
 			("DepartEnumerationLiteral",          second),
+			("DepartEnumerationTypeDefinition",   enumeratedType),
+			("VisitTerminator",                   enumeratedType),
 			("DepartEnumeratedType",              enumeratedType),
 		], recorder.Events)
 

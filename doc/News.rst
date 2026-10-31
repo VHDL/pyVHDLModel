@@ -9,7 +9,7 @@ See :gh:`pyVHDLModel Release Pages <VHDL/pyVHDLModel/releases>` for detail relea
 Version 0.42.0 (2026)
 *********************
 
-.. topic:: :gh:`v0.42.0 - unreleased <VHDL/pyVHDLModel/releases/v0.42.0>`
+.. topic:: :gh:`v0.42.0 - 31.10.2026 <VHDL/pyVHDLModel/releases/v0.42.0>`
 
    .. rubric:: New Features
 
@@ -27,6 +27,8 @@ Version 0.42.0 (2026)
      :class:`~pyVHDLModel.Interface.ParameterGroup` are non-owning views of a language construct's interface items: an
      item's parent stays the language construct, and a group has no mutators any more. A group rejects an empty or
      already grouped item list.
+   * Breaking change: a language construct constructed without groups checks its interface items' types: an item of
+     the wrong type raises :exc:`TypeError`, where it was accepted before.
 
 
 Version 0.41.0 (2026)

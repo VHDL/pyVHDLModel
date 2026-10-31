@@ -17,6 +17,36 @@ Version 0.43.0 (2026)
      documentation comment: constructor parameter ``documentation``, property
      :data:`~pyVHDLModel.Base.DocumentedEntityMixin.Documentation`. Breaking change: it sits before ``parent``, so pass
      ``parent`` by keyword; on enumeration literals it follows ``parent``.
+   * Visibility (IEEE Std 1076-2008, clause 12): :meth:`Namespace.Lookup() <pyVHDLModel.Namespace.Namespace.Lookup>`
+     returns the declarations directly visible at a place (:class:`~pyVHDLModel.Namespace.LookupResult`): hiding by
+     declarations of the region and enclosing regions, overloaded subprograms, subprogram aliases and enumeration
+     literals, conflicting imports, declaration order, incomplete types.
+   * Use clauses import every declaration of a package (``use lib.pkg.all;``), all declarations of one name, incl. the
+     literals or units of a type (``use lib.pkg.item;``), the package (``use lib.pkg;``) or units of a library
+     (``use work.all;``); also in declarative parts (architecture, block, process, subprogram, package, generate) and
+     through context references, also nested ones. A missing package member or primary unit, a prefix, which isn't a
+     visible package, and an uninstantiated generic package are an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+   * Enumeration literals and physical units of a region's types are declarations of the region
+     (:meth:`Namespace.ImplicitDeclarations() <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`); a physical
+     type's units are :class:`~pyVHDLModel.Type.PhysicalUnit` (:attr:`PhysicalType.Units
+     <pyVHDLModel.Type.PhysicalType.Units>`).
+   * Aliases, attribute declarations and packages declared in a region are added to its namespace.
+
+   .. rubric:: Changes
+
+   * Breaking change: :meth:`Namespace.Imports() <pyVHDLModel.Namespace.Namespace.Imports>` returns a list of
+     :class:`~pyVHDLModel.Namespace.Import` (declaration and use clause) per identifier;
+     :meth:`~pyVHDLModel.Namespace.Namespace.AddImport` takes the use clause.
+   * Breaking change: :attr:`PhysicalType.SecondaryUnits <pyVHDLModel.Type.PhysicalType.SecondaryUnits>` returns a
+     tuple computed from the unit declarations (was the list the type owned); a secondary unit's value has the unit as
+     parent (was the physical type).
+   * Aliases without a subtype indication, which may denote a subprogram, are overloadable; aliases, attribute
+     declarations and packages declared in a region are checked for duplicate declarations.
+
+   .. rubric:: Bug Fixes
+
+   * The symbols of use clauses in contexts and of ``.all``/member use clauses reference their package; context
+     reference symbols their context (was an extra attribute).
 
 
 Version 0.42.0 (2026)

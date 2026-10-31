@@ -48,6 +48,7 @@ from pyVHDLModel.DesignUnit    import Architecture, Component, Context, Entity, 
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericConstantInterfaceItem
 from pyVHDLModel.Name          import AllName, SelectedName, SimpleName
+from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, ComponentInstantiationSymbol, \
                                       ContextReferenceSymbol, EntityInstantiationSymbol, LibraryReferenceSymbol, \
                                       PackageReferenceSymbol, PackageSymbol
@@ -134,7 +135,7 @@ def _name(element: Any) -> Any:
 	elif isinstance(element, (Entity, Package, PackageBody, Context)):
 		return f"{element.__class__.__name__} {element._parent._normalizedIdentifier}.{element._normalizedIdentifier}"
 
-	return f"{element.__class__.__name__} {element._normalizedIdentifier}"
+	return f"{element.__class__.__name__} {Namespace.NormalizedDesignatorOf(element)}"
 
 
 def _graph(graph: Graph) -> dict[str, Any]:
@@ -186,7 +187,9 @@ def _state(design: Design) -> dict[str, Any]:
 		if (namespace := getattr(designUnit, "_namespace", None)) is not None:
 			designUnitState["namespace"] = {
 				"elements":      sorted(namespace.Elements()),
-				"imports":       {key: _name(element) for key, element in namespace.Imports().items()},
+				"imports":       {
+					key: [_name(imported.Element) for imported in imports] for key, imports in namespace.Imports().items()
+				},
 				"parent":        None if namespace.ParentNamespace is None else namespace.ParentNamespace.Name,
 				"subNamespaces": sorted(str(subNamespace.Name) for subNamespace in namespace.SubNamespaces)
 			}

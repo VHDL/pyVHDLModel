@@ -93,6 +93,11 @@ def _variable(identifier: str, subtypeName: str) -> Variable:
 	return Variable((identifier, ), _subtypeSymbol(subtypeName))
 
 
+def _importedElements(namespace) -> dict[str, list]:
+	"""The elements imported into a namespace, without their use clauses."""
+	return {key: [imported.Element for imported in imports] for key, imports in namespace.Imports().items()}
+
+
 def _warningsOfType(collector, warningType: Type[_Warning]) -> list[_Warning]:
 	"""The warnings of one type collected by a :class:`~pyTooling.Warning.WarningCollector`."""
 	return [warning for warning in collector if isinstance(warning, warningType)]

@@ -1958,15 +1958,32 @@ class DeclarationRegionMixin(
 		"""
 		Hook for declared items the region doesn't handle itself. Derived classes may override it.
 
+		An alias, an attribute declaration and a package (also a package instantiation) declared in the region are added to
+		the namespace, without a lookup table.
+
 		:param item: The declared item.
 		"""
+		from pyVHDLModel.Declaration import Alias, Attribute
+		from pyVHDLModel.DesignUnit  import Package
+
+		if isinstance(item, (Alias, Attribute, Package)):
+			self._namespace.AddElement(item._normalizedIdentifier, item)
 
 	def _UnindexOtherDeclaredItem(self, item: ModelEntity) -> None:
 		"""
 		Hook to remove declared items the region doesn't handle itself. Derived classes may override it.
 
-		:param item: The declared item.
+		An alias, an attribute declaration and a package are removed from the namespace.
+
+		:param item:                 The declared item.
+		:raises NotInNamespaceError: If the item is an alias, an attribute declaration or a package, which isn't declared
+		                             in the namespace.
 		"""
+		from pyVHDLModel.Declaration import Alias, Attribute
+		from pyVHDLModel.DesignUnit  import Package
+
+		if isinstance(item, (Alias, Attribute, Package)):
+			self._namespace.RemoveElement(item._normalizedIdentifier, item)
 
 	def _RemoveDeclaredItemsFromNamespace(self) -> None:
 		"""

@@ -194,6 +194,22 @@ class PhysicalTypes(Testcase):
 		physicalType = PhysicalType("my_time", _range(0, 1000), "ps", [])
 
 		self.assertEqual(0, len(physicalType.SecondaryUnits))
+		self.assertEqual(1, len(physicalType.Units))
+
+	def test_Units(self) -> None:
+		"""Each unit is a declaration with the physical type as parent, the primary unit first."""
+		femtoSeconds = PhysicalIntegerLiteral(1000, "fs")
+		physicalType = PhysicalType("my_time", _range(0, 1000), "ps", [("ns", femtoSeconds)])
+
+		primaryUnit, secondaryUnit = physicalType.Units
+		self.assertEqual("ps", primaryUnit.Identifier)
+		self.assertIsNone(primaryUnit.Value)
+		self.assertIs(physicalType, primaryUnit.Parent)
+		self.assertEqual("ps", str(primaryUnit))
+		self.assertEqual("ns", secondaryUnit.NormalizedIdentifier)
+		self.assertIs(femtoSeconds, secondaryUnit.Value)
+		self.assertIs(physicalType, secondaryUnit.Parent)
+		self.assertEqual("ns = 1000 fs", str(secondaryUnit))
 
 
 class ArrayTypes(Testcase):

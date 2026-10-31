@@ -98,7 +98,7 @@ from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, Pac
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode, PSLEntity
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType, BaseType, AnonymousType, \
-                                      ProtectedTypeBody, Subtype
+                                      Subtype
 from pyVHDLModel.Configuration import ComponentConfiguration
 from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
 from pyVHDLModel.Interface     import ModeViewDeclaration
@@ -1931,8 +1931,15 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					except KeyError:
 						raise VHDLModelException(f"Package '{packageName._identifier}' not found in {'working ' if libraryName._normalizedIdentifier == 'work' else ''}library '{library._identifier}'.")
 
-					# FIXME: check if package isn't a generic package
 					symbol._reference = package
+					if len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
+						WarningCollector.Raise(UnresolvedNameWarning(
+							f"Use clause '{symbol._name!s}' names the uninstantiated generic package '{package._identifier}'.",
+							symbol=symbol,
+							place=packageReference,
+							namespaces=(package._namespace, )
+						))
+						continue
 
 					# TODO: warn duplicate package reference
 					context._referencedPackages[libraryNormalizedIdentifier][packageNormalizedIdentifier] = package
@@ -1942,7 +1949,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					# The items are imported into the namespaces of the design units referencing the context.
 					if isinstance(symbol, PackageMemberReferenceSymbol):
-						if len(self._PackageMemberDeclarations(package, symbol._name._normalizedIdentifier)) == 0:
+						if len(tuple(self._GetPackageMemberDeclarations(package, symbol._name._normalizedIdentifier))) == 0:
 							WarningCollector.Raise(UnresolvedNameWarning(
 								f"Package '{package._identifier}' has no declaration '{symbol._name._identifier}'.",
 								symbol=symbol,
@@ -1950,7 +1957,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 								namespaces=(package._namespace, )
 							))
 					elif not isinstance(symbol, AllPackageMembersReferenceSymbol):
-						raise VHDLModelException()
+						ex = VHDLModelException(f"Unknown package reference symbol type in context '{context._identifier}'.")
+						ex.add_note(f"Got type '{getFullyQualifiedName(symbol)}'.")
+						raise ex
 
 	def LinkArchitectures(self) -> None:
 		"""
@@ -2128,7 +2137,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				elif isinstance(designUnit, PackageBody):
 					referencedLibraries = designUnit.Package.Package._referencedLibraries
 				else:
-					raise VHDLModelException()  # FIXME: exception message
+					ex = VHDLModelException(
+						f"Secondary unit '{designUnit._identifier}' is neither an architecture nor a package body."
+					)
+					ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
+					raise ex
 
 				for libraryIdentifier, library in referencedLibraries.items():
 					designUnit._referencedLibraries[libraryIdentifier] = library   # TODO: Could we use the .update() method
@@ -2203,6 +2216,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   :meth:`AnalyzeDependencies`
 		     Analyze dependencies and link relations.
 
+		:raises VHDLModelException:            If a primary unit doesn't reference library ``std``. |br|
+		                                       Call :meth:`LinkLibraryReferences` before.
+		:raises VHDLModelException:            If a secondary unit is neither an architecture nor a package body.
 		:raises VHDLModelException:            If a use clause references a library, which wasn't referenced by a library
 		                                       clause.
 		:raises VHDLModelException:            If a use clause references a package, which doesn't exist in its library.
@@ -2222,7 +2238,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				if not (designUnit.Library.NormalizedIdentifier == "std" and designUnit.NormalizedIdentifier == "standard"):
 					for lib, packages in DEFAULT_PACKAGES:
 						if lib not in designUnit._referencedLibraries:
-							raise VHDLModelException()  # TODO: missing exception message
+							ex = VHDLModelException(f"Design unit '{designUnit._identifier}' doesn't reference library '{lib}'.")
+							ex.add_note(f"Every primary unit references library '{lib}' implicitly.")
+							ex.add_note("Call 'LinkLibraryReferences()' before 'LinkPackageReferences()'.")
+							raise ex
 
 						for package in packages:
 							referencedPackage = self._libraries[lib]._packages[package]
@@ -2233,7 +2252,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							dependency = designUnit._dependencyVertex.EdgeToVertex(referencedPackage._dependencyVertex)
 							dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
-							for normalizedIdentifier, declaration in self._PackageDeclarations(referencedPackage):
+							for normalizedIdentifier, declaration in self._GetPackageDeclarations(referencedPackage):
 								designUnit._namespace.AddImport(normalizedIdentifier, declaration, None)
 
 			# All secondary units inherit referenced packages from their primary units.
@@ -2243,7 +2262,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				elif isinstance(designUnit, PackageBody):
 					referencedPackages = designUnit.Package.Package._referencedPackages
 				else:
-					raise VHDLModelException()  # FIXME: exception message
+					ex = VHDLModelException(
+						f"Secondary unit '{designUnit._identifier}' is neither an architecture nor a package body."
+					)
+					ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
+					raise ex
 
 				for packageIdentifier, package in referencedPackages.items():
 					designUnit._referencedPackages[packageIdentifier] = package
@@ -2269,31 +2292,48 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		.. rubric:: Algorithm
 
-		Iterate every symbol of the use clause:
+		Iterate every package symbol within the use clause (a use clause can have multiple comma-separated symbols):
 
-		1. Resolve the prefix of the selected name:
+		1. Get the package name from the symbol: the symbol's name for a ``PackageReferenceSymbol`` (``use lib.pkg;``), else
+		   its prefix (``use lib.pkg.all;``, ``use lib.pkg.item;``). Get the library name, the prefix of the package name.
+		   If the symbol is neither of the three package symbol types, raise an exception.
+		2. If the use clause names a library (``use work.all;``, ``use lib.unit;``, the prefix is ``work`` or a library
+		   referenced by the design unit, and ``unit`` isn't a package of it):
 
-		   * ``lib.pkg``: if library name is ``work``, get the library of the design unit, if library name is not in the
-		     design unit's ``_referencedLibraries``, raise an exception, otherwise lookup library by name in the design;
-		     then lookup the package by name in the library.
-		   * ``lib`` (``use work.all;``, ``use lib.unit;``): import all primary units of the library, or the named primary
-		     unit, and continue with the next symbol.
-		   * ``pkg``: lookup the directly visible package at the use clause
-		     (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`).
+		   * ``.all``: import all primary units of the library (entities, packages, configurations, contexts).
+		   * ``.unit``: import the primary unit of that name; if there is none, raise an
+		     :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 
-		   A missing primary unit, a prefix, which isn't a visible package, and an uninstantiated generic package are
-		   reported as :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`; the symbol imports nothing.
+		   Continue with the next symbol.
+		3. Resolve the package:
 
-		2. Update the symbol's reference with the package. If the package was named with its library and the use clause is
-		   an item of the design unit's context clause, add an entry in the design unit's ``_referencedPackages``. Add an
-		   edge in the dependency graph from design unit to a package declared as a design unit.
-		3. Import into the namespace (:meth:`~pyVHDLModel.Namespace.Namespace.AddImport`):
+		   * Without a library name (``use pkg.all;``): lookup the directly visible package at the use clause
+		     (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`), e.g. made visible by ``use lib.pkg;`` or declared in an
+		     enclosing region. If there is none, raise an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning` and continue
+		     with the next symbol.
+		   * With a library name: if library name is ``work``, get the library of the design unit; if library name is not
+		     in the design unit's ``_referencedLibraries``, raise an exception; otherwise lookup the library by name in the
+		     design. Lookup the package by name in the library; if it doesn't exist, raise an exception.
 
-		   * ``use lib.pkg;``: the package.
-		   * ``use lib.pkg.all;``: every declaration of the package (:meth:`_PackageDeclarations`).
-		   * ``use lib.pkg.item;``: every declaration of the package with the identifier ``item``, e.g. all overloads of a
-		     subprogram, and the enumeration literals and physical units of a type (:meth:`_PackageMemberDeclarations`).
-		     If there is none, an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning` is raised.
+		4. Update the design unit:
+
+		   * Update the package symbol's reference with the package.
+		   * If the package was named with its library and the use clause is an item of the design unit's context clause,
+		     add an entry in the design unit's ``_referencedPackages`` dictionary.
+		   * If the package was named with its library, add an edge in the dependency graph from design unit to the package.
+
+		5. If the package is an uninstantiated generic package, raise an
+		   :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning` and continue with the next symbol.
+		6. Import the public package members into the namespace (:meth:`~pyVHDLModel.Namespace.Namespace.AddImport`), each
+		   with the use clause as origin:
+
+		   * ``AllPackageMembersReferenceSymbol`` (``use lib.pkg.all;``): every declaration of the package, incl. the
+		     enumeration literals and physical units of its types (:meth:`_GetPackageDeclarations`).
+		   * ``PackageMemberReferenceSymbol`` (``use lib.pkg.item;``): every declaration of the package with the identifier
+		     ``item``, e.g. all overloads of a subprogram, and the enumeration literals and physical units of a type or of a
+		     subtype's base type (:meth:`_GetPackageMemberDeclarations`). If there is none, raise an
+		     :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		   * ``PackageReferenceSymbol`` (``use lib.pkg;``): the package itself.
 
 		:param designUnit:                     The design unit containing the use clause.
 		:param namespace:                      The namespace of the declarative region containing the use clause.
@@ -2303,6 +2343,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                       clause.
 		:raises VHDLModelException:            If a use clause references a package, which doesn't exist in its library.
 		:raises VHDLModelException:            If the type of a symbol in the use clause is unknown.
+		:raises VHDLModelException:            If a package instantiation isn't linked to its generic package.
 		:raises UnhandledCriticalWarningError: If a use clause names a package member, which the package doesn't declare,
 		                                       a primary unit, which the library doesn't contain, a prefix, which isn't a
 		                                       visible package, or an uninstantiated generic package, and no
@@ -2435,14 +2476,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				continue
 
 			if isAll:
-				for normalizedIdentifier, declaration in self._PackageDeclarations(package):
+				for normalizedIdentifier, declaration in self._GetPackageDeclarations(package):
 					namespace.AddImport(normalizedIdentifier, declaration, useClause)
 
 			elif isinstance(packageMemberSymbol, PackageReferenceSymbol):
 				namespace.AddImport(packageIdentifier, package, useClause)
 
 			else:
-				members = self._PackageMemberDeclarations(package, packageMemberSymbol._name._normalizedIdentifier)
+				members = tuple(self._GetPackageMemberDeclarations(package, packageMemberSymbol._name._normalizedIdentifier))
 				if len(members) == 0:
 					WarningCollector.Raise(UnresolvedNameWarning(
 						f"Package '{package._identifier}' has no declaration '{packageMemberSymbol._name._identifier}'.",
@@ -2455,50 +2496,60 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					namespace.AddImport(normalizedIdentifier, declaration, useClause)
 
 	@staticmethod
-	def _PackageDeclarations(package: Package) -> tuple[tuple[str, ModelEntity], ...]:
+	def _GetPackageDeclarations(package: Package) -> Generator[tuple[str, ModelEntity], None, None]:
 		"""
-		Return the declarations of a package a use clause can make potentially visible.
+		Iterate the declarations of a package a use clause can make potentially visible.
 
 		A declared item contributes its normalized identifiers; an enumerated type its enumeration literals too, a physical
-		type its units. An incomplete type is completed by its full type declaration, a protected type body completes its
-		protected type, so both are skipped. A package instantiation provides the declarations of its generic package.
+		type its units. An incomplete type is completed by its full type declaration, so it's skipped. A package
+		instantiation provides the declarations of its generic package.
 
-		:param package: The package or package instantiation.
-		:returns:       Tuple of (normalized designator, declaration) pairs, in declaration order.
+		:param package:             The package or package instantiation.
+		:returns:                   A generator to iterate (normalized designator, declaration) pairs, in declaration order.
+		:raises VHDLModelException: If a package instantiation isn't linked to its generic package. |br|
+		                            Call :meth:`LinkPackageInstances` before linking use clauses.
 		"""
 		if isinstance(package, PackageInstantiation):
-			if (genericPackage := package._packageReference._reference) is not None:
-				package = genericPackage
+			if (genericPackage := package._packageReference._reference) is None:
+				ex = VHDLModelException(
+					f"Package instantiation '{package._identifier}' isn't linked to its generic package "
+					f"'{package._packageReference._name!s}'."
+				)
+				ex.add_note("Call 'LinkPackageInstances()' before linking use clauses.")
+				raise ex
 
-		declarations = []
+			package = genericPackage
+
 		for item in package._declaredItems:
-			if isinstance(item, (AnonymousType, ProtectedTypeBody)):
+			if isinstance(item, AnonymousType):
 				continue
 			elif isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
 				for normalizedIdentifier in normalizedIdentifiersOf(item):
-					declarations.append((normalizedIdentifier, item))
+					yield normalizedIdentifier, item
 
-				declarations.extend(Namespace._ImplicitDeclarationsOf(item))
-
-		return tuple(declarations)
+				yield from Namespace._ImplicitDeclarationsOf(item)
 
 	@staticmethod
-	def _PackageMemberDeclarations(package: Package, memberIdentifier: str) -> tuple[tuple[str, ModelEntity], ...]:
+	def _GetPackageMemberDeclarations(
+		package:          Package,
+		memberIdentifier: str
+	) -> Generator[tuple[str, ModelEntity], None, None]:
 		"""
-		Return the declarations of a package a use clause naming one package member makes potentially visible.
+		Iterate the declarations of a package a use clause naming one package member makes potentially visible.
 
 		These are the declarations of the package with the member's identifier, e.g. all overloads of a subprogram. A type
 		brings its enumeration literals or physical units along (IEEE Std 1076-2008, 12.4), a subtype those of its base
 		type: the known base type, else the type its type marks lead to, followed by simple names in the package.
 
-		:param package:          The package or package instantiation.
-		:param memberIdentifier: The normalized (lower case) identifier of the package member.
-		:returns:                Tuple of (normalized designator, declaration) pairs, in declaration order.
+		:param package:             The package or package instantiation.
+		:param memberIdentifier:    The normalized (lower case) identifier of the package member.
+		:returns:                   A generator to iterate (normalized designator, declaration) pairs, in declaration order.
+		:raises VHDLModelException: If a package instantiation isn't linked to its generic package. |br|
+		                            Call :meth:`LinkPackageInstances` before.
 		"""
-		declarations = []
-		for normalizedIdentifier, declaration in Design._PackageDeclarations(package):
+		for normalizedIdentifier, declaration in Design._GetPackageDeclarations(package):
 			if normalizedIdentifier == memberIdentifier:
-				declarations.append((normalizedIdentifier, declaration))
+				yield normalizedIdentifier, declaration
 
 				# A subtype's base type: known for a predefined subtype, else follow the type marks by simple names.
 				baseType = declaration
@@ -2511,9 +2562,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					else:
 						baseType = None
 
-				declarations.extend(Namespace._ImplicitDeclarationsOf(baseType))
-
-		return tuple(declarations)
+				yield from Namespace._ImplicitDeclarationsOf(baseType)
 
 	@staticmethod
 	def _IterateDeclarationRegions(region: DeclarationRegionMixin) -> Generator[DeclarationRegionMixin, None, None]:
@@ -2676,10 +2725,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							ex = VHDLModelException(f"Use clause '{symbol._name!s}' of context '{context._identifier}' isn't linked.")
 							ex.add_note("Call 'LinkContexts()' before 'LinkContextReferences()'.")
 							raise ex
+						elif len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
+							# LinkContexts reported the uninstantiated generic package.
+							continue
 						elif isinstance(symbol, AllPackageMembersReferenceSymbol):
-							declarations = self._PackageDeclarations(package)
+							declarations = self._GetPackageDeclarations(package)
 						else:
-							declarations = self._PackageMemberDeclarations(package, symbol._name._normalizedIdentifier)
+							declarations = self._GetPackageMemberDeclarations(package, symbol._name._normalizedIdentifier)
 
 						for normalizedIdentifier, declaration in declarations:
 							designUnit._namespace.AddImport(normalizedIdentifier, declaration, useClause)

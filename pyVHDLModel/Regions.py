@@ -55,7 +55,7 @@ from pyVHDLModel.Object      import BaseConstant, Constant, DeferredConstant, Sh
 if TYPE_CHECKING:
 	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
 	                                  PortSignalInterfaceItem, SingleGenericDeclarationMixin, \
-	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin
+	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin, PortGroup
 	from pyVHDLModel.Type      import Subtype, FullType
 	from pyVHDLModel.Visitor   import Visitor
 
@@ -493,6 +493,9 @@ class WithPortsMixin(
 	Indexing the ports (``_IndexPortItems()``) needs the host's namespace ``_namespace``; a host without one, e.g.
 	a component, can't index them.
 
+	The port groups (:data:`PortGroups`) partition the port clause: concatenated in order, they list every port exactly
+	once, in declaration order. The mutators keep this partition.
+
 	.. seealso::
 
 	   * :class:`Concurrent block statement <pyVHDLModel.Concurrent.ConcurrentBlockStatement>`
@@ -500,22 +503,82 @@ class WithPortsMixin(
 	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
 	   * :class:`Port group <pyVHDLModel.Interface.PortGroup>`
 	"""
-	_portItems: list[PortInterfaceItemMixin]  #: List of all ports, in declaration order.
+	_portItems:  list[PortInterfaceItemMixin]  #: List of all ports, in declaration order.
+	_portGroups: list[PortGroup]               #: List of all port groups, in declaration order.
 
 	def __init__(
 		self,
-		portItems: Nullable[Iterable[PortInterfaceItemMixin]] = None,
+		portItems:  Nullable[Iterable[PortInterfaceItemMixin]] = None,
+		portGroups: Nullable[Iterable[PortGroup]] = None
 	) -> None:
 		"""
 		Initializes a language construct with a port clause.
 
-		:param portItems: List of all ports, in declaration order.
+		The language construct becomes the parent of each port group, and each port refers to its port group. Without
+		port groups, all ports form one unnamed port group; no ports form no port group.
+
+		:param portItems:   Optional, list of all ports, in declaration order. Default: ``None``, no ports.
+		:param portGroups:  Optional, list of port groups partitioning the ports, in declaration order. Default:
+		                    ``None``, one unnamed port group.
+		:raises TypeError:  If parameter 'portGroups' is ``None`` and an element of parameter 'portItems' is not of type
+		                    :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises ValueError: If parameter 'portGroups' is ``None`` and an element of parameter 'portItems' is in a port
+		                    group of another language construct.
+		:raises TypeError:  If parameter 'portGroups' is not iterable.
+		:raises TypeError:  If an element of parameter 'portGroups' is not of type
+		                    :class:`~pyVHDLModel.Interface.PortGroup`.
+		:raises ValueError: If parameter 'portGroups' doesn't list every port of parameter 'portItems' exactly once,
+		                    in declaration order.
 		"""
+		from pyVHDLModel.Interface import PortGroup
+
 		self._portItems = portItemList = []
 		if portItems is not None:
 			for item in portItems:
 				portItemList.append(item)
 				item.Parent = self
+
+		self._portGroups = portGroupList = []
+		if portGroups is None:
+			if len(portItemList) > 0:
+				portGroup = PortGroup(portItemList, parent=self)
+				portGroupList.append(portGroup)
+				for item in portItemList:
+					item._group = portGroup
+
+			return
+
+		if not isinstance(portGroups, Iterable):
+			ex = TypeError("Parameter 'portGroups' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(portGroups)}'.")
+			raise ex
+
+		groupedItems = []
+		for portGroup in portGroups:
+			if not isinstance(portGroup, PortGroup):
+				ex = TypeError("Element of parameter 'portGroups' is not of type 'PortGroup'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(portGroup)}'.")
+				raise ex
+
+			portGroupList.append(portGroup)
+			groupedItems.extend(portGroup._portItems)
+
+		isPartition = len(groupedItems) == len(portItemList) and all(
+			grouped is item for grouped, item in zip(groupedItems, portItemList)
+		)
+		if not isPartition:
+			groups = " | ".join(
+				", ".join(name for item in portGroup._portItems for name in item._identifiers) for portGroup in portGroupList
+			)
+			ports = ", ".join(name for item in portItemList for name in item._identifiers)
+			ex = ValueError("Parameter 'portGroups' doesn't partition parameter 'portItems'.")
+			ex.add_note(f"Got port groups '{groups}' for ports '{ports}'.")
+			raise ex
+
+		for portGroup in portGroupList:
+			portGroup.Parent = self
+			for item in portGroup._portItems:
+				item._group = portGroup
 
 	@readonly
 	def PortItems(self) -> list[PortInterfaceItemMixin]:
@@ -534,6 +597,18 @@ class WithPortsMixin(
 		:returns: The port count.
 		"""
 		return len(self._portItems)
+
+	@readonly
+	def PortGroups(self) -> list[PortGroup]:
+		"""
+		Read-only property to access the port groups (:attr:`_portGroups`).
+
+		The port groups partition the port clause: concatenated in order, they list every port exactly once, in
+		declaration order.
+
+		:returns: List of port groups, in declaration order.
+		"""
+		return self._portGroups
 
 	def IterateSinglePortDeclarations(
 		self,
@@ -556,18 +631,23 @@ class WithPortsMixin(
 					if predicate(singleDeclaration):
 						yield singleDeclaration
 
-	def AddPortItem(self, portItem: PortSignalInterfaceItem) -> None:
+	def AddPortItem(self, portItem: PortSignalInterfaceItem, group: Nullable[PortGroup] = None) -> None:
 		"""
-		Add a port at the end of the port clause.
+		Add a port at the end of the port clause, or at the end of a port group.
 
 		The port's parent is set to this language construct, and its identifiers are added to the language construct's
-		namespace, if it has one.
+		namespace, if it has one. Without a port group, the port joins the last port group, or forms a new unnamed port
+		group if there are no ports.
 
 		:param portItem:              The port to add.
+		:param group:                 Optional, the port group of this language construct to add the port to, at its end.
+		                              Default: ``None``, the end of the port clause.
 		:raises ValueError:           If parameter 'portItem' is ``None``.
 		:raises TypeError:            If parameter 'portItem' is not of type
 		                              :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
 		:raises AlreadyInDesignError: If parameter 'portItem' already has a parent.
+		:raises TypeError:            If parameter 'group' is not of type :class:`~pyVHDLModel.Interface.PortGroup`.
+		:raises NotAChildError:       If parameter 'group' is not a port group of this language construct.
 		:raises DuplicatePortError:   If an existing declaration of the language construct shares an identifier
 		                              with the port.
 
@@ -578,19 +658,33 @@ class WithPortsMixin(
 		   :meth:`RemovePortItem`
 		      |rarr| Remove a port from the port clause.
 		"""
-		self.InsertPortItem(len(self._portItems), portItem)
+		index = len(self._portItems)
+		if group is not None:
+			index = 0
+			for portGroup in self._portGroups:
+				index += len(portGroup._portItems)
+				if portGroup is group:
+					break
 
-	def InsertPortItem(self, index: int, portItem: PortSignalInterfaceItem) -> None:
+		self.InsertPortItem(index, portItem, group)
+
+	def InsertPortItem(self, index: int, portItem: PortSignalInterfaceItem, group: Nullable[PortGroup] = None) -> None:
 		"""
 		Insert a port at a position of the port clause.
 
 		The port's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
+		Without a port group, the port joins the port group of the port before ``index``; at index ``0``, the port group
+		of the first port. If there are no ports, the port forms a new unnamed port group. A port group given must
+		contain ``index`` or end at it, so the port groups stay contiguous.
+
 		:param index:                 Position, from ``0`` (first) to :data:`PortCount` (append).
 		                              A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
 		                              before the last port.
 		:param portItem:              The port to insert.
+		:param group:                 Optional, the port group of this language construct to insert the port into.
+		                              Default: ``None``, the port group of the port before ``index``.
 		:raises ValueError:           If parameter 'index' is ``None``.
 		:raises TypeError:            If parameter 'index' is not of type :class:`int`.
 		:raises ValueError:           If parameter 'index' is out of range.
@@ -598,6 +692,9 @@ class WithPortsMixin(
 		:raises TypeError:            If parameter 'portItem' is not of type
 		                              :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
 		:raises AlreadyInDesignError: If parameter 'portItem' already has a parent.
+		:raises TypeError:            If parameter 'group' is not of type :class:`~pyVHDLModel.Interface.PortGroup`.
+		:raises NotAChildError:       If parameter 'group' is not a port group of this language construct.
+		:raises ValueError:           If parameter 'group' neither contains nor ends at parameter 'index'.
 		:raises DuplicatePortError:   If an existing declaration of the language construct shares an identifier
 		                              with the port.
 
@@ -610,7 +707,7 @@ class WithPortsMixin(
 		   :meth:`MovePortItem`
 		      |rarr| Move a port to a position of the port clause.
 		"""
-		from pyVHDLModel.Interface import PortSignalInterfaceItem
+		from pyVHDLModel.Interface import PortSignalInterfaceItem, PortGroup
 
 		if index is None:
 			raise ValueError("Parameter 'index' is None.")
@@ -639,6 +736,33 @@ class WithPortsMixin(
 			ex.add_note(f"Remove it from its {getTypeName(portItem._parent)} first.")
 			raise ex
 
+		position = index if index >= 0 else len(self._portItems) + index
+		if group is not None:
+			if not isinstance(group, PortGroup):
+				ex = TypeError("Parameter 'group' is not of type 'PortGroup'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(group)}'.")
+				raise ex
+
+			groupStart = 0
+			for portGroup in self._portGroups:
+				if portGroup is group:
+					break
+
+				groupStart += len(portGroup._portItems)
+			else:
+				groupName = getTypeName(group) if group._identifier is None else f"{getTypeName(group)} '{group._identifier}'"
+				raise NotAChildError(
+					f"{groupName} is not a port group of this {getTypeName(self)}.",
+					element=group,
+					parent=self
+				)
+
+			groupEnd = groupStart + len(group._portItems)
+			if not (groupStart <= position <= groupEnd):
+				ex = ValueError(f"Parameter 'index' is outside of parameter 'group' at {groupStart}..{groupEnd}.")
+				ex.add_note(f"Got value '{index}'.")
+				raise ex
+
 		if len(clashes := self._ClashingDeclarations(portItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(portItem), normalizedIdentifiersOf(portItem))
@@ -653,17 +777,49 @@ class WithPortsMixin(
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
-		self._portItems.insert(index, portItem)
+		self._portItems.insert(position, portItem)
 		portItem.Parent = self
+		if group is None:
+			self._AddToPortGroup(position, portItem)
+		else:
+			group._portItems.insert(position - groupStart, portItem)
+			portItem._group = group
+
 		self._AddToNamespace(portItem)
+
+	def _AddToPortGroup(self, position: int, portItem: PortSignalInterfaceItem) -> None:
+		"""
+		Add a port to the port group of the port before ``position``; at position ``0``, the port group of the first port.
+
+		If there are no port groups, the port forms a new unnamed port group.
+
+		:param position: Position of the port in the port clause, from ``0`` (first) to :data:`PortCount` (last).
+		:param portItem: The port to add, which isn't in a port group.
+		"""
+		from pyVHDLModel.Interface import PortGroup
+
+		groupStart = 0
+		for portGroup in self._portGroups:
+			groupEnd = groupStart + len(portGroup._portItems)
+			if position <= groupEnd:
+				portGroup._portItems.insert(position - groupStart, portItem)
+				portItem._group = portGroup
+				return
+
+			groupStart = groupEnd
+
+		portGroup = PortGroup((portItem, ), parent=self)
+		self._portGroups.append(portGroup)
+		portItem._group = portGroup
 
 	def RemovePortItem(self, portItem: PortSignalInterfaceItem) -> None:
 		"""
 		Remove a port from the port clause.
 
-		The port is detached: its parent is cleared and its identifiers are removed from the language construct's
-		namespace, if it has one. The port itself is unchanged and can be added to another language construct, or
-		inserted at another position.
+		The port is detached: its parent and port group are cleared and its identifiers are removed from the language
+		construct's namespace, if it has one. A port group, which becomes empty, is removed from :data:`PortGroups` and its
+		parent is cleared. The port itself is unchanged and can be added to another language construct, or inserted at
+		another position.
 
 		:param portItem:             The port to remove.
 		:raises ValueError:          If parameter 'portItem' is ``None``.
@@ -705,13 +861,38 @@ class WithPortsMixin(
 
 		self._RemoveFromNamespace(portItem)
 		del self._portItems[index]
+		self._RemoveFromPortGroup(portItem)
 		portItem._parent = None
+
+	def _RemoveFromPortGroup(self, portItem: PortSignalInterfaceItem) -> None:
+		"""
+		Remove a port from its port group and clear the port's group.
+
+		A port group, which becomes empty, is removed from :data:`PortGroups` and its parent is cleared.
+
+		:param portItem: The port to remove from its port group.
+		"""
+		portGroup = portItem._group
+		groupItems = portGroup._portItems
+		for index, item in enumerate(groupItems):
+			if item is portItem:
+				del groupItems[index]
+				break
+
+		if len(groupItems) == 0:
+			self._portGroups.remove(portGroup)
+			portGroup._parent = None
+
+		portItem._group = None
 
 	def MovePortItem(self, portItem: PortSignalInterfaceItem, index: int) -> None:
 		"""
 		Move a port to a position of the port clause.
 
-		The port stays a port of this language construct: only the order of the port clause changes.
+		The port stays a port of this language construct: only the order of the port clause changes. The port leaves its
+		port group, like :meth:`RemovePortItem`, and joins a port group, like :meth:`InsertPortItem` without a port group:
+		the port group of the port before its new position; at index ``0``, the port group of the first port. A move to
+		the port's current position changes nothing.
 
 		:param portItem:        The port to move.
 		:param index:           Position of the port after the move, from ``0`` (first) to :data:`PortCount` minus one
@@ -764,8 +945,13 @@ class WithPortsMixin(
 			raise ex
 
 		newIndex = index if index >= 0 else len(self._portItems) + index
+		if newIndex == currentIndex:
+			return
+
 		del self._portItems[currentIndex]
 		self._portItems.insert(newIndex, portItem)
+		self._RemoveFromPortGroup(portItem)
+		self._AddToPortGroup(newIndex, portItem)
 
 	def SplitPortItem(
 		self,
@@ -775,9 +961,9 @@ class WithPortsMixin(
 		Split a port with an identifier list into one port per identifier.
 
 		The port keeps its first identifier. For every other identifier, a new port is created by its
-		``Copy()`` and inserted right after it, in list order; its parent is set to this language construct. If the
-		language construct has a namespace, the entries of the other identifiers refer to the new ports.
-		A port declaring one identifier is unchanged.
+		``Copy()`` and inserted right after it, in list order, in the port clause and in the port's port group; its parent
+		is set to this language construct. If the language construct has a namespace, the entries of the other identifiers
+		refer to the new ports. A port declaring one identifier is unchanged.
 
 		:param portItem:             The port to split.
 		:returns:                    Tuple of ports, one per identifier in list order, starting with the split
@@ -819,13 +1005,21 @@ class WithPortsMixin(
 		if not isinstance(portItem, MultipleNamedEntityMixin) or len(portItem._identifiers) == 1:
 			return (portItem, )
 
+		portGroup = portItem._group
+		groupItems = portGroup._portItems
+		for groupIndex, item in enumerate(groupItems):
+			if item is portItem:
+				break
+
 		declarations = portItem._SplitCopies()
 		self._RemoveFromNamespace(portItem)
 		portItem._KeepIdentifier(0)
 		self._portItems[index + 1:index + 1] = declarations
+		groupItems[groupIndex + 1:groupIndex + 1] = declarations
 		self._AddToNamespace(portItem)
 		for declaration in declarations:
 			declaration.Parent = self
+			declaration._group = portGroup
 			self._AddToNamespace(declaration)
 
 		return (portItem, *declarations)

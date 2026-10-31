@@ -36,6 +36,7 @@ from pyTooling.Testing           import Testcase
 
 from pyVHDLModel                 import Interface as InterfaceModule
 from pyVHDLModel.Base            import Mode
+from pyVHDLModel.DesignUnit      import Entity
 from pyVHDLModel.Expression      import IntegerLiteral
 from pyVHDLModel.Formatting.VHDL import VHDLWriter
 from pyVHDLModel.Interface       import SimpleModeViewElement, CompositeModeViewElement, GenericConstantInterfaceItem, \
@@ -124,6 +125,18 @@ class InterfaceItemsWithMode(Testcase):
 
 		self.assertIs(_DerivedPortSimpleSignalInterfaceItem, type(copy))
 		self.assertEqual("signal Clock : in std_logic?", str(copy))
+
+
+class Groups(Testcase):
+	def test_Port(self) -> None:
+		"""A copy of a port is in no port group."""
+		original = PortSimpleSignalInterfaceItem(("Clock", ), Mode.In, _subtypeSymbol("std_logic"))
+		entity =   Entity("e", portItems=[original])
+
+		copy = original.Copy()
+
+		self.assertIs(entity.PortGroups[0], original.Group)
+		self.assertIsNone(copy.Group)
 
 
 class InterfaceItemsWithModeView(Testcase):

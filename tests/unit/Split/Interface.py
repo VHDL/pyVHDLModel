@@ -265,13 +265,20 @@ class Ports(Testcase):
 		self.assertIs(component, declarations[1].Parent)
 
 	def test_Split_Group(self) -> None:
+		"""The new ports follow the split port in its port group."""
+		first = _port("first")
 		original = _port("a", "b")
-		group = PortGroup([original])
+		last = _port("last")
+		group = PortGroup([first, original])
+		other = PortGroup([last])
+		entity = Entity("e", portItems=[first, original, last], portGroups=[group, other])
 
 		declarations = original.Split()
 
-		self.assertListEqual(list(declarations), group.PortItems)
-		self.assertIs(group, declarations[1].Parent)
+		self.assertListEqual([first, *declarations], group.PortItems)
+		self.assertListEqual([last], other.PortItems)
+		self.assertIs(entity, declarations[1].Parent)
+		self.assertIs(group, declarations[1].Group)
 
 	def test_Split_NotAChild(self) -> None:
 		original = _port("a", "b")

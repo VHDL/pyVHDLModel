@@ -51,7 +51,7 @@ from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin, \
                                       WithoutStatementsMixin
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
-from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin
+from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, PortGroup
 from pyVHDLModel.Object        import DeferredConstant
 from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration
@@ -1096,7 +1096,8 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		statements:    Nullable[Iterable[ConcurrentStatement]] = None,
 		documentation: Nullable[str] = None,
 		allowBlackbox: Nullable[bool] = None,
-		parent:        Nullable[ModelEntity] = None
+		parent:        Nullable[ModelEntity] = None,
+		portGroups:    Nullable[Iterable[PortGroup]] = None
 	) -> None:
 		"""
 		Initializes an entity declaration.
@@ -1110,6 +1111,8 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		:param documentation: The documentation comment associated with this declaration.
 		:param allowBlackbox: Allow blackboxes for components in language entity.
 		:param parent:        The parent model entity of this entity.
+		:param portGroups:    Optional, list of port groups partitioning the ports, in declaration order. Default:
+		                      ``None``, one unnamed port group.
 		"""
 		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
@@ -1117,7 +1120,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 			self, self._normalizedIdentifier, declaredItems, self._CONTINUES_PARENT_REGION
 		)
 		WithGenericsMixin.__init__(self, genericItems)
-		WithPortsMixin.__init__(self, portItems)
+		WithPortsMixin.__init__(self, portItems, portGroups)
 		ConcurrentStatementsMixin.__init__(self, statements)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
@@ -1370,7 +1373,8 @@ class Component(
 		portItems:     Nullable[Iterable[PortInterfaceItemMixin]] = None,
 		documentation: Nullable[str] = None,
 		allowBlackbox: Nullable[bool] = None,
-		parent:        Nullable[ModelEntity] = None
+		parent:        Nullable[ModelEntity] = None,
+		portGroups:    Nullable[Iterable[PortGroup]] = None
 	) -> None:
 		"""
 		Initializes a component declaration.
@@ -1381,12 +1385,14 @@ class Component(
 		:param documentation: The documentation comment associated with this declaration.
 		:param allowBlackbox: Allow blackboxes for components in language entity.
 		:param parent:        The parent model entity of this entity.
+		:param portGroups:    Optional, list of port groups partitioning the ports, in declaration order. Default:
+		                      ``None``, one unnamed port group.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 		WithGenericsMixin.__init__(self, genericItems)
-		WithPortsMixin.__init__(self, portItems)
+		WithPortsMixin.__init__(self, portItems, portGroups)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
 		self._isBlackbox = None

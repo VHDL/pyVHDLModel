@@ -54,7 +54,7 @@ from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstanti
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem, GenericAssociationItem, \
                                     PortAssociationItem, GenericMapAspectMixin, PortMapAspectMixin
-from pyVHDLModel.Interface   import PortInterfaceItemMixin, GenericInterfaceItemMixin
+from pyVHDLModel.Interface   import PortInterfaceItemMixin, GenericInterfaceItemMixin, PortGroup
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin, AllowBlackboxMixin, \
                                     ConditionalWaveform, SelectedWaveform, ConditionalWaveformsMixin, WaveformMixin, \
                                     ExpressionMixin, SelectedWaveformsMixin
@@ -1086,7 +1086,8 @@ class ConcurrentBlockStatement(
 		statements:              Iterable[ConcurrentStatement] = None,
 		documentation:           Nullable[str] = None,
 		allowBlackbox:           Nullable[bool] = None,
-		parent:                  Nullable[ModelEntity] = None
+		parent:                  Nullable[ModelEntity] = None,
+		portGroups:              Nullable[Iterable[PortGroup]] = None
 	) -> None:
 		"""
 		Initializes a block statement.
@@ -1101,6 +1102,8 @@ class ConcurrentBlockStatement(
 		:param documentation:           The documentation comment associated with this declaration.
 		:param allowBlackbox:           Allow blackboxes for components in language entity.
 		:param parent:                  The parent model entity of this entity.
+		:param portGroups:              Optional, list of port groups partitioning the ports, in declaration order.
+		                                Default: ``None``, one unnamed port group.
 		"""
 		super().__init__(label, parent)
 
@@ -1111,7 +1114,7 @@ class ConcurrentBlockStatement(
 			self._namespace.ParentNamespace = parent._namespace
 
 		WithGenericsMixin.__init__(self, genericItems)
-		WithPortsMixin.__init__(self, portItems)
+		WithPortsMixin.__init__(self, portItems, portGroups)
 		GenericMapAspectMixin.__init__(self, genericAssociationItems)
 		PortMapAspectMixin.__init__(self, portAssociationItems)
 		ConcurrentStatementsMixin.__init__(self, statements)

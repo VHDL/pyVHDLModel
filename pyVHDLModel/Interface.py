@@ -48,7 +48,7 @@ from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEnti
                                    Mode, ReservedWord
 from pyVHDLModel.Exception  import NotAChildError
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
-from pyVHDLModel.Regions    import WithGenericsMixin, WithPortsMixin, WithParametersMixin
+from pyVHDLModel.Regions    import WithGenericsMixin, WithParametersMixin
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
 
@@ -404,6 +404,25 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Parameter interface item mixin <pyVHDLModel.Interface.ParameterInterfaceItemMixin>`
 	   * :class:`Port signal interface item <pyVHDLModel.Interface.PortSignalInterfaceItem>`
 	"""
+
+	_group: Nullable[InterfaceGroup]  #: The interface group listing this item, or ``None``.
+
+	def __init__(self) -> None:
+		"""
+		Initializes an interface item, which is in no interface group.
+		"""
+		self._group = None
+
+	@readonly
+	def Group(self) -> Nullable[InterfaceGroup]:
+		"""
+		Read-only property to access the interface group listing this item (:attr:`_group`).
+
+		Every interface item of a language construct is in exactly one of the language construct's interface groups.
+
+		:returns: The interface group, or ``None`` if not set.
+		"""
+		return self._group
 
 	@expects("_OBJECT_KEYWORD", "_identifiers", "_subtype")
 	def _FormatInterfaceItem(self, mode: Nullable[Mode] = None, isModeView: bool = False) -> str:
@@ -933,6 +952,7 @@ class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem, InterfaceItemWithMo
 		:param parent:            The parent model entity of this entity.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
+		InterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
 	def Copy(self) -> Self:
@@ -1013,6 +1033,7 @@ class PortViewSignalInterfaceItem(PortSignalInterfaceItem, WithSingleDeclaration
 		:param parent:             The parent model entity of this entity.
 		"""
 		super().__init__(identifiers, modeViewIndication, None, documentation, parent)
+		InterfaceItemMixin.__init__(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -2084,9 +2105,16 @@ ParameterFileInterfaceItem._SINGLE_DECLARATION = SingleParameterFileDeclaration
 @export
 class InterfaceGroup(ModelEntity, OptionallyNamedEntityMixin, DocumentedEntityMixin):
 	"""
-	Represents a group of interface items sharing one clause.
+	Represents a group of interface items of a language construct.
 
-	The group may be named (:data:`Identifier`), which is optional.
+	VHDL has no syntax for interface groups: a group structures and documents the interface items of a language
+	construct, e.g. the ports of one bus interface. A group is a non-owning view: it lists interface items in declaration
+	order, while each item's parent stays the language construct. The group's parent is the language construct too.
+
+	The groups of a language construct partition its interface items of one kind: concatenated in order, the groups list
+	every item exactly once, in declaration order. A run of items without a named group forms an unnamed group (its
+	:data:`Identifier` is ``None``). Each item refers to its group by
+	:data:`~pyVHDLModel.Interface.InterfaceItemMixin.Group`.
 
 	.. seealso::
 
@@ -2096,16 +2124,16 @@ class InterfaceGroup(ModelEntity, OptionallyNamedEntityMixin, DocumentedEntityMi
 	"""
 	def __init__(
 		self,
-		name:   Nullable[str] = None,
+		name:          Nullable[str] = None,
 		documentation: Nullable[str] = None,
-		parent: Nullable[ModelEntity] = None
+		parent:        Nullable[ModelEntity] = None
 	) -> None:
 		"""
-		Initializes a group of interface items sharing one clause.
+		Initializes a group of interface items.
 
-		:param name:          The group's name.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param name:          Optional, the group's name. Default: ``None``, an unnamed group.
+		:param documentation: Optional, the documentation comment associated with this group. Default: ``None``.
+		:param parent:        Optional, the language construct of the grouped interface items. Default: ``None``.
 		"""
 		super().__init__(parent)
 		OptionallyNamedEntityMixin.__init__(self, name)
@@ -2198,20 +2226,25 @@ class GenericGroup(InterfaceGroup, WithGenericsMixin):
 
 
 @export
-class PortGroup(InterfaceGroup, WithPortsMixin):
+class PortGroup(InterfaceGroup):
 	"""
-	Represents the port clause of a design unit.
+	Represents a group of ports of a language construct.
 
-	The ports are available as :data:`PortItems`.
+	A port group is a non-owning view: it lists ports (:data:`PortItems`) of a language construct, e.g. an entity, in
+	declaration order, while the ports' parent stays the language construct. The port groups of a language construct
+	partition its port clause (:data:`~pyVHDLModel.Regions.WithPortsMixin.PortGroups`): concatenated in order, they
+	list every port exactly once, in declaration order.
 
 	.. seealso::
 
-	   * :class:`Generic clause <pyVHDLModel.Interface.GenericGroup>`
-	   * :class:`Parameter list <pyVHDLModel.Interface.ParameterGroup>`
+	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
+	   * :class:`Parameter group <pyVHDLModel.Interface.ParameterGroup>`
 	"""
+	_portItems: list[PortSignalInterfaceItem]  #: List of the grouped ports, in declaration order.
+
 	def __init__(
 		self,
-		portItems:     Iterable[PortInterfaceItemMixin],
+		portItems:     Iterable[PortSignalInterfaceItem],
 		name:          Nullable[str] = None,
 		documentation: Nullable[str] = None,
 		parent:        Nullable[ModelEntity] = None
@@ -2219,13 +2252,53 @@ class PortGroup(InterfaceGroup, WithPortsMixin):
 		"""
 		Initializes a port group.
 
-		:param portItems:     List of all ports, in declaration order.
-		:param name:          The group's name.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		The ports are recorded, but not changed: the language construct accepting the group sets the group's parent and
+		each port's :data:`~pyVHDLModel.Interface.InterfaceItemMixin.Group`.
+
+		:param portItems:     List of the grouped ports, in declaration order.
+		:param name:          Optional, the group's name. Default: ``None``, an unnamed group.
+		:param documentation: Optional, the documentation comment associated with this group. Default: ``None``.
+		:param parent:        Optional, the language construct of the grouped ports. Default: ``None``.
+		:raises ValueError:   If parameter 'portItems' is ``None``.
+		:raises TypeError:    If parameter 'portItems' is not iterable.
+		:raises TypeError:    If an element of parameter 'portItems' is not of type
+		                      :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
+		:raises ValueError:   If an element of parameter 'portItems' is in a port group of a language construct.
+		:raises ValueError:   If parameter 'portItems' is empty.
 		"""
 		super().__init__(name, documentation, parent)
-		WithPortsMixin.__init__(self, portItems)
+
+		if portItems is None:
+			raise ValueError("Parameter 'portItems' is None.")
+		elif not isinstance(portItems, Iterable):
+			ex = TypeError("Parameter 'portItems' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(portItems)}'.")
+			raise ex
+
+		self._portItems = portItemList = []
+		for item in portItems:
+			if not isinstance(item, PortSignalInterfaceItem):
+				ex = TypeError("Element of parameter 'portItems' is not of type 'PortSignalInterfaceItem'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+				raise ex
+			elif item._group is not None:
+				ex = ValueError("Element of parameter 'portItems' is in a port group of a language construct.")
+				ex.add_note(f"Got port '{', '.join(item._identifiers)}' of {getTypeName(item._parent)}.")
+				raise ex
+
+			portItemList.append(item)
+
+		if len(portItemList) == 0:
+			raise ValueError("Parameter 'portItems' is empty.")
+
+	@readonly
+	def PortItems(self) -> list[PortSignalInterfaceItem]:
+		"""
+		Read-only property to access the grouped ports (:attr:`_portItems`).
+
+		:returns: List of ports, in declaration order.
+		"""
+		return self._portItems
 
 	def __len__(self) -> int:
 		"""
@@ -2235,7 +2308,7 @@ class PortGroup(InterfaceGroup, WithPortsMixin):
 		"""
 		return len(self._portItems)
 
-	def __iter__(self) -> Iterator[PortInterfaceItemMixin]:
+	def __iter__(self) -> Iterator[PortSignalInterfaceItem]:
 		"""
 		Iterates the ports in this group.
 
@@ -2253,19 +2326,6 @@ class PortGroup(InterfaceGroup, WithPortsMixin):
 		"""
 		names = ", ".join(name for item in self._portItems for name in identifiersOf(item))
 		return f"PortGroup: {self._identifier} ({len(self._portItems)}): {names}"
-
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
-		"""
-		Return the ports of this group sharing an identifier with the given item.
-
-		:param item: The new port.
-		:returns:    Tuple of clashing ports.
-		"""
-		identifiers = set(normalizedIdentifiersOf(item))
-		return tuple(
-			declaration for declaration in self._portItems
-			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-		)
 
 
 @export

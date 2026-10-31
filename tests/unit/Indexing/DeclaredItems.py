@@ -116,7 +116,7 @@ class ConcurrentDeclaredItems(Testcase):
 
 		architecture.IndexDeclaredItems()
 
-		self.assertIs(imported, architecture._namespace.Imports()["bits"][0].Element)
+		self.assertIs(imported, architecture._namespace.Imports["bits"][0].Element)
 
 	def test_Reindex_DeferredConstants(self) -> None:
 		deferredConstant = DeferredConstant(["BITS"], _subtypeSymbol("positive"))

@@ -23,14 +23,16 @@ Version 0.43.0 (2026)
      through context references, also nested ones. A missing package member or primary unit, a prefix, which isn't a
      visible package, and an uninstantiated generic package are an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
    * Enumeration literals and physical units of a region's types are declarations of the region
-     (:meth:`Namespace.ImplicitDeclarations() <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`).
+     (:data:`Namespace.ImplicitDeclarations <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`).
    * Aliases, attribute declarations and packages declared in a region are added to its namespace.
 
    .. rubric:: Changes
 
-   * Breaking change: :meth:`Namespace.Imports() <pyVHDLModel.Namespace.Namespace.Imports>` returns a list of
-     :class:`~pyVHDLModel.Namespace.Import` (declaration and use clause) per identifier;
+   * Breaking change: :data:`Namespace.Imports <pyVHDLModel.Namespace.Namespace.Imports>` is a read-only property
+     (was a method) of a list of :class:`~pyVHDLModel.Namespace.Import` (declaration and use clause) per identifier;
      :meth:`~pyVHDLModel.Namespace.Namespace.AddImport` takes the use clause.
+   * Breaking change: :data:`Namespace.Elements <pyVHDLModel.Namespace.Namespace.Elements>` is a read-only property
+     (was a method).
    * Breaking change: a physical type's units are :class:`~pyVHDLModel.Type.PhysicalUnit` declarations:
      :attr:`PhysicalType.PrimaryUnit <pyVHDLModel.Type.PhysicalType.PrimaryUnit>` returns the primary unit, which has no
      value (was its name; formatted, it's still the name), :attr:`PhysicalType.SecondaryUnits

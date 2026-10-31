@@ -2527,7 +2527,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				for normalizedIdentifier in normalizedIdentifiersOf(item):
 					yield normalizedIdentifier, item
 
-				yield from Namespace._ImplicitDeclarationsOf(item)
+				yield from Namespace._GetImplicitDeclarationsOf(item)
 
 	@staticmethod
 	def _GetPackageMemberDeclarations(
@@ -2562,7 +2562,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					else:
 						baseType = None
 
-				yield from Namespace._ImplicitDeclarationsOf(baseType)
+				yield from Namespace._GetImplicitDeclarationsOf(baseType)
 
 	@staticmethod
 	def _IterateDeclarationRegions(region: DeclarationRegionMixin) -> Generator[DeclarationRegionMixin, None, None]:

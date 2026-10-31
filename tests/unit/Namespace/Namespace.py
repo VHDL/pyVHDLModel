@@ -70,7 +70,7 @@ class Namespaces(Testcase):
 		self.assertEqual("architecture", namespace.Name)
 		self.assertIsNone(namespace.ParentNamespace)
 		self.assertEqual(0, len(namespace.SubNamespaces))
-		self.assertEqual(0, len(namespace.Elements()))
+		self.assertEqual(0, len(namespace.Elements))
 
 	def test_ConstructionWithParent(self) -> None:
 		parent = Namespace("entity")

@@ -63,7 +63,7 @@ class Namespaces(Testcase):
 
 		namespace.RemoveElement("bits", bits)
 
-		self.assertDictEqual({"clock": clock}, namespace.Elements())
+		self.assertDictEqual({"clock": clock}, namespace.Elements)
 
 	def test_RemoveElement_NotDeclared(self) -> None:
 		namespace = Namespace("rtl")
@@ -93,7 +93,7 @@ class Namespaces(Testcase):
 		self.assertEqual("BITS", context.exception.Identifier)
 		self.assertEqual("bits", context.exception.NormalizedIdentifier)
 		self.assertIs(namespace, context.exception.Namespace)
-		self.assertDictEqual({"bits": clock}, namespace.Elements())
+		self.assertDictEqual({"bits": clock}, namespace.Elements)
 
 	def test_RemoveElement_KeyError(self) -> None:
 		"""The error is caught like a missing key of a dictionary."""
@@ -212,7 +212,7 @@ class ImportedItems(Testcase):
 		namespace.AddImport("bits", imported, None)
 
 		self.assertDictEqual({"bits": [imported]}, _importedElements(namespace))
-		self.assertDictEqual({}, namespace.Elements())
+		self.assertDictEqual({}, namespace.Elements)
 		self.assertIs(imported, namespace.FindObject(Symbol(SimpleName("BITS"), PossibleReference.Constant)))
 
 	def test_AddImport_Declared(self) -> None:
@@ -225,7 +225,7 @@ class ImportedItems(Testcase):
 
 		namespace.AddImport("bits", imported, None)
 
-		self.assertDictEqual({"bits": constant}, namespace.Elements())
+		self.assertDictEqual({"bits": constant}, namespace.Elements)
 		self.assertDictEqual({"bits": [imported]}, _importedElements(namespace))
 		self.assertIs(constant, namespace.FindObject(Symbol(SimpleName("BITS"), PossibleReference.Constant)))
 
@@ -238,8 +238,8 @@ class ImportedItems(Testcase):
 
 		namespace.RemoveImport("bits", imported)
 
-		self.assertDictEqual({}, namespace.Imports())
-		self.assertDictEqual({"bits": constant}, namespace.Elements())
+		self.assertDictEqual({}, namespace.Imports)
+		self.assertDictEqual({"bits": constant}, namespace.Elements)
 
 	def test_RemoveImport_NotImported(self) -> None:
 		namespace = Namespace("rtl")
@@ -253,7 +253,7 @@ class ImportedItems(Testcase):
 		self.assertFalse(context.exception.HasNotes)
 		self.assertEqual("BITS", context.exception.Identifier)
 		self.assertIs(namespace, context.exception.Namespace)
-		self.assertDictEqual({"bits": constant}, namespace.Elements())
+		self.assertDictEqual({"bits": constant}, namespace.Elements)
 
 	def test_RemoveImport_OtherElement(self) -> None:
 		namespace = Namespace("rtl")
@@ -276,8 +276,8 @@ class ImportedItems(Testcase):
 
 		namespace.ClearImports()
 
-		self.assertDictEqual({}, namespace.Imports())
-		self.assertDictEqual({"bits": constant}, namespace.Elements())
+		self.assertDictEqual({}, namespace.Imports)
+		self.assertDictEqual({"bits": constant}, namespace.Elements)
 
 	def test_RemoveDeclaredItem(self) -> None:
 		"""Removing a declaration makes the imported item of the same identifier visible again."""
@@ -291,7 +291,7 @@ class ImportedItems(Testcase):
 
 		architecture.RemoveDeclaredItem(constant)
 
-		self.assertDictEqual({}, architecture._namespace.Elements())
+		self.assertDictEqual({}, architecture._namespace.Elements)
 		self.assertIs(imported, architecture._namespace.FindObject(Symbol(SimpleName("BITS"), PossibleReference.Constant)))
 
 	def test_UseClause_Package(self) -> None:
@@ -302,7 +302,7 @@ class ImportedItems(Testcase):
 		entity = design.GetEntity("lib", "ent")
 
 		self.assertListEqual([package], _importedElements(entity._namespace)["pkg"])
-		self.assertNotIn("pkg", entity._namespace.Elements())
+		self.assertNotIn("pkg", entity._namespace.Elements)
 
 	def test_UseClause_All(self) -> None:
 		"""A use clause naming all members of a package imports the package's declarations."""
@@ -312,7 +312,7 @@ class ImportedItems(Testcase):
 		entity = design.GetEntity("lib", "ent")
 
 		self.assertListEqual([component], _importedElements(entity._namespace)["comp"])
-		self.assertDictEqual({}, entity._namespace.Elements())
+		self.assertDictEqual({}, entity._namespace.Elements)
 
 
 def _design(*designUnits) -> Design:

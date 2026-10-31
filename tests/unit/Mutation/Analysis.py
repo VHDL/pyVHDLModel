@@ -135,7 +135,7 @@ def _name(element: Any) -> Any:
 	elif isinstance(element, (Entity, Package, PackageBody, Context)):
 		return f"{element.__class__.__name__} {element._parent._normalizedIdentifier}.{element._normalizedIdentifier}"
 
-	return f"{element.__class__.__name__} {Namespace.NormalizedDesignatorOf(element)}"
+	return f"{element.__class__.__name__} {Namespace.GetNormalizedDesignatorOf(element)}"
 
 
 def _graph(graph: Graph) -> dict[str, Any]:
@@ -186,9 +186,9 @@ def _state(design: Design) -> dict[str, Any]:
 		}
 		if (namespace := getattr(designUnit, "_namespace", None)) is not None:
 			designUnitState["namespace"] = {
-				"elements":      sorted(namespace.Elements()),
+				"elements":      sorted(namespace.Elements),
 				"imports":       {
-					key: [_name(imported.Element) for imported in imports] for key, imports in namespace.Imports().items()
+					key: [_name(imported.Element) for imported in imports] for key, imports in namespace.Imports.items()
 				},
 				"parent":        None if namespace.ParentNamespace is None else namespace.ParentNamespace.Name,
 				"subNamespaces": sorted(str(subNamespace.Name) for subNamespace in namespace.SubNamespaces)
@@ -393,8 +393,8 @@ class ResetAnalysis(Testcase):
 
 		design.ResetAnalysis()
 
-		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements())
-		self.assertDictEqual({}, top._namespace.Imports())
+		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements)
+		self.assertDictEqual({}, top._namespace.Imports)
 
 	def test_ResetAnalysis_NotAnalyzed(self) -> None:
 		design = _design(_packages(), _leaf(), _top())
@@ -413,4 +413,4 @@ class EntityNamespace(Testcase):
 		design.Analyze()
 
 		entity = design.GetEntity("lib", "leaf")
-		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements())
+		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements)

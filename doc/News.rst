@@ -13,18 +13,20 @@ Version 0.42.0 (2026)
 
    .. rubric:: New Features
 
-   * Interface groups partition the generic clause and the port clause of a language construct: constructor
-     parameters ``genericGroups`` and ``portGroups``, properties
-     :data:`~pyVHDLModel.Regions.WithGenericsMixin.GenericGroups` and
-     :data:`~pyVHDLModel.Regions.WithPortsMixin.PortGroups`. Each interface item refers to its group
+   * Interface groups partition the generic clause, the port clause and the parameter list of a language construct:
+     constructor parameters ``genericGroups``, ``portGroups`` and ``parameterGroups``, properties
+     :data:`~pyVHDLModel.Regions.WithGenericsMixin.GenericGroups`,
+     :data:`~pyVHDLModel.Regions.WithPortsMixin.PortGroups` and
+     :data:`~pyVHDLModel.Regions.WithParametersMixin.ParameterGroups`. Each interface item refers to its group
      (:data:`~pyVHDLModel.Interface.InterfaceItemMixin.Group`). ``Add***Item()`` and ``Insert***Item()`` take an
      optional group; all mutators keep the partition.
 
    .. rubric:: Changes
 
-   * Breaking change: :class:`~pyVHDLModel.Interface.GenericGroup` and :class:`~pyVHDLModel.Interface.PortGroup` are
-     non-owning views of a language construct's interface items: an item's parent stays the language construct, and a
-     group has no mutators any more. A group rejects an empty or already grouped item list.
+   * Breaking change: :class:`~pyVHDLModel.Interface.GenericGroup`, :class:`~pyVHDLModel.Interface.PortGroup` and
+     :class:`~pyVHDLModel.Interface.ParameterGroup` are non-owning views of a language construct's interface items: an
+     item's parent stays the language construct, and a group has no mutators any more. A group rejects an empty or
+     already grouped item list.
 
 
 Version 0.41.0 (2026)

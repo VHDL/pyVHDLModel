@@ -43,7 +43,7 @@ from pyVHDLModel.Name       import AllName, SelectedName, SimpleName
 from pyVHDLModel.Namespace  import Namespace
 from pyVHDLModel.Symbol     import AllPackageMembersReferenceSymbol, PackageReferenceSymbol, PossibleReference, Symbol
 
-from tests.unit             import _entitySymbol
+from tests.unit             import _entitySymbol, _importedElements
 from tests.unit.Mutation    import _constant, _generic, _port
 
 
@@ -209,9 +209,9 @@ class ImportedItems(Testcase):
 		imported = _constant("BITS")
 		Package("pkg", declaredItems=[imported])
 
-		namespace.AddImport("bits", imported)
+		namespace.AddImport("bits", imported, None)
 
-		self.assertDictEqual({"bits": imported}, namespace.Imports())
+		self.assertDictEqual({"bits": [imported]}, _importedElements(namespace))
 		self.assertDictEqual({}, namespace.Elements())
 		self.assertIs(imported, namespace.FindObject(Symbol(SimpleName("BITS"), PossibleReference.Constant)))
 
@@ -223,10 +223,10 @@ class ImportedItems(Testcase):
 		constant = _constant("BITS")
 		namespace.AddElement("bits", constant)
 
-		namespace.AddImport("bits", imported)
+		namespace.AddImport("bits", imported, None)
 
 		self.assertDictEqual({"bits": constant}, namespace.Elements())
-		self.assertDictEqual({"bits": imported}, namespace.Imports())
+		self.assertDictEqual({"bits": [imported]}, _importedElements(namespace))
 		self.assertIs(constant, namespace.FindObject(Symbol(SimpleName("BITS"), PossibleReference.Constant)))
 
 	def test_RemoveImport(self) -> None:
@@ -234,7 +234,7 @@ class ImportedItems(Testcase):
 		imported = _constant("BITS")
 		constant = _constant("BITS")
 		namespace.AddElement("bits", constant)
-		namespace.AddImport("bits", imported)
+		namespace.AddImport("bits", imported, None)
 
 		namespace.RemoveImport("bits", imported)
 
@@ -258,21 +258,21 @@ class ImportedItems(Testcase):
 	def test_RemoveImport_OtherElement(self) -> None:
 		namespace = Namespace("rtl")
 		imported = _constant("BITS")
-		namespace.AddImport("bits", imported)
+		namespace.AddImport("bits", imported, None)
 
 		with self.assertRaises(NotInNamespaceError) as context:
 			namespace.RemoveImport("bits", _generic("BITS"))
 
 		self.assertEqual("Namespace 'rtl' has another import for 'bits'.", str(context.exception))
 		self.assertListEqual(["Found element of type 'pyVHDLModel.Object.Constant'."], context.exception.__notes__)
-		self.assertDictEqual({"bits": imported}, namespace.Imports())
+		self.assertDictEqual({"bits": [imported]}, _importedElements(namespace))
 
 	def test_ClearImports(self) -> None:
 		namespace = Namespace("rtl")
 		constant = _constant("BITS")
 		namespace.AddElement("bits", constant)
-		namespace.AddImport("bits", _constant("BITS"))
-		namespace.AddImport("width", _constant("WIDTH"))
+		namespace.AddImport("bits", _constant("BITS"), None)
+		namespace.AddImport("width", _constant("WIDTH"), None)
 
 		namespace.ClearImports()
 
@@ -285,7 +285,7 @@ class ImportedItems(Testcase):
 		Package("pkg", declaredItems=[imported])
 		architecture = Architecture("rtl", _entitySymbol("ent"))
 		architecture.IndexDeclaredItems()
-		architecture._namespace.AddImport("bits", imported)
+		architecture._namespace.AddImport("bits", imported, None)
 		constant = _constant("BITS")
 		architecture.AddDeclaredItem(constant)
 
@@ -301,17 +301,17 @@ class ImportedItems(Testcase):
 		package = design.GetPackage("lib", "pkg")
 		entity = design.GetEntity("lib", "ent")
 
-		self.assertDictEqual({"pkg": package}, entity._namespace.Imports())
+		self.assertListEqual([package], _importedElements(entity._namespace)["pkg"])
 		self.assertNotIn("pkg", entity._namespace.Elements())
 
 	def test_UseClause_All(self) -> None:
-		"""A use clause naming all members of a package imports the package's components."""
+		"""A use clause naming all members of a package imports the package's declarations."""
 		component = Component("comp")
 		useClause = UseClause([AllPackageMembersReferenceSymbol(AllName(SelectedName("pkg", SimpleName("work"))))])
 		design = _design(Package("pkg", declaredItems=[component]), Entity("comp"), Entity("ent", [useClause]))
 		entity = design.GetEntity("lib", "ent")
 
-		self.assertDictEqual({"comp": component}, entity._namespace.Imports())
+		self.assertListEqual([component], _importedElements(entity._namespace)["comp"])
 		self.assertDictEqual({}, entity._namespace.Elements())
 
 

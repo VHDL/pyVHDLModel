@@ -112,11 +112,11 @@ class ConcurrentDeclaredItems(Testcase):
 		otherPackage = Package("other", declaredItems=[Constant(["BITS"], _subtypeSymbol("positive"))])
 		imported = otherPackage.DeclaredItems[0]
 		architecture = Architecture("rtl", _entitySymbol("ent"), declaredItems=[_signal("s", "bit")])
-		architecture._namespace.AddImport("bits", imported)
+		architecture._namespace.AddImport("bits", imported, None)
 
 		architecture.IndexDeclaredItems()
 
-		self.assertIs(imported, architecture._namespace.Imports()["bits"])
+		self.assertIs(imported, architecture._namespace.Imports()["bits"][0].Element)
 
 	def test_Reindex_DeferredConstants(self) -> None:
 		deferredConstant = DeferredConstant(["BITS"], _subtypeSymbol("positive"))

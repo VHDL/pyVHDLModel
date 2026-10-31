@@ -324,12 +324,15 @@ class Subprogram(
 
 		:param identifier:      The identifier of a model entity.
 		:param isPure:          ``True`` if the subprogram was declared pure.
-		:param genericItems:    List of all generics, in declaration order.
-		:param parameterItems:  List of all parameters, in declaration order.
-		:param declaredItems:   List of all declared items in this sequential declaration region.
-		:param statements:      List of all sequential statements in the subprogram's body.
-		:param documentation:   The documentation comment associated with this declaration.
-		:param parent:          The parent model entity of this entity.
+		:param genericItems:    Optional, list of all generics, in declaration order. Default: ``None``, no generics.
+		:param parameterItems:  Optional, list of all parameters, in declaration order. Default: ``None``, no parameters.
+		:param declaredItems:   Optional, list of all declared items in this sequential declaration region.
+		                        Default: ``None``, no declared items.
+		:param statements:      Optional, list of all sequential statements in the subprogram's body.
+		                        Default: ``None``, no statements.
+		:param documentation:   Optional, the documentation comment associated with this declaration.
+		                        Default: ``None``, no documentation.
+		:param parent:          Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		:param genericGroups:   Optional, list of generic groups partitioning the generics, in declaration order.
 		                        Default: ``None``, one unnamed generic group.
 		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
@@ -495,12 +498,15 @@ class Procedure(Subprogram):
 		Initializes a procedure.
 
 		:param identifier:      The identifier of a model entity.
-		:param genericItems:    List of all generics, in declaration order.
-		:param parameterItems:  List of all parameters, in declaration order.
-		:param declaredItems:   List of all declared items in this sequential declaration region.
-		:param statements:      List of all sequential statements in the subprogram's body.
-		:param documentation:   The documentation comment associated with this declaration.
-		:param parent:          The parent model entity of this entity.
+		:param genericItems:    Optional, list of all generics, in declaration order. Default: ``None``, no generics.
+		:param parameterItems:  Optional, list of all parameters, in declaration order. Default: ``None``, no parameters.
+		:param declaredItems:   Optional, list of all declared items in this sequential declaration region.
+		                        Default: ``None``, no declared items.
+		:param statements:      Optional, list of all sequential statements in the subprogram's body.
+		                        Default: ``None``, no statements.
+		:param documentation:   Optional, the documentation comment associated with this declaration.
+		                        Default: ``None``, no documentation.
+		:param parent:          Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		:param genericGroups:   Optional, list of generic groups partitioning the generics, in declaration order.
 		                        Default: ``None``, one unnamed generic group.
 		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
@@ -592,13 +598,16 @@ class Function(Subprogram):
 
 		:param identifier:      The identifier of a model entity.
 		:param returnType:      Reference to the subtype of the function's return value.
-		:param isPure:          ``True`` if the subprogram was declared pure.
-		:param genericItems:    List of all generics, in declaration order.
-		:param parameterItems:  List of all parameters, in declaration order.
-		:param declaredItems:   List of all declared items in this sequential declaration region.
-		:param statements:      List of all sequential statements in the subprogram's body.
-		:param documentation:   The documentation comment associated with this declaration.
-		:param parent:          The parent model entity of this entity.
+		:param isPure:          Optional, ``True`` if the subprogram was declared pure. Default: ``True``.
+		:param genericItems:    Optional, list of all generics, in declaration order. Default: ``None``, no generics.
+		:param parameterItems:  Optional, list of all parameters, in declaration order. Default: ``None``, no parameters.
+		:param declaredItems:   Optional, list of all declared items in this sequential declaration region.
+		                        Default: ``None``, no declared items.
+		:param statements:      Optional, list of all sequential statements in the subprogram's body.
+		                        Default: ``None``, no statements.
+		:param documentation:   Optional, the documentation comment associated with this declaration.
+		                        Default: ``None``, no documentation.
+		:param parent:          Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		:param genericGroups:   Optional, list of generic groups partitioning the generics, in declaration order.
 		                        Default: ``None``, one unnamed generic group.
 		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
@@ -683,7 +692,7 @@ class MethodMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Initializes a method.
 
-		:param protectedType: Reference to the protected type this method belongs to.
+		:param protectedType: Optional, reference to the protected type this method belongs to. Default: ``None``.
 		"""
 		self._protectedType = protectedType
 		if protectedType is not None:
@@ -727,13 +736,16 @@ class ProcedureMethod(Procedure, MethodMixin):
 		Initializes a procedure declared as a method of a protected type.
 
 		:param identifier:      The identifier of a model entity.
-		:param genericItems:    List of all generics, in declaration order.
-		:param parameterItems:  List of all parameters, in declaration order.
-		:param declaredItems:   List of all declared items in this sequential declaration region.
-		:param statements:      List of all sequential statements in the subprogram's body.
-		:param documentation:   The documentation comment associated with this declaration.
-		:param protectedType:   Reference to the protected type this method belongs to.
-		:param parent:          The parent model entity of this entity.
+		:param genericItems:    Optional, list of all generics, in declaration order. Default: ``None``, no generics.
+		:param parameterItems:  Optional, list of all parameters, in declaration order. Default: ``None``, no parameters.
+		:param declaredItems:   Optional, list of all declared items in this sequential declaration region.
+		                        Default: ``None``, no declared items.
+		:param statements:      Optional, list of all sequential statements in the subprogram's body.
+		                        Default: ``None``, no statements.
+		:param documentation:   Optional, the documentation comment associated with this declaration.
+		                        Default: ``None``, no documentation.
+		:param protectedType:   Optional, reference to the protected type this method belongs to. Default: ``None``.
+		:param parent:          Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		:param genericGroups:   Optional, list of generic groups partitioning the generics, in declaration order.
 		                        Default: ``None``, one unnamed generic group.
 		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
@@ -784,14 +796,17 @@ class FunctionMethod(Function, MethodMixin):
 
 		:param identifier:      The identifier of a model entity.
 		:param returnType:      Reference to the subtype of the function's return value.
-		:param isPure:          ``True`` if the subprogram was declared pure.
-		:param genericItems:    List of all generics, in declaration order.
-		:param parameterItems:  List of all parameters, in declaration order.
-		:param declaredItems:   List of all declared items in this sequential declaration region.
-		:param statements:      List of all sequential statements in the subprogram's body.
-		:param documentation:   The documentation comment associated with this declaration.
-		:param protectedType:   Reference to the protected type this method belongs to.
-		:param parent:          The parent model entity of this entity.
+		:param isPure:          Optional, ``True`` if the subprogram was declared pure. Default: ``True``.
+		:param genericItems:    Optional, list of all generics, in declaration order. Default: ``None``, no generics.
+		:param parameterItems:  Optional, list of all parameters, in declaration order. Default: ``None``, no parameters.
+		:param declaredItems:   Optional, list of all declared items in this sequential declaration region.
+		                        Default: ``None``, no declared items.
+		:param statements:      Optional, list of all sequential statements in the subprogram's body.
+		                        Default: ``None``, no statements.
+		:param documentation:   Optional, the documentation comment associated with this declaration.
+		                        Default: ``None``, no documentation.
+		:param protectedType:   Optional, reference to the protected type this method belongs to. Default: ``None``.
+		:param parent:          Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		:param genericGroups:   Optional, list of generic groups partitioning the generics, in declaration order.
 		                        Default: ``None``, one unnamed generic group.
 		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.

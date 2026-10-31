@@ -147,8 +147,9 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		:param identifier:    The identifier of a model entity.
 		:param subtype:       Reference to the attribute's subtype.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
@@ -221,8 +222,9 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		:param attribute:     Reference to the specified attribute.
 		:param entityClass:   The entity class the named items belong to.
 		:param expression:    The value assigned to the attribute.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		DocumentedEntityMixin.__init__(self, documentation)
@@ -343,9 +345,10 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		:param identifier:    The identifier of a model entity.
 		:param name:          Reference to the name being aliased.
-		:param subtype:       Reference to the alias' subtype, or ``None`` if none was given.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param subtype:       Optional, reference to the alias' subtype. Default: ``None``, no subtype indication.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)

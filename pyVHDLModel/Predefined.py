@@ -65,8 +65,9 @@ class PredefinedLibrary(Library):
 		Initializes a predefined library.
 
 		:param packages:      Dictionary of all packages defined in a library.
-		:param documentation: Documentation of this library, if the caller has one to supply. VHDL defines
-		                      none for a predefined library, so it is empty unless supplied from outside.
+		:param documentation: Optional, documentation of this library, if the caller has one to supply. VHDL defines none
+		                      for a predefined library, so it is empty unless supplied from outside.
+		                      Default: ``None``, no documentation.
 		"""
 		super().__init__(getTypeName(self), documentation)
 
@@ -136,7 +137,7 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 		By default the VHDL package name is the Python class name. Pass ``identifier`` when the two must
 		differ - e.g. when two vendor flavors of the same VHDL package need distinct Python classes.
 
-		:param identifier: The VHDL package name, or ``None`` to use the class name.
+		:param identifier: Optional, the VHDL package name. Default: ``None``, the class name.
 		"""
 		super().__init__(getTypeName(self) if identifier is None else identifier)
 
@@ -155,8 +156,8 @@ class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 		By default the VHDL package name is the Python class name with the trailing ``_Body`` removed.
 		Pass ``packageIdentifier`` when the two must differ.
 
-		:param packageIdentifier: The VHDL name of the package this body implements, or ``None`` to derive
-		                          it from the class name.
+		:param packageIdentifier: Optional, the VHDL name of the package this body implements.
+		                          Default: ``None``, derived from the class name.
 		"""
 		identifier = getTypeName(self)[:-5] if packageIdentifier is None else packageIdentifier
 		packageSymbol = PackageSymbol(SimpleName(identifier))

@@ -2823,8 +2823,10 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		Initializes a concurrent declaration region.
 
-		:param namespaceName:          Name of this region's namespace, usually the host's label or identifier.
-		:param declaredItems:          List of all declared items in this concurrent declaration region.
+		:param namespaceName:          Optional, name of this region's namespace, usually the host's label or identifier.
+		                               Default: ``None``.
+		:param declaredItems:          Optional, list of all declared items in this concurrent declaration region.
+		                               Default: ``None``, no declared items.
 		:param sharesRegionWithParent: Optional, ``True`` if this region continues its parent's declarative region (an
 		                               architecture its entity's, a package body its package's). Default: ``False``.
 		"""
@@ -3144,8 +3146,9 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		Initialize a sequential declaration region.
 
-		:param namespaceName:  Name of this region's namespace, usually the host's label or identifier.
-		:param declaredItems:  The items declared in this region.
+		:param namespaceName:  Optional, name of this region's namespace, usually the host's label or identifier.
+		                       Default: ``None``.
+		:param declaredItems:  Optional, the items declared in this region. Default: ``None``, no declared items.
 		"""
 		DeclarationRegionMixin.__init__(self)
 
@@ -3386,8 +3389,9 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		Initialize a protected type declaration region.
 
-		:param namespaceName: Name of this region's namespace, usually the protected type's identifier.
-		:param declaredItems: The items declared in this region.
+		:param namespaceName: Optional, name of this region's namespace, usually the protected type's identifier.
+		                      Default: ``None``.
+		:param declaredItems: Optional, the items declared in this region. Default: ``None``, no declared items.
 		"""
 		DeclarationRegionMixin.__init__(self)
 

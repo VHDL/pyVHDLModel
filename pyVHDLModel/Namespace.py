@@ -209,7 +209,8 @@ class Namespace(Generic[K, O]):
 
 		:param normalizedIdentifier:           The normalized (lower case) identifier being declared.
 		:param element:                        The declared item.
-		:param overloadable:                   ``True`` if this declaration may legally share its name.
+		:param overloadable:                   Optional, ``True`` if this declaration may legally share its name.
+		                                       Default: ``False``.
 		:raises UnhandledCriticalWarningError: If the identifier is already declared in the declarative region and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.

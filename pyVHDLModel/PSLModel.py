@@ -156,7 +156,8 @@ class DefaultClock(PSLEntity, NamedEntityMixin, DocumentedEntityMixin):
 		Initializes a PSL default clock declaration.
 
 		:param identifier:    The identifier of a model entity.
-		:param documentation: The documentation comment associated with this declaration.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
 		"""
 		super().__init__()
 		NamedEntityMixin.__init__(self, identifier)

@@ -79,8 +79,9 @@ class ModeViewElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMix
 		Initializes a mode view element.
 
 		:param identifiers:   A list of identifiers.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		MultipleNamedEntityMixin.__init__(self, identifiers)
@@ -134,8 +135,9 @@ class SimpleModeViewElement(ModeViewElement):
 
 		:param identifiers:   A list of identifiers.
 		:param mode:          The element's mode.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, documentation, parent)
 		self._mode = mode
@@ -198,8 +200,9 @@ class CompositeModeViewElement(ModeViewElement):
 
 		:param identifiers:   A list of identifiers.
 		:param modeViewName:  Reference to the mode view applied to this element.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, documentation, parent)
 
@@ -277,9 +280,11 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		:param identifier:    The identifier of a model entity.
 		:param subtype:       Reference to the subtype this mode view applies to.
-		:param elements:      List of all mode view elements, in declaration order.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param elements:      Optional, list of all mode view elements, in declaration order.
+		                      Default: ``None``, no elements.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
@@ -432,8 +437,9 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 		adds it, for the derived class's :meth:`__str__` to return. The host class provides the object's reserved words
 		``_OBJECT_KEYWORD``, identifiers ``_identifiers`` and subtype ``_subtype``.
 
-		:param mode:       This item's mode, or ``None`` when it declares none.
-		:param isModeView: ``True`` if the subtype position holds a mode view (VHDL-2019), not a subtype.
+		:param mode:       Optional, this item's mode. Default: ``None``, no mode declared.
+		:param isModeView: Optional, ``True`` if the subtype position holds a mode view (VHDL-2019), not a subtype.
+		                   Default: ``False``.
 		:returns:          Formatted interface item.
 		"""
 		prefix = "" if mode is None or mode is Mode.Default else f"{mode!s} "
@@ -612,9 +618,10 @@ class GenericConstantInterfaceItem(
 		:param identifiers:       A list of identifiers.
 		:param mode:              The interface item's mode.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
@@ -687,8 +694,9 @@ class GenericTypeInterfaceItem(Type, GenericInterfaceItemMixin):
 		Initializes a type in a generic clause.
 
 		:param identifier:    The identifier of a model entity.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
@@ -731,8 +739,9 @@ class GenericProcedureInterfaceItem(Procedure, GenericSubprogramInterfaceItemMix
 		Initializes a procedure in a generic clause.
 
 		:param identifier:    The identifier of a model entity.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation=documentation, parent=parent)
 		GenericSubprogramInterfaceItemMixin.__init__(self)
@@ -788,8 +797,9 @@ class GenericFunctionInterfaceItem(Function, GenericSubprogramInterfaceItemMixin
 
 		:param identifier:    The identifier of a model entity.
 		:param returnType:    Reference to the subtype of the function's return value.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, returnType, documentation=documentation, parent=parent)
 		GenericSubprogramInterfaceItemMixin.__init__(self)
@@ -838,8 +848,9 @@ class InterfacePackage(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		Initializes a package as a generic of a design unit.
 
 		:param identifier:    The identifier of a model entity.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
@@ -868,8 +879,9 @@ class GenericPackageInterfaceItem(InterfacePackage, GenericInterfaceItemMixin):
 		Initializes a package in a generic clause.
 
 		:param identifier:    The identifier of a model entity.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, documentation, parent)
 		GenericInterfaceItemMixin.__init__(self)
@@ -945,9 +957,10 @@ class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem, InterfaceItemWithMo
 		:param identifiers:       A list of identifiers.
 		:param mode:              The interface item's mode.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		InterfaceItemMixin.__init__(self)
@@ -1027,8 +1040,9 @@ class PortViewSignalInterfaceItem(PortSignalInterfaceItem, WithSingleDeclaration
 
 		:param identifiers:        A list of identifiers.
 		:param modeViewIndication: Reference to the mode view applied to this port.
-		:param documentation:      The documentation comment associated with this declaration.
-		:param parent:             The parent model entity of this entity.
+		:param documentation:      Optional, the documentation comment associated with this declaration.
+		                           Default: ``None``, no documentation.
+		:param parent:             Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, modeViewIndication, None, documentation, parent)
 		InterfaceItemMixin.__init__(self)
@@ -1108,9 +1122,10 @@ class ParameterConstantInterfaceItem(
 		:param identifiers:       A list of identifiers.
 		:param mode:              The interface item's mode.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
@@ -1198,9 +1213,10 @@ class ParameterVariableInterfaceItem(
 		:param identifiers:       A list of identifiers.
 		:param mode:              The interface item's mode.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
@@ -1320,9 +1336,10 @@ class ParameterSimpleSignalInterfaceItem(
 		:param identifiers:       A list of identifiers.
 		:param mode:              The interface item's mode.
 		:param subtype:           Reference to the object's subtype.
-		:param defaultExpression: The default value, or ``None`` if none was given.
-		:param documentation:     The documentation comment associated with this declaration.
-		:param parent:            The parent model entity of this entity.
+		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
@@ -1402,8 +1419,9 @@ class ParameterViewSignalInterfaceItem(ParameterSignalInterfaceItem, WithSingleD
 
 		:param identifiers:        A list of identifiers.
 		:param modeViewIndication: Reference to the mode view applied to this parameter.
-		:param documentation:      The documentation comment associated with this declaration.
-		:param parent:             The parent model entity of this entity.
+		:param documentation:      Optional, the documentation comment associated with this declaration.
+		                           Default: ``None``, no documentation.
+		:param parent:             Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, modeViewIndication, None, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)
@@ -1474,8 +1492,9 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin, WithSingleDe
 
 		:param identifiers:   A list of identifiers.
 		:param subtype:       Reference to the object's subtype.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, documentation, parent)
 		ParameterInterfaceItemMixin.__init__(self)

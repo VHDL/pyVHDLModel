@@ -34,7 +34,7 @@ from pyTooling.Testing      import Testcase
 from pyVHDLModel.Base       import Direction, RangeFromName, SimpleRange
 from pyVHDLModel.Name       import SimpleName, AttributeName
 from pyVHDLModel.Symbol     import RangeAttributeSymbol, SimpleSubtypeSymbol
-from pyVHDLModel.Expression import IntegerLiteral, EnumerationLiteral, PhysicalIntegerLiteral
+from pyVHDLModel.Expression import IntegerLiteral, CharacterEnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Object     import Variable
 from pyVHDLModel.Subprogram import Procedure
 from pyVHDLModel.Type       import Subtype, RangedScalarType, EnumeratedType, IntegerType, RealType, PhysicalType, \
@@ -130,8 +130,8 @@ class Subtypes(Testcase):
 
 class EnumeratedTypes(Testcase):
 	def test_Construction(self) -> None:
-		literal0 = EnumerationLiteral("'0'")
-		literal1 = EnumerationLiteral("'1'")
+		literal0 = CharacterEnumerationLiteral("0")
+		literal1 = CharacterEnumerationLiteral("1")
 		enumType = EnumeratedType("my_bit", [literal0, literal1])
 
 		self.assertEqual(2, len(enumType.Literals))

@@ -60,7 +60,7 @@ from pyVHDLModel.Expression      import NullLiteral, EnumerationLiteral, Integer
                                         QualifiedExpression, WhenElseExpression, SubtypeAllocation, \
                                         QualifiedExpressionAllocation, SimpleAggregateElement, \
                                         IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
-                                        OthersAggregateElement, Aggregate
+                                        OthersAggregateElement, Aggregate, CharacterEnumerationLiteral
 from pyVHDLModel.Formatting.VHDL import VHDLWriter
 from pyVHDLModel.Name            import SimpleName, AttributeName
 from pyVHDLModel.Symbol          import RangeAttributeSymbol, RecordElementSymbol, SimpleSubtypeSymbol
@@ -172,6 +172,10 @@ class OtherLiterals(Testcase):
 
 	def test_Enumeration(self) -> None:
 		self.assertEqual("Idle", VHDLWriter().Format(EnumerationLiteral("Idle")))
+
+	def test_CharacterEnumeration(self) -> None:
+		self.assertEqual("'0'", VHDLWriter().Format(CharacterEnumerationLiteral("0")))
+		self.assertEqual("'''", VHDLWriter().Format(CharacterEnumerationLiteral("'")))
 
 
 class UnaryExpressions(Testcase):

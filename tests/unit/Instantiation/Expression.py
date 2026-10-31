@@ -67,7 +67,7 @@ from pyVHDLModel.Expression import OperatorPrecedence, BaseExpression, Literal, 
                                    TernaryExpression, WhenElseExpression, FunctionCall, SubtypeAllocation, \
                                    QualifiedExpressionAllocation, AggregateElement, SimpleAggregateElement, \
                                    IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
-                                   OthersAggregateElement, Aggregate
+                                   OthersAggregateElement, Aggregate, CharacterEnumerationLiteral
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -147,6 +147,41 @@ class CharacterLiterals(Testcase):
 
 		self.assertEqual("Parameter 'value' is not a single character.", str(context.exception))
 		self.assertEqual(["Got value ''a''.", "Pass the character without apostrophes."], context.exception.__notes__)
+
+
+class CharacterEnumerationLiterals(Testcase):
+	def test_Construction(self) -> None:
+		literal = CharacterEnumerationLiteral("0")
+
+		self.assertIsInstance(literal, EnumerationLiteral)
+		self.assertEqual("0", literal.Value)
+		self.assertEqual("'0'", str(literal))
+
+	def test_Apostrophe(self) -> None:
+		literal = CharacterEnumerationLiteral("'")
+
+		self.assertEqual("'", literal.Value)
+		self.assertEqual("'''", str(literal))
+
+	def test_Value_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			CharacterEnumerationLiteral(None)
+
+		self.assertEqual("Parameter 'value' is None.", str(context.exception))
+
+	def test_Value_Integer(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			CharacterEnumerationLiteral(1)
+
+		self.assertEqual("Parameter 'value' is not of type 'str'.", str(context.exception))
+		self.assertEqual(["Got type 'int'."], context.exception.__notes__)
+
+	def test_Value_WithApostrophes(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			CharacterEnumerationLiteral("'0'")
+
+		self.assertEqual("Parameter 'value' is not a single character.", str(context.exception))
+		self.assertEqual(["Got value ''0''.", "Pass the character without apostrophes."], context.exception.__notes__)
 
 
 class PhysicalLiterals(Testcase):

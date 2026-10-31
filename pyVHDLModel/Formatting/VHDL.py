@@ -78,7 +78,7 @@ from pyVHDLModel.Expression    import OperatorPrecedence, NullLiteral, Enumerati
                                       RelationalExpression, ShiftExpression, QualifiedExpression, WhenElseExpression, \
                                       SubtypeAllocation, QualifiedExpressionAllocation, SimpleAggregateElement, \
                                       IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
-                                      OthersAggregateElement, Aggregate
+                                      OthersAggregateElement, Aggregate, CharacterEnumerationLiteral
 from pyVHDLModel.Name          import SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, \
                                       AttributeName, AllName, OpenName
 from pyVHDLModel.Interface     import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, \
@@ -1130,6 +1130,16 @@ class VHDLWriter(Visitor):
 		:param literal: The enumeration literal.
 		"""
 		self._Write(literal.Value)
+
+	def VisitCharacterEnumerationLiteral(self, literal: CharacterEnumerationLiteral) -> None:
+		"""
+		Write a character enumeration literal, enclosed in apostrophes.
+
+		**Format:** ``'0'``
+
+		:param literal: The character enumeration literal.
+		"""
+		self._Write(f"'{literal.Value}'")
 
 	def VisitIntegerLiteral(self, literal: IntegerLiteral) -> None:
 		"""

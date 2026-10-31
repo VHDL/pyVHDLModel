@@ -34,7 +34,8 @@ from textwrap                    import dedent
 from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Expression      import IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral, \
-                                        EnumerationLiteral, AscendingRangeExpression, DescendingRangeExpression
+                                        EnumerationLiteral, CharacterEnumerationLiteral, AscendingRangeExpression, \
+                                        DescendingRangeExpression
 from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, AttributeName
 from pyVHDLModel.Symbol          import ConstrainedArraySubtypeSymbol
@@ -70,8 +71,8 @@ class ScalarTypes(Testcase):
 		self.assertEqual("type state is (Idle, Busy);\n", VHDLWriter().Format(enumeratedType))
 
 	def test_Enumerated_Characters(self) -> None:
-		"""A character literal of an enumerated type is an enumeration literal carrying its quotes."""
-		enumeratedType = EnumeratedType("logic", [EnumerationLiteral("'0'"), EnumerationLiteral("'1'")])
+		"""A character literal of an enumerated type is written with its apostrophes."""
+		enumeratedType = EnumeratedType("logic", [CharacterEnumerationLiteral("0"), CharacterEnumerationLiteral("1")])
 
 		self.assertEqual("type logic is ('0', '1');\n", VHDLWriter().Format(enumeratedType))
 
@@ -198,5 +199,5 @@ class OtherTypes(Testcase):
 		self.assertEqual("SUBTYPE word IS integer;\n", writer.Format(Subtype("word", _subtypeSymbol("integer"))))
 		self.assertEqual(
 			"TYPE logic IS ('0', '1');\n",
-			writer.Format(EnumeratedType("logic", [EnumerationLiteral("'0'"), EnumerationLiteral("'1'")]))
+			writer.Format(EnumeratedType("logic", [CharacterEnumerationLiteral("0"), CharacterEnumerationLiteral("1")]))
 		)

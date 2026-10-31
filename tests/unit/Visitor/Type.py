@@ -31,7 +31,8 @@
 """Tests for the walk of type declarations (:mod:`pyVHDLModel.Visitor`)."""
 from pyTooling.Testing      import Testcase
 
-from pyVHDLModel.Expression import IntegerLiteral, PhysicalIntegerLiteral, EnumerationLiteral, AscendingRangeExpression
+from pyVHDLModel.Expression import IntegerLiteral, PhysicalIntegerLiteral, EnumerationLiteral, \
+                                   CharacterEnumerationLiteral, AscendingRangeExpression
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Type       import AnonymousType, EnumeratedType, PhysicalType, ArrayType, RecordTypeElement, RecordType
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
@@ -70,6 +71,25 @@ class Types(Testcase):
 			("VisitEnumerationLiteral",  second),
 			("DepartEnumerationLiteral", second),
 			("DepartEnumeratedType",     enumeratedType),
+		], recorder.Events)
+
+	def test_Enumerated_Characters(self) -> None:
+		"""A character enumeration literal reports its own events."""
+		first =          CharacterEnumerationLiteral("0")
+		second =         EnumerationLiteral("Idle")
+		enumeratedType = EnumeratedType("mixed", [first, second])
+		recorder =       FullRecorder()
+
+		enumeratedType.Visit(recorder)
+
+		self.assertEqual([
+			("VisitEnumeratedType",               enumeratedType),
+			("VisitCharacterEnumerationLiteral",  first),
+			("DepartCharacterEnumerationLiteral", first),
+			("VisitElementSeparator",             enumeratedType),
+			("VisitEnumerationLiteral",           second),
+			("DepartEnumerationLiteral",          second),
+			("DepartEnumeratedType",              enumeratedType),
 		], recorder.Events)
 
 	def test_Physical(self) -> None:

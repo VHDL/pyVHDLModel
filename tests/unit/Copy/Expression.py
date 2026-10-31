@@ -58,7 +58,7 @@ from pyVHDLModel.Expression      import NullLiteral, EnumerationLiteral, Integer
                                         QualifiedExpression, WhenElseExpression, FunctionCall, SubtypeAllocation, \
                                         QualifiedExpressionAllocation, SimpleAggregateElement, \
                                         IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
-                                        OthersAggregateElement, Aggregate
+                                        OthersAggregateElement, Aggregate, CharacterEnumerationLiteral
 from pyVHDLModel.Formatting.VHDL import VHDLWriter
 from pyVHDLModel.Name            import SimpleName
 from pyVHDLModel.Symbol          import RecordElementSymbol
@@ -105,6 +105,15 @@ class Literals(Testcase):
 		self.assertIs(EnumerationLiteral, type(copy))
 		self.assertIsNone(copy.Parent)
 		self.assertEqual("Idle", copy.Value)
+
+	def test_CharacterEnumeration(self) -> None:
+		original = CharacterEnumerationLiteral("0", _Element())
+
+		copy = original.Copy()
+
+		self.assertIs(CharacterEnumerationLiteral, type(copy))
+		self.assertIsNone(copy.Parent)
+		self.assertEqual("0", copy.Value)
 
 	def test_Integer(self) -> None:
 		original = IntegerLiteral(42)

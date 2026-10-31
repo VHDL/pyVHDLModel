@@ -50,7 +50,7 @@ from pyVHDLModel.Symbol import PossibleReference, Symbol, LibraryReferenceSymbol
                                ArchitectureSymbol, PackageSymbol, RangeAttributeSymbol, RecordElementSymbol, \
                                SubtypeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
                                ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
-                               SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol
+                               SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, AggregateSymbol
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -243,3 +243,75 @@ class ConstrainedSubtypeSymbols(Testcase):
 
 		self.assertEqual(1, len(symbol.Constraints))
 		self.assertIs(constraint, symbol.Constraints[element])
+
+
+class AggregateSymbols(Testcase):
+	def test_Construction(self) -> None:
+		carry =  VariableSymbol(SimpleName("carry"))
+		sum =    VariableSymbol(SimpleName("sum"))
+		symbol = AggregateSymbol([carry, sum])
+
+		self.assertListEqual([carry, sum], symbol.Elements)
+		self.assertIsNone(symbol.Name)
+		self.assertIs(PossibleReference.Variable, symbol._possibleReferences)
+		self.assertFalse(symbol.IsResolved)
+		self.assertEqual("(carry?, sum?)", str(symbol))
+		self.assertEqual(
+			"AggregateSymbol: (VariableSymbol: 'carry' -> unresolved, VariableSymbol: 'sum' -> unresolved)",
+			repr(symbol)
+		)
+
+	def test_PossibleReferences(self) -> None:
+		"""The group can reference what any of its targets can reference."""
+		symbol = AggregateSymbol([VariableSymbol(SimpleName("v")), SignalSymbol(SimpleName("s"))])
+
+		self.assertIs(PossibleReference.Variable | PossibleReference.Signal, symbol._possibleReferences)
+
+	def test_Nested(self) -> None:
+		inner =  AggregateSymbol([VariableSymbol(SimpleName("b")), VariableSymbol(SimpleName("c"))])
+		symbol = AggregateSymbol([VariableSymbol(SimpleName("a")), inner])
+
+		self.assertEqual("(a?, (b?, c?))", str(symbol))
+
+	def test_IsResolved(self) -> None:
+		"""Resolved once every target is resolved."""
+		carry =  VariableSymbol(SimpleName("carry"))
+		sum =    VariableSymbol(SimpleName("sum"))
+		symbol = AggregateSymbol([carry, sum])
+
+		carry._reference = object()
+		self.assertFalse(symbol.IsResolved)
+
+		sum._reference = object()
+		self.assertTrue(symbol.IsResolved)
+		self.assertTrue(bool(symbol))
+
+	def test_Elements_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			AggregateSymbol(None)
+
+		self.assertEqual("Parameter 'elements' is None.", str(context.exception))
+
+	def test_Elements_NotIterable(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			AggregateSymbol(5)
+
+		self.assertEqual("Parameter 'elements' is not iterable.", str(context.exception))
+		self.assertEqual(["Got type 'int'."], context.exception.__notes__)
+
+	def test_Elements_NoSymbol(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			AggregateSymbol([VariableSymbol(SimpleName("a")), 5])
+
+		self.assertEqual("Element of parameter 'elements' is not of type 'Symbol'.", str(context.exception))
+		self.assertEqual(["Got type 'int'."], context.exception.__notes__)
+
+	def test_Elements_Single(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			AggregateSymbol([VariableSymbol(SimpleName("a"))])
+
+		self.assertEqual("Parameter 'elements' has fewer than two elements.", str(context.exception))
+		self.assertEqual(
+			["Got 1 element(s).", "A single target in parentheses is no aggregate; use the target's symbol."],
+			context.exception.__notes__
+		)

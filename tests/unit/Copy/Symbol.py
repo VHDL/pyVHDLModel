@@ -50,7 +50,8 @@ from pyVHDLModel.Symbol          import PossibleReference, Symbol, LibraryRefere
                                         PackageSymbol, RecordElementSymbol, RangeAttributeSymbol, SubtypeSymbol, \
                                         SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
                                         ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
-                                        SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol
+                                        SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, \
+                                        AggregateSymbol
 
 from tests.unit                  import _Element, _signal
 from tests.unit.Copy             import _concreteModelClasses, _copyAboveConstructor
@@ -256,3 +257,13 @@ class ConstrainedRecordSubtypeSymbols(Testcase):
 		copy = original.Copy()
 
 		self.assertListEqual([None], list(copy.Constraints.values()))
+
+	def test_Copy_AggregateSymbol(self) -> None:
+		original = AggregateSymbol([VariableSymbol(SimpleName("carry")), VariableSymbol(SimpleName("sum"))])
+
+		copy = original.Copy()
+
+		self.assertIs(AggregateSymbol, type(copy))
+		self.assertEqual("(carry?, sum?)", str(copy))
+		for originalElement, copiedElement in zip(original.Elements, copy.Elements):
+			self.assertIsNot(originalElement, copiedElement)

@@ -121,7 +121,7 @@ if TYPE_CHECKING:
 	                                      LoopControlStatement, NextStatement, ExitStatement
 	from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
 	from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
-	                                      ConstrainedRecordSubtypeSymbol
+	                                      ConstrainedRecordSubtypeSymbol, AggregateSymbol
 	from pyVHDLModel.Type          import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
 	                                      ArrayType, RecordTypeElement, RecordType, AccessType, FileType, ProtectedType, \
 	                                      ProtectedTypeBody
@@ -167,7 +167,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	def VisitElementSeparator(
 		self,
 		element: IndexedName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol |
-		         EnumeratedType | ArrayType
+		         EnumeratedType | ArrayType | AggregateSymbol
 	) -> None:
 		"""
 		Visit the comma between two elements of a parenthesized list, which is no association list.
@@ -706,6 +706,20 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from a symbol, after its name.
 
 		:param symbol: The symbol.
+		"""
+
+	def VisitAggregateSymbol(self, symbol: AggregateSymbol) -> None:
+		"""
+		Visit a group of targets written as an aggregate, before its targets.
+
+		:param symbol: The group of targets.
+		"""
+
+	def DepartAggregateSymbol(self, symbol: AggregateSymbol) -> None:
+		"""
+		Depart from a group of targets written as an aggregate, after its targets.
+
+		:param symbol: The group of targets.
 		"""
 
 	def VisitAssociationItem(self, item: AssociationItem) -> None:

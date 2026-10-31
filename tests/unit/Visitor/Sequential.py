@@ -42,7 +42,7 @@ from pyVHDLModel.Sequential import IndexedChoice, SequentialVariableAssignment, 
                                    ElsifBranch, ElseBranch, IfStatement, Case, OthersCase, CaseStatement, \
                                    EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, NextStatement, \
                                    ExitStatement
-from pyVHDLModel.Symbol     import SignalSymbol, VariableSymbol, SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Symbol     import SignalSymbol, VariableSymbol, SimpleObjectOrFunctionCallSymbol, AggregateSymbol
 
 from tests.unit.Visitor     import FullRecorder
 
@@ -68,6 +68,35 @@ class Assignments(Testcase):
 			("VisitSimpleName",                    target.Name),
 			("DepartSimpleName",                   target.Name),
 			("DepartSymbol",                       target),
+			("VisitVariableAssignment",            assignment),
+			("VisitIntegerLiteral",                value),
+			("DepartIntegerLiteral",               value),
+			("DepartSequentialVariableAssignment", assignment),
+		], recorder.Events)
+
+	def test_Variable_AggregateTarget(self) -> None:
+		carry =      VariableSymbol(SimpleName("carry"))
+		sum =        VariableSymbol(SimpleName("sum"))
+		target =     AggregateSymbol([carry, sum])
+		value =      IntegerLiteral(0)
+		assignment = SequentialVariableAssignment(target, value)
+		recorder =   FullRecorder()
+
+		assignment.Visit(recorder)
+
+		self.assertEqual([
+			("VisitSequentialVariableAssignment",  assignment),
+			("VisitAggregateSymbol",               target),
+			("VisitSymbol",                        carry),
+			("VisitSimpleName",                    carry.Name),
+			("DepartSimpleName",                   carry.Name),
+			("DepartSymbol",                       carry),
+			("VisitElementSeparator",              target),
+			("VisitSymbol",                        sum),
+			("VisitSimpleName",                    sum.Name),
+			("DepartSimpleName",                   sum.Name),
+			("DepartSymbol",                       sum),
+			("DepartAggregateSymbol",              target),
 			("VisitVariableAssignment",            assignment),
 			("VisitIntegerLiteral",                value),
 			("DepartIntegerLiteral",               value),

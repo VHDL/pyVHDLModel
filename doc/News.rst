@@ -16,6 +16,7 @@ Version 0.41.0 (2026)
    * Character literals of enumeration types are their own class:
      :class:`~pyVHDLModel.Expression.CharacterEnumerationLiteral` holds the bare character; the VHDL writer adds the
      apostrophes.
+   * The condition operator ``??`` is :class:`~pyVHDLModel.Expression.ConditionExpression`.
 
    .. rubric:: Changes
 

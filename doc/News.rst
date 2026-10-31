@@ -33,6 +33,9 @@ Version 0.43.0 (2026)
      :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`. Expanded names may name an enclosing region (``q.T`` in
      ``q``); a component's generics are visible to its ports; an incomplete type used by anything else than an access
      type and an unresolvable alias name are reported.
+   * Type attributes as type marks: ``x'subtype`` (an object's subtype), ``A'element`` (an array's element subtype) and
+     ``T'base`` as the prefix of another attribute; the prefix may be an object alias, a record element (``r.f``) or an
+     indexed name (``m(0)``); a port or parameter used in its own interface list is reported.
 
    .. rubric:: Changes
 

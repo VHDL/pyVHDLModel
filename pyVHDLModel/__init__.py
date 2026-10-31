@@ -1742,7 +1742,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					# An enclosing declarative region of that name, e.g. the package declaring the place.
 					enclosingNamespace = namespace
 					while enclosingNamespace is not None:
-						if enclosingNamespace._name is not None and enclosingNamespace._name.lower() == prefix._normalizedIdentifier:
+						namespaceName = enclosingNamespace._name
+						if namespaceName is not None and namespaceName.lower() == prefix._normalizedIdentifier:
 							searchedNamespaces = (*searchedNamespaces, enclosingNamespace)
 
 						enclosingNamespace = enclosingNamespace._parentNamespace
@@ -1836,8 +1837,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				namespaces=(namespace, )
 			))
 			return
-		elif isinstance(declaration, FullType) and declaration._parent is place._parent and not isinstance(place, AccessType):
-			region = place._parent
+		elif (
+			isinstance(declaration, FullType) and not isinstance(place, AccessType)
+			and declaration._parent is (region := place._parent)
+		):
 			if isinstance(region, DeclarationRegionMixin):
 				declarationsOfRegion = region._Declarations()
 				if declarationsOfRegion.index(declaration) > declarationsOfRegion.index(place):

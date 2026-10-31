@@ -30,7 +30,9 @@ Version 0.43.0 (2026)
      attributes, aliases, components), incl. the predefined packages and expanded names (``work.pkg.T``), and sets a
      subtype's base type. It's a separate step after :meth:`~pyVHDLModel.Design.Analyze`. An unresolved type mark is an
      :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`, an incomplete type without a full type declaration an
-     :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+     :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`. Expanded names may name an enclosing region (``q.T`` in
+     ``q``); a component's generics are visible to its ports; an incomplete type used by anything else than an access
+     type and an unresolvable alias name are reported.
 
    .. rubric:: Changes
 

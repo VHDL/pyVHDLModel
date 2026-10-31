@@ -104,7 +104,7 @@ from pyVHDLModel.Sequential    import IndexedChoice, SequentialProcedureCall, Se
                                       LoopControlStatement, NextStatement, ExitStatement
 from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
 from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
-                                      ConstrainedRecordSubtypeSymbol
+                                      ConstrainedRecordSubtypeSymbol, AggregateSymbol
 from pyVHDLModel.Type          import AnonymousType, FullType, Subtype, EnumeratedType, IntegerType, RealType, \
                                       PhysicalType, ArrayType, RecordTypeElement, RecordType, AccessType, FileType, \
                                       ProtectedType, ProtectedTypeBody
@@ -948,7 +948,7 @@ class VHDLWriter(Visitor):
 	def VisitElementSeparator(
 		self,
 		element: IndexedName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol |
-		         EnumeratedType | ArrayType
+		         EnumeratedType | ArrayType | AggregateSymbol
 	) -> None:
 		"""
 		Write the comma between two elements of a parenthesized list, which is no association list.
@@ -1674,6 +1674,25 @@ class VHDLWriter(Visitor):
 		Write the right parenthesis of an aggregate.
 
 		:param aggregate: The aggregate.
+		"""
+		self._Write(")")
+
+	def VisitAggregateSymbol(self, symbol: AggregateSymbol) -> None:
+		"""
+		Write the left parenthesis of a group of targets.
+
+		**Format:** ``(carry, sum)``
+
+		:param symbol: The group of targets.
+		"""
+		self._Write("(")
+		self._minimum = OperatorPrecedence.Range
+
+	def DepartAggregateSymbol(self, symbol: AggregateSymbol) -> None:
+		"""
+		Write the right parenthesis of a group of targets.
+
+		:param symbol: The group of targets.
 		"""
 		self._Write(")")
 

@@ -39,7 +39,7 @@ from __future__            import annotations
 from enum                  import Flag, auto
 from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping, Self
 
-from pyTooling.Common      import getTypeName
+from pyTooling.Common      import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators  import export, notimplemented, readonly
 from pyTooling.MetaClasses import ExtendedType, abstractclass
 
@@ -554,6 +554,134 @@ class SignalSymbol(Symbol):
 		copy = self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
+
+
+@export
+class AggregateSymbol(Symbol):
+	"""
+	Represents a group of targets written as an aggregate on the left-hand side of an assignment.
+
+	VHDL's grammar calls it an aggregate (``target ::= name | aggregate``), but it decomposes the assigned value into its
+	targets: each element is a target itself, e.g. a variable or a signal, never a constant. The group has no name of its
+	own (:attr:`~pyVHDLModel.Symbol.Symbol.Name` is ``None``); its targets are available as :data:`Targets`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      (carry, sum) := add(a, b);
+	      -- ^^^^^^^^^^^^    <- the aggregate symbol
+	      --  ^^^^^  ^^^    <- Targets
+	"""
+	_targets: list[Symbol]  #: List of the targets, in source order.
+
+	def __init__(self, targets: Iterable[Symbol]) -> None:
+		"""
+		Initializes a group of targets.
+
+		:param targets:     The targets, in source order.
+		:raises ValueError: If parameter 'targets' is None.
+		:raises TypeError:  If parameter 'targets' is not iterable.
+		:raises TypeError:  If a target in parameter 'targets' is not a :class:`Symbol`.
+		:raises ValueError: If parameter 'targets' has fewer than two targets (one would read as parentheses). |br|
+		                    A single target in parentheses is no aggregate; use the target's symbol.
+		"""
+		super().__init__(None, PossibleReference.Unknown)
+
+		if targets is None:
+			raise ValueError("Parameter 'targets' is None.")
+		elif not isinstance(targets, Iterable):
+			ex = TypeError("Parameter 'targets' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(targets)}'.")
+			raise ex
+
+		self._targets = targetList = []
+		possibleReferences = PossibleReference.Unknown
+		for target in targets:
+			if not isinstance(target, Symbol):
+				ex = TypeError("Target in parameter 'targets' is not of type 'Symbol'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(target)}'.")
+				raise ex
+
+			targetList.append(target)
+			possibleReferences |= target._possibleReferences
+
+		if len(targetList) < 2:
+			ex = ValueError("Parameter 'targets' has fewer than two targets.")
+			ex.add_note(f"Got {len(targetList)} target(s).")
+			ex.add_note("A single target in parentheses is no aggregate; use the target's symbol.")
+			raise ex
+
+		self._possibleReferences = possibleReferences
+
+	@readonly
+	def Targets(self) -> list[Symbol]:
+		"""
+		Read-only property to access the targets (:attr:`_targets`).
+
+		:returns: List of the targets, in source order.
+		"""
+		return self._targets
+
+	@readonly
+	def IsResolved(self) -> bool:
+		"""
+		Check if every target of the group is resolved.
+
+		:returns: ``True``, if every target is resolved.
+		"""
+		return all(target.IsResolved for target in self._targets)
+
+	def __bool__(self) -> bool:
+		"""
+		Check if every target of the group is resolved.
+
+		:returns: ``True``, if every target is resolved.
+		"""
+		return self.IsResolved
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this group of targets, with copies of its targets.
+
+		:returns: The new group of targets.
+		"""
+		return self.__class__([target.Copy() for target in self._targets])
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this group of targets and its targets with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitAggregateSymbol(self)
+		for index, target in enumerate(self._targets):
+			if index > 0:
+				visitor.VisitElementSeparator(self)
+
+			target.Visit(visitor)
+
+		visitor.DepartAggregateSymbol(self)
+
+	def __repr__(self) -> str:
+		"""
+		Formats a representation of the group of targets.
+
+		**Format:** ``AggregateSymbol: (VariableSymbol: 'carry' -> unresolved, ...)``
+
+		:returns: String representation of the group of targets.
+		"""
+		return f"{getTypeName(self)}: ({', '.join(repr(target) for target in self._targets)})"
+
+	def __str__(self) -> str:
+		"""
+		Formats the group of targets.
+
+		**Format:** ``(carry?, sum?)``
+
+		:returns: Formatted group of targets.
+		"""
+		return f"({', '.join(str(target) for target in self._targets)})"
 
 
 @export

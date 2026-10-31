@@ -52,6 +52,7 @@ from pyVHDLModel.Sequential      import IndexedChoice, SequentialProcedureCall, 
                                         EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, NextStatement, \
                                         ExitStatement
 from pyVHDLModel.Subprogram      import Function
+from pyVHDLModel.Symbol          import AggregateSymbol
 
 from tests.unit                  import _signalSymbol, _subtypeSymbol, _variableSymbol
 from tests.unit.Writer           import _object
@@ -105,6 +106,13 @@ class VariableAssignments(Testcase):
 		)
 
 		self.assertEqual("increment : count := count + 1;\n", VHDLWriter().Format(assignment))
+
+	def test_AggregateTarget(self) -> None:
+		"""``(carry, sum) := ...`` - a group of targets on the left-hand side."""
+		target =     AggregateSymbol([_variableSymbol("carry"), _variableSymbol("sum")])
+		assignment = SequentialVariableAssignment(target, _object("result"))
+
+		self.assertEqual("(carry, sum) := result;\n", VHDLWriter().Format(assignment))
 
 	def test_Conditional(self) -> None:
 		assignment = SequentialConditionalVariableAssignment(_variableSymbol("v"), [

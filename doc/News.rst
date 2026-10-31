@@ -13,6 +13,8 @@ Version 0.41.0 (2026)
 
    .. rubric:: New Features
 
+   * A group of targets on the left-hand side of an assignment (``(carry, sum) := ...``) is
+     :class:`~pyVHDLModel.Symbol.AggregateSymbol`.
    * Character literals of enumeration types are their own class:
      :class:`~pyVHDLModel.Expression.CharacterEnumerationLiteral` holds the bare character; the VHDL writer adds the
      apostrophes.

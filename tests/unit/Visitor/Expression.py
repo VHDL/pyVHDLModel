@@ -33,9 +33,9 @@ from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.Expression import AdditionExpression, MultiplyExpression, IntegerLiteral, WhenElseExpression, \
-                                   Aggregate, IndexedAggregateElement, OthersAggregateElement
+                                   Aggregate, IndexedAggregateElement, OthersAggregateElement, ConditionExpression
 
-from tests.unit.Visitor     import Recorder
+from tests.unit.Visitor     import Recorder, FullRecorder
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -69,6 +69,21 @@ class Walks(Testcase):
 			("DepartIntegerLiteral",        c),
 			("DepartMultiplyingExpression", product),
 			("DepartAddingExpression",      addition),
+		], recorder.Events)
+
+	def test_ConditionExpression(self) -> None:
+		"""Visit, operand, depart."""
+		operand =   IntegerLiteral(1)
+		condition = ConditionExpression(operand)
+		recorder =  FullRecorder()
+
+		condition.Visit(recorder)
+
+		self.assertEqual([
+			("VisitConditionExpression",  condition),
+			("VisitIntegerLiteral",       operand),
+			("DepartIntegerLiteral",      operand),
+			("DepartConditionExpression", condition),
 		], recorder.Events)
 
 	def test_WhenElseExpression(self) -> None:

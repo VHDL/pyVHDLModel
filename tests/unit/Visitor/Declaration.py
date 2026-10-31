@@ -60,6 +60,7 @@ class Aliases(Testcase):
 			("VisitSimpleName",  name.Name),
 			("DepartSimpleName", name.Name),
 			("DepartSymbol",     name),
+			("VisitTerminator",  alias),
 			("DepartAlias",      alias),
 		], recorder.Events)
 
@@ -72,7 +73,7 @@ class Aliases(Testcase):
 
 		self.assertEqual(
 			["VisitAlias", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitIs", "VisitSymbol",
-			 "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "DepartAlias"],
+			 "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitTerminator", "DepartAlias"],
 			[event[0] for event in recorder.Events]
 		)
 
@@ -85,7 +86,8 @@ class Attributes(Testcase):
 		attribute.Visit(recorder)
 
 		self.assertEqual(
-			["VisitAttribute", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "DepartAttribute"],
+			["VisitAttribute", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitTerminator",
+			 "DepartAttribute"],
 			[event[0] for event in recorder.Events]
 		)
 
@@ -114,5 +116,6 @@ class Attributes(Testcase):
 			("VisitIs",                      specification),
 			("VisitIntegerLiteral",          value),
 			("DepartIntegerLiteral",         value),
+			("VisitTerminator",              specification),
 			("DepartAttributeSpecification", specification),
 		], recorder.Events)

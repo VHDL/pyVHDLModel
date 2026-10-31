@@ -36,7 +36,7 @@ Concurrent defines all concurrent statements used in entities, architectures, ge
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, Union, Iterable, Generator, Optional as Nullable
+from typing                  import TYPE_CHECKING, ClassVar, Union, Iterable, Generator, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
@@ -44,7 +44,7 @@ from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, \
                                     BaseCase, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, \
-                                    BlockStatementMixin, WaveformElement, ChoicesMixin
+                                    BlockStatementMixin, WaveformElement, ChoicesMixin, ReservedWord
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
 from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
                                     WithGenericsMixin, WithPortsMixin
@@ -703,6 +703,7 @@ class ComponentInstantiation(Instantiation):
 		visitor.VisitComponentInstantiation(self)
 		self._component.Visit(visitor)
 		self._VisitMapAspects(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartComponentInstantiation(self)
 
 	@readonly
@@ -778,6 +779,7 @@ class EntityInstantiation(Instantiation):
 			visitor.VisitRightParenthesis(self)
 
 		self._VisitMapAspects(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartEntityInstantiation(self)
 
 	@readonly
@@ -848,6 +850,7 @@ class ConfigurationInstantiation(Instantiation):
 		visitor.VisitConfigurationInstantiation(self)
 		self._configuration.Visit(visitor)
 		self._VisitMapAspects(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConfigurationInstantiation(self)
 
 	@readonly
@@ -882,6 +885,9 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 	      --  ^^^^^^^^^              <- Statements
 	        end process;
 	"""
+
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Process,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                    #: The reserved words after ``end`` are optional.
 
 	# TODO: implement a SignalSymbol
 	_sensitivityList: list[Name]  #: List of all signal names in the sensitivity list, or ``None`` if none was given.
@@ -939,6 +945,8 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 		self._VisitDeclaredItems(visitor)
 		visitor.VisitBegin(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartProcessStatement(self)
 
 	@ConcurrentStatement.Parent.setter
@@ -1012,6 +1020,7 @@ class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
 		"""
 		visitor.VisitConcurrentProcedureCall(self)
 		self._VisitProcedureCall(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConcurrentProcedureCall(self)
 
 
@@ -1063,6 +1072,9 @@ class ConcurrentBlockStatement(
 
 	   * :class:`Generate statement <pyVHDLModel.Concurrent.GenerateStatement>`
 	"""
+
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Block,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                  #: The reserved words after ``end`` are optional.
 	def __init__(
 		self,
 		label:                   str,
@@ -1120,6 +1132,8 @@ class ConcurrentBlockStatement(
 		self._VisitDeclaredItems(visitor)
 		visitor.VisitBegin(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartConcurrentBlockStatement(self)
 
 	@ConcurrentStatement.Parent.setter
@@ -1397,6 +1411,9 @@ class GenerateStatement(ConcurrentStatement, AllowBlackboxMixin):
 	   * :class:`For generate statement <pyVHDLModel.Concurrent.ForGenerateStatement>`
 	"""
 
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Generate,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                     #: The reserved words after ``end`` are optional.
+
 	def __init__(
 		self,
 		label:         Nullable[str] = None,
@@ -1511,6 +1528,8 @@ class IfGenerateStatement(GenerateStatement):
 		if self._elseBranch is not None:
 			self._elseBranch.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartIfGenerateStatement(self)
 
 	@GenerateStatement.Parent.setter
@@ -1916,6 +1935,8 @@ class CaseGenerateStatement(GenerateStatement):
 		for case in self._cases:
 			case.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartCaseGenerateStatement(self)
 
 	@GenerateStatement.Parent.setter
@@ -2028,6 +2049,8 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 		self._VisitDeclaredItems(visitor)
 		visitor.VisitBegin(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartForGenerateStatement(self)
 
 	@GenerateStatement.Parent.setter
@@ -2137,6 +2160,7 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment, WaveformMixin
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._VisitWaveform(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConcurrentSimpleSignalAssignment(self)
 
 
@@ -2199,6 +2223,7 @@ class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment, ExpressionM
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._VisitSelectedWaveforms(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConcurrentSelectedSignalAssignment(self)
 
 
@@ -2255,6 +2280,7 @@ class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment, Conditio
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._VisitConditionalWaveforms(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConcurrentConditionalSignalAssignment(self)
 
 
@@ -2308,4 +2334,5 @@ class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
 		"""
 		visitor.VisitConcurrentAssertStatement(self)
 		self._VisitAssertion(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConcurrentAssertStatement(self)

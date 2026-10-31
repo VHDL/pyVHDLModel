@@ -42,7 +42,7 @@ from pyTooling.Common       import getFullyQualifiedName
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf, ReservedWord
 from pyVHDLModel.Symbol     import SubtypeSymbol
 from pyVHDLModel.Type       import ProtectedType
 from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
@@ -468,6 +468,9 @@ class Procedure(Subprogram):
 	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
 	"""
 
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Procedure,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                       #: The reserved words after ``end`` are optional.
+
 	_SUBPROGRAM_KEYWORD: ClassVar[str] = "procedure"  #: The VHDL keyword introducing this subprogram kind.
 
 	def __init__(
@@ -503,6 +506,8 @@ class Procedure(Subprogram):
 		self._VisitGenericClause(visitor)
 		self._VisitFormalParameterList(visitor)
 		self._VisitDeclarativeAndStatementPart(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartProcedure(self)
 
 
@@ -538,6 +543,9 @@ class Function(Subprogram):
 	   * :class:`Function method <pyVHDLModel.Subprogram.FunctionMethod>`
 	   * :class:`Procedure <pyVHDLModel.Subprogram.Procedure>`
 	"""
+
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Function,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                      #: The reserved words after ``end`` are optional.
 
 	_SUBPROGRAM_KEYWORD: ClassVar[str] = "function"  #: The VHDL keyword introducing this subprogram kind.
 	_returnType:         SubtypeSymbol               #: Reference to the subtype of the function's return value.
@@ -585,6 +593,8 @@ class Function(Subprogram):
 		visitor.VisitReturn(self)
 		self._returnType.Visit(visitor)
 		self._VisitDeclarativeAndStatementPart(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartFunction(self)
 
 	@readonly

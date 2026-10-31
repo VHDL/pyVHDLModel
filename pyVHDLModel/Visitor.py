@@ -56,6 +56,12 @@ element and then its children in source order as events to the visitor. A parser
    ``VisitAssociationListSeparator`` for the comma between two association elements). The parentheses of a list
    belong to the events of its element or part (e.g. ``VisitIndexList`` and ``DepartIndexList``);
    ``VisitLeftParenthesis`` and ``VisitRightParenthesis`` enclose a single item, which is no list.
+
+``VisitEnd(element)`` and ``VisitTerminator(element)``
+   The walk passes the end of an element, before ``Depart<Class>``: ``VisitEnd`` the ``end`` of an element closed by
+   ``end`` and its reserved words (e.g. ``end entity counter``), ``VisitTerminator`` the semicolon ending a declaration,
+   a statement, a context item or a design unit. The reserved words after ``end`` are the class constant
+   ``_END_KEYWORDS`` of the element's class, ``_END_KEYWORDS_OPTIONAL`` tells if they are optional.
 """
 from __future__                  import annotations
 
@@ -67,7 +73,7 @@ from pyTooling.MetaClasses       import ExtendedType, abstractclass
 if TYPE_CHECKING:
 	from pyVHDLModel               import Document
 	from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin, PortMapAspectMixin
-	from pyVHDLModel.Base          import SimpleRange, RangeFromName, WaveformElement, ReportStatementMixin
+	from pyVHDLModel.Base          import ModelEntity, SimpleRange, RangeFromName, WaveformElement, ReportStatementMixin
 	from pyVHDLModel.Common        import ProcedureCallMixin, SignalAssignmentMixin, WaveformMixin, ConditionalWaveform, \
 	                                      SelectedWaveform, OthersSelectedWaveform, ConditionalWaveformsMixin, \
 	                                      SelectedWaveformsMixin, AssignmentMixin, ConditionalExpression, \
@@ -95,7 +101,8 @@ if TYPE_CHECKING:
 	                                      ShiftExpression, QualifiedExpression, WhenElseExpression, SubtypeAllocation, \
 	                                      QualifiedExpressionAllocation, SimpleAggregateElement, \
 	                                      IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
-	                                      OthersAggregateElement, Aggregate
+	                                      OthersAggregateElement, Aggregate, CharacterEnumerationLiteral, \
+	                                      ConditionExpression
 	from pyVHDLModel.Interface     import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, \
 	                                      GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
 	                                      PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem, \
@@ -121,7 +128,7 @@ if TYPE_CHECKING:
 	                                      LoopControlStatement, NextStatement, ExitStatement
 	from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
 	from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
-	                                      ConstrainedRecordSubtypeSymbol
+	                                      ConstrainedRecordSubtypeSymbol, AggregateSymbol
 	from pyVHDLModel.Type          import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
 	                                      ArrayType, RecordTypeElement, RecordType, AccessType, FileType, ProtectedType, \
 	                                      ProtectedTypeBody
@@ -167,7 +174,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	def VisitElementSeparator(
 		self,
 		element: IndexedName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol |
-		         EnumeratedType | ArrayType
+		         EnumeratedType | ArrayType | AggregateSymbol
 	) -> None:
 		"""
 		Visit the comma between two elements of a parenthesized list, which is no association list.
@@ -311,6 +318,30 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The element.
 		"""
 
+	def VisitEnd(
+		self,
+		element: Context | Package | PackageBody | Entity | Architecture | Configuration | Component |
+		         ModeViewDeclaration | PhysicalType | RecordType | ProtectedType | ProtectedTypeBody | BlockConfiguration |
+		         ComponentConfiguration | ProcessStatement | ConcurrentBlockStatement | IfGenerateStatement |
+		         CaseGenerateStatement | ForGenerateStatement | IfStatement | CaseStatement | LoopStatement | Subprogram
+	) -> None:
+		"""
+		Visit the end of an element: the reserved word ``end``, the reserved words of the element and its name or label.
+
+		The reserved words after ``end`` are the class constant ``_END_KEYWORDS`` of the element's class;
+		``_END_KEYWORDS_OPTIONAL`` tells if they are optional. A subprogram reports it whether it's written as a subprogram
+		body or as a subprogram declaration.
+
+		:param element: The element.
+		"""
+
+	def VisitTerminator(self, element: ModelEntity) -> None:
+		"""
+		Visit the semicolon ending a declaration, a statement, a context item or a design unit.
+
+		:param element: The declaration, statement, context item or design unit.
+		"""
+
 	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem) -> None:
 		"""
 		Visit the reserved word ``return`` before the return type of a function.
@@ -440,6 +471,20 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from an enumeration literal.
 
 		:param literal: The enumeration literal.
+		"""
+
+	def VisitCharacterEnumerationLiteral(self, literal: CharacterEnumerationLiteral) -> None:
+		"""
+		Visit a character enumeration literal.
+
+		:param literal: The character enumeration literal.
+		"""
+
+	def DepartCharacterEnumerationLiteral(self, literal: CharacterEnumerationLiteral) -> None:
+		"""
+		Depart from a character enumeration literal.
+
+		:param literal: The character enumeration literal.
 		"""
 
 	def VisitIntegerLiteral(self, literal: IntegerLiteral) -> None:
@@ -694,6 +739,20 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param symbol: The symbol.
 		"""
 
+	def VisitAggregateSymbol(self, symbol: AggregateSymbol) -> None:
+		"""
+		Visit a group of targets written as an aggregate, before its targets.
+
+		:param symbol: The group of targets.
+		"""
+
+	def DepartAggregateSymbol(self, symbol: AggregateSymbol) -> None:
+		"""
+		Depart from a group of targets written as an aggregate, after its targets.
+
+		:param symbol: The group of targets.
+		"""
+
 	def VisitAssociationItem(self, item: AssociationItem) -> None:
 		"""
 		Visit an association item, before its formal or, if positional, its actual.
@@ -738,6 +797,20 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from a negation (sign ``-``), after its operand.
 
 		:param expression: The negation.
+		"""
+
+	def VisitConditionExpression(self, expression: ConditionExpression) -> None:
+		"""
+		Visit a condition operator expression (``??``), before its operand.
+
+		:param expression: The condition operator expression.
+		"""
+
+	def DepartConditionExpression(self, expression: ConditionExpression) -> None:
+		"""
+		Depart from a condition operator expression (``??``), after its operand.
+
+		:param expression: The condition operator expression.
 		"""
 
 	def VisitIdentityExpression(self, expression: IdentityExpression) -> None:
@@ -1501,6 +1574,20 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	def DepartEnumeratedType(self, enumeratedType: EnumeratedType) -> None:
 		"""
 		Depart from an enumerated type declaration, after its last literal.
+
+		:param enumeratedType: The enumerated type.
+		"""
+
+	def VisitEnumerationTypeDefinition(self, enumeratedType: EnumeratedType) -> None:
+		"""
+		Visit the parenthesized list of literals of an enumerated type, before its first literal.
+
+		:param enumeratedType: The enumerated type.
+		"""
+
+	def DepartEnumerationTypeDefinition(self, enumeratedType: EnumeratedType) -> None:
+		"""
+		Depart from the parenthesized list of literals of an enumerated type, after its last literal.
 
 		:param enumeratedType: The enumerated type.
 		"""

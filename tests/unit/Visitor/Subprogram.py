@@ -73,9 +73,10 @@ class Subprograms(Testcase):
 			"DepartParameterConstantInterfaceItem",
 			"DepartFormalParameterList",
 			"VisitIs",
-			"VisitVariable", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "DepartVariable",
+			"VisitVariable", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitTerminator",
+			"DepartVariable",
 			"VisitBegin",
-			"DepartProcedure",
+			"VisitEnd", "VisitTerminator", "DepartProcedure",
 		], [event[0] for event in recorder.Events])
 
 	def test_Procedure_Declaration(self) -> None:
@@ -89,6 +90,8 @@ class Subprograms(Testcase):
 			("VisitProcedure",  procedure),
 			("VisitIs",         procedure),
 			("VisitBegin",      procedure),
+			("VisitEnd",        procedure),
+			("VisitTerminator", procedure),
 			("DepartProcedure", procedure),
 		], recorder.Events)
 
@@ -113,6 +116,8 @@ class Subprograms(Testcase):
 			("DepartSymbol",                   returnType),
 			("VisitIs",                        function),
 			("VisitBegin",                     function),
+			("VisitEnd",                       function),
+			("VisitTerminator",                function),
 			("DepartFunction",                 function),
 		], recorder.Events)
 
@@ -151,7 +156,7 @@ class Instantiations(Testcase):
 			"VisitAssociationItem", "VisitSimpleName", "DepartSimpleName", "VisitArrow", "VisitIntegerLiteral",
 			"DepartIntegerLiteral", "DepartAssociationItem",
 			"DepartGenericMapAspect",
-			"DepartProcedureInstantiation",
+			"VisitTerminator", "DepartProcedureInstantiation",
 		], [event[0] for event in recorder.Events])
 
 
@@ -168,7 +173,11 @@ class ProtectedTypes(Testcase):
 			("VisitProcedure",      method),
 			("VisitIs",             method),
 			("VisitBegin",          method),
+			("VisitEnd",            method),
+			("VisitTerminator",     method),
 			("DepartProcedure",     method),
+			("VisitEnd",            protectedType),
+			("VisitTerminator",     protectedType),
 			("DepartProtectedType", protectedType),
 		], recorder.Events)
 
@@ -181,6 +190,6 @@ class ProtectedTypes(Testcase):
 
 		self.assertEqual(
 			["VisitProtectedTypeBody", "VisitVariable", "VisitSymbol", "VisitSimpleName", "DepartSimpleName",
-			 "DepartSymbol", "DepartVariable", "DepartProtectedTypeBody"],
+			 "DepartSymbol", "VisitTerminator", "DepartVariable", "VisitEnd", "VisitTerminator", "DepartProtectedTypeBody"],
 			[event[0] for event in recorder.Events]
 		)

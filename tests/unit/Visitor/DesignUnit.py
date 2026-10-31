@@ -74,10 +74,13 @@ class DesignUnits(Testcase):
 			("VisitSimpleName",        std.Name),
 			("DepartSimpleName",       std.Name),
 			("DepartSymbol",           std),
+			("VisitTerminator",        clause),
 			("DepartLibraryClause",    clause),
 			("DepartContextClause",    entity),
 			("VisitEntity",            entity),
 			("VisitBegin",             entity),
+			("VisitEnd",               entity),
+			("VisitTerminator",        entity),
 			("DepartEntity",           entity),
 		], recorder.Events)
 
@@ -98,6 +101,8 @@ class DesignUnits(Testcase):
 			("DepartSymbol",        entity),
 			("VisitIs",             architecture),
 			("VisitBegin",          architecture),
+			("VisitEnd",            architecture),
+			("VisitTerminator",     architecture),
 			("DepartArchitecture",  architecture),
 		], recorder.Events)
 
@@ -117,7 +122,10 @@ class DesignUnits(Testcase):
 			("VisitSimpleName",     ieee.Name),
 			("DepartSimpleName",    ieee.Name),
 			("DepartSymbol",        ieee),
+			("VisitTerminator",     clause),
 			("DepartLibraryClause", clause),
+			("VisitEnd",            context),
+			("VisitTerminator",     context),
 			("DepartContext",       context),
 		], recorder.Events)
 
@@ -208,8 +216,14 @@ class Configurations(Testcase):
 			("DepartAssociationItem",        association),
 			("DepartPortMapAspect",          indication),
 			("DepartBindingIndication",      indication),
+			("VisitEnd",                     componentConfiguration),
+			("VisitTerminator",              componentConfiguration),
 			("DepartComponentConfiguration", componentConfiguration),
+			("VisitEnd",                     blockConfiguration),
+			("VisitTerminator",              blockConfiguration),
 			("DepartBlockConfiguration",     blockConfiguration),
+			("VisitEnd",                     configuration),
+			("VisitTerminator",              configuration),
 			("DepartConfiguration",          configuration),
 		], recorder.Events)
 

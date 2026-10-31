@@ -112,6 +112,7 @@ class Literal(BaseExpression):
 
 	   * :class:`Null literal <pyVHDLModel.Expression.NullLiteral>`
 	   * :class:`Enumeration literal <pyVHDLModel.Expression.EnumerationLiteral>`
+	   * :class:`Character enumeration literal <pyVHDLModel.Expression.CharacterEnumerationLiteral>`
 	   * :class:`Numeric literal <pyVHDLModel.Expression.NumericLiteral>`
 	   * :class:`Character literal <pyVHDLModel.Expression.CharacterLiteral>`
 	   * :class:`String literal <pyVHDLModel.Expression.StringLiteral>`
@@ -227,6 +228,77 @@ class EnumerationLiteral(Literal):
 		:returns: Formatted enumeration literal.
 		"""
 		return self._value
+
+
+@export
+class CharacterEnumerationLiteral(EnumerationLiteral):
+	"""
+	Represents an enumeration literal that is a character literal.
+
+	The literal's character is available as :data:`Value`. It is the bare character without the enclosing apostrophes:
+	``0`` for the enumeration literal ``'0'`` of ``type bit is ('0', '1');``. This distinguishes it from an enumeration
+	literal named by an identifier with the same text.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      type logic is ('0', '1', 'Z');
+	      --              ^  <- Value
+	"""
+
+	def __init__(self, value: str, parent: Nullable[ModelEntity] = None) -> None:
+		"""
+		Initializes a character enumeration literal.
+
+		:param value:       The literal's character without apostrophes.
+		:param parent:      The parent model entity of this entity.
+		:raises ValueError: If parameter 'value' is None.
+		:raises TypeError:  If parameter 'value' is not of type :class:`str`.
+		:raises ValueError: If parameter 'value' is not a single character.
+		"""
+		super().__init__(value, parent)
+
+		if value is None:
+			raise ValueError("Parameter 'value' is None.")
+		elif not isinstance(value, str):
+			ex = TypeError("Parameter 'value' is not of type 'str'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(value)}'.")
+			raise ex
+		elif len(value) != 1:
+			ex = ValueError("Parameter 'value' is not a single character.")
+			ex.add_note(f"Got value '{value}'.")
+			ex.add_note("Pass the character without apostrophes.")
+			raise ex
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this character enumeration literal.
+
+		The copy has no parent.
+
+		:returns: The new character enumeration literal.
+		"""
+		return self.__class__(self._value)
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this character enumeration literal with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitCharacterEnumerationLiteral(self)
+		visitor.DepartCharacterEnumerationLiteral(self)
+
+	def __str__(self) -> str:
+		"""
+		Formats the character enumeration literal.
+
+		**Format:** ``'0'``
+
+		:returns: Formatted character enumeration literal.
+		"""
+		return f"'{self._value}'"
 
 
 @export
@@ -1205,6 +1277,35 @@ class InverseExpression(UnaryExpression):
 	_PRECEDENCE:    ClassVar[OperatorPrecedence] = OperatorPrecedence.Miscellaneous  #: The operator's precedence level.
 	_FORMAT:        ClassVar[tuple[str, str]]    = ("not ", "")                      #: The operator's string fragments.
 	_RESERVED_WORD: ClassVar[ReservedWord]       = ReservedWord.Not                  #: The operator's reserved word.
+
+
+@export
+class ConditionExpression(UnaryExpression):
+	"""
+	Represents a condition operator expression (``??``), converting its operand to ``boolean``.
+
+	The operand is available as :data:`Operand`; it is a primary.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      if ?? enable then
+	      -- ^^^^^^^^^    <- the expression
+	      --    ^^^^^^    <- Operand
+	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Conditional  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("?? ", "")                     #: The operator's string fragments.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this condition operator expression and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConditionExpression(self)
+		self._operand.Visit(visitor)
+		visitor.DepartConditionExpression(self)
 
 
 @export

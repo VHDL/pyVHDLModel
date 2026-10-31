@@ -10,235 +10,155 @@ VHDL has types (also called a base type) and subtypes. The following shows VHDL'
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.EnumeratedType pyVHDLModel.SyntaxModel.IntegerType pyVHDLModel.SyntaxModel.RealType pyVHDLModel.SyntaxModel.PhysicalType pyVHDLModel.SyntaxModel.ArrayType pyVHDLModel.SyntaxModel.RecordType pyVHDLModel.SyntaxModel.ProtectedType pyVHDLModel.SyntaxModel.AccessType pyVHDLModel.SyntaxModel.FileType
+.. inheritance-diagram:: pyVHDLModel.Type.EnumeratedType
+                         pyVHDLModel.Type.IntegerType
+                         pyVHDLModel.Type.RealType
+                         pyVHDLModel.Type.PhysicalType
+                         pyVHDLModel.Type.ArrayType
+                         pyVHDLModel.Type.RecordType
+                         pyVHDLModel.Type.ProtectedType
+                         pyVHDLModel.Type.ProtectedTypeBody
+                         pyVHDLModel.Type.AccessType
+                         pyVHDLModel.Type.FileType
    :parts: 1
 
 
 .. _vhdlmodel-scalartypes:
 
 Scalar Types
-============
+************
 
 .. _vhdlmodel-enumeratedtypes:
 
 Enumeration
------------
+===========
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.EnumeratedType`:
+**Condensed definition of class** :class:`~pyVHDLModel.Type.EnumeratedType`:
 
-.. code-block:: Python
-
-   @export
-   class EnumeratedType(ScalarType, DiscreteType):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # from EnumeratedType
-     @property
-     def Elements(self) -> list[str]:
-
+.. condensed-class:: pyVHDLModel.Type.EnumeratedType
 
 
 .. _vhdlmodel-integertypes:
 
 Integer
--------
+=======
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.IntegerType`:
+**Condensed definition of class** :class:`~pyVHDLModel.Type.IntegerType`:
 
-.. code-block:: Python
-
-   @export
-   class IntegerType(RangedScalarType, NumericType, DiscreteType):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from RangedScalarType
-     @property
-     def LeftBound(self) -> 'BaseExpression':
-
-     @property
-     def RightBound(self) -> 'BaseExpression':
-
+.. condensed-class:: pyVHDLModel.Type.IntegerType
 
 
 .. _vhdlmodel-realtypes:
 
 Real
-----
+====
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.RealType`:
+**Condensed definition of class** :class:`~pyVHDLModel.Type.RealType`:
 
-.. code-block:: Python
-
-   @export
-   class RealType(RangedScalarType, NumericType):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from RangedScalarType
-     @property
-     def LeftBound(self) -> 'BaseExpression':
-
-     @property
-     def RightBound(self) -> 'BaseExpression':
-
+.. condensed-class:: pyVHDLModel.Type.RealType
 
 
 .. _vhdlmodel-physicaltypes:
 
 Physical
---------
+========
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.PhysicalType`:
+**Condensed definition of class** :class:`~pyVHDLModel.Type.PhysicalType`:
 
-.. code-block:: Python
-
-   @export
-   class PhysicalType(RangedScalarType, NumericType):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # inherited from RangedScalarType
-     @property
-     def LeftBound(self) -> 'BaseExpression':
-
-     @property
-     def RightBound(self) -> 'BaseExpression':
-
-     # from PhysicalType
-     @property
-     def PrimaryUnit(self) -> str:
-
-     @property
-     def SecondaryUnits(self) -> list[tuple[int, str]]:
-
+.. condensed-class:: pyVHDLModel.Type.PhysicalType
 
 
 .. _vhdlmodel-compositetypes:
 
 Composite Types
-===============
+***************
 
 .. _vhdlmodel-arraytypes:
 
 Array
------
+=====
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ArrayType`:
+**Condensed definition of class** :class:`~pyVHDLModel.Type.ArrayType`:
 
-.. code-block:: Python
-
-   @export
-   class ArrayType(CompositeType):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # from ArrayType
-     @property
-     def Dimensions(self) -> list[Range]:
-
-     @property
-     def ElementType(self) -> Subtype:
-
+.. condensed-class:: pyVHDLModel.Type.ArrayType
 
 
 .. _vhdlmodel-recordtypes:
 
 Record
-------
-
-.. todo::
-
-   Write documentation.
-
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.RecordType`:
-
-.. code-block:: Python
-
-   @export
-   class RecordType(CompositeType):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from NamedEntity
-     @property
-     def Name(self) -> str:
-
-     # from RecordType
-     @property
-     def Members(self) -> list[RecordTypeElement]:
-
-
-.. _vhdlmodel-protectedtypes:
-
-Protected
-=========
-
-.. todo::
-
-   Write documentation.
-
-.. _vhdlmodel-accesstypes:
-
-Access
 ======
 
 .. todo::
 
    Write documentation.
 
-.. _vhdlmodel-filetypes:
+**Condensed definition of class** :class:`~pyVHDLModel.Type.RecordType`:
 
-File
-====
+.. condensed-class:: pyVHDLModel.Type.RecordType
+
+
+.. _vhdlmodel-protectedtypes:
+
+Protected
+*********
 
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Type.ProtectedType`:
+
+.. condensed-class:: pyVHDLModel.Type.ProtectedType
+
+
+**Condensed definition of class** :class:`~pyVHDLModel.Type.ProtectedTypeBody`:
+
+.. condensed-class:: pyVHDLModel.Type.ProtectedTypeBody
+
+
+.. _vhdlmodel-accesstypes:
+
+Access
+******
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Type.AccessType`:
+
+.. condensed-class:: pyVHDLModel.Type.AccessType
+
+
+.. _vhdlmodel-filetypes:
+
+File
+****
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Type.FileType`:
+
+.. condensed-class:: pyVHDLModel.Type.FileType

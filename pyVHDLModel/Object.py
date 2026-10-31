@@ -268,6 +268,7 @@ class Constant(BaseConstant, WithDefaultExpressionMixin):
 		visitor.VisitConstant(self)
 		self._subtype.Visit(visitor)
 		self._VisitDefaultExpression(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartConstant(self)
 
 
@@ -314,6 +315,7 @@ class DeferredConstant(BaseConstant):
 		"""
 		visitor.VisitDeferredConstant(self)
 		self._subtype.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartDeferredConstant(self)
 
 	@readonly
@@ -400,6 +402,7 @@ class Variable(Obj, WithDefaultExpressionMixin):
 		visitor.VisitVariable(self)
 		self._subtype.Visit(visitor)
 		self._VisitDefaultExpression(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartVariable(self)
 
 
@@ -421,6 +424,7 @@ class SharedVariable(Obj):
 		"""
 		visitor.VisitSharedVariable(self)
 		self._subtype.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSharedVariable(self)
 
 
@@ -487,6 +491,7 @@ class Signal(Obj, WithDefaultExpressionMixin):
 		visitor.VisitSignal(self)
 		self._subtype.Visit(visitor)
 		self._VisitDefaultExpression(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSignal(self)
 
 
@@ -512,4 +517,5 @@ class File(Obj):
 		"""
 		visitor.VisitFile(self)
 		self._subtype.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartFile(self)

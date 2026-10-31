@@ -8,444 +8,355 @@ Sequential Statements
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.SequentialAssertStatement pyVHDLModel.SyntaxModel.SequentialReportStatement pyVHDLModel.SyntaxModel.SequentialSignalAssignment pyVHDLModel.SyntaxModel.VariableAssignment pyVHDLModel.SyntaxModel.IfStatement pyVHDLModel.SyntaxModel.CaseStatement pyVHDLModel.SyntaxModel.EndlessLoopStatement pyVHDLModel.SyntaxModel.ForLoopStatement pyVHDLModel.SyntaxModel.WhileLoopStatement pyVHDLModel.SyntaxModel.NextStatement pyVHDLModel.SyntaxModel.ExitStatement pyVHDLModel.SyntaxModel.SequentialProcedureCall pyVHDLModel.SyntaxModel.WaitStatement pyVHDLModel.SyntaxModel.ReturnStatement
+.. inheritance-diagram:: pyVHDLModel.Sequential.SequentialAssertStatement
+                         pyVHDLModel.Sequential.SequentialReportStatement
+                         pyVHDLModel.Sequential.SequentialSimpleSignalAssignment
+                         pyVHDLModel.Sequential.SequentialConditionalSignalAssignment
+                         pyVHDLModel.Sequential.SequentialSelectedSignalAssignment
+                         pyVHDLModel.Sequential.SignalForceAssignment
+                         pyVHDLModel.Sequential.SignalReleaseAssignment
+                         pyVHDLModel.Sequential.SequentialVariableAssignment
+                         pyVHDLModel.Sequential.SequentialConditionalVariableAssignment
+                         pyVHDLModel.Sequential.SequentialSelectedVariableAssignment
+                         pyVHDLModel.Sequential.IfStatement
+                         pyVHDLModel.Sequential.CaseStatement
+                         pyVHDLModel.Sequential.EndlessLoopStatement
+                         pyVHDLModel.Sequential.ForLoopStatement
+                         pyVHDLModel.Sequential.WhileLoopStatement
+                         pyVHDLModel.Sequential.NextStatement
+                         pyVHDLModel.Sequential.ExitStatement
+                         pyVHDLModel.Sequential.SequentialProcedureCall
+                         pyVHDLModel.Sequential.WaitStatement
+                         pyVHDLModel.Sequential.ReturnStatement
+                         pyVHDLModel.Sequential.NullStatement
    :parts: 1
 
 .. _vhdlmodel-seq-assignments:
 
 Assignments
-===========
+***********
 
 
 
 .. _vhdlmodel-seq-signalassignment:
 
 Signal Assignment
------------------
+=================
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.SequentialSignalAssignment`:
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.SequentialSignalAssignment`:
 
-.. code-block:: Python
+.. condensed-class:: pyVHDLModel.Sequential.SequentialSignalAssignment
 
-   @export
-   class SequentialSignalAssignment(SequentialStatement, SignalAssignment):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
 
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
+.. _vhdlmodel-seq-simplesignalassignment:
 
-     # inherited from Assignment
-     @property
-     def Target(self) -> Object:
+Simple Signal Assignment
+------------------------
 
-     @property
-     def BaseExpression(self) -> BaseExpression:
+.. todo::
 
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.SequentialSimpleSignalAssignment`:
+
+.. condensed-class:: pyVHDLModel.Sequential.SequentialSimpleSignalAssignment
+
+
+.. _vhdlmodel-seq-conditionalsignalassignment:
+
+Conditional Signal Assignment
+-----------------------------
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.SequentialConditionalSignalAssignment`:
+
+.. condensed-class:: pyVHDLModel.Sequential.SequentialConditionalSignalAssignment
+
+
+.. _vhdlmodel-seq-selectedsignalassignment:
+
+Selected Signal Assignment
+--------------------------
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.SequentialSelectedSignalAssignment`:
+
+.. condensed-class:: pyVHDLModel.Sequential.SequentialSelectedSignalAssignment
+
+
+.. _vhdlmodel-signalforceassignment:
+
+Signal Force Assignment
+-----------------------
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.SignalForceAssignment`:
+
+.. condensed-class:: pyVHDLModel.Sequential.SignalForceAssignment
+
+
+.. _vhdlmodel-signalreleaseassignment:
+
+Signal Release Assignment
+-------------------------
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.SignalReleaseAssignment`:
+
+.. condensed-class:: pyVHDLModel.Sequential.SignalReleaseAssignment
 
 
 .. _vhdlmodel-variableassignment:
 
 Variable Assignment
--------------------
+===================
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.SequentialVariableAssignment`:
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.SequentialVariableAssignment`:
 
-.. code-block:: Python
+.. condensed-class:: pyVHDLModel.Sequential.SequentialVariableAssignment
 
-   @export
-   class SequentialVariableAssignment(SequentialStatement, VariableAssignment):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
 
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
+.. _vhdlmodel-seq-conditionalvariableassignment:
 
-     # inherited from Assignment
-     @property
-     def Target(self) -> Object:
+Conditional Variable Assignment
+-------------------------------
 
-     @property
-     def BaseExpression(self) -> BaseExpression:
+.. todo::
 
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.SequentialConditionalVariableAssignment`:
+
+.. condensed-class:: pyVHDLModel.Sequential.SequentialConditionalVariableAssignment
+
+
+.. _vhdlmodel-seq-selectedvariableassignment:
+
+Selected Variable Assignment
+----------------------------
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.SequentialSelectedVariableAssignment`:
+
+.. condensed-class:: pyVHDLModel.Sequential.SequentialSelectedVariableAssignment
 
 
 .. _vhdlmodel-branching:
 
 Branching
-=========
+*********
 
 .. _vhdlmodel-ifstatement:
 
 If Statement
-------------
+============
 
 .. todo::
 
    Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.IfStatement`:
+
+.. condensed-class:: pyVHDLModel.Sequential.IfStatement
 
 
 .. _vhdlmodel-casestatement:
 
 Case Statement
---------------
+==============
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.CaseStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.CaseStatement`:
 
-.. code-block:: Python
-
-   @export
-   class CaseStatement(CompoundStatement):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # from CaseGenerateStatement
-     @property
-     def SelectExpression(self) -> BaseExpression:
-
-     @property
-     def Cases(self) -> list[SequentialCase]:
-
+.. condensed-class:: pyVHDLModel.Sequential.CaseStatement
 
 
 .. _vhdlmodel-loops:
 
 Loops
-=====
+*****
 
 .. _vhdlmodel-endlessloop:
 
 Endless Loop
-------------
+============
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.EndlessLoopStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.EndlessLoopStatement`:
 
-.. code-block:: Python
-
-   @export
-   class EndlessLoopStatement(LoopStatement):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # inherited from SequentialStatements
-     @property
-     def Statements(self) -> list[SequentialStatement]:
-
+.. condensed-class:: pyVHDLModel.Sequential.EndlessLoopStatement
 
 
 .. _vhdlmodel-forloop:
 
 For Loop
---------
+========
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ForLoopStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.ForLoopStatement`:
 
-.. code-block:: Python
-
-   @export
-   class ForLoopStatement(LoopStatement):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # inherited from SequentialStatements
-     @property
-     def Statements(self) -> list[SequentialStatement]:
-
-     # from ForLoopStatement
-     @property
-     def LoopIndex(self) -> Constant:
-
-     @property
-     def Range(self) -> Range:
-
+.. condensed-class:: pyVHDLModel.Sequential.ForLoopStatement
 
 
 .. _vhdlmodel-whileloop:
 
 While Loop
-----------
+==========
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.WhileLoopStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.WhileLoopStatement`:
 
-.. code-block:: Python
-
-   @export
-   class WhileLoopStatement(LoopStatement, BaseConditional):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # inherited from SequentialStatements
-     @property
-     def Statements(self) -> list[SequentialStatement]:
-
-     # inherited from BaseConditional
-     @property
-     def Condition(self) -> BaseExpression:
+.. condensed-class:: pyVHDLModel.Sequential.WhileLoopStatement
 
 
 .. _vhdlmodel-nextstatement:
 
 Next Statement
---------------
+==============
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.NextStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.NextStatement`:
 
-.. code-block:: Python
-
-   @export
-   class NextStatement(SequentialStatement, BaseConditional):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # inherited from BaseCondition
-     @property
-     def Condition(self) -> BaseExpression:
-
-     # inherited from LoopControlStatement
-     @property
-     def LoopReference(self) -> LoopStatement:
-
+.. condensed-class:: pyVHDLModel.Sequential.NextStatement
 
 
 .. _vhdlmodel-exitstatement:
 
 Exit Statement
---------------
+==============
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ExitStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.ExitStatement`:
 
-.. code-block:: Python
-
-   @export
-   class ExitStatement(SequentialStatement, BaseConditional):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # inherited from BaseCondition
-     @property
-     def Condition(self) -> BaseExpression:
-
-     # inherited from LoopControlStatement
-     @property
-     def LoopReference(self) -> LoopStatement:
-
+.. condensed-class:: pyVHDLModel.Sequential.ExitStatement
 
 
 .. _vhdlmodel-reporting:
 
 Reporting
-=========
+*********
 
 
 .. _vhdlmodel-seq-reportstatement:
 
 Report Statement
-----------------
-
-.. todo::
-
-   Write documentation.
-
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.SequentialReportStatement`:
-
-.. code-block:: Python
-
-   @export
-   class SequentialReportStatement(SequentialStatement, MixinReportStatement):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # inherited from MixinReportStatement
-     @property
-     def Message(self) -> BaseExpression:
-
-     @property
-     def Severity(self) -> BaseExpression:
-
-
-
-.. _vhdlmodel-seq-assertstatement:
-
-Assert Statement
-----------------
-
-.. todo::
-
-   Write documentation.
-
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.SequentialAssertStatement`:
-
-.. code-block:: Python
-
-   @export
-   class SequentialAssertStatement(SequentialStatement, MixinAssertStatement):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # inherited from MixinReportStatement
-     @property
-     def Message(self) -> BaseExpression:
-
-     @property
-     def Severity(self) -> BaseExpression:
-
-     # inherited from MixinAssertStatement
-     @property
-     def Condition(self) -> BaseExpression:
-
-
-
-.. _vhdlmodel-seq-procedurecall:
-
-Procedure Call
-==============
-
-.. todo::
-
-   Write documentation.
-
-
-
-.. _vhdlmodel-waitstatement:
-
-Wait Statement
-==============
-
-.. todo::
-
-   Write documentation.
-
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.WaitStatement`:
-
-.. code-block:: Python
-
-   @export
-   class WaitStatement(SequentialStatement, BaseConditional):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # inherited from BaseCondition
-     @property
-     def Condition(self) -> BaseExpression:
-
-     # from WaitStatement
-     @property
-     def SensitivityList(self) -> list[Signal]:
-
-     @property
-     def Timeout(self) -> BaseExpression:
-
-
-
-.. _vhdlmodel-returnstatement:
-
-Return Statement
 ================
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ReturnStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.SequentialReportStatement`:
 
-.. code-block:: Python
+.. condensed-class:: pyVHDLModel.Sequential.SequentialReportStatement
 
-   @export
-   class ReturnStatement(SequentialStatement, BaseConditional):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
 
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
+.. _vhdlmodel-seq-assertstatement:
 
-     # inherited from BaseCondition
-     @property
-     def Condition(self) -> BaseExpression:
+Assert Statement
+================
 
-     # from ReturnStatement
-     @property
-     def ReturnValue(self) -> BaseExpression:
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.SequentialAssertStatement`:
+
+.. condensed-class:: pyVHDLModel.Sequential.SequentialAssertStatement
+
+
+.. _vhdlmodel-seq-procedurecall:
+
+Procedure Call
+**************
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.SequentialProcedureCall`:
+
+.. condensed-class:: pyVHDLModel.Sequential.SequentialProcedureCall
+
+
+.. _vhdlmodel-waitstatement:
+
+Wait Statement
+**************
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.WaitStatement`:
+
+.. condensed-class:: pyVHDLModel.Sequential.WaitStatement
+
+
+.. _vhdlmodel-returnstatement:
+
+Return Statement
+****************
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.ReturnStatement`:
+
+.. condensed-class:: pyVHDLModel.Sequential.ReturnStatement
+
+
+.. _vhdlmodel-nullstatement:
+
+Null Statement
+**************
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Sequential.NullStatement`:
+
+.. condensed-class:: pyVHDLModel.Sequential.NullStatement

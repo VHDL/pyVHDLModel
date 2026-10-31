@@ -36,7 +36,7 @@ Declarations for sequential statements.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, Iterable, Optional as Nullable
+from typing                  import TYPE_CHECKING, ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
@@ -44,7 +44,8 @@ from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity, ExpressionUnion, Range, BaseChoice, BaseCase, ConditionalMixin, \
                                     IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, ReportStatementMixin, \
-                                    AssertStatementMixin, WaveformElement, ChoicesMixin, LabeledEntityMixin
+                                    AssertStatementMixin, WaveformElement, ChoicesMixin, LabeledEntityMixin, \
+                                    ReservedWord
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
 from pyVHDLModel.Symbol      import Symbol, SignalSymbol, VariableSymbol
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin, AssignmentMixin, SignalAssignmentMixin, \
@@ -591,6 +592,7 @@ class SequentialProcedureCall(SequentialStatement, ProcedureCallMixin):
 		"""
 		visitor.VisitSequentialProcedureCall(self)
 		self._VisitProcedureCall(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialProcedureCall(self)
 
 
@@ -657,6 +659,7 @@ class SequentialSimpleSignalAssignment(SequentialSignalAssignment, WaveformMixin
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._VisitWaveform(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialSimpleSignalAssignment(self)
 
 
@@ -698,6 +701,7 @@ class SequentialVariableAssignment(SequentialStatement, VariableAssignmentMixin)
 		self._target.Visit(visitor)
 		visitor.VisitVariableAssignment(self)
 		self._expression.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialVariableAssignment(self)
 
 
@@ -765,6 +769,7 @@ class SequentialConditionalVariableAssignment(SequentialStatement, AssignmentMix
 
 			conditionalExpression.Visit(visitor)
 
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialConditionalVariableAssignment(self)
 
 	@readonly
@@ -831,6 +836,7 @@ class SequentialConditionalSignalAssignment(SequentialStatement, SignalAssignmen
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._VisitConditionalWaveforms(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialConditionalSignalAssignment(self)
 
 
@@ -893,6 +899,7 @@ class SequentialSelectedVariableAssignment(SequentialStatement, AssignmentMixin,
 		self._target.Visit(visitor)
 		visitor.VisitVariableAssignment(self)
 		self._VisitSelectedExpressions(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialSelectedVariableAssignment(self)
 
 
@@ -956,6 +963,7 @@ class SequentialSelectedSignalAssignment(SequentialStatement, SignalAssignmentMi
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._VisitSelectedWaveforms(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialSelectedSignalAssignment(self)
 
 
@@ -1005,6 +1013,7 @@ class SignalForceAssignment(SequentialStatement, SignalAssignmentMixin, Expressi
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._expression.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSignalForceAssignment(self)
 
 
@@ -1044,6 +1053,7 @@ class SignalReleaseAssignment(SequentialStatement, SignalAssignmentMixin):
 		visitor.VisitSignalReleaseAssignment(self)
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartSignalReleaseAssignment(self)
 
 
@@ -1083,6 +1093,7 @@ class SequentialReportStatement(SequentialStatement, ReportStatementMixin):
 		"""
 		visitor.VisitSequentialReportStatement(self)
 		self._VisitReportAndSeverity(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialReportStatement(self)
 
 
@@ -1136,6 +1147,7 @@ class SequentialAssertStatement(SequentialStatement, AssertStatementMixin):
 		"""
 		visitor.VisitSequentialAssertStatement(self)
 		self._VisitAssertion(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialAssertStatement(self)
 
 
@@ -1371,6 +1383,9 @@ class IfStatement(CompoundStatement):
 
 	   * :class:`If-generate statement <pyVHDLModel.Concurrent.IfGenerateStatement>`
 	"""
+
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.If,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False               #: The reserved words after ``end`` are optional.
 	_ifBranch: IfBranch                #: The mandatory ``if`` branch.
 	_elsifBranches: list[ElsifBranch]  #: List of all ``elsif`` branches, in the order they were written.
 	_elseBranch: Nullable[ElseBranch]  #: The optional ``else`` branch, or ``None`` if none was given.
@@ -1423,6 +1438,8 @@ class IfStatement(CompoundStatement):
 		if self._elseBranch is not None:
 			self._elseBranch.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartIfStatement(self)
 
 	@readonly
@@ -1736,6 +1753,9 @@ class CaseStatement(CompoundStatement):
 
 	   * :class:`Case-generate statement <pyVHDLModel.Concurrent.CaseGenerateStatement>`
 	"""
+
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Case,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                 #: The reserved words after ``end`` are optional.
 	_expression: ExpressionUnion       #: The expression being tested.
 	_cases:      list[SequentialCase]  #: List of all alternatives, in the order they were written.
 
@@ -1771,6 +1791,8 @@ class CaseStatement(CompoundStatement):
 		for case in self._cases:
 			case.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartCaseStatement(self)
 
 	@readonly
@@ -1804,6 +1826,9 @@ class LoopStatement(CompoundStatement, SequentialStatementsMixin):
 	   * :class:`For loop statement <pyVHDLModel.Sequential.ForLoopStatement>`
 	   * :class:`While loop statement <pyVHDLModel.Sequential.WhileLoopStatement>`
 	"""
+
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Loop,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                 #: The reserved words after ``end`` are optional.
 
 	def __init__(self, statements: Nullable[Iterable[SequentialStatement]] = None, label: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -1860,6 +1885,8 @@ class EndlessLoopStatement(LoopStatement):
 		visitor.VisitEndlessLoopStatement(self)
 		visitor.VisitLoop(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartEndlessLoopStatement(self)
 
 
@@ -1919,6 +1946,8 @@ class ForLoopStatement(LoopStatement):
 		self._range.Visit(visitor)
 		visitor.VisitLoop(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartForLoopStatement(self)
 
 	@readonly
@@ -1991,6 +2020,8 @@ class WhileLoopStatement(LoopStatement, ConditionalMixin):
 		self._condition.Visit(visitor)
 		visitor.VisitLoop(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartWhileLoopStatement(self)
 
 
@@ -2065,6 +2096,7 @@ class NextStatement(LoopControlStatement):
 			visitor.VisitWhen(self)
 			self._condition.Visit(visitor)
 
+		visitor.VisitTerminator(self)
 		visitor.DepartNextStatement(self)
 
 
@@ -2097,6 +2129,7 @@ class ExitStatement(LoopControlStatement):
 			visitor.VisitWhen(self)
 			self._condition.Visit(visitor)
 
+		visitor.VisitTerminator(self)
 		visitor.DepartExitStatement(self)
 
 
@@ -2124,6 +2157,7 @@ class NullStatement(SequentialStatement):
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitNullStatement(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartNullStatement(self)
 
 
@@ -2173,6 +2207,7 @@ class ReturnStatement(SequentialStatement):
 		if self._returnValue is not None:
 			self._returnValue.Visit(visitor)
 
+		visitor.VisitTerminator(self)
 		visitor.DepartReturnStatement(self)
 
 	@readonly
@@ -2260,6 +2295,7 @@ class WaitStatement(SequentialStatement, ConditionalMixin):
 			visitor.VisitFor(self)
 			self._timeout.Visit(visitor)
 
+		visitor.VisitTerminator(self)
 		visitor.DepartWaitStatement(self)
 
 	@readonly

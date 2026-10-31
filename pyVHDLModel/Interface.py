@@ -45,7 +45,7 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin, \
                                    MultipleNamedEntityMixin, identifiersOf, normalizedIdentifiersOf, ExpressionUnion, \
-                                   Mode
+                                   Mode, ReservedWord
 from pyVHDLModel.Exception  import NotAChildError
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
 from pyVHDLModel.Regions    import WithGenericsMixin, WithPortsMixin, WithParametersMixin
@@ -149,6 +149,7 @@ class SimpleModeViewElement(ModeViewElement):
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitSimpleModeViewElement(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartSimpleModeViewElement(self)
 
 	@readonly
@@ -215,6 +216,7 @@ class CompositeModeViewElement(ModeViewElement):
 		"""
 		visitor.VisitCompositeModeViewElement(self)
 		self._modeViewName.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartCompositeModeViewElement(self)
 
 	@readonly
@@ -257,6 +259,9 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	   * :class:`Parameter declared with a mode view <pyVHDLModel.Interface.ParameterViewSignalInterfaceItem>`
 	   * :class:`Reference to a mode view <pyVHDLModel.Symbol.ModeViewSymbol>`
 	"""
+
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.View,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                 #: The reserved words after ``end`` are optional.
 
 	_subtype:  SubtypeSymbol          #: Reference to the subtype this mode view applies to.
 	_elements: list[ModeViewElement]  #: List of all mode view elements, in declaration order.
@@ -303,6 +308,8 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		for element in self._elements:
 			element.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartModeViewDeclaration(self)
 
 	@readonly

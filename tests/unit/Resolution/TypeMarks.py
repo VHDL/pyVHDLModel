@@ -484,7 +484,10 @@ class ReviewFindings(Testcase):
 		warnings = _resolve(_design(Entity("e"), architecture))
 
 		self.assertEqual(1, len(warnings))
-		self.assertEqual("Type mark 'node' denotes an incomplete type, which only an access type may use.", str(warnings[0]))
+		self.assertEqual(
+			"Type mark 'node' denotes an incomplete type, which only an access type may use.",
+			str(warnings[0])
+		)
 		self.assertIsNone(signal.Subtype.Reference)
 
 	def test_AliasName_NotFound(self) -> None:

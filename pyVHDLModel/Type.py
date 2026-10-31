@@ -142,6 +142,7 @@ class AnonymousType(Type):
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitAnonymousType(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartAnonymousType(self)
 
 
@@ -267,6 +268,7 @@ class Subtype(BaseType):
 		"""
 		visitor.VisitSubtype(self)
 		self._type.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSubtype(self)
 
 	def __str__(self) -> str:
@@ -423,12 +425,15 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitEnumeratedType(self)
+		visitor.VisitEnumerationTypeDefinition(self)
 		for index, literal in enumerate(self._literals):
 			if index > 0:
 				visitor.VisitElementSeparator(self)
 
 			literal.Visit(visitor)
 
+		visitor.DepartEnumerationTypeDefinition(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartEnumeratedType(self)
 
 	def __str__(self) -> str:
@@ -476,6 +481,7 @@ class IntegerType(RangedScalarType, NumericTypeMixin, DiscreteTypeMixin):
 		"""
 		visitor.VisitIntegerType(self)
 		self._range.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartIntegerType(self)
 
 	def __str__(self) -> str:
@@ -524,6 +530,7 @@ class RealType(RangedScalarType, NumericTypeMixin):
 		"""
 		visitor.VisitRealType(self)
 		self._range.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartRealType(self)
 
 	def __str__(self) -> str:
@@ -748,6 +755,7 @@ class ArrayType(CompositeType):
 		visitor.DepartIndexConstraint(self)
 		visitor.VisitOf(self)
 		self._elementType.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartArrayType(self)
 
 	def __str__(self) -> str:
@@ -844,6 +852,7 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		"""
 		visitor.VisitRecordTypeElement(self)
 		self._subtype.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartRecordTypeElement(self)
 
 	def __str__(self) -> str:
@@ -1167,6 +1176,7 @@ class AccessType(FullType):
 		"""
 		visitor.VisitAccessType(self)
 		self._designatedSubtype.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartAccessType(self)
 
 	def __str__(self) -> str:
@@ -1229,6 +1239,7 @@ class FileType(FullType):
 		"""
 		visitor.VisitFileType(self)
 		self._designatedSubtype.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartFileType(self)
 
 	def __str__(self) -> str:

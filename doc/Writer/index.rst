@@ -47,9 +47,10 @@ event named after the token, e.g. ``VisitArrow`` for ``=>``. A separator is repo
 it separates, so the writer can lay out each kind of list on its own (see :ref:`WRITER/separators`). A part of an
 element, which is not a model element itself, is reported by an event pair named after its production in
 IEEE Std 1076-2008, e.g. ``VisitGenericClause`` and ``DepartGenericClause`` around the generics of a component. The
-writer appends the text of each event to a buffer, which :meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format`
-returns. A parser's subclass of a model class inherits the walk of that model class, so it's written like that model
-class.
+semicolon ending a declaration, a statement or a context item is reported by ``VisitTerminator`` before
+``Depart<Class>``. The writer appends the text of each event to a buffer, which
+:meth:`~pyVHDLModel.Formatting.VHDL.VHDLWriter.Format` returns. A parser's subclass of a model class inherits the walk
+of that model class, so it's written like that model class.
 
 An element of a class without a walk of its own raises :exc:`NotImplementedError` when it is visited. The writer raises
 :exc:`~pyVHDLModel.Exception.VHDLWriterError` for an element without VHDL notation, e.g. a string literal containing a

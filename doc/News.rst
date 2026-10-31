@@ -19,6 +19,8 @@ Version 0.41.0 (2026)
      :class:`~pyVHDLModel.Expression.CharacterEnumerationLiteral` holds the bare character; the VHDL writer adds the
      apostrophes.
    * The condition operator ``??`` is :class:`~pyVHDLModel.Expression.ConditionExpression`.
+   * Visitor: declarations, statements and context items report their semicolon as
+     :meth:`~pyVHDLModel.Visitor.Visitor.VisitTerminator`.
 
    .. rubric:: Changes
 

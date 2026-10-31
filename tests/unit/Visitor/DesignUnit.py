@@ -74,6 +74,7 @@ class DesignUnits(Testcase):
 			("VisitSimpleName",        std.Name),
 			("DepartSimpleName",       std.Name),
 			("DepartSymbol",           std),
+			("VisitTerminator",        clause),
 			("DepartLibraryClause",    clause),
 			("DepartContextClause",    entity),
 			("VisitEntity",            entity),
@@ -117,6 +118,7 @@ class DesignUnits(Testcase):
 			("VisitSimpleName",     ieee.Name),
 			("DepartSimpleName",    ieee.Name),
 			("DepartSymbol",        ieee),
+			("VisitTerminator",     clause),
 			("DepartLibraryClause", clause),
 			("DepartContext",       context),
 		], recorder.Events)

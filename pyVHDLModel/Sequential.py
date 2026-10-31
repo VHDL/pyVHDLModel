@@ -591,6 +591,7 @@ class SequentialProcedureCall(SequentialStatement, ProcedureCallMixin):
 		"""
 		visitor.VisitSequentialProcedureCall(self)
 		self._VisitProcedureCall(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialProcedureCall(self)
 
 
@@ -657,6 +658,7 @@ class SequentialSimpleSignalAssignment(SequentialSignalAssignment, WaveformMixin
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._VisitWaveform(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialSimpleSignalAssignment(self)
 
 
@@ -698,6 +700,7 @@ class SequentialVariableAssignment(SequentialStatement, VariableAssignmentMixin)
 		self._target.Visit(visitor)
 		visitor.VisitVariableAssignment(self)
 		self._expression.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialVariableAssignment(self)
 
 
@@ -765,6 +768,7 @@ class SequentialConditionalVariableAssignment(SequentialStatement, AssignmentMix
 
 			conditionalExpression.Visit(visitor)
 
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialConditionalVariableAssignment(self)
 
 	@readonly
@@ -831,6 +835,7 @@ class SequentialConditionalSignalAssignment(SequentialStatement, SignalAssignmen
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._VisitConditionalWaveforms(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialConditionalSignalAssignment(self)
 
 
@@ -893,6 +898,7 @@ class SequentialSelectedVariableAssignment(SequentialStatement, AssignmentMixin,
 		self._target.Visit(visitor)
 		visitor.VisitVariableAssignment(self)
 		self._VisitSelectedExpressions(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialSelectedVariableAssignment(self)
 
 
@@ -956,6 +962,7 @@ class SequentialSelectedSignalAssignment(SequentialStatement, SignalAssignmentMi
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._VisitSelectedWaveforms(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialSelectedSignalAssignment(self)
 
 
@@ -1005,6 +1012,7 @@ class SignalForceAssignment(SequentialStatement, SignalAssignmentMixin, Expressi
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
 		self._expression.Visit(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSignalForceAssignment(self)
 
 
@@ -1044,6 +1052,7 @@ class SignalReleaseAssignment(SequentialStatement, SignalAssignmentMixin):
 		visitor.VisitSignalReleaseAssignment(self)
 		self._target.Visit(visitor)
 		visitor.VisitSignalAssignment(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartSignalReleaseAssignment(self)
 
 
@@ -1083,6 +1092,7 @@ class SequentialReportStatement(SequentialStatement, ReportStatementMixin):
 		"""
 		visitor.VisitSequentialReportStatement(self)
 		self._VisitReportAndSeverity(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialReportStatement(self)
 
 
@@ -1136,6 +1146,7 @@ class SequentialAssertStatement(SequentialStatement, AssertStatementMixin):
 		"""
 		visitor.VisitSequentialAssertStatement(self)
 		self._VisitAssertion(visitor)
+		visitor.VisitTerminator(self)
 		visitor.DepartSequentialAssertStatement(self)
 
 
@@ -2065,6 +2076,7 @@ class NextStatement(LoopControlStatement):
 			visitor.VisitWhen(self)
 			self._condition.Visit(visitor)
 
+		visitor.VisitTerminator(self)
 		visitor.DepartNextStatement(self)
 
 
@@ -2097,6 +2109,7 @@ class ExitStatement(LoopControlStatement):
 			visitor.VisitWhen(self)
 			self._condition.Visit(visitor)
 
+		visitor.VisitTerminator(self)
 		visitor.DepartExitStatement(self)
 
 
@@ -2124,6 +2137,7 @@ class NullStatement(SequentialStatement):
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitNullStatement(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartNullStatement(self)
 
 
@@ -2173,6 +2187,7 @@ class ReturnStatement(SequentialStatement):
 		if self._returnValue is not None:
 			self._returnValue.Visit(visitor)
 
+		visitor.VisitTerminator(self)
 		visitor.DepartReturnStatement(self)
 
 	@readonly
@@ -2260,6 +2275,7 @@ class WaitStatement(SequentialStatement, ConditionalMixin):
 			visitor.VisitFor(self)
 			self._timeout.Visit(visitor)
 
+		visitor.VisitTerminator(self)
 		visitor.DepartWaitStatement(self)
 
 	@readonly

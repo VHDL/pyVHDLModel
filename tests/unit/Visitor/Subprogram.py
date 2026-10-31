@@ -73,7 +73,8 @@ class Subprograms(Testcase):
 			"DepartParameterConstantInterfaceItem",
 			"DepartFormalParameterList",
 			"VisitIs",
-			"VisitVariable", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "DepartVariable",
+			"VisitVariable", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitTerminator",
+			"DepartVariable",
 			"VisitBegin",
 			"DepartProcedure",
 		], [event[0] for event in recorder.Events])
@@ -151,7 +152,7 @@ class Instantiations(Testcase):
 			"VisitAssociationItem", "VisitSimpleName", "DepartSimpleName", "VisitArrow", "VisitIntegerLiteral",
 			"DepartIntegerLiteral", "DepartAssociationItem",
 			"DepartGenericMapAspect",
-			"DepartProcedureInstantiation",
+			"VisitTerminator", "DepartProcedureInstantiation",
 		], [event[0] for event in recorder.Events])
 
 
@@ -181,6 +182,6 @@ class ProtectedTypes(Testcase):
 
 		self.assertEqual(
 			["VisitProtectedTypeBody", "VisitVariable", "VisitSymbol", "VisitSimpleName", "DepartSimpleName",
-			 "DepartSymbol", "DepartVariable", "DepartProtectedTypeBody"],
+			 "DepartSymbol", "VisitTerminator", "DepartVariable", "DepartProtectedTypeBody"],
 			[event[0] for event in recorder.Events]
 		)

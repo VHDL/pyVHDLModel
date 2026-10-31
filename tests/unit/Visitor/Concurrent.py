@@ -84,6 +84,7 @@ class SignalAssignments(Testcase):
 			("VisitIntegerLiteral",                    second),
 			("DepartIntegerLiteral",                   second),
 			("DepartWaveformElement",                  element2),
+			("VisitTerminator",                        assignment),
 			("DepartConcurrentSimpleSignalAssignment", assignment),
 		], recorder.Events)
 
@@ -135,7 +136,7 @@ class SignalAssignments(Testcase):
 			"VisitWaveformElement", "VisitIntegerLiteral", "DepartIntegerLiteral", "DepartWaveformElement",
 			"VisitWhen",
 			"DepartOthersSelectedWaveform",
-			"DepartConcurrentSelectedSignalAssignment",
+			"VisitTerminator", "DepartConcurrentSelectedSignalAssignment",
 		], [event[0] for event in recorder.Events])
 
 
@@ -189,7 +190,7 @@ class Statements(Testcase):
 			"VisitAssociationItem", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol",
 			"DepartAssociationItem",
 			"DepartActualParameterPart",
-			"DepartConcurrentProcedureCall",
+			"VisitTerminator", "DepartConcurrentProcedureCall",
 		], [event[0] for event in recorder.Events])
 
 	def test_Assert(self) -> None:
@@ -208,5 +209,5 @@ class Statements(Testcase):
 			"VisitStringLiteral", "DepartStringLiteral",
 			"VisitSeverity",
 			"VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol",
-			"DepartConcurrentAssertStatement",
+			"VisitTerminator", "DepartConcurrentAssertStatement",
 		], [event[0] for event in recorder.Events])

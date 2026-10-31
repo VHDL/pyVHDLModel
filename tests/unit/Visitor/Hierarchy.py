@@ -71,7 +71,7 @@ class Instantiations(Testcase):
 			"VisitPortMapAspect",
 			"VisitAssociationItem", "VisitSimpleName", "DepartSimpleName", "DepartAssociationItem",
 			"DepartPortMapAspect",
-			"DepartEntityInstantiation",
+			"VisitTerminator", "DepartEntityInstantiation",
 		], [event[0] for event in recorder.Events])
 
 
@@ -85,7 +85,7 @@ class Blocks(Testcase):
 
 		self.assertEqual(
 			["VisitConcurrentBlockStatement", "VisitSignal", "VisitSymbol", "VisitSimpleName", "DepartSimpleName",
-			 "DepartSymbol", "DepartSignal", "VisitBegin", "DepartConcurrentBlockStatement"],
+			 "DepartSymbol", "VisitTerminator", "DepartSignal", "VisitBegin", "DepartConcurrentBlockStatement"],
 			[event[0] for event in recorder.Events]
 		)
 

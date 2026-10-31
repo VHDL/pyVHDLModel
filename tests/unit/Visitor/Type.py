@@ -53,7 +53,11 @@ class Types(Testcase):
 
 		declaration.Visit(recorder)
 
-		self.assertEqual([("VisitAnonymousType", declaration), ("DepartAnonymousType", declaration)], recorder.Events)
+		self.assertEqual([
+			("VisitAnonymousType",  declaration),
+			("VisitTerminator",     declaration),
+			("DepartAnonymousType", declaration),
+		], recorder.Events)
 
 	def test_Enumerated(self) -> None:
 		first =          EnumerationLiteral("Idle")
@@ -64,13 +68,16 @@ class Types(Testcase):
 		enumeratedType.Visit(recorder)
 
 		self.assertEqual([
-			("VisitEnumeratedType",      enumeratedType),
-			("VisitEnumerationLiteral",  first),
-			("DepartEnumerationLiteral", first),
-			("VisitElementSeparator",    enumeratedType),
-			("VisitEnumerationLiteral",  second),
-			("DepartEnumerationLiteral", second),
-			("DepartEnumeratedType",     enumeratedType),
+			("VisitEnumeratedType",             enumeratedType),
+			("VisitEnumerationTypeDefinition",  enumeratedType),
+			("VisitEnumerationLiteral",         first),
+			("DepartEnumerationLiteral",        first),
+			("VisitElementSeparator",           enumeratedType),
+			("VisitEnumerationLiteral",         second),
+			("DepartEnumerationLiteral",        second),
+			("DepartEnumerationTypeDefinition", enumeratedType),
+			("VisitTerminator",                 enumeratedType),
+			("DepartEnumeratedType",            enumeratedType),
 		], recorder.Events)
 
 	def test_Enumerated_Characters(self) -> None:
@@ -84,11 +91,14 @@ class Types(Testcase):
 
 		self.assertEqual([
 			("VisitEnumeratedType",               enumeratedType),
+			("VisitEnumerationTypeDefinition",    enumeratedType),
 			("VisitCharacterEnumerationLiteral",  first),
 			("DepartCharacterEnumerationLiteral", first),
 			("VisitElementSeparator",             enumeratedType),
 			("VisitEnumerationLiteral",           second),
 			("DepartEnumerationLiteral",          second),
+			("DepartEnumerationTypeDefinition",   enumeratedType),
+			("VisitTerminator",                   enumeratedType),
 			("DepartEnumeratedType",              enumeratedType),
 		], recorder.Events)
 
@@ -143,6 +153,7 @@ class Types(Testcase):
 			("VisitSimpleName",       element.Name),
 			("DepartSimpleName",      element.Name),
 			("DepartSymbol",          element),
+			("VisitTerminator",       arrayType),
 			("DepartArrayType",       arrayType),
 		], recorder.Events)
 
@@ -159,7 +170,7 @@ class Types(Testcase):
 			["VisitArrayType", "VisitIndexConstraint", "VisitRangeExpression", "VisitIntegerLiteral", "DepartIntegerLiteral",
 			 "VisitDirection", "VisitIntegerLiteral", "DepartIntegerLiteral", "DepartRangeExpression",
 			 "DepartIndexConstraint", "VisitOf", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol",
-			 "DepartArrayType"],
+			 "VisitTerminator", "DepartArrayType"],
 			[event[0] for event in recorder.Events]
 		)
 
@@ -178,6 +189,7 @@ class Types(Testcase):
 			("VisitSimpleName",         subtype.Name),
 			("DepartSimpleName",        subtype.Name),
 			("DepartSymbol",            subtype),
+			("VisitTerminator",         element),
 			("DepartRecordTypeElement", element),
 			("DepartRecordType",        recordType),
 		], recorder.Events)

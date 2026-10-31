@@ -95,7 +95,7 @@ if TYPE_CHECKING:
 	                                      ShiftExpression, QualifiedExpression, WhenElseExpression, SubtypeAllocation, \
 	                                      QualifiedExpressionAllocation, SimpleAggregateElement, \
 	                                      IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
-	                                      OthersAggregateElement, Aggregate
+	                                      OthersAggregateElement, Aggregate, CharacterEnumerationLiteral
 	from pyVHDLModel.Interface     import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, \
 	                                      GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
 	                                      PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem, \
@@ -440,6 +440,20 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from an enumeration literal.
 
 		:param literal: The enumeration literal.
+		"""
+
+	def VisitCharacterEnumerationLiteral(self, literal: CharacterEnumerationLiteral) -> None:
+		"""
+		Visit a character enumeration literal.
+
+		:param literal: The character enumeration literal.
+		"""
+
+	def DepartCharacterEnumerationLiteral(self, literal: CharacterEnumerationLiteral) -> None:
+		"""
+		Depart from a character enumeration literal.
+
+		:param literal: The character enumeration literal.
 		"""
 
 	def VisitIntegerLiteral(self, literal: IntegerLiteral) -> None:

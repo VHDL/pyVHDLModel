@@ -47,14 +47,16 @@ from pyVHDLModel.Symbol        import LibraryReferenceSymbol, PackageReferenceSy
                                       SubprogramReferenceSymbol, ConstrainedScalarSubtypeSymbol, Symbol, \
                                       PossibleReference
 from pyVHDLModel.Configuration import BlockConfiguration
-from pyVHDLModel.Expression    import IntegerLiteral, FloatingPointLiteral
+from pyVHDLModel.Expression    import IntegerLiteral, FloatingPointLiteral, EnumerationLiteral, \
+                                      CharacterEnumerationLiteral
 from pyVHDLModel.Type          import Subtype, IntegerType, RealType, ArrayType, RecordType
 from pyVHDLModel.DesignUnit    import Package, PackageBody, Context, Entity, Architecture, Configuration, \
                                       LibraryClause
 from pyVHDLModel.Association   import GenericAssociationItem
 from pyVHDLModel.Instantiation import PackageInstantiation, FunctionInstantiation, ProcedureInstantiation
 from pyVHDLModel.PSLModel      import DefaultClock
-from pyVHDLModel.STD           import Std
+from pyVHDLModel.STD           import Std, Standard
+from pyVHDLModel.IEEE          import Std_Logic_1164
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -901,3 +903,48 @@ class VHDLLibrary(Testcase):
 		self.assertEqual(10, len(ieeeLibrary.PackageBodies))
 
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
+
+
+class PredefinedCharacterLiterals(Testcase):
+	"""
+	Character literals of the predefined enumeration types are character enumeration literals holding the bare
+	character.
+	"""
+
+	def test_Bit(self) -> None:
+		literals = Standard().Types["bit"].Literals
+
+		for literal in literals:
+			self.assertIs(CharacterEnumerationLiteral, type(literal))
+
+		self.assertEqual(["0", "1"], [literal.Value for literal in literals])
+
+	def test_Character(self) -> None:
+		literals = Standard().Types["character"].Literals
+
+		self.assertEqual(256, len(literals))
+
+		for position in (*range(32), *range(127, 160)):
+			self.assertIs(EnumerationLiteral, type(literals[position]))
+
+		for position in (*range(32, 127), *range(160, 256)):
+			self.assertIs(CharacterEnumerationLiteral, type(literals[position]))
+			self.assertEqual(chr(position), literals[position].Value)
+
+		self.assertEqual("nul", literals[0].Value)
+		self.assertEqual("usp", literals[31].Value)
+		self.assertEqual("del", literals[127].Value)
+		self.assertEqual("c128", literals[128].Value)
+		self.assertEqual("c159", literals[159].Value)
+
+	def test_Character_Backslash(self) -> None:
+		"""Position 92 is ``'\\'``; it was the two apostrophes ``''``."""
+		self.assertEqual("\\", Standard().Types["character"].Literals[92].Value)
+
+	def test_StdULogic(self) -> None:
+		literals = Std_Logic_1164().Types["std_ulogic"].Literals
+
+		for literal in literals:
+			self.assertIs(CharacterEnumerationLiteral, type(literal))
+
+		self.assertEqual(["U", "X", "0", "1", "Z", "W", "L", "H", "-"], [literal.Value for literal in literals])

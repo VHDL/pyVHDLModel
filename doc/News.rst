@@ -25,6 +25,14 @@ Version 0.43.0 (2026)
    * Enumeration literals and physical units of a region's types are declarations of the region
      (:data:`Namespace.ImplicitDeclarations <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`).
    * Aliases, attribute declarations and packages declared in a region are added to its namespace.
+   * :meth:`Design.ResolveTypeMarks() <pyVHDLModel.Design.ResolveTypeMarks>` resolves the type marks of all
+     declarations (objects, interface items, record elements, array, access and file types, subtypes, subprograms,
+     attributes, aliases, components), incl. the predefined packages and expanded names (``work.pkg.T``), and sets a
+     subtype's base type. It's a separate step after :meth:`~pyVHDLModel.Design.Analyze`. An unresolved type mark is an
+     :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`, an incomplete type without a full type declaration an
+     :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`. Expanded names may name an enclosing region (``q.T`` in
+     ``q``); a component's generics are visible to its ports; an incomplete type used by anything else than an access
+     type and an unresolvable alias name are reported.
 
    .. rubric:: Changes
 
@@ -40,6 +48,11 @@ Version 0.43.0 (2026)
      unit's value has the unit as parent (was the physical type).
    * Aliases without a subtype indication, which may denote a subprogram, are overloadable; aliases, attribute
      declarations and packages declared in a region are checked for duplicate declarations.
+   * ``FindComponent``, ``FindSubtype`` and ``FindObject`` follow the visibility rules: a declaration of an enclosing
+     region hides an import of an inner region; the message always lists the searched namespaces.
+   * Breaking change: the prototype ``Design.AnalyzeObjects()``, ``ImportObjects()`` and ``CreateTypeAndObjectGraph()``
+     is removed; :meth:`~pyVHDLModel.Design.ResolveTypeMarks` replaces it.
+   * A protected type and its body chain their namespace to the enclosing region's namespace.
 
    .. rubric:: Bug Fixes
 

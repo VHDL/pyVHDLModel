@@ -149,9 +149,6 @@ class FindComponent(Testcase):
 		self.assertEqual("comp", exception.key)
 		self.assertIn("architecture, entity, library", str(exception))
 
-		# Each level re-raises `from` the level above it.
-		self.assertIsInstance(exception.__cause__, ExtendedKeyError)
-
 
 class FindSubtype(Testcase):
 	"""``FindSubtype`` - resolves both subtypes and full types, filtered by the symbol's possible references."""
@@ -246,7 +243,6 @@ class FindSubtype(Testcase):
 		exception = context.exception
 		self.assertEqual((inner, middle, outer), exception.searchedNamespaces)
 		self.assertIn("architecture, package, library", str(exception))
-		self.assertIsInstance(exception.__cause__, ExtendedKeyError)
 
 
 class FindObject(Testcase):
@@ -338,4 +334,3 @@ class FindObject(Testcase):
 		exception = context.exception
 		self.assertEqual((inner, middle, outer), exception.searchedNamespaces)
 		self.assertIn("architecture, entity, library", str(exception))
-		self.assertIsInstance(exception.__cause__, ExtendedKeyError)

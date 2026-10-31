@@ -33,6 +33,8 @@ parameter interface item kinds, and the With*Mixin/*Group classes."""
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Mode
+from pyVHDLModel.Concurrent import ConcurrentBlockStatement
+from pyVHDLModel.DesignUnit import Component, Entity
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Expression import IntegerLiteral
@@ -44,11 +46,12 @@ from pyVHDLModel.Interface  import ModeViewDeclaration, SimpleModeViewElement, C
                                    GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                    GenericProcedureInterfaceItem, GenericFunctionInterfaceItem, InterfacePackage, \
                                    GenericPackageInterfaceItem, ParameterConstantInterfaceItem, \
-                                   ParameterVariableInterfaceItem, ParameterFileInterfaceItem, WithGenericsMixin, \
-                                   WithPortsMixin, WithParametersMixin, InterfaceGroup, GenericGroup, PortGroup, \
-                                   ParameterGroup
+                                   ParameterVariableInterfaceItem, ParameterFileInterfaceItem, InterfaceGroup, \
+                                   GenericGroup, PortGroup, ParameterGroup
+from pyVHDLModel.Regions    import WithGenericsMixin, WithPortsMixin, WithParametersMixin
 
 from tests.unit             import _subtypeSymbol
+from tests.unit.Mutation    import _port
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -458,3 +461,202 @@ class Groups(Testcase):
 		group = InterfaceGroup()
 
 		self.assertIsNone(group.Identifier)
+
+
+class PortGroups(Testcase):
+	def test_Constructor(self) -> None:
+		"""A port group records its ports, but changes neither their parent nor their group."""
+		clock = _port("clock")
+		reset = _port("reset")
+
+		group = PortGroup((port for port in (clock, reset)), name="clocking", documentation="Clock and reset.")
+
+		self.assertEqual("clocking", group.Identifier)
+		self.assertEqual("Clock and reset.", group.Documentation)
+		self.assertListEqual([clock, reset], group.PortItems)
+		self.assertIsNone(group.Parent)
+		self.assertIsNone(clock.Parent)
+		self.assertIsNone(clock.Group)
+
+	def test_Constructor_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			PortGroup(None)
+
+		self.assertEqual("Parameter 'portItems' is None.", str(context.exception))
+
+	def test_Constructor_NotIterable(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			PortGroup(_port("clock"))
+
+		self.assertEqual("Parameter 'portItems' is not iterable.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
+			context.exception.__notes__
+		)
+
+	def test_Constructor_WrongElementType(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			PortGroup([_port("clock"), "reset"])
+
+		self.assertEqual(
+			"Element of parameter 'portItems' is not of type 'PortSignalInterfaceItem'.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_Constructor_Empty(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			PortGroup([])
+
+		self.assertEqual("Parameter 'portItems' is empty.", str(context.exception))
+
+	def test_Constructor_InGroup(self) -> None:
+		"""A port in a port group of a language construct can't be grouped again."""
+		clock = _port("clock")
+		Entity("e", portItems=[clock])
+
+		with self.assertRaises(ValueError) as context:
+			PortGroup([clock])
+
+		self.assertEqual(
+			"Element of parameter 'portItems' is in a port group of a language construct.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Got port 'clock' of Entity."], context.exception.__notes__)
+
+	def test_Default(self) -> None:
+		"""Without port groups, all ports form one unnamed port group."""
+		clock = _port("clock")
+		reset = _port("reset")
+
+		entity = Entity("e", portItems=[clock, reset])
+
+		self.assertEqual(1, len(entity.PortGroups))
+		group = entity.PortGroups[0]
+		self.assertIsNone(group.Identifier)
+		self.assertListEqual([clock, reset], group.PortItems)
+		self.assertIsNot(entity.PortItems, group.PortItems)
+		self.assertIs(entity, group.Parent)
+		self.assertIs(entity, clock.Parent)
+		self.assertIs(group, clock.Group)
+		self.assertIs(group, reset.Group)
+
+	def test_Default_NoPorts(self) -> None:
+		entity = Entity("e")
+
+		self.assertListEqual([], entity.PortGroups)
+
+	def test_Partition(self) -> None:
+		"""``clock, reset | In_Valid, In_Data, In_Ack | error | Out_Valid, Out_Data, Out_Ack``"""
+		names = ("clock", "reset", "In_Valid", "In_Data", "In_Ack", "error", "Out_Valid", "Out_Data", "Out_Ack")
+		ports = [_port(name) for name in names]
+		groups = [
+			PortGroup(ports[0:2]),
+			PortGroup(ports[2:5], name="In"),
+			PortGroup(ports[5:6]),
+			PortGroup(ports[6:9], name="Out")
+		]
+
+		entity = Entity("e", portItems=ports, portGroups=groups)
+
+		self.assertListEqual(groups, entity.PortGroups)
+		self.assertListEqual([None, "In", None, "Out"], [group.Identifier for group in entity.PortGroups])
+		for group in groups:
+			self.assertIs(entity, group.Parent)
+			for port in group:
+				self.assertIs(entity, port.Parent)
+				self.assertIs(group, port.Group)
+
+	def test_Partition_Component(self) -> None:
+		clock = _port("clock")
+		group = PortGroup([clock], name="clocking")
+
+		component = Component("c", portItems=[clock], portGroups=[group])
+
+		self.assertListEqual([group], component.PortGroups)
+		self.assertIs(component, group.Parent)
+		self.assertIs(group, clock.Group)
+
+	def test_Partition_Block(self) -> None:
+		clock = _port("clock")
+		group = PortGroup([clock], name="clocking")
+
+		block = ConcurrentBlockStatement("blk", portItems=[clock], portGroups=[group])
+
+		self.assertListEqual([group], block.PortGroups)
+		self.assertIs(block, group.Parent)
+		self.assertIs(group, clock.Group)
+
+	def test_Partition_NoPorts(self) -> None:
+		entity = Entity("e", portGroups=[])
+
+		self.assertListEqual([], entity.PortGroups)
+
+	def test_Partition_WrongOrder(self) -> None:
+		clock = _port("clock")
+		reset = _port("reset")
+
+		with self.assertRaises(ValueError) as context:
+			Entity("e", portItems=[clock, reset], portGroups=[PortGroup([reset]), PortGroup([clock])])
+
+		self.assertEqual("Parameter 'portGroups' doesn't partition parameter 'portItems'.", str(context.exception))
+		self.assertListEqual(["Got port groups 'reset | clock' for ports 'clock, reset'."], context.exception.__notes__)
+
+	def test_Partition_MissingPort(self) -> None:
+		clock = _port("clock")
+		reset = _port("reset")
+		error = _port("error")
+
+		with self.assertRaises(ValueError) as context:
+			Entity("e", portItems=[clock, reset, error], portGroups=[PortGroup([clock, reset])])
+
+		self.assertEqual("Parameter 'portGroups' doesn't partition parameter 'portItems'.", str(context.exception))
+		self.assertListEqual(
+			["Got port groups 'clock, reset' for ports 'clock, reset, error'."],
+			context.exception.__notes__
+		)
+
+	def test_Partition_ForeignPort(self) -> None:
+		clock = _port("clock")
+		reset = _port("reset")
+		foreign = _port("reset")
+
+		with self.assertRaises(ValueError) as context:
+			Entity("e", portItems=[clock, reset], portGroups=[PortGroup([clock, foreign])])
+
+		self.assertEqual("Parameter 'portGroups' doesn't partition parameter 'portItems'.", str(context.exception))
+		self.assertListEqual(["Got port groups 'clock, reset' for ports 'clock, reset'."], context.exception.__notes__)
+
+	def test_Partition_PortInTwoGroups(self) -> None:
+		clock = _port("clock")
+		reset = _port("reset")
+
+		with self.assertRaises(ValueError) as context:
+			Entity("e", portItems=[clock, reset], portGroups=[PortGroup([clock, reset]), PortGroup([reset])])
+
+		self.assertEqual("Parameter 'portGroups' doesn't partition parameter 'portItems'.", str(context.exception))
+		self.assertListEqual(
+			["Got port groups 'clock, reset | reset' for ports 'clock, reset'."],
+			context.exception.__notes__
+		)
+
+	def test_Partition_WrongElementType(self) -> None:
+		clock = _port("clock")
+
+		with self.assertRaises(TypeError) as context:
+			Entity("e", portItems=[clock], portGroups=[clock])
+
+		self.assertEqual("Element of parameter 'portGroups' is not of type 'PortGroup'.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Interface.PortSimpleSignalInterfaceItem'."],
+			context.exception.__notes__
+		)
+
+	def test_Partition_NotIterable(self) -> None:
+		clock = _port("clock")
+
+		with self.assertRaises(TypeError) as context:
+			Entity("e", portItems=[clock], portGroups=1)
+
+		self.assertEqual("Parameter 'portGroups' is not iterable.", str(context.exception))
+		self.assertListEqual(["Got type 'int'."], context.exception.__notes__)

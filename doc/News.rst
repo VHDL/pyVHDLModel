@@ -6,6 +6,27 @@ News
 See :gh:`pyVHDLModel Release Pages <VHDL/pyVHDLModel/releases>` for detail release notes on every release.
 
 
+Version 0.41.0 (2026)
+*********************
+
+.. topic:: :gh:`v0.41.0 - unreleased <VHDL/pyVHDLModel/releases/v0.41.0>`
+
+   .. rubric:: New Features
+
+   * Character literals of enumeration types are their own class:
+     :class:`~pyVHDLModel.Expression.CharacterEnumerationLiteral` holds the bare character; the VHDL writer adds the
+     apostrophes.
+
+   .. rubric:: Changes
+
+   * The character literals of ``STD.bit`` and ``STD.character`` hold the bare character (``"0"``, was ``"'0'"``).
+
+   .. rubric:: Bug Fixes
+
+   * ``IEEE.std_ulogic``'s literals are written as character literals; ``STD.character``'s literal at position 92 is
+     ``'\'``.
+
+
 Version 0.40.0 (2026)
 *********************
 

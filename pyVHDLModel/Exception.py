@@ -225,10 +225,11 @@ class DuplicateDeclarationWarning(VHDLModelCriticalWarning):
 @export
 class UnresolvedNameWarning(VHDLModelCriticalWarning):
 	"""
-	Raised when a name can't be resolved: no declaration of it is visible, use clauses made conflicting declarations
-	potentially visible, or it names something a use clause can't use, e.g. an uninstantiated generic package.
+	Raised when a name can't be resolved: no declaration of it is visible, or use clauses made conflicting declarations
+	potentially visible.
 
-	The model stays usable, but the symbol of the name stays unresolved or imports nothing.
+	Also a use clause naming something it can't use is reported, e.g. an uninstantiated generic package. The model stays
+	usable, but the symbol of the name stays unresolved or imports nothing.
 
 	.. important::
 

@@ -2605,6 +2605,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Link *use clause*.
 		   :meth:`AnalyzeDependencies`
 		     Analyze dependencies and link relations.
+
+		:raises VHDLModelException: If a use clause of a referenced context isn't linked. |br|
+		                            Call :meth:`LinkContexts` before.
 		"""
 		for designUnit in self.IterateDesignUnits():
 			for contextReference in designUnit._contextReferences:
@@ -2658,8 +2661,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):
 			# Walk the referenced contexts and the contexts they reference.
-			contexts = [reference for contextReference in designUnit._contextReferences for reference in contextReference._symbols]
-			contexts = [symbol._reference for symbol in contexts]
+			contexts = [
+				symbol._reference for contextReference in designUnit._contextReferences for symbol in contextReference._symbols
+			]
 			for context in contexts:
 				for contextReference in context._contextReferences:
 					for symbol in contextReference._symbols:

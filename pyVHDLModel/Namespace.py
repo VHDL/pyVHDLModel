@@ -95,7 +95,7 @@ class Import(metaclass=ExtendedType, slots=True):
 	      --  ^^^^^^^^^^^^^^^^^^^^^    <- UseClause, importing e.g. 'unsigned' as Element
 	"""
 	_element:   ModelEntity           #: The imported declaration.
-	_useClause: Nullable[_UseClause]  #: The use clause importing the declaration, or ``None`` for the implicit use clause.
+	_useClause: Nullable[_UseClause]  #: The use clause importing the declaration, ``None`` for the implicit use clause.
 
 	def __init__(self, element: ModelEntity, useClause: Nullable[_UseClause]) -> None:
 		"""
@@ -650,8 +650,8 @@ class Namespace(Generic[K, O]):
 		"""
 		Return the declarations of an identifier in this namespace, each with the item deciding its declaration order.
 
-		An overloadable declaration (:meth:`IsOverloadable`) is expanded to all overloads of its declarative region. An enumeration literal or a physical unit is
-		ordered by its type.
+		An overloadable declaration (:meth:`IsOverloadable`) is expanded to all overloads of its declarative region. An
+		enumeration literal or a physical unit is ordered by its type.
 
 		:param normalizedIdentifier: The normalized (lower case) identifier or designator.
 		:returns:                    List of (declaration, item in declaration order) pairs.

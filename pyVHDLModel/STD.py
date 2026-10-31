@@ -36,7 +36,8 @@ from pyTooling.Decorators    import export
 from pyVHDLModel.Base        import SimpleRange, Direction
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
-from pyVHDLModel.Expression  import EnumerationLiteral, IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral
+from pyVHDLModel.Expression  import EnumerationLiteral, CharacterEnumerationLiteral, IntegerLiteral, \
+                                    FloatingPointLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Type        import EnumeratedType, IntegerType, RealType, PhysicalType, ArrayType, AccessType, Subtype
 from pyVHDLModel.Predefined  import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 
@@ -96,25 +97,25 @@ class Standard(PredefinedPackage):
 		self._types[boolean._normalizedIdentifier] = boolean
 		self._declaredItems.append(boolean)
 
-		bit = EnumeratedType("bit", (EnumerationLiteral("'0'"), EnumerationLiteral("'1'")), None)
+		bit = EnumeratedType("bit", (CharacterEnumerationLiteral("0"), CharacterEnumerationLiteral("1")), None)
 		self._types[bit._normalizedIdentifier] = bit
 		self._declaredItems.append(bit)
 
-		chars = \
-			"nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel", "bs", "ht", "lf", "vt", "ff", "cr", "so", "si", "dle", "dc1", "dc2", "dc3",\
-			"dc4", "nak", "syn", "etb", "can", "em", "sub", "esc", "fsp", "gsp", "rsp", "usp", "' '", "'!'", "'\"'", "'#'", "'$'", "'%'", "'&'", "'''",\
-			"'('", "')'", "'*'", "'+'", "','", "'-'", "'.'", "'/'", "'0'", "'1'", "'2'", "'3'", "'4'", "'5'", "'6'", "'7'", "'8'", "'9'", "':'", "';'",\
-			"'<'", "'='", "'>'", "'?'", "'@'", "'A'", "'B'", "'C'", "'D'", "'E'", "'F'", "'G'", "'H'", "'I'", "'J'", "'K'", "'L'", "'M'", "'N'", "'O'",\
-			"'P'", "'Q'", "'R'", "'S'", "'T'", "'U'", "'V'", "'W'", "'X'", "'Y'", "'Z'", "'['", "'\'", "']'", "'^'", "'_'", "'`'", "'a'", "'b'", "'c'",\
-			"'d'", "'e'", "'f'", "'g'", "'h'", "'i'", "'j'", "'k'", "'l'", "'m'", "'n'", "'o'", "'p'", "'q'", "'r'", "'s'", "'t'", "'u'", "'v'", "'w'",\
-			"'x'", "'y'", "'z'", "'{'", "'|'", "'}'", "'~'", "del", "c128", "c129", "c130", "c131", "c132", "c133", "c134", "c135", "c136", "c137", "c138", "c139",\
-			"c140", "c141", "c142", "c143", "c144", "c145", "c146", "c147", "c148", "c149", "c150", "c151", "c152", "c153", "c154", "c155", "c156", "c157", "c158", "c159",\
-			"' '", "'¡'", "'¢'", "'£'", "'¤'", "'¥'", "'¦'", "'§'", "'¨'", "'©'", "'ª'", "'«'", "'¬'", "'­'", "'®'", "'¯'", "'°'", "'±'", "'²'", "'³'",\
-			"'´'", "'µ'", "'¶'", "'·'", "'¸'", "'¹'", "'º'", "'»'", "'¼'", "'½'", "'¾'", "'¿'", "'À'", "'Á'", "'Â'", "'Ã'", "'Ä'", "'Å'", "'Æ'", "'Ç'",\
-			"'È'", "'É'", "'Ê'", "'Ë'", "'Ì'", "'Í'", "'Î'", "'Ï'", "'Ð'", "'Ñ'", "'Ò'", "'Ó'", "'Ô'", "'Õ'", "'Ö'", "'×'", "'Ø'", "'Ù'", "'Ú'", "'Û'",\
-			"'Ü'", "'Ý'", "'Þ'", "'ß'", "'à'", "'á'", "'â'", "'ã'", "'ä'", "'å'", "'æ'", "'ç'", "'è'", "'é'", "'ê'", "'ë'", "'ì'", "'í'", "'î'", "'ï'",\
-			"'ð'", "'ñ'", "'ò'", "'ó'", "'ô'", "'õ'", "'ö'", "'÷'", "'ø'", "'ù'", "'ú'", "'û'", "'ü'", "'ý'", "'þ'", "'ÿ'"
-		character = EnumeratedType("character", [EnumerationLiteral(char) for char in chars], None)
+		controlCharacters = \
+			"nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel", "bs",  "ht",  "lf",  "vt",  "ff",  "cr",  "so",  "si", \
+			"dle", "dc1", "dc2", "dc3", "dc4", "nak", "syn", "etb", "can", "em",  "sub", "esc", "fsp", "gsp", "rsp", "usp"
+		characters = []
+		for position in range(256):
+			if position < 32:
+				characters.append(EnumerationLiteral(controlCharacters[position]))
+			elif position == 127:
+				characters.append(EnumerationLiteral("del"))
+			elif 128 <= position < 160:
+				characters.append(EnumerationLiteral(f"c{position}"))
+			else:
+				characters.append(CharacterEnumerationLiteral(chr(position)))
+
+		character = EnumeratedType("character", characters, None)
 		self._types[character._normalizedIdentifier] = character
 		self._declaredItems.append(character)
 

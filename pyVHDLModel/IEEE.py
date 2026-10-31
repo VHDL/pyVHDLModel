@@ -37,7 +37,7 @@ from pyTooling.Decorators   import export, readonly
 
 from pyVHDLModel            import IEEEFlavor
 from pyVHDLModel.Exception  import VHDLModelException
-from pyVHDLModel.Expression import EnumerationLiteral
+from pyVHDLModel.Expression import CharacterEnumerationLiteral
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Predefined import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
@@ -218,15 +218,15 @@ class Std_Logic_1164(PredefinedPackage):
 		self._AddPackageClause(("STD.TEXTIO.all", ))
 
 		stdULogic = EnumeratedType("std_ulogic", (
-			EnumerationLiteral("U"),
-			EnumerationLiteral("X"),
-			EnumerationLiteral("0"),
-			EnumerationLiteral("1"),
-			EnumerationLiteral("Z"),
-			EnumerationLiteral("W"),
-			EnumerationLiteral("L"),
-			EnumerationLiteral("H"),
-			EnumerationLiteral("-"),
+			CharacterEnumerationLiteral("U"),
+			CharacterEnumerationLiteral("X"),
+			CharacterEnumerationLiteral("0"),
+			CharacterEnumerationLiteral("1"),
+			CharacterEnumerationLiteral("Z"),
+			CharacterEnumerationLiteral("W"),
+			CharacterEnumerationLiteral("L"),
+			CharacterEnumerationLiteral("H"),
+			CharacterEnumerationLiteral("-"),
 		), None)
 		self._types[stdULogic._normalizedIdentifier] = stdULogic
 		self._declaredItems.append(stdULogic)

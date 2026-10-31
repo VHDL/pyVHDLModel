@@ -81,7 +81,8 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       LibraryInUseError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                       normalizedIdentifiersOf
-from pyVHDLModel.Name          import SimpleName, SelectedName, AllName, AttributeName
+from pyVHDLModel.Name          import Name as _Name, SimpleName, SelectedName, AllName, AttributeName, IndexedName, \
+                                      ParenthesisName
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant, SharedVariable, Variable, File
 from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
@@ -1607,7 +1608,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						isImplicit = name._normalizedIdentifier in self._IMPLICIT_OPERATIONS or name._identifier.startswith('"')
 						if (isinstance(name, SimpleName) or isExpandedName) and not isImplicit:
 							item._name._reference = None
-							aliased = self._LookupName(designUnit, region._namespace, item, item._name, UnresolvedNameWarning)
+							aliased = self._LookupName(
+								designUnit, region._namespace, item, item._name, name, "Name", UnresolvedNameWarning
+							)
 							if len(aliased) > 0 and isinstance(aliased[0], BaseType):
 								item._name._reference = aliased[0]
 
@@ -1681,10 +1684,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		namespace:   Namespace,
 		place:       ModelEntity,
 		symbol:      _Symbol,
+		name:        _Name,
+		label:       str,
 		warningType: type[UnresolvedNameWarning]
 	) -> tuple[ModelEntity, ...]:
 		"""
-		Look up the declarations the simple name or expanded name of a symbol denotes at a place.
+		Look up the declarations a simple name or an expanded name denotes at a place.
 
 		A simple name is looked up at the place (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`); a generic of a component
 		is visible to the following generics and ports of the component. An expanded name ``pkg.T`` or ``lib.pkg.T``
@@ -1698,7 +1703,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:param designUnit:                     The design unit containing the name.
 		:param namespace:                      The namespace to look up the name in.
 		:param place:                          The declaration containing the name.
-		:param symbol:                         The symbol of the simple name or expanded name.
+		:param symbol:                         The symbol containing the name.
+		:param name:                           The simple name or expanded name, the symbol's name or a part of it.
+		:param label:                          The name's role in a warning's message, e.g. ``Type mark``.
 		:param warningType:                    The warning class reporting a failure.
 		:returns:                              Tuple of the directly visible declarations, empty if none is.
 		:raises UnhandledCriticalWarningError: If the name isn't visible, is ambiguous, or has a prefix, which isn't a
@@ -1707,8 +1714,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		from pyVHDLModel.Interface import InterfaceItemMixin
 
-		name = symbol._name
-		label = "Type mark" if warningType is UnresolvedTypeMarkWarning else "Name"
 		normalizedIdentifier = name._normalizedIdentifier
 		if (prefix := name._prefix) is None:
 			if isinstance(place, InterfaceItemMixin) and isinstance(component := place._parent, Component):
@@ -1806,7 +1811,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		4. If the declaration is a type, a subtype or a generic type, it becomes the symbol's reference. A full type, which
 		   follows the place in the same region, is visible by its incomplete type declaration only to an access type.
 
-		An attribute name (e.g. ``T'base``) isn't resolved.
+		An attribute name denoting a type (``x'subtype``, ``A'element``) is resolved by :meth:`_ResolveTypeAttribute`.
 
 		:param designUnit:                     The design unit containing the type mark.
 		:param namespace:                      The namespace to look up the type mark in.
@@ -1820,9 +1825,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		symbol._reference = None
 		name = symbol._name
 		if isinstance(name, AttributeName):
+			self._ResolveTypeAttribute(designUnit, namespace, place, symbol)
 			return
 
-		if len(declarations := self._LookupName(designUnit, namespace, place, symbol, UnresolvedTypeMarkWarning)) == 0:
+		declarations = self._LookupName(designUnit, namespace, place, symbol, name, "Type mark", UnresolvedTypeMarkWarning)
+		if len(declarations) == 0:
 			return
 
 		declaration = declarations[0]
@@ -1853,6 +1860,223 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					return
 
 		symbol._reference = declaration
+
+	def _ResolveTypeAttribute(
+		self,
+		designUnit: DesignUnit,
+		namespace:  Namespace,
+		place:      ModelEntity,
+		symbol:     SubtypeSymbol
+	) -> None:
+		"""
+		Resolve a type mark, which is an attribute name denoting a type (IEEE Std 1076-2008, 16.2), and set the symbol's
+		reference.
+
+		.. rubric:: Algorithm
+
+		1. Split the name into its root, a simple name or an expanded name (:meth:`_LookupName`), and the parts applied to
+		   it from the inside out: a record element (``r.f``), an index (``m(0)``), an attribute (``x'subtype``).
+		2. The root denotes an object (also an interface object, or an alias of an object) with the type of its subtype
+		   indication, a type or subtype, or a package (only followed by the name of one of its declarations). An alias of a
+		   type is replaced by the type.
+		3. Apply the parts:
+
+		   * ``.f``: the prefix is an object of a record type; the element's subtype.
+		   * ``(...)``: the prefix is an object of an array type; the element subtype.
+		   * ``'subtype``: the prefix is an object; its type or subtype. A port or parameter isn't usable in its own
+		     interface list.
+		   * ``'element``: the prefix is an array type or subtype, or an object of one; the element subtype.
+		   * ``'base``: the prefix is a type or subtype; its base type. ``'base`` is only allowed as the prefix of another
+		     attribute.
+
+		The constraint of a subtype indication isn't represented: ``s'subtype`` of ``signal s : bit_vector(3 downto 0)``
+		denotes ``bit_vector``.
+
+		:param designUnit:                     The design unit containing the attribute name.
+		:param namespace:                      The namespace to look up the root of the name in.
+		:param place:                          The declaration containing the attribute name.
+		:param symbol:                         The type mark.
+		:raises UnhandledCriticalWarningError: If a part of the attribute name can't be applied to its prefix, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		from pyVHDLModel.Interface import InterfaceItemMixin, GenericInterfaceItemMixin
+
+		name = symbol._name
+		parts = []
+		root = name
+		while not isinstance(root, SimpleName):
+			parts.append(root)
+			root = root._prefix
+
+		parts.reverse()
+
+		# An expanded name lib.pkg.item is looked up as a whole.
+		libraries = ("work", *designUnit._referencedLibraries)
+		if root._normalizedIdentifier in libraries and len(parts) >= 2 and isinstance(parts[1], SelectedName):
+			root = parts[1]
+			parts = parts[2:]
+		declarations = self._LookupName(designUnit, namespace, place, symbol, root, "Prefix", UnresolvedTypeMarkWarning)
+		if len(declarations) == 0:
+			return
+
+		declaration = declarations[0]
+		if isinstance(declaration, Alias):
+			if declaration._subtype is not None:
+				declaration = declaration._subtype._reference
+				isObject = True
+			elif isinstance(reference := declaration._name._reference, Obj):
+				declaration = reference._subtype._reference
+				isObject = True
+			else:
+				isObject = False
+				declaration = reference
+		elif isinstance(declaration, Obj):
+			if (
+				isinstance(declaration, InterfaceItemMixin) and not isinstance(declaration, GenericInterfaceItemMixin)
+				and isinstance(place, InterfaceItemMixin) and declaration._parent is place._parent
+			):
+				WarningCollector.Raise(UnresolvedTypeMarkWarning(
+					f"Prefix '{root!s}' of attribute name '{name!s}' isn't usable in its own interface list.",
+					symbol=symbol,
+					place=place,
+					namespaces=(namespace, )
+				))
+				return
+
+			declaration = declaration._subtype._reference
+			isObject = True
+		elif isinstance(declaration, (BaseType, Package)):
+			isObject = False
+		else:
+			WarningCollector.Raise(UnresolvedTypeMarkWarning(
+				f"Prefix '{root!s}' of attribute name '{name!s}' is neither an object nor a type.",
+				symbol=symbol,
+				place=place,
+				namespaces=(namespace, )
+			))
+			return
+
+		for index, part in enumerate(parts):
+			prefix = part._prefix
+			if declaration is None:
+				WarningCollector.Raise(UnresolvedTypeMarkWarning(
+					f"Type of prefix '{prefix!s}' of attribute name '{name!s}' isn't resolved.",
+					symbol=symbol,
+					place=place,
+					namespaces=(namespace, )
+				))
+				return
+
+			baseType = declaration._baseType if isinstance(declaration, Subtype) else declaration
+			if isinstance(declaration, Package):
+				if not isinstance(part, SelectedName):
+					break
+
+				members = declaration._namespace.FindDeclarations(part._normalizedIdentifier)
+				if len(members) == 0:
+					WarningCollector.Raise(UnresolvedTypeMarkWarning(
+						f"Prefix '{part!s}' of attribute name '{name!s}' not found in: {declaration._namespace._name}.",
+						symbol=symbol,
+						place=place,
+						namespaces=(declaration._namespace, )
+					))
+					return
+				elif isinstance(members[0], Obj):
+					declaration = members[0]._subtype._reference
+					isObject = True
+				elif isinstance(members[0], BaseType):
+					declaration = members[0]
+				else:
+					break
+			elif isinstance(part, SelectedName):
+				elements = [] if not isObject or not isinstance(baseType, RecordType) else [
+					element for element in baseType._elements if part._normalizedIdentifier in element._normalizedIdentifiers
+				]
+				if len(elements) == 0:
+					WarningCollector.Raise(UnresolvedTypeMarkWarning(
+						f"Prefix '{prefix!s}' of attribute name '{name!s}' has no record element '{part._identifier}'.",
+						symbol=symbol,
+						place=place,
+						namespaces=(namespace, )
+					))
+					return
+
+				declaration = elements[0]._subtype._reference
+			elif isinstance(part, (IndexedName, ParenthesisName)):
+				if not isObject or not isinstance(baseType, ArrayType):
+					WarningCollector.Raise(UnresolvedTypeMarkWarning(
+						f"Prefix '{prefix!s}' of attribute name '{name!s}' isn't an array object.",
+						symbol=symbol,
+						place=place,
+						namespaces=(namespace, )
+					))
+					return
+
+				declaration = baseType._elementType._reference
+			elif part._normalizedIdentifier == "subtype":
+				if not isObject:
+					WarningCollector.Raise(UnresolvedTypeMarkWarning(
+						f"Prefix '{prefix!s}' of attribute name '{name!s}' isn't an object.",
+						symbol=symbol,
+						place=place,
+						namespaces=(namespace, )
+					))
+					return
+
+				isObject = False
+			elif part._normalizedIdentifier == "element":
+				if not isinstance(baseType, ArrayType):
+					WarningCollector.Raise(UnresolvedTypeMarkWarning(
+						f"Prefix '{prefix!s}' of attribute name '{name!s}' isn't an array.",
+						symbol=symbol,
+						place=place,
+						namespaces=(namespace, )
+					))
+					return
+
+				declaration = baseType._elementType._reference
+				isObject = False
+			elif part._normalizedIdentifier == "base":
+				if index == len(parts) - 1:
+					WarningCollector.Raise(UnresolvedTypeMarkWarning(
+						f"Attribute name '{name!s}' isn't allowed as type mark: 'base is only a prefix of an attribute.",
+						symbol=symbol,
+						place=place,
+						namespaces=(namespace, )
+					))
+					return
+				elif isObject:
+					WarningCollector.Raise(UnresolvedTypeMarkWarning(
+						f"Prefix '{prefix!s}' of attribute name '{name!s}' isn't a type.",
+						symbol=symbol,
+						place=place,
+						namespaces=(namespace, )
+					))
+					return
+
+				declaration = baseType
+			else:
+				break
+		else:
+			if declaration is None:
+				WarningCollector.Raise(UnresolvedTypeMarkWarning(
+					f"Type of attribute name '{name!s}' isn't resolved.",
+					symbol=symbol,
+					place=place,
+					namespaces=(namespace, )
+				))
+			elif not isObject and isinstance(declaration, BaseType):
+				symbol._reference = declaration
+
+			return
+
+		WarningCollector.Raise(UnresolvedTypeMarkWarning(
+			f"Attribute name '{name!s}' doesn't denote a type.",
+			symbol=symbol,
+			place=place,
+			namespaces=(namespace, )
+		))
 
 	def CreateDependencyGraph(self) -> None:
 		"""

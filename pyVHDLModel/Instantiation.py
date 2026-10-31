@@ -146,7 +146,8 @@ class ProcedureInstantiation(Procedure, SubprogramInstantiationMixin):
 		declaredItems: Nullable[Iterable] = None,
 		statements: Nullable[Iterable] = None,
 		documentation: Nullable[str] = None,
-		parent: Nullable[ModelEntity] = None
+		parent: Nullable[ModelEntity] = None,
+		genericGroups: Nullable[Iterable] = None
 	) -> None:
 		"""
 		Initializes a procedure instantiation.
@@ -160,8 +161,19 @@ class ProcedureInstantiation(Procedure, SubprogramInstantiationMixin):
 		:param statements:              List of all sequential statements in the subprogram's body.
 		:param documentation:           The documentation comment associated with this declaration.
 		:param parent:                  The parent model entity of this entity.
+		:param genericGroups:           Optional, list of generic groups partitioning the generics, in declaration
+		                                order. Default: ``None``, one unnamed generic group.
 		"""
-		super().__init__(identifier, genericItems, parameterItems, declaredItems, statements, documentation, parent)
+		super().__init__(
+			identifier,
+			genericItems,
+			parameterItems,
+			declaredItems,
+			statements,
+			documentation,
+			parent,
+			genericGroups
+		)
 		SubprogramInstantiationMixin.__init__(self, subprogramReference, genericAssociationItems)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -202,7 +214,8 @@ class FunctionInstantiation(Function, SubprogramInstantiationMixin):
 		declaredItems: Nullable[Iterable] = None,
 		statements: Nullable[Iterable] = None,
 		documentation: Nullable[str] = None,
-		parent: Nullable[ModelEntity] = None
+		parent: Nullable[ModelEntity] = None,
+		genericGroups: Nullable[Iterable] = None
 	) -> None:
 		# NOTE: deliberately calls Subprogram.__init__ directly, not super().__init__() (which would
 		# resolve to Function.__init__ and require a returnType that can never be known here - see
@@ -220,8 +233,21 @@ class FunctionInstantiation(Function, SubprogramInstantiationMixin):
 		:param statements:              List of all sequential statements in the subprogram's body.
 		:param documentation:           The documentation comment associated with this declaration.
 		:param parent:                  The parent model entity of this entity.
+		:param genericGroups:           Optional, list of generic groups partitioning the generics, in declaration
+		                                order. Default: ``None``, one unnamed generic group.
 		"""
-		Subprogram.__init__(self, identifier, isPure, genericItems, parameterItems, declaredItems, statements, documentation, parent)
+		Subprogram.__init__(
+			self,
+			identifier,
+			isPure,
+			genericItems,
+			parameterItems,
+			declaredItems,
+			statements,
+			documentation,
+			parent,
+			genericGroups
+		)
 		SubprogramInstantiationMixin.__init__(self, subprogramReference, genericAssociationItems)
 
 		self._returnType = None

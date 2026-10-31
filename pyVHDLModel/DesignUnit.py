@@ -51,7 +51,7 @@ from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin, \
                                       WithoutStatementsMixin
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
-from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, PortGroup
+from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, GenericGroup, PortGroup
 from pyVHDLModel.Object        import DeferredConstant
 from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration
@@ -785,7 +785,8 @@ class Package(
 		declaredItems: Nullable[Iterable] = None,
 		documentation: Nullable[str] = None,
 		allowBlackbox: Nullable[bool] = None,
-		parent:        Nullable[ModelEntity] = None
+		parent:        Nullable[ModelEntity] = None,
+		genericGroups: Nullable[Iterable[GenericGroup]] = None
 	) -> None:
 		"""
 		Initialize a package.
@@ -797,13 +798,15 @@ class Package(
 		:param documentation:
 		:param allowBlackbox: Specify if blackboxes are allowed in this design.
 		:param parent:        The parent model entity (library) of this VHDL package.
+		:param genericGroups: Optional, list of generic groups partitioning the generics, in declaration order. Default:
+		                      ``None``, one unnamed generic group.
 		"""
 		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
 		ConcurrentDeclarationRegionMixin.__init__(
 			self, self._normalizedIdentifier, declaredItems, self._CONTINUES_PARENT_REGION
 		)
-		WithGenericsMixin.__init__(self, genericItems)
+		WithGenericsMixin.__init__(self, genericItems, genericGroups)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
 		self._packageBody = None
@@ -1097,6 +1100,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		documentation: Nullable[str] = None,
 		allowBlackbox: Nullable[bool] = None,
 		parent:        Nullable[ModelEntity] = None,
+		genericGroups: Nullable[Iterable[GenericGroup]] = None,
 		portGroups:    Nullable[Iterable[PortGroup]] = None
 	) -> None:
 		"""
@@ -1111,6 +1115,8 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		:param documentation: The documentation comment associated with this declaration.
 		:param allowBlackbox: Allow blackboxes for components in language entity.
 		:param parent:        The parent model entity of this entity.
+		:param genericGroups: Optional, list of generic groups partitioning the generics, in declaration order. Default:
+		                      ``None``, one unnamed generic group.
 		:param portGroups:    Optional, list of port groups partitioning the ports, in declaration order. Default:
 		                      ``None``, one unnamed port group.
 		"""
@@ -1119,7 +1125,7 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		ConcurrentDeclarationRegionMixin.__init__(
 			self, self._normalizedIdentifier, declaredItems, self._CONTINUES_PARENT_REGION
 		)
-		WithGenericsMixin.__init__(self, genericItems)
+		WithGenericsMixin.__init__(self, genericItems, genericGroups)
 		WithPortsMixin.__init__(self, portItems, portGroups)
 		ConcurrentStatementsMixin.__init__(self, statements)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
@@ -1374,6 +1380,7 @@ class Component(
 		documentation: Nullable[str] = None,
 		allowBlackbox: Nullable[bool] = None,
 		parent:        Nullable[ModelEntity] = None,
+		genericGroups: Nullable[Iterable[GenericGroup]] = None,
 		portGroups:    Nullable[Iterable[PortGroup]] = None
 	) -> None:
 		"""
@@ -1385,13 +1392,15 @@ class Component(
 		:param documentation: The documentation comment associated with this declaration.
 		:param allowBlackbox: Allow blackboxes for components in language entity.
 		:param parent:        The parent model entity of this entity.
+		:param genericGroups: Optional, list of generic groups partitioning the generics, in declaration order. Default:
+		                      ``None``, one unnamed generic group.
 		:param portGroups:    Optional, list of port groups partitioning the ports, in declaration order. Default:
 		                      ``None``, one unnamed port group.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
-		WithGenericsMixin.__init__(self, genericItems)
+		WithGenericsMixin.__init__(self, genericItems, genericGroups)
 		WithPortsMixin.__init__(self, portItems, portGroups)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 

@@ -48,7 +48,7 @@ from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEnti
                                    Mode, ReservedWord
 from pyVHDLModel.Exception  import NotAChildError
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
-from pyVHDLModel.Regions    import WithGenericsMixin, WithParametersMixin
+from pyVHDLModel.Regions    import WithParametersMixin
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
 
@@ -2155,17 +2155,22 @@ class InterfaceGroup(ModelEntity, OptionallyNamedEntityMixin, DocumentedEntityMi
 
 
 @export
-class GenericGroup(InterfaceGroup, WithGenericsMixin):
+class GenericGroup(InterfaceGroup):
 	"""
-	Represents the generic clause of a design unit.
+	Represents a group of generics of a language construct.
 
-	The generics are available as :data:`GenericItems`.
+	A generic group is a non-owning view: it lists generics (:data:`GenericItems`) of a language construct, e.g. an
+	entity, in declaration order, while the generics' parent stays the language construct. The generic groups of a
+	language construct partition its generic clause (:data:`~pyVHDLModel.Regions.WithGenericsMixin.GenericGroups`):
+	concatenated in order, they list every generic exactly once, in declaration order.
 
 	.. seealso::
 
-	   * :class:`Port clause <pyVHDLModel.Interface.PortGroup>`
-	   * :class:`Parameter list <pyVHDLModel.Interface.ParameterGroup>`
+	   * :class:`Port group <pyVHDLModel.Interface.PortGroup>`
+	   * :class:`Parameter group <pyVHDLModel.Interface.ParameterGroup>`
 	"""
+	_genericItems: list[GenericInterfaceItemMixin]  #: List of the grouped generics, in declaration order.
+
 	def __init__(
 		self,
 		genericItems:  Iterable[GenericInterfaceItemMixin],
@@ -2176,13 +2181,53 @@ class GenericGroup(InterfaceGroup, WithGenericsMixin):
 		"""
 		Initializes a generic group.
 
-		:param genericItems:  List of all generics, in declaration order.
-		:param name:          The group's name.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		The generics are recorded, but not changed: the language construct accepting the group sets the group's parent
+		and each generic's :data:`~pyVHDLModel.Interface.InterfaceItemMixin.Group`.
+
+		:param genericItems:  List of the grouped generics, in declaration order.
+		:param name:          Optional, the group's name. Default: ``None``, an unnamed group.
+		:param documentation: Optional, the documentation comment associated with this group. Default: ``None``.
+		:param parent:        Optional, the language construct of the grouped generics. Default: ``None``.
+		:raises ValueError:   If parameter 'genericItems' is ``None``.
+		:raises TypeError:    If parameter 'genericItems' is not iterable.
+		:raises TypeError:    If an element of parameter 'genericItems' is not of type
+		                      :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
+		:raises ValueError:   If an element of parameter 'genericItems' is in a generic group of a language construct.
+		:raises ValueError:   If parameter 'genericItems' is empty.
 		"""
 		super().__init__(name, documentation, parent)
-		WithGenericsMixin.__init__(self, genericItems)
+
+		if genericItems is None:
+			raise ValueError("Parameter 'genericItems' is None.")
+		elif not isinstance(genericItems, Iterable):
+			ex = TypeError("Parameter 'genericItems' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(genericItems)}'.")
+			raise ex
+
+		self._genericItems = genericItemList = []
+		for item in genericItems:
+			if not isinstance(item, GenericInterfaceItemMixin):
+				ex = TypeError("Element of parameter 'genericItems' is not of type 'GenericInterfaceItemMixin'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+				raise ex
+			elif item._group is not None:
+				ex = ValueError("Element of parameter 'genericItems' is in a generic group of a language construct.")
+				ex.add_note(f"Got generic '{', '.join(identifiersOf(item))}' of {getTypeName(item._parent)}.")
+				raise ex
+
+			genericItemList.append(item)
+
+		if len(genericItemList) == 0:
+			raise ValueError("Parameter 'genericItems' is empty.")
+
+	@readonly
+	def GenericItems(self) -> list[GenericInterfaceItemMixin]:
+		"""
+		Read-only property to access the grouped generics (:attr:`_genericItems`).
+
+		:returns: List of generics, in declaration order.
+		"""
+		return self._genericItems
 
 	def __len__(self) -> int:
 		"""
@@ -2210,19 +2255,6 @@ class GenericGroup(InterfaceGroup, WithGenericsMixin):
 		"""
 		names = ", ".join(name for item in self._genericItems for name in identifiersOf(item))
 		return f"GenericGroup: {self._identifier} ({len(self._genericItems)}): {names}"
-
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
-		"""
-		Return the generics of this group sharing an identifier with the given item.
-
-		:param item: The new generic.
-		:returns:    Tuple of clashing generics.
-		"""
-		identifiers = set(normalizedIdentifiersOf(item))
-		return tuple(
-			declaration for declaration in self._genericItems
-			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-		)
 
 
 @export

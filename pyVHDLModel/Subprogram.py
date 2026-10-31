@@ -315,7 +315,8 @@ class Subprogram(
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
-		parent:         Nullable[ModelEntity] =                             None
+		parent:         Nullable[ModelEntity] =                             None,
+		genericGroups:  Nullable[Iterable[GenericGroup]] =                  None
 	) -> None:
 		"""
 		Initializes a subprogram.
@@ -328,12 +329,14 @@ class Subprogram(
 		:param statements:     List of all sequential statements in the subprogram's body.
 		:param documentation:  The documentation comment associated with this declaration.
 		:param parent:         The parent model entity of this entity.
+		:param genericGroups:  Optional, list of generic groups partitioning the generics, in declaration order.
+		                       Default: ``None``, one unnamed generic group.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 		SequentialDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
-		WithGenericsMixin.__init__(self, genericItems)
+		WithGenericsMixin.__init__(self, genericItems, genericGroups)
 		WithParametersMixin.__init__(self, parameterItems)
 		SequentialStatementsMixin.__init__(self, statements)
 
@@ -481,7 +484,8 @@ class Procedure(Subprogram):
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
-		parent:         Nullable[ModelEntity] =                             None
+		parent:         Nullable[ModelEntity] =                             None,
+		genericGroups:  Nullable[Iterable[GenericGroup]] =                  None
 	) -> None:
 		"""
 		Initializes a procedure.
@@ -493,8 +497,20 @@ class Procedure(Subprogram):
 		:param statements:     List of all sequential statements in the subprogram's body.
 		:param documentation:  The documentation comment associated with this declaration.
 		:param parent:         The parent model entity of this entity.
+		:param genericGroups:  Optional, list of generic groups partitioning the generics, in declaration order.
+		                       Default: ``None``, one unnamed generic group.
 		"""
-		super().__init__(identifier, False, genericItems, parameterItems, declaredItems, statements, documentation, parent)
+		super().__init__(
+			identifier,
+			False,
+			genericItems,
+			parameterItems,
+			declaredItems,
+			statements,
+			documentation,
+			parent,
+			genericGroups
+		)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -560,7 +576,8 @@ class Function(Subprogram):
 		declaredItems:  Nullable[Iterable] =                                None,
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
-		parent:         Nullable[ModelEntity] =                             None
+		parent:         Nullable[ModelEntity] =                             None,
+		genericGroups:  Nullable[Iterable[GenericGroup]] =                  None
 	) -> None:
 		"""
 		Initializes a function.
@@ -574,8 +591,20 @@ class Function(Subprogram):
 		:param statements:     List of all sequential statements in the subprogram's body.
 		:param documentation:  The documentation comment associated with this declaration.
 		:param parent:         The parent model entity of this entity.
+		:param genericGroups:  Optional, list of generic groups partitioning the generics, in declaration order.
+		                       Default: ``None``, one unnamed generic group.
 		"""
-		super().__init__(identifier, isPure, genericItems, parameterItems, declaredItems, statements, documentation, parent)
+		super().__init__(
+			identifier,
+			isPure,
+			genericItems,
+			parameterItems,
+			declaredItems,
+			statements,
+			documentation,
+			parent,
+			genericGroups
+		)
 
 		self._returnType = returnType
 		returnType.Parent = self
@@ -679,7 +708,8 @@ class ProcedureMethod(Procedure, MethodMixin):
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
 		protectedType:  Nullable[ProtectedType] =                           None,
-		parent:         Nullable[ModelEntity] =                             None
+		parent:         Nullable[ModelEntity] =                             None,
+		genericGroups:  Nullable[Iterable[GenericGroup]] =                  None
 	) -> None:
 		"""
 		Initializes a procedure declared as a method of a protected type.
@@ -692,8 +722,19 @@ class ProcedureMethod(Procedure, MethodMixin):
 		:param documentation:  The documentation comment associated with this declaration.
 		:param protectedType:  Reference to the protected type this method belongs to.
 		:param parent:         The parent model entity of this entity.
+		:param genericGroups:  Optional, list of generic groups partitioning the generics, in declaration order.
+		                       Default: ``None``, one unnamed generic group.
 		"""
-		super().__init__(identifier, genericItems, parameterItems, declaredItems, statements, documentation, parent)
+		super().__init__(
+			identifier,
+			genericItems,
+			parameterItems,
+			declaredItems,
+			statements,
+			documentation,
+			parent,
+			genericGroups
+		)
 		MethodMixin.__init__(self, protectedType)
 
 
@@ -719,7 +760,8 @@ class FunctionMethod(Function, MethodMixin):
 		statements:     Nullable[Iterable[SequentialStatement]] =           None,
 		documentation:  Nullable[str] =                                     None,
 		protectedType:  Nullable[ProtectedType] =                           None,
-		parent:         Nullable[ModelEntity] =                             None
+		parent:         Nullable[ModelEntity] =                             None,
+		genericGroups:  Nullable[Iterable[GenericGroup]] =                  None
 	) -> None:
 		"""
 		Initializes a function declared as a method of a protected type.
@@ -734,6 +776,19 @@ class FunctionMethod(Function, MethodMixin):
 		:param documentation:  The documentation comment associated with this declaration.
 		:param protectedType:  Reference to the protected type this method belongs to.
 		:param parent:         The parent model entity of this entity.
+		:param genericGroups:  Optional, list of generic groups partitioning the generics, in declaration order.
+		                       Default: ``None``, one unnamed generic group.
 		"""
-		super().__init__(identifier, returnType, isPure, genericItems, parameterItems, declaredItems, statements, documentation, parent)
+		super().__init__(
+			identifier,
+			returnType,
+			isPure,
+			genericItems,
+			parameterItems,
+			declaredItems,
+			statements,
+			documentation,
+			parent,
+			genericGroups
+		)
 		MethodMixin.__init__(self, protectedType)

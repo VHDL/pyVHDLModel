@@ -8,287 +8,226 @@ Concurrent Statements
 
 .. rubric:: Class Hierarchy
 
-.. inheritance-diagram:: pyVHDLModel.SyntaxModel.ConcurrentAssertStatement pyVHDLModel.SyntaxModel.ConcurrentSignalAssignment pyVHDLModel.SyntaxModel.ConcurrentBlockStatement pyVHDLModel.SyntaxModel.ProcessStatement pyVHDLModel.SyntaxModel.IfGenerateStatement pyVHDLModel.SyntaxModel.CaseGenerateStatement pyVHDLModel.SyntaxModel.ForGenerateStatement pyVHDLModel.SyntaxModel.ComponentInstantiation pyVHDLModel.SyntaxModel.ConfigurationInstantiation pyVHDLModel.SyntaxModel.EntityInstantiation pyVHDLModel.SyntaxModel.ConcurrentProcedureCall
+.. inheritance-diagram:: pyVHDLModel.Concurrent.ConcurrentAssertStatement
+                         pyVHDLModel.Concurrent.ConcurrentSimpleSignalAssignment
+                         pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment
+                         pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment
+                         pyVHDLModel.Concurrent.ConcurrentBlockStatement
+                         pyVHDLModel.Concurrent.ProcessStatement
+                         pyVHDLModel.Concurrent.IfGenerateStatement
+                         pyVHDLModel.Concurrent.CaseGenerateStatement
+                         pyVHDLModel.Concurrent.ForGenerateStatement
+                         pyVHDLModel.Concurrent.ComponentInstantiation
+                         pyVHDLModel.Concurrent.ConfigurationInstantiation
+                         pyVHDLModel.Concurrent.EntityInstantiation
+                         pyVHDLModel.Concurrent.ConcurrentProcedureCall
    :parts: 1
 
 .. _vhdlmodel-con-assertstatement:
 
 Assert Statement
-================
+****************
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ConcurrentSignalAssignment`:
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.ConcurrentAssertStatement`:
 
-.. code-block:: Python
-
-   @export
-   class ConcurrentAssertStatement(ConcurrentStatement, MixinAssertStatement):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # inherited from MixinReportStatement
-     @property
-     def Message(self) -> BaseExpression:
-
-     @property
-     def Severity(self) -> BaseExpression:
-
-     # inherited from MixinAssertStatement
-     @property
-     def Condition(self) -> BaseExpression:
-
+.. condensed-class:: pyVHDLModel.Concurrent.ConcurrentAssertStatement
 
 
 .. _vhdlmodel-con-signalassignment:
 
 Signal Assignment
-=================
+*****************
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ConcurrentSignalAssignment`:
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.ConcurrentSignalAssignment`:
 
-.. code-block:: Python
+.. condensed-class:: pyVHDLModel.Concurrent.ConcurrentSignalAssignment
 
-   @export
-   class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignment):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
+.. _vhdlmodel-con-simplesignalassignment:
 
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
+Simple Signal Assignment
+========================
 
-     # inherited from Assignment
-     @property
-     def Target(self) -> Object:
+.. todo::
 
-     @property
-     def BaseExpression(self) -> BaseExpression:
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.ConcurrentSimpleSignalAssignment`:
+
+.. condensed-class:: pyVHDLModel.Concurrent.ConcurrentSimpleSignalAssignment
 
 
+.. _vhdlmodel-con-selectedsignalassignment:
 
-.. _vhdlmodel-con-blockstatement:
-
-Concurrent Block Statement
+Selected Signal Assignment
 ==========================
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ConcurrentBlockStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment`:
 
-.. code-block:: Python
+.. condensed-class:: pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment
 
-   @export
-   class ConcurrentBlockStatement(ConcurrentStatement, BlockStatement, ConcurrentDeclarations, ConcurrentStatements):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
 
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
+.. _vhdlmodel-con-conditionalsignalassignment:
 
-     # inherited from ConcurrentDeclarations
-     @property
-     def DeclaredItems(self) -> List:
+Conditional Signal Assignment
+=============================
 
-     # inherited from ConcurrentStatements
-     @property
-     def Statements(self) -> list[ConcurrentStatement]:
+.. todo::
 
-     # from ConcurrentBlockStatement
-     @property
-     def PortItems(self) -> list[PortInterfaceItem]:
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment`:
+
+.. condensed-class:: pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment
+
+
+.. _vhdlmodel-con-blockstatement:
+
+Concurrent Block Statement
+**************************
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.ConcurrentBlockStatement`:
+
+.. condensed-class:: pyVHDLModel.Concurrent.ConcurrentBlockStatement
+
 
 .. _vhdlmodel-instantiations:
 
 Instantiations
-==============
+**************
 
 .. todo::
 
    Write documentation.
+
 
 .. _vhdlmodel-entityinstantiation:
 
 Entity Instantiation
---------------------
-
-.. _vhdlmodel-componentinstantiation:
-
-Component Instantiation
------------------------
-
-.. _vhdlmodel-configurationinstantiation:
-
-Configuration Instantiation
----------------------------
-
-.. _vhdlmodel-generates:
-
-Generate Statements
-===================
-
-.. _vhdlmodel-ifgenerate:
-
-If Generate
------------
+====================
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.IfGenerateStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.EntityInstantiation`:
 
-.. code-block:: Python
+.. condensed-class:: pyVHDLModel.Concurrent.EntityInstantiation
 
-   @export
-   class IfGenerateStatement(GenerateStatement):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
 
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
+.. _vhdlmodel-componentinstantiation:
 
-     # from IfGenerateStatement
-     @property
-     def IfBranch(self) -> IfGenerateBranch:
+Component Instantiation
+=======================
 
-     @property
-     def ElsifBranches(self) -> list[ElsifGenerateBranch]:
+.. todo::
 
-     @property
-     def ElseBranch(self) -> ElseGenerateBranch:
+   Write documentation.
 
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.ComponentInstantiation`:
+
+.. condensed-class:: pyVHDLModel.Concurrent.ComponentInstantiation
+
+
+.. _vhdlmodel-configurationinstantiation:
+
+Configuration Instantiation
+===========================
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.ConfigurationInstantiation`:
+
+.. condensed-class:: pyVHDLModel.Concurrent.ConfigurationInstantiation
+
+
+.. _vhdlmodel-generates:
+
+Generate Statements
+*******************
+
+.. _vhdlmodel-ifgenerate:
+
+If Generate
+===========
+
+.. todo::
+
+   Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.IfGenerateStatement`:
+
+.. condensed-class:: pyVHDLModel.Concurrent.IfGenerateStatement
 
 
 .. _vhdlmodel-casegenerate:
 
 Case Generate
--------------
+=============
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.CaseGenerateStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.CaseGenerateStatement`:
 
-.. code-block:: Python
-
-   @export
-   class CaseGenerateStatement(GenerateStatement):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # from CaseGenerateStatement
-     @property
-     def SelectExpression(self) -> BaseExpression:
-
-     @property
-     def Cases(self) -> list[GenerateCase]:
-
+.. condensed-class:: pyVHDLModel.Concurrent.CaseGenerateStatement
 
 
 .. _vhdlmodel-forgenerate:
 
 For Generate
-------------
+============
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ForGenerateStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.ForGenerateStatement`:
 
-.. code-block:: Python
-
-   @export
-   class ForGenerateStatement(GenerateStatement):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # inherited from ConcurrentDeclarations
-     @property
-     def DeclaredItems(self) -> List:
-
-     # inherited from ConcurrentStatements
-     @property
-     def Statements(self) -> list[ConcurrentStatement]:
-
-     # from ForGenerateStatement
-     @property
-     def LoopIndex(self) -> Constant:
-
-     @property
-     def Range(self) -> Range:
-
+.. condensed-class:: pyVHDLModel.Concurrent.ForGenerateStatement
 
 
 .. _vhdlmodel-con-procedurecall:
 
 Procedure Call
-==============
+**************
 
 .. todo::
 
    Write documentation.
+
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.ConcurrentProcedureCall`:
+
+.. condensed-class:: pyVHDLModel.Concurrent.ConcurrentProcedureCall
+
 
 .. _vhdlmodel-process:
 
 Process
-=======
+*******
 
 .. todo::
 
    Write documentation.
 
-**Condensed definition of class** :class:`~pyVHDLModel.SyntaxModel.ForGenerateStatement`:
+**Condensed definition of class** :class:`~pyVHDLModel.Concurrent.ProcessStatement`:
 
-.. code-block:: Python
-
-   class ProcessStatement(ConcurrentStatement, SequentialDeclarations, SequentialStatements):
-     # inherited from ModelEntity
-     @property
-     def Parent(self) -> ModelEntity:
-
-     # inherited from LabeledEntity
-     @property
-     def Label(self) -> str:
-
-     # inherited from SequentialDeclarations
-     @property
-     def DeclaredItems(self) -> List:
-
-     # inherited from SequentialStatements
-     @property
-     def Statements(self) -> list[SequentialStatement]:
-
-     # from ProcessStatement
-     @property
-     def SensitivityList(self) -> list[Signal]:
+.. condensed-class:: pyVHDLModel.Concurrent.ProcessStatement

@@ -74,6 +74,8 @@ Version 0.43.0 (2026)
      :exc:`~pyVHDLModel.Exception.PackageInstantiationNotLinkedError` (was
      :exc:`~pyVHDLModel.Exception.VHDLModelException`, from which it derives), with the common base
      :exc:`~pyVHDLModel.Exception.InstantiationNotLinkedError` for all instantiations of generic language entities.
+   * ``FindComponent``, ``FindSubtype`` and ``FindObject`` follow the visibility rules: a declaration of an enclosing
+     region hides an import of an inner region; the message always lists the searched namespaces.
    * Breaking change: the prototype ``Design.AnalyzeObjects()``, ``ImportObjects()`` and ``CreateTypeAndObjectGraph()``
      is removed; :meth:`~pyVHDLModel.Design.ResolveTypeMarks` replaces it.
    * A protected type and its body chain their namespace to the enclosing region's namespace.

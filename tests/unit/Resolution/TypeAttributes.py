@@ -31,19 +31,21 @@
 """
 Type attributes (IEEE Std 1076-2008, 16.2): ``x'subtype``, ``A'element`` and ``T'base`` as type marks.
 """
-from pyTooling.Testing      import Testcase
+from pyTooling.Testing       import Testcase
 
-from pyVHDLModel.Base       import Mode
-from pyVHDLModel.DesignUnit import Architecture, Entity
-from pyVHDLModel.Interface  import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem
-from pyVHDLModel.Name       import AttributeName, SimpleName
-from pyVHDLModel.Object     import Signal
-from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
-from pyVHDLModel.Type       import ArrayType, RecordType, RecordTypeElement, Subtype
+from pyVHDLModel.Base        import Mode
+from pyVHDLModel.Declaration import Alias
+from pyVHDLModel.DesignUnit  import Architecture, Entity
+from pyVHDLModel.Expression  import IntegerLiteral
+from pyVHDLModel.Interface   import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem
+from pyVHDLModel.Name        import AttributeName, ParenthesisName, SelectedName, SimpleName
+from pyVHDLModel.Object      import Signal
+from pyVHDLModel.Symbol      import SimpleObjectOrFunctionCallSymbol, SimpleSubtypeSymbol
+from pyVHDLModel.Type        import ArrayType, RecordType, RecordTypeElement, Subtype
 
-from tests.unit             import _entitySymbol, _signal, _subtypeSymbol
-from tests.unit.Resolution  import _resolve
-from tests.unit.Visibility  import _constant, _design, _enumeration
+from tests.unit              import _entitySymbol, _signal, _subtypeSymbol
+from tests.unit.Resolution   import _resolve
+from tests.unit.Visibility   import _constant, _design, _enumeration
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -87,6 +89,7 @@ class TypeAttributes(Testcase):
 		other = Signal(("s2", ), _attribute("T", "subtype"))
 		_, warnings = self._resolve(other)
 
+		self.assertEqual(1, len(warnings))
 		self.assertEqual("Prefix 'T' of attribute name 'T'subtype' isn't an object.", str(warnings[0]))
 		self.assertIsNone(other.Subtype.Reference)
 
@@ -95,7 +98,8 @@ class TypeAttributes(Testcase):
 		other = Signal(("s2", ), _attribute("x", "subtype"))
 		_, warnings = self._resolve(other)
 
-		self.assertEqual("Prefix 'x' of attribute name 'x'subtype' not found.", str(warnings[0]))
+		self.assertEqual(1, len(warnings))
+		self.assertEqual("Prefix 'x' not found in: rtl, e.", str(warnings[0]))
 
 	def test_Element_Type(self) -> None:
 		"""``subtype ET is AT'element;`` (C009, C015)."""
@@ -133,6 +137,7 @@ class TypeAttributes(Testcase):
 		second = Signal(("e2", ), _attribute("rv", "element"))
 		_, warnings = self._resolve(integer, record, recordSignal, first, second)
 
+		self.assertEqual(2, len(warnings))
 		self.assertEqual("Prefix 'i' of attribute name 'i'element' isn't an array.", str(warnings[0]))
 		self.assertEqual("Prefix 'rv' of attribute name 'rv'element' isn't an array.", str(warnings[1]))
 
@@ -142,6 +147,7 @@ class TypeAttributes(Testcase):
 		signal = Signal(("v", ), _attribute("ST", "base"))
 		_, warnings = self._resolve(subtype, signal)
 
+		self.assertEqual(1, len(warnings))
 		self.assertEqual(
 			"Attribute name 'ST'base' isn't allowed as type mark: 'base is only a prefix of an attribute.",
 			str(warnings[0])
@@ -162,6 +168,7 @@ class TypeAttributes(Testcase):
 		other = Signal(("s2", ), _attribute("s", "range"))
 		_, warnings = self._resolve(signal, other)
 
+		self.assertEqual(1, len(warnings))
 		self.assertEqual("Attribute name 's'range' doesn't denote a type.", str(warnings[0]))
 
 
@@ -173,6 +180,7 @@ class InterfaceLists(Testcase):
 		second = PortSimpleSignalInterfaceItem(("o", ), Mode.Out, _attribute("i", "subtype"))
 		warnings = _resolve(_design(Entity("e", portItems=[first, second])))
 
+		self.assertEqual(1, len(warnings))
 		self.assertEqual(
 			"Prefix 'i' of attribute name 'i'subtype' isn't usable in its own interface list.",
 			str(warnings[0])
@@ -185,3 +193,45 @@ class InterfaceLists(Testcase):
 
 		self.assertListEqual([], _resolve(design))
 		self.assertIs(design.GetPackage("std", "standard").Subtypes["natural"], second.Subtype.Reference)
+
+
+class Prefixes(Testcase):
+	"""Object aliases, record elements and indexed names as prefixes (GHDL accepts)."""
+
+	def setUp(self) -> None:
+		self._type =  _enumeration("T", "a", "b")
+		self._array = ArrayType("AT", [_subtypeSymbol("natural")], _subtypeSymbol("T"))
+
+	def _resolve(self, *declaredItems) -> list:
+		"""Resolve an architecture with ``T``, ``AT`` and the declared items."""
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[self._type, self._array, *declaredItems])
+		return _resolve(_design(Entity("e"), architecture))
+
+	def test_ObjectAlias(self) -> None:
+		"""``alias al : AT is s; signal sig1 : al'subtype; signal sig2 : al'element;``."""
+		signal = _signal("s", "AT")
+		alias = Alias("al", SimpleObjectOrFunctionCallSymbol(SimpleName("s")), _subtypeSymbol("AT"))
+		first = Signal(("sig1", ), _attribute("al", "subtype"))
+		second = Signal(("sig2", ), _attribute("al", "element"))
+
+		self.assertListEqual([], self._resolve(signal, alias, first, second))
+		self.assertIs(self._array, first.Subtype.Reference)
+		self.assertIs(self._type, second.Subtype.Reference)
+
+	def test_RecordElement(self) -> None:
+		"""``signal sig1 : rec.f'subtype;``."""
+		record = RecordType("R", [RecordTypeElement(("f", ), _subtypeSymbol("AT"))])
+		signal = _signal("rec", "R")
+		other = Signal(("sig1", ), SimpleSubtypeSymbol(AttributeName("subtype", SelectedName("f", SimpleName("rec")))))
+
+		self.assertListEqual([], self._resolve(record, signal, other))
+		self.assertIs(self._array, other.Subtype.Reference)
+
+	def test_IndexedName(self) -> None:
+		"""``signal sig1 : m(0)'subtype;`` with ``m`` of type ``AT``."""
+		signal = _signal("m", "AT")
+		indexed = ParenthesisName(SimpleName("m"), [IntegerLiteral(0)])
+		other = Signal(("sig1", ), SimpleSubtypeSymbol(AttributeName("subtype", indexed)))
+
+		self.assertListEqual([], self._resolve(signal, other))
+		self.assertIs(self._type, other.Subtype.Reference)

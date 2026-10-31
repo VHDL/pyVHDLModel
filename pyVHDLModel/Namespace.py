@@ -822,126 +822,120 @@ class Namespace(Generic[K, O]):
 			tuple(searchedNamespaces)
 		)
 
-	def FindComponent(self, componentSymbol: ComponentInstantiationSymbol) -> Component:
+	def _LookupElement(self, normalizedIdentifier: K) -> O:
 		"""
-		Find the component directly visible for a component symbol (:meth:`Lookup`).
+		Return the element of an identifier in this namespace: the declared element, else the first imported element.
 
-		:param componentSymbol:   The symbol of a component instantiation.
-		:returns:                 The component.
-		:raises ExtendedKeyError: If no declaration of the symbol's identifier is directly visible.
-		:raises TypeError:        If the directly visible declaration isn't a component.
+		:param normalizedIdentifier: The normalized (lower case) identifier.
+		:returns:                    The declared or imported element.
+		:raises KeyError:            If the identifier is neither declared nor imported in this namespace.
 		"""
-		from pyVHDLModel.DesignUnit import Component
-
-		key = componentSymbol._name._identifier
-		result = self.Lookup(componentSymbol._name._normalizedIdentifier)
-		if not result.IsVisible:
-			names = ", ".join(namespace._name for namespace in result._searchedNamespaces)
-			ex = ExtendedKeyError(key, result._searchedNamespaces, f"Component '{key}' not found in: {names}.")
-			for imported in result._conflicts:
-				ex.add_note(f"Conflicting import: {imported!r}")
-			raise ex
-
-		element = result._declarations[0]
-		if isinstance(element, Component):
+		if (element := self._elements.get(normalizedIdentifier)) is not None:
 			return element
 
-		ex = TypeError(f"Found element '{key}', but it is not a component.")
-		ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
-		raise ex
+		return self._imports[normalizedIdentifier][0]._element
+
+	def FindComponent(self, componentSymbol: ComponentInstantiationSymbol) -> Component:
+		from pyVHDLModel.DesignUnit import Component
+
+		try:
+			element = self._LookupElement(componentSymbol._name._normalizedIdentifier)
+			if isinstance(element, Component):
+				return element
+			else:
+				ex = TypeError(f"Found element '{componentSymbol._name._identifier}', but it is not a component.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+				raise ex
+		except KeyError:
+			key = componentSymbol._name._identifier
+
+			if (parentNamespace := self._parentNamespace) is None:
+				raise ExtendedKeyError(key, (self, ), f"Component '{key}' not found in '{self._name}'.")
+
+			try:
+				return parentNamespace.FindComponent(componentSymbol)
+			except ExtendedKeyError as ex:
+				searchedNamespaces = (self, *ex.searchedNamespaces)
+				raise ExtendedKeyError(key, searchedNamespaces, f"Component '{key}' not found in: {', '.join(ns._name for ns in searchedNamespaces)}.") from ex
 
 	def FindSubtype(self, subtypeSymbol: Symbol) -> BaseType:
-		"""
-		Find the type or subtype directly visible for a subtype symbol (:meth:`Lookup`).
-
-		:param subtypeSymbol:     The symbol of a type mark.
-		:returns:                 The type or subtype.
-		:raises ExtendedKeyError: If no declaration of the symbol's identifier is directly visible.
-		:raises TypeError:        If the directly visible declaration is a subtype, but the symbol expects none.
-		:raises TypeError:        If the directly visible declaration is a type, but the symbol expects none.
-		:raises TypeError:        If the directly visible declaration is neither a type nor a subtype.
-		"""
 		from pyVHDLModel.Type import Subtype, FullType
 
-		key = subtypeSymbol._name._identifier
-		result = self.Lookup(subtypeSymbol._name._normalizedIdentifier)
-		if not result.IsVisible:
-			names = ", ".join(namespace._name for namespace in result._searchedNamespaces)
-			ex = ExtendedKeyError(key, result._searchedNamespaces, f"Subtype '{key}' not found in: {names}.")
-			for imported in result._conflicts:
-				ex.add_note(f"Conflicting import: {imported!r}")
-			raise ex
+		try:
+			element = self._LookupElement(subtypeSymbol._name._normalizedIdentifier)
+			if isinstance(element, Subtype):
+				if PossibleReference.Subtype in subtypeSymbol._possibleReferences:
+					return element
+				else:
+					ex = TypeError(f"Found subtype '{subtypeSymbol._name._identifier}', but it was not expected.")
+					ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+					ex.add_note(f"Expected one of: {subtypeSymbol._possibleReferences}.")
+					raise ex
+			elif isinstance(element, FullType):
+				if PossibleReference.Type in subtypeSymbol._possibleReferences:
+					return element
+				else:
+					ex = TypeError(f"Found type '{subtypeSymbol._name._identifier}', but it was not expected.")
+					ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+					ex.add_note(f"Expected one of: {subtypeSymbol._possibleReferences}.")
+					raise ex
+			else:
+				ex = TypeError(f"Found element '{subtypeSymbol._name._identifier}', but it is not a type or subtype.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+				raise ex
+		except KeyError:
+			key = subtypeSymbol._name._identifier
 
-		element = result._declarations[0]
-		if isinstance(element, Subtype):
-			if PossibleReference.Subtype in subtypeSymbol._possibleReferences:
-				return element
+			if (parentNamespace := self._parentNamespace) is None:
+				raise ExtendedKeyError(key, (self, ), f"Subtype '{key}' not found in '{self._name}'.")
 
-			ex = TypeError(f"Found subtype '{key}', but it was not expected.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
-			ex.add_note(f"Expected one of: {subtypeSymbol._possibleReferences}.")
-			raise ex
-		elif isinstance(element, FullType):
-			if PossibleReference.Type in subtypeSymbol._possibleReferences:
-				return element
-
-			ex = TypeError(f"Found type '{key}', but it was not expected.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
-			ex.add_note(f"Expected one of: {subtypeSymbol._possibleReferences}.")
-			raise ex
-
-		ex = TypeError(f"Found element '{key}', but it is not a type or subtype.")
-		ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
-		raise ex
+			try:
+				return parentNamespace.FindSubtype(subtypeSymbol)
+			except ExtendedKeyError as ex:
+				searchedNamespaces = (self, *ex.searchedNamespaces)
+				raise ExtendedKeyError(key, searchedNamespaces, f"Subtype '{key}' not found in: {', '.join(ns._name for ns in searchedNamespaces)}.") from ex
 
 	def FindObject(self, objectSymbol: Symbol) -> Obj:
-		"""
-		Find the object directly visible for an object symbol (:meth:`Lookup`).
+		try:
+			element = self._LookupElement(objectSymbol._name._normalizedIdentifier)
+			if isinstance(element, Signal):
+				if PossibleReference.Signal in objectSymbol._possibleReferences:
+					return element
+				elif PossibleReference.SignalAttribute in objectSymbol._possibleReferences:
+					return element
+				else:
+					ex = TypeError(f"Found signal '{objectSymbol._name._identifier}', but it was not expected.")
+					ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+					ex.add_note(f"Expected one of: {objectSymbol._possibleReferences}.")
+					raise ex
+			elif isinstance(element, Constant):
+				if PossibleReference.Constant in objectSymbol._possibleReferences:
+					return element
+				else:
+					ex = TypeError(f"Found constant '{objectSymbol._name._identifier}', but it was not expected.")
+					ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+					ex.add_note(f"Expected one of: {objectSymbol._possibleReferences}.")
+					raise ex
+			elif isinstance(element, Variable):
+				if PossibleReference.Variable in objectSymbol._possibleReferences:
+					return element
+				else:
+					ex = TypeError(f"Found variable '{objectSymbol._name._identifier}', but it was not expected.")
+					ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+					ex.add_note(f"Expected one of: {objectSymbol._possibleReferences}.")
+					raise ex
+			else:
+				ex = TypeError(f"Found element '{objectSymbol._name._identifier}', but it is not an object.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+				raise ex
+		except KeyError:
+			key = objectSymbol._name._identifier
 
-		:param objectSymbol:      The symbol of an object.
-		:returns:                 The signal, constant or variable.
-		:raises ExtendedKeyError: If no declaration of the symbol's identifier is directly visible.
-		:raises TypeError:        If the directly visible declaration is a signal, but the symbol expects none.
-		:raises TypeError:        If the directly visible declaration is a constant, but the symbol expects none.
-		:raises TypeError:        If the directly visible declaration is a variable, but the symbol expects none.
-		:raises TypeError:        If the directly visible declaration is no object.
-		"""
-		key = objectSymbol._name._identifier
-		result = self.Lookup(objectSymbol._name._normalizedIdentifier)
-		if not result.IsVisible:
-			names = ", ".join(namespace._name for namespace in result._searchedNamespaces)
-			ex = ExtendedKeyError(key, result._searchedNamespaces, f"Object '{key}' not found in: {names}.")
-			for imported in result._conflicts:
-				ex.add_note(f"Conflicting import: {imported!r}")
-			raise ex
+			if (parentNamespace := self._parentNamespace) is None:
+				raise ExtendedKeyError(key, (self, ), f"Object '{key}' not found in '{self._name}'.")
 
-		element = result._declarations[0]
-		possibleReferences = objectSymbol._possibleReferences
-		if isinstance(element, Signal):
-			if PossibleReference.Signal in possibleReferences or PossibleReference.SignalAttribute in possibleReferences:
-				return element
-
-			ex = TypeError(f"Found signal '{key}', but it was not expected.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
-			ex.add_note(f"Expected one of: {possibleReferences}.")
-			raise ex
-		elif isinstance(element, Constant):
-			if PossibleReference.Constant in possibleReferences:
-				return element
-
-			ex = TypeError(f"Found constant '{key}', but it was not expected.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
-			ex.add_note(f"Expected one of: {possibleReferences}.")
-			raise ex
-		elif isinstance(element, Variable):
-			if PossibleReference.Variable in possibleReferences:
-				return element
-
-			ex = TypeError(f"Found variable '{key}', but it was not expected.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
-			ex.add_note(f"Expected one of: {possibleReferences}.")
-			raise ex
-
-		ex = TypeError(f"Found element '{key}', but it is not an object.")
-		ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
-		raise ex
+			try:
+				return parentNamespace.FindObject(objectSymbol)
+			except ExtendedKeyError as ex:
+				searchedNamespaces = (self, *ex.searchedNamespaces)
+				raise ExtendedKeyError(key, searchedNamespaces, f"Object '{key}' not found in: {', '.join(ns._name for ns in searchedNamespaces)}.") from ex

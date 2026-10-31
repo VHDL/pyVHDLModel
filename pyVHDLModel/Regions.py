@@ -1916,14 +1916,14 @@ class DeclarationRegionMixin(
 		"""
 		Iterate this declarative region and all declarative regions nested in it.
 
-		Nested regions are declared items (e.g. subprograms, protected types, packages) and concurrent statements (blocks,
-		processes, generate statements and their branches), each followed by the regions nested in it.
+		Nested regions are declarations (e.g. subprograms, generic subprograms, protected types, packages) and concurrent
+		statements (blocks, processes, generate statements and their branches), each followed by the regions nested in it.
 
 		:returns: A generator to iterate the declarative regions, this region first.
 		"""
 		yield self
 
-		for item in self._declaredItems:
+		for item in self._Declarations():
 			if isinstance(item, DeclarationRegionMixin):
 				yield from item.IterateDeclarationRegions()
 

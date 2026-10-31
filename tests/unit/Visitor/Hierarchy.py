@@ -85,7 +85,8 @@ class Blocks(Testcase):
 
 		self.assertEqual(
 			["VisitConcurrentBlockStatement", "VisitSignal", "VisitSymbol", "VisitSimpleName", "DepartSimpleName",
-			 "DepartSymbol", "VisitTerminator", "DepartSignal", "VisitBegin", "DepartConcurrentBlockStatement"],
+			 "DepartSymbol", "VisitTerminator", "DepartSignal", "VisitBegin", "VisitEnd", "VisitTerminator",
+			 "DepartConcurrentBlockStatement"],
 			[event[0] for event in recorder.Events]
 		)
 
@@ -114,6 +115,8 @@ class Generates(Testcase):
 			("VisitGenerate",             elseBranch),
 			("VisitBegin",                elseBranch),
 			("DepartElseGenerateBranch",  elseBranch),
+			("VisitEnd",                  statement),
+			("VisitTerminator",           statement),
 			("DepartIfGenerateStatement", statement),
 		], recorder.Events)
 
@@ -147,6 +150,8 @@ class Generates(Testcase):
 			("VisitArrow",                  others),
 			("VisitBegin",                  others),
 			("DepartOthersGenerateCase",    others),
+			("VisitEnd",                    statement),
+			("VisitTerminator",             statement),
 			("DepartCaseGenerateStatement", statement),
 		], recorder.Events)
 
@@ -160,6 +165,6 @@ class Generates(Testcase):
 		self.assertEqual(
 			["VisitForGenerateStatement", "VisitSimpleRange", "VisitIntegerLiteral", "DepartIntegerLiteral",
 			 "VisitDirection", "VisitIntegerLiteral", "DepartIntegerLiteral", "DepartSimpleRange", "VisitGenerate",
-			 "VisitBegin", "DepartForGenerateStatement"],
+			 "VisitBegin", "VisitEnd", "VisitTerminator", "DepartForGenerateStatement"],
 			[event[0] for event in recorder.Events]
 		)

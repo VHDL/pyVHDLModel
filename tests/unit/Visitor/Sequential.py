@@ -221,6 +221,8 @@ class Statements(Testcase):
 			("VisitNullStatement",     statement),
 			("VisitTerminator",        statement),
 			("DepartNullStatement",    statement),
+			("VisitEnd",               process),
+			("VisitTerminator",        process),
 			("DepartProcessStatement", process),
 		], recorder.Events)
 
@@ -260,6 +262,8 @@ class CompoundStatements(Testcase):
 			("DepartElsifBranch",   elsifBranch),
 			("VisitElseBranch",     elseBranch),
 			("DepartElseBranch",    elseBranch),
+			("VisitEnd",            statement),
+			("VisitTerminator",     statement),
 			("DepartIfStatement",   statement),
 		], recorder.Events)
 
@@ -287,7 +291,7 @@ class CompoundStatements(Testcase):
 			"VisitOthersCase",
 			"VisitArrow",
 			"DepartOthersCase",
-			"DepartCaseStatement",
+			"VisitEnd", "VisitTerminator", "DepartCaseStatement",
 		], [event[0] for event in recorder.Events])
 
 	def test_Loops(self) -> None:
@@ -303,11 +307,13 @@ class CompoundStatements(Testcase):
 
 		self.assertEqual([
 			"VisitEndlessLoopStatement", "VisitLoop", "VisitExitStatement", "VisitTerminator", "DepartExitStatement",
-			"DepartEndlessLoopStatement",
+			"VisitEnd", "VisitTerminator", "DepartEndlessLoopStatement",
 			"VisitForLoopStatement", "VisitSimpleRange", "VisitIntegerLiteral", "DepartIntegerLiteral", "VisitDirection",
-			"VisitIntegerLiteral", "DepartIntegerLiteral", "DepartSimpleRange", "VisitLoop", "DepartForLoopStatement",
+			"VisitIntegerLiteral", "DepartIntegerLiteral", "DepartSimpleRange", "VisitLoop", "VisitEnd", "VisitTerminator",
+			"DepartForLoopStatement",
 			"VisitWhileLoopStatement", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitLoop",
-			"VisitNextStatement", "VisitTerminator", "DepartNextStatement", "DepartWhileLoopStatement",
+			"VisitNextStatement", "VisitTerminator", "DepartNextStatement", "VisitEnd", "VisitTerminator",
+			"DepartWhileLoopStatement",
 		], [event[0] for event in recorder.Events])
 
 	def test_Exit_Condition(self) -> None:

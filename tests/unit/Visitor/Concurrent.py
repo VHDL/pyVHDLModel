@@ -160,6 +160,8 @@ class Statements(Testcase):
 			("DepartSensitivityList",  process),
 			("VisitIs",                process),
 			("VisitBegin",             process),
+			("VisitEnd",               process),
+			("VisitTerminator",        process),
 			("DepartProcessStatement", process),
 		], recorder.Events)
 
@@ -170,7 +172,7 @@ class Statements(Testcase):
 		process.Visit(recorder)
 
 		self.assertEqual(
-			["VisitProcessStatement", "VisitIs", "VisitBegin", "DepartProcessStatement"],
+			["VisitProcessStatement", "VisitIs", "VisitBegin", "VisitEnd", "VisitTerminator", "DepartProcessStatement"],
 			[event[0] for event in recorder.Events]
 		)
 

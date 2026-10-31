@@ -36,12 +36,12 @@ identical configuration specifications), and block configurations.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, Iterable, Union, Optional as Nullable
+from typing                  import TYPE_CHECKING, ClassVar, Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import abstractclass
 
-from pyVHDLModel.Base        import ModelEntity
+from pyVHDLModel.Base        import ModelEntity, ReservedWord
 from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import Symbol, EntitySymbol, ArchitectureSymbol, ConfigurationSymbol, \
                                     ComponentInstantiationSymbol
@@ -342,6 +342,9 @@ class ComponentConfiguration(ModelEntity):
 	      --  Instantiation list
 	"""
 
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.For,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                #: The reserved words after ``end`` are optional.
+
 	_instantiationList:  InstantiationListUnion        #: The instances this configuration applies to.
 	_componentName:      ComponentInstantiationSymbol  #: Reference to the component being configured.
 	_bindingIndication:   Nullable[BindingIndication]  #: The binding indication, or ``None`` if none was given.
@@ -400,6 +403,8 @@ class ComponentConfiguration(ModelEntity):
 		if self._bindingIndication is not None:
 			self._bindingIndication.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartComponentConfiguration(self)
 
 	@readonly
@@ -446,6 +451,9 @@ class BlockConfiguration(ModelEntity):
 	      end for;
 	"""
 
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.For,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                #: The reserved words after ``end`` are optional.
+
 	_blockSpecification: Symbol                                                    #: The configured block.
 	_items:               list[Union[BlockConfiguration, ComponentConfiguration]]  #: Nested configurations.
 
@@ -486,6 +494,8 @@ class BlockConfiguration(ModelEntity):
 		for item in self._items:
 			item.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartBlockConfiguration(self)
 
 	@readonly

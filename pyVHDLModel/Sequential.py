@@ -36,7 +36,7 @@ Declarations for sequential statements.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, Iterable, Optional as Nullable
+from typing                  import TYPE_CHECKING, ClassVar, Iterable, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
@@ -44,7 +44,8 @@ from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
 from pyVHDLModel.Base        import ModelEntity, ExpressionUnion, Range, BaseChoice, BaseCase, ConditionalMixin, \
                                     IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, ReportStatementMixin, \
-                                    AssertStatementMixin, WaveformElement, ChoicesMixin, LabeledEntityMixin
+                                    AssertStatementMixin, WaveformElement, ChoicesMixin, LabeledEntityMixin, \
+                                    ReservedWord
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
 from pyVHDLModel.Symbol      import Symbol, SignalSymbol, VariableSymbol
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin, AssignmentMixin, SignalAssignmentMixin, \
@@ -1382,6 +1383,9 @@ class IfStatement(CompoundStatement):
 
 	   * :class:`If-generate statement <pyVHDLModel.Concurrent.IfGenerateStatement>`
 	"""
+
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.If,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False               #: The reserved words after ``end`` are optional.
 	_ifBranch: IfBranch                #: The mandatory ``if`` branch.
 	_elsifBranches: list[ElsifBranch]  #: List of all ``elsif`` branches, in the order they were written.
 	_elseBranch: Nullable[ElseBranch]  #: The optional ``else`` branch, or ``None`` if none was given.
@@ -1434,6 +1438,8 @@ class IfStatement(CompoundStatement):
 		if self._elseBranch is not None:
 			self._elseBranch.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartIfStatement(self)
 
 	@readonly
@@ -1747,6 +1753,9 @@ class CaseStatement(CompoundStatement):
 
 	   * :class:`Case-generate statement <pyVHDLModel.Concurrent.CaseGenerateStatement>`
 	"""
+
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Case,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                 #: The reserved words after ``end`` are optional.
 	_expression: ExpressionUnion       #: The expression being tested.
 	_cases:      list[SequentialCase]  #: List of all alternatives, in the order they were written.
 
@@ -1782,6 +1791,8 @@ class CaseStatement(CompoundStatement):
 		for case in self._cases:
 			case.Visit(visitor)
 
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartCaseStatement(self)
 
 	@readonly
@@ -1815,6 +1826,9 @@ class LoopStatement(CompoundStatement, SequentialStatementsMixin):
 	   * :class:`For loop statement <pyVHDLModel.Sequential.ForLoopStatement>`
 	   * :class:`While loop statement <pyVHDLModel.Sequential.WhileLoopStatement>`
 	"""
+
+	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Loop,)  #: Reserved words after ``end``.
+	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                 #: The reserved words after ``end`` are optional.
 
 	def __init__(self, statements: Nullable[Iterable[SequentialStatement]] = None, label: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -1871,6 +1885,8 @@ class EndlessLoopStatement(LoopStatement):
 		visitor.VisitEndlessLoopStatement(self)
 		visitor.VisitLoop(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartEndlessLoopStatement(self)
 
 
@@ -1930,6 +1946,8 @@ class ForLoopStatement(LoopStatement):
 		self._range.Visit(visitor)
 		visitor.VisitLoop(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartForLoopStatement(self)
 
 	@readonly
@@ -2002,6 +2020,8 @@ class WhileLoopStatement(LoopStatement, ConditionalMixin):
 		self._condition.Visit(visitor)
 		visitor.VisitLoop(self)
 		self._VisitStatements(visitor)
+		visitor.VisitEnd(self)
+		visitor.VisitTerminator(self)
 		visitor.DepartWhileLoopStatement(self)
 
 

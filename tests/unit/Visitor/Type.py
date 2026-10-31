@@ -127,6 +127,8 @@ class Types(Testcase):
 			("VisitPhysicalIntegerLiteral",    value),
 			("DepartPhysicalIntegerLiteral",   value),
 			("DepartSecondaryUnitDeclaration", physicalType, "mm"),
+			("VisitEnd",                       physicalType),
+			("VisitTerminator",                physicalType),
 			("DepartPhysicalType",             physicalType),
 		], recorder.Events)
 
@@ -191,5 +193,7 @@ class Types(Testcase):
 			("DepartSymbol",            subtype),
 			("VisitTerminator",         element),
 			("DepartRecordTypeElement", element),
+			("VisitEnd",                recordType),
+			("VisitTerminator",         recordType),
 			("DepartRecordType",        recordType),
 		], recorder.Events)

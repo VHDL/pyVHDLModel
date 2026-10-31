@@ -101,8 +101,8 @@ class EntityAspectEntity(EntityAspect):
 		Initializes an entity aspect naming an entity, optionally with an architecture.
 
 		:param entity:       Reference to the named entity.
-		:param architecture: Reference to the selected architecture, or ``None`` if none was given.
-		:param parent:       The parent model entity of this entity.
+		:param architecture: Optional, reference to the selected architecture. Default: ``None``, no architecture selected.
+		:param parent:       Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -167,7 +167,7 @@ class EntityAspectConfiguration(EntityAspect):
 		Initializes an entity aspect naming a configuration.
 
 		:param configuration: Reference to the named configuration.
-		:param parent:        The parent model entity of this entity.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -238,10 +238,12 @@ class BindingIndication(ModelEntity, GenericMapAspectMixin, PortMapAspectMixin):
 		"""
 		Initializes a binding indication.
 
-		:param entityAspect:            The bound design entity, or ``None`` if not given.
-		:param genericAssociationItems: List of all generic associations in the generic map aspect.
-		:param portAssociationItems:    List of all port associations in the port map aspect.
-		:param parent:                  The parent model entity of this entity.
+		:param entityAspect:            Optional, the bound design entity. Default: ``None``, no entity aspect.
+		:param genericAssociationItems: Optional, list of all generic associations in the generic map aspect.
+		                                Default: ``None``, no generic associations.
+		:param portAssociationItems:    Optional, list of all port associations in the port map aspect.
+		                                Default: ``None``, no port associations.
+		:param parent:                  Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		GenericMapAspectMixin.__init__(self, genericAssociationItems)
@@ -361,8 +363,8 @@ class ComponentConfiguration(ModelEntity):
 
 		:param instantiationList: The instances this configuration applies to.
 		:param componentName:     Reference to the component being configured.
-		:param bindingIndication: The binding indication, or ``None`` if none was given.
-		:param parent:            The parent model entity of this entity.
+		:param bindingIndication: Optional, the binding indication. Default: ``None``, no binding indication.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -467,8 +469,8 @@ class BlockConfiguration(ModelEntity):
 		Initializes a block configuration.
 
 		:param blockSpecification: The configured block.
-		:param items:              Nested configurations.
-		:param parent:             The parent model entity of this entity.
+		:param items:              Optional, nested configurations. Default: ``None``, no nested configurations.
+		:param parent:             Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 

@@ -293,7 +293,7 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		"""
 		Initializes a VHDL model entity.
 
-		:param parent: The parent model entity of this entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		self._parent = parent
 
@@ -739,7 +739,7 @@ class ConditionalMixin(metaclass=ExtendedType, mixin=True):
 
 		When the condition is not None, the condition's parent reference is set to this statement.
 
-		:param condition: The expression representing the condition.
+		:param condition: Optional, the expression representing the condition. Default: ``None``, no condition.
 		"""
 		self._condition = condition
 		if condition is not None:
@@ -847,8 +847,8 @@ class ReportStatementMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Initializes a report statement.
 
-		:param message:  The reported message, or ``None`` if none was given.
-		:param severity: The reported severity level, or ``None`` if none was given.
+		:param message:  Optional, the reported message. Default: ``None``, no message.
+		:param severity: Optional, the reported severity level. Default: ``None``, no severity level.
 		"""
 		self._message = message
 		if message is not None:
@@ -907,8 +907,8 @@ class AssertStatementMixin(ReportStatementMixin, ConditionalMixin, mixin=True):
 		Initializes an assert statement.
 
 		:param condition: The condition guarding this statement.
-		:param message:   The reported message, or ``None`` if none was given.
-		:param severity:  The reported severity level, or ``None`` if none was given.
+		:param message:   Optional, the reported message. Default: ``None``, no message.
+		:param severity:  Optional, the reported severity level. Default: ``None``, no severity level.
 		"""
 		super().__init__(message, severity)
 		ConditionalMixin.__init__(self, condition)
@@ -988,7 +988,7 @@ class ChoicesMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Initializes choices.
 
-		:param choices: List of all choices selecting this alternative.
+		:param choices: Optional, list of all choices selecting this alternative. Default: ``None``, no choices.
 		"""
 		self._choices = choiceList = []
 		if choices is not None:
@@ -1040,7 +1040,7 @@ class SimpleRange(Range):
 		:param leftBound:  The range's left bound.
 		:param rightBound: The range's right bound.
 		:param direction:  The range's direction (``to`` or ``downto``).
-		:param parent:     The parent model entity.
+		:param parent:     Optional, the parent model entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -1140,7 +1140,7 @@ class RangeFromName(Range):
 		Initialize a range denoted by a name.
 
 		:param symbol: The symbol referencing the range attribute or discrete subtype.
-		:param parent: The parent model entity.
+		:param parent: Optional, the parent model entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -1216,8 +1216,8 @@ class WaveformElement(ModelEntity):
 		Initializes a waveform element.
 
 		:param expression: The value this waveform element assigns.
-		:param after:      The delay after which the value is assigned, or ``None`` if none was given.
-		:param parent:     The parent model entity of this entity.
+		:param after:      Optional, the delay after which the value is assigned. Default: ``None``, no delay.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 

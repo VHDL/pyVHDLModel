@@ -90,7 +90,7 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_L
 		"""
 		Initializes sequential statements.
 
-		:param statements: List of all sequential statements in this construct.
+		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
 		"""
 		self._statements = statementList = []
 		if statements is not None:
@@ -577,9 +577,10 @@ class SequentialProcedureCall(SequentialStatement, ProcedureCallMixin):
 		Initializes a procedure call as a sequential statement.
 
 		:param procedureName:             Reference to the called procedure.
-		:param parameterAssociationItems: List of all parameter associations of the call.
-		:param label:                     The label of a model entity.
-		:param parent:                    The parent model entity of this entity.
+		:param parameterAssociationItems: Optional, list of all parameter associations of the call.
+		                                  Default: ``None``, no parameter associations.
+		:param label:                     Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:                    Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		ProcedureCallMixin.__init__(self, procedureName, parameterAssociationItems)
@@ -610,8 +611,8 @@ class SequentialSignalAssignment(SequentialStatement, SignalAssignmentMixin):
 		Initializes a sequential signal assignment.
 
 		:param target: Reference to the assignment's destination.
-		:param label:  The label of a model entity.
-		:param parent: The parent model entity of this entity.
+		:param label:  Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		SignalAssignmentMixin.__init__(self, target)
@@ -643,8 +644,8 @@ class SequentialSimpleSignalAssignment(SequentialSignalAssignment, WaveformMixin
 
 		:param target:   Reference to the assignment's destination.
 		:param waveform: List of all waveform elements, in the order they were written.
-		:param label:    The label of a model entity.
-		:param parent:   The parent model entity of this entity.
+		:param label:    Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:   Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(target, label, parent)
 		WaveformMixin.__init__(self, waveform)
@@ -685,8 +686,8 @@ class SequentialVariableAssignment(SequentialStatement, VariableAssignmentMixin)
 
 		:param target:     Reference to the assignment's destination.
 		:param expression: The assigned expression.
-		:param label:      The label of a model entity.
-		:param parent:     The parent model entity of this entity.
+		:param label:      Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		VariableAssignmentMixin.__init__(self, target, expression)
@@ -743,8 +744,8 @@ class SequentialConditionalVariableAssignment(SequentialStatement, AssignmentMix
 
 		:param target:                 Reference to the assignment's destination.
 		:param conditionalExpressions: List of all alternatives, in the order they were written.
-		:param label:                  The label of a model entity.
-		:param parent:                 The parent model entity of this entity.
+		:param label:                  Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:                 Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		AssignmentMixin.__init__(self, target)
@@ -819,8 +820,8 @@ class SequentialConditionalSignalAssignment(SequentialStatement, SignalAssignmen
 
 		:param target:               Reference to the assignment's destination.
 		:param conditionalWaveforms: All alternatives, in order.
-		:param label:                The label of a model entity.
-		:param parent:               The parent model entity of this entity.
+		:param label:                Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:               Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		SignalAssignmentMixin.__init__(self, target)
@@ -879,8 +880,8 @@ class SequentialSelectedVariableAssignment(SequentialStatement, AssignmentMixin,
 		:param target:              Reference to the assignment's destination.
 		:param expression:          The selector expression.
 		:param selectedExpressions: All alternatives, in order.
-		:param label:               The label of a model entity.
-		:param parent:              The parent model entity of this entity.
+		:param label:               Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:              Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		AssignmentMixin.__init__(self, target)
@@ -943,8 +944,8 @@ class SequentialSelectedSignalAssignment(SequentialStatement, SignalAssignmentMi
 		:param target:            Reference to the assignment's destination.
 		:param expression:        The selector expression.
 		:param selectedWaveforms: All alternatives, in order.
-		:param label:             The label of a model entity.
-		:param parent:            The parent model entity of this entity.
+		:param label:             Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		SignalAssignmentMixin.__init__(self, target)
@@ -996,8 +997,8 @@ class SignalForceAssignment(SequentialStatement, SignalAssignmentMixin, Expressi
 
 		:param target:     Reference to the assignment's destination.
 		:param expression: The value forced onto the signal.
-		:param label:      The label of a model entity.
-		:param parent:     The parent model entity of this entity.
+		:param label:      Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		SignalAssignmentMixin.__init__(self, target)
@@ -1038,8 +1039,8 @@ class SignalReleaseAssignment(SequentialStatement, SignalAssignmentMixin):
 		Initializes a signal release assignment.
 
 		:param target: Reference to the assignment's destination.
-		:param label:  The label of a model entity.
-		:param parent: The parent model entity of this entity.
+		:param label:  Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		SignalAssignmentMixin.__init__(self, target)
@@ -1078,9 +1079,9 @@ class SequentialReportStatement(SequentialStatement, ReportStatementMixin):
 		Initializes a sequential report statement.
 
 		:param message:  The reported message, or ``None`` if none was given.
-		:param severity: The reported severity level, or ``None`` if none was given.
-		:param label:    The label of a model entity.
-		:param parent:   The parent model entity of this entity.
+		:param severity: Optional, the reported severity level. Default: ``None``, no severity level.
+		:param label:    Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:   Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		ReportStatementMixin.__init__(self, message, severity)
@@ -1131,10 +1132,10 @@ class SequentialAssertStatement(SequentialStatement, AssertStatementMixin):
 		Initializes a sequential assertion statement.
 
 		:param condition: The condition guarding this statement.
-		:param message:   The reported message, or ``None`` if none was given.
-		:param severity:  The reported severity level, or ``None`` if none was given.
-		:param label:     The label of a model entity.
-		:param parent:    The parent model entity of this entity.
+		:param message:   Optional, the reported message. Default: ``None``, no message.
+		:param severity:  Optional, the reported severity level. Default: ``None``, no severity level.
+		:param label:     Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:    Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		AssertStatementMixin.__init__(self, condition, message, severity)
@@ -1184,8 +1185,8 @@ class Branch(ModelEntity, SequentialStatementsMixin):
 		"""
 		Initializes a branch.
 
-		:param statements: List of all sequential statements in this construct.
-		:param parent:     The parent model entity of this entity.
+		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		SequentialStatementsMixin.__init__(self, statements)
@@ -1233,8 +1234,8 @@ class IfBranch(Branch, IfBranchMixin):
 		Initializes an if branch.
 
 		:param condition:  The condition guarding this statement.
-		:param statements: List of all sequential statements in this construct.
-		:param parent:     The parent model entity of this entity.
+		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(statements, parent)
 		IfBranchMixin.__init__(self, condition)
@@ -1281,8 +1282,8 @@ class ElsifBranch(Branch, ElsifBranchMixin):
 		Initializes an ``elsif`` branch of an if statement.
 
 		:param condition:  The condition guarding this statement.
-		:param statements: List of all sequential statements in this construct.
-		:param parent:     The parent model entity of this entity.
+		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(statements, parent)
 		ElsifBranchMixin.__init__(self, condition)
@@ -1327,8 +1328,8 @@ class ElseBranch(Branch, ElseBranchMixin):
 		"""
 		Initializes an else branch.
 
-		:param statements: List of all sequential statements in this construct.
-		:param parent:     The parent model entity of this entity.
+		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(statements, parent)
 		ElseBranchMixin.__init__(self)
@@ -1402,10 +1403,11 @@ class IfStatement(CompoundStatement):
 		Initializes an if statement.
 
 		:param ifBranch:      The mandatory ``if`` branch.
-		:param elsifBranches: List of all ``elsif`` branches, in the order they were written.
-		:param elseBranch:    The optional ``else`` branch, or ``None`` if none was given.
-		:param label:         The label of a model entity.
-		:param parent:        The parent model entity of this entity.
+		:param elsifBranches: Optional, list of all ``elsif`` branches, in the order they were written.
+		                      Default: ``None``, no ``elsif`` branches.
+		:param elseBranch:    Optional, the ``else`` branch. Default: ``None``, no ``else`` branch.
+		:param label:         Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 
@@ -1504,7 +1506,7 @@ class IndexedChoice(SequentialChoice):
 		Initializes a case choice given by a single value.
 
 		:param expression: The expression this choice selects on.
-		:param parent:     The parent model entity of this entity.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -1562,7 +1564,7 @@ class RangedChoice(SequentialChoice):
 		Initializes a case choice given by a range.
 
 		:param rng:    The range this choice selects on.
-		:param parent: The parent model entity of this entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -1618,9 +1620,9 @@ class SequentialCase(BaseCase, SequentialStatementsMixin, ChoicesMixin):
 		"""
 		Initializes a sequential case.
 
-		:param statements: List of all sequential statements in this construct.
-		:param choices:    List of all choices selecting this alternative.
-		:param parent:     The parent model entity of this entity.
+		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
+		:param choices:    Optional, list of all choices selecting this alternative. Default: ``None``, no choices.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		SequentialStatementsMixin.__init__(self, statements)
@@ -1659,8 +1661,8 @@ class Case(SequentialCase):
 		Initializes a case.
 
 		:param choices:    List of all choices selecting this alternative.
-		:param statements: List of all sequential statements in this construct.
-		:param parent:     The parent model entity of this entity.
+		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(statements, choices, parent)
 
@@ -1765,8 +1767,8 @@ class CaseStatement(CompoundStatement):
 
 		:param expression: The expression being tested.
 		:param cases:      List of all alternatives, in the order they were written.
-		:param label:      The label of a model entity.
-		:param parent:     The parent model entity of this entity.
+		:param label:      Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 
@@ -1834,9 +1836,9 @@ class LoopStatement(CompoundStatement, SequentialStatementsMixin):
 		"""
 		Initializes a loop statement.
 
-		:param statements: List of all sequential statements in this construct.
-		:param label:      The label of a model entity.
-		:param parent:     The parent model entity of this entity.
+		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
+		:param label:      Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		SequentialStatementsMixin.__init__(self, statements)
@@ -1925,9 +1927,9 @@ class ForLoopStatement(LoopStatement):
 
 		:param loopIndex:  The name of the loop's index.
 		:param rng:        The range the loop iterates over.
-		:param statements: List of all sequential statements in this construct.
-		:param label:      The label of a model entity.
-		:param parent:     The parent model entity of this entity.
+		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
+		:param label:      Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(statements, label, parent)
 
@@ -2003,9 +2005,9 @@ class WhileLoopStatement(LoopStatement, ConditionalMixin):
 		Initializes a while-loop statement.
 
 		:param condition:  The condition guarding this statement.
-		:param statements: List of all sequential statements in this construct.
-		:param label:      The label of a model entity.
-		:param parent:     The parent model entity of this entity.
+		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
+		:param label:      Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(statements, label, parent)
 		ConditionalMixin.__init__(self, condition)
@@ -2045,9 +2047,10 @@ class LoopControlStatement(SequentialStatement, ConditionalMixin):
 		"""
 		Initializes a loop control statement.
 
-		:param condition: The condition guarding this statement.
-		:param loopLabel: The label of the controlled loop, or ``None`` for the innermost loop.
-		:param parent:    The parent model entity of this entity.
+		:param condition: Optional, the condition guarding this statement.
+		                  Default: ``None``, an unconditional ``next`` or ``exit``.
+		:param loopLabel: Optional, the label of the controlled loop. Default: ``None``, the innermost loop.
+		:param parent:    Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		ConditionalMixin.__init__(self, condition)
@@ -2187,9 +2190,9 @@ class ReturnStatement(SequentialStatement):
 		"""
 		Initializes a return statement.
 
-		:param returnValue: The returned expression, or ``None`` for a procedure.
-		:param label:       The label of a model entity.
-		:param parent:      The parent model entity of this entity.
+		:param returnValue: Optional, the returned expression. Default: ``None``, a return from a procedure.
+		:param label:       Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 
@@ -2251,11 +2254,11 @@ class WaitStatement(SequentialStatement, ConditionalMixin):
 		"""
 		Initializes a wait statement.
 
-		:param sensitivityList: List of all signal names to wait on, or ``None`` if none was given.
-		:param condition:       The condition guarding this statement.
-		:param timeout:         The timeout expression, or ``None`` if none was given.
-		:param label:           The label of a model entity.
-		:param parent:          The parent model entity of this entity.
+		:param sensitivityList: Optional, list of all signal names to wait on. Default: ``None``, no sensitivity clause.
+		:param condition:       Optional, the condition guarding this statement. Default: ``None``, no condition clause.
+		:param timeout:         Optional, the timeout expression. Default: ``None``, no timeout.
+		:param label:           Optional, the label of a model entity. Default: ``None``, no label.
+		:param parent:          Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(label, parent)
 		ConditionalMixin.__init__(self, condition)

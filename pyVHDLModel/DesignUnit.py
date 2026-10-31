@@ -80,7 +80,7 @@ class Reference(ModelEntity):
 		Initializes a reference by taking a list of symbols and a parent reference.
 
 		:param symbols: A list of symbols this reference references to.
-		:param parent:  Reference to the logical parent in the model hierarchy.
+		:param parent:  Optional, reference to the logical parent in the model hierarchy. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 
@@ -259,9 +259,10 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		Initializes a design unit.
 
 		:param identifier:    Identifier (name) of the design unit.
-		:param contextItems:  A sequence of library, use or context clauses.
-		:param documentation: Associated documentation of the design unit.
-		:param parent:        Reference to the logical parent in the model hierarchy.
+		:param contextItems:  Optional, a sequence of library, use or context clauses. Default: ``None``, no context items.
+		:param documentation: Optional, associated documentation of the design unit. Default: ``None``, no documentation.
+		:param parent:        Optional, reference to the logical parent in the model hierarchy.
+		                      Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
@@ -666,9 +667,10 @@ class Context(PrimaryUnit):
 		Initializes a context declaration.
 
 		:param identifier:           The identifier of a model entity.
-		:param references:           All context items, in declaration order.
-		:param documentation:        The documentation comment associated with this declaration.
-		:param parent:               The parent model entity of this entity.
+		:param references:           Optional, all context items, in declaration order. Default: ``None``, no context items.
+		:param documentation:        Optional, the documentation comment associated with this declaration.
+		                             Default: ``None``, no documentation.
+		:param parent:               Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		:raises VHDLModelException: If a context item is neither a library clause, use clause, nor context reference.
 		"""
 		super().__init__(identifier, None, documentation, parent)
@@ -792,12 +794,16 @@ class Package(
 		Initialize a package.
 
 		:param identifier:    Name of the VHDL package.
-		:param contextItems:
-		:param genericItems:
-		:param declaredItems:
-		:param documentation:
-		:param allowBlackbox: Specify if blackboxes are allowed in this design.
-		:param parent:        The parent model entity (library) of this VHDL package.
+		:param contextItems:  Optional, list of all context items (library, use and context clauses).
+		                      Default: ``None``, no context items.
+		:param genericItems:  Optional, list of all generics, in declaration order. Default: ``None``, no generics.
+		:param declaredItems: Optional, list of all declared items in this concurrent declaration region.
+		                      Default: ``None``, no declared items.
+		:param documentation: Optional, associated documentation of the design unit. Default: ``None``, no documentation.
+		:param allowBlackbox: Optional, specify if blackboxes are allowed in this design.
+		                      Default: ``None``, inherited from the parent.
+		:param parent:        Optional, the parent model entity (library) of this VHDL package.
+		                      Default: ``None``, no parent.
 		:param genericGroups: Optional, list of generic groups partitioning the generics, in declaration order. Default:
 		                      ``None``, one unnamed generic group.
 		"""
@@ -982,10 +988,13 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		Initializes a package body declaration.
 
 		:param packageSymbol: Reference to the package this body implements.
-		:param contextItems:  List of all context items (library, use and context clauses).
-		:param declaredItems: List of all declared items in this concurrent declaration region.
-		:param documentation: The documentation comment associated with this declaration.
-		:param parent:        The parent model entity of this entity.
+		:param contextItems:  Optional, list of all context items (library, use and context clauses).
+		                      Default: ``None``, no context items.
+		:param declaredItems: Optional, list of all declared items in this concurrent declaration region.
+		                      Default: ``None``, no declared items.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(packageSymbol.Name.Identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
@@ -1107,14 +1116,19 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 		Initializes an entity declaration.
 
 		:param identifier:    The identifier of a model entity.
-		:param contextItems:  List of all context items (library, use and context clauses).
-		:param genericItems:  List of all generics, in declaration order.
-		:param portItems:     List of all ports, in declaration order.
-		:param declaredItems: List of all declared items in this concurrent declaration region.
-		:param statements:    List of all concurrent statements in this construct.
-		:param documentation: The documentation comment associated with this declaration.
-		:param allowBlackbox: Allow blackboxes for components in language entity.
-		:param parent:        The parent model entity of this entity.
+		:param contextItems:  Optional, list of all context items (library, use and context clauses).
+		                      Default: ``None``, no context items.
+		:param genericItems:  Optional, list of all generics, in declaration order. Default: ``None``, no generics.
+		:param portItems:     Optional, list of all ports, in declaration order. Default: ``None``, no ports.
+		:param declaredItems: Optional, list of all declared items in this concurrent declaration region.
+		                      Default: ``None``, no declared items.
+		:param statements:    Optional, list of all concurrent statements in this construct.
+		                      Default: ``None``, no statements.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param allowBlackbox: Optional, allow blackboxes for components in language entity.
+		                      Default: ``None``, inherited from the parent.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		:param genericGroups: Optional, list of generic groups partitioning the generics, in declaration order. Default:
 		                      ``None``, one unnamed generic group.
 		:param portGroups:    Optional, list of port groups partitioning the ports, in declaration order. Default:
@@ -1260,12 +1274,17 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 
 		:param identifier:    The identifier of a model entity.
 		:param entity:        Reference to the entity this architecture implements.
-		:param contextItems:  List of all context items (library, use and context clauses).
-		:param declaredItems: List of all declared items in this concurrent declaration region.
-		:param statements:    List of all concurrent statements in this construct.
-		:param documentation: The documentation comment associated with this declaration.
-		:param allowBlackbox: Allow blackboxes for components in language entity.
-		:param parent:        The parent model entity of this entity.
+		:param contextItems:  Optional, list of all context items (library, use and context clauses).
+		                      Default: ``None``, no context items.
+		:param declaredItems: Optional, list of all declared items in this concurrent declaration region.
+		                      Default: ``None``, no declared items.
+		:param statements:    Optional, list of all concurrent statements in this construct.
+		                      Default: ``None``, no statements.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param allowBlackbox: Optional, allow blackboxes for components in language entity.
+		                      Default: ``None``, inherited from the parent.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)
@@ -1387,11 +1406,15 @@ class Component(
 		Initializes a component declaration.
 
 		:param identifier:    The identifier of a model entity.
-		:param genericItems:  List of all generics of this component, in declaration order.
-		:param portItems:     List of all ports of this component, in declaration order.
-		:param documentation: The documentation comment associated with this declaration.
-		:param allowBlackbox: Allow blackboxes for components in language entity.
-		:param parent:        The parent model entity of this entity.
+		:param genericItems:  Optional, list of all generics of this component, in declaration order.
+		                      Default: ``None``, no generics.
+		:param portItems:     Optional, list of all ports of this component, in declaration order.
+		                      Default: ``None``, no ports.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param allowBlackbox: Optional, allow blackboxes for components in language entity.
+		                      Default: ``None``, inherited from the parent.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		:param genericGroups: Optional, list of generic groups partitioning the generics, in declaration order. Default:
 		                      ``None``, one unnamed generic group.
 		:param portGroups:    Optional, list of port groups partitioning the ports, in declaration order. Default:
@@ -1537,9 +1560,11 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 		:param identifier:         The identifier of a model entity.
 		:param entity:             Reference to the entity this configuration configures.
 		:param blockConfiguration: The configuration of the entity's architecture.
-		:param contextItems:       List of all context items (library, use and context clauses).
-		:param documentation:      The documentation comment associated with this declaration.
-		:param parent:             The parent model entity of this entity.
+		:param contextItems:       Optional, list of all context items (library, use and context clauses).
+		                           Default: ``None``, no context items.
+		:param documentation:      Optional, the documentation comment associated with this declaration.
+		                           Default: ``None``, no documentation.
+		:param parent:             Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, contextItems, documentation, parent)
 		DesignUnitWithContextMixin.__init__(self)

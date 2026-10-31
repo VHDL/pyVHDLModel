@@ -95,8 +95,8 @@ class NotImplementedWarning(VHDLModelWarning):
 		Initializes the warning with the construct that isn't modelled yet.
 
 		:param message: The warning's message.
-		:param item:    Optional, the model element or symbol of the construct - a declared item, an expression, a symbol
-		                or an instantiation.
+		:param item:    Optional, the model element or symbol of the construct - a declared item, an expression, a symbol or
+		                an instantiation. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._item = item
@@ -161,10 +161,10 @@ class DuplicateDeclarationWarning(VHDLModelCriticalWarning):
 		Initializes the warning with the identifier, the namespace and both declarations.
 
 		:param message:    The warning's message.
-		:param identifier: Optional, the identifier declared twice.
-		:param namespace:  Optional, the namespace of the declarative region declaring it.
-		:param element:    Optional, the new declaration.
-		:param existing:   Optional, the earlier declaration.
+		:param identifier: Optional, the identifier declared twice. Default: ``None``.
+		:param namespace:  Optional, the namespace of the declarative region declaring it. Default: ``None``.
+		:param element:    Optional, the new declaration. Default: ``None``.
+		:param existing:   Optional, the earlier declaration. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._identifier =           identifier
@@ -249,8 +249,8 @@ class BlackboxWarning(VHDLModelWarning):
 		Initializes the warning with the instantiation and the component that couldn't be bound.
 
 		:param message:   The warning's message.
-		:param instance:  Optional, the component instantiation treated as a blackbox.
-		:param component: Optional, the component that couldn't be bound.
+		:param instance:  Optional, the component instantiation treated as a blackbox. Default: ``None``.
+		:param component: Optional, the component that couldn't be bound. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._instance =  instance
@@ -725,8 +725,8 @@ class AlreadyInDesignError(VHDLModelException, AlreadyInHierarchyError):
 		Initializes the exception with the model entity and its current parent.
 
 		:param message: The error message.
-		:param element: Optional, the model entity to add.
-		:param parent:  Optional, the model entity's current parent.
+		:param element: Optional, the model entity to add. Default: ``None``.
+		:param parent:  Optional, the model entity's current parent. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._element = element
@@ -771,8 +771,8 @@ class NotAChildError(VHDLModelException):
 		Initializes the exception with the model entity and the parent searched for it.
 
 		:param message: The error message.
-		:param element: Optional, the model entity, which isn't a child.
-		:param parent:  Optional, the model entity searched for the child.
+		:param element: Optional, the model entity, which isn't a child. Default: ``None``.
+		:param parent:  Optional, the model entity searched for the child. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._element = element
@@ -820,8 +820,8 @@ class NotInNamespaceError(VHDLModelException, KeyError):
 		Initializes the exception with the identifier and the namespace searched for it.
 
 		:param message:    The error message.
-		:param identifier: Optional, the identifier looked up.
-		:param namespace:  Optional, the namespace searched for the identifier.
+		:param identifier: Optional, the identifier looked up. Default: ``None``.
+		:param namespace:  Optional, the namespace searched for the identifier. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._identifier =           identifier
@@ -889,10 +889,10 @@ class DuplicateGenericError(VHDLModelException, DuplicateElementError):
 		Initializes the exception with the identifier, the language construct and both declarations.
 
 		:param message:    The error message.
-		:param identifier: Optional, the identifier declared twice.
-		:param parent:     Optional, the language construct owning the generic clause.
-		:param element:    Optional, the new generic.
-		:param existing:   Optional, the existing declaration.
+		:param identifier: Optional, the identifier declared twice. Default: ``None``.
+		:param parent:     Optional, the language construct owning the generic clause. Default: ``None``.
+		:param element:    Optional, the new generic. Default: ``None``.
+		:param existing:   Optional, the existing declaration. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._identifier =           identifier
@@ -972,10 +972,10 @@ class DuplicatePortError(VHDLModelException, DuplicateElementError):
 		Initializes the exception with the identifier, the language construct and both declarations.
 
 		:param message:    The error message.
-		:param identifier: Optional, the identifier declared twice.
-		:param parent:     Optional, the language construct owning the port clause.
-		:param element:    Optional, the new port.
-		:param existing:   Optional, the existing declaration.
+		:param identifier: Optional, the identifier declared twice. Default: ``None``.
+		:param parent:     Optional, the language construct owning the port clause. Default: ``None``.
+		:param element:    Optional, the new port. Default: ``None``.
+		:param existing:   Optional, the existing declaration. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._identifier =           identifier
@@ -1055,10 +1055,10 @@ class DuplicateParameterError(VHDLModelException, DuplicateElementError):
 		Initializes the exception with the identifier, the language construct and both declarations.
 
 		:param message:    The error message.
-		:param identifier: Optional, the identifier declared twice.
-		:param parent:     Optional, the language construct owning the parameter list.
-		:param element:    Optional, the new parameter.
-		:param existing:   Optional, the existing declaration.
+		:param identifier: Optional, the identifier declared twice. Default: ``None``.
+		:param parent:     Optional, the language construct owning the parameter list. Default: ``None``.
+		:param element:    Optional, the new parameter. Default: ``None``.
+		:param existing:   Optional, the existing declaration. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._identifier =           identifier
@@ -1153,10 +1153,10 @@ class DuplicateDeclarationError(VHDLModelException, DuplicateElementError):
 		Initializes the exception with the identifier, the namespace and both declarations.
 
 		:param message:    The error message.
-		:param identifier: Optional, the identifier declared twice.
-		:param namespace:  Optional, the namespace of the declarative region declaring it.
-		:param element:    Optional, the new declaration.
-		:param existing:   Optional, the existing declaration.
+		:param identifier: Optional, the identifier declared twice. Default: ``None``.
+		:param namespace:  Optional, the namespace of the declarative region declaring it. Default: ``None``.
+		:param element:    Optional, the new declaration. Default: ``None``.
+		:param existing:   Optional, the existing declaration. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._identifier =           identifier
@@ -1312,10 +1312,10 @@ class DuplicateAssociationError(VHDLModelException, DuplicateElementError):
 		Initializes the exception with the formal, the language construct and both associations.
 
 		:param message:    The error message.
-		:param identifier: Optional, the formal associated twice.
-		:param parent:     Optional, the language construct owning the association list.
-		:param element:    Optional, the new association.
-		:param existing:   Optional, the existing association.
+		:param identifier: Optional, the formal associated twice. Default: ``None``.
+		:param parent:     Optional, the language construct owning the association list. Default: ``None``.
+		:param element:    Optional, the new association. Default: ``None``.
+		:param existing:   Optional, the existing association. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._identifier =           identifier
@@ -1417,9 +1417,9 @@ class AssociationOrderError(VHDLModelException):
 		Initializes the exception with the language construct and both associations.
 
 		:param message:  The error message.
-		:param parent:   Optional, the language construct owning the association list.
-		:param element:  Optional, the new association.
-		:param existing: Optional, the existing association, the new association is out of order with.
+		:param parent:   Optional, the language construct owning the association list. Default: ``None``.
+		:param element:  Optional, the new association. Default: ``None``.
+		:param existing: Optional, the existing association, the new association is out of order with. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._parent =   parent
@@ -1479,10 +1479,10 @@ class DuplicateDocumentError(VHDLModelException, DuplicateElementError):
 		Initializes the exception with the path, the design and both documents.
 
 		:param message:  The error message.
-		:param path:     Optional, the path of both documents.
-		:param parent:   Optional, the design containing the existing document.
-		:param element:  Optional, the new document.
-		:param existing: Optional, the existing document.
+		:param path:     Optional, the path of both documents. Default: ``None``.
+		:param parent:   Optional, the design containing the existing document. Default: ``None``.
+		:param element:  Optional, the new document. Default: ``None``.
+		:param existing: Optional, the existing document. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._path =     path
@@ -1554,10 +1554,10 @@ class DuplicateDesignUnitError(VHDLModelException, DuplicateElementError):
 		Initializes the exception with the identifier, the document and both design units.
 
 		:param message:    The error message.
-		:param identifier: Optional, the identifier of both design units.
-		:param parent:     Optional, the document containing the existing design unit.
-		:param element:    Optional, the new design unit.
-		:param existing:   Optional, the existing design unit.
+		:param identifier: Optional, the identifier of both design units. Default: ``None``.
+		:param parent:     Optional, the document containing the existing design unit. Default: ``None``.
+		:param element:    Optional, the new design unit. Default: ``None``.
+		:param existing:   Optional, the existing design unit. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._identifier =           identifier
@@ -1641,8 +1641,8 @@ class ElementInUseError(VHDLModelException, InUseError, Generic[ElementType, Use
 		Initializes the exception with the model entity to remove and the model entities still using it.
 
 		:param message: The error message.
-		:param element: Optional, the model entity to remove.
-		:param users:   Optional, the model entities still using it.
+		:param element: Optional, the model entity to remove. Default: ``None``.
+		:param users:   Optional, the model entities still using it. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._element = element

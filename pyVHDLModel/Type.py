@@ -552,6 +552,69 @@ class RealType(RangedScalarType, NumericTypeMixin):
 
 
 @export
+class PhysicalUnit(ModelEntity, NamedEntityMixin):
+	"""
+	Represents a unit declaration of a physical type: its primary unit or one of its secondary units.
+
+	A unit name is declared by the physical type's declaration in the declarative region enclosing the type, so it's
+	visible like the type itself, e.g. imported by a use clause. The unit's parent is its physical type.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      type distance is range 0 to 1000000 units
+	        um;
+	      --^^                                        <- Identifier (primary unit)
+	        mm = 1000 um;
+	      --^^                                        <- Identifier (secondary unit)
+	      --   ^^^^^^^                                <- Value
+	      end units;
+	"""
+	_value: Nullable[PhysicalIntegerLiteral]  #: The unit's value in a smaller unit, or ``None`` for the primary unit.
+
+	def __init__(
+		self,
+		identifier: str,
+		value:      Nullable[PhysicalIntegerLiteral] = None,
+		parent:     Nullable[ModelEntity] = None
+	) -> None:
+		"""
+		Initializes a unit declaration of a physical type.
+
+		:param identifier: The unit's identifier.
+		:param value:      Optional, the unit's value in a smaller unit, ``None`` for the primary unit. Default: ``None``.
+		:param parent:     Optional, the physical type declaring the unit. Default: ``None``.
+		"""
+		super().__init__(parent)
+		NamedEntityMixin.__init__(self, identifier)
+
+		self._value = value
+
+	@readonly
+	def Value(self) -> Nullable[PhysicalIntegerLiteral]:
+		"""
+		Read-only property to access the unit's value (:attr:`_value`).
+
+		:returns: The unit's value in a smaller unit, or ``None`` for the primary unit.
+		"""
+		return self._value
+
+	def __str__(self) -> str:
+		"""
+		Formats the unit declaration.
+
+		**Format:** ``mm = 1000 um``, or ``um`` for the primary unit
+
+		:returns: Formatted unit declaration.
+		"""
+		if self._value is None:
+			return self._identifier
+
+		return f"{self._identifier} = {self._value}"
+
+
+@export
 class PhysicalType(RangedScalarType, NumericTypeMixin):
 	"""
 	Represents a physical type definition.
@@ -581,6 +644,7 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                  #: The reserved words after ``end`` are optional.
 	_primaryUnit:    str                                       #: The name of the type's primary unit.
 	_secondaryUnits: list[tuple[str, PhysicalIntegerLiteral]]  #: Secondary units as (name, value) pairs.
+	_units:          list[PhysicalUnit]                        #: List of all unit declarations, the primary unit first.
 
 	def __init__(
 		self,
@@ -607,9 +671,11 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 		self._primaryUnit = primaryUnit
 
 		self._secondaryUnits = secondaryUnits = []  # TODO: convert to dict
+		self._units = unitList = [PhysicalUnit(primaryUnit, parent=self)]
 		for unit in units:
 			secondaryUnits.append(unit)
 			unit[1].Parent = self
+			unitList.append(PhysicalUnit(unit[0], unit[1], parent=self))
 
 	@readonly
 	def PrimaryUnit(self) -> str:
@@ -628,6 +694,15 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 		:returns: List of secondary units.
 		"""
 		return self._secondaryUnits
+
+	@readonly
+	def Units(self) -> list[PhysicalUnit]:
+		"""
+		Read-only property to access the unit declarations (:attr:`_units`).
+
+		:returns: List of unit declarations, the primary unit first, then the secondary units in declaration order.
+		"""
+		return self._units
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

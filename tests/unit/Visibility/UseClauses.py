@@ -338,7 +338,7 @@ class DeclarativeRegions(Testcase):
 
 		design.ResetAnalysis()
 
-		self.assertDictEqual({}, process._namespace.Imports())
+		self.assertDictEqual({}, process._namespace.Imports)
 		self.assertIsNone(useClause.Symbols[0].Reference)
 
 

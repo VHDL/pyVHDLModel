@@ -1993,7 +1993,7 @@ class DeclarationRegionMixin(
 		"""
 		from pyVHDLModel.Interface import InterfaceItemMixin
 
-		for normalizedIdentifier, element in list(self._namespace.Elements().items()):
+		for normalizedIdentifier, element in list(self._namespace.Elements.items()):
 			if not isinstance(element, InterfaceItemMixin) and element._parent is self:
 				self._namespace.RemoveElement(normalizedIdentifier, element)
 
@@ -2014,7 +2014,7 @@ class DeclarationRegionMixin(
 		                             declaration.
 		"""
 		normalizedIdentifiers = normalizedIdentifiersOf(item)
-		elements = self._namespace.Elements()
+		elements = self._namespace.Elements
 		for normalizedIdentifier in normalizedIdentifiers:
 			if elements.get(normalizedIdentifier) is not item:
 				# raises NotInNamespaceError, naming the reason
@@ -2101,7 +2101,7 @@ class DeclarationRegionMixin(
 		from pyVHDLModel.Subprogram import Function, Procedure
 
 		normalizedIdentifier = item._normalizedIdentifier
-		entry = self._namespace.Elements().get(normalizedIdentifier)
+		entry = self._namespace.Elements.get(normalizedIdentifier)
 		if entry is item:
 			remaining = [
 				declaration for declaration in self._Declarations()

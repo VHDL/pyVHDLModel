@@ -147,43 +147,43 @@ class LookupResult(metaclass=ExtendedType, slots=True):
 	or more overloadable declarations (subprograms and enumeration literals). Use clauses importing conflicting
 	declarations make none of them directly visible: they are listed as conflicts (:data:`Conflicts`) instead.
 	"""
-	_identifier:         str                         #: The normalized (lower case) identifier looked up.
-	_declarations:       tuple[ModelEntity, ...]     #: The directly visible declarations.
-	_imports:            tuple[Import, ...]          #: The imported declarations among the directly visible ones.
-	_conflicts:          tuple[Import, ...]          #: The imported declarations conflicting with each other.
-	_searchedNamespaces: tuple[Namespace, ...]       #: The namespaces searched, innermost first.
+	_normalizedIdentifier: str                      #: The normalized (lower case) identifier looked up.
+	_declarations:         tuple[ModelEntity, ...]  #: The directly visible declarations.
+	_imports:              tuple[Import, ...]       #: The imported declarations among the directly visible ones.
+	_conflicts:            tuple[Import, ...]       #: The imported declarations conflicting with each other.
+	_searchedNamespaces:   tuple[Namespace, ...]    #: The namespaces searched, innermost first.
 
 	def __init__(
 		self,
-		identifier:         str,
-		declarations:       tuple[ModelEntity, ...],
-		imports:            tuple[Import, ...],
-		conflicts:          tuple[Import, ...],
-		searchedNamespaces: tuple[Namespace, ...]
+		normalizedIdentifier: str,
+		declarations:         tuple[ModelEntity, ...],
+		imports:              tuple[Import, ...],
+		conflicts:            tuple[Import, ...],
+		searchedNamespaces:   tuple[Namespace, ...]
 	) -> None:
 		"""
 		Initializes a lookup result.
 
-		:param identifier:         The normalized (lower case) identifier looked up.
-		:param declarations:       The directly visible declarations, innermost first.
-		:param imports:            The imported declarations among the directly visible ones.
-		:param conflicts:          The imported declarations conflicting with each other.
-		:param searchedNamespaces: The namespaces searched, innermost first.
+		:param normalizedIdentifier: The normalized (lower case) identifier looked up.
+		:param declarations:         The directly visible declarations, innermost first.
+		:param imports:              The imported declarations among the directly visible ones.
+		:param conflicts:            The imported declarations conflicting with each other.
+		:param searchedNamespaces:   The namespaces searched, innermost first.
 		"""
-		self._identifier =         identifier
-		self._declarations =       declarations
-		self._imports =            imports
-		self._conflicts =          conflicts
-		self._searchedNamespaces = searchedNamespaces
+		self._normalizedIdentifier = normalizedIdentifier
+		self._declarations =         declarations
+		self._imports =              imports
+		self._conflicts =            conflicts
+		self._searchedNamespaces =   searchedNamespaces
 
 	@readonly
-	def Identifier(self) -> str:
+	def NormalizedIdentifier(self) -> str:
 		"""
-		Read-only property to access the normalized (lower case) identifier looked up (:attr:`_identifier`).
+		Read-only property to access the normalized (lower case) identifier looked up (:attr:`_normalizedIdentifier`).
 
 		:returns: The normalized identifier.
 		"""
-		return self._identifier
+		return self._normalizedIdentifier
 
 	@readonly
 	def Declarations(self) -> tuple[ModelEntity, ...]:
@@ -251,7 +251,7 @@ class LookupResult(metaclass=ExtendedType, slots=True):
 		:returns: String representation of the lookup result.
 		"""
 		return (
-			f"LookupResult: '{self._identifier}' -> {len(self._declarations)} declaration(s), "
+			f"LookupResult: '{self._normalizedIdentifier}' -> {len(self._declarations)} declaration(s), "
 			f"{len(self._conflicts)} conflict(s)"
 		)
 
@@ -267,9 +267,9 @@ class Namespace(Generic[K, O]):
 
 	A namespace keeps three kinds of entries per normalized identifier:
 
-	* the declarations of its region (:meth:`Elements`), one entry per identifier,
-	* the enumeration literals and physical units declared by the types among them (:meth:`ImplicitDeclarations`), and
-	* the declarations imported by use clauses (:meth:`Imports`), each with its use clause.
+	* the declarations of its region (:data:`Elements`), one entry per identifier,
+	* the enumeration literals and physical units declared by the types among them (:data:`ImplicitDeclarations`), and
+	* the declarations imported by use clauses (:data:`Imports`), each with its use clause.
 
 	:meth:`Lookup` applies VHDL's visibility rules (IEEE Std 1076-2008, clause 12) to these entries.
 
@@ -398,7 +398,7 @@ class Namespace(Generic[K, O]):
 		apart (:meth:`AddImport`), so it never clashes with a declaration, and a lookup finds the declaration first.
 
 		The enumeration literals of an enumerated type and the units of a physical type are added as implicit declarations
-		(:meth:`ImplicitDeclarations`).
+		(:data:`ImplicitDeclarations`).
 
 		:param normalizedIdentifier:           The normalized (lower case) identifier being declared.
 		:param element:                        The declared item.
@@ -428,7 +428,7 @@ class Namespace(Generic[K, O]):
 
 		self._elements[normalizedIdentifier] = element
 
-		for implicitIdentifier, declaration in self._ImplicitDeclarationsOf(element):
+		for implicitIdentifier, declaration in self._GetImplicitDeclarationsOf(element):
 			declarations = self._implicitDeclarations.setdefault(implicitIdentifier, [])
 			if not any(existing is declaration for existing in declarations):
 				declarations.append(declaration)
@@ -461,14 +461,14 @@ class Namespace(Generic[K, O]):
 
 		del self._elements[normalizedIdentifier]
 
-		for implicitIdentifier, declaration in self._ImplicitDeclarationsOf(element):
+		for implicitIdentifier, declaration in self._GetImplicitDeclarationsOf(element):
 			declarations = self._implicitDeclarations[implicitIdentifier]
 			declarations.remove(declaration)
 			if len(declarations) == 0:
 				del self._implicitDeclarations[implicitIdentifier]
 
 	@staticmethod
-	def _ImplicitDeclarationsOf(element: O) -> tuple[tuple[str, ModelEntity], ...]:
+	def _GetImplicitDeclarationsOf(element: O) -> tuple[tuple[str, ModelEntity], ...]:
 		"""
 		Return the declarations a type declaration implies: an enumerated type's literals, a physical type's units.
 
@@ -478,7 +478,7 @@ class Namespace(Generic[K, O]):
 		from pyVHDLModel.Type import EnumeratedType, PhysicalType
 
 		if isinstance(element, EnumeratedType):
-			return tuple((Namespace.NormalizedDesignatorOf(literal), literal) for literal in element._literals)
+			return tuple((Namespace.GetNormalizedDesignatorOf(literal), literal) for literal in element._literals)
 		elif isinstance(element, PhysicalType):
 			units = (element._primaryUnit, *element._secondaryUnits)
 			return tuple((unit._normalizedIdentifier, unit) for unit in units)
@@ -513,7 +513,7 @@ class Namespace(Generic[K, O]):
 		return False
 
 	@staticmethod
-	def NormalizedDesignatorOf(element: ModelEntity) -> str:
+	def GetNormalizedDesignatorOf(element: ModelEntity) -> str:
 		"""
 		Return the normalized designator of a declaration, the key it's indexed by in a namespace.
 
@@ -595,7 +595,7 @@ class Namespace(Generic[K, O]):
 		"""
 		Remove all imported items from this namespace.
 
-		The declarations (:meth:`Elements`) are kept.
+		The declarations (:data:`Elements`) are kept.
 		"""
 		self._imports.clear()
 
@@ -621,33 +621,36 @@ class Namespace(Generic[K, O]):
 			if normalized == normalizedIdentifier
 		)
 
+	@readonly
 	def Elements(self) -> dict[K, O]:
 		"""
-		Return the elements declared in this namespace (:attr:`_elements`).
+		Read-only property to access the elements declared in this namespace (:attr:`_elements`).
 
 		:returns: Dictionary of declared elements, indexed by normalized identifier.
 		"""
 		return self._elements
 
+	@readonly
 	def ImplicitDeclarations(self) -> dict[K, list[O]]:
 		"""
-		Return the enumeration literals and physical units declared by the types of this namespace
+		Read-only property to access the enumeration literals and physical units declared by the types of this namespace
 		(:attr:`_implicitDeclarations`).
 
 		:returns: Dictionary of lists of enumeration literals and physical units, indexed by normalized designator
-		          (:meth:`NormalizedDesignatorOf`).
+		          (:meth:`GetNormalizedDesignatorOf`).
 		"""
 		return self._implicitDeclarations
 
+	@readonly
 	def Imports(self) -> dict[K, list[Import]]:
 		"""
-		Return the elements imported into this namespace (:attr:`_imports`).
+		Read-only property to access the elements imported into this namespace (:attr:`_imports`).
 
 		:returns: Dictionary of lists of imported elements with their use clauses, indexed by normalized identifier.
 		"""
 		return self._imports
 
-	def _DeclarationsOf(self, normalizedIdentifier: K) -> list[tuple[ModelEntity, ModelEntity]]:
+	def _GetDeclarationsOf(self, normalizedIdentifier: K) -> list[tuple[ModelEntity, ModelEntity]]:
 		"""
 		Return the declarations of an identifier in this namespace, each with the item deciding its declaration order.
 
@@ -677,7 +680,7 @@ class Namespace(Generic[K, O]):
 
 		return declarations
 
-	def _AnchorOf(self, place: Nullable[ModelEntity]) -> Nullable[ModelEntity]:
+	def _GetAnchorOf(self, place: Nullable[ModelEntity]) -> Nullable[ModelEntity]:
 		"""
 		Return the item of this namespace's declarative region containing a place.
 
@@ -747,7 +750,8 @@ class Namespace(Generic[K, O]):
 		Overloadable declarations aren't compared by their parameter and result type profiles, so a homograph doesn't hide
 		an overloadable declaration.
 
-		:param normalizedIdentifier: The normalized (lower case) identifier or designator (:meth:`NormalizedDesignatorOf`).
+		:param normalizedIdentifier: The normalized (lower case) identifier or designator
+		                             (:meth:`GetNormalizedDesignatorOf`).
 		:param place:                Optional, the model entity at which the identifier is used. Default: ``None``.
 		:returns:                    The directly visible declarations, or the conflicts, and the searched namespaces.
 		"""
@@ -761,10 +765,10 @@ class Namespace(Generic[K, O]):
 		namespace = self
 		while namespace is not None:
 			searchedNamespaces.append(namespace)
-			anchor = namespace._AnchorOf(place)
+			anchor = namespace._GetAnchorOf(place)
 			inclusive = anchor is not place
 
-			for declaration, item in namespace._DeclarationsOf(normalizedIdentifier):
+			for declaration, item in namespace._GetDeclarationsOf(normalizedIdentifier):
 				if anchor is not None and not self._Precedes(item, anchor, inclusive):
 					# A full type is visible from its incomplete type declaration on.
 					if not isinstance(declaration, FullType) or not any(

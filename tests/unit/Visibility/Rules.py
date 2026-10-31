@@ -290,12 +290,12 @@ class Designators(Testcase):
 	def test_CharacterLiteral(self) -> None:
 		literal = _enumeration("T", "'a'").Literals[0]
 
-		self.assertEqual("'a'", Namespace.NormalizedDesignatorOf(literal))
+		self.assertEqual("'a'", Namespace.GetNormalizedDesignatorOf(literal))
 
 	def test_EnumerationLiteral(self) -> None:
 		literal = _enumeration("T", "Idle").Literals[0]
 
-		self.assertEqual("idle", Namespace.NormalizedDesignatorOf(literal))
+		self.assertEqual("idle", Namespace.GetNormalizedDesignatorOf(literal))
 
 	def test_ImplicitDeclarations(self) -> None:
 		"""An enumerated type in a region declares its literals; removing the type removes them."""
@@ -305,12 +305,12 @@ class Designators(Testcase):
 
 		self.assertDictEqual(
 			{"idle": [enumeration.Literals[0]], "'a'": [enumeration.Literals[1]]},
-			architecture._namespace.ImplicitDeclarations()
+			architecture._namespace.ImplicitDeclarations
 		)
 
 		architecture.RemoveDeclaredItem(enumeration)
 
-		self.assertDictEqual({}, architecture._namespace.ImplicitDeclarations())
+		self.assertDictEqual({}, architecture._namespace.ImplicitDeclarations)
 
 
 class SubprogramAliases(Testcase):

@@ -72,7 +72,7 @@ class EntityInterfaceItems(Testcase):
 		entity = Entity("ent", portItems=[port])
 		entity.IndexDeclaredItems()
 
-		self.assertIs(port, entity._namespace.Elements()["clk"])
+		self.assertIs(port, entity._namespace.Elements["clk"])
 
 	def test_PortIsResolvable(self) -> None:
 		"""A port signal interface item *is* a `Signal`, so `FindObject` resolves it."""
@@ -91,15 +91,15 @@ class EntityInterfaceItems(Testcase):
 		entity = Entity("ent", portItems=[port])
 		entity.IndexDeclaredItems()
 
-		self.assertIs(port, entity._namespace.Elements()["clk"])
-		self.assertIs(port, entity._namespace.Elements()["rst"])
+		self.assertIs(port, entity._namespace.Elements["clk"])
+		self.assertIs(port, entity._namespace.Elements["rst"])
 
 	def test_GenericIsIndexed(self) -> None:
 		generic = _generic("width")
 		entity = Entity("ent", genericItems=[generic])
 		entity.IndexDeclaredItems()
 
-		self.assertIs(generic, entity._namespace.Elements()["width"])
+		self.assertIs(generic, entity._namespace.Elements["width"])
 
 	def test_SingularGenericTypeIsIndexed(self) -> None:
 		"""``generic (type T)`` is singularly named, unlike every other interface item."""
@@ -107,7 +107,7 @@ class EntityInterfaceItems(Testcase):
 		entity = Entity("ent", genericItems=[genericType])
 		entity.IndexDeclaredItems()
 
-		self.assertIs(genericType, entity._namespace.Elements()["t"])
+		self.assertIs(genericType, entity._namespace.Elements["t"])
 
 	def test_GenericsPortsAndDeclarationsShareOneNamespace(self) -> None:
 		generic = _generic("width")
@@ -116,7 +116,7 @@ class EntityInterfaceItems(Testcase):
 		entity = Entity("ent", genericItems=[generic], portItems=[port], declaredItems=[signal])
 		entity.IndexDeclaredItems()
 
-		self.assertEqual({"width", "clk", "internal"}, set(entity._namespace.Elements().keys()))
+		self.assertEqual({"width", "clk", "internal"}, set(entity._namespace.Elements.keys()))
 
 	def test_PortIsVisibleInTheArchitecture(self) -> None:
 		"""The whole point: a port name resolves from inside the architecture."""
@@ -152,7 +152,7 @@ class PackageGenerics(Testcase):
 		package = Package("gp", genericItems=[generic])
 		package.IndexDeclaredItems()
 
-		self.assertIs(generic, package._namespace.Elements()["width"])
+		self.assertIs(generic, package._namespace.Elements["width"])
 
 
 class BlockPorts(Testcase):
@@ -162,7 +162,7 @@ class BlockPorts(Testcase):
 		block = ConcurrentBlockStatement("blk", portItems=[port])
 		block.IndexDeclaredItems()
 
-		self.assertIs(port, block._namespace.Elements()["bp"])
+		self.assertIs(port, block._namespace.Elements["bp"])
 
 
 class SubprogramInterfaceItems(Testcase):
@@ -178,7 +178,7 @@ class SubprogramInterfaceItems(Testcase):
 		procedure = Procedure("helper", parameterItems=[parameter])
 		procedure.IndexDeclaredItems()
 
-		self.assertIs(parameter, procedure.Namespace.Elements()["p"])
+		self.assertIs(parameter, procedure.Namespace.Elements["p"])
 		self.assertIs(parameter, procedure.Namespace.FindObject(VariableSymbol(SimpleName("p"))))
 
 	def test_EveryIdentifierOfAMultiIdentifierParameterIsIndexed(self) -> None:
@@ -186,8 +186,8 @@ class SubprogramInterfaceItems(Testcase):
 		procedure = Procedure("helper", parameterItems=[parameter])
 		procedure.IndexDeclaredItems()
 
-		self.assertIs(parameter, procedure.Namespace.Elements()["p"])
-		self.assertIs(parameter, procedure.Namespace.Elements()["q"])
+		self.assertIs(parameter, procedure.Namespace.Elements["p"])
+		self.assertIs(parameter, procedure.Namespace.Elements["q"])
 
 	def test_GenericAndParameterShareTheNamespace(self) -> None:
 		generic = _generic("g")
@@ -195,4 +195,4 @@ class SubprogramInterfaceItems(Testcase):
 		procedure = Procedure("helper", genericItems=[generic], parameterItems=[parameter])
 		procedure.IndexDeclaredItems()
 
-		self.assertEqual({"g", "p"}, set(procedure.Namespace.Elements().keys()))
+		self.assertEqual({"g", "p"}, set(procedure.Namespace.Elements.keys()))

@@ -95,7 +95,7 @@ def _variable(identifier: str, subtypeName: str) -> Variable:
 
 def _importedElements(namespace) -> dict[str, list]:
 	"""The elements imported into a namespace, without their use clauses."""
-	return {key: [imported.Element for imported in imports] for key, imports in namespace.Imports().items()}
+	return {key: [imported.Element for imported in imports] for key, imports in namespace.Imports.items()}
 
 
 def _warningsOfType(collector, warningType: Type[_Warning]) -> list[_Warning]:

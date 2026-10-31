@@ -21,6 +21,8 @@ Version 0.41.0 (2026)
    * The condition operator ``??`` is :class:`~pyVHDLModel.Expression.ConditionExpression`.
    * Visitor: declarations, statements and context items report their semicolon as
      :meth:`~pyVHDLModel.Visitor.Visitor.VisitTerminator`.
+   * VHDL writer: the reserved words and the name after ``end`` can be left out where VHDL allows it
+     (``VHDLStyle(endKeyword=..., endName=...)``); the visitor reports :meth:`~pyVHDLModel.Visitor.Visitor.VisitEnd`.
 
    .. rubric:: Changes
 

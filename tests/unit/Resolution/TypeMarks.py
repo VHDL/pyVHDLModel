@@ -31,14 +31,17 @@
 """
 Type marks (IEEE Std 1076-2008, 6.3): the places of type marks, the forms of names, incomplete types and diagnostics.
 """
+from pathlib                 import Path
+
 from pyTooling.Testing       import Testcase
 from pyTooling.Warning       import UnhandledCriticalWarningError
 
+from pyVHDLModel             import Design, Document
 from pyVHDLModel.Base        import Mode
 from pyVHDLModel.Concurrent  import ProcessStatement
 from pyVHDLModel.Declaration import Alias, Attribute
 from pyVHDLModel.DesignUnit  import Architecture, Component, Entity, LibraryClause, Package, PackageBody
-from pyVHDLModel.Exception   import IncompleteTypeWarning, UnresolvedTypeMarkWarning
+from pyVHDLModel.Exception   import IncompleteTypeWarning, UnresolvedNameWarning, UnresolvedTypeMarkWarning
 from pyVHDLModel.Interface   import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                     ParameterConstantInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name        import SelectedName, SimpleName
@@ -280,7 +283,7 @@ class IncompleteTypes(Testcase):
 		self.assertEqual(1, len(warnings))
 		self.assertIsInstance(warnings[0], IncompleteTypeWarning)
 		self.assertEqual("Incomplete type 'node' has no full type declaration in 'rtl'.", str(warnings[0]))
-		self.assertIs(incomplete, warnings[0].Type)
+		self.assertIs(incomplete, warnings[0].IncompleteType)
 
 
 class Diagnostics(Testcase):
@@ -333,7 +336,7 @@ class Diagnostics(Testcase):
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_constant("K", "integer"), signal])
 		warnings = _resolve(_design(Entity("e"), architecture))
 
-		self.assertEqual("Type mark 'K' denotes a Constant, not a type or subtype.", str(warnings[0]))
+		self.assertEqual("Type mark 'K' doesn't denote a type or subtype (found: Constant).", str(warnings[0]))
 
 	def test_TypeAlias_NoConflict(self) -> None:
 		"""``use work.p1.all, work.p2.all;`` with ``alias T is work.p1.T;`` in ``p2``: the same type (A090)."""
@@ -352,7 +355,10 @@ class Diagnostics(Testcase):
 		constant = Constant(("c", ), _selectedSubtypeSymbol("work", "nopkg", "T"))
 		warnings = _resolve(_design(Entity("e", declaredItems=[constant])))
 
-		self.assertEqual("Prefix 'work.nopkg' of type mark 'work.nopkg.T' isn't a visible package.", str(warnings[0]))
+		self.assertEqual(
+			"Prefix 'work.nopkg' of type mark 'work.nopkg.T' isn't a visible package or an enclosing region.",
+			str(warnings[0])
+		)
 
 	def test_MemberMissing(self) -> None:
 		"""``work.p.U`` (B036)."""
@@ -402,3 +408,98 @@ class Reanalysis(Testcase):
 
 		with self.assertRaises(UnhandledCriticalWarningError):
 			design.ResolveTypeMarks()
+
+
+class ReviewFindings(Testcase):
+	"""Several documents per library, return types, re-resolution, expanded names, components, incomplete types."""
+
+	def test_SeveralDocuments(self) -> None:
+		"""Two independent documents in one library: the compile order has no edge."""
+		design = Design("design")
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary()
+		signals = []
+		for identifier in ("a", "b"):
+			signal = _signal("s", "integer")
+			signals.append(signal)
+			document = Document(Path(f"{identifier}.vhdl"))
+			document._AddDesignUnit(Entity(identifier, declaredItems=[signal]))
+			design.AddDocument(document, design.GetLibrary("lib"))
+
+		design.Analyze()
+
+		self.assertListEqual([], _resolve(design))
+		for signal in signals:
+			self.assertEqual("integer", signal.Subtype.Reference.Identifier)
+
+	def test_ReturnType_NotLocalType(self) -> None:
+		"""``function f return T`` with a type ``T`` in its body: the return type is the package's ``T`` (GHDL)."""
+		packageType = _enumeration("T", "a", "b")
+		localType = _enumeration("T", "x", "y")
+		function = Function("f", _subtypeSymbol("T"), declaredItems=[localType])
+		design = _design(Package("p", declaredItems=[packageType, function]))
+
+		for _ in range(2):
+			self.assertListEqual([], _resolve(design))
+			self.assertIs(packageType, function.ReturnType.Reference)
+
+	def test_ResolveAgain_AfterRemoval(self) -> None:
+		"""A type mark, which doesn't resolve any more, has no reference."""
+		enumeration = _enumeration("T", "a", "b")
+		constant = _constant("c", "T")
+		package = Package("p", declaredItems=[enumeration, constant])
+		design = _design(package)
+		_resolve(design)
+
+		package.RemoveDeclaredItem(enumeration)
+		warnings = _resolve(design)
+
+		self.assertEqual(1, len(warnings))
+		self.assertIsNone(constant.Subtype.Reference)
+
+	def test_ExpandedName_EnclosingPackage(self) -> None:
+		"""``constant k : q.T`` inside package ``q`` (GHDL accepts)."""
+		enumeration = _enumeration("T", "a", "b")
+		constant = Constant(("k", ), _selectedSubtypeSymbol("q", "T"))
+		self.assertListEqual([], _resolve(_design(Package("q", declaredItems=[enumeration, constant]))))
+
+		self.assertIs(enumeration, constant.Subtype.Reference)
+
+	def test_Component_Generics(self) -> None:
+		"""``component c generic (type GT); port (p : in GT);`` (GHDL accepts)."""
+		genericType = GenericTypeInterfaceItem("GT")
+		port = PortSimpleSignalInterfaceItem(("p", ), Mode.In, _subtypeSymbol("GT"))
+		component = Component("c", [genericType], [port])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[component])
+		self.assertListEqual([], _resolve(_design(Entity("e"), Entity("c"), architecture)))
+
+		self.assertIs(genericType, port.Subtype.Reference)
+
+	def test_IncompleteType_ObjectBeforeFullType(self) -> None:
+		"""``type node; signal s : node; type node is ...;``: only an access type may use an incomplete type (B043)."""
+		incomplete = AnonymousType("node")
+		signal = _signal("s", "node")
+		node = RecordType("node", [RecordTypeElement(("v", ), _subtypeSymbol("integer"))])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[incomplete, signal, node])
+		warnings = _resolve(_design(Entity("e"), architecture))
+
+		self.assertEqual(1, len(warnings))
+		self.assertEqual("Type mark 'node' denotes an incomplete type, which only an access type may use.", str(warnings[0]))
+		self.assertIsNone(signal.Subtype.Reference)
+
+	def test_AliasName_NotFound(self) -> None:
+		"""``alias AT is nothere;``: the alias name is reported, the type mark using the alias too."""
+		alias = Alias("AT", SimpleObjectOrFunctionCallSymbol(SimpleName("nothere")))
+		warnings = _resolve(_design(Package("q", declaredItems=[alias])))
+
+		self.assertEqual(1, len(warnings))
+		self.assertIsInstance(warnings[0], UnresolvedNameWarning)
+		self.assertNotIsInstance(warnings[0], UnresolvedTypeMarkWarning)
+		self.assertEqual("Name 'nothere' not found in: q.", str(warnings[0]))
+
+	def test_PackageAndBody_SearchedOnce(self) -> None:
+		"""A package body and its package share a name; the message names it once."""
+		constant = _constant("c", "U")
+		warnings = _resolve(_design(Package("q"), PackageBody(_packageSymbol("q"), declaredItems=[constant])))
+
+		self.assertEqual("Type mark 'U' not found in: q.", str(warnings[0]))

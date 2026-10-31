@@ -81,11 +81,11 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       LibraryInUseError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                       normalizedIdentifiersOf
-from pyVHDLModel.Name          import Name as _Name, AllName, AttributeName
-from pyVHDLModel.Namespace     import Namespace, LookupResult
+from pyVHDLModel.Name          import SimpleName, SelectedName, AllName, AttributeName
+from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant, SharedVariable, Variable, File
 from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
-                                      PackageMemberReferenceSymbol, SubtypeSymbol
+                                      PackageMemberReferenceSymbol, SubtypeSymbol, Symbol as _Symbol
 from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Regions       import DeclarationRegionMixin, ConcurrentDeclarationRegionMixin, \
                                       SequentialDeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin
@@ -1420,7 +1420,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					elif isinstance(item, Subtype) and designUnit._parent._normalizedIdentifier not in ("std", "ieee"):
 						item._baseType = None
 
-					for _, symbol in self._GetTypeMarksOf(region, item):
+					for _, _, symbol in self._GetTypeMarksOf(region, item):
 						symbol._reference = None
 
 		for entity in self.IterateDesignUnits(DesignUnitKind.Entity):  # type: Entity
@@ -1526,19 +1526,22 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		(:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`), so the visibility rules apply: e.g. a type declared after the
 		place isn't visible, and conflicting use clauses make a type mark ambiguous. A resolved type mark references the
 		type, the subtype or the generic type (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`); a type mark denoting an alias
-		of a type references the type. Resolving again yields the same references.
+		of a type references the type. Resolving again yields the same references, as long as the design isn't changed;
+		after a change, :meth:`Analyze` links the use clauses again.
 
 		.. rubric:: Algorithm
 
 		1. Iterate the design units of the predefined libraries ``std`` and ``ieee``, then the design units of all
-		   documents in compile order (:meth:`IterateDocumentsInCompileOrder`), so a package is resolved before its users.
+		   documents in compile order (the compile-order graph, :meth:`ComputeCompileOrder`), so a package is resolved
+		   before its users.
 		2. Iterate the declarative regions of each design unit, the outermost first (:meth:`_IterateDeclarationRegions`):
 
 		   1. Index the declared items of a region not indexed yet, e.g. a package body, a process or a subprogram.
 		   2. Iterate the region's declarations in declaration order:
 
 		      * Report an incomplete type, which has no full type declaration later in its region.
-		      * Resolve the name of an alias without a subtype indication, if it denotes a type (:meth:`_LookupName`).
+		      * Resolve the name of an alias without a subtype indication, if it's a simple name or an expanded name
+		        ``lib.pkg.item`` and denotes a type (:meth:`_LookupName`).
 		      * Resolve every type mark of the declaration (:meth:`_GetTypeMarksOf`) by :meth:`_ResolveTypeMark`.
 		      * Set the base type of a subtype declaration (:attr:`~pyVHDLModel.Type.Subtype.BaseType`): the resolved type,
 		        or the base type of the resolved subtype.
@@ -1551,6 +1554,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
@@ -1563,9 +1569,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			if (library := self._libraries.get(libraryIdentifier)) is not None:
 				designUnits.extend(library.IterateDesignUnits(DesignUnitKind.WithDeclaredItems))
 
-		if len(self._documents) > 0:
-			for document in self.IterateDocumentsInCompileOrder():
-				for designUnit in document.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
+		if self._compileOrderGraph.VertexCount > 0:
+			for vertex in self._compileOrderGraph.IterateTopologically():
+				for designUnit in vertex.Value.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
 					if designUnit not in designUnits:
 						designUnits.append(designUnit)
 
@@ -1583,23 +1589,36 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						):
 							WarningCollector.Raise(IncompleteTypeWarning(
 								f"Incomplete type '{item._identifier}' has no full type declaration in '{region._namespace._name}'.",
-								type=item
+								incompleteType=item
 							))
 					elif isinstance(item, Alias) and item._subtype is None:
-						result = self._LookupName(designUnit, region._namespace, item, item._name._name)
-						if result is not None and result.IsVisible and isinstance(result._declarations[0], BaseType):
-							item._name._reference = result._declarations[0]
+						name = item._name._name
+						isExpandedName = (
+							isinstance(name, SelectedName) and not isinstance(name, AllName)
+							and isinstance(name._prefix, SelectedName) and isinstance(name._prefix._prefix, SimpleName)
+						)
+						if isinstance(name, SimpleName) or isExpandedName:
+							item._name._reference = None
+							aliased = self._LookupName(designUnit, region._namespace, item, item._name, UnresolvedNameWarning)
+							if len(aliased) > 0 and isinstance(aliased[0], BaseType):
+								item._name._reference = aliased[0]
 
-					for namespace, symbol in self._GetTypeMarksOf(region, item):
-						self._ResolveTypeMark(designUnit, namespace, item, symbol)
+					for namespace, place, symbol in self._GetTypeMarksOf(region, item):
+						self._ResolveTypeMark(designUnit, namespace, place, symbol)
 
-					if isinstance(item, Subtype) and (reference := item._type._reference) is not None:
-						item._baseType = reference._baseType if isinstance(reference, Subtype) else reference
+					if isinstance(item, Subtype):
+						if (reference := item._type._reference) is None:
+							item._baseType = None
+						else:
+							item._baseType = reference._baseType if isinstance(reference, Subtype) else reference
 
 	@staticmethod
-	def _GetTypeMarksOf(region: DeclarationRegionMixin, item: ModelEntity) -> tuple[tuple[Namespace, SubtypeSymbol], ...]:
+	def _GetTypeMarksOf(
+		region: DeclarationRegionMixin,
+		item:   ModelEntity
+	) -> tuple[tuple[Namespace, ModelEntity, SubtypeSymbol], ...]:
 		"""
-		Return the type marks of a declaration in a declarative region, each with the namespace to look it up in.
+		Return the type marks of a declaration in a declarative region, each with the namespace and the place to look it up.
 
 		The place of a type mark is the declaration containing it. These type marks are returned:
 
@@ -1609,15 +1628,17 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		* the element subtypes of a record type,
 		* the designated subtype of an access type and of a file type,
 		* the type mark of an attribute declaration, a mode view declaration and an alias with a subtype indication,
-		* the subtype indications of a component's generics and ports, and
-		* the return type of a function (also a generic function), looked up in the function's namespace.
+		* the subtype indications of a component's generics and ports, each with the generic or port as place, and
+		* the return type of a function (also a generic function), looked up in the function's namespace before the
+		  function's declared items: at its first declared item, or at the function itself.
 
 		:param region: The declarative region.
 		:param item:   A declaration of the region.
-		:returns:      Tuple of (namespace, type mark) pairs, in declaration order.
+		:returns:      Tuple of (namespace, place, type mark) tuples, in declaration order.
 		"""
 		from pyVHDLModel.Subprogram import Function
 
+		namespace = region._namespace
 		if isinstance(item, Obj):
 			symbols = (item._subtype, )
 		elif isinstance(item, Subtype):
@@ -1631,62 +1652,132 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		elif isinstance(item, (Attribute, ModeViewDeclaration, Alias)):
 			symbols = (item._subtype, )
 		elif isinstance(item, Component):
-			interfaceItems = (*item._genericItems, *item._portItems)
-			symbols = tuple(element._subtype for element in interfaceItems if isinstance(element, Obj))
+			return tuple(
+				(namespace, interfaceItem, interfaceItem._subtype)
+				for interfaceItem in (*item._genericItems, *item._portItems)
+				if isinstance(interfaceItem, Obj) and isinstance(interfaceItem._subtype, SubtypeSymbol)
+			)
 		else:
 			symbols = ()
 
-		typeMarks = [(region._namespace, symbol) for symbol in symbols if isinstance(symbol, SubtypeSymbol)]
+		typeMarks = [(namespace, item, symbol) for symbol in symbols if isinstance(symbol, SubtypeSymbol)]
 		if isinstance(item, Function) and isinstance(item._returnType, SubtypeSymbol):
-			typeMarks.append((item._namespace, item._returnType))
+			place = item._declaredItems[0] if len(item._declaredItems) > 0 else item
+			typeMarks.append((item._namespace, place, item._returnType))
 
 		return tuple(typeMarks)
 
 	def _LookupName(
 		self,
-		designUnit: DesignUnit,
-		namespace:  Namespace,
-		place:      ModelEntity,
-		name:       _Name
-	) -> Nullable[LookupResult]:
+		designUnit:  DesignUnit,
+		namespace:   Namespace,
+		place:       ModelEntity,
+		symbol:      _Symbol,
+		warningType: type[UnresolvedNameWarning]
+	) -> tuple[ModelEntity, ...]:
 		"""
-		Look up the declarations a simple name or an expanded name denotes at a place.
+		Look up the declarations the simple name or expanded name of a symbol denotes at a place.
 
-		A simple name is looked up at the place (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`). An expanded name
-		``pkg.T`` or ``lib.pkg.T`` resolves its prefix to a package: ``pkg`` by a lookup at the place, ``lib.pkg`` by the
-		library (``work`` or a library referenced by the design unit) and the package's name. Then the suffix is searched
-		among the package's declarations (:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
+		A simple name is looked up at the place (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`); a generic of a component
+		is visible to the following generics and ports of the component. An expanded name ``pkg.T`` or ``lib.pkg.T``
+		resolves its prefix: ``pkg`` to a package visible at the place, else to an enclosing declarative region of that
+		name (e.g. the package or entity containing the place); ``lib.pkg`` by the library (``work`` or a library referenced
+		by the design unit) and the package's name. Then the suffix is searched among the declarations of the package or
+		region (:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
 
-		:param designUnit: The design unit containing the name.
-		:param namespace:  The namespace to look up the name in.
-		:param place:      The declaration containing the name.
-		:param name:       The simple name or expanded name.
-		:returns:          The lookup result, or ``None``, if the prefix of an expanded name isn't a visible package.
+		A failure is reported as a warning of the given type; then no declaration is returned.
+
+		:param designUnit:                     The design unit containing the name.
+		:param namespace:                      The namespace to look up the name in.
+		:param place:                          The declaration containing the name.
+		:param symbol:                         The symbol of the simple name or expanded name.
+		:param warningType:                    The warning class reporting a failure.
+		:returns:                              Tuple of the directly visible declarations, empty if none is.
+		:raises UnhandledCriticalWarningError: If the name isn't visible, is ambiguous, or has a prefix, which isn't a
+		                                       visible package or an enclosing region, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the warning.
 		"""
+		from pyVHDLModel.Interface import InterfaceItemMixin
+
+		name = symbol._name
+		label = "Type mark" if warningType is UnresolvedTypeMarkWarning else "Name"
+		normalizedIdentifier = name._normalizedIdentifier
 		if (prefix := name._prefix) is None:
-			return namespace.Lookup(name._normalizedIdentifier, place)
+			if isinstance(place, InterfaceItemMixin) and isinstance(component := place._parent, Component):
+				for genericItem in component._genericItems:
+					if genericItem is place:
+						break
+					elif normalizedIdentifier in normalizedIdentifiersOf(genericItem):
+						return (genericItem, )
 
-		package = None
-		if prefix._prefix is None:
-			for declaration in namespace.Lookup(prefix._normalizedIdentifier, place)._declarations:
-				if isinstance(declaration, Package):
-					package = declaration
+			result = namespace.Lookup(normalizedIdentifier, place)
+			if result.HasConflicts:
+				WarningCollector.Raise(warningType(
+					f"{label} '{name!s}' is ambiguous: use clauses import conflicting declarations.",
+					symbol=symbol,
+					place=place,
+					namespaces=result._searchedNamespaces,
+					conflicts=result._conflicts
+				))
+				return ()
+
+			declarations = result._declarations
+			searchedNamespaces = result._searchedNamespaces
+		else:
+			searchedNamespaces = ()
+			if prefix._prefix is None:
+				result = namespace.Lookup(prefix._normalizedIdentifier, place)
+				packages = [declaration for declaration in result._declarations if isinstance(declaration, Package)]
+				if len(packages) > 0:
+					searchedNamespaces = (packages[0]._namespace, )
+				else:
+					# An enclosing declarative region of that name, e.g. the package declaring the place.
+					enclosingNamespace = namespace
+					while enclosingNamespace is not None:
+						if enclosingNamespace._name is not None and enclosingNamespace._name.lower() == prefix._normalizedIdentifier:
+							searchedNamespaces = (*searchedNamespaces, enclosingNamespace)
+
+						enclosingNamespace = enclosingNamespace._parentNamespace
+			elif prefix._prefix._prefix is None:
+				libraryIdentifier = prefix._prefix._normalizedIdentifier
+				if libraryIdentifier == "work":
+					library = designUnit._parent
+				else:
+					library = designUnit._referencedLibraries.get(libraryIdentifier)
+
+				if library is not None and (package := library._packages.get(prefix._normalizedIdentifier)) is not None:
+					searchedNamespaces = (package._namespace, )
+
+			if len(searchedNamespaces) == 0:
+				WarningCollector.Raise(warningType(
+					f"Prefix '{prefix!s}' of {label.lower()} '{name!s}' isn't a visible package or an enclosing region.",
+					symbol=symbol,
+					place=place,
+					namespaces=(namespace, )
+				))
+				return ()
+
+			declarations = ()
+			for searchedNamespace in searchedNamespaces:
+				if len(declarations := searchedNamespace.FindDeclarations(normalizedIdentifier)) > 0:
 					break
-		elif prefix._prefix._prefix is None:
-			libraryIdentifier = prefix._prefix._normalizedIdentifier
-			if libraryIdentifier == "work":
-				library = designUnit._parent
-			else:
-				library = designUnit._referencedLibraries.get(libraryIdentifier)
 
-			if library is not None:
-				package = library._packages.get(prefix._normalizedIdentifier)
+		if len(declarations) == 0:
+			# An unlabeled region (e.g. a process) has no name; a package body has the name of its package.
+			names = []
+			for searchedNamespace in searchedNamespaces:
+				namespaceName = "?" if searchedNamespace._name is None else searchedNamespace._name
+				if len(names) == 0 or names[-1] != namespaceName:
+					names.append(namespaceName)
 
-		if package is None:
-			return None
+			WarningCollector.Raise(warningType(
+				f"{label} '{name!s}' not found in: {', '.join(names)}.",
+				symbol=symbol,
+				place=place,
+				namespaces=searchedNamespaces
+			))
 
-		declarations = package._namespace.FindDeclarations(name._normalizedIdentifier)
-		return LookupResult(name._normalizedIdentifier, declarations, (), (), (package._namespace, ))
+		return declarations
 
 	def _ResolveTypeMark(
 		self,
@@ -1700,9 +1791,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		.. rubric:: Algorithm
 
-		1. Look up the type mark's name (:meth:`_LookupName`).
-		2. An alias of a type is replaced by the type its name references.
-		3. If the declaration is a type, a subtype or a generic type, it becomes the symbol's reference.
+		1. Clear the symbol's reference.
+		2. Look up the type mark's name (:meth:`_LookupName`).
+		3. An alias of a type is replaced by the type its name references.
+		4. If the declaration is a type, a subtype or a generic type, it becomes the symbol's reference. A full type, which
+		   follows the place in the same region, is visible by its incomplete type declaration only to an access type.
 
 		An attribute name (e.g. ``T'base``) isn't resolved.
 
@@ -1711,44 +1804,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
 		:raises UnhandledCriticalWarningError: If the type mark isn't visible, is ambiguous, has a prefix, which isn't a
-		                                       visible package, or denotes no type, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		                                       visible package, denotes no type, or denotes an incomplete type outside of an
+		                                       access type, and no :class:`~pyTooling.Warning.WarningCollector` collects
+		                                       the :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
+		symbol._reference = None
 		name = symbol._name
 		if isinstance(name, AttributeName):
 			return
 
-		typeMark = symbol.TypeMark
-		if (result := self._LookupName(designUnit, namespace, place, name)) is None:
-			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Prefix '{name._prefix!s}' of type mark '{typeMark}' isn't a visible package.",
-				symbol=symbol,
-				place=place,
-				namespaces=(namespace, )
-			))
-			return
-		elif result.HasConflicts:
-			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Type mark '{typeMark}' is ambiguous: use clauses import conflicting declarations.",
-				symbol=symbol,
-				place=place,
-				namespaces=result._searchedNamespaces,
-				conflicts=result._conflicts
-			))
-			return
-
-		declarations = result._declarations
-		searchedNamespaces = result._searchedNamespaces
-		if len(declarations) == 0:
-			# An unlabeled region (e.g. a process) has no name.
-			names = ", ".join("?" if ns._name is None else ns._name for ns in searchedNamespaces)
-			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Type mark '{typeMark}' not found in: {names}.",
-				symbol=symbol,
-				place=place,
-				namespaces=searchedNamespaces
-			))
+		if len(declarations := self._LookupName(designUnit, namespace, place, symbol, UnresolvedTypeMarkWarning)) == 0:
 			return
 
 		declaration = declarations[0]
@@ -1757,12 +1822,24 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		if not isinstance(declaration, BaseType):
 			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Type mark '{typeMark}' denotes a {declaration.__class__.__name__}, not a type or subtype.",
+				f"Type mark '{name!s}' doesn't denote a type or subtype (found: {declaration.__class__.__name__}).",
 				symbol=symbol,
 				place=place,
-				namespaces=searchedNamespaces
+				namespaces=(namespace, )
 			))
 			return
+		elif isinstance(declaration, FullType) and declaration._parent is place._parent and not isinstance(place, AccessType):
+			region = place._parent
+			if isinstance(region, DeclarationRegionMixin):
+				declarationsOfRegion = region._Declarations()
+				if declarationsOfRegion.index(declaration) > declarationsOfRegion.index(place):
+					WarningCollector.Raise(UnresolvedTypeMarkWarning(
+						f"Type mark '{name!s}' denotes an incomplete type, which only an access type may use.",
+						symbol=symbol,
+						place=place,
+						namespaces=(namespace, )
+					))
+					return
 
 		symbol._reference = declaration
 

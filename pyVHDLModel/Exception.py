@@ -332,26 +332,26 @@ class IncompleteTypeWarning(VHDLModelCriticalWarning):
 	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
 	"""
 
-	_type: Nullable[ModelEntity]  #: The incomplete type declaration.
+	_incompleteType: ModelEntity  #: The incomplete type declaration.
 
-	def __init__(self, message: str, /, *, type: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, message: str, /, *, incompleteType: ModelEntity) -> None:
 		"""
 		Initializes the warning with the incomplete type declaration.
 
-		:param message: The warning's message.
-		:param type:    Optional, the incomplete type declaration.
+		:param message:        The warning's message.
+		:param incompleteType: The incomplete type declaration.
 		"""
 		super().__init__(message)
-		self._type = type
+		self._incompleteType = incompleteType
 
 	@readonly
-	def Type(self) -> Nullable[ModelEntity]:
+	def IncompleteType(self) -> ModelEntity:
 		"""
-		Read-only property to access the incomplete type declaration (:attr:`_type`).
+		Read-only property to access the incomplete type declaration (:attr:`_incompleteType`).
 
-		:returns: The incomplete type declaration, or ``None`` if it wasn't recorded.
+		:returns: The incomplete type declaration.
 		"""
-		return self._type
+		return self._incompleteType
 
 
 @export

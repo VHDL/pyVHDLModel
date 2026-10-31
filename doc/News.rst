@@ -48,6 +48,8 @@ Version 0.43.0 (2026)
      unit's value has the unit as parent (was the physical type).
    * Aliases without a subtype indication, which may denote a subprogram, are overloadable; aliases, attribute
      declarations and packages declared in a region are checked for duplicate declarations.
+   * ``FindComponent``, ``FindSubtype`` and ``FindObject`` follow the visibility rules: a declaration of an enclosing
+     region hides an import of an inner region; the message always lists the searched namespaces.
    * Breaking change: the prototype ``Design.AnalyzeObjects()``, ``ImportObjects()`` and ``CreateTypeAndObjectGraph()``
      is removed; :meth:`~pyVHDLModel.Design.ResolveTypeMarks` replaces it.
    * A protected type and its body chain their namespace to the enclosing region's namespace.

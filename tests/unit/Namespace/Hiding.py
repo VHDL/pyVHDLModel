@@ -50,11 +50,12 @@ from pyTooling.Testing      import Testcase
 from pyVHDLModel            import Design, Document, Library
 from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.Concurrent import ConcurrentBlockStatement, ForGenerateStatement
-from pyVHDLModel.DesignUnit import Architecture, Entity
+from pyVHDLModel.DesignUnit import Architecture, Entity, Package
 from pyVHDLModel.Exception  import DuplicateDeclarationWarning
 from pyVHDLModel.Expression import IntegerLiteral
 from pyVHDLModel.Name       import SimpleName
-from pyVHDLModel.Object     import Signal
+from pyVHDLModel.Namespace  import Namespace
+from pyVHDLModel.Object     import Constant, Signal
 from pyVHDLModel.Symbol     import EntitySymbol, SignalSymbol, SimpleSubtypeSymbol
 
 from tests.unit             import _signal, _warningsOfType
@@ -242,3 +243,18 @@ class GeneratesInsideArchitecture(Testcase):
 		found = self._architecture._namespace.FindObject(SignalSymbol(SimpleName("x")))
 
 		self.assertIs(self._architectureSignal, found)
+
+
+class EnclosingDeclarationHidesInnerImport(Testcase):
+	"""A declaration of an enclosing region hides an import of an inner region (IEEE Std 1076-2008, 12.4; GHDL)."""
+
+	def test_FindObject(self) -> None:
+		outer = Namespace("rtl")
+		inner = Namespace("proc", outer)
+		signal = _signal("k", "bit")
+		outer.AddElement("k", signal)
+		imported = Constant(("K", ), SimpleSubtypeSymbol(SimpleName("integer")))
+		Package("p", declaredItems=[imported])
+		inner.AddImport("k", imported, None)
+
+		self.assertIs(signal, inner.FindObject(SignalSymbol(SimpleName("k"))))

@@ -58,7 +58,8 @@ from pyVHDLModel.Expression      import NullLiteral, EnumerationLiteral, Integer
                                         QualifiedExpression, WhenElseExpression, FunctionCall, SubtypeAllocation, \
                                         QualifiedExpressionAllocation, SimpleAggregateElement, \
                                         IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
-                                        OthersAggregateElement, Aggregate, CharacterEnumerationLiteral
+                                        OthersAggregateElement, Aggregate, CharacterEnumerationLiteral, \
+                                        ConditionExpression
 from pyVHDLModel.Formatting.VHDL import VHDLWriter
 from pyVHDLModel.Name            import SimpleName
 from pyVHDLModel.Symbol          import RecordElementSymbol
@@ -198,6 +199,7 @@ class UnaryExpressions(Testcase):
 			IdentityExpression,
 			InverseExpression,
 			AbsoluteExpression,
+			ConditionExpression,
 			UnaryAndExpression,
 			UnaryNandExpression,
 			UnaryOrExpression,

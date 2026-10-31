@@ -67,7 +67,8 @@ from pyVHDLModel.Expression import OperatorPrecedence, BaseExpression, Literal, 
                                    TernaryExpression, WhenElseExpression, FunctionCall, SubtypeAllocation, \
                                    QualifiedExpressionAllocation, AggregateElement, SimpleAggregateElement, \
                                    IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
-                                   OthersAggregateElement, Aggregate, CharacterEnumerationLiteral
+                                   OthersAggregateElement, Aggregate, CharacterEnumerationLiteral, \
+                                   ConditionExpression
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -644,6 +645,7 @@ _UNARY_FORMATS = (
 	(UnaryXorExpression,   "xor 1"),
 	(UnaryXnorExpression,  "xnor 1"),
 	(AbsoluteExpression,   "abs 1"),
+	(ConditionExpression,  "?? 1"),
 	(SubExpression,        "(1)"),
 )
 

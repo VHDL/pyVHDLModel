@@ -1280,6 +1280,35 @@ class InverseExpression(UnaryExpression):
 
 
 @export
+class ConditionExpression(UnaryExpression):
+	"""
+	Represents a condition operator expression (``??``), converting its operand to ``boolean``.
+
+	The operand is available as :data:`Operand`; it is a primary.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      if ?? enable then
+	      -- ^^^^^^^^^    <- the expression
+	      --    ^^^^^^    <- Operand
+	"""
+	_PRECEDENCE: ClassVar[OperatorPrecedence] = OperatorPrecedence.Conditional  #: The operator's precedence level.
+	_FORMAT:     ClassVar[tuple[str, str]]    = ("?? ", "")                     #: The operator's string fragments.
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this condition operator expression and its operand with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitConditionExpression(self)
+		self._operand.Visit(visitor)
+		visitor.DepartConditionExpression(self)
+
+
+@export
 class UnaryAndExpression(UnaryExpression):
 	"""
 	Represents a ``and`` reduction expression.

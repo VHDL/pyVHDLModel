@@ -78,7 +78,8 @@ from pyVHDLModel.Expression    import OperatorPrecedence, NullLiteral, Enumerati
                                       RelationalExpression, ShiftExpression, QualifiedExpression, WhenElseExpression, \
                                       SubtypeAllocation, QualifiedExpressionAllocation, SimpleAggregateElement, \
                                       IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
-                                      OthersAggregateElement, Aggregate, CharacterEnumerationLiteral
+                                      OthersAggregateElement, Aggregate, CharacterEnumerationLiteral, \
+                                      ConditionExpression
 from pyVHDLModel.Name          import SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, \
                                       AttributeName, AllName, OpenName
 from pyVHDLModel.Interface     import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, \
@@ -1392,6 +1393,26 @@ class VHDLWriter(Visitor):
 		Leave a negation.
 
 		:param expression: The negation.
+		"""
+		self._Leave()
+
+	def VisitConditionExpression(self, expression: ConditionExpression) -> None:
+		"""
+		Write the condition operator; its operand is a primary.
+
+		**Format:** ``?? enable``
+
+		:param expression: The condition operator expression.
+		"""
+		self._Enter(expression._PRECEDENCE)
+		self._Write(expression._FORMAT[0])
+		self._minimum = OperatorPrecedence.Primary
+
+	def DepartConditionExpression(self, expression: ConditionExpression) -> None:
+		"""
+		Leave a condition operator expression.
+
+		:param expression: The condition operator expression.
 		"""
 		self._Leave()
 

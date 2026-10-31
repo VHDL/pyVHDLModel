@@ -95,7 +95,8 @@ if TYPE_CHECKING:
 	                                      ShiftExpression, QualifiedExpression, WhenElseExpression, SubtypeAllocation, \
 	                                      QualifiedExpressionAllocation, SimpleAggregateElement, \
 	                                      IndexedAggregateElement, RangedAggregateElement, NamedAggregateElement, \
-	                                      OthersAggregateElement, Aggregate, CharacterEnumerationLiteral
+	                                      OthersAggregateElement, Aggregate, CharacterEnumerationLiteral, \
+	                                      ConditionExpression
 	from pyVHDLModel.Interface     import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, \
 	                                      GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
 	                                      PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem, \
@@ -752,6 +753,20 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from a negation (sign ``-``), after its operand.
 
 		:param expression: The negation.
+		"""
+
+	def VisitConditionExpression(self, expression: ConditionExpression) -> None:
+		"""
+		Visit a condition operator expression (``??``), before its operand.
+
+		:param expression: The condition operator expression.
+		"""
+
+	def DepartConditionExpression(self, expression: ConditionExpression) -> None:
+		"""
+		Depart from a condition operator expression (``??``), after its operand.
+
+		:param expression: The condition operator expression.
 		"""
 
 	def VisitIdentityExpression(self, expression: IdentityExpression) -> None:

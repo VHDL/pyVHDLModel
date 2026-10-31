@@ -251,7 +251,7 @@ class AggregateSymbols(Testcase):
 		sum =    VariableSymbol(SimpleName("sum"))
 		symbol = AggregateSymbol([carry, sum])
 
-		self.assertListEqual([carry, sum], symbol.Elements)
+		self.assertListEqual([carry, sum], symbol.Targets)
 		self.assertIsNone(symbol.Name)
 		self.assertIs(PossibleReference.Variable, symbol._possibleReferences)
 		self.assertFalse(symbol.IsResolved)
@@ -286,32 +286,32 @@ class AggregateSymbols(Testcase):
 		self.assertTrue(symbol.IsResolved)
 		self.assertTrue(bool(symbol))
 
-	def test_Elements_None(self) -> None:
+	def test_Targets_None(self) -> None:
 		with self.assertRaises(ValueError) as context:
 			AggregateSymbol(None)
 
-		self.assertEqual("Parameter 'elements' is None.", str(context.exception))
+		self.assertEqual("Parameter 'targets' is None.", str(context.exception))
 
-	def test_Elements_NotIterable(self) -> None:
+	def test_Targets_NotIterable(self) -> None:
 		with self.assertRaises(TypeError) as context:
 			AggregateSymbol(5)
 
-		self.assertEqual("Parameter 'elements' is not iterable.", str(context.exception))
+		self.assertEqual("Parameter 'targets' is not iterable.", str(context.exception))
 		self.assertEqual(["Got type 'int'."], context.exception.__notes__)
 
-	def test_Elements_NoSymbol(self) -> None:
+	def test_Targets_NoSymbol(self) -> None:
 		with self.assertRaises(TypeError) as context:
 			AggregateSymbol([VariableSymbol(SimpleName("a")), 5])
 
-		self.assertEqual("Element of parameter 'elements' is not of type 'Symbol'.", str(context.exception))
+		self.assertEqual("Target in parameter 'targets' is not of type 'Symbol'.", str(context.exception))
 		self.assertEqual(["Got type 'int'."], context.exception.__notes__)
 
-	def test_Elements_Single(self) -> None:
+	def test_Targets_Single(self) -> None:
 		with self.assertRaises(ValueError) as context:
 			AggregateSymbol([VariableSymbol(SimpleName("a"))])
 
-		self.assertEqual("Parameter 'elements' has fewer than two elements.", str(context.exception))
+		self.assertEqual("Parameter 'targets' has fewer than two targets.", str(context.exception))
 		self.assertEqual(
-			["Got 1 element(s).", "A single target in parentheses is no aggregate; use the target's symbol."],
+			["Got 1 target(s).", "A single target in parentheses is no aggregate; use the target's symbol."],
 			context.exception.__notes__
 		)

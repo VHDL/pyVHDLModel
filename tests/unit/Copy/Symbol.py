@@ -265,5 +265,5 @@ class ConstrainedRecordSubtypeSymbols(Testcase):
 
 		self.assertIs(AggregateSymbol, type(copy))
 		self.assertEqual("(carry?, sum?)", str(copy))
-		for originalElement, copiedElement in zip(original.Elements, copy.Elements):
+		for originalElement, copiedElement in zip(original.Targets, copy.Targets):
 			self.assertIsNot(originalElement, copiedElement)

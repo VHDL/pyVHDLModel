@@ -563,7 +563,7 @@ class AggregateSymbol(Symbol):
 
 	VHDL's grammar calls it an aggregate (``target ::= name | aggregate``), but it decomposes the assigned value into its
 	targets: each element is a target itself, e.g. a variable or a signal, never a constant. The group has no name of its
-	own (:attr:`~pyVHDLModel.Symbol.Symbol.Name` is ``None``); its targets are available as :data:`Elements`.
+	own (:attr:`~pyVHDLModel.Symbol.Symbol.Name` is ``None``); its targets are available as :data:`Targets`.
 
 	.. admonition:: Example
 
@@ -571,57 +571,57 @@ class AggregateSymbol(Symbol):
 
 	      (carry, sum) := add(a, b);
 	      -- ^^^^^^^^^^^^    <- the aggregate symbol
-	      --  ^^^^^  ^^^    <- Elements
+	      --  ^^^^^  ^^^    <- Targets
 	"""
-	_elements: list[Symbol]  #: List of the targets, in source order.
+	_targets: list[Symbol]  #: List of the targets, in source order.
 
-	def __init__(self, elements: Iterable[Symbol]) -> None:
+	def __init__(self, targets: Iterable[Symbol]) -> None:
 		"""
 		Initializes a group of targets.
 
-		:param elements:    The targets, in source order.
-		:raises ValueError: If parameter 'elements' is None.
-		:raises TypeError:  If parameter 'elements' is not iterable.
-		:raises TypeError:  If an element of parameter 'elements' is not a :class:`Symbol`.
-		:raises ValueError: If parameter 'elements' has fewer than two elements (one would read as parentheses). |br|
+		:param targets:     The targets, in source order.
+		:raises ValueError: If parameter 'targets' is None.
+		:raises TypeError:  If parameter 'targets' is not iterable.
+		:raises TypeError:  If a target in parameter 'targets' is not a :class:`Symbol`.
+		:raises ValueError: If parameter 'targets' has fewer than two targets (one would read as parentheses). |br|
 		                    A single target in parentheses is no aggregate; use the target's symbol.
 		"""
 		super().__init__(None, PossibleReference.Unknown)
 
-		if elements is None:
-			raise ValueError("Parameter 'elements' is None.")
-		elif not isinstance(elements, Iterable):
-			ex = TypeError("Parameter 'elements' is not iterable.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(elements)}'.")
+		if targets is None:
+			raise ValueError("Parameter 'targets' is None.")
+		elif not isinstance(targets, Iterable):
+			ex = TypeError("Parameter 'targets' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(targets)}'.")
 			raise ex
 
-		self._elements = elementList = []
+		self._targets = targetList = []
 		possibleReferences = PossibleReference.Unknown
-		for element in elements:
-			if not isinstance(element, Symbol):
-				ex = TypeError("Element of parameter 'elements' is not of type 'Symbol'.")
-				ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+		for target in targets:
+			if not isinstance(target, Symbol):
+				ex = TypeError("Target in parameter 'targets' is not of type 'Symbol'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(target)}'.")
 				raise ex
 
-			elementList.append(element)
-			possibleReferences |= element._possibleReferences
+			targetList.append(target)
+			possibleReferences |= target._possibleReferences
 
-		if len(elementList) < 2:
-			ex = ValueError("Parameter 'elements' has fewer than two elements.")
-			ex.add_note(f"Got {len(elementList)} element(s).")
+		if len(targetList) < 2:
+			ex = ValueError("Parameter 'targets' has fewer than two targets.")
+			ex.add_note(f"Got {len(targetList)} target(s).")
 			ex.add_note("A single target in parentheses is no aggregate; use the target's symbol.")
 			raise ex
 
 		self._possibleReferences = possibleReferences
 
 	@readonly
-	def Elements(self) -> list[Symbol]:
+	def Targets(self) -> list[Symbol]:
 		"""
-		Read-only property to access the targets (:attr:`_elements`).
+		Read-only property to access the targets (:attr:`_targets`).
 
 		:returns: List of the targets, in source order.
 		"""
-		return self._elements
+		return self._targets
 
 	@readonly
 	def IsResolved(self) -> bool:
@@ -630,7 +630,7 @@ class AggregateSymbol(Symbol):
 
 		:returns: ``True``, if every target is resolved.
 		"""
-		return all(element.IsResolved for element in self._elements)
+		return all(target.IsResolved for target in self._targets)
 
 	def __bool__(self) -> bool:
 		"""
@@ -646,7 +646,7 @@ class AggregateSymbol(Symbol):
 
 		:returns: The new group of targets.
 		"""
-		return self.__class__([element.Copy() for element in self._elements])
+		return self.__class__([target.Copy() for target in self._targets])
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -655,11 +655,11 @@ class AggregateSymbol(Symbol):
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitAggregateSymbol(self)
-		for index, element in enumerate(self._elements):
+		for index, target in enumerate(self._targets):
 			if index > 0:
 				visitor.VisitElementSeparator(self)
 
-			element.Visit(visitor)
+			target.Visit(visitor)
 
 		visitor.DepartAggregateSymbol(self)
 
@@ -671,7 +671,7 @@ class AggregateSymbol(Symbol):
 
 		:returns: String representation of the group of targets.
 		"""
-		return f"{getTypeName(self)}: ({', '.join(repr(element) for element in self._elements)})"
+		return f"{getTypeName(self)}: ({', '.join(repr(target) for target in self._targets)})"
 
 	def __str__(self) -> str:
 		"""
@@ -681,7 +681,7 @@ class AggregateSymbol(Symbol):
 
 		:returns: Formatted group of targets.
 		"""
-		return f"({', '.join(str(element) for element in self._elements)})"
+		return f"({', '.join(str(target) for target in self._targets)})"
 
 
 @export

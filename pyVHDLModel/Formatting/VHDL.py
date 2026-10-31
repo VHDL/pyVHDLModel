@@ -576,19 +576,16 @@ class VHDLStyle(metaclass=ExtendedType, slots=True):
 		singleLine =    AssociationListStyle(NewLine.Remove, NewLine.Remove, NewLine.Remove)
 		oneLineIfFits = InterfaceListStyle(ignoreSingleLine=True)
 
-		if endKeyword is None:
-			raise ValueError("Parameter 'endKeyword' is None.")
-		elif not isinstance(endKeyword, OptionalItem):
-			ex = TypeError("Parameter 'endKeyword' is not of type 'OptionalItem'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(endKeyword)}'.")
-			raise ex
-
-		if endName is None:
-			raise ValueError("Parameter 'endName' is None.")
-		elif not isinstance(endName, OptionalItem):
-			ex = TypeError("Parameter 'endName' is not of type 'OptionalItem'.")
-			ex.add_note(f"Got type '{getFullyQualifiedName(endName)}'.")
-			raise ex
+		for name, optionalItem in (
+			("endKeyword", endKeyword),
+			("endName",    endName)
+		):
+			if optionalItem is None:
+				raise ValueError(f"Parameter '{name}' is None.")
+			elif not isinstance(optionalItem, OptionalItem):
+				ex = TypeError(f"Parameter '{name}' is not of type 'OptionalItem'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(optionalItem)}'.")
+				raise ex
 
 		self._keywordCase =             keywordCase
 		self._indentStyle =             indentStyle

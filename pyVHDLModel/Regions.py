@@ -1958,15 +1958,32 @@ class DeclarationRegionMixin(
 		"""
 		Hook for declared items the region doesn't handle itself. Derived classes may override it.
 
+		An alias, an attribute declaration and a package (also a package instantiation) declared in the region are added to
+		the namespace, without a lookup table.
+
 		:param item: The declared item.
 		"""
+		from pyVHDLModel.Declaration import Alias, Attribute
+		from pyVHDLModel.DesignUnit  import Package
+
+		if isinstance(item, (Alias, Attribute, Package)):
+			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=Namespace.IsOverloadable(item))
 
 	def _UnindexOtherDeclaredItem(self, item: ModelEntity) -> None:
 		"""
 		Hook to remove declared items the region doesn't handle itself. Derived classes may override it.
 
-		:param item: The declared item.
+		An alias, an attribute declaration and a package are removed from the namespace.
+
+		:param item:                 The declared item.
+		:raises NotInNamespaceError: If the item is an alias, an attribute declaration or a package, which isn't declared
+		                             in the namespace.
 		"""
+		from pyVHDLModel.Declaration import Alias, Attribute
+		from pyVHDLModel.DesignUnit  import Package
+
+		if isinstance(item, (Alias, Attribute, Package)):
+			self._namespace.RemoveElement(item._normalizedIdentifier, item)
 
 	def _RemoveDeclaredItemsFromNamespace(self) -> None:
 		"""
@@ -1976,7 +1993,7 @@ class DeclarationRegionMixin(
 		"""
 		from pyVHDLModel.Interface import InterfaceItemMixin
 
-		for normalizedIdentifier, element in list(self._namespace.Elements().items()):
+		for normalizedIdentifier, element in list(self._namespace.Elements.items()):
 			if not isinstance(element, InterfaceItemMixin) and element._parent is self:
 				self._namespace.RemoveElement(normalizedIdentifier, element)
 
@@ -1997,7 +2014,7 @@ class DeclarationRegionMixin(
 		                             declaration.
 		"""
 		normalizedIdentifiers = normalizedIdentifiersOf(item)
-		elements = self._namespace.Elements()
+		elements = self._namespace.Elements
 		for normalizedIdentifier in normalizedIdentifiers:
 			if elements.get(normalizedIdentifier) is not item:
 				# raises NotInNamespaceError, naming the reason
@@ -2084,7 +2101,7 @@ class DeclarationRegionMixin(
 		from pyVHDLModel.Subprogram import Function, Procedure
 
 		normalizedIdentifier = item._normalizedIdentifier
-		entry = self._namespace.Elements().get(normalizedIdentifier)
+		entry = self._namespace.Elements.get(normalizedIdentifier)
 		if entry is item:
 			remaining = [
 				declaration for declaration in self._Declarations()
@@ -2096,7 +2113,7 @@ class DeclarationRegionMixin(
 				self._namespace.RemoveElement(normalizedIdentifier, item)
 			else:
 				self._namespace.AddElement(normalizedIdentifier, remaining[-1], overloadable=True)
-		elif not isinstance(entry, (Function, Procedure)):
+		elif not Namespace.IsOverloadable(entry):
 			# raises NotInNamespaceError, naming the reason
 			self._namespace.RemoveElement(normalizedIdentifier, item)
 
@@ -2127,7 +2144,7 @@ class DeclarationRegionMixin(
 		from pyVHDLModel.Type       import FullType, AnonymousType, ProtectedType, ProtectedTypeBody
 
 		return (
-			(isinstance(item, (Function, Procedure)) and isinstance(existing, (Function, Procedure)))
+			(Namespace.IsOverloadable(item) and Namespace.IsOverloadable(existing))
 			or (isinstance(item, ProtectedTypeBody) and isinstance(existing, ProtectedType))
 			or (isinstance(item, ProtectedType) and isinstance(existing, ProtectedTypeBody))
 			or (isinstance(item, FullType) and isinstance(existing, AnonymousType))

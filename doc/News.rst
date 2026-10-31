@@ -6,6 +6,47 @@ News
 See :gh:`pyVHDLModel Release Pages <VHDL/pyVHDLModel/releases>` for detail release notes on every release.
 
 
+Version 0.43.0 (2026)
+*********************
+
+.. topic:: :gh:`v0.43.0 - unreleased <VHDL/pyVHDLModel/releases/v0.43.0>`
+
+   .. rubric:: New Features
+
+   * Visibility (IEEE Std 1076-2008, clause 12): :meth:`Namespace.Lookup() <pyVHDLModel.Namespace.Namespace.Lookup>`
+     returns the declarations directly visible at a place (:class:`~pyVHDLModel.Namespace.LookupResult`): hiding by
+     declarations of the region and enclosing regions, overloaded subprograms, subprogram aliases and enumeration
+     literals, conflicting imports, declaration order, incomplete types.
+   * Use clauses import every declaration of a package (``use lib.pkg.all;``), all declarations of one name, incl. the
+     literals or units of a type (``use lib.pkg.item;``), the package (``use lib.pkg;``) or units of a library
+     (``use work.all;``); also in declarative parts (architecture, block, process, subprogram, package, generate) and
+     through context references, also nested ones. A missing package member or primary unit, a prefix, which isn't a
+     visible package, and an uninstantiated generic package are an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+   * Enumeration literals and physical units of a region's types are declarations of the region
+     (:data:`Namespace.ImplicitDeclarations <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`).
+   * Aliases, attribute declarations and packages declared in a region are added to its namespace.
+
+   .. rubric:: Changes
+
+   * Breaking change: :data:`Namespace.Imports <pyVHDLModel.Namespace.Namespace.Imports>` is a read-only property
+     (was a method) of a list of :class:`~pyVHDLModel.Namespace.Import` (declaration and use clause) per identifier;
+     :meth:`~pyVHDLModel.Namespace.Namespace.AddImport` takes the use clause.
+   * Breaking change: :data:`Namespace.Elements <pyVHDLModel.Namespace.Namespace.Elements>` is a read-only property
+     (was a method).
+   * Breaking change: a physical type's units are :class:`~pyVHDLModel.Type.PhysicalUnit` declarations:
+     :attr:`PhysicalType.PrimaryUnit <pyVHDLModel.Type.PhysicalType.PrimaryUnit>` returns the primary unit, which has no
+     value (was its name; formatted, it's still the name), :attr:`PhysicalType.SecondaryUnits
+     <pyVHDLModel.Type.PhysicalType.SecondaryUnits>` the list of secondary units (was (name, value) pairs); a secondary
+     unit's value has the unit as parent (was the physical type).
+   * Aliases without a subtype indication, which may denote a subprogram, are overloadable; aliases, attribute
+     declarations and packages declared in a region are checked for duplicate declarations.
+
+   .. rubric:: Bug Fixes
+
+   * The symbols of use clauses in contexts and of ``.all``/member use clauses reference their package; context
+     reference symbols their context (was an extra attribute).
+
+
 Version 0.42.0 (2026)
 *********************
 

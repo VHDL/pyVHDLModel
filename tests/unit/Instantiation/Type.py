@@ -183,17 +183,41 @@ class PhysicalTypes(Testcase):
 		physicalType = PhysicalType("my_time", rng, "ps", [("fs", femtoSeconds)])
 
 		self.assertIs(rng, physicalType.Range)
-		self.assertEqual("ps", physicalType.PrimaryUnit)
+		self.assertEqual("ps", physicalType.PrimaryUnit.Identifier)
 		self.assertEqual(1, len(physicalType.SecondaryUnits))
-		self.assertEqual("fs", physicalType.SecondaryUnits[0][0])
-		self.assertIs(femtoSeconds, physicalType.SecondaryUnits[0][1])
-		self.assertIs(physicalType, femtoSeconds.Parent)
+		self.assertEqual("fs", physicalType.SecondaryUnits[0].Identifier)
+		self.assertIs(femtoSeconds, physicalType.SecondaryUnits[0].Value)
+		self.assertIs(physicalType.SecondaryUnits[0], femtoSeconds.Parent)
 		self.assertEqual("my_time is range 0 to 1000 units ps; fs = 1000 fs;", str(physicalType))
 
 	def test_NoSecondaryUnits(self) -> None:
 		physicalType = PhysicalType("my_time", _range(0, 1000), "ps", [])
 
-		self.assertEqual(0, len(physicalType.SecondaryUnits))
+		self.assertListEqual([], physicalType.SecondaryUnits)
+
+	def test_PrimaryUnit(self) -> None:
+		"""The primary unit is a unit declaration without a value."""
+		physicalType = PhysicalType("my_time", _range(0, 1000), "ps", [])
+
+		primaryUnit = physicalType.PrimaryUnit
+		self.assertEqual("ps", primaryUnit.Identifier)
+		self.assertIsNone(primaryUnit.Value)
+		self.assertIs(physicalType, primaryUnit.Parent)
+		self.assertEqual("ps", str(primaryUnit))
+
+	def test_SecondaryUnits(self) -> None:
+		"""A secondary unit is a unit declaration with a value; the physical type owns the list of them."""
+		femtoSeconds = PhysicalIntegerLiteral(1000, "fs")
+		physicalType = PhysicalType("my_time", _range(0, 1000), "ps", [("ns", femtoSeconds)])
+
+		secondaryUnits = physicalType.SecondaryUnits
+		self.assertIs(secondaryUnits, physicalType.SecondaryUnits)
+		secondaryUnit = secondaryUnits[0]
+		self.assertEqual("ns", secondaryUnit.NormalizedIdentifier)
+		self.assertIs(femtoSeconds, secondaryUnit.Value)
+		self.assertIs(secondaryUnit, femtoSeconds.Parent)
+		self.assertIs(physicalType, secondaryUnit.Parent)
+		self.assertEqual("ns = 1000 fs", str(secondaryUnit))
 
 
 class ArrayTypes(Testcase):

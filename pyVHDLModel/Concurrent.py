@@ -1472,11 +1472,11 @@ class GenerateStatement(ConcurrentStatement, AllowBlackboxMixin):
 
 	# @mustoverride
 	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
-		raise NotImplementedError()
+		raise NotImplementedError(f"Method 'IterateInstantiations' isn't implemented by '{getTypeName(self)}'.")
 
 	# @mustoverride
 	def IndexStatement(self) -> None:
-		raise NotImplementedError()
+		raise NotImplementedError(f"Method 'IndexStatement' isn't implemented by '{getTypeName(self)}'.")
 
 
 @export

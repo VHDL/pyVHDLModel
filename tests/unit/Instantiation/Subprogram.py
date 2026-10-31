@@ -77,10 +77,9 @@ class Procedures(Testcase):
 		self.assertIs(procedure, statement.Parent)
 
 	def test_WithGenericAndParameterItems(self) -> None:
-		"""Uses a bare ``Procedure`` stand-in for the parameter item - only ``.Parent``-wiring is exercised
-		here. A generic is checked by its generic group, so it is a real generic."""
+		"""A generic and a parameter are checked by their group, so they are real interface items."""
 		genericItem = GenericTypeInterfaceItem("T")
-		parameterItem = Procedure("parameter_item")
+		parameterItem = _parameter(("a", ), _returnType())
 		procedure = Procedure("proc", genericItems=[genericItem], parameterItems=[parameterItem])
 
 		self.assertEqual(1, len(procedure.GenericItems))

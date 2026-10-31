@@ -360,13 +360,20 @@ class Parameters(Testcase):
 		self.assertIs(declarations[1], procedure.Namespace._elements["b"])
 
 	def test_Split_Group(self) -> None:
+		"""The new parameters follow the split parameter in its parameter group."""
+		first = _parameter("first")
 		original = _parameter("a", "b")
-		group = ParameterGroup([original])
+		last = _parameter("last")
+		group = ParameterGroup([first, original])
+		other = ParameterGroup([last])
+		procedure = Procedure("p", parameterItems=[first, original, last], parameterGroups=[group, other])
 
 		declarations = original.Split()
 
-		self.assertListEqual(list(declarations), group.ParameterItems)
-		self.assertIs(group, declarations[1].Parent)
+		self.assertListEqual([first, *declarations], group.ParameterItems)
+		self.assertListEqual([last], other.ParameterItems)
+		self.assertIs(procedure, declarations[1].Parent)
+		self.assertIs(group, declarations[1].Group)
 
 	def test_Split_NotAChild(self) -> None:
 		original = _parameter("a", "b")

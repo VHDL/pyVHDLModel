@@ -38,7 +38,7 @@ from pyVHDLModel.DesignUnit import Component, Entity, Package
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Expression import IntegerLiteral
-from pyVHDLModel.Subprogram import Procedure
+from pyVHDLModel.Subprogram import Function, Procedure
 from pyVHDLModel.Interface  import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, \
                                    PortSignalInterfaceItem, PortSimpleSignalInterfaceItem, \
                                    PortViewSignalInterfaceItem, ParameterSignalInterfaceItem, \
@@ -52,7 +52,7 @@ from pyVHDLModel.Interface  import ModeViewDeclaration, SimpleModeViewElement, C
 from pyVHDLModel.Regions    import WithGenericsMixin, WithPortsMixin, WithParametersMixin
 
 from tests.unit             import _subtypeSymbol
-from tests.unit.Mutation    import _generic, _port
+from tests.unit.Mutation    import _generic, _parameter, _port
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -388,14 +388,7 @@ class InterfaceItemRendering(Testcase):
 
 
 class Groups(Testcase):
-	"""Regression test (missing base class): ``GenericGroup``/``ParameterGroup`` didn't list
-	``WithGenericsMixin``/``WithParametersMixin`` as base classes at all (unlike ``PortGroup``, which
-	correctly lists ``WithPortsMixin``), so the slots-based metaclass never allocated storage for
-	``_genericItems``/``_parameterItems`` - construction crashed immediately with
-	``AttributeError: ... no __dict__ for setting new attributes``, even for the simplest, empty-list
-	case. Fixed by adding the missing base class to both, mirroring ``PortGroup``.
-
-	Regression test (``__str__``): all three built their string via
+	"""Regression test (``__str__``): all three built their string via
 	``p._identifier for p in self._xItems``, but interface items come in two incompatible shapes -
 	``NamedEntityMixin``-based (singular ``_identifier`` - the four ``Generic*`` subprogram/package/
 	type items) vs. ``MultipleNamedEntityMixin``-based (plural ``_identifiers`` - every
@@ -446,11 +439,6 @@ class Groups(Testcase):
 		self.assertEqual(1, len(group))
 		self.assertEqual([item], list(group))
 		self.assertEqual("ParameterGroup: parameters (1): f", str(group))
-
-	def test_ParameterGroup_Empty(self) -> None:
-		group = ParameterGroup([])
-
-		self.assertEqual(0, len(group))
 
 	def test_InterfaceGroup_NoName(self) -> None:
 		group = InterfaceGroup()
@@ -889,4 +877,215 @@ class GenericGroups(Testcase):
 			Entity("e", genericItems=[width], genericGroups=1)
 
 		self.assertEqual("Parameter 'genericGroups' is not iterable.", str(context.exception))
+		self.assertListEqual(["Got type 'int'."], context.exception.__notes__)
+
+
+class ParameterGroups(Testcase):
+	def test_Constructor(self) -> None:
+		"""A parameter group records its parameters, but changes neither their parent nor their group."""
+		clock = _parameter("clock")
+		reset = _parameter("reset")
+
+		group = ParameterGroup((parameter for parameter in (clock, reset)), name="clocking", documentation="Clocking.")
+
+		self.assertEqual("clocking", group.Identifier)
+		self.assertEqual("Clocking.", group.Documentation)
+		self.assertListEqual([clock, reset], group.ParameterItems)
+		self.assertIsNone(group.Parent)
+		self.assertIsNone(clock.Parent)
+		self.assertIsNone(clock.Group)
+
+	def test_Constructor_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			ParameterGroup(None)
+
+		self.assertEqual("Parameter 'parameterItems' is None.", str(context.exception))
+
+	def test_Constructor_NotIterable(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			ParameterGroup(_parameter("clock"))
+
+		self.assertEqual("Parameter 'parameterItems' is not iterable.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Interface.ParameterConstantInterfaceItem'."],
+			context.exception.__notes__
+		)
+
+	def test_Constructor_WrongElementType(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			ParameterGroup([_parameter("clock"), "reset"])
+
+		self.assertEqual(
+			"Element of parameter 'parameterItems' is not of type 'ParameterInterfaceItemMixin'.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_Constructor_Empty(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			ParameterGroup([])
+
+		self.assertEqual("Parameter 'parameterItems' is empty.", str(context.exception))
+
+	def test_Constructor_InGroup(self) -> None:
+		"""A parameter in a parameter group of a subprogram can't be grouped again."""
+		clock = _parameter("clock")
+		Procedure("p", parameterItems=[clock])
+
+		with self.assertRaises(ValueError) as context:
+			ParameterGroup([clock])
+
+		self.assertEqual(
+			"Element of parameter 'parameterItems' is in a parameter group of a subprogram.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Got parameter 'clock' of Procedure."], context.exception.__notes__)
+
+	def test_Default(self) -> None:
+		"""Without parameter groups, all parameters form one unnamed parameter group."""
+		clock = _parameter("clock")
+		reset = _parameter("reset")
+
+		procedure = Procedure("p", parameterItems=[clock, reset])
+
+		self.assertEqual(1, len(procedure.ParameterGroups))
+		group = procedure.ParameterGroups[0]
+		self.assertIsNone(group.Identifier)
+		self.assertListEqual([clock, reset], group.ParameterItems)
+		self.assertIsNot(procedure.ParameterItems, group.ParameterItems)
+		self.assertIs(procedure, group.Parent)
+		self.assertIs(procedure, clock.Parent)
+		self.assertIs(group, clock.Group)
+		self.assertIs(group, reset.Group)
+
+	def test_Default_NoParameters(self) -> None:
+		procedure = Procedure("p")
+
+		self.assertListEqual([], procedure.ParameterGroups)
+
+	def test_Partition(self) -> None:
+		"""``clock, reset | in_valid, in_data, in_ack | error | out_valid, out_data, out_ack``"""
+		names = ("clock", "reset", "in_valid", "in_data", "in_ack", "error", "out_valid", "out_data", "out_ack")
+		parameters = [_parameter(name) for name in names]
+		groups = [
+			ParameterGroup(parameters[0:2]),
+			ParameterGroup(parameters[2:5], name="In"),
+			ParameterGroup(parameters[5:6]),
+			ParameterGroup(parameters[6:9], name="Out")
+		]
+
+		procedure = Procedure("p", parameterItems=parameters, parameterGroups=groups)
+
+		self.assertListEqual(groups, procedure.ParameterGroups)
+		self.assertListEqual([None, "In", None, "Out"], [group.Identifier for group in procedure.ParameterGroups])
+		for group in groups:
+			self.assertIs(procedure, group.Parent)
+			for parameter in group:
+				self.assertIs(procedure, parameter.Parent)
+				self.assertIs(group, parameter.Group)
+
+	def test_Partition_Function(self) -> None:
+		clock = _parameter("clock")
+		group = ParameterGroup([clock], name="clocking")
+
+		function = Function("f", _subtypeSymbol("integer"), parameterItems=[clock], parameterGroups=[group])
+
+		self.assertListEqual([group], function.ParameterGroups)
+		self.assertIs(function, group.Parent)
+		self.assertIs(group, clock.Group)
+
+	def test_Partition_NoParameters(self) -> None:
+		procedure = Procedure("p", parameterGroups=[])
+
+		self.assertListEqual([], procedure.ParameterGroups)
+
+	def test_Partition_WrongOrder(self) -> None:
+		clock = _parameter("clock")
+		reset = _parameter("reset")
+
+		with self.assertRaises(ValueError) as context:
+			Procedure("p", parameterItems=[clock, reset], parameterGroups=[ParameterGroup([reset]), ParameterGroup([clock])])
+
+		self.assertEqual(
+			"Parameter 'parameterGroups' doesn't partition parameter 'parameterItems'.",
+			str(context.exception)
+		)
+		self.assertListEqual(
+			["Got parameter groups 'reset | clock' for parameters 'clock, reset'."],
+			context.exception.__notes__
+		)
+
+	def test_Partition_MissingParameter(self) -> None:
+		clock = _parameter("clock")
+		reset = _parameter("reset")
+		error = _parameter("error")
+
+		with self.assertRaises(ValueError) as context:
+			Procedure("p", parameterItems=[clock, reset, error], parameterGroups=[ParameterGroup([clock, reset])])
+
+		self.assertEqual(
+			"Parameter 'parameterGroups' doesn't partition parameter 'parameterItems'.",
+			str(context.exception)
+		)
+		self.assertListEqual(
+			["Got parameter groups 'clock, reset' for parameters 'clock, reset, error'."],
+			context.exception.__notes__
+		)
+
+	def test_Partition_ForeignParameter(self) -> None:
+		clock = _parameter("clock")
+		reset = _parameter("reset")
+		foreign = _parameter("reset")
+
+		with self.assertRaises(ValueError) as context:
+			Procedure("p", parameterItems=[clock, reset], parameterGroups=[ParameterGroup([clock, foreign])])
+
+		self.assertEqual(
+			"Parameter 'parameterGroups' doesn't partition parameter 'parameterItems'.",
+			str(context.exception)
+		)
+		self.assertListEqual(
+			["Got parameter groups 'clock, reset' for parameters 'clock, reset'."],
+			context.exception.__notes__
+		)
+
+	def test_Partition_ParameterInTwoGroups(self) -> None:
+		clock = _parameter("clock")
+		reset = _parameter("reset")
+
+		with self.assertRaises(ValueError) as context:
+			Procedure(
+				"p",
+				parameterItems=[clock, reset],
+				parameterGroups=[ParameterGroup([clock, reset]), ParameterGroup([reset])]
+			)
+
+		self.assertEqual(
+			"Parameter 'parameterGroups' doesn't partition parameter 'parameterItems'.",
+			str(context.exception)
+		)
+		self.assertListEqual(
+			["Got parameter groups 'clock, reset | reset' for parameters 'clock, reset'."],
+			context.exception.__notes__
+		)
+
+	def test_Partition_WrongElementType(self) -> None:
+		clock = _parameter("clock")
+
+		with self.assertRaises(TypeError) as context:
+			Procedure("p", parameterItems=[clock], parameterGroups=[clock])
+
+		self.assertEqual("Element of parameter 'parameterGroups' is not of type 'ParameterGroup'.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Interface.ParameterConstantInterfaceItem'."],
+			context.exception.__notes__
+		)
+
+	def test_Partition_NotIterable(self) -> None:
+		clock = _parameter("clock")
+
+		with self.assertRaises(TypeError) as context:
+			Procedure("p", parameterItems=[clock], parameterGroups=1)
+
+		self.assertEqual("Parameter 'parameterGroups' is not iterable.", str(context.exception))
 		self.assertListEqual(["Got type 'int'."], context.exception.__notes__)

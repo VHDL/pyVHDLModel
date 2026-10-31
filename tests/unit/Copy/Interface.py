@@ -48,6 +48,7 @@ from pyVHDLModel.Interface       import SimpleModeViewElement, CompositeModeView
                                         ParameterFileInterfaceItem, ModeViewDeclaration, InterfaceGroup, GenericGroup, \
                                         PortGroup, ParameterGroup
 from pyVHDLModel.Name            import SimpleName
+from pyVHDLModel.Subprogram      import Procedure
 from pyVHDLModel.Symbol          import ModeViewSymbol
 
 from tests.unit                  import _Element, _subtypeSymbol
@@ -146,6 +147,16 @@ class Groups(Testcase):
 		copy = original.Copy()
 
 		self.assertIs(entity.PortGroups[0], original.Group)
+		self.assertIsNone(copy.Group)
+
+	def test_Parameter(self) -> None:
+		"""A copy of a parameter is in no parameter group."""
+		original =  ParameterConstantInterfaceItem(("a", ), Mode.In, _subtypeSymbol("integer"))
+		procedure = Procedure("p", parameterItems=[original])
+
+		copy = original.Copy()
+
+		self.assertIs(procedure.ParameterGroups[0], original.Group)
 		self.assertIsNone(copy.Group)
 
 

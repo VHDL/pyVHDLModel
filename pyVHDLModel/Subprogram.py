@@ -308,36 +308,39 @@ class Subprogram(
 
 	def __init__(
 		self,
-		identifier:     str,
-		isPure:         bool,
-		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
-		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
-		declaredItems:  Nullable[Iterable] =                                None,
-		statements:     Nullable[Iterable[SequentialStatement]] =           None,
-		documentation:  Nullable[str] =                                     None,
-		parent:         Nullable[ModelEntity] =                             None,
-		genericGroups:  Nullable[Iterable[GenericGroup]] =                  None
+		identifier:      str,
+		isPure:          bool,
+		genericItems:    Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems:  Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+		declaredItems:   Nullable[Iterable] =                              None,
+		statements:      Nullable[Iterable[SequentialStatement]] =         None,
+		documentation:   Nullable[str] =                                   None,
+		parent:          Nullable[ModelEntity] =                           None,
+		genericGroups:   Nullable[Iterable[GenericGroup]] =                None,
+		parameterGroups: Nullable[Iterable[ParameterGroup]] =              None
 	) -> None:
 		"""
 		Initializes a subprogram.
 
-		:param identifier:     The identifier of a model entity.
-		:param isPure:         ``True`` if the subprogram was declared pure.
-		:param genericItems:   List of all generics, in declaration order.
-		:param parameterItems: List of all parameters, in declaration order.
-		:param declaredItems:  List of all declared items in this sequential declaration region.
-		:param statements:     List of all sequential statements in the subprogram's body.
-		:param documentation:  The documentation comment associated with this declaration.
-		:param parent:         The parent model entity of this entity.
-		:param genericGroups:  Optional, list of generic groups partitioning the generics, in declaration order.
-		                       Default: ``None``, one unnamed generic group.
+		:param identifier:      The identifier of a model entity.
+		:param isPure:          ``True`` if the subprogram was declared pure.
+		:param genericItems:    List of all generics, in declaration order.
+		:param parameterItems:  List of all parameters, in declaration order.
+		:param declaredItems:   List of all declared items in this sequential declaration region.
+		:param statements:      List of all sequential statements in the subprogram's body.
+		:param documentation:   The documentation comment associated with this declaration.
+		:param parent:          The parent model entity of this entity.
+		:param genericGroups:   Optional, list of generic groups partitioning the generics, in declaration order.
+		                        Default: ``None``, one unnamed generic group.
+		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
+		                        Default: ``None``, one unnamed parameter group.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 		SequentialDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
 		WithGenericsMixin.__init__(self, genericItems, genericGroups)
-		WithParametersMixin.__init__(self, parameterItems)
+		WithParametersMixin.__init__(self, parameterItems, parameterGroups)
 		SequentialStatementsMixin.__init__(self, statements)
 
 		self._isPure =    isPure
@@ -478,27 +481,30 @@ class Procedure(Subprogram):
 
 	def __init__(
 		self,
-		identifier:     str,
-		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
-		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
-		declaredItems:  Nullable[Iterable] =                                None,
-		statements:     Nullable[Iterable[SequentialStatement]] =           None,
-		documentation:  Nullable[str] =                                     None,
-		parent:         Nullable[ModelEntity] =                             None,
-		genericGroups:  Nullable[Iterable[GenericGroup]] =                  None
+		identifier:      str,
+		genericItems:    Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems:  Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+		declaredItems:   Nullable[Iterable] =                              None,
+		statements:      Nullable[Iterable[SequentialStatement]] =         None,
+		documentation:   Nullable[str] =                                   None,
+		parent:          Nullable[ModelEntity] =                           None,
+		genericGroups:   Nullable[Iterable[GenericGroup]] =                None,
+		parameterGroups: Nullable[Iterable[ParameterGroup]] =              None
 	) -> None:
 		"""
 		Initializes a procedure.
 
-		:param identifier:     The identifier of a model entity.
-		:param genericItems:   List of all generics, in declaration order.
-		:param parameterItems: List of all parameters, in declaration order.
-		:param declaredItems:  List of all declared items in this sequential declaration region.
-		:param statements:     List of all sequential statements in the subprogram's body.
-		:param documentation:  The documentation comment associated with this declaration.
-		:param parent:         The parent model entity of this entity.
-		:param genericGroups:  Optional, list of generic groups partitioning the generics, in declaration order.
-		                       Default: ``None``, one unnamed generic group.
+		:param identifier:      The identifier of a model entity.
+		:param genericItems:    List of all generics, in declaration order.
+		:param parameterItems:  List of all parameters, in declaration order.
+		:param declaredItems:   List of all declared items in this sequential declaration region.
+		:param statements:      List of all sequential statements in the subprogram's body.
+		:param documentation:   The documentation comment associated with this declaration.
+		:param parent:          The parent model entity of this entity.
+		:param genericGroups:   Optional, list of generic groups partitioning the generics, in declaration order.
+		                        Default: ``None``, one unnamed generic group.
+		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
+		                        Default: ``None``, one unnamed parameter group.
 		"""
 		super().__init__(
 			identifier,
@@ -509,7 +515,8 @@ class Procedure(Subprogram):
 			statements,
 			documentation,
 			parent,
-			genericGroups
+			genericGroups,
+			parameterGroups
 		)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -568,31 +575,34 @@ class Function(Subprogram):
 
 	def __init__(
 		self,
-		identifier:     str,
-		returnType:     SubtypeSymbol,
-		isPure:         bool =                                              True,
-		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
-		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
-		declaredItems:  Nullable[Iterable] =                                None,
-		statements:     Nullable[Iterable[SequentialStatement]] =           None,
-		documentation:  Nullable[str] =                                     None,
-		parent:         Nullable[ModelEntity] =                             None,
-		genericGroups:  Nullable[Iterable[GenericGroup]] =                  None
+		identifier:      str,
+		returnType:      SubtypeSymbol,
+		isPure:          bool =                                            True,
+		genericItems:    Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems:  Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+		declaredItems:   Nullable[Iterable] =                              None,
+		statements:      Nullable[Iterable[SequentialStatement]] =         None,
+		documentation:   Nullable[str] =                                   None,
+		parent:          Nullable[ModelEntity] =                           None,
+		genericGroups:   Nullable[Iterable[GenericGroup]] =                None,
+		parameterGroups: Nullable[Iterable[ParameterGroup]] =              None
 	) -> None:
 		"""
 		Initializes a function.
 
-		:param identifier:     The identifier of a model entity.
-		:param returnType:     Reference to the subtype of the function's return value.
-		:param isPure:         ``True`` if the subprogram was declared pure.
-		:param genericItems:   List of all generics, in declaration order.
-		:param parameterItems: List of all parameters, in declaration order.
-		:param declaredItems:  List of all declared items in this sequential declaration region.
-		:param statements:     List of all sequential statements in the subprogram's body.
-		:param documentation:  The documentation comment associated with this declaration.
-		:param parent:         The parent model entity of this entity.
-		:param genericGroups:  Optional, list of generic groups partitioning the generics, in declaration order.
-		                       Default: ``None``, one unnamed generic group.
+		:param identifier:      The identifier of a model entity.
+		:param returnType:      Reference to the subtype of the function's return value.
+		:param isPure:          ``True`` if the subprogram was declared pure.
+		:param genericItems:    List of all generics, in declaration order.
+		:param parameterItems:  List of all parameters, in declaration order.
+		:param declaredItems:   List of all declared items in this sequential declaration region.
+		:param statements:      List of all sequential statements in the subprogram's body.
+		:param documentation:   The documentation comment associated with this declaration.
+		:param parent:          The parent model entity of this entity.
+		:param genericGroups:   Optional, list of generic groups partitioning the generics, in declaration order.
+		                        Default: ``None``, one unnamed generic group.
+		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
+		                        Default: ``None``, one unnamed parameter group.
 		"""
 		super().__init__(
 			identifier,
@@ -603,7 +613,8 @@ class Function(Subprogram):
 			statements,
 			documentation,
 			parent,
-			genericGroups
+			genericGroups,
+			parameterGroups
 		)
 
 		self._returnType = returnType
@@ -701,29 +712,32 @@ class ProcedureMethod(Procedure, MethodMixin):
 	"""
 	def __init__(
 		self,
-		identifier:     str,
-		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
-		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
-		declaredItems:  Nullable[Iterable] =                                None,
-		statements:     Nullable[Iterable[SequentialStatement]] =           None,
-		documentation:  Nullable[str] =                                     None,
-		protectedType:  Nullable[ProtectedType] =                           None,
-		parent:         Nullable[ModelEntity] =                             None,
-		genericGroups:  Nullable[Iterable[GenericGroup]] =                  None
+		identifier:      str,
+		genericItems:    Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems:  Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+		declaredItems:   Nullable[Iterable] =                              None,
+		statements:      Nullable[Iterable[SequentialStatement]] =         None,
+		documentation:   Nullable[str] =                                   None,
+		protectedType:   Nullable[ProtectedType] =                         None,
+		parent:          Nullable[ModelEntity] =                           None,
+		genericGroups:   Nullable[Iterable[GenericGroup]] =                None,
+		parameterGroups: Nullable[Iterable[ParameterGroup]] =              None
 	) -> None:
 		"""
 		Initializes a procedure declared as a method of a protected type.
 
-		:param identifier:     The identifier of a model entity.
-		:param genericItems:   List of all generics, in declaration order.
-		:param parameterItems: List of all parameters, in declaration order.
-		:param declaredItems:  List of all declared items in this sequential declaration region.
-		:param statements:     List of all sequential statements in the subprogram's body.
-		:param documentation:  The documentation comment associated with this declaration.
-		:param protectedType:  Reference to the protected type this method belongs to.
-		:param parent:         The parent model entity of this entity.
-		:param genericGroups:  Optional, list of generic groups partitioning the generics, in declaration order.
-		                       Default: ``None``, one unnamed generic group.
+		:param identifier:      The identifier of a model entity.
+		:param genericItems:    List of all generics, in declaration order.
+		:param parameterItems:  List of all parameters, in declaration order.
+		:param declaredItems:   List of all declared items in this sequential declaration region.
+		:param statements:      List of all sequential statements in the subprogram's body.
+		:param documentation:   The documentation comment associated with this declaration.
+		:param protectedType:   Reference to the protected type this method belongs to.
+		:param parent:          The parent model entity of this entity.
+		:param genericGroups:   Optional, list of generic groups partitioning the generics, in declaration order.
+		                        Default: ``None``, one unnamed generic group.
+		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
+		                        Default: ``None``, one unnamed parameter group.
 		"""
 		super().__init__(
 			identifier,
@@ -733,7 +747,8 @@ class ProcedureMethod(Procedure, MethodMixin):
 			statements,
 			documentation,
 			parent,
-			genericGroups
+			genericGroups,
+			parameterGroups
 		)
 		MethodMixin.__init__(self, protectedType)
 
@@ -751,33 +766,36 @@ class FunctionMethod(Function, MethodMixin):
 	"""
 	def __init__(
 		self,
-		identifier:     str,
-		returnType:     SubtypeSymbol,
-		isPure:         bool =                                              True,
-		genericItems:   Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
-		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
-		declaredItems:  Nullable[Iterable] =                                None,
-		statements:     Nullable[Iterable[SequentialStatement]] =           None,
-		documentation:  Nullable[str] =                                     None,
-		protectedType:  Nullable[ProtectedType] =                           None,
-		parent:         Nullable[ModelEntity] =                             None,
-		genericGroups:  Nullable[Iterable[GenericGroup]] =                  None
+		identifier:      str,
+		returnType:      SubtypeSymbol,
+		isPure:          bool =                                            True,
+		genericItems:    Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems:  Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+		declaredItems:   Nullable[Iterable] =                              None,
+		statements:      Nullable[Iterable[SequentialStatement]] =         None,
+		documentation:   Nullable[str] =                                   None,
+		protectedType:   Nullable[ProtectedType] =                         None,
+		parent:          Nullable[ModelEntity] =                           None,
+		genericGroups:   Nullable[Iterable[GenericGroup]] =                None,
+		parameterGroups: Nullable[Iterable[ParameterGroup]] =              None
 	) -> None:
 		"""
 		Initializes a function declared as a method of a protected type.
 
-		:param identifier:     The identifier of a model entity.
-		:param returnType:     Reference to the subtype of the function's return value.
-		:param isPure:         ``True`` if the subprogram was declared pure.
-		:param genericItems:   List of all generics, in declaration order.
-		:param parameterItems: List of all parameters, in declaration order.
-		:param declaredItems:  List of all declared items in this sequential declaration region.
-		:param statements:     List of all sequential statements in the subprogram's body.
-		:param documentation:  The documentation comment associated with this declaration.
-		:param protectedType:  Reference to the protected type this method belongs to.
-		:param parent:         The parent model entity of this entity.
-		:param genericGroups:  Optional, list of generic groups partitioning the generics, in declaration order.
-		                       Default: ``None``, one unnamed generic group.
+		:param identifier:      The identifier of a model entity.
+		:param returnType:      Reference to the subtype of the function's return value.
+		:param isPure:          ``True`` if the subprogram was declared pure.
+		:param genericItems:    List of all generics, in declaration order.
+		:param parameterItems:  List of all parameters, in declaration order.
+		:param declaredItems:   List of all declared items in this sequential declaration region.
+		:param statements:      List of all sequential statements in the subprogram's body.
+		:param documentation:   The documentation comment associated with this declaration.
+		:param protectedType:   Reference to the protected type this method belongs to.
+		:param parent:          The parent model entity of this entity.
+		:param genericGroups:   Optional, list of generic groups partitioning the generics, in declaration order.
+		                        Default: ``None``, one unnamed generic group.
+		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
+		                        Default: ``None``, one unnamed parameter group.
 		"""
 		super().__init__(
 			identifier,
@@ -789,6 +807,7 @@ class FunctionMethod(Function, MethodMixin):
 			statements,
 			documentation,
 			parent,
-			genericGroups
+			genericGroups,
+			parameterGroups
 		)
 		MethodMixin.__init__(self, protectedType)

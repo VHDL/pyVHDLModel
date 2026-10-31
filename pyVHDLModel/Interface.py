@@ -44,11 +44,9 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
 
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin, \
-                                   MultipleNamedEntityMixin, identifiersOf, normalizedIdentifiersOf, ExpressionUnion, \
-                                   Mode, ReservedWord
+                                   MultipleNamedEntityMixin, identifiersOf, ExpressionUnion, Mode, ReservedWord
 from pyVHDLModel.Exception  import NotAChildError
 from pyVHDLModel.Object     import Constant, Signal, Variable, File
-from pyVHDLModel.Regions    import WithParametersMixin
 from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
 
@@ -2139,20 +2137,6 @@ class InterfaceGroup(ModelEntity, OptionallyNamedEntityMixin, DocumentedEntityMi
 		OptionallyNamedEntityMixin.__init__(self, name)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
-		"""
-		Add nothing, because an interface group has no namespace.
-
-		:param element: The named element, e.g. an interface item.
-		"""
-
-	def _RemoveFromNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
-		"""
-		Remove nothing, because an interface group has no namespace.
-
-		:param element: The named element, e.g. an interface item.
-		"""
-
 
 @export
 class GenericGroup(InterfaceGroup):
@@ -2361,17 +2345,22 @@ class PortGroup(InterfaceGroup):
 
 
 @export
-class ParameterGroup(InterfaceGroup, WithParametersMixin):
+class ParameterGroup(InterfaceGroup):
 	"""
-	Represents the parameter list of a subprogram.
+	Represents a group of parameters of a subprogram.
 
-	The parameters are available as :data:`ParameterItems`.
+	A parameter group is a non-owning view: it lists parameters (:data:`ParameterItems`) of a subprogram in declaration
+	order, while the parameters' parent stays the subprogram. The parameter groups of a subprogram partition its
+	parameter list (:data:`~pyVHDLModel.Regions.WithParametersMixin.ParameterGroups`): concatenated in order, they list
+	every parameter exactly once, in declaration order.
 
 	.. seealso::
 
-	   * :class:`Generic clause <pyVHDLModel.Interface.GenericGroup>`
-	   * :class:`Port clause <pyVHDLModel.Interface.PortGroup>`
+	   * :class:`Generic group <pyVHDLModel.Interface.GenericGroup>`
+	   * :class:`Port group <pyVHDLModel.Interface.PortGroup>`
 	"""
+	_parameterItems: list[ParameterInterfaceItemMixin]  #: List of the grouped parameters, in declaration order.
+
 	def __init__(
 		self,
 		parameterItems: Iterable[ParameterInterfaceItemMixin],
@@ -2382,13 +2371,53 @@ class ParameterGroup(InterfaceGroup, WithParametersMixin):
 		"""
 		Initializes a parameter group.
 
-		:param parameterItems: List of all parameters, in declaration order.
-		:param name:           The group's name.
-		:param documentation:  The documentation comment associated with this declaration.
-		:param parent:         The parent model entity of this entity.
+		The parameters are recorded, but not changed: the subprogram accepting the group sets the group's parent and each
+		parameter's :data:`~pyVHDLModel.Interface.InterfaceItemMixin.Group`.
+
+		:param parameterItems: List of the grouped parameters, in declaration order.
+		:param name:           Optional, the group's name. Default: ``None``, an unnamed group.
+		:param documentation:  Optional, the documentation comment associated with this group. Default: ``None``.
+		:param parent:         Optional, the subprogram of the grouped parameters. Default: ``None``.
+		:raises ValueError:    If parameter 'parameterItems' is ``None``.
+		:raises TypeError:     If parameter 'parameterItems' is not iterable.
+		:raises TypeError:     If an element of parameter 'parameterItems' is not of type
+		                       :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises ValueError:    If an element of parameter 'parameterItems' is in a parameter group of a subprogram.
+		:raises ValueError:    If parameter 'parameterItems' is empty.
 		"""
 		super().__init__(name, documentation, parent)
-		WithParametersMixin.__init__(self, parameterItems)
+
+		if parameterItems is None:
+			raise ValueError("Parameter 'parameterItems' is None.")
+		elif not isinstance(parameterItems, Iterable):
+			ex = TypeError("Parameter 'parameterItems' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parameterItems)}'.")
+			raise ex
+
+		self._parameterItems = parameterItemList = []
+		for item in parameterItems:
+			if not isinstance(item, ParameterInterfaceItemMixin):
+				ex = TypeError("Element of parameter 'parameterItems' is not of type 'ParameterInterfaceItemMixin'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+				raise ex
+			elif item._group is not None:
+				ex = ValueError("Element of parameter 'parameterItems' is in a parameter group of a subprogram.")
+				ex.add_note(f"Got parameter '{', '.join(item._identifiers)}' of {getTypeName(item._parent)}.")
+				raise ex
+
+			parameterItemList.append(item)
+
+		if len(parameterItemList) == 0:
+			raise ValueError("Parameter 'parameterItems' is empty.")
+
+	@readonly
+	def ParameterItems(self) -> list[ParameterInterfaceItemMixin]:
+		"""
+		Read-only property to access the grouped parameters (:attr:`_parameterItems`).
+
+		:returns: List of parameters, in declaration order.
+		"""
+		return self._parameterItems
 
 	def __len__(self) -> int:
 		"""
@@ -2416,19 +2445,3 @@ class ParameterGroup(InterfaceGroup, WithParametersMixin):
 		"""
 		names = ", ".join(name for item in self._parameterItems for name in identifiersOf(item))
 		return f"ParameterGroup: {self._identifier} ({len(self._parameterItems)}): {names}"
-
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
-		"""
-		Return the parameters of this group sharing an identifier with the given item.
-
-		:param item: The new parameter.
-		:returns:    Tuple of clashing parameters.
-		"""
-		identifiers = set(normalizedIdentifiersOf(item))
-		return tuple(
-			declaration for declaration in self._parameterItems
-			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-		)
-
-	def _ParameterItemsChanged(self) -> None:
-		"""Do nothing, because a parameter group keeps nothing derived from its parameters."""

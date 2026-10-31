@@ -6,6 +6,25 @@ News
 See :gh:`pyVHDLModel Release Pages <VHDL/pyVHDLModel/releases>` for detail release notes on every release.
 
 
+Version 0.42.0 (2026)
+*********************
+
+.. topic:: :gh:`v0.42.0 - unreleased <VHDL/pyVHDLModel/releases/v0.42.0>`
+
+   .. rubric:: New Features
+
+   * Interface groups partition the port clause of a language construct: constructor parameter ``portGroups``,
+     property :data:`~pyVHDLModel.Regions.WithPortsMixin.PortGroups`. Each interface item refers to its group
+     (:data:`~pyVHDLModel.Interface.InterfaceItemMixin.Group`). ``AddPortItem()`` and ``InsertPortItem()`` take an
+     optional group; all mutators keep the partition.
+
+   .. rubric:: Changes
+
+   * Breaking change: :class:`~pyVHDLModel.Interface.PortGroup` is a non-owning view of a language construct's ports:
+     a port's parent stays the language construct, and a group has no mutators any more. A group rejects an empty or
+     already grouped item list.
+
+
 Version 0.41.0 (2026)
 *********************
 

@@ -48,8 +48,8 @@ from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedE
 from pyVHDLModel.Exception  import NotAChildError
 from pyVHDLModel.Symbol     import Symbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
-from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
-                                   WithoutStatementsMixin
+from pyVHDLModel.Regions    import DeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin, \
+                                   SequentialDeclarationRegionMixin, WithoutStatementsMixin
 
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor  import Visitor
@@ -1128,6 +1128,15 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 		super().__init__(identifier, documentation, parent)
 		ProtectedTypeDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
 
+	@FullType.Parent.setter
+	def Parent(self, parent: ModelEntity) -> None:
+		FullType.Parent.fset(self, parent)
+
+		# Connect the namespace to the enclosing declarative region's namespace, so the methods see the declarations around
+		# the protected type.
+		if isinstance(parent, DeclarationRegionMixin):
+			self._namespace.ParentNamespace = parent._namespace
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this protected type declaration and its methods with a visitor.
@@ -1201,6 +1210,15 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 		"""
 		super().__init__(identifier, documentation, parent)
 		SequentialDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
+
+	@FullType.Parent.setter
+	def Parent(self, parent: ModelEntity) -> None:
+		FullType.Parent.fset(self, parent)
+
+		# Connect the namespace to the enclosing declarative region's namespace, so the methods see the declarations around
+		# the protected type body.
+		if isinstance(parent, DeclarationRegionMixin):
+			self._namespace.ParentNamespace = parent._namespace
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

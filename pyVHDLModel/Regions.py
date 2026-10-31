@@ -55,7 +55,8 @@ from pyVHDLModel.Object      import BaseConstant, Constant, DeferredConstant, Sh
 if TYPE_CHECKING:
 	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
 	                                  PortSignalInterfaceItem, SingleGenericDeclarationMixin, \
-	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin, GenericGroup, PortGroup
+	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin, \
+	                                  GenericGroup, PortGroup, ParameterGroup
 	from pyVHDLModel.Type      import Subtype, FullType
 	from pyVHDLModel.Visitor   import Visitor
 
@@ -1270,32 +1271,96 @@ class WithParametersMixin(
 	declarations sharing an identifier with the new item.
 
 	The host class provides ``_ParameterItemsChanged()`` too, called after a parameter is inserted, removed or moved:
-	:class:`~pyVHDLModel.Subprogram.Subprogram` clears its signature, a parameter group does nothing.
+	:class:`~pyVHDLModel.Subprogram.Subprogram` clears its signature.
 
-	Indexing the parameters (``_IndexParameterItems()``) needs the host's namespace ``_namespace``; a host without one,
-	e.g. a parameter group, can't index them.
+	Indexing the parameters (``_IndexParameterItems()``) needs the host's namespace ``_namespace``.
+
+	The parameter groups (:data:`ParameterGroups`) partition the parameter list: concatenated in order, they list every
+	parameter exactly once, in declaration order. The mutators keep this partition.
 
 	.. seealso::
 
 	   * :class:`Subprogram <pyVHDLModel.Subprogram.Subprogram>`
 	   * :class:`Parameter group <pyVHDLModel.Interface.ParameterGroup>`
 	"""
-	_parameterItems: list[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.
+	_parameterItems:  list[ParameterInterfaceItemMixin]  #: List of all parameters, in declaration order.
+	_parameterGroups: list[ParameterGroup]               #: List of all parameter groups, in declaration order.
 
 	def __init__(
 		self,
-		parameterItems: Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+		parameterItems:  Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+		parameterGroups: Nullable[Iterable[ParameterGroup]] = None
 	) -> None:
 		"""
 		Initializes a language construct with a parameter list.
 
-		:param parameterItems: List of all parameters, in declaration order.
+		The language construct becomes the parent of each parameter group, and each parameter refers to its parameter
+		group. Without parameter groups, all parameters form one unnamed parameter group; no parameters form no parameter
+		group.
+
+		:param parameterItems:  Optional, list of all parameters, in declaration order. Default: ``None``, no parameters.
+		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
+		                        Default: ``None``, one unnamed parameter group.
+		:raises TypeError:      If parameter 'parameterGroups' is ``None`` and an element of parameter 'parameterItems' is
+		                        not of type :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
+		:raises ValueError:     If parameter 'parameterGroups' is ``None`` and an element of parameter 'parameterItems' is
+		                        in a parameter group of another language construct.
+		:raises TypeError:      If parameter 'parameterGroups' is not iterable.
+		:raises TypeError:      If an element of parameter 'parameterGroups' is not of type
+		                        :class:`~pyVHDLModel.Interface.ParameterGroup`.
+		:raises ValueError:     If parameter 'parameterGroups' doesn't list every parameter of parameter 'parameterItems'
+		                        exactly once, in declaration order.
 		"""
+		from pyVHDLModel.Interface import ParameterGroup
+
 		self._parameterItems = parameterItemList = []
 		if parameterItems is not None:
 			for item in parameterItems:
 				parameterItemList.append(item)
 				item.Parent = self
+
+		self._parameterGroups = parameterGroupList = []
+		if parameterGroups is None:
+			if len(parameterItemList) > 0:
+				parameterGroup = ParameterGroup(parameterItemList, parent=self)
+				parameterGroupList.append(parameterGroup)
+				for item in parameterItemList:
+					item._group = parameterGroup
+
+			return
+
+		if not isinstance(parameterGroups, Iterable):
+			ex = TypeError("Parameter 'parameterGroups' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(parameterGroups)}'.")
+			raise ex
+
+		groupedItems = []
+		for parameterGroup in parameterGroups:
+			if not isinstance(parameterGroup, ParameterGroup):
+				ex = TypeError("Element of parameter 'parameterGroups' is not of type 'ParameterGroup'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(parameterGroup)}'.")
+				raise ex
+
+			parameterGroupList.append(parameterGroup)
+			groupedItems.extend(parameterGroup._parameterItems)
+
+		isPartition = len(groupedItems) == len(parameterItemList) and all(
+			grouped is item for grouped, item in zip(groupedItems, parameterItemList)
+		)
+		if not isPartition:
+			groups = " | ".join(
+				", ".join(name for item in parameterGroup._parameterItems for name in item._identifiers)
+				for parameterGroup in parameterGroupList
+			)
+			parameters = ", ".join(name for item in parameterItemList for name in item._identifiers)
+			ex = ValueError("Parameter 'parameterGroups' doesn't partition parameter 'parameterItems'.")
+			ex.add_note(f"Got parameter groups '{groups}' for parameters '{parameters}'.")
+			raise ex
+
+		for parameterGroup in parameterGroupList:
+			parameterGroup.Parent = self
+			for item in parameterGroup._parameterItems:
+				item._group = parameterGroup
 
 	@readonly
 	def ParameterItems(self) -> list[ParameterInterfaceItemMixin]:
@@ -1314,6 +1379,18 @@ class WithParametersMixin(
 		:returns: The parameter count.
 		"""
 		return len(self._parameterItems)
+
+	@readonly
+	def ParameterGroups(self) -> list[ParameterGroup]:
+		"""
+		Read-only property to access the parameter groups (:attr:`_parameterGroups`).
+
+		The parameter groups partition the parameter list: concatenated in order, they list every parameter exactly once,
+		in declaration order.
+
+		:returns: List of parameter groups, in declaration order.
+		"""
+		return self._parameterGroups
 
 	def IterateSingleParameterDeclarations(
 		self,
@@ -1336,18 +1413,27 @@ class WithParametersMixin(
 					if predicate(singleDeclaration):
 						yield singleDeclaration
 
-	def AddParameterItem(self, parameterItem: ParameterInterfaceItemMixin) -> None:
+	def AddParameterItem(
+		self,
+		parameterItem: ParameterInterfaceItemMixin,
+		group:         Nullable[ParameterGroup] = None
+	) -> None:
 		"""
-		Add a parameter at the end of the parameter list.
+		Add a parameter at the end of the parameter list, or at the end of a parameter group.
 
 		The parameter's parent is set to this language construct, and its identifiers are added to the language construct's
-		namespace, if it has one.
+		namespace, if it has one. Without a parameter group, the parameter joins the last parameter group, or forms a new
+		unnamed parameter group if there are no parameters.
 
 		:param parameterItem:            The parameter to add.
+		:param group:                    Optional, the parameter group of this language construct to add the parameter to,
+		                                 at its end. Default: ``None``, the end of the parameter list.
 		:raises ValueError:              If parameter 'parameterItem' is ``None``.
 		:raises TypeError:               If parameter 'parameterItem' is not of type
 		                                 :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
 		:raises AlreadyInDesignError:    If parameter 'parameterItem' already has a parent.
+		:raises TypeError:               If parameter 'group' is not of type :class:`~pyVHDLModel.Interface.ParameterGroup`.
+		:raises NotAChildError:          If parameter 'group' is not a parameter group of this language construct.
 		:raises DuplicateParameterError: If an existing declaration of the language construct shares an identifier
 		                                 with the parameter.
 
@@ -1358,19 +1444,39 @@ class WithParametersMixin(
 		   :meth:`RemoveParameterItem`
 		      |rarr| Remove a parameter from the parameter list.
 		"""
-		self.InsertParameterItem(len(self._parameterItems), parameterItem)
+		index = len(self._parameterItems)
+		if group is not None:
+			index = 0
+			for parameterGroup in self._parameterGroups:
+				index += len(parameterGroup._parameterItems)
+				if parameterGroup is group:
+					break
 
-	def InsertParameterItem(self, index: int, parameterItem: ParameterInterfaceItemMixin) -> None:
+		self.InsertParameterItem(index, parameterItem, group)
+
+	def InsertParameterItem(
+		self,
+		index:         int,
+		parameterItem: ParameterInterfaceItemMixin,
+		group:         Nullable[ParameterGroup] = None
+	) -> None:
 		"""
 		Insert a parameter at a position of the parameter list.
 
 		The parameter's parent is set to this language construct, and its identifiers are added to the language construct's
 		namespace, if it has one.
 
+		Without a parameter group, the parameter joins the parameter group of the parameter before ``index``; at index
+		``0``, the parameter group of the first parameter. If there are no parameters, the parameter forms a new unnamed
+		parameter group. A parameter group given must contain ``index`` or end at it, so the parameter groups stay
+		contiguous.
+
 		:param index:                    Position, from ``0`` (first) to :data:`ParameterCount` (append).
 		                                 A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
 		                                 before the last parameter.
 		:param parameterItem:            The parameter to insert.
+		:param group:                    Optional, the parameter group of this language construct to insert the parameter
+		                                 into. Default: ``None``, the parameter group of the parameter before ``index``.
 		:raises ValueError:              If parameter 'index' is ``None``.
 		:raises TypeError:               If parameter 'index' is not of type :class:`int`.
 		:raises ValueError:              If parameter 'index' is out of range.
@@ -1378,6 +1484,9 @@ class WithParametersMixin(
 		:raises TypeError:               If parameter 'parameterItem' is not of type
 		                                 :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.
 		:raises AlreadyInDesignError:    If parameter 'parameterItem' already has a parent.
+		:raises TypeError:               If parameter 'group' is not of type :class:`~pyVHDLModel.Interface.ParameterGroup`.
+		:raises NotAChildError:          If parameter 'group' is not a parameter group of this language construct.
+		:raises ValueError:              If parameter 'group' neither contains nor ends at parameter 'index'.
 		:raises DuplicateParameterError: If an existing declaration of the language construct shares an identifier
 		                                 with the parameter.
 
@@ -1390,7 +1499,7 @@ class WithParametersMixin(
 		   :meth:`MoveParameterItem`
 		      |rarr| Move a parameter to a position of the parameter list.
 		"""
-		from pyVHDLModel.Interface import ParameterInterfaceItemMixin
+		from pyVHDLModel.Interface import ParameterInterfaceItemMixin, ParameterGroup
 
 		if index is None:
 			raise ValueError("Parameter 'index' is None.")
@@ -1419,6 +1528,33 @@ class WithParametersMixin(
 			ex.add_note(f"Remove it from its {getTypeName(parameterItem._parent)} first.")
 			raise ex
 
+		position = index if index >= 0 else len(self._parameterItems) + index
+		if group is not None:
+			if not isinstance(group, ParameterGroup):
+				ex = TypeError("Parameter 'group' is not of type 'ParameterGroup'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(group)}'.")
+				raise ex
+
+			groupStart = 0
+			for parameterGroup in self._parameterGroups:
+				if parameterGroup is group:
+					break
+
+				groupStart += len(parameterGroup._parameterItems)
+			else:
+				groupName = getTypeName(group) if group._identifier is None else f"{getTypeName(group)} '{group._identifier}'"
+				raise NotAChildError(
+					f"{groupName} is not a parameter group of this {getTypeName(self)}.",
+					element=group,
+					parent=self
+				)
+
+			groupEnd = groupStart + len(group._parameterItems)
+			if not (groupStart <= position <= groupEnd):
+				ex = ValueError(f"Parameter 'index' is outside of parameter 'group' at {groupStart}..{groupEnd}.")
+				ex.add_note(f"Got value '{index}'.")
+				raise ex
+
 		if len(clashes := self._ClashingDeclarations(parameterItem)) > 0:
 			existingIdentifiers = normalizedIdentifiersOf(clashes[0])
 			newIdentifiers = zip(identifiersOf(parameterItem), normalizedIdentifiersOf(parameterItem))
@@ -1433,18 +1569,52 @@ class WithParametersMixin(
 			ex.add_note(f"Existing declaration is of type '{getFullyQualifiedName(clashes[0])}'.")
 			raise ex
 
-		self._parameterItems.insert(index, parameterItem)
+		self._parameterItems.insert(position, parameterItem)
 		parameterItem.Parent = self
+		if group is None:
+			self._AddToParameterGroup(position, parameterItem)
+		else:
+			group._parameterItems.insert(position - groupStart, parameterItem)
+			parameterItem._group = group
+
 		self._AddToNamespace(parameterItem)
 		self._ParameterItemsChanged()
+
+	def _AddToParameterGroup(self, position: int, parameterItem: ParameterInterfaceItemMixin) -> None:
+		"""
+		Add a parameter to the parameter group of the parameter before ``position``.
+
+		At position ``0``, the parameter joins the parameter group of the first parameter. If there are no parameter
+		groups, the parameter forms a new unnamed parameter group.
+
+		:param position:      Position of the parameter in the parameter list, from ``0`` (first) to
+		                      :data:`ParameterCount` (last).
+		:param parameterItem: The parameter to add, which isn't in a parameter group.
+		"""
+		from pyVHDLModel.Interface import ParameterGroup
+
+		groupStart = 0
+		for parameterGroup in self._parameterGroups:
+			groupEnd = groupStart + len(parameterGroup._parameterItems)
+			if position <= groupEnd:
+				parameterGroup._parameterItems.insert(position - groupStart, parameterItem)
+				parameterItem._group = parameterGroup
+				return
+
+			groupStart = groupEnd
+
+		parameterGroup = ParameterGroup((parameterItem, ), parent=self)
+		self._parameterGroups.append(parameterGroup)
+		parameterItem._group = parameterGroup
 
 	def RemoveParameterItem(self, parameterItem: ParameterInterfaceItemMixin) -> None:
 		"""
 		Remove a parameter from the parameter list.
 
-		The parameter is detached: its parent is cleared and its identifiers are removed from the language construct's
-		namespace, if it has one. The parameter itself is unchanged and can be added to another language construct, or
-		inserted at another position.
+		The parameter is detached: its parent and parameter group are cleared and its identifiers are removed from the
+		language construct's namespace, if it has one. A parameter group, which becomes empty, is removed from
+		:data:`ParameterGroups` and its parent is cleared. The parameter itself is unchanged and can be added to another
+		language construct, or inserted at another position.
 
 		:param parameterItem:        The parameter to remove.
 		:raises ValueError:          If parameter 'parameterItem' is ``None``.
@@ -1486,14 +1656,41 @@ class WithParametersMixin(
 
 		self._RemoveFromNamespace(parameterItem)
 		del self._parameterItems[index]
+		self._RemoveFromParameterGroup(parameterItem)
 		parameterItem._parent = None
 		self._ParameterItemsChanged()
+
+	def _RemoveFromParameterGroup(self, parameterItem: ParameterInterfaceItemMixin) -> None:
+		"""
+		Remove a parameter from its parameter group and clear the parameter's group.
+
+		A parameter group, which becomes empty, is removed from :data:`ParameterGroups` and its parent is cleared.
+
+		:param parameterItem: The parameter to remove from its parameter group.
+		"""
+		parameterGroup = parameterItem._group
+		groupItems = parameterGroup._parameterItems
+		for index, item in enumerate(groupItems):
+			if item is parameterItem:
+				del groupItems[index]
+				break
+
+		if len(groupItems) == 0:
+			self._parameterGroups.remove(parameterGroup)
+			parameterGroup._parent = None
+
+		parameterItem._group = None
 
 	def MoveParameterItem(self, parameterItem: ParameterInterfaceItemMixin, index: int) -> None:
 		"""
 		Move a parameter to a position of the parameter list.
 
 		The parameter stays a parameter of this language construct: only the order of the parameter list changes.
+
+		The parameter leaves its parameter group, like :meth:`RemoveParameterItem`, and joins a parameter group, like
+		:meth:`InsertParameterItem` without a parameter group: the parameter group of the parameter before its new
+		position; at index ``0``, the parameter group of the first parameter. A move to the parameter's current position
+		changes nothing.
 
 		:param parameterItem:   The parameter to move.
 		:param index:           Position of the parameter after the move, from ``0`` (first) to :data:`ParameterCount`
@@ -1548,8 +1745,13 @@ class WithParametersMixin(
 			raise ex
 
 		newIndex = index if index >= 0 else len(self._parameterItems) + index
+		if newIndex == currentIndex:
+			return
+
 		del self._parameterItems[currentIndex]
 		self._parameterItems.insert(newIndex, parameterItem)
+		self._RemoveFromParameterGroup(parameterItem)
+		self._AddToParameterGroup(newIndex, parameterItem)
 		self._ParameterItemsChanged()
 
 	def SplitParameterItem(
@@ -1560,9 +1762,9 @@ class WithParametersMixin(
 		Split a parameter with an identifier list into one parameter per identifier.
 
 		The parameter keeps its first identifier. For every other identifier, a new parameter is created by its
-		``Copy()`` and inserted right after it, in list order; its parent is set to this language construct. If the
-		language construct has a namespace, the entries of the other identifiers refer to the new parameters.
-		A parameter declaring one identifier is unchanged.
+		``Copy()`` and inserted right after it, in list order, in the parameter list and in the parameter's parameter
+		group; its parent is set to this language construct. If the language construct has a namespace, the entries of the
+		other identifiers refer to the new parameters. A parameter declaring one identifier is unchanged.
 
 		:param parameterItem:        The parameter to split.
 		:returns:                    Tuple of parameters, one per identifier in list order, starting with the split
@@ -1604,13 +1806,21 @@ class WithParametersMixin(
 		if not isinstance(parameterItem, MultipleNamedEntityMixin) or len(parameterItem._identifiers) == 1:
 			return (parameterItem, )
 
+		parameterGroup = parameterItem._group
+		groupItems = parameterGroup._parameterItems
+		for groupIndex, item in enumerate(groupItems):
+			if item is parameterItem:
+				break
+
 		declarations = parameterItem._SplitCopies()
 		self._RemoveFromNamespace(parameterItem)
 		parameterItem._KeepIdentifier(0)
 		self._parameterItems[index + 1:index + 1] = declarations
+		groupItems[groupIndex + 1:groupIndex + 1] = declarations
 		self._AddToNamespace(parameterItem)
 		for declaration in declarations:
 			declaration.Parent = self
+			declaration._group = parameterGroup
 			self._AddToNamespace(declaration)
 		self._ParameterItemsChanged()
 

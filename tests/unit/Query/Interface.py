@@ -38,12 +38,13 @@ from pyVHDLModel.Interface  import GenericConstantInterfaceItem, GenericTypeInte
                                    PortSimpleSignalInterfaceItem, PortViewSignalInterfaceItem, \
                                    ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
                                    ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem, \
-                                   ParameterFileInterfaceItem, ParameterGroup, SingleGenericConstantDeclaration, \
+                                   ParameterFileInterfaceItem, SingleGenericConstantDeclaration, \
                                    SinglePortSimpleSignalDeclaration, SinglePortViewSignalDeclaration, \
                                    SingleParameterConstantDeclaration, SingleParameterVariableDeclaration, \
                                    SingleParameterSimpleSignalDeclaration, SingleParameterViewSignalDeclaration, \
                                    SingleParameterFileDeclaration
 from pyVHDLModel.Name       import SimpleName
+from pyVHDLModel.Subprogram import Procedure
 from pyVHDLModel.Symbol     import ModeViewSymbol
 
 from tests.unit             import _subtypeSymbol
@@ -185,9 +186,9 @@ class SingleParameters(Testcase):
 	def test_Constant(self) -> None:
 		subtype =   _subtypeSymbol("integer")
 		parameter = ParameterConstantInterfaceItem(("a", "b"), Mode.In, subtype)
-		group =     ParameterGroup([parameter])
+		procedure = Procedure("p", parameterItems=[parameter])
 
-		singleParameters = list(group.IterateSingleParameterDeclarations())
+		singleParameters = list(procedure.IterateSingleParameterDeclarations())
 
 		self.assertEqual(2, len(singleParameters))
 		for singleParameter in singleParameters:
@@ -198,18 +199,24 @@ class SingleParameters(Testcase):
 			self.assertIsNone(singleParameter.DefaultExpression)
 
 	def test_Variable(self) -> None:
-		group = ParameterGroup([ParameterVariableInterfaceItem(("v", ), Mode.InOut, _subtypeSymbol("integer"))])
+		procedure = Procedure(
+			"p",
+			parameterItems=[ParameterVariableInterfaceItem(("v", ), Mode.InOut, _subtypeSymbol("integer"))]
+		)
 
-		singleParameters = list(group.IterateSingleParameterDeclarations())
+		singleParameters = list(procedure.IterateSingleParameterDeclarations())
 
 		self.assertEqual(1, len(singleParameters))
 		self.assertIsInstance(singleParameters[0], SingleParameterVariableDeclaration)
 		self.assertIs(Mode.InOut, singleParameters[0].Mode)
 
 	def test_SimpleSignal(self) -> None:
-		group = ParameterGroup([ParameterSimpleSignalInterfaceItem(("s", ), Mode.In, _subtypeSymbol("bit"))])
+		procedure = Procedure(
+			"p",
+			parameterItems=[ParameterSimpleSignalInterfaceItem(("s", ), Mode.In, _subtypeSymbol("bit"))]
+		)
 
-		singleParameters = list(group.IterateSingleParameterDeclarations())
+		singleParameters = list(procedure.IterateSingleParameterDeclarations())
 
 		self.assertEqual(1, len(singleParameters))
 		self.assertIsInstance(singleParameters[0], SingleParameterSimpleSignalDeclaration)
@@ -217,9 +224,9 @@ class SingleParameters(Testcase):
 
 	def test_ViewSignal(self) -> None:
 		modeView = ModeViewSymbol(SimpleName("MyView"))
-		group =    ParameterGroup([ParameterViewSignalInterfaceItem(("s", ), modeView)])
+		procedure = Procedure("p", parameterItems=[ParameterViewSignalInterfaceItem(("s", ), modeView)])
 
-		singleParameters = list(group.IterateSingleParameterDeclarations())
+		singleParameters = list(procedure.IterateSingleParameterDeclarations())
 
 		self.assertEqual(1, len(singleParameters))
 		self.assertIsInstance(singleParameters[0], SingleParameterViewSignalDeclaration)
@@ -227,9 +234,9 @@ class SingleParameters(Testcase):
 
 	def test_File(self) -> None:
 		subtype = _subtypeSymbol("text")
-		group =   ParameterGroup([ParameterFileInterfaceItem(("f", "g"), subtype)])
+		procedure = Procedure("p", parameterItems=[ParameterFileInterfaceItem(("f", "g"), subtype)])
 
-		singleParameters = list(group.IterateSingleParameterDeclarations())
+		singleParameters = list(procedure.IterateSingleParameterDeclarations())
 
 		self.assertEqual(2, len(singleParameters))
 		for singleParameter in singleParameters:
@@ -243,12 +250,12 @@ class SingleParameters(Testcase):
 			ParameterConstantInterfaceItem(("a", "b"), Mode.In, _subtypeSymbol("integer")),
 			ParameterFileInterfaceItem(("f", ), _subtypeSymbol("text")),
 		]
-		group = ParameterGroup(parameters)
+		procedure = Procedure("p", parameterItems=parameters)
 
 		def isFile(singleParameter: SingleParameterConstantDeclaration | SingleParameterFileDeclaration) -> bool:
 			return isinstance(singleParameter, SingleParameterFileDeclaration)
 
-		singleParameters = list(group.IterateSingleParameterDeclarations(isFile))
+		singleParameters = list(procedure.IterateSingleParameterDeclarations(isFile))
 
 		self.assertListEqual(["f"], [singleParameter.Identifier for singleParameter in singleParameters])
 

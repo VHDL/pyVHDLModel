@@ -44,8 +44,9 @@ from pyVHDLModel.Interface       import GenericConstantInterfaceItem, GenericTyp
                                         ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
                                         ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem, \
                                         ParameterFileInterfaceItem, ModeViewDeclaration, SimpleModeViewElement, \
-                                        CompositeModeViewElement
+                                        CompositeModeViewElement, GenericGroup, PortGroup, ParameterGroup
 from pyVHDLModel.Name            import SimpleName
+from pyVHDLModel.Subprogram      import Procedure
 from pyVHDLModel.Symbol          import ModeViewSymbol
 
 from tests.unit                  import _subtypeSymbol
@@ -279,6 +280,44 @@ class Components(Testcase):
 			  );
 			end component counter;
 			"""), VHDLWriter(style).Format(_component()))
+
+
+class Groups(Testcase):
+	"""Interface groups have no VHDL syntax: the writer output is the same as without groups."""
+
+	def test_Generic(self) -> None:
+		bits =      GenericConstantInterfaceItem(["BITS"], Mode.Default, _subtypeSymbol("positive"))
+		typeItem =  GenericTypeInterfaceItem("T")
+		component = Component(
+			"c",
+			genericItems=[bits, typeItem],
+			genericGroups=[GenericGroup([bits], name="sizes"), GenericGroup([typeItem])]
+		)
+
+		self.assertEqual(
+			"component c is\n  generic (\n    BITS : positive;\n    type T\n  );\nend component c;\n",
+			VHDLWriter().Format(component)
+		)
+
+	def test_Port(self) -> None:
+		clock =     PortSimpleSignalInterfaceItem(["clk"], Mode.In, _subtypeSymbol("bit"))
+		q =         PortSimpleSignalInterfaceItem(["q"], Mode.Out, _subtypeSymbol("bit"))
+		component = Component("c", portItems=[clock, q], portGroups=[PortGroup([clock], name="clocking"), PortGroup([q])])
+
+		self.assertEqual(
+			"component c is\n  port (\n    clk : in bit;\n    q : out bit\n  );\nend component c;\n",
+			VHDLWriter().Format(component)
+		)
+
+	def test_Parameter(self) -> None:
+		a =         ParameterConstantInterfaceItem(["a"], Mode.In, _subtypeSymbol("integer"))
+		b =         ParameterConstantInterfaceItem(["b"], Mode.In, _subtypeSymbol("integer"))
+		procedure = Procedure("p", parameterItems=[a, b], parameterGroups=[ParameterGroup([a]), ParameterGroup([b])])
+
+		self.assertEqual(
+			"procedure p (constant a : in integer; constant b : in integer);\n",
+			VHDLWriter().Format(procedure)
+		)
 
 
 class ModeViews(Testcase):

@@ -60,7 +60,7 @@ __issue_tracker_url__ = "https://GitHub.com/VHDL/pyVHDLModel/issues"
 from enum                      import unique, Enum, Flag, auto
 from pathlib                   import Path
 
-from typing                    import TYPE_CHECKING, Union, cast, Generator, Optional as Nullable
+from typing                    import TYPE_CHECKING, ClassVar, Union, cast, Generator, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators      import export, readonly
@@ -550,6 +550,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	_hierarchyGraph:    Graph                 #: A graph derived from dependency graph containing the design hierarchy.
 	_objectGraph:       Graph                 #: The graph of all types and objects in the design.
 	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
+
+	_IMPLICIT_OPERATIONS: ClassVar[frozenset[str]] = frozenset((
+		"to_string", "to_bstring", "to_binary_string", "to_ostring", "to_octal_string", "to_hstring", "to_hex_string",
+		"minimum", "maximum", "deallocate", "file_open", "file_close", "read", "write", "endfile", "flush"
+	))  #: Normalized identifiers of implicitly declared operations (IEEE Std 1076-2008, 5), which aren't represented.
 
 	def __init__(
 		self,
@@ -1541,7 +1546,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		      * Report an incomplete type, which has no full type declaration later in its region.
 		      * Resolve the name of an alias without a subtype indication, if it's a simple name or an expanded name
-		        ``lib.pkg.item`` and denotes a type (:meth:`_LookupName`).
+		        ``lib.pkg.item`` and denotes a type (:meth:`_LookupName`). The name of an implicitly declared operation
+		        (:attr:`_IMPLICIT_OPERATIONS`, an operator symbol) isn't looked up, as the model doesn't represent these.
 		      * Resolve every type mark of the declaration (:meth:`_GetTypeMarksOf`) by :meth:`_ResolveTypeMark`.
 		      * Set the base type of a subtype declaration (:attr:`~pyVHDLModel.Type.Subtype.BaseType`): the resolved type,
 		        or the base type of the resolved subtype.
@@ -1597,7 +1603,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							isinstance(name, SelectedName) and not isinstance(name, AllName)
 							and isinstance(name._prefix, SelectedName) and isinstance(name._prefix._prefix, SimpleName)
 						)
-						if isinstance(name, SimpleName) or isExpandedName:
+						# Implicitly declared operations (e.g. 'to_string' of an array type) aren't represented in the model.
+						isImplicit = name._normalizedIdentifier in self._IMPLICIT_OPERATIONS or name._identifier.startswith('"')
+						if (isinstance(name, SimpleName) or isExpandedName) and not isImplicit:
 							item._name._reference = None
 							aliased = self._LookupName(designUnit, region._namespace, item, item._name, UnresolvedNameWarning)
 							if len(aliased) > 0 and isinstance(aliased[0], BaseType):

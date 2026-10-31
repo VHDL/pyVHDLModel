@@ -503,3 +503,9 @@ class ReviewFindings(Testcase):
 		warnings = _resolve(_design(Package("q"), PackageBody(_packageSymbol("q"), declaredItems=[constant])))
 
 		self.assertEqual("Type mark 'U' not found in: q.", str(warnings[0]))
+
+	def test_AliasName_ImplicitOperation(self) -> None:
+		"""``alias to_bstring is to_string [...];``: implicitly declared operations aren't represented, so not reported."""
+		alias = Alias("to_bstring", SimpleObjectOrFunctionCallSymbol(SimpleName("to_string")))
+
+		self.assertListEqual([], _resolve(_design(Package("q", declaredItems=[alias]))))

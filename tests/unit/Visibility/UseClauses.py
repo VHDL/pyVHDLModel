@@ -440,14 +440,18 @@ class UseClauseDiagnostics(Testcase):
 
 	def test_GenericPackage(self) -> None:
 		"""``use work.gp.all;`` with an uninstantiated generic package (A086)."""
-		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")], declaredItems=[_constant("K", "integer")])
+		constant = _constant("K", "integer")
+		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")], declaredItems=[constant])
 		entity = Entity("e", [_use("work.gp.all")])
 
 		with WarningCollector() as collector:
 			_design(genericPackage, entity)
 
 		self.assertEqual(1, len(collector.Warnings))
-		self.assertEqual("Use clause 'work.gp.all' names the uninstantiated generic package 'gp'.", str(collector.Warnings[0]))
+		self.assertEqual(
+			"Use clause 'work.gp.all' names the uninstantiated generic package 'gp'.",
+			str(collector.Warnings[0])
+		)
 		self.assertFalse(entity._namespace.Lookup("k").IsVisible)
 
 

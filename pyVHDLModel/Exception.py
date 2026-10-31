@@ -58,6 +58,8 @@ if TYPE_CHECKING:  # pragma: no cover
 ElementType = TypeVar("ElementType", bound="ModelEntity")  #: Type of the model entity to remove, which is still in use.
 UsersType =   TypeVar("UsersType", bound="ModelEntity")    #: Type of the model entities still using it.
 
+_Symbol = Symbol  # A field annotation of class Symbol, where the class has a property 'Symbol'.
+
 
 @export
 class VHDLModelWarning(Warning):
@@ -223,11 +225,10 @@ class DuplicateDeclarationWarning(VHDLModelCriticalWarning):
 @export
 class UnresolvedNameWarning(VHDLModelCriticalWarning):
 	"""
-	Raised when a name can't be resolved: no declaration of it is visible, or use clauses made conflicting declarations
-	potentially visible.
+	Raised when a name can't be resolved: no declaration of it is visible, use clauses made conflicting declarations
+	potentially visible, or it names something a use clause can't use, e.g. an uninstantiated generic package.
 
-	The model stays usable, but the symbol of the name stays unresolved (:attr:`~pyVHDLModel.Symbol.Symbol.Reference` is
-	``None``).
+	The model stays usable, but the symbol of the name stays unresolved or imports nothing.
 
 	.. important::
 
@@ -235,39 +236,52 @@ class UnresolvedNameWarning(VHDLModelCriticalWarning):
 	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
 	"""
 
-	_symbol:     Nullable[Symbol]                  #: The unresolved symbol.
-	_namespaces: tuple[_Namespace, ...]            #: The namespaces searched for the name, innermost first.
-	_conflicts:  tuple[_Import, ...]               #: The imported declarations conflicting with each other.
+	_symbol:     _Symbol                  #: The unresolved symbol.
+	_place:      ModelEntity              #: The model entity containing the name, e.g. a use clause.
+	_namespaces: tuple[_Namespace, ...]   #: The namespaces searched for the name, innermost first.
+	_conflicts:  tuple[_Import, ...]      #: The imported declarations conflicting with each other.
 
 	def __init__(
 		self,
-		message: str,
+		message:    str,
 		/, *,
-		symbol: Nullable[Symbol] = None,
-		namespaces: tuple[_Namespace, ...] = (),
-		conflicts: tuple[_Import, ...] = ()
+		symbol:     _Symbol,
+		place:      ModelEntity,
+		namespaces: tuple[_Namespace, ...],
+		conflicts:  tuple[_Import, ...] = ()
 	) -> None:
 		"""
-		Initializes the warning with the unresolved symbol, the searched namespaces and the conflicting imports.
+		Initializes the warning with the unresolved symbol, its place, the searched namespaces and the conflicts.
 
 		:param message:    The warning's message.
-		:param symbol:     Optional, the unresolved symbol.
-		:param namespaces: Optional, the namespaces searched for the name, innermost first. Default: ``()``.
+		:param symbol:     The unresolved symbol.
+		:param place:      The model entity containing the name, e.g. a use clause or a declaration.
+		:param namespaces: The namespaces searched for the name, innermost first.
 		:param conflicts:  Optional, the imported declarations conflicting with each other. Default: ``()``.
 		"""
 		super().__init__(message)
 		self._symbol =     symbol
+		self._place =      place
 		self._namespaces = namespaces
 		self._conflicts =  conflicts
 
 	@readonly
-	def Symbol(self) -> Nullable[Symbol]:
+	def Symbol(self) -> _Symbol:
 		"""
 		Read-only property to access the unresolved symbol (:attr:`_symbol`).
 
-		:returns: The symbol, or ``None`` if it wasn't recorded.
+		:returns: The symbol.
 		"""
 		return self._symbol
+
+	@readonly
+	def Place(self) -> ModelEntity:
+		"""
+		Read-only property to access the model entity containing the name (:attr:`_place`).
+
+		:returns: The model entity, e.g. a use clause or a declaration.
+		"""
+		return self._place
 
 	@readonly
 	def Namespaces(self) -> tuple[_Namespace, ...]:

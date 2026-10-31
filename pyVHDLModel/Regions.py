@@ -1967,7 +1967,7 @@ class DeclarationRegionMixin(
 		from pyVHDLModel.DesignUnit  import Package
 
 		if isinstance(item, (Alias, Attribute, Package)):
-			self._namespace.AddElement(item._normalizedIdentifier, item)
+			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=Namespace.IsOverloadable(item))
 
 	def _UnindexOtherDeclaredItem(self, item: ModelEntity) -> None:
 		"""
@@ -2113,7 +2113,7 @@ class DeclarationRegionMixin(
 				self._namespace.RemoveElement(normalizedIdentifier, item)
 			else:
 				self._namespace.AddElement(normalizedIdentifier, remaining[-1], overloadable=True)
-		elif not isinstance(entry, (Function, Procedure)):
+		elif not Namespace.IsOverloadable(entry):
 			# raises NotInNamespaceError, naming the reason
 			self._namespace.RemoveElement(normalizedIdentifier, item)
 
@@ -2144,7 +2144,7 @@ class DeclarationRegionMixin(
 		from pyVHDLModel.Type       import FullType, AnonymousType, ProtectedType, ProtectedTypeBody
 
 		return (
-			(isinstance(item, (Function, Procedure)) and isinstance(existing, (Function, Procedure)))
+			(Namespace.IsOverloadable(item) and Namespace.IsOverloadable(existing))
 			or (isinstance(item, ProtectedTypeBody) and isinstance(existing, ProtectedType))
 			or (isinstance(item, ProtectedType) and isinstance(existing, ProtectedTypeBody))
 			or (isinstance(item, FullType) and isinstance(existing, AnonymousType))

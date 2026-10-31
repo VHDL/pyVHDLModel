@@ -187,7 +187,7 @@ class PhysicalTypes(Testcase):
 		self.assertEqual(1, len(physicalType.SecondaryUnits))
 		self.assertEqual("fs", physicalType.SecondaryUnits[0][0])
 		self.assertIs(femtoSeconds, physicalType.SecondaryUnits[0][1])
-		self.assertIs(physicalType, femtoSeconds.Parent)
+		self.assertIs(physicalType.Units[1], femtoSeconds.Parent)
 		self.assertEqual("my_time is range 0 to 1000 units ps; fs = 1000 fs;", str(physicalType))
 
 	def test_NoSecondaryUnits(self) -> None:
@@ -208,6 +208,7 @@ class PhysicalTypes(Testcase):
 		self.assertEqual("ps", str(primaryUnit))
 		self.assertEqual("ns", secondaryUnit.NormalizedIdentifier)
 		self.assertIs(femtoSeconds, secondaryUnit.Value)
+		self.assertIs(secondaryUnit, femtoSeconds.Parent)
 		self.assertIs(physicalType, secondaryUnit.Parent)
 		self.assertEqual("ns = 1000 fs", str(secondaryUnit))
 

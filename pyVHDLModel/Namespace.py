@@ -48,7 +48,7 @@ from pyVHDLModel.Object    import Obj, Signal, Constant, Variable
 from pyVHDLModel.Symbol    import ComponentInstantiationSymbol, Symbol, PossibleReference
 from pyVHDLModel.Exception import DuplicateDeclarationWarning, NotInNamespaceError
 if TYPE_CHECKING:
-	from pyVHDLModel.DesignUnit import Component, UseClause
+	from pyVHDLModel.DesignUnit import Component, UseClause as _UseClause
 	from pyVHDLModel.Type       import BaseType
 
 K = TypeVar("K")
@@ -94,10 +94,10 @@ class Import(metaclass=ExtendedType, slots=True):
 	      use ieee.numeric_std.all;
 	      --  ^^^^^^^^^^^^^^^^^^^^^    <- UseClause, importing e.g. 'unsigned' as Element
 	"""
-	_element:   ModelEntity          #: The imported declaration.
-	_useClause: Nullable[UseClause]  #: The use clause importing the declaration, or ``None`` for the implicit use clause.
+	_element:   ModelEntity           #: The imported declaration.
+	_useClause: Nullable[_UseClause]  #: The use clause importing the declaration, or ``None`` for the implicit use clause.
 
-	def __init__(self, element: ModelEntity, useClause: Nullable[UseClause]) -> None:
+	def __init__(self, element: ModelEntity, useClause: Nullable[_UseClause]) -> None:
 		"""
 		Initializes an imported declaration.
 
@@ -118,7 +118,7 @@ class Import(metaclass=ExtendedType, slots=True):
 		return self._element
 
 	@readonly
-	def UseClause(self) -> Nullable[UseClause]:
+	def UseClause(self) -> Nullable[_UseClause]:
 		"""
 		Read-only property to access the use clause importing the declaration (:attr:`_useClause`).
 
@@ -390,7 +390,7 @@ class Namespace(Generic[K, O]):
 		more than one namespace - an entity and its architecture form one, as do a package and its body -
 		so enclosing namespaces are searched too, but only while they share this one's region.
 
-		Overloadable declarations are exempt: several subprograms may share a name as long as their
+		Overloadable declarations (:meth:`IsOverloadable`) are exempt: several subprograms may share a name as long as their
 		signatures differ. Signatures are not compared yet, so two subprograms sharing a name are always
 		accepted (see the overload-resolution finding).
 
@@ -408,14 +408,12 @@ class Namespace(Generic[K, O]):
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
-		from pyVHDLModel.Subprogram import Function, Procedure
-
 		namespace = self
 		while namespace is not None:
 			existing = namespace._elements.get(normalizedIdentifier)
 			# `existing is element` means the region is being re-indexed, not that the name is declared twice.
 			isReindex = existing is element
-			isOverload = overloadable and isinstance(existing, (Function, Procedure))
+			isOverload = overloadable and self.IsOverloadable(existing)
 			if existing is not None and not isReindex and not isOverload:
 				WarningCollector.Raise(DuplicateDeclarationWarning(
 					f"Identifier '{normalizedIdentifier}' is already used for a declaration in '{namespace._name}'.",
@@ -487,6 +485,33 @@ class Namespace(Generic[K, O]):
 		return ()
 
 	@staticmethod
+	def IsOverloadable(element: Nullable[ModelEntity]) -> bool:
+		"""
+		Check if a declaration is overloadable: it may share its designator with other overloadable declarations.
+
+		Subprograms and enumeration literals are overloadable, as is an alias without a subtype indication, whose name may
+		denote a subprogram or an enumeration literal (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`, else the symbol's
+		possible references), e.g. ``alias To_SLV is To_StdLogicVector [std_ulogic_vector return std_logic_vector];``.
+
+		:param element: A declaration, or ``None``.
+		:returns:       ``True``, if the declaration is overloadable.
+		"""
+		from pyVHDLModel.Declaration import Alias
+		from pyVHDLModel.Expression  import EnumerationLiteral
+		from pyVHDLModel.Subprogram  import Function, Procedure
+
+		if isinstance(element, (Function, Procedure, EnumerationLiteral)):
+			return True
+		elif isinstance(element, Alias) and element._subtype is None:
+			if (reference := element._name._reference) is not None:
+				return isinstance(reference, (Function, Procedure, EnumerationLiteral))
+
+			overloadables = PossibleReference.SubProgram | PossibleReference.EnumLiteral
+			return (element._name._possibleReferences & overloadables) != PossibleReference.Unknown
+
+		return False
+
+	@staticmethod
 	def NormalizedDesignatorOf(element: ModelEntity) -> str:
 		"""
 		Return the normalized designator of a declaration, the key it's indexed by in a namespace.
@@ -507,14 +532,19 @@ class Namespace(Generic[K, O]):
 
 		return normalizedIdentifiersOf(element)[0]
 
-	def AddImport(self, normalizedIdentifier: K, element: O, useClause: Nullable[UseClause]) -> None:
+	def AddImport(self, normalizedIdentifier: K, element: O, useClause: Nullable[_UseClause]) -> None:
 		"""
 		Add an item imported by a use clause to this namespace.
 
 		An imported item is declared elsewhere, so it's kept apart from the declarations (:meth:`AddElement`): it never
 		clashes with a declaration, and a declaration of the same identifier hides it (:meth:`Lookup`). Several items can
-		be imported for the same identifier, e.g. overloaded subprograms, or conflicting declarations of two packages.
-		Importing the same item again for the same identifier keeps the first import.
+		be imported for the same identifier, e.g. overloaded subprograms, or conflicting declarations of two packages. The
+		same item imported by several use clauses is kept once per use clause, because their positions differ; importing
+		it again by the same use clause changes nothing.
+
+		Imports are computed by the analysis (:meth:`~pyVHDLModel.Design.Analyze`): adding, removing or moving a declaration
+		of a package or a use clause doesn't update them, a later analysis does. Until then, :meth:`Lookup` ignores an
+		import by a removed use clause; a declaration removed from its package stays imported.
 
 		:param normalizedIdentifier: The normalized (lower case) identifier of the imported item.
 		:param element:              The imported item, e.g. a package, a type or a subprogram.
@@ -522,7 +552,7 @@ class Namespace(Generic[K, O]):
 		                             ``use std.standard.all;``.
 		"""
 		imports = self._imports.setdefault(normalizedIdentifier, [])
-		if not any(existing._element is element for existing in imports):
+		if not any(existing._element is element and existing._useClause is useClause for existing in imports):
 			imports.append(Import(element, useClause))
 
 	def RemoveImport(self, normalizedIdentifier: K, element: O) -> None:
@@ -620,23 +650,22 @@ class Namespace(Generic[K, O]):
 		"""
 		Return the declarations of an identifier in this namespace, each with the item deciding its declaration order.
 
-		A subprogram is expanded to all overloads of its declarative region. An enumeration literal or a physical unit is
+		An overloadable declaration (:meth:`IsOverloadable`) is expanded to all overloads of its declarative region. An enumeration literal or a physical unit is
 		ordered by its type.
 
 		:param normalizedIdentifier: The normalized (lower case) identifier or designator.
 		:returns:                    List of (declaration, item in declaration order) pairs.
 		"""
-		from pyVHDLModel.Regions    import DeclarationRegionMixin
-		from pyVHDLModel.Subprogram import Function, Procedure
+		from pyVHDLModel.Regions import DeclarationRegionMixin
 
 		declarations = []
 		if (element := self._elements.get(normalizedIdentifier)) is not None:
 			region = element._parent
-			if isinstance(element, (Function, Procedure)) and isinstance(region, DeclarationRegionMixin):
+			if self.IsOverloadable(element) and isinstance(region, DeclarationRegionMixin):
 				for declaration in region._Declarations():
 					if (
-						isinstance(declaration, (Function, Procedure))
-						and declaration._normalizedIdentifier == normalizedIdentifier
+						self.IsOverloadable(declaration)
+						and normalizedIdentifier in normalizedIdentifiersOf(declaration)
 					):
 						declarations.append((declaration, declaration))
 			else:
@@ -705,13 +734,14 @@ class Namespace(Generic[K, O]):
 		  ``None``, every declaration is visible, as from the statements of a region. A full type is visible from its
 		  incomplete type declaration on.
 		* A declaration hides the declarations of the same identifier in enclosing regions. Overloadable declarations
-		  (subprograms and enumeration literals) of all regions coexist, until a region declares the identifier as
-		  something not overloadable.
+		  (:meth:`IsOverloadable`: subprograms, enumeration literals, subprogram aliases) of all regions coexist, until a
+		  region declares the identifier as something not overloadable.
 		* A declaration of the identifier in the region or in an enclosing region hides every imported declaration of the
 		  same identifier, unless both are overloadable.
 		* Imported declarations of all use clauses visible at the place are potentially visible: overloadable ones coexist;
 		  if one of two different ones isn't overloadable, neither is directly visible, and both are reported as conflicts.
 		  The same declaration imported twice is no conflict.
+		* Imports are those of the last analysis; an import by a removed use clause is ignored.
 
 		Overloadable declarations aren't compared by their parameter and result type profiles, so a homograph doesn't hide
 		an overloadable declaration.
@@ -720,11 +750,8 @@ class Namespace(Generic[K, O]):
 		:param place:                Optional, the model entity at which the identifier is used. Default: ``None``.
 		:returns:                    The directly visible declarations, or the conflicts, and the searched namespaces.
 		"""
-		from pyVHDLModel.Expression import EnumerationLiteral
-		from pyVHDLModel.Subprogram import Function, Procedure
-		from pyVHDLModel.Type       import FullType, AnonymousType
+		from pyVHDLModel.Type import FullType, AnonymousType
 
-		overloadables = (Function, Procedure, EnumerationLiteral)
 		declarations = []
 		imports = []
 		searchedNamespaces = []
@@ -747,7 +774,7 @@ class Namespace(Generic[K, O]):
 					):
 						continue
 
-				if isinstance(declaration, overloadables):
+				if self.IsOverloadable(declaration):
 					declarations.append(declaration)
 				else:
 					# Not overloadable: it hides every declaration further out and every import, unless an inner overloadable
@@ -762,7 +789,11 @@ class Namespace(Generic[K, O]):
 				break
 
 			for imported in namespace._imports.get(normalizedIdentifier, ()):
-				if anchor is None or self._Precedes(imported._useClause, anchor, inclusive):
+				# An import by a removed use clause waits for the next analysis to vanish.
+				useClause = imported._useClause
+				if useClause is not None and useClause._parent is None:
+					continue
+				elif anchor is None or self._Precedes(useClause, anchor, inclusive):
 					imports.append(imported)
 
 			namespace = namespace._parentNamespace
@@ -777,8 +808,8 @@ class Namespace(Generic[K, O]):
 
 		if len(declarations) > 0:
 			# Declared overloadable declarations hide imported declarations, which aren't overloadable.
-			visibleImports = tuple(imported for imported in distinctImports if isinstance(imported._element, overloadables))
-		elif len(distinctImports) == 1 or all(isinstance(imported._element, overloadables) for imported in distinctImports):
+			visibleImports = tuple(imported for imported in distinctImports if self.IsOverloadable(imported._element))
+		elif len(distinctImports) == 1 or all(self.IsOverloadable(imported._element) for imported in distinctImports):
 			visibleImports = tuple(distinctImports)
 		else:
 			return LookupResult(normalizedIdentifier, (), (), tuple(distinctImports), tuple(searchedNamespaces))

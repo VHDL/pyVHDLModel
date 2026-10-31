@@ -31,19 +31,21 @@
 """
 Visibility rules (IEEE Std 1076-2008, 12.3 and 12.4): hiding, conflicting imports and declaration order.
 """
-from pyTooling.Testing      import Testcase
+from pyTooling.Testing       import Testcase
+from pyTooling.Warning       import WarningCollector
 
-from pyVHDLModel.Base       import Mode
-from pyVHDLModel.Concurrent import ProcessStatement
-from pyVHDLModel.DesignUnit import Architecture, Entity, Package
-from pyVHDLModel.Interface  import PortSimpleSignalInterfaceItem
-from pyVHDLModel.Name       import SimpleName
-from pyVHDLModel.Namespace  import Namespace
-from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
-from pyVHDLModel.Type       import AccessType, AnonymousType, RecordType, RecordTypeElement
+from pyVHDLModel.Base        import Mode
+from pyVHDLModel.Concurrent  import ProcessStatement
+from pyVHDLModel.Declaration import Alias
+from pyVHDLModel.DesignUnit  import Architecture, Entity, Package
+from pyVHDLModel.Interface   import PortSimpleSignalInterfaceItem
+from pyVHDLModel.Name        import SimpleName
+from pyVHDLModel.Namespace   import Namespace
+from pyVHDLModel.Symbol      import PossibleReference, SignalSymbol, SimpleSubtypeSymbol, Symbol
+from pyVHDLModel.Type        import AccessType, AnonymousType, RecordType, RecordTypeElement
 
-from tests.unit             import _entitySymbol, _signal, _subtypeSymbol, _variable
-from tests.unit.Visibility  import _constant, _design, _enumeration, _function, _use
+from tests.unit              import _entitySymbol, _signal, _subtypeSymbol, _variable
+from tests.unit.Visibility   import _constant, _design, _enumeration, _function, _use
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -309,3 +311,75 @@ class Designators(Testcase):
 		architecture.RemoveDeclaredItem(enumeration)
 
 		self.assertDictEqual({}, architecture._namespace.ImplicitDeclarations())
+
+
+class SubprogramAliases(Testcase):
+	"""An alias of a subprogram is overloadable, like the subprogram (IEEE ``std_logic_1164``: ``To_SLV``, ``bread``)."""
+
+	@staticmethod
+	def _alias(identifier: str, name: str) -> Alias:
+		"""An alias without a subtype indication, as pyGHDL creates it: its name may denote any package member."""
+		possibleReferences = PossibleReference.PackageMember | PossibleReference.EnumLiteral
+		return Alias(identifier, Symbol(SimpleName(name), possibleReferences))
+
+	def test_Overloaded(self) -> None:
+		"""``alias f is f1 [...]; alias f is f2 [...];`` in ``p1``, ``function f`` in ``p2`` (GHDL accepts)."""
+		first = self._alias("f", "f1")
+		second = self._alias("f", "f2")
+		function = _function("f", "boolean")
+		packages = (
+			Package("p1", declaredItems=[_function("f1", "integer"), _function("f2", "bit"), first, second]),
+			Package("p2", declaredItems=[function])
+		)
+		entity = Entity("e", [_use("work.p1.all", "work.p2.all")])
+
+		with WarningCollector() as collector:
+			_design(*packages, entity)
+
+		self.assertListEqual([], collector.Warnings)
+		self.assertTupleEqual((first, second, function), entity._namespace.Lookup("f").Declarations)
+
+	def test_InRegion(self) -> None:
+		"""An alias and a function of the same name in one region are no duplicate."""
+		alias = self._alias("f", "f1")
+		function = _function("f", "bit")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_function("f1", "integer"), alias, function])
+
+		with WarningCollector() as collector:
+			_design(Entity("e"), architecture)
+
+		self.assertListEqual([], collector.Warnings)
+		self.assertTupleEqual((alias, function), architecture._namespace.Lookup("f").Declarations)
+
+	def test_ObjectAlias(self) -> None:
+		"""An alias of a signal isn't overloadable."""
+		self.assertFalse(Namespace.IsOverloadable(Alias("x", SignalSymbol(SimpleName("s")))))
+
+
+class StaleImports(Testcase):
+	"""Imports are computed by the analysis; a removed use clause is ignored until the next analysis."""
+
+	def setUp(self) -> None:
+		self._type =      _enumeration("T", "a", "b")
+		self._package =   Package("p", declaredItems=[self._type])
+		self._useClause = _use("work.p.all")
+		self._signal =    _signal("s", "T")
+
+	def test_RemoveUseClause(self) -> None:
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[self._useClause, self._signal])
+		_design(self._package, Entity("e"), architecture)
+
+		architecture.RemoveDeclaredItem(self._useClause)
+
+		self.assertFalse(architecture._namespace.Lookup("t", self._signal).IsVisible)
+
+	def test_MoveUseClause(self) -> None:
+		"""The use clause moved behind the signal: the import follows its new position."""
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[self._useClause, self._signal])
+		_design(self._package, Entity("e"), architecture)
+
+		architecture.RemoveDeclaredItem(self._useClause)
+		architecture.AddDeclaredItem(self._useClause)
+
+		self.assertFalse(architecture._namespace.Lookup("t", self._signal).IsVisible)
+		self.assertTupleEqual((self._type, ), architecture._namespace.Lookup("t").Declarations)

@@ -127,6 +127,8 @@ class VHDLModelCriticalWarning(CriticalWarning):
 
 	   * :class:`Duplicate declaration warning <pyVHDLModel.Exception.DuplicateDeclarationWarning>`
 	   * :class:`Unresolved name warning <pyVHDLModel.Exception.UnresolvedNameWarning>`
+	   * :class:`Unresolved type mark warning <pyVHDLModel.Exception.UnresolvedTypeMarkWarning>`
+	   * :class:`Incomplete type warning <pyVHDLModel.Exception.IncompleteTypeWarning>`
 	"""
 	pass
 
@@ -301,6 +303,55 @@ class UnresolvedNameWarning(VHDLModelCriticalWarning):
 		:returns: Tuple of imported declarations with their use clauses, empty if there is no conflict.
 		"""
 		return self._conflicts
+
+
+@export
+class UnresolvedTypeMarkWarning(UnresolvedNameWarning):
+	"""
+	Raised when a type mark can't be resolved (:meth:`~pyVHDLModel.Design.ResolveTypeMarks`): no declaration of it is
+	visible, use clauses made conflicting declarations potentially visible, the prefix of an expanded name isn't a visible
+	package, or it denotes something else than a type or subtype.
+
+	Its place (:attr:`~UnresolvedNameWarning.Place`) is the declaration containing the type mark.
+
+	.. important::
+
+	   As a critical warning, it must be collected by a :class:`~pyTooling.Warning.WarningCollector` up the
+	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
+	"""
+
+
+@export
+class IncompleteTypeWarning(VHDLModelCriticalWarning):
+	"""
+	Raised when an incomplete type declaration has no full type declaration later in the same declarative region.
+
+	.. important::
+
+	   As a critical warning, it must be collected by a :class:`~pyTooling.Warning.WarningCollector` up the
+	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
+	"""
+
+	_type: Nullable[ModelEntity]  #: The incomplete type declaration.
+
+	def __init__(self, message: str, /, *, type: Nullable[ModelEntity] = None) -> None:
+		"""
+		Initializes the warning with the incomplete type declaration.
+
+		:param message: The warning's message.
+		:param type:    Optional, the incomplete type declaration.
+		"""
+		super().__init__(message)
+		self._type = type
+
+	@readonly
+	def Type(self) -> Nullable[ModelEntity]:
+		"""
+		Read-only property to access the incomplete type declaration (:attr:`_type`).
+
+		:returns: The incomplete type declaration, or ``None`` if it wasn't recorded.
+		"""
+		return self._type
 
 
 @export

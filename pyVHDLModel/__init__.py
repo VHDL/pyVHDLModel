@@ -68,7 +68,8 @@ from pyTooling.Graph           import Graph, Vertex, Edge
 from pyTooling.Warning         import WarningCollector
 
 from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning, BlackboxWarning, \
-                                      UnresolvedNameWarning, LibraryExistsInDesignError, \
+                                      UnresolvedNameWarning, UnresolvedTypeMarkWarning, IncompleteTypeWarning, \
+                                      LibraryExistsInDesignError, \
                                       LibraryRegisteredToForeignDesignError, LibraryNotRegisteredError, \
                                       EntityExistsInLibraryError, \
                                       ArchitectureExistsInLibraryError, PackageExistsInLibraryError, \
@@ -80,12 +81,11 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       LibraryInUseError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                       normalizedIdentifiersOf
-from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
-from pyVHDLModel.Name          import AllName
-from pyVHDLModel.Namespace     import Namespace
+from pyVHDLModel.Name          import Name as _Name, AllName, AttributeName
+from pyVHDLModel.Namespace     import Namespace, LookupResult
 from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant, SharedVariable, Variable, File
 from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
-                                      PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
+                                      PackageMemberReferenceSymbol, SubtypeSymbol
 from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Regions       import DeclarationRegionMixin, ConcurrentDeclarationRegionMixin, \
                                       SequentialDeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin
@@ -97,8 +97,8 @@ from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, Pac
                                       Configuration, Package, Component, UseClause
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode, PSLEntity
 from pyVHDLModel.Instantiation import PackageInstantiation
-from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType, BaseType, AnonymousType, \
-                                      Subtype
+from pyVHDLModel.Type          import BaseType, FullType, AnonymousType, Subtype, ArrayType, RecordType, AccessType, \
+                                      FileType
 from pyVHDLModel.Configuration import ComponentConfiguration
 from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
 from pyVHDLModel.Interface     import ModeViewDeclaration
@@ -1331,7 +1331,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`ResetAnalysis`
 		2. Analyze dependencies of design units. |br|
 		   This will also yield the design hierarchy and the compiler order.
-		3. Analyze dependencies of types and objects.
+
+		Type marks are resolved by a separate step, :meth:`ResolveTypeMarks`, after the analysis.
 
 		.. seealso::
 
@@ -1341,8 +1342,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   :meth:`AnalyzeDependencies`
 		     Analyze the dependencies of design units.
 
-		   :meth:`AnalyzeObjects`
-		     Analyze the dependencies of types and objects.
+		   :meth:`ResolveTypeMarks`
+		     Resolve the type marks of all declarations.
 
 		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
@@ -1350,7 +1351,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		self.ResetAnalysis()
 		self.AnalyzeDependencies()
-		# self.AnalyzeObjects()
 
 	def ResetAnalysis(self) -> None:
 		"""
@@ -1367,7 +1367,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		2. Clear the references to vertices of all libraries, documents and design units.
 		3. Clear the references of all design units: referenced libraries, packages and contexts, the symbols of library
 		   clauses, use clauses and context references, and the items imported into namespaces. Use clauses in declarative
-		   regions nested in a design unit are cleared too.
+		   regions nested in a design unit are cleared too, as are the references of type marks and alias names
+		   (:meth:`ResolveTypeMarks`) and the base types of subtypes; a subtype of library ``std`` or ``ieee`` keeps its
+		   base type.
 		4. Unlink architectures from entities and package bodies from packages: an entity's architectures, a package's
 		   body, the symbols referencing the entity or package, and the link to the parent namespace.
 		5. Unlink package instantiations from their generic package: the symbol and the components copied from it.
@@ -1409,10 +1411,17 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
 			for region in self._IterateDeclarationRegions(designUnit):
 				region._namespace.ClearImports()
-				for item in region._declaredItems:
+				for item in region._Declarations():
 					if isinstance(item, UseClause):
 						for symbol in item._symbols:
 							symbol._reference = None
+					elif isinstance(item, Alias) and item._subtype is None:
+						item._name._reference = None
+					elif isinstance(item, Subtype) and designUnit._parent._normalizedIdentifier not in ("std", "ieee"):
+						item._baseType = None
+
+					for _, symbol in self._GetTypeMarksOf(region, item):
+						symbol._reference = None
 
 		for entity in self.IterateDesignUnits(DesignUnitKind.Entity):  # type: Entity
 			for architecture in entity._architectures.values():
@@ -1509,30 +1518,253 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		self.CreateHierarchyGraph()
 		self.ComputeCompileOrder()
 
-	def AnalyzeObjects(self) -> None:
+	def ResolveTypeMarks(self) -> None:
 		"""
-		Analyze the dependencies of types and objects.
+		Resolve the type marks of all declarations in the design.
+
+		It's a separate step after :meth:`Analyze`, which links the use clauses. Each type mark is looked up at its place
+		(:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`), so the visibility rules apply: e.g. a type declared after the
+		place isn't visible, and conflicting use clauses make a type mark ambiguous. A resolved type mark references the
+		type, the subtype or the generic type (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`); a type mark denoting an alias
+		of a type references the type. Resolving again yields the same references.
 
 		.. rubric:: Algorithm
 
-		1. Index all entities. |br|
-		   |rarr| :meth:`IndexEntities`
-		2. Index all package bodies. |br|
-		   |rarr| :meth:`IndexPackageBodies`
-		3. Import objects. |br|
-		   |rarr| :meth:`ImportObjects`
-		4. Create the type and object graph. |br|
-		   |rarr| :meth:`CreateTypeAndObjectGraph`
+		1. Iterate the design units of the predefined libraries ``std`` and ``ieee``, then the design units of all
+		   documents in compile order (:meth:`IterateDocumentsInCompileOrder`), so a package is resolved before its users.
+		2. Iterate the declarative regions of each design unit, the outermost first (:meth:`_IterateDeclarationRegions`):
 
+		   1. Index the declared items of a region not indexed yet, e.g. a package body, a process or a subprogram.
+		   2. Iterate the region's declarations in declaration order:
+
+		      * Report an incomplete type, which has no full type declaration later in its region.
+		      * Resolve the name of an alias without a subtype indication, if it denotes a type (:meth:`_LookupName`).
+		      * Resolve every type mark of the declaration (:meth:`_GetTypeMarksOf`) by :meth:`_ResolveTypeMark`.
+		      * Set the base type of a subtype declaration (:attr:`~pyVHDLModel.Type.Subtype.BaseType`): the resolved type,
+		        or the base type of the resolved subtype.
+
+		.. seealso::
+
+		   :meth:`ResetAnalysis`
+		     Reset everything an analysis derived, including the references of type marks.
+
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
 		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
-		self.IndexEntities()
-		self.IndexPackageBodies()
+		designUnits = []
+		for libraryIdentifier in ("std", "ieee"):
+			if (library := self._libraries.get(libraryIdentifier)) is not None:
+				designUnits.extend(library.IterateDesignUnits(DesignUnitKind.WithDeclaredItems))
 
-		self.ImportObjects()
-		self.CreateTypeAndObjectGraph()
+		if len(self._documents) > 0:
+			for document in self.IterateDocumentsInCompileOrder():
+				for designUnit in document.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
+					if designUnit not in designUnits:
+						designUnits.append(designUnit)
+
+		for designUnit in designUnits:
+			for region in self._IterateDeclarationRegions(designUnit):
+				if not region._areDeclaredItemsIndexed:
+					region.IndexDeclaredItems()
+
+				declarations = region._Declarations()
+				for index, item in enumerate(declarations):
+					if isinstance(item, AnonymousType):
+						if not any(
+							isinstance(declaration, FullType) and declaration._normalizedIdentifier == item._normalizedIdentifier
+							for declaration in declarations[index + 1:]
+						):
+							WarningCollector.Raise(IncompleteTypeWarning(
+								f"Incomplete type '{item._identifier}' has no full type declaration in '{region._namespace._name}'.",
+								type=item
+							))
+					elif isinstance(item, Alias) and item._subtype is None:
+						result = self._LookupName(designUnit, region._namespace, item, item._name._name)
+						if result is not None and result.IsVisible and isinstance(result._declarations[0], BaseType):
+							item._name._reference = result._declarations[0]
+
+					for namespace, symbol in self._GetTypeMarksOf(region, item):
+						self._ResolveTypeMark(designUnit, namespace, item, symbol)
+
+					if isinstance(item, Subtype) and (reference := item._type._reference) is not None:
+						item._baseType = reference._baseType if isinstance(reference, Subtype) else reference
+
+	@staticmethod
+	def _GetTypeMarksOf(region: DeclarationRegionMixin, item: ModelEntity) -> tuple[tuple[Namespace, SubtypeSymbol], ...]:
+		"""
+		Return the type marks of a declaration in a declarative region, each with the namespace to look it up in.
+
+		The place of a type mark is the declaration containing it. These type marks are returned:
+
+		* the subtype indication of an object, a deferred constant and an interface object (generic, port, parameter),
+		* the type mark of a subtype declaration,
+		* the index subtypes and the element subtype of an array type,
+		* the element subtypes of a record type,
+		* the designated subtype of an access type and of a file type,
+		* the type mark of an attribute declaration, a mode view declaration and an alias with a subtype indication,
+		* the subtype indications of a component's generics and ports, and
+		* the return type of a function (also a generic function), looked up in the function's namespace.
+
+		:param region: The declarative region.
+		:param item:   A declaration of the region.
+		:returns:      Tuple of (namespace, type mark) pairs, in declaration order.
+		"""
+		from pyVHDLModel.Subprogram import Function
+
+		if isinstance(item, Obj):
+			symbols = (item._subtype, )
+		elif isinstance(item, Subtype):
+			symbols = (item._type, )
+		elif isinstance(item, ArrayType):
+			symbols = (*item._dimensions, item._elementType)
+		elif isinstance(item, RecordType):
+			symbols = tuple(element._subtype for element in item._elements)
+		elif isinstance(item, (AccessType, FileType)):
+			symbols = (item._designatedSubtype, )
+		elif isinstance(item, (Attribute, ModeViewDeclaration, Alias)):
+			symbols = (item._subtype, )
+		elif isinstance(item, Component):
+			interfaceItems = (*item._genericItems, *item._portItems)
+			symbols = tuple(element._subtype for element in interfaceItems if isinstance(element, Obj))
+		else:
+			symbols = ()
+
+		typeMarks = [(region._namespace, symbol) for symbol in symbols if isinstance(symbol, SubtypeSymbol)]
+		if isinstance(item, Function) and isinstance(item._returnType, SubtypeSymbol):
+			typeMarks.append((item._namespace, item._returnType))
+
+		return tuple(typeMarks)
+
+	def _LookupName(
+		self,
+		designUnit: DesignUnit,
+		namespace:  Namespace,
+		place:      ModelEntity,
+		name:       _Name
+	) -> Nullable[LookupResult]:
+		"""
+		Look up the declarations a simple name or an expanded name denotes at a place.
+
+		A simple name is looked up at the place (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`). An expanded name
+		``pkg.T`` or ``lib.pkg.T`` resolves its prefix to a package: ``pkg`` by a lookup at the place, ``lib.pkg`` by the
+		library (``work`` or a library referenced by the design unit) and the package's name. Then the suffix is searched
+		among the package's declarations (:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
+
+		:param designUnit: The design unit containing the name.
+		:param namespace:  The namespace to look up the name in.
+		:param place:      The declaration containing the name.
+		:param name:       The simple name or expanded name.
+		:returns:          The lookup result, or ``None``, if the prefix of an expanded name isn't a visible package.
+		"""
+		if (prefix := name._prefix) is None:
+			return namespace.Lookup(name._normalizedIdentifier, place)
+
+		package = None
+		if prefix._prefix is None:
+			for declaration in namespace.Lookup(prefix._normalizedIdentifier, place)._declarations:
+				if isinstance(declaration, Package):
+					package = declaration
+					break
+		elif prefix._prefix._prefix is None:
+			libraryIdentifier = prefix._prefix._normalizedIdentifier
+			if libraryIdentifier == "work":
+				library = designUnit._parent
+			else:
+				library = designUnit._referencedLibraries.get(libraryIdentifier)
+
+			if library is not None:
+				package = library._packages.get(prefix._normalizedIdentifier)
+
+		if package is None:
+			return None
+
+		declarations = package._namespace.FindDeclarations(name._normalizedIdentifier)
+		return LookupResult(name._normalizedIdentifier, declarations, (), (), (package._namespace, ))
+
+	def _ResolveTypeMark(
+		self,
+		designUnit: DesignUnit,
+		namespace:  Namespace,
+		place:      ModelEntity,
+		symbol:     SubtypeSymbol
+	) -> None:
+		"""
+		Resolve a type mark at its place and set the symbol's reference.
+
+		.. rubric:: Algorithm
+
+		1. Look up the type mark's name (:meth:`_LookupName`).
+		2. An alias of a type is replaced by the type its name references.
+		3. If the declaration is a type, a subtype or a generic type, it becomes the symbol's reference.
+
+		An attribute name (e.g. ``T'base``) isn't resolved.
+
+		:param designUnit:                     The design unit containing the type mark.
+		:param namespace:                      The namespace to look up the type mark in.
+		:param place:                          The declaration containing the type mark.
+		:param symbol:                         The type mark.
+		:raises UnhandledCriticalWarningError: If the type mark isn't visible, is ambiguous, has a prefix, which isn't a
+		                                       visible package, or denotes no type, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		name = symbol._name
+		if isinstance(name, AttributeName):
+			return
+
+		typeMark = symbol.TypeMark
+		if (result := self._LookupName(designUnit, namespace, place, name)) is None:
+			WarningCollector.Raise(UnresolvedTypeMarkWarning(
+				f"Prefix '{name._prefix!s}' of type mark '{typeMark}' isn't a visible package.",
+				symbol=symbol,
+				place=place,
+				namespaces=(namespace, )
+			))
+			return
+		elif result.HasConflicts:
+			WarningCollector.Raise(UnresolvedTypeMarkWarning(
+				f"Type mark '{typeMark}' is ambiguous: use clauses import conflicting declarations.",
+				symbol=symbol,
+				place=place,
+				namespaces=result._searchedNamespaces,
+				conflicts=result._conflicts
+			))
+			return
+
+		declarations = result._declarations
+		searchedNamespaces = result._searchedNamespaces
+		if len(declarations) == 0:
+			# An unlabeled region (e.g. a process) has no name.
+			names = ", ".join("?" if ns._name is None else ns._name for ns in searchedNamespaces)
+			WarningCollector.Raise(UnresolvedTypeMarkWarning(
+				f"Type mark '{typeMark}' not found in: {names}.",
+				symbol=symbol,
+				place=place,
+				namespaces=searchedNamespaces
+			))
+			return
+
+		declaration = declarations[0]
+		if isinstance(declaration, Alias) and isinstance(declaration._name._reference, BaseType):
+			declaration = declaration._name._reference
+
+		if not isinstance(declaration, BaseType):
+			WarningCollector.Raise(UnresolvedTypeMarkWarning(
+				f"Type mark '{typeMark}' denotes a {declaration.__class__.__name__}, not a type or subtype.",
+				symbol=symbol,
+				place=place,
+				namespaces=searchedNamespaces
+			))
+			return
+
+		symbol._reference = declaration
 
 	def CreateDependencyGraph(self) -> None:
 		"""
@@ -1681,180 +1913,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			for designUnit in document._designUnits:
 				edge = dependencyVertex.EdgeFromVertex(designUnit._dependencyVertex)
 				edge["kind"] = DependencyGraphEdgeKind.SourceFile
-
-	def ImportObjects(self) -> None:
-		def _ImportObjects(package: Package) -> None:
-			from pyVHDLModel.Declaration import AttributeSpecification
-
-			for referencedLibrary in package._referencedPackages.values():
-				for referencedPackage in referencedLibrary.values():
-					for declaredItem in referencedPackage._declaredItems:
-						if isinstance(declaredItem, MultipleNamedEntityMixin):
-							for normalizedIdentifier in declaredItem._normalizedIdentifiers:
-								package._namespace.AddImport(normalizedIdentifier, declaredItem)
-						elif isinstance(declaredItem, NamedEntityMixin):
-							package._namespace.AddImport(declaredItem._normalizedIdentifier, declaredItem)
-						elif isinstance(declaredItem, AttributeSpecification):
-							# FIXME: actually, this is not a declared item, but a application of an attribute to named entities
-							WarningCollector.Raise(NotImplementedWarning("Attribute specification.", item=declaredItem))
-
-						else:
-							raise VHDLModelException("Unexpected declared item.")
-
-		for libraryName in ("std", "ieee"):
-			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				_ImportObjects(package)
-
-		for document in self.IterateDocumentsInCompileOrder():
-			for package in document.IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				_ImportObjects(package)
-
-	def CreateTypeAndObjectGraph(self) -> None:
-		def _HandlePackage(package) -> None:
-			packagePrefix = f"{package.Library.NormalizedIdentifier}.{package.NormalizedIdentifier}"
-
-			for deferredConstant in package._deferredConstants.values():
-				print(f"Deferred Constant: {deferredConstant}")
-				deferredConstantVertex = Vertex(
-					vertexID=f"{packagePrefix}.{deferredConstant.NormalizedIdentifiers[0]}",
-					value=deferredConstant,
-					graph=self._objectGraph
-				)
-				deferredConstantVertex["kind"] = ObjectGraphVertexKind.DeferredConstant
-				deferredConstant._objectVertex = deferredConstantVertex
-
-			for constant in package._constants.values():
-				print(f"Constant: {constant}")
-				constantVertex = Vertex(
-					vertexID=f"{packagePrefix}.{constant.NormalizedIdentifiers[0]}",
-					value=constant,
-					graph=self._objectGraph
-				)
-				constantVertex["kind"] = ObjectGraphVertexKind.Constant
-				constant._objectVertex = constantVertex
-
-			for type in package._types.values():
-				print(f"Type: {type}")
-				typeVertex = Vertex(
-					vertexID=f"{packagePrefix}.{type.NormalizedIdentifier}",
-					value=type,
-					graph=self._objectGraph
-				)
-				typeVertex["kind"] = ObjectGraphVertexKind.Type
-				type._objectVertex = typeVertex
-
-			for subtype in package._subtypes.values():
-				print(f"Subtype: {subtype}")
-				subtypeVertex = Vertex(
-					vertexID=f"{packagePrefix}.{subtype.NormalizedIdentifier}",
-					value=subtype,
-					graph=self._objectGraph
-				)
-				subtypeVertex["kind"] = ObjectGraphVertexKind.Subtype
-				subtype._objectVertex = subtypeVertex
-
-			for function in package._functions.values():
-				print(f"Function: {function}")
-				functionVertex = Vertex(
-					vertexID=f"{packagePrefix}.{function.NormalizedIdentifier}",
-					value=function,
-					graph=self._objectGraph
-				)
-				functionVertex["kind"] = ObjectGraphVertexKind.Function
-				function._objectVertex = functionVertex
-
-			for procedure in package._procedures.values():
-				print(f"Procedure: {procedure}")
-				procedureVertex = Vertex(
-					vertexID=f"{packagePrefix}.{procedure.NormalizedIdentifier}",
-					value=procedure,
-					graph=self._objectGraph
-				)
-				procedureVertex["kind"] = ObjectGraphVertexKind.Function
-				procedure._objectVertex = procedureVertex
-
-			for signal in package._signals.values():
-				print(f"Signal: {signal}")
-				signalVertex = Vertex(
-					vertexID=f"{packagePrefix}.{signal.NormalizedIdentifiers[0]}",
-					value=signal,
-					graph=self._objectGraph
-				)
-				signalVertex["kind"] = ObjectGraphVertexKind.Signal
-				signal._objectVertex = signalVertex
-
-		def _LinkSymbolsInExpression(expression, namespace: Namespace, typeVertex: Vertex) -> None:
-			if isinstance(expression, UnaryExpression):
-				_LinkSymbolsInExpression(expression.Operand, namespace, typeVertex)
-			elif isinstance(expression, BinaryExpression):
-				_LinkSymbolsInExpression(expression.LeftOperand, namespace, typeVertex)
-				_LinkSymbolsInExpression(expression.RightOperand, namespace, typeVertex)
-			elif isinstance(expression, TernaryExpression):
-				WarningCollector.Raise(NotImplementedWarning("Handling of ternary expression.", item=expression))
-			elif isinstance(expression, SimpleObjectOrFunctionCallSymbol):
-				obj = namespace.FindObject(expression)
-				expression._reference = obj
-
-				edge = obj._objectVertex.EdgeToVertex(typeVertex)
-				edge["kind"] = ObjectGraphEdgeKind.ReferenceInExpression
-			else:
-				WarningCollector.Raise(NotImplementedWarning("Unhandled else-branch", item=expression))
-
-		def _LinkItems(package: Package) -> None:
-			for item in package._declaredItems:
-				if isinstance(item, Constant):
-					print(f"constant: {item}")
-				elif isinstance(item, DeferredConstant):
-					print(f"deferred constant: {item}")
-				elif isinstance(item, Signal):
-					print(f"signal: {item}")
-				elif isinstance(item, IntegerType):
-					typeNode = item._objectVertex
-
-					_LinkSymbolsInExpression(item.Range.LeftBound, package._namespace, typeNode)
-					_LinkSymbolsInExpression(item.Range.RightBound, package._namespace, typeNode)
-				# elif isinstance(item, FloatingType):
-				# 	print(f"signal: {item}")
-				elif isinstance(item, PhysicalType):
-					typeNode = item._objectVertex
-
-					_LinkSymbolsInExpression(item.Range.LeftBound, package._namespace, typeNode)
-					_LinkSymbolsInExpression(item.Range.RightBound, package._namespace, typeNode)
-				elif isinstance(item, ArrayType):
-					# Resolve dimensions
-					for dimension in item._dimensions:
-						subtype = package._namespace.FindSubtype(dimension)
-						dimension._reference = subtype
-
-						edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
-						edge["kind"] = ObjectGraphEdgeKind.Subtype
-
-					# Resolve element subtype
-					subtype = package._namespace.FindSubtype(item._elementType)
-					item._elementType._reference = subtype
-
-					edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
-					edge["kind"] = ObjectGraphEdgeKind.Subtype
-				elif isinstance(item, RecordType):
-					# Resolve each elements subtype
-					for element in item._elements:
-						subtype = package._namespace.FindSubtype(element._subtype)
-						element._subtype._reference = subtype
-
-						edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
-						edge["kind"] = ObjectGraphEdgeKind.Subtype
-				else:
-					print(f"not handled: {item}")
-
-		for libraryName in ("std", "ieee"):
-			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				_HandlePackage(package)
-				_LinkItems(package)
-
-		for document in self.IterateDocumentsInCompileOrder():
-			for package in document.IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				_HandlePackage(package)
-				_LinkItems(package)
 
 	def LinkContexts(self) -> None:
 		"""
@@ -2569,15 +2627,15 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		Iterate a declarative region and all declarative regions nested in it.
 
-		Nested regions are declared items (e.g. subprograms, protected types, packages) and concurrent statements (blocks,
-		processes, generate statements and their branches), each followed by the regions nested in it.
+		Nested regions are declarations (e.g. subprograms, generic subprograms, protected types, packages) and concurrent
+		statements (blocks, processes, generate statements and their branches), each followed by the regions nested in it.
 
 		:param region: The outermost declarative region, e.g. a design unit.
 		:returns:      A generator to iterate the declarative regions, the outermost first.
 		"""
 		yield region
 
-		for item in region._declaredItems:
+		for item in region._Declarations():
 			if isinstance(item, DeclarationRegionMixin):
 				yield from Design._IterateDeclarationRegions(item)
 

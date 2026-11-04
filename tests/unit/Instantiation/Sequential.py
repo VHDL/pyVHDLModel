@@ -45,7 +45,7 @@ from pyVHDLModel.Sequential  import SequentialProcedureCall, SequentialSignalAss
                                     IfStatement, IndexedChoice, RangedChoice, Case, OthersCase, CaseStatement, \
                                     LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, \
                                     NextStatement, ExitStatement, NullStatement, ReturnStatement, WaitStatement, \
-                                    ElsifBranch, SequentialReportStatement, SequentialAssertStatement
+                                    ElsifBranch, SequentialReportStatement, SequentialAssertStatement, SequentialCase
 
 from tests.unit              import _Element, _signalSymbol
 
@@ -325,9 +325,51 @@ class Documentation(Testcase):
 		self.assertIsNone(default.Documentation)
 		self.assertEqual("Comment.", documented.Documentation)
 
+	def test_IfBranch(self) -> None:
+		default =    IfBranch(IntegerLiteral(1))
+		documented = IfBranch(IntegerLiteral(1), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ElsifBranch(self) -> None:
+		default =    ElsifBranch(IntegerLiteral(1))
+		documented = ElsifBranch(IntegerLiteral(1), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ElseBranch(self) -> None:
+		default =    ElseBranch()
+		documented = ElseBranch(documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
 	def test_IfStatement(self) -> None:
 		default =    IfStatement(IfBranch(IntegerLiteral(1)))
 		documented = IfStatement(IfBranch(IntegerLiteral(1)), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_SequentialCase(self) -> None:
+		default =    SequentialCase()
+		documented = SequentialCase(documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_Case(self) -> None:
+		default =    Case([IndexedChoice(IntegerLiteral(0))])
+		documented = Case([IndexedChoice(IntegerLiteral(0))], documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_OthersCase(self) -> None:
+		default =    OthersCase()
+		documented = OthersCase(documentation="Comment.")
 
 		self.assertIsNone(default.Documentation)
 		self.assertEqual("Comment.", documented.Documentation)

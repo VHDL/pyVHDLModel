@@ -1205,7 +1205,13 @@ class ConcurrentBlockStatement(
 
 @export
 @abstractclass
-class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin, AllowBlackboxMixin):
+class GenerateBranch(
+	ModelEntity,
+	ConcurrentDeclarationRegionMixin,
+	ConcurrentStatementsMixin,
+	AllowBlackboxMixin,
+	DocumentedEntityMixin
+):
 	"""
 	A base-class for all branches in a generate statements.
 
@@ -1225,6 +1231,7 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentSt
 		statements:       Nullable[Iterable[ConcurrentStatement]] = None,
 		alternativeLabel: Nullable[str] = None,
 		allowBlackbox:    Nullable[bool] = None,
+		documentation:    Nullable[str] = None,
 		parent:           Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -1237,6 +1244,8 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentSt
 		:param alternativeLabel: Optional, the branch's alternative label. Default: ``None``, no alternative label.
 		:param allowBlackbox:    Optional, allow blackboxes for components in language entity.
 		                         Default: ``None``, inherited from the parent.
+		:param documentation:    Optional, the documentation comment associated with this declaration.
+		                         Default: ``None``, no documentation.
 		:param parent:           Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
@@ -1250,6 +1259,7 @@ class GenerateBranch(ModelEntity, ConcurrentDeclarationRegionMixin, ConcurrentSt
 
 		ConcurrentStatementsMixin.__init__(self, statements)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 	@readonly
 	def AlternativeLabel(self) -> Nullable[str]:
@@ -1297,6 +1307,7 @@ class IfGenerateBranch(GenerateBranch, IfBranchMixin):
 		statements:       Nullable[Iterable[ConcurrentStatement]] = None,
 		alternativeLabel: Nullable[str] = None,
 		allowBlackbox:    Nullable[bool] = None,
+		documentation:    Nullable[str] = None,
 		parent:           Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -1310,9 +1321,11 @@ class IfGenerateBranch(GenerateBranch, IfBranchMixin):
 		:param alternativeLabel: Optional, the branch's alternative label. Default: ``None``, no alternative label.
 		:param allowBlackbox:    Optional, allow blackboxes for components in language entity.
 		                         Default: ``None``, inherited from the parent.
+		:param documentation:    Optional, the documentation comment associated with this declaration.
+		                         Default: ``None``, no documentation.
 		:param parent:           Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(declaredItems, statements, alternativeLabel, allowBlackbox, parent)
+		super().__init__(declaredItems, statements, alternativeLabel, allowBlackbox, documentation, parent)
 		IfBranchMixin.__init__(self, condition)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -1357,6 +1370,7 @@ class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
 		statements:       Nullable[Iterable[ConcurrentStatement]] = None,
 		alternativeLabel: Nullable[str] = None,
 		allowBlackbox:    Nullable[bool] = None,
+		documentation:    Nullable[str] = None,
 		parent:           Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -1370,9 +1384,11 @@ class ElsifGenerateBranch(GenerateBranch, ElsifBranchMixin):
 		:param alternativeLabel: Optional, the branch's alternative label. Default: ``None``, no alternative label.
 		:param allowBlackbox:    Optional, allow blackboxes for components in language entity.
 		                         Default: ``None``, inherited from the parent.
+		:param documentation:    Optional, the documentation comment associated with this declaration.
+		                         Default: ``None``, no documentation.
 		:param parent:           Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(declaredItems, statements, alternativeLabel, allowBlackbox, parent)
+		super().__init__(declaredItems, statements, alternativeLabel, allowBlackbox, documentation, parent)
 		ElsifBranchMixin.__init__(self, condition)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -1416,6 +1432,7 @@ class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 		statements:       Nullable[Iterable[ConcurrentStatement]] = None,
 		alternativeLabel: Nullable[str] = None,
 		allowBlackbox:    Nullable[bool] = None,
+		documentation:    Nullable[str] = None,
 		parent:           Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -1428,9 +1445,11 @@ class ElseGenerateBranch(GenerateBranch, ElseBranchMixin):
 		:param alternativeLabel: Optional, the branch's alternative label. Default: ``None``, no alternative label.
 		:param allowBlackbox:    Optional, allow blackboxes for components in language entity.
 		                         Default: ``None``, inherited from the parent.
+		:param documentation:    Optional, the documentation comment associated with this declaration.
+		                         Default: ``None``, no documentation.
 		:param parent:           Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(declaredItems, statements, alternativeLabel, allowBlackbox, parent)
+		super().__init__(declaredItems, statements, alternativeLabel, allowBlackbox, documentation, parent)
 		ElseBranchMixin.__init__(self)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -1781,7 +1800,15 @@ class RangedGenerateChoice(ConcurrentChoice):
 
 @export
 @abstractclass
-class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMixin, ConcurrentStatementsMixin, AllowBlackboxMixin, ChoicesMixin):
+class ConcurrentCase(
+	BaseCase,
+	LabeledEntityMixin,
+	ConcurrentDeclarationRegionMixin,
+	ConcurrentStatementsMixin,
+	AllowBlackboxMixin,
+	ChoicesMixin,
+	DocumentedEntityMixin
+):
 	"""
 	Represents the base-class of all alternatives of a case-generate statement.
 
@@ -1797,6 +1824,7 @@ class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMi
 		alternativeLabel: Nullable[str] = None,
 		choices:          Nullable[Iterable[BaseChoice]] = None,
 		allowBlackbox:    Nullable[bool] = None,
+		documentation:    Nullable[str] = None,
 		parent:           Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -1810,6 +1838,8 @@ class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMi
 		:param choices:          Optional, list of all choices selecting this alternative. Default: ``None``, no choices.
 		:param allowBlackbox:    Optional, allow blackboxes for components in language entity.
 		                         Default: ``None``, inherited from the parent.
+		:param documentation:    Optional, the documentation comment associated with this declaration.
+		                         Default: ``None``, no documentation.
 		:param parent:           Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
@@ -1824,6 +1854,7 @@ class ConcurrentCase(BaseCase, LabeledEntityMixin, ConcurrentDeclarationRegionMi
 		ConcurrentStatementsMixin.__init__(self, statements)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 		ChoicesMixin.__init__(self, choices)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 
 @export
@@ -1845,6 +1876,7 @@ class GenerateCase(ConcurrentCase):
 		statements:       Nullable[Iterable[ConcurrentStatement]] = None,
 		alternativeLabel: Nullable[str] = None,
 		allowBlackbox:    Nullable[bool] = None,
+		documentation:    Nullable[str] = None,
 		parent:           Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -1858,9 +1890,11 @@ class GenerateCase(ConcurrentCase):
 		:param alternativeLabel: Optional, the alternative's label. Default: ``None``, no alternative label.
 		:param allowBlackbox:    Optional, allow blackboxes for components in language entity.
 		                         Default: ``None``, inherited from the parent.
+		:param documentation:    Optional, the documentation comment associated with this declaration.
+		                         Default: ``None``, no documentation.
 		:param parent:           Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(declaredItems, statements, alternativeLabel, choices, allowBlackbox, parent)
+		super().__init__(declaredItems, statements, alternativeLabel, choices, allowBlackbox, documentation, parent)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

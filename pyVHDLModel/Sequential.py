@@ -45,7 +45,7 @@ from pyTooling.MetaClasses   import ExtendedType, abstractclass
 from pyVHDLModel.Base        import ModelEntity, ExpressionUnion, Range, BaseChoice, BaseCase, ConditionalMixin, \
                                     IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, ReportStatementMixin, \
                                     AssertStatementMixin, WaveformElement, ChoicesMixin, LabeledEntityMixin, \
-                                    ReservedWord
+                                    DocumentedEntityMixin, ReservedWord
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
 from pyVHDLModel.Symbol      import Symbol, SignalSymbol, VariableSymbol
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin, AssignmentMixin, SignalAssignmentMixin, \
@@ -1234,7 +1234,7 @@ class CompoundStatement(SequentialStatement):
 
 @export
 @abstractclass
-class Branch(ModelEntity, SequentialStatementsMixin):
+class Branch(ModelEntity, SequentialStatementsMixin, DocumentedEntityMixin):
 	"""
 	Represents the base-class of all branches of an if statement.
 
@@ -1245,15 +1245,24 @@ class Branch(ModelEntity, SequentialStatementsMixin):
 	   * :class:`Else branch <pyVHDLModel.Sequential.ElseBranch>`
 	"""
 
-	def __init__(self, statements: Nullable[Iterable[SequentialStatement]] = None, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(
+		self,
+		statements:    Nullable[Iterable[SequentialStatement]] = None,
+		documentation: Nullable[str] = None,
+		parent:        Nullable[ModelEntity] = None
+	) -> None:
 		"""
 		Initializes a branch.
 
-		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
-		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param statements:    Optional, list of all sequential statements in this construct.
+		                      Default: ``None``, no statements.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		SequentialStatementsMixin.__init__(self, statements)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 	def _LabelRegion(self) -> Nullable[ModelEntity]:
 		"""
@@ -1293,15 +1302,24 @@ class IfBranch(Branch, IfBranchMixin):
 	        s <= '0';
 	      end if;
 	"""
-	def __init__(self, condition: ExpressionUnion, statements: Nullable[Iterable[SequentialStatement]] = None, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(
+		self,
+		condition:     ExpressionUnion,
+		statements:    Nullable[Iterable[SequentialStatement]] = None,
+		documentation: Nullable[str] = None,
+		parent:        Nullable[ModelEntity] = None
+	) -> None:
 		"""
 		Initializes an if branch.
 
-		:param condition:  The condition guarding this statement.
-		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
-		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param condition:     The condition guarding this statement.
+		:param statements:    Optional, list of all sequential statements in this construct.
+		                      Default: ``None``, no statements.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(statements, parent)
+		super().__init__(statements, documentation, parent)
 		IfBranchMixin.__init__(self, condition)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -1341,15 +1359,24 @@ class ElsifBranch(Branch, ElsifBranchMixin):
 	        s <= '0';
 	      end if;
 	"""
-	def __init__(self, condition: ExpressionUnion, statements: Nullable[Iterable[SequentialStatement]] = None, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(
+		self,
+		condition:     ExpressionUnion,
+		statements:    Nullable[Iterable[SequentialStatement]] = None,
+		documentation: Nullable[str] = None,
+		parent:        Nullable[ModelEntity] = None
+	) -> None:
 		"""
 		Initializes an ``elsif`` branch of an if statement.
 
-		:param condition:  The condition guarding this statement.
-		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
-		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param condition:     The condition guarding this statement.
+		:param statements:    Optional, list of all sequential statements in this construct.
+		                      Default: ``None``, no statements.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(statements, parent)
+		super().__init__(statements, documentation, parent)
 		ElsifBranchMixin.__init__(self, condition)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -1388,14 +1415,22 @@ class ElseBranch(Branch, ElseBranchMixin):
 	      --^^^^^^^^^           -- ┘   <- Statements
 	      end if;
 	"""
-	def __init__(self, statements: Nullable[Iterable[SequentialStatement]] = None, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(
+		self,
+		statements:    Nullable[Iterable[SequentialStatement]] = None,
+		documentation: Nullable[str] = None,
+		parent:        Nullable[ModelEntity] = None
+	) -> None:
 		"""
 		Initializes an else branch.
 
-		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
-		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param statements:    Optional, list of all sequential statements in this construct.
+		                      Default: ``None``, no statements.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(statements, parent)
+		super().__init__(statements, documentation, parent)
 		ElseBranchMixin.__init__(self)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -1669,7 +1704,7 @@ class RangedChoice(SequentialChoice):
 
 
 @export
-class SequentialCase(BaseCase, SequentialStatementsMixin, ChoicesMixin):
+class SequentialCase(BaseCase, SequentialStatementsMixin, ChoicesMixin, DocumentedEntityMixin):
 	"""
 	Represents the base-class of all alternatives of a sequential case statement.
 
@@ -1682,18 +1717,23 @@ class SequentialCase(BaseCase, SequentialStatementsMixin, ChoicesMixin):
 		self,
 		statements: Nullable[Iterable[SequentialStatement]] = None,
 		choices: Nullable[Iterable[BaseChoice]] = None,
+		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
 		Initializes a sequential case.
 
-		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
-		:param choices:    Optional, list of all choices selecting this alternative. Default: ``None``, no choices.
-		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param statements:    Optional, list of all sequential statements in this construct.
+		                      Default: ``None``, no statements.
+		:param choices:       Optional, list of all choices selecting this alternative. Default: ``None``, no choices.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		SequentialStatementsMixin.__init__(self, statements)
 		ChoicesMixin.__init__(self, choices)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 	def _LabelRegion(self) -> Nullable[ModelEntity]:
 		"""
@@ -1723,15 +1763,24 @@ class Case(SequentialCase):
 	      --   ^^^^^^                <- Choices
 	      --             ^^^^^^^^^   <- the statements
 	"""
-	def __init__(self, choices: Iterable[SequentialChoice], statements: Nullable[Iterable[SequentialStatement]] = None, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(
+		self,
+		choices:       Iterable[SequentialChoice],
+		statements:    Nullable[Iterable[SequentialStatement]] = None,
+		documentation: Nullable[str] = None,
+		parent:        Nullable[ModelEntity] = None
+	) -> None:
 		"""
 		Initializes a case.
 
-		:param choices:    List of all choices selecting this alternative.
-		:param statements: Optional, list of all sequential statements in this construct. Default: ``None``, no statements.
-		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param choices:       List of all choices selecting this alternative.
+		:param statements:    Optional, list of all sequential statements in this construct.
+		                      Default: ``None``, no statements.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(statements, choices, parent)
+		super().__init__(statements, choices, documentation, parent)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

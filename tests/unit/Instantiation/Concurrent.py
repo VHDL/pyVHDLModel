@@ -479,6 +479,27 @@ class Documentation(Testcase):
 		self.assertIsNone(default.Documentation)
 		self.assertEqual("Comment.", documented.Documentation)
 
+	def test_IfGenerateBranch(self) -> None:
+		default =    IfGenerateBranch(IntegerLiteral(1))
+		documented = IfGenerateBranch(IntegerLiteral(1), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ElsifGenerateBranch(self) -> None:
+		default =    ElsifGenerateBranch(IntegerLiteral(1))
+		documented = ElsifGenerateBranch(IntegerLiteral(1), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ElseGenerateBranch(self) -> None:
+		default =    ElseGenerateBranch()
+		documented = ElseGenerateBranch(documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
 	def test_GenerateStatement(self) -> None:
 		default =    _GenerateStatement("gen")
 		documented = _GenerateStatement("gen", documentation="Comment.")
@@ -489,6 +510,20 @@ class Documentation(Testcase):
 	def test_IfGenerateStatement(self) -> None:
 		default =    IfGenerateStatement("gen", IfGenerateBranch(IntegerLiteral(1)))
 		documented = IfGenerateStatement("gen", IfGenerateBranch(IntegerLiteral(1)), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_GenerateCase(self) -> None:
+		default =    GenerateCase([IndexedGenerateChoice(IntegerLiteral(0))])
+		documented = GenerateCase([IndexedGenerateChoice(IntegerLiteral(0))], documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_OthersGenerateCase(self) -> None:
+		default =    OthersGenerateCase()
+		documented = OthersGenerateCase(documentation="Comment.")
 
 		self.assertIsNone(default.Documentation)
 		self.assertEqual("Comment.", documented.Documentation)

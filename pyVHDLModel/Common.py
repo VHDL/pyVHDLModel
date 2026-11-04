@@ -42,8 +42,8 @@ from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, BaseCase, BaseChoice, WaveformElement, \
-                                    ConditionalMixin, ChoicesMixin
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, BaseCase, BaseChoice, \
+                                    WaveformElement, ConditionalMixin, ChoicesMixin
 from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError, \
                                     DuplicateParameterAssociationError
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
@@ -128,7 +128,7 @@ class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True, expects=("_parent",
 
 @export
 @abstractclass
-class Statement(ModelEntity, LabeledEntityMixin):
+class Statement(ModelEntity, LabeledEntityMixin, DocumentedEntityMixin):
 	"""
 	A ``Statement`` is a base-class for all statements.
 
@@ -137,15 +137,18 @@ class Statement(ModelEntity, LabeledEntityMixin):
 	   * :class:`Concurrent statement <pyVHDLModel.Concurrent.ConcurrentStatement>`
 	   * :class:`Sequential statement <pyVHDLModel.Sequential.SequentialStatement>`
 	"""
-	def __init__(self, label: Nullable[str] = None, parent=None) -> None:
+	def __init__(self, label: Nullable[str] = None, documentation: Nullable[str] = None, parent=None) -> None:
 		"""
 		Initializes a statement.
 
-		:param label:  Optional, the label of a model entity. Default: ``None``, no label.
-		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param label:         Optional, the label of a model entity. Default: ``None``, no label.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		LabeledEntityMixin.__init__(self, label)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 
 @export

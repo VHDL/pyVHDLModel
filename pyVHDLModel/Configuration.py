@@ -41,7 +41,7 @@ from typing                  import TYPE_CHECKING, ClassVar, Iterable, Union, Op
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import abstractclass
 
-from pyVHDLModel.Base        import ModelEntity, ReservedWord
+from pyVHDLModel.Base        import ModelEntity, DocumentedEntityMixin, ReservedWord
 from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import Symbol, EntitySymbol, ArchitectureSymbol, ConfigurationSymbol, \
                                     ComponentInstantiationSymbol
@@ -329,7 +329,7 @@ InstantiationListUnion = Union[list[Name], AllInstantiationList, OthersInstantia
 
 
 @export
-class ComponentConfiguration(ModelEntity):
+class ComponentConfiguration(ModelEntity, DocumentedEntityMixin):
 	"""
 	Represents a component configuration (inside a block configuration), or - structurally identical
 	- a configuration specification (declared directly in an architecture's declarative part).
@@ -356,6 +356,7 @@ class ComponentConfiguration(ModelEntity):
 		instantiationList: InstantiationListUnion,
 		componentName: ComponentInstantiationSymbol,
 		bindingIndication: Nullable[BindingIndication] = None,
+		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -364,9 +365,12 @@ class ComponentConfiguration(ModelEntity):
 		:param instantiationList: The instances this configuration applies to.
 		:param componentName:     Reference to the component being configured.
 		:param bindingIndication: Optional, the binding indication. Default: ``None``, no binding indication.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
 		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 		if isinstance(instantiationList, (AllInstantiationList, OthersInstantiationList)):
 			self._instantiationList = instantiationList
@@ -438,7 +442,7 @@ class ComponentConfiguration(ModelEntity):
 
 
 @export
-class BlockConfiguration(ModelEntity):
+class BlockConfiguration(ModelEntity, DocumentedEntityMixin):
 	"""
 	Represents the configuration of one block: an architecture, a block statement or a generate body.
 
@@ -463,6 +467,7 @@ class BlockConfiguration(ModelEntity):
 		self,
 		blockSpecification: Symbol,
 		items: Nullable[Iterable[Union[BlockConfiguration, ComponentConfiguration]]] = None,
+		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -470,9 +475,12 @@ class BlockConfiguration(ModelEntity):
 
 		:param blockSpecification: The configured block.
 		:param items:              Optional, nested configurations. Default: ``None``, no nested configurations.
+		:param documentation:      Optional, the documentation comment associated with this declaration.
+		                           Default: ``None``, no documentation.
 		:param parent:             Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._blockSpecification = blockSpecification
 		blockSpecification.Parent = self

@@ -425,3 +425,141 @@ class ConcurrentStatementsMixinIndexing(Testcase):
 
 		self.assertEqual(1, len(instantiations))
 		self.assertIs(nestedInstance, instantiations[0])
+
+
+class Documentation(Testcase):
+	def test_ComponentInstantiation(self) -> None:
+		default =    ComponentInstantiation("inst", ComponentInstantiationSymbol(SimpleName("comp")))
+		documented = ComponentInstantiation(
+			"inst", ComponentInstantiationSymbol(SimpleName("comp")),
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_EntityInstantiation(self) -> None:
+		default =    EntityInstantiation("inst", EntityInstantiationSymbol(SimpleName("ent")))
+		documented = EntityInstantiation("inst", EntityInstantiationSymbol(SimpleName("ent")), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ConfigurationInstantiation(self) -> None:
+		default =    ConfigurationInstantiation("inst", ConfigurationInstantiationSymbol(SimpleName("cfg")))
+		documented = ConfigurationInstantiation(
+			"inst", ConfigurationInstantiationSymbol(SimpleName("cfg")),
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ProcessStatement(self) -> None:
+		default =    ProcessStatement("proc")
+		documented = ProcessStatement("proc", documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ConcurrentProcedureCall(self) -> None:
+		default =    ConcurrentProcedureCall("lbl", Symbol(SimpleName("proc"), PossibleReference.Procedure))
+		documented = ConcurrentProcedureCall(
+			"lbl", Symbol(SimpleName("proc"), PossibleReference.Procedure),
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ConcurrentBlockStatement(self) -> None:
+		default =    ConcurrentBlockStatement("blk")
+		documented = ConcurrentBlockStatement("blk", documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_IfGenerateBranch(self) -> None:
+		default =    IfGenerateBranch(IntegerLiteral(1))
+		documented = IfGenerateBranch(IntegerLiteral(1), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ElsifGenerateBranch(self) -> None:
+		default =    ElsifGenerateBranch(IntegerLiteral(1))
+		documented = ElsifGenerateBranch(IntegerLiteral(1), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ElseGenerateBranch(self) -> None:
+		default =    ElseGenerateBranch()
+		documented = ElseGenerateBranch(documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_GenerateStatement(self) -> None:
+		default =    _GenerateStatement("gen")
+		documented = _GenerateStatement("gen", documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_IfGenerateStatement(self) -> None:
+		default =    IfGenerateStatement("gen", IfGenerateBranch(IntegerLiteral(1)))
+		documented = IfGenerateStatement("gen", IfGenerateBranch(IntegerLiteral(1)), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_GenerateCase(self) -> None:
+		default =    GenerateCase([IndexedGenerateChoice(IntegerLiteral(0))])
+		documented = GenerateCase([IndexedGenerateChoice(IntegerLiteral(0))], documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_OthersGenerateCase(self) -> None:
+		default =    OthersGenerateCase()
+		documented = OthersGenerateCase(documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_CaseGenerateStatement(self) -> None:
+		default =    CaseGenerateStatement("gen", IntegerLiteral(0), [OthersGenerateCase()])
+		documented = CaseGenerateStatement("gen", IntegerLiteral(0), [OthersGenerateCase()], documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ForGenerateStatement(self) -> None:
+		default =    ForGenerateStatement("gen", "i", SimpleRange(IntegerLiteral(0), IntegerLiteral(3), Direction.To))
+		documented = ForGenerateStatement(
+			"gen", "i", SimpleRange(IntegerLiteral(0), IntegerLiteral(3), Direction.To),
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ConcurrentSimpleSignalAssignment(self) -> None:
+		default = ConcurrentSimpleSignalAssignment(
+			"lbl", SignalSymbol(SimpleName("s")), [WaveformElement(CharacterLiteral("1"))]
+		)
+		documented = ConcurrentSimpleSignalAssignment(
+			"lbl", SignalSymbol(SimpleName("s")), [WaveformElement(CharacterLiteral("1"))],
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ConcurrentAssertStatement(self) -> None:
+		default =    ConcurrentAssertStatement(IntegerLiteral(1))
+		documented = ConcurrentAssertStatement(IntegerLiteral(1), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)

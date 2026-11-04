@@ -182,3 +182,98 @@ class SequentialAssignments(Testcase):
 		assignment = SignalReleaseAssignment(_signalSymbol("s"))
 
 		self.assertIsNotNone(assignment.Target)
+
+
+class Documentation(Testcase):
+	def test_ConcurrentConditionalSignalAssignment(self) -> None:
+		default = ConcurrentConditionalSignalAssignment(
+			"lbl", _signalSymbol("s"), [ConditionalWaveform([WaveformElement(CharacterLiteral("1"))])]
+		)
+		documented = ConcurrentConditionalSignalAssignment(
+			"lbl", _signalSymbol("s"), [ConditionalWaveform([WaveformElement(CharacterLiteral("1"))])],
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ConcurrentSelectedSignalAssignment(self) -> None:
+		default = ConcurrentSelectedSignalAssignment(
+			"lbl", _signalSymbol("s"), IntegerLiteral(0), [OthersSelectedWaveform([WaveformElement(CharacterLiteral("1"))])]
+		)
+		documented = ConcurrentSelectedSignalAssignment(
+			"lbl", _signalSymbol("s"), IntegerLiteral(0), [OthersSelectedWaveform([WaveformElement(CharacterLiteral("1"))])],
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_SequentialVariableAssignment(self) -> None:
+		default =    SequentialVariableAssignment(_variableSymbol("v"), CharacterLiteral("1"))
+		documented = SequentialVariableAssignment(_variableSymbol("v"), CharacterLiteral("1"), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_SequentialConditionalVariableAssignment(self) -> None:
+		default = SequentialConditionalVariableAssignment(
+			_variableSymbol("v"), [ConditionalExpression(CharacterLiteral("1"))]
+		)
+		documented = SequentialConditionalVariableAssignment(
+			_variableSymbol("v"), [ConditionalExpression(CharacterLiteral("1"))],
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_SequentialConditionalSignalAssignment(self) -> None:
+		default = SequentialConditionalSignalAssignment(
+			_signalSymbol("s"), [ConditionalWaveform([WaveformElement(CharacterLiteral("1"))])]
+		)
+		documented = SequentialConditionalSignalAssignment(
+			_signalSymbol("s"), [ConditionalWaveform([WaveformElement(CharacterLiteral("1"))])],
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_SequentialSelectedVariableAssignment(self) -> None:
+		default = SequentialSelectedVariableAssignment(
+			_variableSymbol("v"), IntegerLiteral(0), [OthersSelectedExpression(CharacterLiteral("1"))]
+		)
+		documented = SequentialSelectedVariableAssignment(
+			_variableSymbol("v"), IntegerLiteral(0), [OthersSelectedExpression(CharacterLiteral("1"))],
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_SequentialSelectedSignalAssignment(self) -> None:
+		default = SequentialSelectedSignalAssignment(
+			_signalSymbol("s"), IntegerLiteral(0), [OthersSelectedWaveform([WaveformElement(CharacterLiteral("1"))])]
+		)
+		documented = SequentialSelectedSignalAssignment(
+			_signalSymbol("s"), IntegerLiteral(0), [OthersSelectedWaveform([WaveformElement(CharacterLiteral("1"))])],
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_SignalForceAssignment(self) -> None:
+		default =    SignalForceAssignment(_signalSymbol("s"), CharacterLiteral("1"))
+		documented = SignalForceAssignment(_signalSymbol("s"), CharacterLiteral("1"), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_SignalReleaseAssignment(self) -> None:
+		default =    SignalReleaseAssignment(_signalSymbol("s"))
+		documented = SignalReleaseAssignment(_signalSymbol("s"), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)

@@ -170,3 +170,22 @@ class BlockConfigurations(Testcase):
 
 		self.assertEqual(1, len(outerBlock.Items))
 		self.assertIs(innerBlock, outerBlock.Items[0])
+
+
+class Documentation(Testcase):
+	def test_ComponentConfiguration(self) -> None:
+		default =    ComponentConfiguration(AllInstantiationList(), ComponentInstantiationSymbol(SimpleName("comp")))
+		documented = ComponentConfiguration(
+			AllInstantiationList(), ComponentInstantiationSymbol(SimpleName("comp")),
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_BlockConfiguration(self) -> None:
+		default =    BlockConfiguration(Symbol(SimpleName("rtl"), PossibleReference.Architecture))
+		documented = BlockConfiguration(Symbol(SimpleName("rtl"), PossibleReference.Architecture), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)

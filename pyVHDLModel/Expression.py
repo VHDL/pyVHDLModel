@@ -43,7 +43,7 @@ from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import abstractclass
 
-from pyVHDLModel.Base      import ModelEntity, Direction, Range, ReservedWord
+from pyVHDLModel.Base      import ModelEntity, DocumentedEntityMixin, Direction, Range, ReservedWord
 from pyVHDLModel.Exception import LiteralError
 from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 if TYPE_CHECKING:
@@ -165,7 +165,7 @@ class NullLiteral(Literal):
 
 
 @export
-class EnumerationLiteral(Literal):
+class EnumerationLiteral(Literal, DocumentedEntityMixin):
 	"""
 	Represents an enumeration literal.
 
@@ -180,14 +180,17 @@ class EnumerationLiteral(Literal):
 	"""
 	_value: str  #: The enumeration literal's name.
 
-	def __init__(self, value: str, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, value: str, parent: Nullable[ModelEntity] = None, documentation: Nullable[str] = None) -> None:
 		"""
 		Initializes an enumeration literal.
 
-		:param value:  The enumeration literal's name.
-		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param value:         The enumeration literal's name.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
 		"""
 		super().__init__(parent)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._value = value
 
@@ -208,7 +211,7 @@ class EnumerationLiteral(Literal):
 
 		:returns: The new enumeration literal.
 		"""
-		return self.__class__(self._value)
+		return self.__class__(self._value, documentation=self._documentation)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -247,17 +250,19 @@ class CharacterEnumerationLiteral(EnumerationLiteral):
 	      --              ^  <- Value
 	"""
 
-	def __init__(self, value: str, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(self, value: str, parent: Nullable[ModelEntity] = None, documentation: Nullable[str] = None) -> None:
 		"""
 		Initializes a character enumeration literal.
 
-		:param value:       The literal's character without apostrophes.
-		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
-		:raises ValueError: If parameter 'value' is None.
-		:raises TypeError:  If parameter 'value' is not of type :class:`str`.
-		:raises ValueError: If parameter 'value' is not a single character.
+		:param value:         The literal's character without apostrophes.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:raises ValueError:   If parameter 'value' is None.
+		:raises TypeError:    If parameter 'value' is not of type :class:`str`.
+		:raises ValueError:   If parameter 'value' is not a single character.
 		"""
-		super().__init__(value, parent)
+		super().__init__(value, parent, documentation)
 
 		if value is None:
 			raise ValueError("Parameter 'value' is None.")
@@ -279,7 +284,7 @@ class CharacterEnumerationLiteral(EnumerationLiteral):
 
 		:returns: The new character enumeration literal.
 		"""
-		return self.__class__(self._value)
+		return self.__class__(self._value, documentation=self._documentation)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

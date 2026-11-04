@@ -70,6 +70,8 @@ from pyVHDLModel.Expression import OperatorPrecedence, BaseExpression, Literal, 
                                    OthersAggregateElement, Aggregate, CharacterEnumerationLiteral, \
                                    ConditionExpression
 
+from tests.unit             import _Element
+
 
 if __name__ == "__main__":  # pragma: no cover
 	print("ERROR: you called a testcase declaration file as an executable module.")
@@ -183,6 +185,36 @@ class CharacterEnumerationLiterals(Testcase):
 
 		self.assertEqual("Parameter 'value' is not a single character.", str(context.exception))
 		self.assertEqual(["Got value ''0''.", "Pass the character without apostrophes."], context.exception.__notes__)
+
+
+class EnumerationLiteralDocumentation(Testcase):
+	def test_EnumerationLiteral(self) -> None:
+		default =    EnumerationLiteral("Idle")
+		documented = EnumerationLiteral("Idle", documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_EnumerationLiteral_Parent(self) -> None:
+		parent = _Element()
+		literal = EnumerationLiteral("Idle", parent, "Comment.")
+
+		self.assertIs(parent, literal.Parent)
+		self.assertEqual("Comment.", literal.Documentation)
+
+	def test_CharacterEnumerationLiteral(self) -> None:
+		default =    CharacterEnumerationLiteral("0")
+		documented = CharacterEnumerationLiteral("0", documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_CharacterEnumerationLiteral_Parent(self) -> None:
+		parent = _Element()
+		literal = CharacterEnumerationLiteral("0", parent, "Comment.")
+
+		self.assertIs(parent, literal.Parent)
+		self.assertEqual("Comment.", literal.Documentation)
 
 
 class PhysicalLiterals(Testcase):

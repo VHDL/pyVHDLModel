@@ -106,6 +106,14 @@ class Literals(Testcase):
 		self.assertIs(EnumerationLiteral, type(copy))
 		self.assertIsNone(copy.Parent)
 		self.assertEqual("Idle", copy.Value)
+		self.assertIsNone(copy.Documentation)
+
+	def test_Enumeration_Documentation(self) -> None:
+		original = EnumerationLiteral("Idle", documentation="Comment.")
+
+		copy = original.Copy()
+
+		self.assertEqual("Comment.", copy.Documentation)
 
 	def test_CharacterEnumeration(self) -> None:
 		original = CharacterEnumerationLiteral("0", _Element())
@@ -115,6 +123,14 @@ class Literals(Testcase):
 		self.assertIs(CharacterEnumerationLiteral, type(copy))
 		self.assertIsNone(copy.Parent)
 		self.assertEqual("0", copy.Value)
+		self.assertIsNone(copy.Documentation)
+
+	def test_CharacterEnumeration_Documentation(self) -> None:
+		original = CharacterEnumerationLiteral("0", documentation="Comment.")
+
+		copy = original.Copy()
+
+		self.assertEqual("Comment.", copy.Documentation)
 
 	def test_Integer(self) -> None:
 		original = IntegerLiteral(42)

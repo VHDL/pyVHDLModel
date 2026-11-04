@@ -102,6 +102,9 @@ class VHDLLibrary(Testcase):
 		document._AddDesignUnit(architectureA)
 
 		entityBReferences = [
+			LibraryClause([
+				LibraryReferenceSymbol(SimpleName("lib_1")),
+			]),
 			ContextReference([
 				ContextReferenceSymbol(SelectedName("ctx_1", SimpleName("work"))),
 			]),

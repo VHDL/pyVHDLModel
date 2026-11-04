@@ -38,14 +38,15 @@ from pyTooling.Warning         import WarningCollector
 from pyTooling.Testing         import Testcase
 
 from pyVHDLModel               import Design, Document
-from pyVHDLModel.Concurrent    import ConcurrentBlockStatement, ProcessStatement
+from pyVHDLModel.Concurrent    import ConcurrentBlockStatement, EntityInstantiation, ProcessStatement
 from pyVHDLModel.DesignUnit    import Architecture, Component, Context, ContextReference, Entity, LibraryClause, \
                                       Package, PackageBody
 from pyVHDLModel.Exception     import UnresolvedNameWarning, VHDLModelException
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericTypeInterfaceItem
 from pyVHDLModel.Name          import SelectedName, SimpleName
-from pyVHDLModel.Symbol        import ContextReferenceSymbol, LibraryReferenceSymbol, PackageReferenceSymbol
+from pyVHDLModel.Symbol        import ContextReferenceSymbol, EntityInstantiationSymbol, LibraryReferenceSymbol, \
+                                      PackageReferenceSymbol
 from pyVHDLModel.Type          import Subtype
 
 from tests.unit                import _entitySymbol, _signal, _subtypeSymbol
@@ -415,6 +416,224 @@ class ContextDeclarations(Testcase):
 		_design(Entity("e"), architecture, libraries=[("lib1", [self._package, context])])
 
 		self.assertTupleEqual((self._type, ), architecture._namespace.Lookup("t", signal).Declarations)
+
+
+class LibraryNames(Testcase):
+	"""
+	Only the names ``work`` and ``std`` are implicitly visible, not the real name of the working library (IEEE Std
+	1076-2008, 13.2; GHDL: ``no declaration for "lib"``).
+	"""
+
+	def setUp(self) -> None:
+		self._constant = _constant("K", "integer")
+		self._package =  Package("p", declaredItems=[self._constant])
+
+	def test_UseClause_NoLibraryClause(self) -> None:
+		"""``use lib.p.all;`` in library ``lib``."""
+		with self.assertRaises(VHDLModelException) as context:
+			_design(self._package, Entity("e", [_use("lib.p.all")]))
+
+		self.assertEqual(
+			"Use clause references library 'lib', which was not referenced by a library clause.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Add a library clause like: 'library lib;'."], context.exception.__notes__)
+
+	def test_UseClause_LibraryClause(self) -> None:
+		"""``library lib; use lib.p.all;`` in library ``lib``."""
+		entity = Entity("e", [_libraryClause("lib"), _use("lib.p.all")])
+		_design(self._package, entity)
+
+		self.assertTupleEqual((self._constant, ), entity._namespace.Lookup("k").Declarations)
+		self.assertDictEqual({"p": self._package}, entity.ReferencedPackages["lib"])
+
+	def test_UseClause_Work(self) -> None:
+		"""``use work.p.all;`` in library ``lib``."""
+		entity = Entity("e", [_use("work.p.all")])
+		_design(self._package, entity)
+
+		self.assertTupleEqual((self._constant, ), entity._namespace.Lookup("k").Declarations)
+
+	def test_UseClause_DeclarativePart(self) -> None:
+		"""``architecture rtl of e is use lib.p.all;`` in library ``lib``."""
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_use("lib.p.all")])
+
+		with self.assertRaises(VHDLModelException) as context:
+			_design(self._package, Entity("e"), architecture)
+
+		self.assertEqual(
+			"Use clause references library 'lib', which was not referenced by a library clause.",
+			str(context.exception)
+		)
+
+	def test_UseClause_LibraryClauseOfPrimaryUnit(self) -> None:
+		"""``library lib; entity e ...; architecture rtl of e is use lib.p.all;`` (GHDL accepts)."""
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_use("lib.p.all")])
+		_design(self._package, Entity("e", [_libraryClause("lib")]), architecture)
+
+		self.assertTupleEqual((self._constant, ), architecture._namespace.Lookup("k").Declarations)
+
+	def test_UseClause_LibraryClauseOfContext(self) -> None:
+		"""``context c is library lib; end context; context work.c; use lib.p.all;`` (GHDL accepts)."""
+		entity = Entity("e", [_contextReference("work", "c"), _use("lib.p.all")])
+		_design(self._package, Context("c", [_libraryClause("lib")]), entity)
+
+		self.assertTupleEqual((self._constant, ), entity._namespace.Lookup("k").Declarations)
+		self.assertDictEqual({"p": self._package}, entity.ReferencedPackages["lib"])
+
+	def test_UseClause_LibraryClauseOfNestedContext(self) -> None:
+		"""``c2`` references ``c1``, which has ``library lib;``; ``context work.c2; use lib.p.all;`` (GHDL accepts)."""
+		first = Context("c1", [_libraryClause("lib")])
+		second = Context("c2", [_contextReference("work", "c1")])
+		entity = Entity("e", [_contextReference("work", "c2"), _use("lib.p.all")])
+		_design(self._package, first, second, entity)
+
+		self.assertTupleEqual((self._constant, ), entity._namespace.Lookup("k").Declarations)
+
+	def test_UseAll_NoLibraryClause(self) -> None:
+		"""``use lib.all;`` in library ``lib``: the prefix isn't visible."""
+		entity = Entity("e", [_use("lib.all")])
+
+		with WarningCollector() as collector:
+			_design(self._package, entity)
+
+		self.assertEqual(1, len(collector.Warnings))
+		self.assertIsInstance(collector.Warnings[0], UnresolvedNameWarning)
+		self.assertEqual("Prefix 'lib' of use clause 'lib.all' isn't a visible package.", str(collector.Warnings[0]))
+
+	def test_UseUnit_NoLibraryClause(self) -> None:
+		"""``use lib.p;`` in library ``lib``: the prefix isn't visible."""
+		entity = Entity("e", [_use("lib.p")])
+
+		with self.assertRaises(VHDLModelException) as context:
+			_design(self._package, entity)
+
+		self.assertEqual(
+			"Use clause references library 'lib', which was not referenced by a library clause.",
+			str(context.exception)
+		)
+
+	def test_UseStd_NoLibraryClause(self) -> None:
+		"""``use std.textio.all;`` in an entity and in a context declaration (GHDL accepts)."""
+		entity = Entity("e", [_use("std.textio.all")])
+		context = Context("c", [_use("std.textio.all")])
+		design = _design(entity, context)
+
+		self.assertTrue(entity._namespace.Lookup("line").IsVisible)
+		self.assertDictEqual({"textio": design.GetLibrary("std")._packages["textio"]}, context.ReferencedPackages["std"])
+
+	def test_ContextDeclaration_NoLibraryClause(self) -> None:
+		"""``context c is use lib.p.all; end context;`` in library ``lib``."""
+		with self.assertRaises(VHDLModelException) as context:
+			_design(self._package, Context("c", [_use("lib.p.all")]))
+
+		self.assertEqual(
+			"Use clause references library 'lib', which was not referenced by a library clause.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Add a library clause like: 'library lib;'."], context.exception.__notes__)
+
+	def test_ContextReference_NoLibraryClause(self) -> None:
+		"""``context lib.c;`` in library ``lib``."""
+		with self.assertRaises(VHDLModelException) as context:
+			_design(Context("c"), Entity("e", [_contextReference("lib", "c")]))
+
+		self.assertEqual(
+			"Context reference references library 'lib', which was not referenced by a library clause.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Add a library clause like: 'library lib;'."], context.exception.__notes__)
+
+	def test_ContextReference_LibraryClause(self) -> None:
+		"""``library lib; context lib.c;`` in library ``lib``."""
+		referencedContext = Context("c")
+		entity = Entity("e", [_libraryClause("lib"), _contextReference("lib", "c")])
+		_design(referencedContext, entity)
+
+		self.assertDictEqual({"c": referencedContext}, entity.ReferencedContexts["lib"])
+
+	def test_ContextReference_Architecture(self) -> None:
+		"""``context work.c;`` in the context clause of an architecture (GHDL accepts)."""
+		referencedContext = Context("c", [_libraryClause("ieee")])
+		architecture = Architecture("rtl", _entitySymbol("e"), [_contextReference("work", "c")])
+		_design(referencedContext, Entity("e"), architecture)
+
+		self.assertDictEqual({"c": referencedContext}, architecture.ReferencedContexts["lib"])
+
+	def test_ContextReference_KeepsReferencedPackages(self) -> None:
+		"""A context reference keeps the packages the design unit's use clauses referenced before."""
+		entity = Entity(
+			"e",
+			[_libraryClause("ieee"), _use("ieee.std_logic_1164.all"), _use("work.p.all"), _contextReference("work", "c")]
+		)
+		design = _design(self._package, Context("c", [_libraryClause("ieee")]), entity)
+
+		self.assertDictEqual({"p": self._package}, entity.ReferencedPackages["lib"])
+		self.assertDictEqual(
+			{"std_logic_1164": design.GetLibrary("ieee")._packages["std_logic_1164"]},
+			entity.ReferencedPackages["ieee"]
+		)
+
+	def test_PackageInstantiation_NoLibraryClause(self) -> None:
+		"""``package i is new lib.gp generic map (...);`` in library ``lib``."""
+		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")])
+		instantiation = PackageInstantiation("i", PackageReferenceSymbol(SelectedName("gp", SimpleName("lib"))))
+
+		with self.assertRaises(VHDLModelException) as context:
+			_design(genericPackage, instantiation)
+
+		self.assertEqual(
+			"Package instantiation of 'i' references library 'lib', which was not referenced by a library clause.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Add a library clause like: 'library lib;'."], context.exception.__notes__)
+
+	def test_PackageInstantiation_LibraryClause(self) -> None:
+		"""``library lib; package i is new lib.gp generic map (...);`` in library ``lib``."""
+		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")])
+		symbol = PackageReferenceSymbol(SelectedName("gp", SimpleName("lib")))
+		_design(genericPackage, PackageInstantiation("i", symbol, [_libraryClause("lib")]))
+
+		self.assertIs(genericPackage, symbol.Package)
+
+	def test_PackageInstantiation_NotInDesign(self) -> None:
+		"""``package i is new nolib.gp generic map (...);``: the library doesn't exist."""
+		instantiation = PackageInstantiation("i", PackageReferenceSymbol(SelectedName("gp", SimpleName("nolib"))))
+
+		with self.assertRaises(VHDLModelException) as context:
+			_design(instantiation)
+
+		self.assertEqual(
+			"Package instantiation of 'i' references library 'nolib', which cannot be found in design.",
+			str(context.exception)
+		)
+
+	def test_EntityInstantiation_NoLibraryClause(self) -> None:
+		"""``inst: entity lib.e1;`` in library ``lib``."""
+		instantiation = EntityInstantiation("inst", EntityInstantiationSymbol(SelectedName("e1", SimpleName("lib"))))
+		architecture = Architecture("rtl", _entitySymbol("e2"), statements=[instantiation])
+
+		with self.assertRaises(VHDLModelException) as context:
+			_design(Entity("e1"), Entity("e2"), architecture)
+
+		self.assertEqual(
+			f"Referenced library 'lib' in direct entity instantiation 'inst: entity lib.e1' not found in architecture "
+			f"'{architecture!r}'.",
+			str(context.exception)
+		)
+		self.assertListEqual(
+			["Add a library reference to the architecture or entity using a library clause like: 'library lib;'."],
+			context.exception.__notes__
+		)
+
+	def test_EntityInstantiation_LibraryClause(self) -> None:
+		"""``library lib; entity e2 ...; inst: entity lib.e1;`` in library ``lib``."""
+		instantiation = EntityInstantiation("inst", EntityInstantiationSymbol(SelectedName("e1", SimpleName("lib"))))
+		architecture = Architecture("rtl", _entitySymbol("e2"), statements=[instantiation])
+		entity = Entity("e1")
+		_design(entity, Entity("e2", [_libraryClause("lib")]), architecture)
+
+		self.assertIs(entity, instantiation.Entity.Entity)
 
 
 class UseClauseDiagnostics(Testcase):

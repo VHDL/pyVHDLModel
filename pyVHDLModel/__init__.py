@@ -1901,7 +1901,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					context._referencedLibraries[libraryNormalizedIdentifier] = library
 					context._referencedPackages[libraryNormalizedIdentifier] = {}
 					context._referencedContexts[libraryNormalizedIdentifier] = {}
-					# TODO: warn duplicate library reference
 
 					dependency = context._dependencyVertex.EdgeToVertex(library._dependencyVertex, edgeValue=libraryReference)
 					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
@@ -1941,7 +1940,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						))
 						continue
 
-					# TODO: warn duplicate package reference
 					context._referencedPackages[libraryNormalizedIdentifier][packageNormalizedIdentifier] = package
 
 					dependency = context._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=packageReference)
@@ -2113,7 +2111,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					designUnit._referencedPackages[libraryIdentifier] = {}
 					designUnit._referencedContexts[libraryIdentifier] = {}
 					# TODO: catch KeyError on self._libraries[libName]
-					# TODO: warn duplicate library reference
 
 					dependency = designUnit._dependencyVertex.EdgeToVertex(referencedLibrary._dependencyVertex)
 					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
@@ -2164,7 +2161,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					designUnit._referencedLibraries[libraryIdentifier] = library
 					designUnit._referencedPackages[libraryIdentifier] = {}
 					designUnit._referencedContexts[libraryIdentifier] = {}
-					# TODO: warn duplicate library reference
 
 					dependency = designUnit._dependencyVertex.EdgeToVertex(library._dependencyVertex, edgeValue=libraryReference)
 					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
@@ -2247,7 +2243,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							referencedPackage = self._libraries[lib]._packages[package]
 							designUnit._referencedPackages[lib][package] = referencedPackage
 							# TODO: catch KeyError on self._libraries[lib[0]]._packages[package]
-							# TODO: warn duplicate package reference
 
 							dependency = designUnit._dependencyVertex.EdgeToVertex(referencedPackage._dependencyVertex)
 							dependency["kind"] = DependencyGraphEdgeKind.UseClause
@@ -2457,7 +2452,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					ex.add_note(f"Caused in design unit '{designUnit}' in file '{designUnit.Document}'.")
 					raise ex
 
-				# TODO: warn duplicate package reference
 				if isContextItem:
 					designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
@@ -2684,7 +2678,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					contextSymbol.Context = referencedContext
 
-					# TODO: warn duplicate referencedContext reference
 					designUnit._referencedContexts[libraryIdentifier][contextIdentifier] = referencedContext
 
 					dependency = designUnit._dependencyVertex.EdgeToVertex(referencedContext._dependencyVertex, edgeValue=contextReference)

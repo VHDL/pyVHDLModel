@@ -2052,7 +2052,7 @@ class LoopControlStatement(SequentialStatement, ConditionalMixin):
 		:param loopLabel: Optional, the label of the controlled loop. Default: ``None``, the innermost loop.
 		:param parent:    Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(parent)
+		super().__init__(None, parent)
 		ConditionalMixin.__init__(self, condition)
 
 		self._loopReference = None

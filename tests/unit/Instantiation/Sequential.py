@@ -46,7 +46,7 @@ from pyVHDLModel.Sequential  import SequentialProcedureCall, SequentialSignalAss
                                     LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, \
                                     NextStatement, ExitStatement, NullStatement, ReturnStatement, WaitStatement
 
-from tests.unit              import _signalSymbol
+from tests.unit              import _Element, _signalSymbol
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -221,6 +221,20 @@ class LoopControlStatements(Testcase):
 
 		self.assertIsNone(statement.Condition)
 		self.assertIsNone(statement.LoopReference)
+
+	def test_NextStatement_Parent(self) -> None:
+		parent = _Element()
+		statement = NextStatement(parent=parent)
+
+		self.assertIs(parent, statement.Parent)
+		self.assertIsNone(statement.Label)
+
+	def test_ExitStatement_Parent(self) -> None:
+		parent = _Element()
+		statement = ExitStatement(parent=parent)
+
+		self.assertIs(parent, statement.Parent)
+		self.assertIsNone(statement.Label)
 
 
 class NullStatements(Testcase):

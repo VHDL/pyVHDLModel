@@ -38,8 +38,8 @@ from pyVHDLModel.Expression import IntegerLiteral, CharacterEnumerationLiteral, 
 from pyVHDLModel.Object     import Variable
 from pyVHDLModel.Subprogram import Procedure
 from pyVHDLModel.Type       import Subtype, RangedScalarType, EnumeratedType, IntegerType, RealType, PhysicalType, \
-                                   ArrayType, RecordTypeElement, RecordType, ProtectedType, ProtectedTypeBody, \
-                                   AccessType, FileType
+                                   PhysicalUnit, ArrayType, RecordTypeElement, RecordType, ProtectedType, \
+                                   ProtectedTypeBody, AccessType, FileType
 
 from tests.unit             import _Element, _subtypeSymbol
 
@@ -174,6 +174,14 @@ class RealTypes(Testcase):
 
 		self.assertIs(rng, realType.Range)
 		self.assertEqual("fraction is range 0 to 1", str(realType))
+
+
+class PhysicalUnits(Testcase):
+	def test_Documentation_Default(self) -> None:
+		self.assertIsNone(PhysicalUnit("ps").Documentation)
+
+	def test_Documentation(self) -> None:
+		self.assertEqual("doc", PhysicalUnit("ps", documentation="doc").Documentation)
 
 
 class PhysicalTypes(Testcase):

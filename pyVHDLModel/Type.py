@@ -552,7 +552,7 @@ class RealType(RangedScalarType, NumericTypeMixin):
 
 
 @export
-class PhysicalUnit(ModelEntity, NamedEntityMixin):
+class PhysicalUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	"""
 	Represents a unit declaration of a physical type: its primary unit or one of its secondary units.
 
@@ -576,20 +576,25 @@ class PhysicalUnit(ModelEntity, NamedEntityMixin):
 
 	def __init__(
 		self,
-		identifier: str,
-		value:      Nullable[PhysicalIntegerLiteral] = None,
+		identifier:    str,
+		value:         Nullable[PhysicalIntegerLiteral] = None,
 		*,
-		parent:     Nullable[ModelEntity] = None
+		documentation: Nullable[str] = None,
+		parent:        Nullable[ModelEntity] = None
 	) -> None:
 		"""
 		Initializes a unit declaration of a physical type.
 
-		:param identifier: The unit's identifier.
-		:param value:      Optional, the unit's value in a smaller unit, ``None`` for the primary unit. Default: ``None``.
-		:param parent:     Optional, the physical type declaring the unit. Default: ``None``.
+		:param identifier:    The unit's identifier.
+		:param value:         Optional, the unit's value in a smaller unit, ``None`` for the primary unit.
+		                      Default: ``None``.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the physical type declaring the unit. Default: ``None``.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._value = value
 		if value is not None:

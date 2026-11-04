@@ -627,6 +627,7 @@ class Instantiation(ConcurrentStatement, GenericMapAspectMixin, PortMapAspectMix
 		label: str,
 		genericAssociationItems: Nullable[Iterable[GenericAssociationItem]] = None,
 		portAssociationItems:    Nullable[Iterable[PortAssociationItem]] = None,
+		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -637,9 +638,11 @@ class Instantiation(ConcurrentStatement, GenericMapAspectMixin, PortMapAspectMix
 		                                Default: ``None``, no generic associations.
 		:param portAssociationItems:    Optional, list of all port associations in the port map aspect.
 		                                Default: ``None``, no port associations.
+		:param documentation:           Optional, the documentation comment associated with this declaration.
+		                                Default: ``None``, no documentation.
 		:param parent:                  Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, parent)
+		super().__init__(label, documentation, parent)
 		GenericMapAspectMixin.__init__(self, genericAssociationItems)
 		PortMapAspectMixin.__init__(self, portAssociationItems)
 
@@ -680,6 +683,7 @@ class ComponentInstantiation(Instantiation):
 		componentSymbol: ComponentInstantiationSymbol,
 		genericAssociationItems: Nullable[Iterable[AssociationItem]] = None,
 		portAssociationItems:    Nullable[Iterable[AssociationItem]] = None,
+		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -691,9 +695,11 @@ class ComponentInstantiation(Instantiation):
 		                                Default: ``None``, no generic associations.
 		:param portAssociationItems:    Optional, list of all port associations in the port map aspect.
 		                                Default: ``None``, no port associations.
+		:param documentation:           Optional, the documentation comment associated with this declaration.
+		                                Default: ``None``, no documentation.
 		:param parent:                  Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, genericAssociationItems, portAssociationItems, parent)
+		super().__init__(label, genericAssociationItems, portAssociationItems, documentation, parent)
 
 		self._component = componentSymbol
 		componentSymbol.Parent = self
@@ -748,6 +754,7 @@ class EntityInstantiation(Instantiation):
 		architectureSymbol: Nullable[ArchitectureSymbol] = None,
 		genericAssociationItems: Nullable[Iterable[AssociationItem]] = None,
 		portAssociationItems:    Nullable[Iterable[AssociationItem]] = None,
+		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -761,9 +768,11 @@ class EntityInstantiation(Instantiation):
 		                                Default: ``None``, no generic associations.
 		:param portAssociationItems:    Optional, list of all port associations in the port map aspect.
 		                                Default: ``None``, no port associations.
+		:param documentation:           Optional, the documentation comment associated with this declaration.
+		                                Default: ``None``, no documentation.
 		:param parent:                  Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, genericAssociationItems, portAssociationItems, parent)
+		super().__init__(label, genericAssociationItems, portAssociationItems, documentation, parent)
 
 		self._entity = entitySymbol
 		entitySymbol.Parent = self
@@ -832,6 +841,7 @@ class ConfigurationInstantiation(Instantiation):
 		configurationSymbol: ConfigurationInstantiationSymbol,
 		genericAssociationItems: Nullable[Iterable[AssociationItem]] = None,
 		portAssociationItems:    Nullable[Iterable[AssociationItem]] = None,
+		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -843,9 +853,11 @@ class ConfigurationInstantiation(Instantiation):
 		                                Default: ``None``, no generic associations.
 		:param portAssociationItems:    Optional, list of all port associations in the port map aspect.
 		                                Default: ``None``, no port associations.
+		:param documentation:           Optional, the documentation comment associated with this declaration.
+		                                Default: ``None``, no documentation.
 		:param parent:                  Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, genericAssociationItems, portAssociationItems, parent)
+		super().__init__(label, genericAssociationItems, portAssociationItems, documentation, parent)
 
 		self._configuration = configurationSymbol
 		configurationSymbol.Parent = self
@@ -873,7 +885,7 @@ class ConfigurationInstantiation(Instantiation):
 
 
 @export
-class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, SequentialStatementsMixin, DocumentedEntityMixin):
+class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, SequentialStatementsMixin):
 	"""
 	Represents a process statement.
 
@@ -924,10 +936,9 @@ class ProcessStatement(ConcurrentStatement, SequentialDeclarationRegionMixin, Se
 		                        Default: ``None``, no documentation.
 		:param parent:          Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, parent)
+		super().__init__(label, documentation, parent)
 		SequentialDeclarationRegionMixin.__init__(self, self._normalizedLabel, declaredItems)
 		SequentialStatementsMixin.__init__(self, statements)
-		DocumentedEntityMixin.__init__(self, documentation)
 
 		if sensitivityList is None:
 			self._sensitivityList = None
@@ -1012,6 +1023,7 @@ class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
 		label: Nullable[str],
 		procedureName: Symbol,
 		parameterAssociationItems: Nullable[Iterable[ParameterAssociationItem]] = None,
+		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -1021,9 +1033,11 @@ class ConcurrentProcedureCall(ConcurrentStatement, ProcedureCallMixin):
 		:param procedureName:             Reference to the called procedure.
 		:param parameterAssociationItems: Optional, list of all parameter associations of the call.
 		                                  Default: ``None``, no parameter associations.
+		:param documentation:             Optional, the documentation comment associated with this declaration.
+		                                  Default: ``None``, no documentation.
 		:param parent:                    Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, parent)
+		super().__init__(label, documentation, parent)
 		ProcedureCallMixin.__init__(self, procedureName, parameterAssociationItems)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -1049,7 +1063,6 @@ class ConcurrentBlockStatement(
 	PortMapAspectMixin,
 	ConcurrentDeclarationRegionMixin,
 	ConcurrentStatementsMixin,
-	DocumentedEntityMixin,
 	AllowBlackboxMixin
 ):
 	"""
@@ -1129,7 +1142,7 @@ class ConcurrentBlockStatement(
 		:param portGroups:              Optional, list of port groups partitioning the ports, in declaration order.
 		                                Default: ``None``, one unnamed port group.
 		"""
-		super().__init__(label, parent)
+		super().__init__(label, documentation, parent)
 
 		BlockStatementMixin.__init__(self)
 		LabeledEntityMixin.__init__(self, label)
@@ -1142,7 +1155,6 @@ class ConcurrentBlockStatement(
 		GenericMapAspectMixin.__init__(self, genericAssociationItems)
 		PortMapAspectMixin.__init__(self, portAssociationItems)
 		ConcurrentStatementsMixin.__init__(self, statements)
-		DocumentedEntityMixin.__init__(self, documentation)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -1457,6 +1469,7 @@ class GenerateStatement(ConcurrentStatement, AllowBlackboxMixin):
 		self,
 		label:         Nullable[str] = None,
 		allowBlackbox: Nullable[bool] = None,
+		documentation: Nullable[str] = None,
 		parent:        Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -1465,9 +1478,11 @@ class GenerateStatement(ConcurrentStatement, AllowBlackboxMixin):
 		:param label:         Optional, the label of a model entity. Default: ``None``, no label.
 		:param allowBlackbox: Optional, allow blackboxes for components in language entity.
 		                      Default: ``None``, inherited from the parent.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
 		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, parent)
+		super().__init__(label, documentation, parent)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
 	# @mustoverride
@@ -1525,6 +1540,7 @@ class IfGenerateStatement(GenerateStatement):
 		elsifBranches: Nullable[Iterable[ElsifGenerateBranch]] = None,
 		elseBranch:    Nullable[ElseGenerateBranch] = None,
 		allowBlackbox: Nullable[bool] = None,
+		documentation: Nullable[str] = None,
 		parent:        Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -1537,9 +1553,11 @@ class IfGenerateStatement(GenerateStatement):
 		:param elseBranch:    Optional, the ``else`` branch. Default: ``None``, no ``else`` branch.
 		:param allowBlackbox: Optional, allow blackboxes for components in language entity.
 		                      Default: ``None``, inherited from the parent.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
 		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, allowBlackbox, parent)
+		super().__init__(label, allowBlackbox, documentation, parent)
 
 		self._ifBranch = ifBranch
 		ifBranch.Parent = self
@@ -1948,6 +1966,7 @@ class CaseGenerateStatement(GenerateStatement):
 		expression:    ExpressionUnion,
 		cases:         Iterable[ConcurrentCase],
 		allowBlackbox: Nullable[bool] = None,
+		documentation: Nullable[str] = None,
 		parent:        Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -1958,9 +1977,11 @@ class CaseGenerateStatement(GenerateStatement):
 		:param cases:         List of all alternatives, in the order they were written.
 		:param allowBlackbox: Optional, allow blackboxes for components in language entity.
 		                      Default: ``None``, inherited from the parent.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
 		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, allowBlackbox, parent)
+		super().__init__(label, allowBlackbox, documentation, parent)
 
 		self._expression = expression
 		expression.Parent = self
@@ -2060,6 +2081,7 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 		declaredItems: Nullable[Iterable] = None,
 		statements:    Nullable[Iterable[ConcurrentStatement]] = None,
 		allowBlackbox: Nullable[bool] = None,
+		documentation: Nullable[str] = None,
 		parent:        Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -2074,9 +2096,11 @@ class ForGenerateStatement(GenerateStatement, ConcurrentDeclarationRegionMixin, 
 		                      Default: ``None``, no statements.
 		:param allowBlackbox: Optional, allow blackboxes for components in language entity.
 		                      Default: ``None``, inherited from the parent.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
 		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, allowBlackbox, parent)
+		super().__init__(label, allowBlackbox, documentation, parent)
 
 		ConcurrentDeclarationRegionMixin.__init__(self, self._normalizedLabel, declaredItems)
 		if parent is not None:
@@ -2152,15 +2176,23 @@ class ConcurrentSignalAssignment(ConcurrentStatement, SignalAssignmentMixin):
 	   * :class:`Concurrent simple signal assignment <pyVHDLModel.Concurrent.ConcurrentSimpleSignalAssignment>`
 	   * :class:`Concurrent selected signal assignment <pyVHDLModel.Concurrent.ConcurrentSelectedSignalAssignment>`
 	   * :class:`Conditional signal assignment <pyVHDLModel.Concurrent.ConcurrentConditionalSignalAssignment>`	"""
-	def __init__(self, label: Nullable[str], target: SignalSymbol, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(
+		self,
+		label:         Nullable[str],
+		target:        SignalSymbol,
+		documentation: Nullable[str] = None,
+		parent:        Nullable[ModelEntity] = None
+	) -> None:
 		"""
 		Initializes a concurrent signal assignment.
 
-		:param label:  The label of a model entity.
-		:param target: Reference to the assignment's destination.
-		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param label:         The label of a model entity.
+		:param target:        Reference to the assignment's destination.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, parent)
+		super().__init__(label, documentation, parent)
 		SignalAssignmentMixin.__init__(self, target)
 
 
@@ -2189,17 +2221,20 @@ class ConcurrentSimpleSignalAssignment(ConcurrentSignalAssignment, WaveformMixin
 		label: Nullable[str],
 		target: SignalSymbol,
 		waveform: Iterable[WaveformElement],
+		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
 		Initializes a simple concurrent signal assignment.
 
-		:param label:    The label of a model entity.
-		:param target:   Reference to the assignment's destination.
-		:param waveform: List of all waveform elements, in the order they were written.
-		:param parent:   Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param label:         The label of a model entity.
+		:param target:        Reference to the assignment's destination.
+		:param waveform:      List of all waveform elements, in the order they were written.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, target, parent)
+		super().__init__(label, target, documentation, parent)
 		WaveformMixin.__init__(self, waveform)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -2248,6 +2283,7 @@ class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment, ExpressionM
 		target: SignalSymbol,
 		expression: ExpressionUnion,
 		selectedWaveforms: Iterable[SelectedWaveform],
+		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -2257,9 +2293,11 @@ class ConcurrentSelectedSignalAssignment(ConcurrentSignalAssignment, ExpressionM
 		:param target:            Reference to the assignment's destination.
 		:param expression:        The selector expression.
 		:param selectedWaveforms: All alternatives, in order.
+		:param documentation:     Optional, the documentation comment associated with this declaration.
+		                          Default: ``None``, no documentation.
 		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, target, parent)
+		super().__init__(label, target, documentation, parent)
 		ExpressionMixin.__init__(self, expression)
 		SelectedWaveformsMixin.__init__(self, selectedWaveforms)
 
@@ -2309,6 +2347,7 @@ class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment, Conditio
 		label: Nullable[str],
 		target: SignalSymbol,
 		conditionalWaveforms: Iterable[ConditionalWaveform],
+		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
@@ -2317,9 +2356,11 @@ class ConcurrentConditionalSignalAssignment(ConcurrentSignalAssignment, Conditio
 		:param label:                The label of a model entity.
 		:param target:               Reference to the assignment's destination.
 		:param conditionalWaveforms: All alternatives, in order.
+		:param documentation:        Optional, the documentation comment associated with this declaration.
+		                             Default: ``None``, no documentation.
 		:param parent:               Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, target, parent)
+		super().__init__(label, target, documentation, parent)
 		ConditionalWaveformsMixin.__init__(self, conditionalWaveforms)
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -2364,18 +2405,21 @@ class ConcurrentAssertStatement(ConcurrentStatement, AssertStatementMixin):
 		message: Nullable[ExpressionUnion] = None,
 		severity: Nullable[ExpressionUnion] = None,
 		label: Nullable[str] = None,
+		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
 		Initializes a concurrent assertion statement.
 
-		:param condition: The condition guarding this statement.
-		:param message:   Optional, the reported message. Default: ``None``, no message.
-		:param severity:  Optional, the reported severity level. Default: ``None``, no severity level.
-		:param label:     Optional, the label of a model entity. Default: ``None``, no label.
-		:param parent:    Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param condition:     The condition guarding this statement.
+		:param message:       Optional, the reported message. Default: ``None``, no message.
+		:param severity:      Optional, the reported severity level. Default: ``None``, no severity level.
+		:param label:         Optional, the label of a model entity. Default: ``None``, no label.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(label, parent)
+		super().__init__(label, documentation, parent)
 		AssertStatementMixin.__init__(self, condition, message, severity)
 
 	def Visit(self, visitor: Visitor) -> None:

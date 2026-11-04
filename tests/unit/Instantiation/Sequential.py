@@ -44,7 +44,8 @@ from pyVHDLModel.Sequential  import SequentialProcedureCall, SequentialSignalAss
                                     SequentialSimpleSignalAssignment, CompoundStatement, IfBranch, ElseBranch, \
                                     IfStatement, IndexedChoice, RangedChoice, Case, OthersCase, CaseStatement, \
                                     LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, \
-                                    NextStatement, ExitStatement, NullStatement, ReturnStatement, WaitStatement
+                                    NextStatement, ExitStatement, NullStatement, ReturnStatement, WaitStatement, \
+                                    ElsifBranch, SequentialReportStatement, SequentialAssertStatement
 
 from tests.unit              import _Element, _signalSymbol
 
@@ -111,8 +112,6 @@ class IfStatements(Testcase):
 		self.assertIsNone(statement.ElseBranch)
 
 	def test_IfElsifElse(self) -> None:
-		from pyVHDLModel.Sequential import ElsifBranch
-
 		ifBranch = IfBranch(IntegerLiteral(1))
 		elsifBranch = ElsifBranch(IntegerLiteral(2))
 		elseBranch = ElseBranch()
@@ -282,3 +281,119 @@ class WaitStatements(Testcase):
 		self.assertIs(statement, condition.Parent)
 		self.assertIs(timeout, statement.Timeout)
 		self.assertIs(statement, timeout.Parent)
+
+
+class Documentation(Testcase):
+	def test_SequentialProcedureCall(self) -> None:
+		default =    SequentialProcedureCall(Symbol(SimpleName("proc"), PossibleReference.Procedure))
+		documented = SequentialProcedureCall(
+			Symbol(SimpleName("proc"), PossibleReference.Procedure),
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_SequentialSignalAssignment(self) -> None:
+		default =    SequentialSignalAssignment(_signalSymbol("s"))
+		documented = SequentialSignalAssignment(_signalSymbol("s"), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_SequentialSimpleSignalAssignment(self) -> None:
+		default =    SequentialSimpleSignalAssignment(_signalSymbol("s"), [WaveformElement(CharacterLiteral("1"))])
+		documented = SequentialSimpleSignalAssignment(
+			_signalSymbol("s"), [WaveformElement(CharacterLiteral("1"))],
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_SequentialReportStatement(self) -> None:
+		default =    SequentialReportStatement(CharacterLiteral("a"))
+		documented = SequentialReportStatement(CharacterLiteral("a"), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_SequentialAssertStatement(self) -> None:
+		default =    SequentialAssertStatement(IntegerLiteral(1))
+		documented = SequentialAssertStatement(IntegerLiteral(1), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_IfStatement(self) -> None:
+		default =    IfStatement(IfBranch(IntegerLiteral(1)))
+		documented = IfStatement(IfBranch(IntegerLiteral(1)), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_CaseStatement(self) -> None:
+		default =    CaseStatement(IntegerLiteral(0), [OthersCase()])
+		documented = CaseStatement(IntegerLiteral(0), [OthersCase()], documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_EndlessLoopStatement(self) -> None:
+		default =    EndlessLoopStatement()
+		documented = EndlessLoopStatement(documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ForLoopStatement(self) -> None:
+		default =    ForLoopStatement("i", SimpleRange(IntegerLiteral(0), IntegerLiteral(3), Direction.To))
+		documented = ForLoopStatement(
+			"i", SimpleRange(IntegerLiteral(0), IntegerLiteral(3), Direction.To),
+			documentation="Comment."
+		)
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_WhileLoopStatement(self) -> None:
+		default =    WhileLoopStatement(IntegerLiteral(1))
+		documented = WhileLoopStatement(IntegerLiteral(1), documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_NextStatement(self) -> None:
+		default =    NextStatement()
+		documented = NextStatement(documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ExitStatement(self) -> None:
+		default =    ExitStatement()
+		documented = ExitStatement(documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_NullStatement(self) -> None:
+		default =    NullStatement()
+		documented = NullStatement(documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_ReturnStatement(self) -> None:
+		default =    ReturnStatement()
+		documented = ReturnStatement(documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)
+
+	def test_WaitStatement(self) -> None:
+		default =    WaitStatement()
+		documented = WaitStatement(documentation="Comment.")
+
+		self.assertIsNone(default.Documentation)
+		self.assertEqual("Comment.", documented.Documentation)

@@ -319,18 +319,6 @@ class StdLibraryNotLoaded(Testcase):
 		self.assertEqual("std", context.exception.LibraryName)
 		self.assertIsInstance(context.exception.__cause__, KeyError)
 
-	def test_ContextDeclaration(self) -> None:
-		"""``context ctx_1 is use std.textio.all; end context;``."""
-		useClause = UseClause([AllPackageMembersReferenceSymbol(AllName(SelectedName("textio", SimpleName("std"))))])
-		design = self._design(Context("ctx_1", [useClause], parent=None))
-
-		with self.assertRaises(LibraryNotFoundError) as context:
-			design.Analyze()
-
-		self.assertEqual("Library 'std' not found in design.", str(context.exception))
-		self.assertListEqual(["Call 'LoadStdLibrary()' before analyzing a design."], context.exception.__notes__)
-		self.assertIsInstance(context.exception.__cause__, KeyError)
-
 
 class LinkLibraryReferences(Testcase):
 	"""The libraries a design unit references implicitly."""

@@ -1878,7 +1878,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                           design.
 		:raises VHDLModelException:                If a use clause references a library, whose name isn't visible
 		                                           (:meth:`_IsLibraryVisible`).
-		:raises LibraryNotFoundError:              If a use clause references library ``std``, which isn't loaded.
+		:raises LibraryNotFoundError:              If a use clause references a library, which a library clause of a
+		                                           nested context names, and which doesn't exist in the design.
 		:raises VHDLModelException:                If a use clause references a package, which doesn't exist in its library.
 		:raises VHDLModelException:                If the type of a symbol in a use clause is unknown.
 		:raises UnhandledCriticalWarningError:     If a use clause names a package member, which the package doesn't
@@ -1939,9 +1940,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						try:
 							library = self._libraries[libraryNormalizedIdentifier]
 						except KeyError as cause:
-							ex = LibraryNotFoundError(libraryName._identifier)
-							ex.add_note("Call 'LoadStdLibrary()' before analyzing a design.")
-							raise ex from cause
+							raise LibraryNotFoundError(libraryName._identifier) from cause
 
 					try:
 						package = library._packages[packageNormalizedIdentifier]
@@ -2194,15 +2193,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		Check if the logical name of a library is visible in a design unit.
 
-		The names ``work`` and ``std`` are implicitly visible. Every other name needs a library clause, also the real name
-		of the working library. The library clause is searched in the design unit's context clause, in the context clause
-		of its primary unit, and in the contexts these reference, also in nested ones.
+		The name ``work`` is implicitly visible, the name ``std`` too, except in a context declaration. Every other name
+		needs a library clause, also the real name of the working library. The library clause is searched in the design
+		unit's context clause, in the context clause of its primary unit, and in the contexts these reference, also in
+		nested ones.
 
 		:param designUnit:        The design unit using the library's name.
 		:param libraryIdentifier: The normalized identifier of the library.
 		:returns:                 ``True``, if the library's name is visible.
 		"""
-		if libraryIdentifier in ("work", "std"):
+		if libraryIdentifier == "work" or (libraryIdentifier == "std" and not isinstance(designUnit, Context)):
 			return True
 
 		designUnits = [designUnit]

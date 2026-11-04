@@ -41,7 +41,7 @@ from pyVHDLModel               import Design, Document
 from pyVHDLModel.Concurrent    import ConcurrentBlockStatement, EntityInstantiation, ProcessStatement
 from pyVHDLModel.DesignUnit    import Architecture, Component, Context, ContextReference, Entity, LibraryClause, \
                                       Package, PackageBody
-from pyVHDLModel.Exception     import UnresolvedNameWarning, VHDLModelException
+from pyVHDLModel.Exception     import LibraryNotFoundError, UnresolvedNameWarning, VHDLModelException
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericTypeInterfaceItem
 from pyVHDLModel.Name          import SelectedName, SimpleName
@@ -482,11 +482,11 @@ class LibraryNames(Testcase):
 		self.assertDictEqual({"p": self._package}, entity.ReferencedPackages["lib"])
 
 	def test_UseClause_LibraryClauseOfNestedContext(self) -> None:
-		"""``c2`` references ``c1``, which has ``library lib;``; ``context work.c2; use lib.p.all;`` (GHDL accepts)."""
-		first = Context("c1", [_libraryClause("lib")])
-		second = Context("c2", [_contextReference("work", "c1")])
-		entity = Entity("e", [_contextReference("work", "c2"), _use("lib.p.all")])
-		_design(self._package, first, second, entity)
+		"""``c2`` references ``c1``, which has ``library lib1;``; ``context work.c2; use lib1.p.all;`` (GHDL accepts)."""
+		first = Context("c1", [_libraryClause("lib1")])
+		second = Context("c2", [_libraryClause("lib"), _contextReference("lib", "c1")])
+		entity = Entity("e", [_contextReference("work", "c2"), _use("lib1.p.all")])
+		_design(first, second, entity, libraries=[("lib1", [self._package])])
 
 		self.assertTupleEqual((self._constant, ), entity._namespace.Lookup("k").Declarations)
 
@@ -514,13 +514,43 @@ class LibraryNames(Testcase):
 		)
 
 	def test_UseStd_NoLibraryClause(self) -> None:
-		"""``use std.textio.all;`` in an entity and in a context declaration (GHDL accepts)."""
+		"""``use std.textio.all;`` in an entity."""
 		entity = Entity("e", [_use("std.textio.all")])
-		context = Context("c", [_use("std.textio.all")])
-		design = _design(entity, context)
+		_design(entity)
 
 		self.assertTrue(entity._namespace.Lookup("line").IsVisible)
-		self.assertDictEqual({"textio": design.GetLibrary("std")._packages["textio"]}, context.ReferencedPackages["std"])
+
+	def test_ContextDeclaration_UseStd_NoLibraryClause(self) -> None:
+		"""``context c is use std.textio.all; end context;``: a context has no implicit ``library std;`` (13.2)."""
+		with self.assertRaises(VHDLModelException) as context:
+			_design(Context("c", [_use("std.textio.all")]))
+
+		self.assertEqual(
+			"Use clause references library 'std', which was not referenced by a library clause.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Add a library clause like: 'library std;'."], context.exception.__notes__)
+
+	def test_ContextDeclaration_UseStd_LibraryClause(self) -> None:
+		"""``context c is library std; use std.textio.all; end context;``."""
+		referencedContext = Context("c", [_libraryClause("std"), _use("std.textio.all")])
+		design = _design(referencedContext)
+
+		self.assertDictEqual(
+			{"textio": design.GetLibrary("std")._packages["textio"]},
+			referencedContext.ReferencedPackages["std"]
+		)
+
+	def test_ContextDeclaration_NestedLibraryNotInDesign(self) -> None:
+		"""``c0`` references ``c1``, which has ``library nolib;``; ``c0`` uses ``nolib.p.all``."""
+		first = Context("c0", [_libraryClause("lib"), _contextReference("lib", "c1"), _use("nolib.p.all")])
+		second = Context("c1", [_libraryClause("nolib")])
+
+		with self.assertRaises(LibraryNotFoundError) as context:
+			_design(first, second)
+
+		self.assertEqual("Library 'nolib' not found in design.", str(context.exception))
+		self.assertIsInstance(context.exception.__cause__, KeyError)
 
 	def test_ContextDeclaration_NoLibraryClause(self) -> None:
 		"""``context c is use lib.p.all; end context;`` in library ``lib``."""

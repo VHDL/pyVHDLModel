@@ -35,7 +35,7 @@ from pathlib                   import Path
 from pyTooling.Graph           import Graph
 from pyTooling.Testing         import Testcase
 
-from pyVHDLModel               import Design, Library, Document, IEEEFlavor, LibraryExistsInDesignError, \
+from pyVHDLModel               import Design, Library, Document, IEEEFlavor, ObjectClass, LibraryExistsInDesignError, \
                                       VHDLModelException
 from pyVHDLModel.Base          import Direction, SimpleRange
 from pyVHDLModel.Name          import SelectedName, SimpleName, AllName, AttributeName
@@ -63,6 +63,26 @@ if __name__ == "__main__":  # pragma: no cover
 	print("ERROR: you called a testcase declaration file as an executable module.")
 	print("Use: 'python -m unitest <testcase module>'")
 	exit(1)
+
+
+class ObjectClasses(Testcase):
+	def test_AllValues(self) -> None:
+		"""Every ``ObjectClass`` value has a dedicated formatting slot in ``ObjectClass.__str__``'s lookup tuple."""
+		expected = {
+			ObjectClass.Default:   "",
+			ObjectClass.Constant:  "constant",
+			ObjectClass.Variable:  "variable",
+			ObjectClass.Signal:    "signal",
+			ObjectClass.File:      "file",
+			ObjectClass.Type:      "type",
+			ObjectClass.Package:   "package",
+			ObjectClass.Procedure: "procedure",
+			ObjectClass.Function:  "function"
+		}
+
+		self.assertEqual(len(ObjectClass), len(expected))
+		for objectClass, text in expected.items():
+			self.assertEqual(text, str(objectClass))
 
 
 class Names(Testcase):

@@ -139,6 +139,10 @@ class DuplicateDeclarationWarning(VHDLModelCriticalWarning):
 	VHDL rejects this as *identifier already used for a declaration*. Overloadable declarations -
 	subprograms differing in signature - are not reported. Afterwards, the namespace refers to the later declaration.
 
+	It's also raised, when a package linked to a package body is linked to another one
+	(:meth:`Library.LinkPackageBodies() <pyVHDLModel.Library.LinkPackageBodies>`). Afterwards, the package refers to the
+	later package body.
+
 	.. important::
 
 	   As a critical warning, it must be collected by a :class:`~pyTooling.Warning.WarningCollector` up the

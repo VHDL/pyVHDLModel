@@ -32,19 +32,20 @@
 """Analysis tests for the language model."""
 from pathlib import Path
 
-from pyVHDLModel import Design, Document, VHDLModelException
+from pyVHDLModel import DependencyGraphVertexKind, Design, Document, VHDLModelException
 from pyVHDLModel.Name import Name, SimpleName, SelectedName, AllName
 from pyVHDLModel.Symbol import LibraryReferenceSymbol, PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
                                ContextReferenceSymbol, EntitySymbol, PackageSymbol, EntityInstantiationSymbol, \
                                SimpleSubtypeSymbol, Symbol, PossibleReference, ComponentInstantiationSymbol
-from pyVHDLModel.DesignUnit import Package, PackageBody, Context, Entity, Architecture, Configuration, Component, \
-                                   LibraryClause, UseClause, ContextReference
+from pyVHDLModel.DesignUnit import DesignUnit, Package, PackageBody, Context, Entity, Architecture, Configuration, \
+                                   Component, LibraryClause, UseClause, ContextReference
 from pyVHDLModel.Configuration import BlockConfiguration
 from pyVHDLModel.Concurrent import EntityInstantiation, ComponentInstantiation
 from pyVHDLModel.Object import Variable
-from pyVHDLModel.Exception import NotImplementedWarning, BlackboxWarning
+from pyVHDLModel.Exception import NotImplementedWarning, BlackboxWarning, DuplicateDeclarationWarning, \
+                                  LibraryNotFoundError, PackageNotFoundError
 
-from pyTooling.Warning         import WarningCollector
+from pyTooling.Warning         import UnhandledCriticalWarningError, WarningCollector
 from pyTooling.Testing         import Testcase
 
 from tests.unit                import _warningsOfType
@@ -278,6 +279,211 @@ class LinkInstantiations(Testcase):
 			"architecture 'lib_1.entity_B(arch_B)'.",
 			str(context.exception)
 		)
+
+
+class StdLibraryNotLoaded(Testcase):
+	"""The implicit ``library std; use std.standard.all;`` needs the predefined library."""
+
+	@staticmethod
+	def _design(*designUnits: DesignUnit) -> Design:
+		design = Design("example")
+		document = Document(Path("tests.vhdl"), parent=None)
+		for designUnit in designUnits:
+			document._AddDesignUnit(designUnit)
+
+		design.AddDocument(document, design.GetLibrary("lib_1"))
+
+		return design
+
+	def test_Library(self) -> None:
+		design = self._design(Entity("entity_A", parent=None))
+
+		with self.assertRaises(LibraryNotFoundError) as context:
+			design.Analyze()
+
+		self.assertEqual("Library 'std' not found in design.", str(context.exception))
+		self.assertListEqual(["Call 'LoadStdLibrary()' before analyzing a design."], context.exception.__notes__)
+		self.assertEqual("std", context.exception.LibraryName)
+		self.assertIsInstance(context.exception.__cause__, KeyError)
+
+	def test_Package(self) -> None:
+		design = self._design(Entity("entity_A", parent=None))
+		design.GetLibrary("std")
+
+		with self.assertRaises(PackageNotFoundError) as context:
+			design.Analyze()
+
+		self.assertEqual("Package 'standard' not found in library 'std'.", str(context.exception))
+		self.assertListEqual(["Call 'LoadStdLibrary()' before analyzing a design."], context.exception.__notes__)
+		self.assertEqual("standard", context.exception.DesignUnitName)
+		self.assertEqual("std", context.exception.LibraryName)
+		self.assertIsInstance(context.exception.__cause__, KeyError)
+
+	def test_ContextDeclaration(self) -> None:
+		"""``context ctx_1 is use std.textio.all; end context;``."""
+		useClause = UseClause([AllPackageMembersReferenceSymbol(AllName(SelectedName("textio", SimpleName("std"))))])
+		design = self._design(Context("ctx_1", [useClause], parent=None))
+
+		with self.assertRaises(LibraryNotFoundError) as context:
+			design.Analyze()
+
+		self.assertEqual("Library 'std' not found in design.", str(context.exception))
+		self.assertListEqual(["Call 'LoadStdLibrary()' before analyzing a design."], context.exception.__notes__)
+		self.assertIsInstance(context.exception.__cause__, KeyError)
+
+
+class LinkLibraryReferences(Testcase):
+	"""The libraries a design unit references implicitly."""
+
+	@staticmethod
+	def _libraryEdges(designUnit: DesignUnit) -> list[str]:
+		return sorted(
+			edge.Destination.Value.NormalizedIdentifier
+			for edge in designUnit.DependencyVertex.IterateOutboundEdges()
+			if edge.Destination["kind"] is DependencyGraphVertexKind.Library
+		)
+
+	def test_WorkingLibrary(self) -> None:
+		design = Design("example")
+		library = design.GetLibrary("lib_1")
+		entity = Entity("entity_A", parent=None)
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(entity)
+		design.AddDocument(document, library)
+		design.LoadStdLibrary()
+
+		design.Analyze()
+
+		self.assertDictEqual({"std": design.GetLibrary("std"), "lib_1": library}, entity.ReferencedLibraries)
+		self.assertListEqual(["lib_1", "std"], self._libraryEdges(entity))
+
+	def test_LibraryStd(self) -> None:
+		"""A primary unit in library ``std`` references ``std`` once."""
+		design = Design("example")
+		library = design.LoadStdLibrary()
+
+		design.Analyze()
+
+		for package in library.Packages.values():
+			self.assertDictEqual({"std": library}, package.ReferencedLibraries)
+			self.assertListEqual(["std"], self._libraryEdges(package))
+
+	def test_SecondaryUnit(self) -> None:
+		"""An architecture inherits the referenced libraries of its entity, and keeps its own."""
+		design = Design("example")
+		library = design.GetLibrary("lib_1")
+		ieee = design.LoadIEEELibrary()
+		std = design.LoadStdLibrary()
+		entityReferences = [LibraryClause([LibraryReferenceSymbol(SimpleName("ieee"))])]
+		architecture = Architecture("arch_A", EntitySymbol(SimpleName("entity_A")), parent=None)
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(Entity("entity_A", entityReferences, parent=None))
+		document._AddDesignUnit(architecture)
+		design.AddDocument(document, library)
+
+		design.Analyze()
+
+		self.assertDictEqual({"std": std, "lib_1": library, "ieee": ieee}, architecture.ReferencedLibraries)
+		self.assertIsNot(architecture.Entity.Entity.ReferencedLibraries, architecture.ReferencedLibraries)
+
+
+class LinkContextReferences(Testcase):
+	"""A context hands its references to the units referencing it, among them contexts."""
+
+	def test_NestedContexts(self) -> None:
+		"""``entity_A`` references ``ctx_2``, which references ``ctx_1``, which uses ``ieee.std_logic_1164.all``."""
+		design = Design("example")
+		library = design.GetLibrary("lib_1")
+		ieee = design.LoadIEEELibrary()
+		design.LoadStdLibrary()
+
+		first = Context(
+			"ctx_1",
+			[
+				LibraryClause([LibraryReferenceSymbol(SimpleName("ieee"))]),
+				UseClause([AllPackageMembersReferenceSymbol(AllName(SelectedName("std_logic_1164", SimpleName("ieee"))))])
+			],
+			parent=None
+		)
+		second = Context(
+			"ctx_2",
+			[ContextReference([ContextReferenceSymbol(SelectedName("ctx_1", SimpleName("work")))])],
+			parent=None
+		)
+		entity = Entity(
+			"entity_A",
+			[ContextReference([ContextReferenceSymbol(SelectedName("ctx_2", SimpleName("work")))])],
+			parent=None
+		)
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(first)
+		document._AddDesignUnit(second)
+		document._AddDesignUnit(entity)
+		design.AddDocument(document, library)
+
+		design.Analyze()
+
+		package = ieee.Packages["std_logic_1164"]
+		self.assertIs(ieee, second.ReferencedLibraries["ieee"])
+		self.assertDictEqual({"std_logic_1164": package}, second.ReferencedPackages["ieee"])
+		self.assertIs(ieee, entity.ReferencedLibraries["ieee"])
+		self.assertDictEqual({"std_logic_1164": package}, entity.ReferencedPackages["ieee"])
+
+
+class LinkPackageBodies(Testcase):
+	"""A package has one package body."""
+
+	def setUp(self) -> None:
+		self._design = Design("example")
+		self._library = self._design.GetLibrary("lib_1")
+		self._package = Package("pack_1", parent=None)
+		self._packageBody = PackageBody(PackageSymbol(SimpleName("pack_1")), parent=None)
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(self._package)
+		document._AddDesignUnit(self._packageBody)
+		self._design.AddDocument(document, self._library)
+		self._design.CreateDependencyGraph()
+
+	def test_FirstBody(self) -> None:
+		with WarningCollector() as collector:
+			self._library.LinkPackageBodies()
+
+		self.assertListEqual([], collector.Warnings)
+		self.assertIs(self._packageBody, self._package.PackageBody)
+
+	def test_SameBody(self) -> None:
+		self._package._packageBody = self._packageBody
+
+		with WarningCollector() as collector:
+			self._library.LinkPackageBodies()
+
+		self.assertListEqual([], collector.Warnings)
+		self.assertIs(self._packageBody, self._package.PackageBody)
+
+	def test_SecondBody(self) -> None:
+		existing = PackageBody(PackageSymbol(SimpleName("pack_1")), parent=None)
+		self._package._packageBody = existing
+
+		with WarningCollector() as collector:
+			self._library.LinkPackageBodies()
+
+		self.assertEqual(1, len(collector.Warnings))
+		warning = collector.Warnings[0]
+		self.assertIsInstance(warning, DuplicateDeclarationWarning)
+		self.assertEqual(
+			"Package 'pack_1' in library 'lib_1' already has a package body, which is replaced.",
+			str(warning)
+		)
+		self.assertEqual("pack_1", warning.Identifier)
+		self.assertIs(self._packageBody, warning.Element)
+		self.assertIs(existing, warning.Existing)
+		self.assertIs(self._packageBody, self._package.PackageBody)
+
+	def test_SecondBody_NoCollector(self) -> None:
+		self._package._packageBody = PackageBody(PackageSymbol(SimpleName("pack_1")), parent=None)
+
+		with self.assertRaises(UnhandledCriticalWarningError):
+			self._library.LinkPackageBodies()
 
 
 class Blackboxes(Testcase):

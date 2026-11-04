@@ -404,9 +404,9 @@ class ObjectClass(Enum):
 	Signal =     3  #: Signal
 	File =       4  #: File
 	Type =       5  #: Type
-	Package =    6  #: Package
-	Procedure =  7  #: Procedure
-	Function =   8  #: Function
+	Procedure =  6  #: Procedure
+	Function =   7  #: Function
+	Package =    8  #: Package
 
 	def __str__(self) -> str:
 		"""
@@ -415,7 +415,7 @@ class ObjectClass(Enum):
 		:returns: Formatted object class.
 		"""
 		return (
-			"", "constant", "variable", "signal", "file", "type", "package", "procedure", "function"
+			"", "constant", "variable", "signal", "file", "type", "procedure", "function", "package"
 		)[cast(int, self.value)]       # TODO: check performance
 
 

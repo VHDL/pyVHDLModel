@@ -6,6 +6,19 @@ News
 See :gh:`pyVHDLModel Release Pages <VHDL/pyVHDLModel/releases>` for detail release notes on every release.
 
 
+Version 0.43.0 (2026)
+*********************
+
+.. topic:: :gh:`v0.43.0 - unreleased <VHDL/pyVHDLModel/releases/v0.43.0>`
+
+   .. rubric:: New Features
+
+   * Statements, branches, case alternatives, enumeration literals, component and block configurations carry a
+     documentation comment: constructor parameter ``documentation``, property
+     :data:`~pyVHDLModel.Base.DocumentedEntityMixin.Documentation`. Breaking change: it sits before ``parent``, so pass
+     ``parent`` by keyword; on enumeration literals it follows ``parent``.
+
+
 Version 0.42.0 (2026)
 *********************
 

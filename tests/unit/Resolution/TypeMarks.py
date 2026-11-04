@@ -338,17 +338,42 @@ class Diagnostics(Testcase):
 
 		self.assertEqual("Type mark 'K' doesn't denote a type or subtype (found: Constant).", str(warnings[0]))
 
-	def test_TypeAlias_NoConflict(self) -> None:
-		"""``use work.p1.all, work.p2.all;`` with ``alias T is work.p1.T;`` in ``p2``: the same type (A090)."""
+	def test_TypeAlias_Conflict(self) -> None:
+		"""``use work.p1.all, work.p2.all;`` with ``alias T is work.p1.T;`` in ``p2`` (IEEE Std 1076-2008, 12.4 c))."""
 		original = _enumeration("T", "a", "b")
 		alias = Alias("T", _selectedSubtypeSymbol("work", "p1", "T"))
 		signal = _signal("s", "T")
 		entity = Entity("e", [_use("work.p1.all", "work.p2.all")], declaredItems=[signal])
 		warnings = _resolve(_design(Package("p1", declaredItems=[original]), Package("p2", declaredItems=[alias]), entity))
 
-		self.assertListEqual([], warnings)
+		self.assertEqual(1, len(warnings))
+		self.assertEqual("Type mark 'T' is ambiguous: use clauses import conflicting declarations.", str(warnings[0]))
+		self.assertTupleEqual((original, alias), tuple(imported.Element for imported in warnings[0].Conflicts))
 		self.assertIs(original, alias.Name.Reference)
-		self.assertIs(original, signal.Subtype.Reference)
+		self.assertIsNone(signal.Subtype.Reference)
+
+	def test_LibraryName_NoLibraryClause(self) -> None:
+		"""``constant c : lib.p.T;`` in library ``lib`` (GHDL: ``no declaration for "lib"``)."""
+		constant = Constant(("c", ), _selectedSubtypeSymbol("lib", "p", "T"))
+		entity = Entity("e", declaredItems=[constant])
+		warnings = _resolve(_design(Package("p", declaredItems=[_enumeration("T", "a", "b")]), entity))
+
+		self.assertEqual(1, len(warnings))
+		self.assertEqual(
+			"Prefix 'lib.p' of type mark 'lib.p.T' isn't a visible package or an enclosing region.",
+			str(warnings[0])
+		)
+		self.assertIsNone(constant.Subtype.Reference)
+
+	def test_LibraryName_LibraryClause(self) -> None:
+		"""``library lib; constant c : lib.p.T;`` in library ``lib``."""
+		enumeration = _enumeration("T", "a", "b")
+		constant = Constant(("c", ), _selectedSubtypeSymbol("lib", "p", "T"))
+		libraryClause = LibraryClause([LibraryReferenceSymbol(SimpleName("lib"))])
+		entity = Entity("e", [libraryClause], declaredItems=[constant])
+
+		self.assertListEqual([], _resolve(_design(Package("p", declaredItems=[enumeration]), entity)))
+		self.assertIs(enumeration, constant.Subtype.Reference)
 
 	def test_PrefixNotAPackage(self) -> None:
 		"""``work.nopkg.T`` (B037)."""

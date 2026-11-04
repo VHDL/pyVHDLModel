@@ -1548,7 +1548,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		      * Report an incomplete type, which has no full type declaration later in its region.
 		      * Resolve the name of an alias without a subtype indication, if it's a simple name or an expanded name
-		        ``lib.pkg.item`` and denotes a type (:meth:`_LookupName`). The name of an implicitly declared operation
+		        ``lib.pkg.item`` and denotes a declaration, which isn't overloadable, e.g. a type or an object
+		        (:meth:`_LookupName`). The alias isn't overloadable then
+		        (:attr:`~pyVHDLModel.Base.ModelEntity.IsOverloadable`). The name of an implicitly declared operation
 		        (:attr:`_IMPLICIT_OPERATIONS`, an operator symbol) isn't looked up, as the model doesn't represent these.
 		      * Resolve every type mark of the declaration (:meth:`_GetTypeMarksOf`) by :meth:`_ResolveTypeMark`.
 		      * Set the base type of a subtype declaration (:attr:`~pyVHDLModel.Type.Subtype.BaseType`): the resolved type,
@@ -1610,7 +1612,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						if (isinstance(name, SimpleName) or isExpandedName) and not isImplicit:
 							item._name._reference = None
 							aliased = self._LookupName(designUnit, region._namespace, item, item._name, UnresolvedNameWarning)
-							if len(aliased) > 0 and isinstance(aliased[0], BaseType):
+							if len(aliased) > 0 and not aliased[0].IsOverloadable:
 								item._name._reference = aliased[0]
 
 					for namespace, place, symbol in self._GetTypeMarksOf(region, item):
@@ -1691,9 +1693,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		A simple name is looked up at the place (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`); a generic of a component
 		is visible to the following generics and ports of the component. An expanded name ``pkg.T`` or ``lib.pkg.T``
 		resolves its prefix: ``pkg`` to a package visible at the place, else to an enclosing declarative region of that
-		name (e.g. the package or entity containing the place); ``lib.pkg`` by the library (``work`` or a library referenced
-		by the design unit) and the package's name. Then the suffix is searched among the declarations of the package or
-		region (:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
+		name (e.g. the package or entity containing the place); ``lib.pkg`` by the library (``work`` or a library whose name
+		is visible, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`) and the package's name. Then the suffix
+		is searched among the declarations of the package or region
+		(:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
 
 		A failure is reported as a warning of the given type; then no declaration is returned.
 
@@ -1753,8 +1756,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				libraryIdentifier = prefix._prefix._normalizedIdentifier
 				if libraryIdentifier == "work":
 					library = designUnit._parent
+				elif designUnit.IsLibraryVisible(libraryIdentifier):
+					library = self._libraries.get(libraryIdentifier)
 				else:
-					library = designUnit._referencedLibraries.get(libraryIdentifier)
+					library = None
 
 				if library is not None and (package := library._packages.get(prefix._normalizedIdentifier)) is not None:
 					searchedNamespaces = (package._namespace, )

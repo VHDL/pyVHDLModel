@@ -643,8 +643,9 @@ class Namespace(Generic[K, O]):
 		* A declaration of the identifier in the region or in an enclosing region hides every imported declaration of the
 		  same identifier, unless both are overloadable.
 		* Imported declarations of all use clauses visible at the place are potentially visible: overloadable ones coexist;
-		  if one of two different ones isn't overloadable, neither is directly visible, and both are reported as conflicts.
-		  The same declaration imported twice is no conflict, nor is an alias and the declaration its resolved name denotes.
+		  if one of two different ones isn't overloadable, neither is directly visible, and both are reported as conflicts
+		  (IEEE Std 1076-2008, 12.4 c)). An alias and the declaration its name denotes are two declarations, so they
+		  conflict too, as do two aliases, unless they are overloadable. The same declaration imported twice is no conflict.
 		* Imports are those of the last analysis; an import by a removed use clause is ignored.
 
 		Overloadable declarations aren't compared by their parameter and result type profiles, so a homograph doesn't hide
@@ -655,8 +656,7 @@ class Namespace(Generic[K, O]):
 		:param place:                Optional, the model entity at which the identifier is used. Default: ``None``.
 		:returns:                    The directly visible declarations, or the conflicts, and the searched namespaces.
 		"""
-		from pyVHDLModel.Declaration import Alias
-		from pyVHDLModel.Type        import FullType, AnonymousType
+		from pyVHDLModel.Type import FullType, AnonymousType
 
 		declarations =       []
 		imports =            []
@@ -707,16 +707,9 @@ class Namespace(Generic[K, O]):
 		if isHidden or len(imports) == 0:
 			return LookupResult(normalizedIdentifier, tuple(declarations), (), (), tuple(searchedNamespaces))
 
-		# An alias, whose name is resolved, denotes the same named entity as the aliased declaration.
 		distinctImports = []
-		denotedElements = []
 		for imported in imports:
-			element = imported._element
-			if isinstance(element, Alias) and element._name._reference is not None:
-				element = element._name._reference
-
-			if not any(denotedElement is element for denotedElement in denotedElements):
-				denotedElements.append(element)
+			if not any(existing._element is imported._element for existing in distinctImports):
 				distinctImports.append(imported)
 
 		if len(declarations) > 0:

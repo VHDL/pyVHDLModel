@@ -2704,7 +2704,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		     3. Iterate referenced packages of the context:
 
-		        * Raise an exception if package name is already listed in ``_referencedPackages``.
 		        * Add an entry in the design unit's ``_referencedPackages`` dictionary referencing the referenced package.
 
 		3. Iterate all design units with a namespace, the contexts they reference and, transitively, the contexts these
@@ -2774,9 +2773,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 				for libraryIdentifier, packages in context._referencedPackages.items():
 					for packageIdentifier, package in packages.items():
-						if packageIdentifier in designUnit._referencedPackages:
-							raise VHDLModelException(f"Referenced package '{package.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
-
 						designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
 
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):

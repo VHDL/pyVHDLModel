@@ -49,6 +49,8 @@ Version 0.43.0 (2026)
 
    * The symbols of use clauses in contexts and of ``.all``/member use clauses reference their package; context
      reference symbols their context (was an extra attribute).
+   * A context reference to a context with a use clause of a package named like its library (``use foo.foo.all;``)
+     raised ``Referenced package 'foo' already exists``.
 
 
 Version 0.42.0 (2026)

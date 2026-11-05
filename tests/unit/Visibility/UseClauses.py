@@ -356,6 +356,24 @@ class ContextReferences(Testcase):
 		self.assertTupleEqual((libraryType, ), result.Declarations)
 		self.assertIs(context.PackageReferences[0], result.Imports[0].UseClause)
 
+	def test_PackageNamedLikeItsLibrary(self) -> None:
+		"""``context c is library foo; use foo.foo.all; end context;``: a package may have its library's name."""
+		constant = _constant("K", "integer")
+		package =  Package("foo", declaredItems=[constant])
+		entity =   Entity("e", [_libraryClause("foo"), _contextReference("foo", "c")])
+		_design(entity, libraries=[("foo", [package, Context("c", [_libraryClause("foo"), _use("foo.foo.all")])])])
+
+		self.assertDictEqual({"foo": package}, entity.ReferencedPackages["foo"])
+		self.assertTupleEqual((constant, ), entity._namespace.Lookup("k").Declarations)
+
+	def test_PackageReferencedTwice(self) -> None:
+		"""A package referenced by the design unit's use clause and by a context: ``use lib1.p.all; context lib1.c;``."""
+		package = Package("p", declaredItems=[_constant("K", "integer")])
+		entity =  Entity("e", [_libraryClause("lib1"), _use("lib1.p.all"), _contextReference("lib1", "c")])
+		_design(entity, libraries=[("lib1", [package, Context("c", [_libraryClause("lib1"), _use("lib1.p.all")])])])
+
+		self.assertDictEqual({"p": package}, entity.ReferencedPackages["lib1"])
+
 
 class ImplicitUseClause(Testcase):
 	"""Every primary unit is preceded by ``use std.standard.all;`` (A066)."""

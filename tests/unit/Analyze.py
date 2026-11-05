@@ -286,7 +286,7 @@ class StdLibraryNotLoaded(Testcase):
 
 	@staticmethod
 	def _design(*designUnits: DesignUnit) -> Design:
-		design = Design("example")
+		design =   Design("example")
 		document = Document(Path("tests.vhdl"), parent=None)
 		for designUnit in designUnits:
 			document._AddDesignUnit(designUnit)
@@ -332,9 +332,9 @@ class LinkLibraryReferences(Testcase):
 		)
 
 	def test_WorkingLibrary(self) -> None:
-		design = Design("example")
-		library = design.GetLibrary("lib_1")
-		entity = Entity("entity_A", parent=None)
+		design =   Design("example")
+		library =  design.GetLibrary("lib_1")
+		entity =   Entity("entity_A", parent=None)
 		document = Document(Path("tests.vhdl"), parent=None)
 		document._AddDesignUnit(entity)
 		design.AddDocument(document, library)
@@ -347,7 +347,7 @@ class LinkLibraryReferences(Testcase):
 
 	def test_LibraryStd(self) -> None:
 		"""A primary unit in library ``std`` references ``std`` once."""
-		design = Design("example")
+		design =  Design("example")
 		library = design.LoadStdLibrary()
 
 		design.Analyze()
@@ -358,13 +358,13 @@ class LinkLibraryReferences(Testcase):
 
 	def test_SecondaryUnit(self) -> None:
 		"""An architecture inherits the referenced libraries of its entity, and keeps its own."""
-		design = Design("example")
-		library = design.GetLibrary("lib_1")
-		ieee = design.LoadIEEELibrary()
-		std = design.LoadStdLibrary()
+		design =           Design("example")
+		library =          design.GetLibrary("lib_1")
+		ieee =             design.LoadIEEELibrary()
+		std =              design.LoadStdLibrary()
 		entityReferences = [LibraryClause([LibraryReferenceSymbol(SimpleName("ieee"))])]
-		architecture = Architecture("arch_A", EntitySymbol(SimpleName("entity_A")), parent=None)
-		document = Document(Path("tests.vhdl"), parent=None)
+		architecture =     Architecture("arch_A", EntitySymbol(SimpleName("entity_A")), parent=None)
+		document =         Document(Path("tests.vhdl"), parent=None)
 		document._AddDesignUnit(Entity("entity_A", entityReferences, parent=None))
 		document._AddDesignUnit(architecture)
 		design.AddDocument(document, library)
@@ -380,9 +380,9 @@ class LinkContextReferences(Testcase):
 
 	def test_NestedContexts(self) -> None:
 		"""``entity_A`` references ``ctx_2``, which references ``ctx_1``, which uses ``ieee.std_logic_1164.all``."""
-		design = Design("example")
+		design =  Design("example")
 		library = design.GetLibrary("lib_1")
-		ieee = design.LoadIEEELibrary()
+		ieee =    design.LoadIEEELibrary()
 		design.LoadStdLibrary()
 
 		first = Context(
@@ -422,11 +422,11 @@ class LinkPackageBodies(Testcase):
 	"""A package has one package body."""
 
 	def setUp(self) -> None:
-		self._design = Design("example")
-		self._library = self._design.GetLibrary("lib_1")
-		self._package = Package("pack_1", parent=None)
+		self._design =      Design("example")
+		self._library =     self._design.GetLibrary("lib_1")
+		self._package =     Package("pack_1", parent=None)
 		self._packageBody = PackageBody(PackageSymbol(SimpleName("pack_1")), parent=None)
-		document = Document(Path("tests.vhdl"), parent=None)
+		document =          Document(Path("tests.vhdl"), parent=None)
 		document._AddDesignUnit(self._package)
 		document._AddDesignUnit(self._packageBody)
 		self._design.AddDocument(document, self._library)
@@ -449,7 +449,7 @@ class LinkPackageBodies(Testcase):
 		self.assertIs(self._packageBody, self._package.PackageBody)
 
 	def test_SecondBody(self) -> None:
-		existing = PackageBody(PackageSymbol(SimpleName("pack_1")), parent=None)
+		existing =                   PackageBody(PackageSymbol(SimpleName("pack_1")), parent=None)
 		self._package._packageBody = existing
 
 		with WarningCollector() as collector:

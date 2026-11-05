@@ -81,16 +81,16 @@ class UseAll(Testcase):
 		self._f2 =        _function("f", "bit")
 		self._distance =  _distance()
 		self._component = Component("comp")
-		package = Package(
+		package =         Package(
 			"p",
 			declaredItems=[
 				self._type, self._subtype, self._constant, self._f1, self._f2, self._distance, self._component,
 				_use("work.q.all")
 			]
 		)
-		self._q = _constant("Q", "integer")
-		self._entity = Entity("e", [_use("work.p.all")])
-		self._design = _design(Package("q", declaredItems=[self._q]), package, Entity("comp"), self._entity)
+		self._q =         _constant("Q", "integer")
+		self._entity =    Entity("e", [_use("work.p.all")])
+		self._design =    _design(Package("q", declaredItems=[self._q]), package, Entity("comp"), self._entity)
 		self._namespace = self._entity._namespace
 
 	def test_Type(self) -> None:
@@ -176,9 +176,9 @@ class UseItem(Testcase):
 	def test_Subtype_BaseTypeLiterals(self) -> None:
 		"""``use ieee.std_logic_1164.std_logic;`` brings the literals of ``std_ulogic`` along."""
 		libraryClause = LibraryClause([LibraryReferenceSymbol(SimpleName("ieee"))])
-		entity = Entity("e", [libraryClause, _use("ieee.std_logic_1164.std_logic")])
-		design = _design(entity)
-		stdULogic = design.GetPackage("ieee", "std_logic_1164").Types["std_ulogic"]
+		entity =        Entity("e", [libraryClause, _use("ieee.std_logic_1164.std_logic")])
+		design =        _design(entity)
+		stdULogic =     design.GetPackage("ieee", "std_logic_1164").Types["std_ulogic"]
 
 		self.assertIn(stdULogic.Literals[4], entity._namespace.Lookup("'Z'").Declarations)
 
@@ -201,8 +201,8 @@ class UsePackage(Testcase):
 
 	def test_PackageName(self) -> None:
 		constant = _constant("K", "integer")
-		package = Package("p", declaredItems=[constant])
-		entity = Entity("e", [_use("work.p")])
+		package =  Package("p", declaredItems=[constant])
+		entity =   Entity("e", [_use("work.p")])
 		_design(package, entity)
 
 		self.assertTupleEqual((package, ), entity._namespace.Lookup("p").Declarations)
@@ -211,18 +211,18 @@ class UsePackage(Testcase):
 	def test_SimpleNamePrefix(self) -> None:
 		"""``use work.p; use p.all;``: the prefix ``p`` denotes the visible package."""
 		constant = _constant("K", "integer")
-		package = Package("p", declaredItems=[constant])
-		entity = Entity("e", [_use("work.p"), _use("p.all")])
+		package =  Package("p", declaredItems=[constant])
+		entity =   Entity("e", [_use("work.p"), _use("p.all")])
 		_design(package, entity)
 
 		self.assertTupleEqual((constant, ), entity._namespace.Lookup("k").Declarations)
 
 	def test_LocalPackage(self) -> None:
 		"""A package declared in an architecture is used by a simple name (A088)."""
-		localType = _enumeration("T", "a", "b")
+		localType =    _enumeration("T", "a", "b")
 		localPackage = Package("lp", declaredItems=[localType])
-		signal = _signal("s", "T")
-		useClause = _use("lp.all")
+		signal =       _signal("s", "T")
+		useClause =    _use("lp.all")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[localPackage, useClause, signal])
 		_design(Entity("e"), architecture)
 
@@ -234,15 +234,15 @@ class UseLibrary(Testcase):
 
 	def test_WorkAll(self) -> None:
 		package = Package("p")
-		other = Entity("other")
-		entity = Entity("e", [_use("work.all")])
+		other =   Entity("other")
+		entity =  Entity("e", [_use("work.all")])
 		_design(package, other, entity)
 
 		self.assertTupleEqual((package, ), entity._namespace.Lookup("p").Declarations)
 		self.assertTupleEqual((other, ), entity._namespace.Lookup("other").Declarations)
 
 	def test_WorkUnit(self) -> None:
-		other = Entity("other")
+		other =  Entity("other")
 		entity = Entity("e", [_use("work.other")])
 		_design(other, entity)
 
@@ -257,7 +257,7 @@ class DeclarativeRegions(Testcase):
 		self._package = Package("p", declaredItems=[self._type])
 
 	def test_Architecture(self) -> None:
-		signal = _signal("s", "T")
+		signal =       _signal("s", "T")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_use("work.p.all"), signal])
 		_design(self._package, Entity("e"), architecture)
 
@@ -265,21 +265,21 @@ class DeclarativeRegions(Testcase):
 
 	def test_Architecture_NotInEntity(self) -> None:
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_use("work.p.all")])
-		entity = Entity("e")
+		entity =       Entity("e")
 		_design(self._package, entity, architecture)
 
 		self.assertFalse(entity._namespace.Lookup("t").IsVisible)
 
 	def test_Entity_SeenByArchitecture(self) -> None:
 		"""A use clause in the entity's declarative part is seen by its architecture (A039)."""
-		signal = _signal("s", "T")
+		signal =       _signal("s", "T")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[signal])
 		_design(self._package, Entity("e", declaredItems=[_use("work.p.all")]), architecture)
 
 		self.assertTupleEqual((self._type, ), architecture._namespace.Lookup("t", signal).Declarations)
 
 	def test_Process(self) -> None:
-		process = ProcessStatement("proc", declaredItems=[_use("work.p.all")])
+		process =      ProcessStatement("proc", declaredItems=[_use("work.p.all")])
 		architecture = Architecture("rtl", _entitySymbol("e"), statements=[process])
 		_design(self._package, Entity("e"), architecture)
 
@@ -288,8 +288,8 @@ class DeclarativeRegions(Testcase):
 
 	def test_Block(self) -> None:
 		"""A block's use clause isn't seen by a process beside the block (A027, A028)."""
-		block = ConcurrentBlockStatement("blk", declaredItems=[_use("work.p.all")])
-		process = ProcessStatement("proc")
+		block =        ConcurrentBlockStatement("blk", declaredItems=[_use("work.p.all")])
+		process =      ProcessStatement("proc")
 		architecture = Architecture("rtl", _entitySymbol("e"), statements=[block, process])
 		_design(self._package, Entity("e"), architecture)
 
@@ -317,7 +317,7 @@ class DeclarativeRegions(Testcase):
 
 	def test_PackageBody(self) -> None:
 		"""A use clause in a package body isn't seen by the package declaration (A034, A036)."""
-		package = Package("q")
+		package =     Package("q")
 		packageBody = PackageBody(_packageSymbol("q"), declaredItems=[_use("work.p.all")])
 		_design(self._package, package, packageBody)
 
@@ -326,7 +326,7 @@ class DeclarativeRegions(Testcase):
 
 	def test_ContextOfPackage_SeenByBody(self) -> None:
 		"""A use clause in the context clause of a package is seen by its body (A035)."""
-		package = Package("q", [_use("work.p.all")])
+		package =     Package("q", [_use("work.p.all")])
 		packageBody = PackageBody(_packageSymbol("q"))
 		_design(self._package, package, packageBody)
 
@@ -334,7 +334,7 @@ class DeclarativeRegions(Testcase):
 
 	def test_ContextClause_NotNextUnit(self) -> None:
 		"""A context clause belongs to one design unit (A041)."""
-		first = Entity("e1", [_use("work.p.all")])
+		first =  Entity("e1", [_use("work.p.all")])
 		second = Entity("e2")
 		_design(self._package, first, second)
 
@@ -342,10 +342,10 @@ class DeclarativeRegions(Testcase):
 
 	def test_ResetAnalysis(self) -> None:
 		"""Resetting the analysis removes the imports of nested regions and the references of their use clauses."""
-		useClause = _use("work.p.all")
-		process = ProcessStatement("proc", declaredItems=[useClause])
+		useClause =    _use("work.p.all")
+		process =      ProcessStatement("proc", declaredItems=[useClause])
 		architecture = Architecture("rtl", _entitySymbol("e"), statements=[process])
-		design = _design(self._package, Entity("e"), architecture)
+		design =       _design(self._package, Entity("e"), architecture)
 
 		design.ResetAnalysis()
 
@@ -358,8 +358,8 @@ class ContextReferences(Testcase):
 
 	def test_Context(self) -> None:
 		libraryType = _enumeration("T", "a", "b")
-		context = Context("ctx", [LibraryClause([LibraryReferenceSymbol(SimpleName("lib1"))]), _use("lib1.p.all")])
-		entity = Entity("e", [ContextReference([ContextReferenceSymbol(SelectedName("ctx", SimpleName("work")))])])
+		context =     Context("ctx", [LibraryClause([LibraryReferenceSymbol(SimpleName("lib1"))]), _use("lib1.p.all")])
+		entity =      Entity("e", [ContextReference([ContextReferenceSymbol(SelectedName("ctx", SimpleName("work")))])])
 		_design(context, entity, libraries=[("lib1", [Package("p", declaredItems=[libraryType])])])
 
 		result = entity._namespace.Lookup("t")
@@ -413,7 +413,7 @@ class ContextDeclarations(Testcase):
 
 	def test_NestedContexts(self) -> None:
 		"""``context c2`` references ``context c1``, which uses ``lib1.p.all`` (GHDL accepts)."""
-		first = Context("c1", [_libraryClause("lib1"), _use("lib1.p.all")])
+		first =  Context("c1", [_libraryClause("lib1"), _use("lib1.p.all")])
 		second = Context("c2", [_libraryClause("lib1"), _contextReference("lib1", "c1")])
 		entity = Entity("e", [_libraryClause("lib1"), _contextReference("lib1", "c2")])
 		_design(entity, libraries=[("lib1", [self._package, first, second])])
@@ -424,7 +424,7 @@ class ContextDeclarations(Testcase):
 	def test_MissingMember(self) -> None:
 		"""``use lib1.p.nothere;`` in a context declaration."""
 		useClause = _use("lib1.p.nothere")
-		context = Context("c1", [_libraryClause("lib1"), useClause])
+		context =   Context("c1", [_libraryClause("lib1"), useClause])
 
 		with WarningCollector() as collector:
 			_design(Entity("e"), libraries=[("lib1", [self._package, context])])
@@ -437,8 +437,8 @@ class ContextDeclarations(Testcase):
 
 	def test_UseClauseAfterContextReference(self) -> None:
 		"""``context lib1.ctx;`` imports ``T`` before ``signal s : T;``, a later use clause of ``p`` doesn't hide it."""
-		context = Context("ctx", [_libraryClause("lib1"), _use("lib1.p.all")])
-		signal = _signal("s", "T")
+		context =      Context("ctx", [_libraryClause("lib1"), _use("lib1.p.all")])
+		signal =       _signal("s", "T")
 		contextItems = [_libraryClause("lib1"), _contextReference("lib1", "ctx")]
 		architecture = Architecture("rtl", _entitySymbol("e"), contextItems, [signal, _use("lib1.p.all")])
 		_design(Entity("e"), architecture, libraries=[("lib1", [self._package, context])])
@@ -536,7 +536,7 @@ class LibraryNames(Testcase):
 
 	def test_UseClause_LibraryClauseOfNestedContext(self) -> None:
 		"""``c2`` references ``c1``, which has ``library lib1;``; ``context work.c2; use lib1.p.all;`` (GHDL accepts)."""
-		first = Context("c1", [_libraryClause("lib1")])
+		first =  Context("c1", [_libraryClause("lib1")])
 		second = Context("c2", [_libraryClause("lib"), _contextReference("lib", "c1")])
 		entity = Entity("e", [_contextReference("work", "c2"), _use("lib1.p.all")])
 		_design(first, second, entity, libraries=[("lib1", [self._package])])
@@ -587,7 +587,7 @@ class LibraryNames(Testcase):
 	def test_ContextDeclaration_UseStd_LibraryClause(self) -> None:
 		"""``context c is library std; use std.textio.all; end context;``."""
 		referencedContext = Context("c", [_libraryClause("std"), _use("std.textio.all")])
-		design = _design(referencedContext)
+		design =            _design(referencedContext)
 
 		self.assertDictEqual(
 			{"textio": design.GetLibrary("std")._packages["textio"]},
@@ -596,7 +596,7 @@ class LibraryNames(Testcase):
 
 	def test_ContextDeclaration_NestedLibraryNotInDesign(self) -> None:
 		"""``c0`` references ``c1``, which has ``library nolib;``; ``c0`` uses ``nolib.p.all``."""
-		first = Context("c0", [_libraryClause("lib"), _contextReference("lib", "c1"), _use("nolib.p.all")])
+		first =  Context("c0", [_libraryClause("lib"), _contextReference("lib", "c1"), _use("nolib.p.all")])
 		second = Context("c1", [_libraryClause("nolib")])
 
 		with self.assertRaises(LibraryNotFoundError) as context:
@@ -630,7 +630,7 @@ class LibraryNames(Testcase):
 	def test_ContextReference_LibraryClause(self) -> None:
 		"""``library lib; context lib.c;`` in library ``lib``."""
 		referencedContext = Context("c")
-		entity = Entity("e", [_libraryClause("lib"), _contextReference("lib", "c")])
+		entity =            Entity("e", [_libraryClause("lib"), _contextReference("lib", "c")])
 		_design(referencedContext, entity)
 
 		self.assertDictEqual({"c": referencedContext}, entity.ReferencedContexts["lib"])
@@ -638,7 +638,7 @@ class LibraryNames(Testcase):
 	def test_ContextReference_Architecture(self) -> None:
 		"""``context work.c;`` in the context clause of an architecture (GHDL accepts)."""
 		referencedContext = Context("c", [_libraryClause("ieee")])
-		architecture = Architecture("rtl", _entitySymbol("e"), [_contextReference("work", "c")])
+		architecture =      Architecture("rtl", _entitySymbol("e"), [_contextReference("work", "c")])
 		_design(referencedContext, Entity("e"), architecture)
 
 		self.assertDictEqual({"c": referencedContext}, architecture.ReferencedContexts["lib"])
@@ -660,7 +660,7 @@ class LibraryNames(Testcase):
 	def test_PackageInstantiation_NoLibraryClause(self) -> None:
 		"""``package i is new lib.gp generic map (...);`` in library ``lib``."""
 		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")])
-		instantiation = PackageInstantiation("i", PackageReferenceSymbol(SelectedName("gp", SimpleName("lib"))))
+		instantiation =  PackageInstantiation("i", PackageReferenceSymbol(SelectedName("gp", SimpleName("lib"))))
 
 		with self.assertRaises(VHDLModelException) as context:
 			_design(genericPackage, instantiation)
@@ -674,7 +674,7 @@ class LibraryNames(Testcase):
 	def test_PackageInstantiation_LibraryClause(self) -> None:
 		"""``library lib; package i is new lib.gp generic map (...);`` in library ``lib``."""
 		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")])
-		symbol = PackageReferenceSymbol(SelectedName("gp", SimpleName("lib")))
+		symbol =         PackageReferenceSymbol(SelectedName("gp", SimpleName("lib")))
 		_design(genericPackage, PackageInstantiation("i", symbol, [_libraryClause("lib")]))
 
 		self.assertIs(genericPackage, symbol.Package)
@@ -694,7 +694,7 @@ class LibraryNames(Testcase):
 	def test_EntityInstantiation_NoLibraryClause(self) -> None:
 		"""``inst: entity lib.e1;`` in library ``lib``."""
 		instantiation = EntityInstantiation("inst", EntityInstantiationSymbol(SelectedName("e1", SimpleName("lib"))))
-		architecture = Architecture("rtl", _entitySymbol("e2"), statements=[instantiation])
+		architecture =  Architecture("rtl", _entitySymbol("e2"), statements=[instantiation])
 
 		with self.assertRaises(VHDLModelException) as context:
 			_design(Entity("e1"), Entity("e2"), architecture)
@@ -712,8 +712,8 @@ class LibraryNames(Testcase):
 	def test_EntityInstantiation_LibraryClause(self) -> None:
 		"""``library lib; entity e2 ...; inst: entity lib.e1;`` in library ``lib``."""
 		instantiation = EntityInstantiation("inst", EntityInstantiationSymbol(SelectedName("e1", SimpleName("lib"))))
-		architecture = Architecture("rtl", _entitySymbol("e2"), statements=[instantiation])
-		entity = Entity("e1")
+		architecture =  Architecture("rtl", _entitySymbol("e2"), statements=[instantiation])
+		entity =        Entity("e1")
 		_design(entity, Entity("e2", [_libraryClause("lib")]), architecture)
 
 		self.assertIs(entity, instantiation.Entity.Entity)
@@ -725,7 +725,7 @@ class UseClauseDiagnostics(Testcase):
 	def test_PrefixNotAPackage(self) -> None:
 		"""``use K.all;`` with a constant ``K``."""
 		useClause = _use("k.all")
-		entity = Entity("e", declaredItems=[_constant("K", "integer"), useClause])
+		entity =    Entity("e", declaredItems=[_constant("K", "integer"), useClause])
 
 		with WarningCollector() as collector:
 			_design(entity)
@@ -746,9 +746,9 @@ class UseClauseDiagnostics(Testcase):
 
 	def test_GenericPackage(self) -> None:
 		"""``use work.gp.all;`` with an uninstantiated generic package (A086)."""
-		constant = _constant("K", "integer")
+		constant =       _constant("K", "integer")
 		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")], declaredItems=[constant])
-		entity = Entity("e", [_use("work.gp.all")])
+		entity =         Entity("e", [_use("work.gp.all")])
 
 		with WarningCollector() as collector:
 			_design(genericPackage, entity)
@@ -766,9 +766,9 @@ class UseItemSubtype(Testcase):
 
 	def test_UserSubtype(self) -> None:
 		enumeration = _enumeration("T", "a", "b")
-		first = Subtype("ST1", _subtypeSymbol("T"))
-		second = Subtype("ST2", _subtypeSymbol("ST1"))
-		entity = Entity("e", [_use("work.p.ST2")])
+		first =       Subtype("ST1", _subtypeSymbol("T"))
+		second =      Subtype("ST2", _subtypeSymbol("ST1"))
+		entity =      Entity("e", [_use("work.p.ST2")])
 		_design(Package("p", declaredItems=[enumeration, first, second]), entity)
 
 		self.assertTupleEqual((enumeration.Literals[1], ), entity._namespace.Lookup("b").Declarations)
@@ -821,7 +821,7 @@ class LinkingOrder(Testcase):
 
 	def test_LinkPackageReferences_WithoutLibraries(self) -> None:
 		"""``LinkPackageReferences()`` before ``LinkLibraryReferences()``."""
-		design = Design("design")
+		design =   Design("design")
 		document = Document(Path("design.vhdl"))
 		document._AddDesignUnit(Entity("e"))
 		design.AddDocument(document, design.GetLibrary("lib"))
@@ -837,10 +837,10 @@ class ContextGenericPackage(Testcase):
 	"""A use clause of a context declaration naming an uninstantiated generic package."""
 
 	def test_Warning(self) -> None:
-		constant = _constant("K", "integer")
+		constant =       _constant("K", "integer")
 		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")], declaredItems=[constant])
-		context = Context("c1", [_libraryClause("lib1"), _use("lib1.gp.all")])
-		entity = Entity("e", [_libraryClause("lib1"), _contextReference("lib1", "c1")])
+		context =        Context("c1", [_libraryClause("lib1"), _use("lib1.gp.all")])
+		entity =         Entity("e", [_libraryClause("lib1"), _contextReference("lib1", "c1")])
 
 		with WarningCollector() as collector:
 			_design(entity, libraries=[("lib1", [genericPackage, context])])

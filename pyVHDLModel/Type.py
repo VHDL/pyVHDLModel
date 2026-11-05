@@ -686,7 +686,7 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 				raise ex
 
 			primaryUnit._parent = self
-			self._primaryUnit = primaryUnit
+			self._primaryUnit =   primaryUnit
 		else:
 			self._primaryUnit = PhysicalUnit(primaryUnit, parent=self)
 

@@ -2144,10 +2144,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				libraryIdentifier = workingLibrary.NormalizedIdentifier
 				if libraryIdentifier not in DEFAULT_LIBRARIES:
 					designUnit._referencedLibraries[libraryIdentifier] = workingLibrary
-					designUnit._referencedPackages[libraryIdentifier] = {}
-					designUnit._referencedContexts[libraryIdentifier] = {}
+					designUnit._referencedPackages[libraryIdentifier] =  {}
+					designUnit._referencedContexts[libraryIdentifier] =  {}
 
-					dependency = designUnit._dependencyVertex.EdgeToVertex(workingLibrary._dependencyVertex)
+					dependency =         designUnit._dependencyVertex.EdgeToVertex(workingLibrary._dependencyVertex)
 					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 			# All secondary units inherit referenced libraries from their primary units.
@@ -2387,7 +2387,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				ex.add_note(f"Got type '{getFullyQualifiedName(packageMemberSymbol)}'.")
 				raise ex
 
-			name = packageMemberSymbol._name
+			name =  packageMemberSymbol._name
 			isAll = isinstance(name, AllName)
 			if isinstance(packageMemberSymbol, PackageReferenceSymbol) and not isAll:
 				packageName = name
@@ -2395,10 +2395,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				packageName = name._prefix
 
 			packageIdentifier = packageName._normalizedIdentifier
-			libraryName = packageName._prefix
+			libraryName =       packageName._prefix
 
 			# 'use lib.all;' or 'use lib.unit;' with a primary unit, which isn't a package: the prefix denotes a library.
-			library = None
+			library =        None
 			unitIdentifier = None
 			if libraryName is None:
 				if packageIdentifier == "work":
@@ -2448,7 +2448,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			if libraryName is None:
 
 				# 'use pkg.all;': the prefix denotes a visible package, e.g. made visible by 'use lib.pkg;'.
-				result = namespace.Lookup(packageIdentifier, useClause)
+				result =   namespace.Lookup(packageIdentifier, useClause)
 				packages = [declaration for declaration in result._declarations if isinstance(declaration, Package)]
 				if len(packages) == 0:
 					WarningCollector.Raise(UnresolvedNameWarning(
@@ -2490,7 +2490,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				if isContextItem:
 					designUnit._referencedPackages.setdefault(libraryIdentifier, {})[packageIdentifier] = package
 
-				dependency = designUnit._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=useClause)
+				dependency =         designUnit._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=useClause)
 				dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
 			packageMemberSymbol._reference = package
@@ -3372,8 +3372,8 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 					existing=existing
 				))
 
-			package._packageBody = packageBody
-			packageBody._package.Package = package
+			package._packageBody =                   packageBody
+			packageBody._package.Package =           package
 			packageBody._namespace.ParentNamespace = package._namespace
 
 			# add "package body -> package" relation in dependency graph

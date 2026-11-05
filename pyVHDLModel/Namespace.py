@@ -412,7 +412,7 @@ class Namespace(Generic[K, O]):
 		while namespace is not None:
 			existing = namespace._elements.get(normalizedIdentifier)
 			# `existing is element` means the region is being re-indexed, not that the name is declared twice.
-			isReindex = existing is element
+			isReindex =  existing is element
 			isOverload = overloadable and self.IsOverloadable(existing)
 			if existing is not None and not isReindex and not isOverload:
 				WarningCollector.Raise(DuplicateDeclarationWarning(
@@ -736,15 +736,15 @@ class Namespace(Generic[K, O]):
 		"""
 		from pyVHDLModel.Type import FullType, AnonymousType
 
-		declarations = []
-		imports = []
+		declarations =       []
+		imports =            []
 		searchedNamespaces = []
-		isHidden = False
+		isHidden =           False
 
 		namespace = self
 		while namespace is not None:
 			searchedNamespaces.append(namespace)
-			anchor = namespace._GetAnchorOf(place)
+			anchor =    namespace._GetAnchorOf(place)
 			inclusive = anchor is not place
 
 			for declaration, item in namespace._GetDeclarationsOf(normalizedIdentifier):

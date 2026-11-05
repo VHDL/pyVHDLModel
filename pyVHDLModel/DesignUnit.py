@@ -600,7 +600,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		if libraryIdentifier in self._IMPLICIT_LIBRARIES:
 			return True
 
-		libraries = self._parent._parent._libraries
+		libraries =   self._parent._parent._libraries
 		designUnits = list(self._ContextClauseUnits())
 		for unit in designUnits:
 			for libraryReference in unit._libraryReferences:
@@ -611,7 +611,7 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 			for contextReference in unit._contextReferences:
 				for symbol in contextReference._symbols:
 					prefixIdentifier = symbol._name._prefix._normalizedIdentifier
-					library = unit._parent if prefixIdentifier == "work" else libraries.get(prefixIdentifier)
+					library =          unit._parent if prefixIdentifier == "work" else libraries.get(prefixIdentifier)
 					if library is not None:
 						context = library._contexts.get(symbol._name._normalizedIdentifier)
 						if context is not None and context not in designUnits:
@@ -940,7 +940,7 @@ class Package(
 					if baseType._baseType is not None:
 						baseType = baseType._baseType
 					elif (typeMark := baseType._type._name)._prefix is None:
-						result = baseType._parent._namespace.Lookup(typeMark._normalizedIdentifier, baseType)
+						result =   baseType._parent._namespace.Lookup(typeMark._normalizedIdentifier, baseType)
 						baseType = result._declarations[0] if len(result._declarations) == 1 else None
 					else:
 						baseType = None

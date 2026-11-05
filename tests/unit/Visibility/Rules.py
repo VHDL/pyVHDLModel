@@ -64,7 +64,7 @@ class Hiding(Testcase):
 
 	def test_LocalDeclaration(self) -> None:
 		"""``use work.p.all; signal K : bit;``: ``K`` is the signal (A042)."""
-		signal = _signal("K", "bit")
+		signal =       _signal("K", "bit")
 		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p.all")], declaredItems=[signal])
 		_design(self._package, Entity("e"), architecture)
 
@@ -75,8 +75,8 @@ class Hiding(Testcase):
 
 	def test_EnclosingDeclaration_HidesInnerUseClause(self) -> None:
 		"""A process' ``use work.p.all;`` doesn't make ``K`` visible over the architecture's signal ``K`` (A043)."""
-		signal = _signal("K", "bit")
-		process = ProcessStatement("proc", declaredItems=[_use("work.p.all")])
+		signal =       _signal("K", "bit")
+		process =      ProcessStatement("proc", declaredItems=[_use("work.p.all")])
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[signal], statements=[process])
 		_design(self._package, Entity("e"), architecture)
 
@@ -84,7 +84,7 @@ class Hiding(Testcase):
 
 	def test_LocalAndImportedOverloads(self) -> None:
 		"""Overloaded subprograms of the region and of a use clause coexist (A058)."""
-		local = _function("f", "bit")
+		local =        _function("f", "bit")
 		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p.all")], declaredItems=[local])
 		_design(self._package, Entity("e"), architecture)
 
@@ -92,9 +92,9 @@ class Hiding(Testcase):
 
 	def test_EnclosingOverloads(self) -> None:
 		"""Overloaded subprograms of nested regions coexist."""
-		outer = _function("f", "bit")
-		inner = _function("f", "integer")
-		process = ProcessStatement("proc", declaredItems=[inner])
+		outer =        _function("f", "bit")
+		inner =        _function("f", "integer")
+		process =      ProcessStatement("proc", declaredItems=[inner])
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[outer], statements=[process])
 		_design(Entity("e"), architecture)
 		process.IndexDeclaredItems()
@@ -103,9 +103,9 @@ class Hiding(Testcase):
 
 	def test_InnerObject_HidesOuterOverloads(self) -> None:
 		"""A declaration, which isn't overloadable, hides all overloads further out."""
-		outer = _function("f", "bit")
-		variable = _variable("f", "integer")
-		process = ProcessStatement("proc", declaredItems=[variable])
+		outer =        _function("f", "bit")
+		variable =     _variable("f", "integer")
+		process =      ProcessStatement("proc", declaredItems=[variable])
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[outer], statements=[process])
 		_design(Entity("e"), architecture)
 		process.IndexDeclaredItems()
@@ -114,7 +114,7 @@ class Hiding(Testcase):
 
 	def test_LocalType_HidesStdStandard(self) -> None:
 		"""A local type ``natural`` hides ``std.standard.natural``, its literals are visible (A068)."""
-		natural = _enumeration("natural", "one", "two")
+		natural =      _enumeration("natural", "one", "two")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[natural])
 		_design(Entity("e"), architecture)
 
@@ -123,8 +123,8 @@ class Hiding(Testcase):
 
 	def test_LocalObject_HidesEnumerationLiteral(self) -> None:
 		"""``constant red`` in the architecture hides the imported literal ``red`` (A056)."""
-		package = Package("q", declaredItems=[_enumeration("T", "red", "green")])
-		constant = _constant("red", "integer")
+		package =      Package("q", declaredItems=[_enumeration("T", "red", "green")])
+		constant =     _constant("red", "integer")
 		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.q.all")], declaredItems=[constant])
 		_design(package, Entity("e"), architecture)
 
@@ -143,7 +143,7 @@ class Conflicts(Testcase):
 	def test_Constants(self) -> None:
 		"""``K`` of ``p1`` and of ``p2``: neither is directly visible (A047)."""
 		useClause = _use("work.p1.all", "work.p2.all")
-		entity = Entity("e", [useClause])
+		entity =    Entity("e", [useClause])
 		_design(self._p1, self._p2, entity)
 
 		result = entity._namespace.Lookup("k")
@@ -156,7 +156,7 @@ class Conflicts(Testcase):
 
 	def test_InnerAndOuterUseClauses(self) -> None:
 		"""A use clause of the process and one of the architecture conflict (GHDL: "due to conflicts")."""
-		process = ProcessStatement("proc", declaredItems=[_use("work.p2.all")])
+		process =      ProcessStatement("proc", declaredItems=[_use("work.p2.all")])
 		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p1.all")], statements=[process])
 		_design(self._p1, self._p2, Entity("e"), architecture)
 
@@ -183,8 +183,8 @@ class Conflicts(Testcase):
 	def test_LiteralAndObject(self) -> None:
 		"""An imported literal ``red`` and an imported constant ``red`` conflict (A055)."""
 		literals = Package("p3", declaredItems=[_enumeration("T", "red", "green")])
-		objects = Package("p4", declaredItems=[_constant("red", "integer")])
-		entity = Entity("e", [_use("work.p3.all", "work.p4.all")])
+		objects =  Package("p4", declaredItems=[_constant("red", "integer")])
+		entity =   Entity("e", [_use("work.p3.all", "work.p4.all")])
 		_design(literals, objects, entity)
 
 		result = entity._namespace.Lookup("red")
@@ -194,7 +194,7 @@ class Conflicts(Testcase):
 
 	def test_StdStandard(self) -> None:
 		"""A package's type ``bit`` conflicts with ``std.standard.bit`` (A069)."""
-		bit = _enumeration("bit", "lo", "hi")
+		bit =    _enumeration("bit", "lo", "hi")
 		entity = Entity("e", [_use("work.p3.all")])
 		_design(Package("p3", declaredItems=[bit]), entity)
 
@@ -214,8 +214,8 @@ class DeclarationOrder(Testcase):
 
 	def test_UseClauseAfterDeclaration(self) -> None:
 		"""``constant c1 : integer := K; use work.p.all; constant c2 : integer := K;`` (A026)."""
-		c1 = _constant("c1", "integer")
-		c2 = _constant("c2", "integer")
+		c1 =           _constant("c1", "integer")
+		c2 =           _constant("c2", "integer")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[c1, _use("work.p.all"), c2])
 		_design(self._package, Entity("e"), architecture)
 
@@ -225,7 +225,7 @@ class DeclarationOrder(Testcase):
 
 	def test_PortBeforeUseClause(self) -> None:
 		"""A use clause in the entity's declarative part isn't seen by the ports (A040)."""
-		port = PortSimpleSignalInterfaceItem(("x", ), Mode.In, _subtypeSymbol("K"))
+		port =   PortSimpleSignalInterfaceItem(("x", ), Mode.In, _subtypeSymbol("K"))
 		entity = Entity("e", portItems=[port], declaredItems=[_use("work.p.all")])
 		_design(self._package, entity)
 
@@ -233,8 +233,8 @@ class DeclarationOrder(Testcase):
 
 	def test_Object(self) -> None:
 		"""``constant c1 : integer := c2; constant c2 ...``: ``c2`` isn't visible in ``c1`` (A071)."""
-		c1 = _constant("c1", "integer")
-		c2 = _constant("c2", "integer")
+		c1 =           _constant("c1", "integer")
+		c2 =           _constant("c2", "integer")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[c1, c2])
 		_design(Entity("e"), architecture)
 
@@ -244,9 +244,9 @@ class DeclarationOrder(Testcase):
 
 	def test_UseClauseBeforeLocalHomograph(self) -> None:
 		"""``use work.p.all; constant k1 := K; signal K : bit; constant k2 := K;`` (A072)."""
-		k1 = _constant("k1", "integer")
-		signal = _signal("K", "bit")
-		k2 = _constant("k2", "integer")
+		k1 =           _constant("k1", "integer")
+		signal =       _signal("K", "bit")
+		k2 =           _constant("k2", "integer")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_use("work.p.all"), k1, signal, k2])
 		_design(self._package, Entity("e"), architecture)
 
@@ -255,8 +255,8 @@ class DeclarationOrder(Testcase):
 
 	def test_SubprogramVisibleInItself(self) -> None:
 		"""A subprogram is visible in its own body (recursion), an outer declaration after it isn't."""
-		function = _function("f", "integer")
-		later = _constant("later", "integer")
+		function =     _function("f", "integer")
+		later =        _constant("later", "integer")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[function, later])
 		_design(Entity("e"), architecture)
 		function.IndexDeclaredItems()
@@ -266,9 +266,9 @@ class DeclarationOrder(Testcase):
 
 	def test_IncompleteType(self) -> None:
 		"""``type node; type ptr is access node; type node is record ... end record;``: ``node`` in ``ptr``."""
-		incomplete = AnonymousType("node")
-		pointer = AccessType("ptr", SimpleSubtypeSymbol(SimpleName("node")))
-		node = RecordType("node", [RecordTypeElement(("next", ), SimpleSubtypeSymbol(SimpleName("ptr")))])
+		incomplete =   AnonymousType("node")
+		pointer =      AccessType("ptr", SimpleSubtypeSymbol(SimpleName("node")))
+		node =         RecordType("node", [RecordTypeElement(("next", ), SimpleSubtypeSymbol(SimpleName("ptr")))])
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[incomplete, pointer, node])
 		_design(Entity("e"), architecture)
 
@@ -276,8 +276,8 @@ class DeclarationOrder(Testcase):
 
 	def test_IncompleteType_After(self) -> None:
 		"""Without an incomplete type declaration, a full type isn't visible before its declaration."""
-		pointer = AccessType("ptr", SimpleSubtypeSymbol(SimpleName("node")))
-		node = RecordType("node", [RecordTypeElement(("next", ), SimpleSubtypeSymbol(SimpleName("ptr")))])
+		pointer =      AccessType("ptr", SimpleSubtypeSymbol(SimpleName("node")))
+		node =         RecordType("node", [RecordTypeElement(("next", ), SimpleSubtypeSymbol(SimpleName("ptr")))])
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[pointer, node])
 		_design(Entity("e"), architecture)
 
@@ -299,7 +299,7 @@ class Designators(Testcase):
 
 	def test_ImplicitDeclarations(self) -> None:
 		"""An enumerated type in a region declares its literals; removing the type removes them."""
-		enumeration = _enumeration("T", "Idle", "'a'")
+		enumeration =  _enumeration("T", "Idle", "'a'")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[enumeration])
 		architecture.IndexDeclaredItems()
 
@@ -324,8 +324,8 @@ class SubprogramAliases(Testcase):
 
 	def test_Overloaded(self) -> None:
 		"""``alias f is f1 [...]; alias f is f2 [...];`` in ``p1``, ``function f`` in ``p2`` (GHDL accepts)."""
-		first = self._alias("f", "f1")
-		second = self._alias("f", "f2")
+		first =    self._alias("f", "f1")
+		second =   self._alias("f", "f2")
 		function = _function("f", "boolean")
 		packages = (
 			Package("p1", declaredItems=[_function("f1", "integer"), _function("f2", "bit"), first, second]),
@@ -341,8 +341,8 @@ class SubprogramAliases(Testcase):
 
 	def test_InRegion(self) -> None:
 		"""An alias and a function of the same name in one region are no duplicate."""
-		alias = self._alias("f", "f1")
-		function = _function("f", "bit")
+		alias =        self._alias("f", "f1")
+		function =     _function("f", "bit")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_function("f1", "integer"), alias, function])
 
 		with WarningCollector() as collector:

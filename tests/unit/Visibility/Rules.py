@@ -290,12 +290,12 @@ class Designators(Testcase):
 	def test_CharacterLiteral(self) -> None:
 		literal = _enumeration("T", "'a'").Literals[0]
 
-		self.assertEqual("'a'", Namespace.GetNormalizedDesignatorOf(literal))
+		self.assertEqual("'a'", literal.NormalizedDesignator)
 
 	def test_EnumerationLiteral(self) -> None:
 		literal = _enumeration("T", "Idle").Literals[0]
 
-		self.assertEqual("idle", Namespace.GetNormalizedDesignatorOf(literal))
+		self.assertEqual("idle", literal.NormalizedDesignator)
 
 	def test_ImplicitDeclarations(self) -> None:
 		"""An enumerated type in a region declares its literals; removing the type removes them."""

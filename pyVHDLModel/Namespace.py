@@ -478,7 +478,7 @@ class Namespace(Generic[K, O]):
 		from pyVHDLModel.Type import EnumeratedType, PhysicalType
 
 		if isinstance(element, EnumeratedType):
-			return tuple((Namespace.GetNormalizedDesignatorOf(literal), literal) for literal in element._literals)
+			return tuple((literal.NormalizedDesignator, literal) for literal in element._literals)
 		elif isinstance(element, PhysicalType):
 			units = (element._primaryUnit, *element._secondaryUnits)
 			return tuple((unit._normalizedIdentifier, unit) for unit in units)
@@ -511,27 +511,6 @@ class Namespace(Generic[K, O]):
 			return (element._name._possibleReferences & overloadables) != PossibleReference.Unknown
 
 		return False
-
-	@staticmethod
-	def GetNormalizedDesignatorOf(element: ModelEntity) -> str:
-		"""
-		Return the normalized designator of a declaration, the key it's indexed by in a namespace.
-
-		An identifier is normalized to lower case. A character literal keeps its case and is enclosed in apostrophes, so
-		the enumeration literal ``'a'`` doesn't clash with an identifier ``a``.
-
-		:param element:    A named entity or an enumeration literal.
-		:returns:          The normalized designator.
-		:raises TypeError: If parameter 'element' has no designator.
-		"""
-		from pyVHDLModel.Expression import EnumerationLiteral, CharacterEnumerationLiteral
-
-		if isinstance(element, CharacterEnumerationLiteral):
-			return f"'{element._value}'"
-		elif isinstance(element, EnumerationLiteral):
-			return element._value.lower()
-
-		return normalizedIdentifiersOf(element)[0]
 
 	def AddImport(self, normalizedIdentifier: K, element: O, useClause: Nullable[_UseClause]) -> None:
 		"""
@@ -637,7 +616,7 @@ class Namespace(Generic[K, O]):
 		(:attr:`_implicitDeclarations`).
 
 		:returns: Dictionary of lists of enumeration literals and physical units, indexed by normalized designator
-		          (:meth:`GetNormalizedDesignatorOf`).
+		          (:attr:`~pyVHDLModel.Expression.EnumerationLiteral.NormalizedDesignator`).
 		"""
 		return self._implicitDeclarations
 
@@ -751,7 +730,7 @@ class Namespace(Generic[K, O]):
 		an overloadable declaration.
 
 		:param normalizedIdentifier: The normalized (lower case) identifier or designator
-		                             (:meth:`GetNormalizedDesignatorOf`).
+		                             (:attr:`~pyVHDLModel.Expression.EnumerationLiteral.NormalizedDesignator`).
 		:param place:                Optional, the model entity at which the identifier is used. Default: ``None``.
 		:returns:                    The directly visible declarations, or the conflicts, and the searched namespaces.
 		"""

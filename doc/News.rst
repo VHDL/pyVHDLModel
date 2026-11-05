@@ -33,7 +33,9 @@ Version 0.43.0 (2026)
      Whether a library's name is visible in a design unit: :meth:`DesignUnit.IsLibraryVisible()
      <pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible>`.
    * Enumeration literals and physical units of a region's types are declarations of the region
-     (:data:`Namespace.ImplicitDeclarations <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`).
+     (:data:`Namespace.ImplicitDeclarations <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`). An enumeration
+     literal is indexed by :data:`EnumerationLiteral.NormalizedDesignator
+     <pyVHDLModel.Expression.EnumerationLiteral.NormalizedDesignator>` (a character literal with its apostrophes).
    * Aliases, attribute declarations and packages declared in a region are added to its namespace.
 
    .. rubric:: Changes

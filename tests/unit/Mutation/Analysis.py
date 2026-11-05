@@ -41,14 +41,14 @@ from pyTooling.Graph           import Graph
 from pyTooling.Testing         import Testcase
 
 from pyVHDLModel               import Design, Document
-from pyVHDLModel.Base          import Mode
+from pyVHDLModel.Base          import Mode, normalizedIdentifiersOf
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ProcessStatement
 from pyVHDLModel.DesignUnit    import Architecture, Component, Context, Entity, Package, PackageBody, \
                                       ContextReference, LibraryClause, UseClause
+from pyVHDLModel.Expression    import EnumerationLiteral
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericConstantInterfaceItem
 from pyVHDLModel.Name          import AllName, SelectedName, SimpleName
-from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, ComponentInstantiationSymbol, \
                                       ContextReferenceSymbol, EntityInstantiationSymbol, LibraryReferenceSymbol, \
                                       PackageReferenceSymbol, PackageSymbol
@@ -135,7 +135,10 @@ def _name(element: Any) -> Any:
 	elif isinstance(element, (Entity, Package, PackageBody, Context)):
 		return f"{element.__class__.__name__} {element._parent._normalizedIdentifier}.{element._normalizedIdentifier}"
 
-	return f"{element.__class__.__name__} {Namespace.GetNormalizedDesignatorOf(element)}"
+	elif isinstance(element, EnumerationLiteral):
+		return f"{element.__class__.__name__} {element.NormalizedDesignator}"
+
+	return f"{element.__class__.__name__} {normalizedIdentifiersOf(element)[0]}"
 
 
 def _graph(graph: Graph) -> dict[str, Any]:

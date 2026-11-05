@@ -447,6 +447,31 @@ class LibraryNames(Testcase):
 		self._constant = _constant("K", "integer")
 		self._package =  Package("p", declaredItems=[self._constant])
 
+	def test_IsLibraryVisible(self) -> None:
+		"""``work`` and ``std`` are visible, a library with a library clause too, not the working library's real name."""
+		entity = Entity("e", [_libraryClause("ieee")])
+		_design(entity)
+
+		self.assertTrue(entity.IsLibraryVisible("work"))
+		self.assertTrue(entity.IsLibraryVisible("std"))
+		self.assertTrue(entity.IsLibraryVisible("ieee"))
+		self.assertFalse(entity.IsLibraryVisible("lib"))
+
+	def test_IsLibraryVisible_Architecture(self) -> None:
+		"""An architecture sees the library clauses of its entity."""
+		architecture = Architecture("rtl", _entitySymbol("e"))
+		_design(Entity("e", [_libraryClause("ieee")]), architecture)
+
+		self.assertTrue(architecture.IsLibraryVisible("ieee"))
+
+	def test_IsLibraryVisible_Context(self) -> None:
+		"""A context declaration has no implicit ``library std;`` (13.2)."""
+		context = Context("c")
+		_design(context)
+
+		self.assertTrue(context.IsLibraryVisible("work"))
+		self.assertFalse(context.IsLibraryVisible("std"))
+
 	def test_UseClause_NoLibraryClause(self) -> None:
 		"""``use lib.p.all;`` in library ``lib``."""
 		with self.assertRaises(VHDLModelException) as context:

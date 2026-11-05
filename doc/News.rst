@@ -30,6 +30,8 @@ Version 0.43.0 (2026)
      <pyVHDLModel.DesignUnit.Package.IterateDeclarations>`, :meth:`Package.IterateMemberDeclarations()
      <pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations>`; a package instantiation iterates those of its generic
      package.
+     Whether a library's name is visible in a design unit: :meth:`DesignUnit.IsLibraryVisible()
+     <pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible>`.
    * Enumeration literals and physical units of a region's types are declarations of the region
      (:data:`Namespace.ImplicitDeclarations <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`).
    * Aliases, attribute declarations and packages declared in a region are added to its namespace.

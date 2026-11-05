@@ -78,8 +78,7 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       ConfigurationNotFoundError, ContextNotFoundError, AlreadyInDesignError, \
                                       NotAChildError, DuplicateDocumentError, DuplicateDesignUnitError, \
                                       LibraryInUseError, PackageInstantiationNotLinkedError
-from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
-                                      normalizedIdentifiersOf
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
 from pyVHDLModel.Name          import AllName
 from pyVHDLModel.Namespace     import Namespace
@@ -1408,7 +1407,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			designUnit._namespace.ClearImports()
 
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
-			for region in self._IterateDeclarationRegions(designUnit):
+			for region in designUnit.IterateDeclarationRegions():
 				region._namespace.ClearImports()
 				for item in region._declaredItems:
 					if isinstance(item, UseClause):
@@ -2300,7 +2299,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				self._LinkUseClause(designUnit, designUnit._namespace, packageReference, True)
 
 			if isinstance(designUnit, DeclarationRegionMixin):
-				for region in self._IterateDeclarationRegions(designUnit):
+				for region in designUnit.IterateDeclarationRegions():
 					for item in region._declaredItems:
 						if isinstance(item, UseClause):
 							self._LinkUseClause(designUnit, region._namespace, item, False)
@@ -2524,38 +2523,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 				for normalizedIdentifier, declaration in members:
 					namespace.AddImport(normalizedIdentifier, declaration, useClause)
-
-	@staticmethod
-	def _IterateDeclarationRegions(region: DeclarationRegionMixin) -> Generator[DeclarationRegionMixin, None, None]:
-		"""
-		Iterate a declarative region and all declarative regions nested in it.
-
-		Nested regions are declared items (e.g. subprograms, protected types, packages) and concurrent statements (blocks,
-		processes, generate statements and their branches), each followed by the regions nested in it.
-
-		:param region: The outermost declarative region, e.g. a design unit.
-		:returns:      A generator to iterate the declarative regions, the outermost first.
-		"""
-		yield region
-
-		for item in region._declaredItems:
-			if isinstance(item, DeclarationRegionMixin):
-				yield from Design._IterateDeclarationRegions(item)
-
-		if isinstance(region, ConcurrentStatementsMixin):
-			for statement in region._statements:
-				if isinstance(statement, IfGenerateStatement):
-					yield from Design._IterateDeclarationRegions(statement._ifBranch)
-					for branch in statement._elsifBranches:
-						yield from Design._IterateDeclarationRegions(branch)
-
-					if (branch := statement._elseBranch) is not None:
-						yield from Design._IterateDeclarationRegions(branch)
-				elif isinstance(statement, CaseGenerateStatement):
-					for case in statement._cases:
-						yield from Design._IterateDeclarationRegions(case)
-				elif isinstance(statement, DeclarationRegionMixin):
-					yield from Design._IterateDeclarationRegions(statement)
 
 	def LinkContextReferences(self) -> None:
 		"""

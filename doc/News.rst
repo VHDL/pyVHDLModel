@@ -32,6 +32,8 @@ Version 0.43.0 (2026)
      package.
      Whether a library's name is visible in a design unit: :meth:`DesignUnit.IsLibraryVisible()
      <pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible>`.
+     A declarative region and the regions nested in it: :meth:`IterateDeclarationRegions()
+     <pyVHDLModel.Regions.DeclarationRegionMixin.IterateDeclarationRegions>`.
    * Enumeration literals and physical units of a region's types are declarations of the region
      (:data:`Namespace.ImplicitDeclarations <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`). An enumeration
      literal is indexed by :data:`EnumerationLiteral.NormalizedDesignator

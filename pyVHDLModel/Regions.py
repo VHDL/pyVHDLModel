@@ -1867,7 +1867,8 @@ class DeclarationRegionMixin(
 		"_IndexDeclaredItem",
 		"_UnindexDeclaredItem",
 		"IndexDeclaredItems",
-		"_Labels"
+		"_Labels",
+		"_IterateStatementRegions"
 	)
 ):
 	"""
@@ -1899,7 +1900,8 @@ class DeclarationRegionMixin(
 	A statement label is declared implicitly in the declarative region enclosing the statement, so the host provides the
 	labeled statements of the region by ``_Labels()``: a host with statements gets it from its statements mixin
 	(e.g. :class:`~pyVHDLModel.Concurrent.ConcurrentStatementsMixin`), a host without statements from
-	:class:`WithoutStatementsMixin`.
+	:class:`WithoutStatementsMixin`. The same holds for the declarative regions nested in the statements
+	(``_IterateStatementRegions()``), which :meth:`IterateDeclarationRegions` walks.
 	"""
 	_DECLARED_ITEM_TYPES:     ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
 	_areDeclaredItemsIndexed: bool                        #: ``True`` if :meth:`IndexDeclaredItems` filled the namespace.
@@ -1909,6 +1911,23 @@ class DeclarationRegionMixin(
 		Initializes a declaration region, which isn't indexed yet.
 		"""
 		self._areDeclaredItemsIndexed = False
+
+	def IterateDeclarationRegions(self) -> Generator[DeclarationRegionMixin, None, None]:
+		"""
+		Iterate this declarative region and all declarative regions nested in it.
+
+		Nested regions are declared items (e.g. subprograms, protected types, packages) and concurrent statements (blocks,
+		processes, generate statements and their branches), each followed by the regions nested in it.
+
+		:returns: A generator to iterate the declarative regions, this region first.
+		"""
+		yield self
+
+		for item in self._declaredItems:
+			if isinstance(item, DeclarationRegionMixin):
+				yield from item.IterateDeclarationRegions()
+
+		yield from self._IterateStatementRegions()
 
 	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""
@@ -2770,7 +2789,8 @@ class WithoutStatementsMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A mixin-class for language constructs with a declarative region, but without statements.
 
-	It provides the labeled statements ``_Labels()`` the declaration region expects from its host class: none.
+	It provides the labeled statements ``_Labels()`` and the nested declarative regions ``_IterateStatementRegions()`` the
+	declaration region expects from its host class: none.
 
 	.. seealso::
 
@@ -2787,6 +2807,14 @@ class WithoutStatementsMixin(metaclass=ExtendedType, mixin=True):
 		:returns: An empty tuple.
 		"""
 		return ()
+
+	def _IterateStatementRegions(self) -> Generator[DeclarationRegionMixin, None, None]:
+		"""
+		Iterate the declarative regions nested in the statements of this declarative region.
+
+		:returns: An empty generator.
+		"""
+		yield from ()
 
 
 @export

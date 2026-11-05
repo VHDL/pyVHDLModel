@@ -296,6 +296,15 @@ class DeclarativeRegions(Testcase):
 		self.assertTupleEqual((self._type, ), block._namespace.Lookup("t").Declarations)
 		self.assertFalse(process._namespace.Lookup("t").IsVisible)
 
+	def test_IterateDeclarationRegions(self) -> None:
+		"""The architecture, its declared function, then its statements: the block, the process nested in it."""
+		function =     _function("f", "T")
+		process =      ProcessStatement("proc")
+		block =        ConcurrentBlockStatement("blk", statements=[process])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[function], statements=[block])
+
+		self.assertListEqual([architecture, function, block, process], list(architecture.IterateDeclarationRegions()))
+
 	def test_Subprogram(self) -> None:
 		"""A subprogram's use clause isn't seen by its parameters, which precede it (A030, A031)."""
 		function = _function("f", "T")

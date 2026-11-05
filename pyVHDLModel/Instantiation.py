@@ -41,7 +41,7 @@ from typing                  import TYPE_CHECKING, Iterable, Optional as Nullabl
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 
-from pyVHDLModel.Exception   import VHDLModelException
+from pyVHDLModel.Exception   import PackageInstantiationNotLinkedError
 from pyVHDLModel.Base        import ModelEntity
 from pyVHDLModel.DesignUnit  import Package, ContextUnion
 from pyVHDLModel.Association import GenericAssociationItem, GenericMapAspectMixin
@@ -364,9 +364,14 @@ class PackageInstantiation(Package, GenericInstantiationMixin, GenericMapAspectM
 
 
 	def Instantiate(self) -> None:
+		"""
+		Copy the components of the generic package into this package instantiation.
+
+		:raises PackageInstantiationNotLinkedError: If this package instantiation isn't linked to its generic package.
+		"""
 		genericPackage: Package = self._packageReference.Package
 		if genericPackage is None:
-			raise VHDLModelException(f"PackageInstantiation '{self.Identifier}' isn't linked to the generic package '{self._packageReference.Name}'.")
+			raise PackageInstantiationNotLinkedError(self._identifier, str(self._packageReference._name))
 
 		# TODO: components might need to be copied and derived
 		for componentName, component in genericPackage._components.items():

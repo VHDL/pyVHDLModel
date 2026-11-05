@@ -45,6 +45,10 @@ Version 0.43.0 (2026)
      :class:`~pyVHDLModel.Type.PhysicalUnit`, which keep their documentation comment.
    * Aliases without a subtype indication, which may denote a subprogram, are overloadable; aliases, attribute
      declarations and packages declared in a region are checked for duplicate declarations.
+   * A package instantiation, which isn't linked to its generic package, raises
+     :exc:`~pyVHDLModel.Exception.PackageInstantiationNotLinkedError` (was
+     :exc:`~pyVHDLModel.Exception.VHDLModelException`, from which it derives), with the common base
+     :exc:`~pyVHDLModel.Exception.InstantiationNotLinkedError` for all instantiations of generic language entities.
 
    .. rubric:: Bug Fixes
 

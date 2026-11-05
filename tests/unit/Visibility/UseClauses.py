@@ -41,7 +41,8 @@ from pyVHDLModel               import Design, Document
 from pyVHDLModel.Concurrent    import ConcurrentBlockStatement, EntityInstantiation, ProcessStatement
 from pyVHDLModel.DesignUnit    import Architecture, Component, Context, ContextReference, Entity, LibraryClause, \
                                       Package, PackageBody
-from pyVHDLModel.Exception     import LibraryNotFoundError, UnresolvedNameWarning, VHDLModelException
+from pyVHDLModel.Exception     import InstantiationNotLinkedError, LibraryNotFoundError, \
+                                      PackageInstantiationNotLinkedError, UnresolvedNameWarning, VHDLModelException
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericTypeInterfaceItem
 from pyVHDLModel.Name          import SelectedName, SimpleName
@@ -746,7 +747,7 @@ class LinkingOrder(Testcase):
 		"""The declarations of a package instantiation, which isn't linked to its generic package."""
 		instantiation = PackageInstantiation("inst", PackageReferenceSymbol(SelectedName("gp", SimpleName("work"))))
 
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(PackageInstantiationNotLinkedError) as context:
 			list(Design._GetPackageDeclarations(instantiation))
 
 		self.assertEqual(
@@ -754,6 +755,10 @@ class LinkingOrder(Testcase):
 			str(context.exception)
 		)
 		self.assertListEqual(["Call 'LinkPackageInstances()' before linking use clauses."], context.exception.__notes__)
+		self.assertIsInstance(context.exception, InstantiationNotLinkedError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+		self.assertEqual("inst", context.exception.InstantiationName)
+		self.assertEqual("work.gp", context.exception.GenericName)
 
 	def test_LinkPackageReferences_WithoutLibraries(self) -> None:
 		"""``LinkPackageReferences()`` before ``LinkLibraryReferences()``."""

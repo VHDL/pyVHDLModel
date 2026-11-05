@@ -1925,6 +1925,69 @@ class ContextNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 
 
 @export
+class InstantiationNotLinkedError(Exception):
+	"""
+	The exception is raised when an instantiation of a generic language entity isn't linked to it.
+
+	A package instantiation is linked to its generic package by :meth:`~pyVHDLModel.Design.LinkPackageInstances`; the
+	generic language entity's declarations are available only after linking.
+
+	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
+	``class PackageInstantiationNotLinkedError(VHDLModelException, InstantiationNotLinkedError)``. It has no initializer
+	of its own; the derived exception sets the fields.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.PackageInstantiationNotLinkedError`
+	      |rarr| Package instantiation not linked to its generic package.
+	"""
+
+	_instantiationName: str  #: The name of the instantiation, which isn't linked.
+	_genericName:       str  #: The name of the generic language entity, as the instantiation references it.
+
+	@readonly
+	def InstantiationName(self) -> str:
+		"""
+		Read-only property to access the instantiation name (:attr:`_instantiationName`).
+
+		:returns: The name of the instantiation, which isn't linked.
+		"""
+		return self._instantiationName
+
+	@readonly
+	def GenericName(self) -> str:
+		"""
+		Read-only property to access the name of the generic language entity (:attr:`_genericName`).
+
+		:returns: The name of the generic language entity, as the instantiation references it.
+		"""
+		return self._genericName
+
+
+@export
+class PackageInstantiationNotLinkedError(VHDLModelException, InstantiationNotLinkedError):
+	"""
+	This exception is raised, when a package instantiation isn't linked to its generic package.
+
+	Message: :pycode:`f"Package instantiation '{instantiationName}' isn't linked to its generic package '{packageName}'."`
+	"""
+
+	def __init__(self, instantiationName: str, genericPackageName: str) -> None:
+		"""
+		Initializes the exception message based on the given instantiation name and generic package name.
+
+		:param instantiationName:  The name of the package instantiation, which isn't linked.
+		:param genericPackageName: The name of the generic package, as the instantiation references it.
+		"""
+		super().__init__(
+			f"Package instantiation '{instantiationName}' isn't linked to its generic package '{genericPackageName}'."
+		)
+
+		self._instantiationName = instantiationName
+		self._genericName =       genericPackageName
+
+
+@export
 class VHDLWriterError(VHDLModelException):
 	"""
 	This exception is raised, when the VHDL writer can't write a model element as VHDL source text.

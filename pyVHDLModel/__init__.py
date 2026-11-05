@@ -77,7 +77,7 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       LibraryNotFoundError, EntityNotFoundError, PackageNotFoundError, \
                                       ConfigurationNotFoundError, ContextNotFoundError, AlreadyInDesignError, \
                                       NotAChildError, DuplicateDocumentError, DuplicateDesignUnitError, \
-                                      LibraryInUseError
+                                      LibraryInUseError, PackageInstantiationNotLinkedError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                       normalizedIdentifiersOf
 from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
@@ -2400,20 +2400,22 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		   * ``PackageReferenceSymbol`` (``use lib.pkg;``): the package itself.
 
-		:param designUnit:                     The design unit containing the use clause.
-		:param namespace:                      The namespace of the declarative region containing the use clause.
-		:param useClause:                      The use clause.
-		:param isContextItem:                  ``True``, if the use clause is an item of the design unit's context clause.
-		:raises VHDLModelException:            If a use clause references a library, whose name isn't visible
-		                                       (:meth:`_IsLibraryVisible`).
-		:raises VHDLModelException:            If a use clause references a package, which doesn't exist in its library.
-		:raises VHDLModelException:            If the type of a symbol in the use clause is unknown.
-		:raises VHDLModelException:            If a package instantiation isn't linked to its generic package.
-		:raises UnhandledCriticalWarningError: If a use clause names a package member, which the package doesn't declare,
-		                                       a primary unit, which the library doesn't contain, a prefix, which isn't a
-		                                       visible package, or an uninstantiated generic package, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:param designUnit:                          The design unit containing the use clause.
+		:param namespace:                           The namespace of the declarative region containing the use clause.
+		:param useClause:                           The use clause.
+		:param isContextItem:                       ``True``, if the use clause is an item of the design unit's context
+		                                            clause.
+		:raises VHDLModelException:                 If a use clause references a library, whose name isn't visible
+		                                            (:meth:`_IsLibraryVisible`).
+		:raises VHDLModelException:                 If a use clause references a package, which doesn't exist in its
+		                                            library.
+		:raises VHDLModelException:                 If the type of a symbol in the use clause is unknown.
+		:raises PackageInstantiationNotLinkedError: If a package instantiation isn't linked to its generic package.
+		:raises UnhandledCriticalWarningError:      If a use clause names a package member, which the package doesn't
+		                                            declare, a primary unit, which the library doesn't contain, a prefix,
+		                                            which isn't a visible package, or an uninstantiated generic package, and
+		                                            no :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                            :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
 		# A use clause can have multiple comma-separated references
 		for packageMemberSymbol in useClause._symbols:
@@ -2569,17 +2571,15 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		type its units. An incomplete type is completed by its full type declaration, so it's skipped. A package
 		instantiation provides the declarations of its generic package.
 
-		:param package:             The package or package instantiation.
-		:returns:                   A generator to iterate (normalized designator, declaration) pairs, in declaration order.
-		:raises VHDLModelException: If a package instantiation isn't linked to its generic package. |br|
-		                            Call :meth:`LinkPackageInstances` before linking use clauses.
+		:param package:                             The package or package instantiation.
+		:returns:                                   A generator to iterate (normalized designator, declaration) pairs, in
+		                                            declaration order.
+		:raises PackageInstantiationNotLinkedError: If a package instantiation isn't linked to its generic package. |br|
+		                                            Call :meth:`LinkPackageInstances` before linking use clauses.
 		"""
 		if isinstance(package, PackageInstantiation):
 			if (genericPackage := package._packageReference._reference) is None:
-				ex = VHDLModelException(
-					f"Package instantiation '{package._identifier}' isn't linked to its generic package "
-					f"'{package._packageReference._name!s}'."
-				)
+				ex = PackageInstantiationNotLinkedError(package._identifier, str(package._packageReference._name))
 				ex.add_note("Call 'LinkPackageInstances()' before linking use clauses.")
 				raise ex
 
@@ -2606,11 +2606,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		brings its enumeration literals or physical units along (IEEE Std 1076-2008, 12.4), a subtype those of its base
 		type: the known base type, else the type its type marks lead to, followed by simple names in the package.
 
-		:param package:             The package or package instantiation.
-		:param memberIdentifier:    The normalized (lower case) identifier of the package member.
-		:returns:                   A generator to iterate (normalized designator, declaration) pairs, in declaration order.
-		:raises VHDLModelException: If a package instantiation isn't linked to its generic package. |br|
-		                            Call :meth:`LinkPackageInstances` before.
+		:param package:                             The package or package instantiation.
+		:param memberIdentifier:                    The normalized (lower case) identifier of the package member.
+		:returns:                                   A generator to iterate (normalized designator, declaration) pairs, in
+		                                            declaration order.
+		:raises PackageInstantiationNotLinkedError: If a package instantiation isn't linked to its generic package. |br|
+		                                            Call :meth:`LinkPackageInstances` before.
 		"""
 		for normalizedIdentifier, declaration in Design._GetPackageDeclarations(package):
 			if normalizedIdentifier == memberIdentifier:

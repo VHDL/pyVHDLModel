@@ -658,28 +658,46 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 		self,
 		identifier: str,
 		rng: Range,
-		primaryUnit: str,
-		units: Iterable[tuple[str, PhysicalIntegerLiteral]],
+		primaryUnit: str | PhysicalUnit,
+		units: Iterable[tuple[str, PhysicalIntegerLiteral] | PhysicalUnit],
 		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
 		"""
 		Initializes a physical type definition.
 
+		A unit given as :class:`PhysicalUnit` keeps its documentation comment; the physical type becomes its parent.
+
 		:param identifier:    The identifier of a model entity.
 		:param rng:           The range constraining this scalar type.
-		:param primaryUnit:   The name of the type's primary unit.
-		:param units:         Iterable of the secondary units as (name, value) pairs.
+		:param primaryUnit:   The name of the type's primary unit, or the primary unit.
+		:param units:         Iterable of the secondary units, each as (name, value) pair or as unit.
 		:param documentation: Optional, the documentation comment associated with this declaration.
 		                      Default: ``None``, no documentation.
 		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:raises ValueError:   If parameter 'primaryUnit' is a unit with a value.
 		"""
 		super().__init__(identifier, rng, documentation, parent)
 
-		self._primaryUnit = PhysicalUnit(primaryUnit, parent=self)
+		if isinstance(primaryUnit, PhysicalUnit):
+			if primaryUnit._value is not None:
+				ex = ValueError("Parameter 'primaryUnit' is a unit with a value.")
+				ex.add_note(f"Got value '{primaryUnit._value}'.")
+				raise ex
+
+			primaryUnit._parent = self
+			self._primaryUnit = primaryUnit
+		else:
+			self._primaryUnit = PhysicalUnit(primaryUnit, parent=self)
+
 		self._secondaryUnits = secondaryUnits = []
-		for identifier, value in units:
-			secondaryUnits.append(PhysicalUnit(identifier, value, parent=self))
+		for unit in units:
+			if isinstance(unit, PhysicalUnit):
+				unit._parent = self
+				secondaryUnits.append(unit)
+			else:
+				unitIdentifier, value = unit
+				secondaryUnits.append(PhysicalUnit(unitIdentifier, value, parent=self))
 
 	@readonly
 	def PrimaryUnit(self) -> PhysicalUnit:

@@ -227,6 +227,36 @@ class PhysicalTypes(Testcase):
 		self.assertIs(physicalType, secondaryUnit.Parent)
 		self.assertEqual("ns = 1000 fs", str(secondaryUnit))
 
+	def test_PrimaryUnit_Documentation(self) -> None:
+		"""A primary unit given as unit keeps its documentation comment."""
+		primaryUnit =  PhysicalUnit("ps", documentation="--! Picoseconds.")
+		physicalType = PhysicalType("my_time", _range(0, 1000), primaryUnit, [])
+
+		self.assertIs(primaryUnit, physicalType.PrimaryUnit)
+		self.assertIs(physicalType, primaryUnit.Parent)
+		self.assertEqual("--! Picoseconds.", primaryUnit.Documentation)
+
+	def test_SecondaryUnits_Documentation(self) -> None:
+		"""Secondary units given as units keep their documentation comment; (name, value) pairs may follow."""
+		nanoSeconds =  PhysicalUnit("ns", PhysicalIntegerLiteral(1000, "ps"), documentation="--! Nanoseconds.")
+		microSeconds = PhysicalIntegerLiteral(1000, "ns")
+		physicalType = PhysicalType("my_time", _range(0, 1000), "ps", [nanoSeconds, ("us", microSeconds)])
+
+		self.assertIs(nanoSeconds, physicalType.SecondaryUnits[0])
+		self.assertIs(physicalType, nanoSeconds.Parent)
+		self.assertEqual("--! Nanoseconds.", nanoSeconds.Documentation)
+		self.assertIs(microSeconds, physicalType.SecondaryUnits[1].Value)
+		self.assertIsNone(physicalType.SecondaryUnits[1].Documentation)
+		self.assertEqual("my_time is range 0 to 1000 units ps; ns = 1000 ps; us = 1000 ns;", str(physicalType))
+
+	def test_PrimaryUnit_WithValue(self) -> None:
+		"""The primary unit has no value."""
+		with self.assertRaises(ValueError) as context:
+			PhysicalType("my_time", _range(0, 1000), PhysicalUnit("ps", PhysicalIntegerLiteral(1000, "fs")), [])
+
+		self.assertEqual("Parameter 'primaryUnit' is a unit with a value.", str(context.exception))
+		self.assertListEqual(["Got value '1000 fs'."], context.exception.__notes__)
+
 
 class ArrayTypes(Testcase):
 	"""Regression-tracking test, not a regression fix: still-open gap, already confirmed and

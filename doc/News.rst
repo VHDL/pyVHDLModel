@@ -41,7 +41,8 @@ Version 0.43.0 (2026)
      :attr:`PhysicalType.PrimaryUnit <pyVHDLModel.Type.PhysicalType.PrimaryUnit>` returns the primary unit, which has no
      value (was its name; formatted, it's still the name), :attr:`PhysicalType.SecondaryUnits
      <pyVHDLModel.Type.PhysicalType.SecondaryUnits>` the list of secondary units (was (name, value) pairs); a secondary
-     unit's value has the unit as parent (was the physical type).
+     unit's value has the unit as parent (was the physical type). The constructor also takes the units as
+     :class:`~pyVHDLModel.Type.PhysicalUnit`, which keep their documentation comment.
    * Aliases without a subtype indication, which may denote a subprogram, are overloadable; aliases, attribute
      declarations and packages declared in a region are checked for duplicate declarations.
 

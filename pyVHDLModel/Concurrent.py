@@ -40,7 +40,7 @@ from typing                  import TYPE_CHECKING, ClassVar, Union, Iterable, Ge
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType, abstractclass
+from pyTooling.MetaClasses   import ExtendedType, abstractclass, mustoverride
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, \
                                     BaseCase, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, \
@@ -1504,12 +1504,20 @@ class GenerateStatement(ConcurrentStatement, AllowBlackboxMixin):
 		super().__init__(label, documentation, parent)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
-	# @mustoverride
+	@mustoverride
 	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+		"""
+		Iterate the instantiations in the branches or the body of this generate statement.
+
+		:returns: A generator to iterate the instantiations.
+		"""
 		raise NotImplementedError(f"Method 'IterateInstantiations' isn't implemented by '{getTypeName(self)}'.")
 
-	# @mustoverride
+	@mustoverride
 	def IndexStatement(self) -> None:
+		"""
+		Index the statements in the branches or the body of this generate statement.
+		"""
 		raise NotImplementedError(f"Method 'IndexStatement' isn't implemented by '{getTypeName(self)}'.")
 
 

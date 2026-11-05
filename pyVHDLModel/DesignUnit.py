@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from __future__                import annotations
 
-from typing                    import TYPE_CHECKING, ClassVar, Union, Iterable, Optional as Nullable
+from typing                    import TYPE_CHECKING, ClassVar, Generator, Iterable, Union, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators      import export, readonly
@@ -53,6 +53,7 @@ from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGene
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, GenericGroup, PortGroup
 from pyVHDLModel.Object        import DeferredConstant
+from pyVHDLModel.Type          import AnonymousType, Subtype
 from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration
 
@@ -855,6 +856,52 @@ class Package(
 		:returns: Dictionary of components, indexed by normalized identifier.
 		"""
 		return self._components
+
+	def IterateDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+		"""
+		Iterate the declarations of this package a use clause can make potentially visible.
+
+		A declared item contributes its normalized identifiers; an enumerated type its enumeration literals too, a physical
+		type its units. An incomplete type is completed by its full type declaration, so it's skipped.
+
+		:returns: A generator to iterate (normalized designator, declaration) pairs, in declaration order.
+		"""
+		for item in self._declaredItems:
+			if isinstance(item, AnonymousType):
+				continue
+			elif isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
+				for normalizedIdentifier in normalizedIdentifiersOf(item):
+					yield normalizedIdentifier, item
+
+				yield from Namespace._GetImplicitDeclarationsOf(item)
+
+	def IterateMemberDeclarations(self, memberIdentifier: str) -> Generator[tuple[str, ModelEntity], None, None]:
+		"""
+		Iterate the declarations of this package a use clause naming one package member makes potentially visible.
+
+		These are the declarations of the package with the member's identifier, e.g. all overloads of a subprogram. A type
+		brings its enumeration literals or physical units along (IEEE Std 1076-2008, 12.4), a subtype those of its base
+		type: the known base type, else the type its type marks lead to, followed by simple names in the package.
+
+		:param memberIdentifier: The normalized (lower case) identifier of the package member.
+		:returns:                A generator to iterate (normalized designator, declaration) pairs, in declaration order.
+		"""
+		for normalizedIdentifier, declaration in self.IterateDeclarations():
+			if normalizedIdentifier == memberIdentifier:
+				yield normalizedIdentifier, declaration
+
+				# A subtype's base type: known for a predefined subtype, else follow the type marks by simple names.
+				baseType = declaration
+				while isinstance(baseType, Subtype):
+					if baseType._baseType is not None:
+						baseType = baseType._baseType
+					elif (typeMark := baseType._type._name)._prefix is None:
+						result = baseType._parent._namespace.Lookup(typeMark._normalizedIdentifier, baseType)
+						baseType = result._declarations[0] if len(result._declarations) == 1 else None
+					else:
+						baseType = None
+
+				yield from Namespace._GetImplicitDeclarationsOf(baseType)
 
 	def _IndexOtherDeclaredItem(self, item) -> None:
 		if isinstance(item, DeferredConstant):

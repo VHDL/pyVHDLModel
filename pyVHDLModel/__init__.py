@@ -97,8 +97,7 @@ from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, Pac
                                       Configuration, Package, Component, UseClause
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode, PSLEntity
 from pyVHDLModel.Instantiation import PackageInstantiation
-from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType, BaseType, AnonymousType, \
-                                      Subtype
+from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType, BaseType
 from pyVHDLModel.Configuration import ComponentConfiguration
 from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
 from pyVHDLModel.Interface     import ModeViewDeclaration
@@ -1964,7 +1963,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					# The items are imported into the namespaces of the design units referencing the context.
 					if isinstance(symbol, PackageMemberReferenceSymbol):
-						if len(tuple(self._GetPackageMemberDeclarations(package, symbol._name._normalizedIdentifier))) == 0:
+						if len(tuple(package.IterateMemberDeclarations(symbol._name._normalizedIdentifier))) == 0:
 							WarningCollector.Raise(UnresolvedNameWarning(
 								f"Package '{package._identifier}' has no declaration '{symbol._name._identifier}'.",
 								symbol=symbol,
@@ -2317,7 +2316,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							dependency = designUnit._dependencyVertex.EdgeToVertex(referencedPackage._dependencyVertex)
 							dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
-							for normalizedIdentifier, declaration in self._GetPackageDeclarations(referencedPackage):
+							for normalizedIdentifier, declaration in referencedPackage.IterateDeclarations():
 								designUnit._namespace.AddImport(normalizedIdentifier, declaration, None)
 
 			# All secondary units inherit referenced packages from their primary units.
@@ -2393,11 +2392,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   with the use clause as origin:
 
 		   * ``AllPackageMembersReferenceSymbol`` (``use lib.pkg.all;``): every declaration of the package, incl. the
-		     enumeration literals and physical units of its types (:meth:`_GetPackageDeclarations`).
+		     enumeration literals and physical units of its types
+		     (:meth:`~pyVHDLModel.DesignUnit.Package.IterateDeclarations`).
 		   * ``PackageMemberReferenceSymbol`` (``use lib.pkg.item;``): every declaration of the package with the identifier
 		     ``item``, e.g. all overloads of a subprogram, and the enumeration literals and physical units of a type or of a
-		     subtype's base type (:meth:`_GetPackageMemberDeclarations`). If there is none, raise an
-		     :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		     subtype's base type (:meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations`). If there is none,
+		     raise an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		   * ``PackageReferenceSymbol`` (``use lib.pkg;``): the package itself.
 
 		:param designUnit:                          The design unit containing the use clause.
@@ -2543,14 +2543,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				continue
 
 			if isAll:
-				for normalizedIdentifier, declaration in self._GetPackageDeclarations(package):
+				for normalizedIdentifier, declaration in package.IterateDeclarations():
 					namespace.AddImport(normalizedIdentifier, declaration, useClause)
 
 			elif isinstance(packageMemberSymbol, PackageReferenceSymbol):
 				namespace.AddImport(packageIdentifier, package, useClause)
 
 			else:
-				members = tuple(self._GetPackageMemberDeclarations(package, packageMemberSymbol._name._normalizedIdentifier))
+				members = tuple(package.IterateMemberDeclarations(packageMemberSymbol._name._normalizedIdentifier))
 				if len(members) == 0:
 					WarningCollector.Raise(UnresolvedNameWarning(
 						f"Package '{package._identifier}' has no declaration '{packageMemberSymbol._name._identifier}'.",
@@ -2561,74 +2561,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 				for normalizedIdentifier, declaration in members:
 					namespace.AddImport(normalizedIdentifier, declaration, useClause)
-
-	@staticmethod
-	def _GetPackageDeclarations(package: Package) -> Generator[tuple[str, ModelEntity], None, None]:
-		"""
-		Iterate the declarations of a package a use clause can make potentially visible.
-
-		A declared item contributes its normalized identifiers; an enumerated type its enumeration literals too, a physical
-		type its units. An incomplete type is completed by its full type declaration, so it's skipped. A package
-		instantiation provides the declarations of its generic package.
-
-		:param package:                             The package or package instantiation.
-		:returns:                                   A generator to iterate (normalized designator, declaration) pairs, in
-		                                            declaration order.
-		:raises PackageInstantiationNotLinkedError: If a package instantiation isn't linked to its generic package. |br|
-		                                            Call :meth:`LinkPackageInstances` before linking use clauses.
-		"""
-		if isinstance(package, PackageInstantiation):
-			if (genericPackage := package._packageReference._reference) is None:
-				ex = PackageInstantiationNotLinkedError(package._identifier, str(package._packageReference._name))
-				ex.add_note("Call 'LinkPackageInstances()' before linking use clauses.")
-				raise ex
-
-			package = genericPackage
-
-		for item in package._declaredItems:
-			if isinstance(item, AnonymousType):
-				continue
-			elif isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
-				for normalizedIdentifier in normalizedIdentifiersOf(item):
-					yield normalizedIdentifier, item
-
-				yield from Namespace._GetImplicitDeclarationsOf(item)
-
-	@staticmethod
-	def _GetPackageMemberDeclarations(
-		package:          Package,
-		memberIdentifier: str
-	) -> Generator[tuple[str, ModelEntity], None, None]:
-		"""
-		Iterate the declarations of a package a use clause naming one package member makes potentially visible.
-
-		These are the declarations of the package with the member's identifier, e.g. all overloads of a subprogram. A type
-		brings its enumeration literals or physical units along (IEEE Std 1076-2008, 12.4), a subtype those of its base
-		type: the known base type, else the type its type marks lead to, followed by simple names in the package.
-
-		:param package:                             The package or package instantiation.
-		:param memberIdentifier:                    The normalized (lower case) identifier of the package member.
-		:returns:                                   A generator to iterate (normalized designator, declaration) pairs, in
-		                                            declaration order.
-		:raises PackageInstantiationNotLinkedError: If a package instantiation isn't linked to its generic package. |br|
-		                                            Call :meth:`LinkPackageInstances` before.
-		"""
-		for normalizedIdentifier, declaration in Design._GetPackageDeclarations(package):
-			if normalizedIdentifier == memberIdentifier:
-				yield normalizedIdentifier, declaration
-
-				# A subtype's base type: known for a predefined subtype, else follow the type marks by simple names.
-				baseType = declaration
-				while isinstance(baseType, Subtype):
-					if baseType._baseType is not None:
-						baseType = baseType._baseType
-					elif (typeMark := baseType._type._name)._prefix is None:
-						result = baseType._parent._namespace.Lookup(typeMark._normalizedIdentifier, baseType)
-						baseType = result._declarations[0] if len(result._declarations) == 1 else None
-					else:
-						baseType = None
-
-				yield from Namespace._GetImplicitDeclarationsOf(baseType)
 
 	@staticmethod
 	def _IterateDeclarationRegions(region: DeclarationRegionMixin) -> Generator[DeclarationRegionMixin, None, None]:
@@ -2797,9 +2729,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							# LinkContexts reported the uninstantiated generic package.
 							continue
 						elif isinstance(symbol, AllPackageMembersReferenceSymbol):
-							declarations = self._GetPackageDeclarations(package)
+							declarations = package.IterateDeclarations()
 						else:
-							declarations = self._GetPackageMemberDeclarations(package, symbol._name._normalizedIdentifier)
+							declarations = package.IterateMemberDeclarations(symbol._name._normalizedIdentifier)
 
 						for normalizedIdentifier, declaration in declarations:
 							designUnit._namespace.AddImport(normalizedIdentifier, declaration, useClause)

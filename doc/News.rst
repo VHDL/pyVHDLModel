@@ -26,6 +26,10 @@ Version 0.43.0 (2026)
      (``use work.all;``); also in declarative parts (architecture, block, process, subprogram, package, generate) and
      through context references, also nested ones. A missing package member or primary unit, a prefix, which isn't a
      visible package, and an uninstantiated generic package are an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+     The declarations a use clause takes from a package: :meth:`Package.IterateDeclarations()
+     <pyVHDLModel.DesignUnit.Package.IterateDeclarations>`, :meth:`Package.IterateMemberDeclarations()
+     <pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations>`; a package instantiation iterates those of its generic
+     package.
    * Enumeration literals and physical units of a region's types are declarations of the region
      (:data:`Namespace.ImplicitDeclarations <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`).
    * Aliases, attribute declarations and packages declared in a region are added to its namespace.

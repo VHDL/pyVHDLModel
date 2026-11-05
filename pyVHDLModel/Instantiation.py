@@ -36,7 +36,7 @@ Instantiations of packages, procedures, functions and protected types.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, Iterable, Optional as Nullable
+from typing                  import TYPE_CHECKING, Generator, Iterable, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
@@ -362,6 +362,22 @@ class PackageInstantiation(Package, GenericInstantiationMixin, GenericMapAspectM
 		"""
 		return self._packageReference
 
+	def IterateDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+		"""
+		Iterate the declarations of the instantiated generic package a use clause can make potentially visible.
+
+		:returns:                                   A generator to iterate (normalized designator, declaration) pairs, in
+		                                            declaration order.
+		:raises PackageInstantiationNotLinkedError: If this package instantiation isn't linked to its generic package. |br|
+		                                            Call :meth:`~pyVHDLModel.Design.LinkPackageInstances` before linking use
+		                                            clauses.
+		"""
+		if (genericPackage := self._packageReference._reference) is None:
+			ex = PackageInstantiationNotLinkedError(self._identifier, str(self._packageReference._name))
+			ex.add_note("Call 'LinkPackageInstances()' before linking use clauses.")
+			raise ex
+
+		yield from genericPackage.IterateDeclarations()
 
 	def Instantiate(self) -> None:
 		"""

@@ -456,6 +456,17 @@ class LibraryNames(Testcase):
 		self._constant = _constant("K", "integer")
 		self._package =  Package("p", declaredItems=[self._constant])
 
+	def test_LibraryClause_Contains(self) -> None:
+		"""``library ieee, osvvm;`` names ``ieee`` and ``osvvm``, by normalized identifier."""
+		libraryClause = LibraryClause([
+			LibraryReferenceSymbol(SimpleName("IEEE")),
+			LibraryReferenceSymbol(SimpleName("osvvm"))
+		])
+
+		self.assertIn("ieee", libraryClause)
+		self.assertIn("osvvm", libraryClause)
+		self.assertNotIn("std", libraryClause)
+
 	def test_IsLibraryVisible(self) -> None:
 		"""``work`` and ``std`` are visible, a library with a library clause too, not the working library's real name."""
 		entity = Entity("e", [_libraryClause("ieee")])

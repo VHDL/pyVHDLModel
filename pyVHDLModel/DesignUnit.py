@@ -130,6 +130,15 @@ class LibraryClause(Reference):
 		"""
 		return self._symbols
 
+	def __contains__(self, libraryIdentifier: str) -> bool:
+		"""
+		Check if this library clause names a library.
+
+		:param libraryIdentifier: The normalized identifier of the library.
+		:returns:                 ``True``, if one of the clause's library names is the library.
+		"""
+		return any(symbol._name._normalizedIdentifier == libraryIdentifier for symbol in self._symbols)
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this library clause and its library names with a visitor.
@@ -604,9 +613,8 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		designUnits = list(self._ContextClauseUnits())
 		for unit in designUnits:
 			for libraryReference in unit._libraryReferences:
-				for symbol in libraryReference._symbols:
-					if symbol._name._normalizedIdentifier == libraryIdentifier:
-						return True
+				if libraryIdentifier in libraryReference:
+					return True
 
 			for contextReference in unit._contextReferences:
 				for symbol in contextReference._symbols:

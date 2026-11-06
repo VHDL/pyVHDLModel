@@ -249,8 +249,8 @@ class EnclosingDeclarationHidesInnerImport(Testcase):
 	"""A declaration of an enclosing region hides an import of an inner region (IEEE Std 1076-2008, 12.4; GHDL)."""
 
 	def test_FindObject(self) -> None:
-		outer = Namespace("rtl")
-		inner = Namespace("proc", outer)
+		outer =  Namespace("rtl")
+		inner =  Namespace("proc", outer)
 		signal = _signal("k", "bit")
 		outer.AddElement("k", signal)
 		imported = Constant(("K", ), SimpleSubtypeSymbol(SimpleName("integer")))

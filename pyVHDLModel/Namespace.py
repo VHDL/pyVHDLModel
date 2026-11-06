@@ -739,11 +739,11 @@ class Namespace(Generic[K, O]):
 		"""
 		from pyVHDLModel.DesignUnit import Component
 
-		key = componentSymbol._name._identifier
+		key =    componentSymbol._name._identifier
 		result = self.Lookup(componentSymbol._name._normalizedIdentifier)
 		if not result.IsVisible:
 			names = ", ".join(namespace._name for namespace in result._searchedNamespaces)
-			ex = ExtendedKeyError(key, result._searchedNamespaces, f"Component '{key}' not found in: {names}.")
+			ex =    ExtendedKeyError(key, result._searchedNamespaces, f"Component '{key}' not found in: {names}.")
 			for imported in result._conflicts:
 				ex.add_note(f"Conflicting import: {imported!r}")
 			raise ex
@@ -769,11 +769,11 @@ class Namespace(Generic[K, O]):
 		"""
 		from pyVHDLModel.Type import Subtype, FullType
 
-		key = subtypeSymbol._name._identifier
+		key =    subtypeSymbol._name._identifier
 		result = self.Lookup(subtypeSymbol._name._normalizedIdentifier)
 		if not result.IsVisible:
 			names = ", ".join(namespace._name for namespace in result._searchedNamespaces)
-			ex = ExtendedKeyError(key, result._searchedNamespaces, f"Subtype '{key}' not found in: {names}.")
+			ex =    ExtendedKeyError(key, result._searchedNamespaces, f"Subtype '{key}' not found in: {names}.")
 			for imported in result._conflicts:
 				ex.add_note(f"Conflicting import: {imported!r}")
 			raise ex
@@ -812,16 +812,16 @@ class Namespace(Generic[K, O]):
 		:raises TypeError:        If the directly visible declaration is a variable, but the symbol expects none.
 		:raises TypeError:        If the directly visible declaration is no object.
 		"""
-		key = objectSymbol._name._identifier
+		key =    objectSymbol._name._identifier
 		result = self.Lookup(objectSymbol._name._normalizedIdentifier)
 		if not result.IsVisible:
 			names = ", ".join(namespace._name for namespace in result._searchedNamespaces)
-			ex = ExtendedKeyError(key, result._searchedNamespaces, f"Object '{key}' not found in: {names}.")
+			ex =    ExtendedKeyError(key, result._searchedNamespaces, f"Object '{key}' not found in: {names}.")
 			for imported in result._conflicts:
 				ex.add_note(f"Conflicting import: {imported!r}")
 			raise ex
 
-		element = result._declarations[0]
+		element =            result._declarations[0]
 		possibleReferences = objectSymbol._possibleReferences
 		if isinstance(element, Signal):
 			if PossibleReference.Signal in possibleReferences or PossibleReference.SignalAttribute in possibleReferences:

@@ -1611,7 +1611,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						isImplicit = name._normalizedIdentifier in self._IMPLICIT_OPERATIONS or name._identifier.startswith('"')
 						if (isinstance(name, SimpleName) or isExpandedName) and not isImplicit:
 							item._name._reference = None
-							aliased = self._LookupName(designUnit, region._namespace, item, item._name, UnresolvedNameWarning)
+							aliased = self._LookupName(
+								designUnit, region._namespace, item, item._name, UnresolvedNameWarning
+							)
 							if len(aliased) > 0 and not aliased[0].IsOverloadable:
 								item._name._reference = aliased[0]
 
@@ -1712,8 +1714,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		from pyVHDLModel.Interface import InterfaceItemMixin
 
-		name = symbol._name
-		label = "Type mark" if warningType is UnresolvedTypeMarkWarning else "Name"
+		name =                 symbol._name
+		label =                "Type mark" if warningType is UnresolvedTypeMarkWarning else "Name"
 		normalizedIdentifier = name._normalizedIdentifier
 		if (prefix := name._prefix) is None:
 			if isinstance(place, InterfaceItemMixin) and isinstance(component := place._parent, Component):
@@ -1734,12 +1736,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				))
 				return ()
 
-			declarations = result._declarations
+			declarations =       result._declarations
 			searchedNamespaces = result._searchedNamespaces
 		else:
 			searchedNamespaces = ()
 			if prefix._prefix is None:
-				result = namespace.Lookup(prefix._normalizedIdentifier, place)
+				result =   namespace.Lookup(prefix._normalizedIdentifier, place)
 				packages = [declaration for declaration in result._declarations if isinstance(declaration, Package)]
 				if len(packages) > 0:
 					searchedNamespaces = (packages[0]._namespace, )
@@ -1825,7 +1827,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                       the :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
 		symbol._reference = None
-		name = symbol._name
+		name =              symbol._name
 		if isinstance(name, AttributeName):
 			return
 

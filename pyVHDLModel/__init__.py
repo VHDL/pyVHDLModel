@@ -2421,18 +2421,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					unitIdentifier = packageIdentifier
 
 			if library is not None:
-				primaryUnits = (
-					*library._entities.values(),
-					*library._packages.values(),
-					*library._configurations.values(),
-					*library._contexts.values()
-				)
+				primaryUnitTables = (library._packages, library._entities, library._configurations, library._contexts)
 				if unitIdentifier is None:
-					for primaryUnit in primaryUnits:
-						namespace.AddImport(primaryUnit._normalizedIdentifier, primaryUnit, useClause)
+					for primaryUnits in primaryUnitTables:
+						for normalizedIdentifier, primaryUnit in primaryUnits.items():
+							namespace.AddImport(normalizedIdentifier, primaryUnit, useClause)
 				else:
-					for primaryUnit in primaryUnits:
-						if primaryUnit._normalizedIdentifier == unitIdentifier:
+					for primaryUnits in primaryUnitTables:
+						if (primaryUnit := primaryUnits.get(unitIdentifier)) is not None:
 							namespace.AddImport(unitIdentifier, primaryUnit, useClause)
 							break
 					else:

@@ -40,6 +40,7 @@ from pyVHDLModel.Declaration import Alias
 from pyVHDLModel.DesignUnit  import Architecture, Entity, Package
 from pyVHDLModel.Interface   import PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name        import SimpleName
+from pyVHDLModel.Object      import Signal
 from pyVHDLModel.Symbol      import PossibleReference, SignalSymbol, SimpleSubtypeSymbol, Symbol
 from pyVHDLModel.Type        import AccessType, AnonymousType, RecordType, RecordTypeElement
 
@@ -321,6 +322,14 @@ class DeclarationProperties(Testcase):
 		self.assertTrue(_enumeration("T", "a").Literals[0].IsOverloadable)
 		self.assertFalse(_constant("K", "integer").IsOverloadable)
 		self.assertFalse(_enumeration("T", "a").IsOverloadable)
+
+	def test_GetIdentifier(self) -> None:
+		"""The identifier as declared, for a named entity, one of several names, and an enumeration literal."""
+		signal = Signal(("A", "Bc"), _subtypeSymbol("bit"))
+
+		self.assertEqual("K", _constant("K", "integer").GetIdentifier("k"))
+		self.assertEqual("Bc", signal.GetIdentifier("bc"))
+		self.assertEqual("Idle", _enumeration("T", "Idle").Literals[0].GetIdentifier("idle"))
 
 	def test_IterateImplicitDeclarations_EnumeratedType(self) -> None:
 		enumeration = _enumeration("T", "Idle", "'a'")

@@ -427,6 +427,15 @@ class NamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return self._normalizedIdentifier
 
+	def GetIdentifier(self, normalizedIdentifier: str) -> str:
+		"""
+		Return the identifier as declared, for the model entity's normalized identifier.
+
+		:param normalizedIdentifier: The model entity's normalized (lower case) identifier.
+		:returns:                    The identifier in its declared spelling.
+		"""
+		return self._identifier
+
 
 @export
 class OptionallyNamedEntityMixin(metaclass=ExtendedType, mixin=True):
@@ -527,6 +536,15 @@ class MultipleNamedEntityMixin(
 		:returns: Tuple of normalized identifiers.
 		"""
 		return self._normalizedIdentifiers
+
+	def GetIdentifier(self, normalizedIdentifier: str) -> str:
+		"""
+		Return the identifier as declared, for one of the model entity's normalized identifiers.
+
+		:param normalizedIdentifier: One of the model entity's normalized (lower case) identifiers.
+		:returns:                    The identifier in its declared spelling.
+		"""
+		return self._identifiers[self._normalizedIdentifiers.index(normalizedIdentifier)]
 
 	def Split(self) -> tuple[Self, ...]:
 		"""

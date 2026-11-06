@@ -212,6 +212,15 @@ class EnumerationLiteral(Literal, DocumentedEntityMixin):
 		"""
 		return self._value.lower()
 
+	def GetIdentifier(self, normalizedIdentifier: str) -> str:
+		"""
+		Return the literal as declared, for its normalized designator.
+
+		:param normalizedIdentifier: The literal's normalized designator.
+		:returns:                    The literal in its declared spelling.
+		"""
+		return self._value
+
 	@readonly
 	def IsOverloadable(self) -> bool:
 		"""

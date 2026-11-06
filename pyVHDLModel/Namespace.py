@@ -43,7 +43,7 @@ from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType
 from pyTooling.Warning     import WarningCollector
 
-from pyVHDLModel.Base      import ModelEntity, identifiersOf, normalizedIdentifiersOf
+from pyVHDLModel.Base      import ModelEntity, normalizedIdentifiersOf
 from pyVHDLModel.Object    import Obj, Signal, Constant, Variable
 from pyVHDLModel.Symbol    import ComponentInstantiationSymbol, Symbol, PossibleReference
 from pyVHDLModel.Exception import DuplicateDeclarationWarning, NotInNamespaceError
@@ -417,7 +417,7 @@ class Namespace(Generic[K, O]):
 			if existing is not None and not isReindex and not isOverload:
 				WarningCollector.Raise(DuplicateDeclarationWarning(
 					f"Identifier '{normalizedIdentifier}' is already used for a declaration in '{namespace._name}'.",
-					identifier=self._IdentifierOf(element, normalizedIdentifier),
+					identifier=element.GetIdentifier(normalizedIdentifier),
 					namespace=namespace,
 					element=element,
 					existing=existing
@@ -447,13 +447,13 @@ class Namespace(Generic[K, O]):
 		if (existing := self._elements.get(normalizedIdentifier)) is None:
 			raise NotInNamespaceError(
 				f"Namespace '{self._name}' has no element '{normalizedIdentifier}'.",
-				identifier=self._IdentifierOf(element, normalizedIdentifier),
+				identifier=element.GetIdentifier(normalizedIdentifier),
 				namespace=self
 			)
 		elif existing is not element:
 			ex = NotInNamespaceError(
 				f"Namespace '{self._name}' has another element for '{normalizedIdentifier}'.",
-				identifier=self._IdentifierOf(element, normalizedIdentifier),
+				identifier=element.GetIdentifier(normalizedIdentifier),
 				namespace=self
 			)
 			ex.add_note(f"Found element of type '{getFullyQualifiedName(existing)}'.")
@@ -504,7 +504,7 @@ class Namespace(Generic[K, O]):
 		if (imports := self._imports.get(normalizedIdentifier)) is None:
 			raise NotInNamespaceError(
 				f"Namespace '{self._name}' has no import '{normalizedIdentifier}'.",
-				identifier=self._IdentifierOf(element, normalizedIdentifier),
+				identifier=element.GetIdentifier(normalizedIdentifier),
 				namespace=self
 			)
 
@@ -514,7 +514,7 @@ class Namespace(Generic[K, O]):
 		else:
 			ex = NotInNamespaceError(
 				f"Namespace '{self._name}' has another import for '{normalizedIdentifier}'.",
-				identifier=self._IdentifierOf(element, normalizedIdentifier),
+				identifier=element.GetIdentifier(normalizedIdentifier),
 				namespace=self
 			)
 			for existing in imports:
@@ -532,28 +532,6 @@ class Namespace(Generic[K, O]):
 		The declarations (:data:`Elements`) are kept.
 		"""
 		self._imports.clear()
-
-	@staticmethod
-	def _IdentifierOf(element: O, normalizedIdentifier: K) -> str:
-		"""
-		Return the identifier of an element as declared, for its normalized identifier.
-
-		An enumeration literal's identifier is its value.
-
-		:param element:              The named element.
-		:param normalizedIdentifier: One of the element's normalized (lower case) identifiers.
-		:returns:                    The identifier in its declared spelling.
-		"""
-		from pyVHDLModel.Expression import EnumerationLiteral
-
-		if isinstance(element, EnumerationLiteral):
-			return element._value
-
-		return next(
-			identifier
-			for identifier, normalized in zip(identifiersOf(element), normalizedIdentifiersOf(element))
-			if normalized == normalizedIdentifier
-		)
 
 	@readonly
 	def Elements(self) -> dict[K, O]:

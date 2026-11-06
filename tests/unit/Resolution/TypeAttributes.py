@@ -78,7 +78,7 @@ class TypeAttributes(Testcase):
 	def test_Subtype_Object(self) -> None:
 		"""``signal s2 : s'subtype;`` (C005)."""
 		signal = _signal("s", "AT")
-		other = Signal(("s2", ), _attribute("s", "subtype"))
+		other =  Signal(("s2", ), _attribute("s", "subtype"))
 		_, warnings = self._resolve(signal, other)
 
 		self.assertListEqual([], warnings)
@@ -112,7 +112,7 @@ class TypeAttributes(Testcase):
 
 	def test_Element_Object(self) -> None:
 		"""``signal e : s'element;`` (C008)."""
-		signal = _signal("s", "AT")
+		signal =  _signal("s", "AT")
 		element = Signal(("e", ), _attribute("s", "element"))
 		_, warnings = self._resolve(signal, element)
 
@@ -121,7 +121,7 @@ class TypeAttributes(Testcase):
 
 	def test_Element_OfSubtype(self) -> None:
 		"""``v'subtype'element`` (C016)."""
-		signal = _signal("s", "AT")
+		signal =  _signal("s", "AT")
 		element = Signal(("e", ), _attribute("s", "subtype", "element"))
 		_, warnings = self._resolve(signal, element)
 
@@ -130,11 +130,11 @@ class TypeAttributes(Testcase):
 
 	def test_Element_NotAnArray(self) -> None:
 		"""``i'element`` of an integer or a record (C010, C011)."""
-		integer = _signal("i", "integer")
-		record = RecordType("R", [RecordTypeElement(("x", ), _subtypeSymbol("bit"))])
+		integer =      _signal("i", "integer")
+		record =       RecordType("R", [RecordTypeElement(("x", ), _subtypeSymbol("bit"))])
 		recordSignal = _signal("rv", "R")
-		first = Signal(("e1", ), _attribute("i", "element"))
-		second = Signal(("e2", ), _attribute("rv", "element"))
+		first =        Signal(("e1", ), _attribute("i", "element"))
+		second =       Signal(("e2", ), _attribute("rv", "element"))
 		_, warnings = self._resolve(integer, record, recordSignal, first, second)
 
 		self.assertEqual(2, len(warnings))
@@ -144,7 +144,7 @@ class TypeAttributes(Testcase):
 	def test_Base_AsTypeMark(self) -> None:
 		"""``signal v : ST'base;`` is illegal (C001)."""
 		subtype = Subtype("ST", _subtypeSymbol("integer"))
-		signal = Signal(("v", ), _attribute("ST", "base"))
+		signal =  Signal(("v", ), _attribute("ST", "base"))
 		_, warnings = self._resolve(subtype, signal)
 
 		self.assertEqual(1, len(warnings))
@@ -165,7 +165,7 @@ class TypeAttributes(Testcase):
 	def test_OtherAttribute(self) -> None:
 		"""``s'range`` doesn't denote a type."""
 		signal = _signal("s", "AT")
-		other = Signal(("s2", ), _attribute("s", "range"))
+		other =  Signal(("s2", ), _attribute("s", "range"))
 		_, warnings = self._resolve(signal, other)
 
 		self.assertEqual(1, len(warnings))
@@ -176,8 +176,8 @@ class InterfaceLists(Testcase):
 	"""A port can't be used in its own interface list, a generic can (C012, C025)."""
 
 	def test_Port(self) -> None:
-		first = PortSimpleSignalInterfaceItem(("i", ), Mode.In, _subtypeSymbol("bit"))
-		second = PortSimpleSignalInterfaceItem(("o", ), Mode.Out, _attribute("i", "subtype"))
+		first =    PortSimpleSignalInterfaceItem(("i", ), Mode.In, _subtypeSymbol("bit"))
+		second =   PortSimpleSignalInterfaceItem(("o", ), Mode.Out, _attribute("i", "subtype"))
 		warnings = _resolve(_design(Entity("e", portItems=[first, second])))
 
 		self.assertEqual(1, len(warnings))
@@ -187,7 +187,7 @@ class InterfaceLists(Testcase):
 		)
 
 	def test_Generic(self) -> None:
-		first = GenericConstantInterfaceItem(("G", ), Mode.Default, _subtypeSymbol("natural"))
+		first =  GenericConstantInterfaceItem(("G", ), Mode.Default, _subtypeSymbol("natural"))
 		second = GenericConstantInterfaceItem(("H", ), Mode.Default, _attribute("G", "subtype"))
 		design = _design(Entity("e", genericItems=[first, second]))
 
@@ -210,8 +210,8 @@ class Prefixes(Testcase):
 	def test_ObjectAlias(self) -> None:
 		"""``alias al : AT is s; signal sig1 : al'subtype; signal sig2 : al'element;``."""
 		signal = _signal("s", "AT")
-		alias = Alias("al", SimpleObjectOrFunctionCallSymbol(SimpleName("s")), _subtypeSymbol("AT"))
-		first = Signal(("sig1", ), _attribute("al", "subtype"))
+		alias =  Alias("al", SimpleObjectOrFunctionCallSymbol(SimpleName("s")), _subtypeSymbol("AT"))
+		first =  Signal(("sig1", ), _attribute("al", "subtype"))
 		second = Signal(("sig2", ), _attribute("al", "element"))
 
 		self.assertListEqual([], self._resolve(signal, alias, first, second))
@@ -222,16 +222,16 @@ class Prefixes(Testcase):
 		"""``signal sig1 : rec.f'subtype;``."""
 		record = RecordType("R", [RecordTypeElement(("f", ), _subtypeSymbol("AT"))])
 		signal = _signal("rec", "R")
-		other = Signal(("sig1", ), SimpleSubtypeSymbol(AttributeName("subtype", SelectedName("f", SimpleName("rec")))))
+		other =  Signal(("sig1", ), SimpleSubtypeSymbol(AttributeName("subtype", SelectedName("f", SimpleName("rec")))))
 
 		self.assertListEqual([], self._resolve(record, signal, other))
 		self.assertIs(self._array, other.Subtype.Reference)
 
 	def test_IndexedName(self) -> None:
 		"""``signal sig1 : m(0)'subtype;`` with ``m`` of type ``AT``."""
-		signal = _signal("m", "AT")
+		signal =  _signal("m", "AT")
 		indexed = ParenthesisName(SimpleName("m"), [IntegerLiteral(0)])
-		other = Signal(("sig1", ), SimpleSubtypeSymbol(AttributeName("subtype", indexed)))
+		other =   Signal(("sig1", ), SimpleSubtypeSymbol(AttributeName("subtype", indexed)))
 
 		self.assertListEqual([], self._resolve(signal, other))
 		self.assertIs(self._type, other.Subtype.Reference)

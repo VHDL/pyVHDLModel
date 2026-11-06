@@ -1910,9 +1910,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		from pyVHDLModel.Interface import InterfaceItemMixin, GenericInterfaceItemMixin
 
-		name = symbol._name
+		name =  symbol._name
 		parts = []
-		root = name
+		root =  name
 		while not isinstance(root, SimpleName):
 			parts.append(root)
 			root = root._prefix
@@ -1922,7 +1922,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		# An expanded name lib.pkg.item is looked up as a whole.
 		libraries = ("work", *designUnit._referencedLibraries)
 		if root._normalizedIdentifier in libraries and len(parts) >= 2 and isinstance(parts[1], SelectedName):
-			root = parts[1]
+			root =  parts[1]
 			parts = parts[2:]
 		declarations = self._LookupName(designUnit, namespace, place, symbol, root, "Prefix", UnresolvedTypeMarkWarning)
 		if len(declarations) == 0:
@@ -1932,12 +1932,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		if isinstance(declaration, Alias):
 			if declaration._subtype is not None:
 				declaration = declaration._subtype._reference
-				isObject = True
+				isObject =    True
 			elif isinstance(reference := declaration._name._reference, Obj):
 				declaration = reference._subtype._reference
-				isObject = True
+				isObject =    True
 			else:
-				isObject = False
+				isObject =    False
 				declaration = reference
 		elif isinstance(declaration, Obj):
 			if (
@@ -1953,7 +1953,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				return
 
 			declaration = declaration._subtype._reference
-			isObject = True
+			isObject =    True
 		elif isinstance(declaration, (BaseType, Package)):
 			isObject = False
 		else:
@@ -1992,7 +1992,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					return
 				elif isinstance(members[0], Obj):
 					declaration = members[0]._subtype._reference
-					isObject = True
+					isObject =    True
 				elif isinstance(members[0], BaseType):
 					declaration = members[0]
 				else:
@@ -2044,7 +2044,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					return
 
 				declaration = baseType._elementType._reference
-				isObject = False
+				isObject =    False
 			elif part._normalizedIdentifier == "base":
 				if index == len(parts) - 1:
 					WarningCollector.Raise(UnresolvedTypeMarkWarning(

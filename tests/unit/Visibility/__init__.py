@@ -49,7 +49,7 @@ from pyVHDLModel.Object     import Constant
 from pyVHDLModel.Subprogram import Function
 from pyVHDLModel.Symbol     import AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol, \
                                    PackageReferenceSymbol, PackageSymbol
-from pyVHDLModel.Type       import EnumeratedType, PhysicalType
+from pyVHDLModel.Type       import EnumeratedType, PhysicalType, PhysicalUnit
 
 from tests.unit             import _subtypeSymbol
 
@@ -130,4 +130,4 @@ def _packageSymbol(identifier: str) -> PackageSymbol:
 def _distance() -> PhysicalType:
 	"""A physical type with the units ``mm`` and ``cm``."""
 	rng = SimpleRange(IntegerLiteral(0), IntegerLiteral(1000), Direction.To)
-	return PhysicalType("distance", rng, "mm", [("cm", PhysicalIntegerLiteral(10, "mm"))])
+	return PhysicalType("distance", rng, PhysicalUnit("mm"), [PhysicalUnit("cm", PhysicalIntegerLiteral(10, "mm"))])

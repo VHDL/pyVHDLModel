@@ -665,48 +665,69 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 
 	def __init__(
 		self,
-		identifier: str,
-		rng: Range,
-		primaryUnit: str | PhysicalUnit,
-		units: Iterable[tuple[str, PhysicalIntegerLiteral] | PhysicalUnit],
-		documentation: Nullable[str] = None,
-		parent: Nullable[ModelEntity] = None
+		identifier:     str,
+		rng:            Range,
+		primaryUnit:    PhysicalUnit,
+		secondaryUnits: Iterable[PhysicalUnit],
+		documentation:  Nullable[str] = None,
+		parent:         Nullable[ModelEntity] = None
 	) -> None:
 		"""
 		Initializes a physical type definition.
 
-		A unit given as :class:`PhysicalUnit` keeps its documentation comment; the physical type becomes its parent.
+		The physical type becomes the parent of its units.
 
-		:param identifier:    The identifier of a model entity.
-		:param rng:           The range constraining this scalar type.
-		:param primaryUnit:   The name of the type's primary unit, or the primary unit.
-		:param units:         Iterable of the secondary units, each as (name, value) pair or as unit.
-		:param documentation: Optional, the documentation comment associated with this declaration.
-		                      Default: ``None``, no documentation.
-		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
-		:raises ValueError:   If parameter 'primaryUnit' is a unit with a value.
+		:param identifier:     The identifier of a model entity.
+		:param rng:            The range constraining this scalar type.
+		:param primaryUnit:    The type's primary unit, which has no value.
+		:param secondaryUnits: Iterable of the type's secondary units, in declaration order.
+		:param documentation:  Optional, the documentation comment associated with this declaration.
+		                       Default: ``None``, no documentation.
+		:param parent:         Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:raises ValueError:    If parameter 'primaryUnit' is None.
+		:raises TypeError:     If parameter 'primaryUnit' is not of type :class:`PhysicalUnit`.
+		:raises ValueError:    If parameter 'primaryUnit' has a value.
+		:raises ValueError:    If parameter 'secondaryUnits' is None.
+		:raises TypeError:     If parameter 'secondaryUnits' is not iterable.
+		:raises TypeError:     If an element of parameter 'secondaryUnits' is not of type :class:`PhysicalUnit`.
+		:raises ValueError:    If an element of parameter 'secondaryUnits' has no value.
 		"""
 		super().__init__(identifier, rng, documentation, parent)
 
-		if isinstance(primaryUnit, PhysicalUnit):
-			if primaryUnit._value is not None:
-				ex = ValueError("Parameter 'primaryUnit' is a unit with a value.")
-				ex.add_note(f"Got value '{primaryUnit._value}'.")
+		if primaryUnit is None:
+			raise ValueError("Parameter 'primaryUnit' is None.")
+		elif not isinstance(primaryUnit, PhysicalUnit):
+			ex = TypeError("Parameter 'primaryUnit' is not of type 'PhysicalUnit'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(primaryUnit)}'.")
+			raise ex
+		elif primaryUnit._value is not None:
+			ex = ValueError("Parameter 'primaryUnit' has a value.")
+			ex.add_note(f"Got value '{primaryUnit._value}'.")
+			raise ex
+
+		if secondaryUnits is None:
+			raise ValueError("Parameter 'secondaryUnits' is None.")
+		elif not isinstance(secondaryUnits, Iterable):
+			ex = TypeError("Parameter 'secondaryUnits' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(secondaryUnits)}'.")
+			raise ex
+
+		primaryUnit.Parent = self
+		self._primaryUnit =  primaryUnit
+
+		self._secondaryUnits = secondaryUnitList = []
+		for unit in secondaryUnits:
+			if not isinstance(unit, PhysicalUnit):
+				ex = TypeError("Element of parameter 'secondaryUnits' is not of type 'PhysicalUnit'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(unit)}'.")
+				raise ex
+			elif unit._value is None:
+				ex = ValueError(f"Element '{unit._identifier}' of parameter 'secondaryUnits' has no value.")
+				ex.add_note("Only the primary unit has no value.")
 				raise ex
 
-			primaryUnit._parent = self
-			self._primaryUnit =   primaryUnit
-		else:
-			self._primaryUnit = PhysicalUnit(primaryUnit, parent=self)
-
-		self._secondaryUnits = secondaryUnits = []
-		for unit in units:
-			if isinstance(unit, PhysicalUnit):
-				unit._parent = self
-				secondaryUnits.append(unit)
-			else:
-				unitIdentifier, value = unit
-				secondaryUnits.append(PhysicalUnit(unitIdentifier, value, parent=self))
+			unit.Parent = self
+			secondaryUnitList.append(unit)
 
 	@readonly
 	def PrimaryUnit(self) -> PhysicalUnit:

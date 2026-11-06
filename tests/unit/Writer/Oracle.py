@@ -102,8 +102,8 @@ from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol
                                         EntityInstantiationSymbol, ConfigurationInstantiationSymbol, \
                                         ConfigurationSymbol, VariableSymbol
 from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
-                                        ArrayType, RecordTypeElement, RecordType, AccessType, FileType, ProtectedType, \
-                                        ProtectedTypeBody
+                                        PhysicalUnit, ArrayType, RecordTypeElement, RecordType, AccessType, FileType, \
+                                        ProtectedType, ProtectedTypeBody
 
 from tests.unit.Writer           import _GHDL, _analyze, _object
 
@@ -475,9 +475,9 @@ class GHDLOracleDeclarations(Testcase):
 			EnumeratedType("logic", [EnumerationLiteral("'0'"), EnumerationLiteral("'1'"), EnumerationLiteral("'Z'")]),
 			IntegerType("nibble", to(0, 15)),
 			RealType("fraction", AscendingRangeExpression(FloatingPointLiteral(0.0), FloatingPointLiteral(1.0))),
-			PhysicalType("distance", to(0, 1000000), "um", [
-				("mm", PhysicalIntegerLiteral(1000, "um")),
-				("m",  PhysicalIntegerLiteral(1000, "mm"))
+			PhysicalType("distance", to(0, 1000000), PhysicalUnit("um"), [
+				PhysicalUnit("mm", PhysicalIntegerLiteral(1000, "um")),
+				PhysicalUnit("m",  PhysicalIntegerLiteral(1000, "mm"))
 			]),
 			Subtype("byte", byte),
 			Subtype("word", _integer("integer")),

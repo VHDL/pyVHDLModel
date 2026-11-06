@@ -33,7 +33,13 @@ Version 0.43.0 (2026)
      Whether a library's name is visible in a design unit: :meth:`DesignUnit.IsLibraryVisible()
      <pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible>`.
      A declarative region and the regions nested in it: :meth:`IterateDeclarationRegions()
-     <pyVHDLModel.Regions.DeclarationRegionMixin.IterateDeclarationRegions>`.
+     <pyVHDLModel.Regions.DeclarationRegionMixin.IterateDeclarationRegions>`; whether an item precedes another one in
+     it: :meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.Precedes`.
+   * Every model entity tells whether it's an overloadable declaration
+     (:data:`~pyVHDLModel.Base.ModelEntity.IsOverloadable`: subprograms, enumeration literals, aliases which may denote
+     one of them) and which declarations it implies
+     (:data:`~pyVHDLModel.Base.ModelEntity.ImplicitDeclarations`: the literals of an enumerated type, the units of a
+     physical type).
    * Enumeration literals and physical units of a region's types are declarations of the region
      (:data:`Namespace.ImplicitDeclarations <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`). An enumeration
      literal is indexed by :data:`EnumerationLiteral.NormalizedDesignator

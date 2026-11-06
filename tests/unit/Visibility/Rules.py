@@ -40,12 +40,11 @@ from pyVHDLModel.Declaration import Alias
 from pyVHDLModel.DesignUnit  import Architecture, Entity, Package
 from pyVHDLModel.Interface   import PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name        import SimpleName
-from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Symbol      import PossibleReference, SignalSymbol, SimpleSubtypeSymbol, Symbol
 from pyVHDLModel.Type        import AccessType, AnonymousType, RecordType, RecordTypeElement
 
 from tests.unit              import _entitySymbol, _signal, _subtypeSymbol, _variable
-from tests.unit.Visibility   import _constant, _design, _enumeration, _function, _use
+from tests.unit.Visibility   import _constant, _design, _distance, _enumeration, _function, _use
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -313,6 +312,38 @@ class Designators(Testcase):
 		self.assertDictEqual({}, architecture._namespace.ImplicitDeclarations)
 
 
+class DeclarationProperties(Testcase):
+	"""The properties a namespace asks a declaration: ``IsOverloadable``, ``ImplicitDeclarations``."""
+
+	def test_IsOverloadable(self) -> None:
+		"""Subprograms and enumeration literals are overloadable, other declarations aren't."""
+		self.assertTrue(_function("f", "integer").IsOverloadable)
+		self.assertTrue(_enumeration("T", "a").Literals[0].IsOverloadable)
+		self.assertFalse(_constant("K", "integer").IsOverloadable)
+		self.assertFalse(_enumeration("T", "a").IsOverloadable)
+
+	def test_ImplicitDeclarations_EnumeratedType(self) -> None:
+		enumeration = _enumeration("T", "Idle", "'a'")
+
+		self.assertTupleEqual(
+			(("idle", enumeration.Literals[0]), ("'a'", enumeration.Literals[1])),
+			enumeration.ImplicitDeclarations
+		)
+
+	def test_ImplicitDeclarations_PhysicalType(self) -> None:
+		"""The primary unit, then the secondary units."""
+		distance = _distance()
+
+		self.assertTupleEqual(
+			(("mm", distance.PrimaryUnit), ("cm", distance.SecondaryUnits[0])),
+			distance.ImplicitDeclarations
+		)
+
+	def test_ImplicitDeclarations_None(self) -> None:
+		"""A declaration, which isn't an enumerated or physical type, implies nothing."""
+		self.assertTupleEqual((), _constant("K", "integer").ImplicitDeclarations)
+
+
 class SubprogramAliases(Testcase):
 	"""An alias of a subprogram is overloadable, like the subprogram (IEEE ``std_logic_1164``: ``To_SLV``, ``bread``)."""
 
@@ -353,7 +384,7 @@ class SubprogramAliases(Testcase):
 
 	def test_ObjectAlias(self) -> None:
 		"""An alias of a signal isn't overloadable."""
-		self.assertFalse(Namespace.IsOverloadable(Alias("x", SignalSymbol(SimpleName("s")))))
+		self.assertFalse(Alias("x", SignalSymbol(SimpleName("s"))).IsOverloadable)
 
 
 class StaleImports(Testcase):

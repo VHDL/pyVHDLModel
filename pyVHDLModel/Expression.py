@@ -212,6 +212,16 @@ class EnumerationLiteral(Literal, DocumentedEntityMixin):
 		"""
 		return self._value.lower()
 
+	@readonly
+	def IsOverloadable(self) -> bool:
+		"""
+		Check if this enumeration literal is overloadable: always, it may share its designator with other enumeration
+		literals and subprograms.
+
+		:returns: ``True``.
+		"""
+		return True
+
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this enumeration literal.

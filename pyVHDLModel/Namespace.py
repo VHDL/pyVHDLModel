@@ -390,9 +390,9 @@ class Namespace(Generic[K, O]):
 		more than one namespace - an entity and its architecture form one, as do a package and its body -
 		so enclosing namespaces are searched too, but only while they share this one's region.
 
-		Overloadable declarations (:meth:`IsOverloadable`) are exempt: several subprograms may share a name as long as their
-		signatures differ. Signatures are not compared yet, so two subprograms sharing a name are always
-		accepted (see the overload-resolution finding).
+		Overloadable declarations (:attr:`~pyVHDLModel.Base.ModelEntity.IsOverloadable`) are exempt: several subprograms
+		may share a name as long as their signatures differ. Signatures are not compared yet, so two subprograms sharing a
+		name are always accepted.
 
 		An item imported into a namespace (e.g. by a use clause) is no declaration of that namespace's region: it's kept
 		apart (:meth:`AddImport`), so it never clashes with a declaration, and a lookup finds the declaration first.
@@ -413,7 +413,7 @@ class Namespace(Generic[K, O]):
 			existing = namespace._elements.get(normalizedIdentifier)
 			# `existing is element` means the region is being re-indexed, not that the name is declared twice.
 			isReindex =  existing is element
-			isOverload = overloadable and self.IsOverloadable(existing)
+			isOverload = overloadable and existing is not None and existing.IsOverloadable
 			if existing is not None and not isReindex and not isOverload:
 				WarningCollector.Raise(DuplicateDeclarationWarning(
 					f"Identifier '{normalizedIdentifier}' is already used for a declaration in '{namespace._name}'.",
@@ -428,7 +428,7 @@ class Namespace(Generic[K, O]):
 
 		self._elements[normalizedIdentifier] = element
 
-		for implicitIdentifier, declaration in self._GetImplicitDeclarationsOf(element):
+		for implicitIdentifier, declaration in element.ImplicitDeclarations:
 			declarations = self._implicitDeclarations.setdefault(implicitIdentifier, [])
 			if not any(existing is declaration for existing in declarations):
 				declarations.append(declaration)
@@ -461,56 +461,11 @@ class Namespace(Generic[K, O]):
 
 		del self._elements[normalizedIdentifier]
 
-		for implicitIdentifier, declaration in self._GetImplicitDeclarationsOf(element):
+		for implicitIdentifier, declaration in element.ImplicitDeclarations:
 			declarations = self._implicitDeclarations[implicitIdentifier]
 			declarations.remove(declaration)
 			if len(declarations) == 0:
 				del self._implicitDeclarations[implicitIdentifier]
-
-	@staticmethod
-	def _GetImplicitDeclarationsOf(element: O) -> tuple[tuple[str, ModelEntity], ...]:
-		"""
-		Return the declarations a type declaration implies: an enumerated type's literals, a physical type's units.
-
-		:param element: A declared element.
-		:returns:       Tuple of (normalized designator, declaration) pairs, empty if the element is no such type.
-		"""
-		from pyVHDLModel.Type import EnumeratedType, PhysicalType
-
-		if isinstance(element, EnumeratedType):
-			return tuple((literal.NormalizedDesignator, literal) for literal in element._literals)
-		elif isinstance(element, PhysicalType):
-			units = (element._primaryUnit, *element._secondaryUnits)
-			return tuple((unit._normalizedIdentifier, unit) for unit in units)
-
-		return ()
-
-	@staticmethod
-	def IsOverloadable(element: Nullable[ModelEntity]) -> bool:
-		"""
-		Check if a declaration is overloadable: it may share its designator with other overloadable declarations.
-
-		Subprograms and enumeration literals are overloadable, as is an alias without a subtype indication, whose name may
-		denote a subprogram or an enumeration literal (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`, else the symbol's
-		possible references), e.g. ``alias To_SLV is To_StdLogicVector [std_ulogic_vector return std_logic_vector];``.
-
-		:param element: A declaration, or ``None``.
-		:returns:       ``True``, if the declaration is overloadable.
-		"""
-		from pyVHDLModel.Declaration import Alias
-		from pyVHDLModel.Expression  import EnumerationLiteral
-		from pyVHDLModel.Subprogram  import Function, Procedure
-
-		if isinstance(element, (Function, Procedure, EnumerationLiteral)):
-			return True
-		elif isinstance(element, Alias) and element._subtype is None:
-			if (reference := element._name._reference) is not None:
-				return isinstance(reference, (Function, Procedure, EnumerationLiteral))
-
-			overloadables = PossibleReference.SubProgram | PossibleReference.EnumLiteral
-			return (element._name._possibleReferences & overloadables) != PossibleReference.Unknown
-
-		return False
 
 	def AddImport(self, normalizedIdentifier: K, element: O, useClause: Nullable[_UseClause]) -> None:
 		"""
@@ -633,8 +588,8 @@ class Namespace(Generic[K, O]):
 		"""
 		Return the declarations of an identifier in this namespace, each with the item deciding its declaration order.
 
-		An overloadable declaration (:meth:`IsOverloadable`) is expanded to all overloads of its declarative region. An
-		enumeration literal or a physical unit is ordered by its type.
+		An overloadable declaration (:attr:`~pyVHDLModel.Base.ModelEntity.IsOverloadable`) is expanded to all overloads of
+		its declarative region. An enumeration literal or a physical unit is ordered by its type.
 
 		:param normalizedIdentifier: The normalized (lower case) identifier or designator.
 		:returns:                    List of (declaration, item in declaration order) pairs.
@@ -644,10 +599,10 @@ class Namespace(Generic[K, O]):
 		declarations = []
 		if (element := self._elements.get(normalizedIdentifier)) is not None:
 			region = element._parent
-			if self.IsOverloadable(element) and isinstance(region, DeclarationRegionMixin):
+			if element.IsOverloadable and isinstance(region, DeclarationRegionMixin):
 				for declaration in region._Declarations():
 					if (
-						self.IsOverloadable(declaration)
+						declaration.IsOverloadable
 						and normalizedIdentifier in normalizedIdentifiersOf(declaration)
 					):
 						declarations.append((declaration, declaration))
@@ -679,32 +634,6 @@ class Namespace(Generic[K, O]):
 
 		return None
 
-	@staticmethod
-	def _Precedes(item: Nullable[ModelEntity], anchor: ModelEntity, inclusive: bool) -> bool:
-		"""
-		Check if an item precedes an anchor in the anchor's declarative region.
-
-		An item, which isn't a declaration of the region (e.g. a use clause of the context clause), precedes every anchor.
-
-		:param item:      The item in declaration order, or ``None`` for the implicit use clause.
-		:param anchor:    The item of the region containing the place of a lookup.
-		:param inclusive: ``True``, if the anchor precedes itself, i.e. the place is nested inside the anchor.
-		:returns:         ``True``, if the item is visible at the anchor.
-		"""
-		itemIndex =   None
-		anchorIndex = None
-		for index, declaration in enumerate(anchor._parent._Declarations()):
-			if declaration is item:
-				itemIndex = index
-
-			if declaration is anchor:
-				anchorIndex = index
-
-		if itemIndex is None or anchorIndex is None:
-			return True
-
-		return itemIndex < anchorIndex or (inclusive and itemIndex == anchorIndex)
-
 	def Lookup(self, normalizedIdentifier: K, place: Nullable[ModelEntity] = None) -> LookupResult:
 		"""
 		Look up the declarations of an identifier directly visible at a place inside this namespace's region.
@@ -717,8 +646,8 @@ class Namespace(Generic[K, O]):
 		  ``None``, every declaration is visible, as from the statements of a region. A full type is visible from its
 		  incomplete type declaration on.
 		* A declaration hides the declarations of the same identifier in enclosing regions. Overloadable declarations
-		  (:meth:`IsOverloadable`: subprograms, enumeration literals, subprogram aliases) of all regions coexist, until a
-		  region declares the identifier as something not overloadable.
+		  (:attr:`~pyVHDLModel.Base.ModelEntity.IsOverloadable`: subprograms, enumeration literals, subprogram aliases) of
+		  all regions coexist, until a region declares the identifier as something not overloadable.
 		* A declaration of the identifier in the region or in an enclosing region hides every imported declaration of the
 		  same identifier, unless both are overloadable.
 		* Imported declarations of all use clauses visible at the place are potentially visible: overloadable ones coexist;
@@ -748,17 +677,17 @@ class Namespace(Generic[K, O]):
 			inclusive = anchor is not place
 
 			for declaration, item in namespace._GetDeclarationsOf(normalizedIdentifier):
-				if anchor is not None and not self._Precedes(item, anchor, inclusive):
+				if anchor is not None and not anchor._parent.Precedes(item, anchor, inclusive):
 					# A full type is visible from its incomplete type declaration on.
 					if not isinstance(declaration, FullType) or not any(
 						isinstance(incompleteType, AnonymousType)
 						and incompleteType._normalizedIdentifier == normalizedIdentifier
-						and self._Precedes(incompleteType, anchor, inclusive)
+						and anchor._parent.Precedes(incompleteType, anchor, inclusive)
 						for incompleteType in anchor._parent._Declarations()
 					):
 						continue
 
-				if self.IsOverloadable(declaration):
+				if declaration.IsOverloadable:
 					declarations.append(declaration)
 				else:
 					# Not overloadable: it hides every declaration further out and every import, unless an inner overloadable
@@ -777,7 +706,7 @@ class Namespace(Generic[K, O]):
 				useClause = imported._useClause
 				if useClause is not None and useClause._parent is None:
 					continue
-				elif anchor is None or self._Precedes(useClause, anchor, inclusive):
+				elif anchor is None or anchor._parent.Precedes(useClause, anchor, inclusive):
 					imports.append(imported)
 
 			namespace = namespace._parentNamespace
@@ -792,8 +721,8 @@ class Namespace(Generic[K, O]):
 
 		if len(declarations) > 0:
 			# Declared overloadable declarations hide imported declarations, which aren't overloadable.
-			visibleImports = tuple(imported for imported in distinctImports if self.IsOverloadable(imported._element))
-		elif len(distinctImports) == 1 or all(self.IsOverloadable(imported._element) for imported in distinctImports):
+			visibleImports = tuple(imported for imported in distinctImports if imported._element.IsOverloadable)
+		elif len(distinctImports) == 1 or all(imported._element.IsOverloadable for imported in distinctImports):
 			visibleImports = tuple(distinctImports)
 		else:
 			return LookupResult(normalizedIdentifier, (), (), tuple(distinctImports), tuple(searchedNamespaces))

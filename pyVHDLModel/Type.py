@@ -423,6 +423,15 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		"""
 		return self._literals
 
+	@readonly
+	def ImplicitDeclarations(self) -> tuple[tuple[str, EnumerationLiteral], ...]:
+		"""
+		Read-only property to return the enumeration literals this type declaration implies.
+
+		:returns: Tuple of (normalized designator, enumeration literal) pairs, in declaration order.
+		"""
+		return tuple((literal.NormalizedDesignator, literal) for literal in self._literals)
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this enumerated type and its literals with a visitor.
@@ -718,6 +727,15 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 		:returns: List of secondary units, in declaration order.
 		"""
 		return self._secondaryUnits
+
+	@readonly
+	def ImplicitDeclarations(self) -> tuple[tuple[str, PhysicalUnit], ...]:
+		"""
+		Read-only property to return the units this type declaration implies: the primary unit, then the secondary units.
+
+		:returns: Tuple of (normalized identifier, unit) pairs, in declaration order.
+		"""
+		return tuple((unit._normalizedIdentifier, unit) for unit in (self._primaryUnit, *self._secondaryUnits))
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

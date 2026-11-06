@@ -339,6 +339,30 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 
 		return parent
 
+	@readonly
+	def IsOverloadable(self) -> bool:
+		"""
+		Check if this model entity is an overloadable declaration: it may share its designator with other overloadable
+		declarations.
+
+		Subprograms, enumeration literals and aliases, which may denote one of them, are overloadable; they override this
+		property.
+
+		:returns: ``True``, if this model entity is an overloadable declaration.
+		"""
+		return False
+
+	@readonly
+	def ImplicitDeclarations(self) -> tuple[tuple[str, ModelEntity], ...]:
+		"""
+		Read-only property to return the declarations this declaration implies.
+
+		An enumerated type implies its enumeration literals, a physical type its units; they override this property.
+
+		:returns: Tuple of (normalized designator, declaration) pairs, in declaration order.
+		"""
+		return ()
+
 	@notimplemented("Model element has no walk for a visitor.")
 	def Visit(self, visitor: Visitor) -> None:
 		"""

@@ -1929,6 +1929,31 @@ class DeclarationRegionMixin(
 
 		yield from self._IterateStatementRegions()
 
+	def Precedes(self, item: Nullable[ModelEntity], anchor: ModelEntity, inclusive: bool) -> bool:
+		"""
+		Check if an item precedes an anchor in this declarative region.
+
+		An item, which isn't a declaration of this region (e.g. a use clause of the context clause), precedes every anchor.
+
+		:param item:      The item in declaration order, or ``None`` for the implicit use clause.
+		:param anchor:    A declaration of this region, e.g. the one containing the place of a lookup.
+		:param inclusive: ``True``, if the anchor precedes itself, i.e. the place is nested inside the anchor.
+		:returns:         ``True``, if the item precedes the anchor.
+		"""
+		itemIndex =   None
+		anchorIndex = None
+		for index, declaration in enumerate(self._Declarations()):
+			if declaration is item:
+				itemIndex = index
+
+			if declaration is anchor:
+				anchorIndex = index
+
+		if itemIndex is None or anchorIndex is None:
+			return True
+
+		return itemIndex < anchorIndex or (inclusive and itemIndex == anchorIndex)
+
 	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""
 		Add an element's identifiers to this region's namespace.
@@ -1986,7 +2011,7 @@ class DeclarationRegionMixin(
 		from pyVHDLModel.DesignUnit  import Package
 
 		if isinstance(item, (Alias, Attribute, Package)):
-			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=Namespace.IsOverloadable(item))
+			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=item.IsOverloadable)
 
 	def _UnindexOtherDeclaredItem(self, item: ModelEntity) -> None:
 		"""
@@ -2132,7 +2157,7 @@ class DeclarationRegionMixin(
 				self._namespace.RemoveElement(normalizedIdentifier, item)
 			else:
 				self._namespace.AddElement(normalizedIdentifier, remaining[-1], overloadable=True)
-		elif not Namespace.IsOverloadable(entry):
+		elif entry is None or not entry.IsOverloadable:
 			# raises NotInNamespaceError, naming the reason
 			self._namespace.RemoveElement(normalizedIdentifier, item)
 
@@ -2163,7 +2188,7 @@ class DeclarationRegionMixin(
 		from pyVHDLModel.Type       import FullType, AnonymousType, ProtectedType, ProtectedTypeBody
 
 		return (
-			(Namespace.IsOverloadable(item) and Namespace.IsOverloadable(existing))
+			(item.IsOverloadable and existing.IsOverloadable)
 			or (isinstance(item, ProtectedTypeBody) and isinstance(existing, ProtectedType))
 			or (isinstance(item, ProtectedType) and isinstance(existing, ProtectedTypeBody))
 			or (isinstance(item, FullType) and isinstance(existing, AnonymousType))

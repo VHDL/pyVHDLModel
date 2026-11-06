@@ -428,7 +428,7 @@ class Namespace(Generic[K, O]):
 
 		self._elements[normalizedIdentifier] = element
 
-		for implicitIdentifier, declaration in element.ImplicitDeclarations:
+		for implicitIdentifier, declaration in element.IterateImplicitDeclarations():
 			declarations = self._implicitDeclarations.setdefault(implicitIdentifier, [])
 			if not any(existing is declaration for existing in declarations):
 				declarations.append(declaration)
@@ -461,7 +461,7 @@ class Namespace(Generic[K, O]):
 
 		del self._elements[normalizedIdentifier]
 
-		for implicitIdentifier, declaration in element.ImplicitDeclarations:
+		for implicitIdentifier, declaration in element.IterateImplicitDeclarations():
 			declarations = self._implicitDeclarations[implicitIdentifier]
 			declarations.remove(declaration)
 			if len(declarations) == 0:

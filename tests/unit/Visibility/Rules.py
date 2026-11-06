@@ -313,7 +313,7 @@ class Designators(Testcase):
 
 
 class DeclarationProperties(Testcase):
-	"""The properties a namespace asks a declaration: ``IsOverloadable``, ``ImplicitDeclarations``."""
+	"""What a namespace asks a declaration: ``IsOverloadable``, ``IterateImplicitDeclarations()``."""
 
 	def test_IsOverloadable(self) -> None:
 		"""Subprograms and enumeration literals are overloadable, other declarations aren't."""
@@ -322,26 +322,26 @@ class DeclarationProperties(Testcase):
 		self.assertFalse(_constant("K", "integer").IsOverloadable)
 		self.assertFalse(_enumeration("T", "a").IsOverloadable)
 
-	def test_ImplicitDeclarations_EnumeratedType(self) -> None:
+	def test_IterateImplicitDeclarations_EnumeratedType(self) -> None:
 		enumeration = _enumeration("T", "Idle", "'a'")
 
 		self.assertTupleEqual(
 			(("idle", enumeration.Literals[0]), ("'a'", enumeration.Literals[1])),
-			enumeration.ImplicitDeclarations
+			tuple(enumeration.IterateImplicitDeclarations())
 		)
 
-	def test_ImplicitDeclarations_PhysicalType(self) -> None:
+	def test_IterateImplicitDeclarations_PhysicalType(self) -> None:
 		"""The primary unit, then the secondary units."""
 		distance = _distance()
 
 		self.assertTupleEqual(
 			(("mm", distance.PrimaryUnit), ("cm", distance.SecondaryUnits[0])),
-			distance.ImplicitDeclarations
+			tuple(distance.IterateImplicitDeclarations())
 		)
 
-	def test_ImplicitDeclarations_None(self) -> None:
+	def test_IterateImplicitDeclarations_None(self) -> None:
 		"""A declaration, which isn't an enumerated or physical type, implies nothing."""
-		self.assertTupleEqual((), _constant("K", "integer").ImplicitDeclarations)
+		self.assertTupleEqual((), tuple(_constant("K", "integer").IterateImplicitDeclarations()))
 
 
 class SubprogramAliases(Testcase):

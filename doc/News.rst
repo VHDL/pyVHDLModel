@@ -38,8 +38,8 @@ Version 0.43.0 (2026)
    * Every model entity tells whether it's an overloadable declaration
      (:data:`~pyVHDLModel.Base.ModelEntity.IsOverloadable`: subprograms, enumeration literals, aliases which may denote
      one of them) and which declarations it implies
-     (:data:`~pyVHDLModel.Base.ModelEntity.ImplicitDeclarations`: the literals of an enumerated type, the units of a
-     physical type).
+     (:meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations`: the literals of an enumerated type, the units
+     of a physical type).
    * Enumeration literals and physical units of a region's types are declarations of the region
      (:data:`Namespace.ImplicitDeclarations <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`). An enumeration
      literal is indexed by :data:`EnumerationLiteral.NormalizedDesignator

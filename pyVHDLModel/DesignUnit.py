@@ -917,7 +917,7 @@ class Package(
 				for normalizedIdentifier in normalizedIdentifiersOf(item):
 					yield normalizedIdentifier, item
 
-				yield from item.ImplicitDeclarations
+				yield from item.IterateImplicitDeclarations()
 
 	def IterateMemberDeclarations(self, memberIdentifier: str) -> Generator[tuple[str, ModelEntity], None, None]:
 		"""
@@ -946,7 +946,7 @@ class Package(
 						baseType = None
 
 				if baseType is not None:
-					yield from baseType.ImplicitDeclarations
+					yield from baseType.IterateImplicitDeclarations()
 
 	def _IndexOtherDeclaredItem(self, item) -> None:
 		if isinstance(item, DeferredConstant):

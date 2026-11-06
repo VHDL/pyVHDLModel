@@ -37,7 +37,8 @@ Base-classes for the VHDL language model.
 from __future__            import annotations
 
 from enum                  import unique, Enum
-from typing                import TYPE_CHECKING, ClassVar, Type, Iterable, Optional as Nullable, Union, cast, Self
+from typing                import TYPE_CHECKING, ClassVar, Generator, Type, Iterable, Optional as Nullable, Union, \
+                           cast, Self
 
 from pyTooling.Common      import StringEnum, getFullyQualifiedName
 from pyTooling.Decorators  import export, notimplemented, readonly
@@ -352,16 +353,15 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		"""
 		return False
 
-	@readonly
-	def ImplicitDeclarations(self) -> tuple[tuple[str, ModelEntity], ...]:
+	def IterateImplicitDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
 		"""
-		Read-only property to return the declarations this declaration implies.
+		Iterate the declarations this declaration implies.
 
-		An enumerated type implies its enumeration literals, a physical type its units; they override this property.
+		An enumerated type implies its enumeration literals, a physical type its units; they override this method.
 
-		:returns: Tuple of (normalized designator, declaration) pairs, in declaration order.
+		:returns: A generator to iterate (normalized designator, declaration) pairs, in declaration order: none.
 		"""
-		return ()
+		yield from ()
 
 	@notimplemented("Model element has no walk for a visitor.")
 	def Visit(self, visitor: Visitor) -> None:

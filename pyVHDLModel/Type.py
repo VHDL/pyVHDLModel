@@ -36,7 +36,8 @@ Types.
 """
 from __future__             import annotations
 
-from typing                 import TYPE_CHECKING, ClassVar, Union, Iterator, Iterable, Optional as Nullable, Self
+from typing                 import TYPE_CHECKING, ClassVar, Generator, Union, Iterator, Iterable, \
+                             Optional as Nullable, Self
 
 from pyTooling.Common       import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators   import export, readonly
@@ -423,14 +424,14 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		"""
 		return self._literals
 
-	@readonly
-	def ImplicitDeclarations(self) -> tuple[tuple[str, EnumerationLiteral], ...]:
+	def IterateImplicitDeclarations(self) -> Generator[tuple[str, EnumerationLiteral], None, None]:
 		"""
-		Read-only property to return the enumeration literals this type declaration implies.
+		Iterate the enumeration literals this type declaration implies.
 
-		:returns: Tuple of (normalized designator, enumeration literal) pairs, in declaration order.
+		:returns: A generator to iterate (normalized designator, enumeration literal) pairs, in declaration order.
 		"""
-		return tuple((literal.NormalizedDesignator, literal) for literal in self._literals)
+		for literal in self._literals:
+			yield literal.NormalizedDesignator, literal
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -749,14 +750,15 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 		"""
 		return self._secondaryUnits
 
-	@readonly
-	def ImplicitDeclarations(self) -> tuple[tuple[str, PhysicalUnit], ...]:
+	def IterateImplicitDeclarations(self) -> Generator[tuple[str, PhysicalUnit], None, None]:
 		"""
-		Read-only property to return the units this type declaration implies: the primary unit, then the secondary units.
+		Iterate the units this type declaration implies: the primary unit, then the secondary units.
 
-		:returns: Tuple of (normalized identifier, unit) pairs, in declaration order.
+		:returns: A generator to iterate (normalized identifier, unit) pairs, in declaration order.
 		"""
-		return tuple((unit._normalizedIdentifier, unit) for unit in (self._primaryUnit, *self._secondaryUnits))
+		yield self._primaryUnit._normalizedIdentifier, self._primaryUnit
+		for unit in self._secondaryUnits:
+			yield unit._normalizedIdentifier, unit
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

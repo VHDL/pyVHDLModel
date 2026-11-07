@@ -41,10 +41,11 @@ from pyTooling.Graph           import Graph
 from pyTooling.Testing         import Testcase
 
 from pyVHDLModel               import Design, Document
-from pyVHDLModel.Base          import Mode
+from pyVHDLModel.Base          import Mode, normalizedIdentifiersOf
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ProcessStatement
 from pyVHDLModel.DesignUnit    import Architecture, Component, Context, Entity, Package, PackageBody, \
                                       ContextReference, LibraryClause, UseClause
+from pyVHDLModel.Expression    import EnumerationLiteral
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericConstantInterfaceItem
 from pyVHDLModel.Name          import AllName, SelectedName, SimpleName
@@ -134,7 +135,10 @@ def _name(element: Any) -> Any:
 	elif isinstance(element, (Entity, Package, PackageBody, Context)):
 		return f"{element.__class__.__name__} {element._parent._normalizedIdentifier}.{element._normalizedIdentifier}"
 
-	return f"{element.__class__.__name__} {element._normalizedIdentifier}"
+	elif isinstance(element, EnumerationLiteral):
+		return f"{element.__class__.__name__} {element.NormalizedDesignator}"
+
+	return f"{element.__class__.__name__} {normalizedIdentifiersOf(element)[0]}"
 
 
 def _graph(graph: Graph) -> dict[str, Any]:
@@ -185,8 +189,10 @@ def _state(design: Design) -> dict[str, Any]:
 		}
 		if (namespace := getattr(designUnit, "_namespace", None)) is not None:
 			designUnitState["namespace"] = {
-				"elements":      sorted(namespace.Elements()),
-				"imports":       {key: _name(element) for key, element in namespace.Imports().items()},
+				"elements":      sorted(namespace.Elements),
+				"imports":       {
+					key: [_name(imported.Element) for imported in imports] for key, imports in namespace.Imports.items()
+				},
 				"parent":        None if namespace.ParentNamespace is None else namespace.ParentNamespace.Name,
 				"subNamespaces": sorted(str(subNamespace.Name) for subNamespace in namespace.SubNamespaces)
 			}
@@ -390,8 +396,8 @@ class ResetAnalysis(Testcase):
 
 		design.ResetAnalysis()
 
-		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements())
-		self.assertDictEqual({}, top._namespace.Imports())
+		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements)
+		self.assertDictEqual({}, top._namespace.Imports)
 
 	def test_ResetAnalysis_NotAnalyzed(self) -> None:
 		design = _design(_packages(), _leaf(), _top())
@@ -410,4 +416,4 @@ class EntityNamespace(Testcase):
 		design.Analyze()
 
 		entity = design.GetEntity("lib", "leaf")
-		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements())
+		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements)

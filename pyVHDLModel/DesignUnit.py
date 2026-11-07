@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from __future__                import annotations
 
-from typing                    import TYPE_CHECKING, ClassVar, Union, Iterable, Optional as Nullable
+from typing                    import TYPE_CHECKING, ClassVar, Generator, Iterable, Union, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators      import export, readonly
@@ -53,6 +53,7 @@ from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGene
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, GenericGroup, PortGroup
 from pyVHDLModel.Object        import DeferredConstant
+from pyVHDLModel.Type          import AnonymousType, Subtype
 from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration
 
@@ -128,6 +129,15 @@ class LibraryClause(Reference):
 		:returns: A list of library reference symbols.
 		"""
 		return self._symbols
+
+	def __contains__(self, libraryIdentifier: str) -> bool:
+		"""
+		Check if this library clause names a library.
+
+		:param libraryIdentifier: The normalized identifier of the library.
+		:returns:                 ``True``, if one of the clause's library names is the library.
+		"""
+		return any(symbol._name._normalizedIdentifier == libraryIdentifier for symbol in self._symbols)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -237,7 +247,8 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	     * :class:`Package body <pyVHDLModel.DesignUnit.PackageBody>`
 	"""
 
-	_CONTINUES_PARENT_REGION: ClassVar[bool] = False       #: ``True`` if it continues its parent's declarative region.
+	_CONTINUES_PARENT_REGION: ClassVar[bool] =            False            #: ``True`` if it continues its parent's declarative region.
+	_IMPLICIT_LIBRARIES:      ClassVar[tuple[str, ...]] = ("work", "std")  #: Library names visible without a library clause.
 
 	_document: Document                                    #: The VHDL library, the design unit was analyzed into.
 
@@ -583,6 +594,47 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		"""
 		return self._hierarchyVertex
 
+	def IsLibraryVisible(self, libraryIdentifier: str) -> bool:
+		"""
+		Check if the logical name of a library is visible in this design unit.
+
+		The name ``work`` is implicitly visible, the name ``std`` too, except in a context declaration. Every other name
+		needs a library clause, also the real name of the working library. The library clause is searched in this design
+		unit's context clause, in the context clause of its primary unit, and in the contexts these reference, also in
+		nested ones. The design unit must be in a library of a design.
+
+		:param libraryIdentifier: The normalized identifier of the library.
+		:returns:                 ``True``, if the library's name is visible.
+		"""
+		if libraryIdentifier in self._IMPLICIT_LIBRARIES:
+			return True
+
+		libraries =   self._parent._parent._libraries
+		designUnits = list(self._ContextClauseUnits())
+		for unit in designUnits:
+			for libraryReference in unit._libraryReferences:
+				if libraryIdentifier in libraryReference:
+					return True
+
+			for contextReference in unit._contextReferences:
+				for symbol in contextReference._symbols:
+					prefixIdentifier = symbol._name._prefix._normalizedIdentifier
+					library =          unit._parent if prefixIdentifier == "work" else libraries.get(prefixIdentifier)
+					if library is not None:
+						context = library._contexts.get(symbol._name._normalizedIdentifier)
+						if context is not None and context not in designUnits:
+							designUnits.append(context)
+
+		return False
+
+	def _ContextClauseUnits(self) -> tuple[DesignUnit, ...]:
+		"""
+		Return the design units whose context clause applies to this design unit.
+
+		:returns: Tuple of this design unit.
+		"""
+		return (self, )
+
 	@abstractmethod
 	def __str__(self) -> str:
 		"""
@@ -661,6 +713,7 @@ class Context(PrimaryUnit):
 
 	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Context,)  #: Reserved words after ``end``.
 	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                     #: The reserved words after ``end`` are optional.
+	_IMPLICIT_LIBRARIES:    ClassVar[tuple[str, ...]] =          ("work", )               #: No ``std``: a context declaration has no implicit library clause (13.2).
 
 	def __init__(self, identifier: str, references: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -856,6 +909,53 @@ class Package(
 		"""
 		return self._components
 
+	def IterateDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+		"""
+		Iterate the declarations of this package a use clause can make potentially visible.
+
+		A declared item contributes its normalized identifiers; an enumerated type its enumeration literals too, a physical
+		type its units. An incomplete type is completed by its full type declaration, so it's skipped.
+
+		:returns: A generator to iterate (normalized designator, declaration) pairs, in declaration order.
+		"""
+		for item in self._declaredItems:
+			if isinstance(item, AnonymousType):
+				continue
+			elif isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
+				for normalizedIdentifier in normalizedIdentifiersOf(item):
+					yield normalizedIdentifier, item
+
+				yield from item.IterateImplicitDeclarations()
+
+	def IterateMemberDeclarations(self, memberIdentifier: str) -> Generator[tuple[str, ModelEntity], None, None]:
+		"""
+		Iterate the declarations of this package a use clause naming one package member makes potentially visible.
+
+		These are the declarations of the package with the member's identifier, e.g. all overloads of a subprogram. A type
+		brings its enumeration literals or physical units along (IEEE Std 1076-2008, 12.4), a subtype those of its base
+		type: the known base type, else the type its type marks lead to, followed by simple names in the package.
+
+		:param memberIdentifier: The normalized (lower case) identifier of the package member.
+		:returns:                A generator to iterate (normalized designator, declaration) pairs, in declaration order.
+		"""
+		for normalizedIdentifier, declaration in self.IterateDeclarations():
+			if normalizedIdentifier == memberIdentifier:
+				yield normalizedIdentifier, declaration
+
+				# A subtype's base type: known for a predefined subtype, else follow the type marks by simple names.
+				baseType = declaration
+				while isinstance(baseType, Subtype):
+					if baseType._baseType is not None:
+						baseType = baseType._baseType
+					elif (typeMark := baseType._type._name)._prefix is None:
+						result =   baseType._parent._namespace.Lookup(typeMark._normalizedIdentifier, baseType)
+						baseType = result._declarations[0] if len(result._declarations) == 1 else None
+					else:
+						baseType = None
+
+				if baseType is not None:
+					yield from baseType.IterateImplicitDeclarations()
+
 	def _IndexOtherDeclaredItem(self, item) -> None:
 		if isinstance(item, DeferredConstant):
 			for normalizedIdentifier in item.NormalizedIdentifiers:
@@ -1034,6 +1134,15 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		"""
 		package = self._package.Package
 		return () if package is None else (package, )
+
+	def _ContextClauseUnits(self) -> tuple[DesignUnit, ...]:
+		"""
+		Return the design units whose context clause applies to this package body.
+
+		:returns: Tuple of this package body and its package, if linked.
+		"""
+		package = self._package.Package
+		return (self, ) if package is None else (self, package)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1357,6 +1466,15 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		"""
 		entity = self._entity.Entity
 		return () if entity is None else (entity, )
+
+	def _ContextClauseUnits(self) -> tuple[DesignUnit, ...]:
+		"""
+		Return the design units whose context clause applies to this architecture.
+
+		:returns: Tuple of this architecture and its entity, if linked.
+		"""
+		entity = self._entity.Entity
+		return (self, ) if entity is None else (self, entity)
 
 
 @export

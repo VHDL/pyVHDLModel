@@ -38,8 +38,8 @@ from pyVHDLModel.Expression import IntegerLiteral, CharacterEnumerationLiteral, 
 from pyVHDLModel.Object     import Variable
 from pyVHDLModel.Subprogram import Procedure
 from pyVHDLModel.Type       import Subtype, RangedScalarType, EnumeratedType, IntegerType, RealType, PhysicalType, \
-                                   ArrayType, RecordTypeElement, RecordType, ProtectedType, ProtectedTypeBody, \
-                                   AccessType, FileType
+                                   PhysicalUnit, ArrayType, RecordTypeElement, RecordType, ProtectedType, \
+                                   ProtectedTypeBody, AccessType, FileType
 
 from tests.unit             import _Element, _subtypeSymbol
 
@@ -87,7 +87,7 @@ class ParentAndDocumentationWiringAcrossAllLeafTypes(Testcase):
 			("EnumeratedType", lambda: EnumeratedType("t", [], "doc", parent)),
 			("IntegerType", lambda: IntegerType("t", _range(), "doc", parent)),
 			("RealType", lambda: RealType("t", _range(), "doc", parent)),
-			("PhysicalType", lambda: PhysicalType("t", _range(), "ps", [], "doc", parent)),
+			("PhysicalType", lambda: PhysicalType("t", _range(), PhysicalUnit("ps"), [], "doc", parent)),
 			("ArrayType", lambda: ArrayType("t", [], _subtypeSymbol("natural"), "doc", parent)),
 			("RecordType", lambda: RecordType("t", None, "doc", parent)),
 			("ProtectedType", lambda: ProtectedType("t", None, "doc", parent)),
@@ -176,24 +176,97 @@ class RealTypes(Testcase):
 		self.assertEqual("fraction is range 0 to 1", str(realType))
 
 
+class PhysicalUnits(Testcase):
+	def test_Documentation_Default(self) -> None:
+		self.assertIsNone(PhysicalUnit("ps").Documentation)
+
+	def test_Documentation(self) -> None:
+		self.assertEqual("doc", PhysicalUnit("ps", documentation="doc").Documentation)
+
+
 class PhysicalTypes(Testcase):
 	def test_Construction(self) -> None:
-		rng = _range(0, 1000)
-		femtoSeconds = PhysicalIntegerLiteral(1000, "fs")
-		physicalType = PhysicalType("my_time", rng, "ps", [("fs", femtoSeconds)])
+		rng =          _range(0, 1000)
+		primaryUnit =  PhysicalUnit("fs")
+		picoSeconds =  PhysicalUnit("ps", PhysicalIntegerLiteral(1000, "fs"))
+		physicalType = PhysicalType("my_time", rng, primaryUnit, [picoSeconds])
 
 		self.assertIs(rng, physicalType.Range)
-		self.assertEqual("ps", physicalType.PrimaryUnit)
-		self.assertEqual(1, len(physicalType.SecondaryUnits))
-		self.assertEqual("fs", physicalType.SecondaryUnits[0][0])
-		self.assertIs(femtoSeconds, physicalType.SecondaryUnits[0][1])
-		self.assertIs(physicalType, femtoSeconds.Parent)
-		self.assertEqual("my_time is range 0 to 1000 units ps; fs = 1000 fs;", str(physicalType))
+		self.assertIs(primaryUnit, physicalType.PrimaryUnit)
+		self.assertListEqual([picoSeconds], physicalType.SecondaryUnits)
+		self.assertEqual("my_time is range 0 to 1000 units fs; ps = 1000 fs;", str(physicalType))
 
 	def test_NoSecondaryUnits(self) -> None:
-		physicalType = PhysicalType("my_time", _range(0, 1000), "ps", [])
+		physicalType = PhysicalType("my_time", _range(0, 1000), PhysicalUnit("ps"), [])
 
-		self.assertEqual(0, len(physicalType.SecondaryUnits))
+		self.assertListEqual([], physicalType.SecondaryUnits)
+
+	def test_Parents(self) -> None:
+		"""The physical type is the parent of its units; a secondary unit is the parent of its value."""
+		femtoSeconds = PhysicalIntegerLiteral(1000, "fs")
+		primaryUnit =  PhysicalUnit("fs")
+		picoSeconds =  PhysicalUnit("ps", femtoSeconds)
+		physicalType = PhysicalType("my_time", _range(0, 1000), primaryUnit, [picoSeconds])
+
+		self.assertIs(physicalType, primaryUnit.Parent)
+		self.assertIs(physicalType, picoSeconds.Parent)
+		self.assertIs(picoSeconds, femtoSeconds.Parent)
+
+	def test_Documentation(self) -> None:
+		"""The units keep their documentation comment."""
+		primaryUnit =  PhysicalUnit("fs", documentation="--! Femtoseconds.")
+		picoSeconds =  PhysicalUnit("ps", PhysicalIntegerLiteral(1000, "fs"), documentation="--! Picoseconds.")
+		physicalType = PhysicalType("my_time", _range(0, 1000), primaryUnit, [picoSeconds])
+
+		self.assertEqual("--! Femtoseconds.", physicalType.PrimaryUnit.Documentation)
+		self.assertEqual("--! Picoseconds.", physicalType.SecondaryUnits[0].Documentation)
+
+	def test_PrimaryUnit_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			PhysicalType("my_time", _range(0, 1000), None, [])
+
+		self.assertEqual("Parameter 'primaryUnit' is None.", str(context.exception))
+
+	def test_PrimaryUnit_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			PhysicalType("my_time", _range(0, 1000), "fs", [])
+
+		self.assertEqual("Parameter 'primaryUnit' is not of type 'PhysicalUnit'.", str(context.exception))
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_PrimaryUnit_WithValue(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			PhysicalType("my_time", _range(0, 1000), PhysicalUnit("ps", PhysicalIntegerLiteral(1000, "fs")), [])
+
+		self.assertEqual("Parameter 'primaryUnit' has a value.", str(context.exception))
+		self.assertListEqual(["Got value '1000 fs'."], context.exception.__notes__)
+
+	def test_SecondaryUnits_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			PhysicalType("my_time", _range(0, 1000), PhysicalUnit("fs"), None)
+
+		self.assertEqual("Parameter 'secondaryUnits' is None.", str(context.exception))
+
+	def test_SecondaryUnits_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			PhysicalType("my_time", _range(0, 1000), PhysicalUnit("fs"), 1)
+
+		self.assertEqual("Parameter 'secondaryUnits' is not iterable.", str(context.exception))
+		self.assertListEqual(["Got type 'int'."], context.exception.__notes__)
+
+	def test_SecondaryUnits_ElementType(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			PhysicalType("my_time", _range(0, 1000), PhysicalUnit("fs"), [("ps", PhysicalIntegerLiteral(1000, "fs"))])
+
+		self.assertEqual("Element of parameter 'secondaryUnits' is not of type 'PhysicalUnit'.", str(context.exception))
+		self.assertListEqual(["Got type 'tuple'."], context.exception.__notes__)
+
+	def test_SecondaryUnits_ElementWithoutValue(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			PhysicalType("my_time", _range(0, 1000), PhysicalUnit("fs"), [PhysicalUnit("ps")])
+
+		self.assertEqual("Element 'ps' of parameter 'secondaryUnits' has no value.", str(context.exception))
+		self.assertListEqual(["Only the primary unit has no value."], context.exception.__notes__)
 
 
 class ArrayTypes(Testcase):

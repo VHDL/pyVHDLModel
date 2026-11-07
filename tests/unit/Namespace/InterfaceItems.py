@@ -41,7 +41,7 @@ from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Concurrent import ConcurrentBlockStatement, ProcessStatement
-from pyVHDLModel.DesignUnit import Architecture, Entity, Package
+from pyVHDLModel.DesignUnit import Architecture, Component, Entity, Package
 from pyVHDLModel.Interface  import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                    ParameterVariableInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name       import SimpleName
@@ -143,6 +143,57 @@ class EntityInterfaceItems(Testcase):
 		process.Parent = architecture
 
 		self.assertIs(port, process.Namespace.FindObject(SignalSymbol(SimpleName("clk"))))
+
+
+class ComponentInterfaceItems(Testcase):
+	"""A component declaration is a declarative region (IEEE Std 1076-2008, 12.1) with generics and ports only."""
+
+	def test_GenericsAndPortsShareOneNamespace(self) -> None:
+		generic =   _generic("width")
+		port =      _port("clk", "rst")
+		component = Component("comp", genericItems=[generic], portItems=[port])
+		component.IndexDeclaredItems()
+
+		self.assertDictEqual({"width": generic, "clk": port, "rst": port}, component._namespace.Elements)
+
+	def test_NamespaceNestsInTheEnclosingRegion(self) -> None:
+		"""The component's namespace is nested in the namespace of the architecture declaring it, not sharing its region."""
+		component =    Component("comp")
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[component])
+
+		self.assertIs(architecture._namespace, component._namespace.ParentNamespace)
+		self.assertFalse(component._namespace.SharesRegionWithParent)
+
+	def test_GenericIsVisibleToThePorts(self) -> None:
+		generic =   _generic("width")
+		port =      _port("data")
+		component = Component("comp", genericItems=[generic], portItems=[port])
+		component.IndexDeclaredItems()
+
+		result = component._namespace.Lookup("width", port)
+
+		self.assertTupleEqual((generic, ), result.Declarations)
+
+	def test_LaterGenericIsNotVisible(self) -> None:
+		"""A generic is visible after its declaration only."""
+		first =     _generic("first")
+		second =    _generic("second")
+		component = Component("comp", genericItems=[first, second])
+		component.IndexDeclaredItems()
+
+		self.assertTupleEqual((), component._namespace.Lookup("second", first).Declarations)
+		self.assertTupleEqual((first, ), component._namespace.Lookup("first", second).Declarations)
+
+	def test_EnclosingDeclarationIsVisible(self) -> None:
+		"""A lookup inside the component continues in the enclosing region."""
+		signal =       Signal(("s", ), _subtypeSymbol("natural"))
+		port =         _port("data")
+		component =    Component("comp", portItems=[port])
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[signal, component])
+		architecture.IndexDeclaredItems()
+		component.IndexDeclaredItems()
+
+		self.assertTupleEqual((signal, ), component._namespace.Lookup("s", port).Declarations)
 
 
 class PackageGenerics(Testcase):

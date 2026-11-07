@@ -41,7 +41,8 @@ from pyVHDLModel.Base        import Mode
 from pyVHDLModel.Concurrent  import ProcessStatement
 from pyVHDLModel.Declaration import Alias, Attribute
 from pyVHDLModel.DesignUnit  import Architecture, Component, Entity, LibraryClause, Package, PackageBody
-from pyVHDLModel.Exception   import IncompleteTypeWarning, UnresolvedNameWarning, UnresolvedTypeMarkWarning
+from pyVHDLModel.Exception   import DuplicateDeclarationWarning, IncompleteTypeWarning, UnresolvedNameWarning, \
+                                    UnresolvedTypeMarkWarning
 from pyVHDLModel.Interface   import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                     ParameterConstantInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name        import SelectedName, SimpleName
@@ -277,16 +278,15 @@ class DeclarationTypeMarks(Testcase):
 		self.assertListEqual([], list(typeAlias.IterateTypeMarks(self._region)))
 
 	def test_Component(self) -> None:
-		"""Generics and ports, each as the place of its type mark; a generic type has none."""
+		"""None: generics and ports are declarations of the component's own region, each iterating its type marks."""
 		genericType = GenericTypeInterfaceItem("GT")
 		generic =     GenericConstantInterfaceItem(("G", ), Mode.Default, _subtypeSymbol("T"))
 		port =        PortSimpleSignalInterfaceItem(("i", ), Mode.In, _subtypeSymbol("GT"))
 		component =   Component("comp", genericItems=[genericType, generic], portItems=[port])
 
-		self.assertListEqual(
-			[(self._region, generic, generic.Subtype), (self._region, port, port.Subtype)],
-			list(component.IterateTypeMarks(self._region))
-		)
+		self.assertListEqual([], list(component.IterateTypeMarks(self._region)))
+		self.assertListEqual([(component, generic, generic.Subtype)], list(generic.IterateTypeMarks(component)))
+		self.assertListEqual([(component, port, port.Subtype)], list(port.IterateTypeMarks(component)))
 
 	def test_Function(self) -> None:
 		"""The return type is looked up in the function's region, at its first declared item."""
@@ -610,6 +610,32 @@ class ReviewFindings(Testcase):
 		self.assertListEqual([], _resolve(_design(Entity("e"), Entity("c"), architecture, analyze=False)))
 
 		self.assertIs(genericType, port.Subtype.Reference)
+
+	def test_Component_Duplicate(self) -> None:
+		"""``component c generic (g : integer); port (g : in bit);``: the analysis indexes the component (GHDL rejects)."""
+		generic =   GenericConstantInterfaceItem(("g", ), Mode.Default, _subtypeSymbol("integer"))
+		port =      PortSimpleSignalInterfaceItem(("g", ), Mode.In, _subtypeSymbol("bit"))
+		component = Component("c", [generic], [port])
+		warnings =  _resolve(_design(Package("p", declaredItems=[component]), Entity("c"), analyze=False))
+
+		self.assertEqual(1, len(warnings))
+		self.assertIsInstance(warnings[0], DuplicateDeclarationWarning)
+		self.assertEqual("Identifier 'g' is already used for a declaration in 'c'.", str(warnings[0]))
+		self.assertTrue(component._areDeclaredItemsIndexed)
+		self.assertEqual("integer", generic.Subtype.Reference.Identifier)
+		self.assertEqual("bit", port.Subtype.Reference.Identifier)
+
+	def test_Component_GenericHidesOuterType(self) -> None:
+		"""``type T ...; component c generic (type T); port (p : in T);``: the generic type hides ``T`` (GHDL accepts)."""
+		outerType =    _enumeration("T", "a", "b")
+		genericType =  GenericTypeInterfaceItem("T")
+		port =         PortSimpleSignalInterfaceItem(("p", ), Mode.In, _subtypeSymbol("T"))
+		component =    Component("c", [genericType], [port])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[outerType, component])
+		self.assertListEqual([], _resolve(_design(Entity("e"), Entity("c"), architecture, analyze=False)))
+
+		self.assertIs(genericType, port.Subtype.Reference)
+		self.assertIs(architecture._namespace, component._namespace.ParentNamespace)
 
 	def test_IncompleteType_ObjectBeforeFullType(self) -> None:
 		"""``type node; signal s : node; type node is ...;``: only an access type may use an incomplete type."""

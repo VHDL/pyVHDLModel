@@ -591,24 +591,24 @@ class ArchitectureExistsInLibraryError(VHDLModelException):
 	"""
 	This exception is raised, when the architecture already existing in the library.
 
-	Message: :pycode:`f"Architecture '{architecture._identifier}' for entity '{entity._identifier}' already exists in library '{library._identifier}'."`
+	Message: :pycode:`f"Architecture '{architecture._identifier}' for entity '{architecture._entity._name._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library:      Library       #: The library involved in this error.
-	_entity:       Entity        #: The entity involved in this error.
 	_architecture: Architecture  #: The architecture involved in this error.
 
-	def __init__(self, architecture: Architecture, entity: Entity, library: Library) -> None:
+	def __init__(self, architecture: Architecture, library: Library) -> None:
 		"""
-		Initializes the exception message based on given architecture, entity and library objects.
+		Initializes the exception message based on given architecture and library objects.
 
 		:param architecture: The architecture that already exists in the library.
-		:param entity:       The entity the architecture refers to, which already exists in the library.
 		:param library:      The library that already contains the architecture.
 		"""
-		super().__init__(f"Architecture '{architecture._identifier}' for entity '{entity._identifier}' already exists in library '{library._identifier}'.")
-		self._library = library
-		self._entity = entity
+		super().__init__(
+			f"Architecture '{architecture._identifier}' for entity '{architecture._entity._name._identifier}' already exists "
+			f"in library '{library._identifier}'."
+		)
+		self._library =      library
 		self._architecture = architecture
 
 	@readonly
@@ -619,15 +619,6 @@ class ArchitectureExistsInLibraryError(VHDLModelException):
 		:returns: The library.
 		"""
 		return self._library
-
-	@readonly
-	def Entity(self) -> Entity:
-		"""
-		Read-only property to access the entity (:attr:`_entity`).
-
-		:returns: The entity.
-		"""
-		return self._entity
 
 	@readonly
 	def Architecture(self) -> Architecture:

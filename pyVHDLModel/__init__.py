@@ -1169,7 +1169,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			architecturesPerEntity = library._architectures.get(entityIdentifier, {})
 			for architectureIdentifier, architecture in architectures.items():
 				if architectureIdentifier in architecturesPerEntity:
-					raise ArchitectureExistsInLibraryError(architecture, library._entities[entityIdentifier], library)
+					raise ArchitectureExistsInLibraryError(architecture, library)
 
 		for packageIdentifier, package in document._packages.items():
 			if packageIdentifier in library._packages:
@@ -3966,7 +3966,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 			if isinstance(designUnit, Entity):
 				raise EntityExistsInLibraryError(designUnit, library)
 			elif isinstance(designUnit, Architecture):
-				raise ArchitectureExistsInLibraryError(designUnit, library._entities[entityIdentifier], library)
+				raise ArchitectureExistsInLibraryError(designUnit, library)
 			elif isinstance(designUnit, Package):
 				raise PackageExistsInLibraryError(designUnit, library)
 			elif isinstance(designUnit, PackageBody):

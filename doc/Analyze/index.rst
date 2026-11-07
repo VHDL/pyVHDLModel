@@ -129,21 +129,30 @@ Type Attributes
 
 A type mark can be an attribute name denoting a type: ``x'subtype``, ``A'element``, or ``T'base`` as the prefix of
 another attribute. Such a name is a chain of names: the attribute name's prefix is a selected name, whose prefix is a
-simple name. Each name resolves its prefix first (:meth:`Name.Denote <pyVHDLModel.Name.Name.Denote>`) and applies
-itself to the declaration the prefix references. Only the type mark's symbol keeps a reference; the references of the
-parts aren't stored.
+simple name. Each name resolves its prefix first (:meth:`Name.Denote <pyVHDLModel.Name.Name.Denote>`, a method called
+on the name instance) and applies itself to the declaration the prefix references. Only the type mark's symbol keeps a
+reference; the references of the parts aren't stored.
 
 .. code-block:: vhdl
 
-   type T  is (a, b);
-   type AT is array (natural range <>) of T;
-   type R  is record
-     f : AT;
-   end record;
-   signal rec : R;
-   signal s2  : rec.f'subtype;
+   entity e is
+   end entity;
 
-The same declarations as a pyVHDLModel instance, analyzed in a :class:`~pyTooling.Warning.WarningCollector`:
+   architecture rtl of e is
+     type T  is (a, b);
+     type AT is array (natural range <>) of T;
+     type R  is record
+       f : AT;
+     end record;
+     signal rec : R;
+     signal s2  : rec.f'subtype;
+   begin
+   end architecture;
+
+The same as pyVHDLModel instances. The walrus operator names every instance the call hierarchy below refers to; the type
+mark of ``s2`` is the symbol ``typeMark`` with the name chain ``n1`` (``rec.f'subtype``, an
+:class:`~pyVHDLModel.Name.AttributeName`) |rarr| its prefix ``n2`` (``rec.f``, a
+:class:`~pyVHDLModel.Name.SelectedName`) |rarr| its prefix ``n3`` (``rec``, a :class:`~pyVHDLModel.Name.SimpleName`):
 
 .. code-block:: python
 
@@ -159,15 +168,23 @@ The same declarations as a pyVHDLModel instance, analyzed in a :class:`~pyToolin
    from pyVHDLModel.Symbol     import EntitySymbol, SimpleSubtypeSymbol
    from pyVHDLModel.Type       import ArrayType, EnumeratedType, RecordType, RecordTypeElement
 
-   typeT =    EnumeratedType("T", [EnumerationLiteral("a"), EnumerationLiteral("b")])
-   typeAT =   ArrayType("AT", [SimpleSubtypeSymbol(SimpleName("natural"))], SimpleSubtypeSymbol(SimpleName("T")))
-   typeR =    RecordType("R", [RecordTypeElement(["f"], SimpleSubtypeSymbol(SimpleName("AT")))])
-   rec =      Signal(["rec"], SimpleSubtypeSymbol(SimpleName("R")))
-   typeMark = SimpleSubtypeSymbol(AttributeName("subtype", SelectedName("f", SimpleName("rec"))))
-   s2 =       Signal(["s2"], typeMark)
+   entity = Entity("e")
 
-   entity =       Entity("e")
-   architecture = Architecture("rtl", EntitySymbol(SimpleName("e")), declaredItems=[typeT, typeAT, typeR, rec, s2])
+   architecture = Architecture(
+     "rtl",
+     EntitySymbol(SimpleName("e")),
+     declaredItems=[
+       (typeT :=     EnumeratedType("T", [EnumerationLiteral("a"), EnumerationLiteral("b")])),
+       (typeAT :=    ArrayType(
+         "AT", [SimpleSubtypeSymbol(SimpleName("natural"))], SimpleSubtypeSymbol(SimpleName("T"))
+       )),
+       (typeR :=     RecordType("R", [(elementF := RecordTypeElement(["f"], SimpleSubtypeSymbol(SimpleName("AT"))))])),
+       (signalRec := Signal(["rec"], SimpleSubtypeSymbol(SimpleName("R")))),
+       (signalS2 :=  Signal(["s2"], (typeMark := SimpleSubtypeSymbol(
+         (n1 := AttributeName("subtype", (n2 := SelectedName("f", (n3 := SimpleName("rec"))))))
+       ))))
+     ]
+   )
 
    design =   Design("design")
    design.LoadStdLibrary()
@@ -183,22 +200,35 @@ The same declarations as a pyVHDLModel instance, analyzed in a :class:`~pyToolin
    assert typeMark.Reference is typeAT
 
 :meth:`~pyVHDLModel.Design.Analyze` calls :meth:`~pyVHDLModel.Design.AnalyzeObjects`, which calls
-:meth:`~pyVHDLModel.Design.ResolveTypeMarks`. The architecture's declarative region resolves the type mark of ``s2``
-(``region`` is the architecture, ``place`` the signal ``s2``):
+:meth:`~pyVHDLModel.Design.ResolveTypeMarks`. It iterates the design units and their declarative regions; for ``s2``,
+both the design unit and the region are the instance ``architecture`` (``rtl``: an architecture is a declarative region
+itself). The calls, with the instance each method is called on and its arguments:
 
-1. ``region.ResolveTypeMark(designUnit, s2, typeMark)``: the type mark's name is an attribute name, so it calls
-   ``typeMark.Name.Denote(region, designUnit, s2, typeMark)`` on the attribute name ``rec.f'subtype``.
-2. The attribute name calls ``Denote`` on its prefix, the selected name ``rec.f``.
-3. The selected name calls ``Denote`` on its prefix, the simple name ``rec``. The simple name is looked up at the place
-   (:meth:`region.LookupName(designUnit, s2, typeMark, name, ...)
-   <pyVHDLModel.Regions.DeclarationRegionMixin.LookupName>`); the found declaration, the signal ``rec``, returns itself
-   (:meth:`rec.DenoteBy(...) <pyVHDLModel.Base.ModelEntity.DenoteBy>`): **signal** ``rec``.
-4. Back in the selected name: ``rec`` is an object, its subtype ``R`` is a record type, so the name returns the record
-   element ``f`` (:attr:`R.ElementsByIdentifier["f"] <pyVHDLModel.Type.RecordType.ElementsByIdentifier>`):
-   **record element** ``f``.
-5. Back in the attribute name: ``'subtype`` (:attr:`AttributeName.PredefinedAttribute
-   <pyVHDLModel.Name.AttributeName.PredefinedAttribute>`) of an object returns the object's subtype: **type** ``AT``.
-6. The region sets the type mark's reference: ``typeMark.Reference`` is ``typeAT``.
+.. code-block:: text
+
+   signalS2.ResolveReferences(designUnit=architecture, region=architecture)
+     architecture.ResolveTypeMark(designUnit=architecture, place=signalS2, symbol=typeMark)
+       # typeMark.Name is n1, an AttributeName
+       n1.Denote(region=architecture, designUnit=architecture, place=signalS2, symbol=typeMark)
+         # first resolve the prefix: n1.Prefix is n2
+         n2.Denote(region=architecture, designUnit=architecture, place=signalS2, symbol=typeMark)
+           # first resolve the prefix: n2.Prefix is n3
+           n3.Denote(region=architecture, designUnit=architecture, place=signalS2, symbol=typeMark)
+             # 'rec' is no library name: look it up at the place
+             architecture.LookupName(designUnit=architecture, place=signalS2, symbol=typeMark, name=n3,
+                                     warningType=UnresolvedTypeMarkWarning)
+               -> (signalRec, )
+             signalRec.DenoteBy(name=n3, region=architecture, place=signalS2, symbol=typeMark)
+               -> signalRec                       # an object: returns itself
+             -> signalRec
+           # n2 applies '.f' to signalRec: an Obj, signalRec.Subtype.Reference is typeR (a RecordType)
+           # typeR.ElementsByIdentifier["f"]
+           -> elementF
+         # n1 applies 'subtype (n1.PredefinedAttribute is PredefinedAttribute.Subtype) to elementF, an object:
+         # elementF.Subtype.Reference
+         -> typeAT
+       # architecture.ResolveTypeMark sets typeMark's reference
+   typeMark.Reference is typeAT
 
 A part, which can't be resolved, is reported where it fails as an
 :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning` and the type mark stays unresolved, e.g. ``Prefix 'rec' of type

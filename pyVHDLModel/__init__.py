@@ -378,11 +378,11 @@ class IEEEFlavor(Flag):
 	* ``WithVITAL`` - IEEE Std. 1076.4
 
 	"""
-	Unknown = 0         #: Unknown IEEE flavor
-	IEEE = 1            #: IEEE Std. 1076 compliant list of IEEE packages.
-	Synopsys = 2        #: Additional packages created by Synopsys are visible within the IEEE library.
-	MentorGraphics = 4  #: Additional packages created by Mentor Graphics are visible within the IEEE library.
-	WithVITAL = 32      #: Additionally load IEEE Std 1076.4 VITAL packages. (VITAL = VHDL Initiative Towards ASIC Libraries)
+	Unknown =        0   #: Unknown IEEE flavor
+	IEEE =           1   #: IEEE Std. 1076 compliant list of IEEE packages.
+	Synopsys =       2   #: Additional packages created by Synopsys are visible within the IEEE library.
+	MentorGraphics = 4   #: Additional packages created by Mentor Graphics are visible within the IEEE library.
+	WithVITAL =      32  #: Additionally load IEEE Std 1076.4 VITAL packages. (VITAL = VHDL Initiative Towards ASIC Libraries)
 
 
 @export
@@ -422,19 +422,19 @@ class DesignUnitKind(Flag):
 	A ``DesignUnitKind`` is an enumeration and represents the kind of design unit (``Entity``, ``Architecture``, ...).
 
 	"""
-	Context = 1                                                                  #: Context
-	Package = 2                                                                  #: Package
-	PackageBody = 4                                                              #: Package Body
-	Entity = 8                                                                   #: Entity
-	Architecture = 16                                                            #: Architecture
-	Configuration = 32                                                           #: Configuration
+	Context =           1                                                              #: Context
+	Package =           2                                                              #: Package
+	PackageBody =       4                                                              #: Package Body
+	Entity =            8                                                              #: Entity
+	Architecture =      16                                                             #: Architecture
+	Configuration =     32                                                             #: Configuration
 
-	Primary = Context | Configuration | Entity | Package                         #: List of primary design units.
-	Secondary = PackageBody | Architecture                                       #: List of secondary design units.
-	WithContext = Configuration | Package | Entity | PackageBody | Architecture  #: List of design units with a context.
-	WithDeclaredItems = Package | Entity | PackageBody | Architecture            #: List of design units having a declaration region.
+	Primary =           Context | Configuration | Entity | Package                     #: List of primary design units.
+	Secondary =         PackageBody | Architecture                                     #: List of secondary design units.
+	WithContext =       Configuration | Package | Entity | PackageBody | Architecture  #: List of design units with a context.
+	WithDeclaredItems = Package | Entity | PackageBody | Architecture                  #: List of design units having a declaration region.
 
-	All = Primary | Secondary                                                    #: List of all design units.
+	All =               Primary | Secondary                                            #: List of all design units.
 
 
 @export
@@ -443,16 +443,16 @@ class DependencyGraphVertexKind(Flag):
 	"""
 	A ``DependencyGraphVertexKind`` is an enumeration and represents the kind of vertex in the dependency graph.
 	"""
-	Document = 1            #: A document (VHDL source file).
-	Library = 2             #: A VHDL library.
+	Document =      1    #: A document (VHDL source file).
+	Library =       2    #: A VHDL library.
 
-	Context = 4             #: A context design unit.
-	Package = 8             #: A package design unit.
-	PackageBody = 16        #: A package body design unit.
-	Entity = 32             #: A entity design unit.
-	Architecture = 64       #: A architecture design unit.
-	Component = 128         #: A VHDL component.
-	Configuration = 256     #: A configuration design unit.
+	Context =       4    #: A context design unit.
+	Package =       8    #: A package design unit.
+	PackageBody =   16   #: A package body design unit.
+	Entity =        32   #: A entity design unit.
+	Architecture =  64   #: A architecture design unit.
+	Component =     128  #: A VHDL component.
+	Configuration = 256  #: A configuration design unit.
 
 
 @export
@@ -461,20 +461,20 @@ class DependencyGraphEdgeKind(Flag):
 	"""
 	A ``DependencyGraphEdgeKind`` is an enumeration and represents the kind of edge in the dependency graph.
 	"""
-	Document =       1
-	Library =        2
-	Context =        4
-	Package =        8
-	Entity =         16
+	Document =                   1
+	Library =                    2
+	Context =                    4
+	Package =                    8
+	Entity =                     16
 	# Architecture = auto()
-	Configuration =  32
-	Component =      64
+	Configuration =              32
+	Component =                  64
 
-	DeclaredIn =     128
-	Order =          256
-	Reference =      512
-	Implementation = 1024
-	Instantiation =  2048
+	DeclaredIn =                 128
+	Order =                      256
+	Reference =                  512
+	Implementation =             1024
+	Instantiation =              2048
 
 	SourceFile =                 Document | DeclaredIn
 	CompileOrder =               Document | Order
@@ -517,8 +517,8 @@ class ObjectGraphEdgeKind(Flag):
 	"""
 	A ``ObjectGraphEdgeKind`` is an enumeration and represents the kind of edge in the object graph.
 	"""
-	BaseType = 1
-	Subtype =  2
+	BaseType =              1
+	Subtype =               2
 
 	ReferenceInExpression = 4
 

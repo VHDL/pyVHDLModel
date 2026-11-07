@@ -48,7 +48,7 @@ from pyTooling.Warning        import Warning, CriticalWarning
 from pyVHDLModel.Symbol       import Symbol
 
 if TYPE_CHECKING:  # pragma: no cover
-	from pyVHDLModel               import Document, Library
+	from pyVHDLModel               import Document, IEEEFlavor, Library
 	from pyVHDLModel.Base          import ModelElementUnion, ModelEntity
 	from pyVHDLModel.Concurrent    import ComponentInstantiation, EntityInstantiation
 	from pyVHDLModel.DesignUnit    import Component as _Component, Context as _Context, DesignUnit as _DesignUnit, \
@@ -2635,6 +2635,86 @@ class UnknownSecondaryUnitKindError(VHDLModelException, UnknownKindError):
 		super().__init__(f"Secondary unit '{secondaryUnit._identifier}' is neither an architecture nor a package body.")
 
 		self._element = secondaryUnit
+
+
+@export
+class IEEEFlavorError(Exception):
+	"""
+	The exception is raised when the ``ieee`` library can't provide a requested flavor.
+
+	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
+	``class UnknownIEEEFlavorError(VHDLModelException, IEEEFlavorError)``. It has no initializer of its own; the derived
+	exception sets the fields.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.UnknownIEEEFlavorError`
+	      |rarr| Unknown flavor requested.
+	   :exc:`~pyVHDLModel.Exception.IEEEFlavorChangeError`
+	      |rarr| Flavor of a library with a non-IEEE flavor changed.
+	"""
+
+	_flavor: IEEEFlavor  #: The requested flavor.
+
+	@readonly
+	def Flavor(self) -> IEEEFlavor:
+		"""
+		Read-only property to access the requested flavor (:attr:`_flavor`).
+
+		:returns: The requested flavor.
+		"""
+		return self._flavor
+
+
+@export
+class UnknownIEEEFlavorError(VHDLModelException, IEEEFlavorError):
+	"""
+	This exception is raised, when the ``ieee`` library is requested with an unknown flavor.
+
+	Message: :pycode:`f"Unknown IEEE library flavor '{flavor}'."`
+	"""
+
+	def __init__(self, flavor: IEEEFlavor) -> None:
+		"""
+		Initializes the exception message based on the given flavor.
+
+		:param flavor: The requested flavor.
+		"""
+		super().__init__(f"Unknown IEEE library flavor '{flavor}'.")
+
+		self._flavor = flavor
+
+
+@export
+class IEEEFlavorChangeError(VHDLModelException, IEEEFlavorError):
+	"""
+	This exception is raised, when the flavor of an ``ieee`` library, which provides a non-IEEE flavor, is changed.
+
+	Message: :pycode:`f"IEEE library flavor is '{currentFlavor}' and can't be changed to '{flavor}'."`
+	"""
+
+	_currentFlavor: IEEEFlavor  #: The flavor the library provides.
+
+	def __init__(self, currentFlavor: IEEEFlavor, flavor: IEEEFlavor) -> None:
+		"""
+		Initializes the exception message based on the current and the requested flavor.
+
+		:param currentFlavor: The flavor the library provides.
+		:param flavor:        The requested flavor.
+		"""
+		super().__init__(f"IEEE library flavor is '{currentFlavor}' and can't be changed to '{flavor}'.")
+
+		self._flavor =        flavor
+		self._currentFlavor = currentFlavor
+
+	@readonly
+	def CurrentFlavor(self) -> IEEEFlavor:
+		"""
+		Read-only property to access the flavor the library provides (:attr:`_currentFlavor`).
+
+		:returns: The flavor the library provides.
+		"""
+		return self._currentFlavor
 
 
 @export

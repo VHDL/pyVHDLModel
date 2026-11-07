@@ -36,7 +36,7 @@ from typing                 import Optional as Nullable
 from pyTooling.Decorators   import export, readonly
 
 from pyVHDLModel            import IEEEFlavor
-from pyVHDLModel.Exception  import VHDLModelException
+from pyVHDLModel.Exception  import UnknownIEEEFlavorError, IEEEFlavorChangeError
 from pyVHDLModel.Expression import CharacterEnumerationLiteral
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Predefined import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
@@ -106,9 +106,9 @@ class Ieee(PredefinedLibrary):
 		"""
 		Initializes the ``ieee`` library.
 
-		:param flavor:               Optional, the flavor of the ``ieee`` library this instance provides.
-		                             Default: ``None``, the IEEE flavor.
-		:raises VHDLModelException: If the given IEEE library flavor is unknown.
+		:param flavor:                  Optional, the flavor of the ``ieee`` library this instance provides.
+		                                Default: ``None``, the IEEE flavor.
+		:raises UnknownIEEEFlavorError: If the given IEEE library flavor is unknown.
 		"""
 		super().__init__(PACKAGES)
 
@@ -122,7 +122,7 @@ class Ieee(PredefinedLibrary):
 		elif IEEEFlavor.MentorGraphics in flavor:
 			self.LoadMentorGraphicsPackages()
 		else:
-			raise VHDLModelException(f"Unknown IEEE library flavor '{flavor}'.")
+			raise UnknownIEEEFlavorError(flavor)
 
 		if IEEEFlavor.WithVITAL in flavor:
 			self.LoadVITALPackages()
@@ -138,14 +138,14 @@ class Ieee(PredefinedLibrary):
 
 	def LoadSynopsysPackages(self) -> None:
 		if IEEEFlavor.IEEE not in self._flavor:
-			raise VHDLModelException(f"IEEE library flavor is '{self._flavor}' and can't be changed to '{IEEEFlavor.Synopsys}'.")
+			raise IEEEFlavorChangeError(self._flavor, IEEEFlavor.Synopsys)
 
 		self._flavor = (self._flavor & ~IEEEFlavor.IEEE) | IEEEFlavor.Synopsys
 		self.AddPackages(SYNOPSYS_PACKAGES)
 
 	def LoadMentorGraphicsPackages(self) -> None:
 		if IEEEFlavor.IEEE not in self._flavor:
-			raise VHDLModelException(f"IEEE library flavor is '{self._flavor}' and can't be changed to '{IEEEFlavor.MentorGraphics}'.")
+			raise IEEEFlavorChangeError(self._flavor, IEEEFlavor.MentorGraphics)
 
 		self._flavor = (self._flavor & ~IEEEFlavor.IEEE) | IEEEFlavor.MentorGraphics
 		self.AddPackages(MENTOR_GRAPHICS_PACKAGES)

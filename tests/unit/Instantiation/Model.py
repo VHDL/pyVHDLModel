@@ -53,6 +53,7 @@ from pyVHDLModel.Type          import Subtype, IntegerType, RealType, ArrayType,
 from pyVHDLModel.DesignUnit    import Package, PackageBody, Context, Entity, Architecture, Configuration, \
                                       LibraryClause
 from pyVHDLModel.Association   import GenericAssociationItem
+from pyVHDLModel.Exception     import IEEEFlavorError, UnknownIEEEFlavorError, IEEEFlavorChangeError
 from pyVHDLModel.Instantiation import PackageInstantiation, FunctionInstantiation, ProcedureInstantiation
 from pyVHDLModel.PSLModel      import DefaultClock
 from pyVHDLModel.STD           import Std, Standard
@@ -928,6 +929,45 @@ class VHDLLibrary(Testcase):
 		self.assertEqual(10, len(ieeeLibrary.PackageBodies))
 
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
+
+	def test_IeeeLibrary_UnknownFlavor(self) -> None:
+		design = Design()
+
+		with self.assertRaises(UnknownIEEEFlavorError) as context:
+			design.LoadIEEELibrary(IEEEFlavor.WithVITAL)
+
+		self.assertEqual(f"Unknown IEEE library flavor '{IEEEFlavor.WithVITAL}'.", str(context.exception))
+		self.assertIs(IEEEFlavor.WithVITAL, context.exception.Flavor)
+		self.assertIsInstance(context.exception, IEEEFlavorError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_IeeeSynopsysLibrary_ChangeFlavor(self) -> None:
+		design =      Design()
+		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.Synopsys)
+
+		with self.assertRaises(IEEEFlavorChangeError) as context:
+			ieeeLibrary.LoadMentorGraphicsPackages()
+
+		self.assertEqual(
+			f"IEEE library flavor is '{IEEEFlavor.Synopsys}' and can't be changed to '{IEEEFlavor.MentorGraphics}'.",
+			str(context.exception)
+		)
+		self.assertIs(IEEEFlavor.MentorGraphics, context.exception.Flavor)
+		self.assertIs(IEEEFlavor.Synopsys, context.exception.CurrentFlavor)
+		self.assertIsInstance(context.exception, IEEEFlavorError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_IeeeMentorGraphicsLibrary_ChangeFlavor(self) -> None:
+		design =      Design()
+		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.MentorGraphics)
+
+		with self.assertRaises(IEEEFlavorChangeError) as context:
+			ieeeLibrary.LoadSynopsysPackages()
+
+		self.assertEqual(
+			f"IEEE library flavor is '{IEEEFlavor.MentorGraphics}' and can't be changed to '{IEEEFlavor.Synopsys}'.",
+			str(context.exception)
+		)
 
 
 class PredefinedCharacterLiterals(Testcase):

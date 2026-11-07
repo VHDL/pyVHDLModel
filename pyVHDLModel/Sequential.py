@@ -2231,8 +2231,6 @@ class LoopControlStatement(SequentialStatement, ConditionalMixin):
 				ex.add_note(f"Got type '{getFullyQualifiedName(loopLabel)}'.")
 				raise ex
 
-			loopLabel.Parent = self
-
 		self._loopReference = loopLabel
 
 	@readonly

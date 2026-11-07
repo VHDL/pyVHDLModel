@@ -242,7 +242,7 @@ class LoopControlStatements(Testcase):
 
 		self.assertIs(condition, statement.Condition)
 		self.assertIs(loopLabel, statement.LoopReference)
-		self.assertIs(statement, loopLabel.Parent)
+		self.assertNotIn("Parent", vars(loopLabel))
 		self.assertEqual("lbl", statement.Label)
 
 	def test_ExitStatement_LoopLabel(self) -> None:
@@ -251,7 +251,7 @@ class LoopControlStatements(Testcase):
 
 		self.assertIsNone(statement.Condition)
 		self.assertIs(loopLabel, statement.LoopReference)
-		self.assertIs(statement, loopLabel.Parent)
+		self.assertNotIn("Parent", vars(loopLabel))
 		self.assertEqual("lbl", statement.Label)
 
 	def test_NextStatement_LoopLabel_NoSymbol(self) -> None:

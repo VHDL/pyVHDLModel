@@ -52,8 +52,8 @@ from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, \
                                     ConfigurationInstantiationSymbol, Symbol, SignalSymbol
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
-from pyVHDLModel.Association import AssociationItem, ParameterAssociationItem, GenericAssociationItem, \
-                                    PortAssociationItem, GenericMapAspectMixin, PortMapAspectMixin
+from pyVHDLModel.Association import ParameterAssociationItem, GenericAssociationItem, PortAssociationItem, \
+                                    GenericMapAspectMixin, PortMapAspectMixin
 from pyVHDLModel.Interface   import PortInterfaceItemMixin, GenericInterfaceItemMixin, GenericGroup, PortGroup
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin, SignalAssignmentMixin, AllowBlackboxMixin, \
                                     ConditionalWaveform, SelectedWaveform, ConditionalWaveformsMixin, WaveformMixin, \
@@ -704,8 +704,8 @@ class ComponentInstantiation(Instantiation):
 		self,
 		label: str,
 		componentSymbol: ComponentInstantiationSymbol,
-		genericAssociationItems: Nullable[Iterable[AssociationItem]] = None,
-		portAssociationItems:    Nullable[Iterable[AssociationItem]] = None,
+		genericAssociationItems: Nullable[Iterable[GenericAssociationItem]] = None,
+		portAssociationItems:    Nullable[Iterable[PortAssociationItem]] = None,
 		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
@@ -775,8 +775,8 @@ class EntityInstantiation(Instantiation):
 		label: str,
 		entitySymbol: EntityInstantiationSymbol,
 		architectureSymbol: Nullable[ArchitectureSymbol] = None,
-		genericAssociationItems: Nullable[Iterable[AssociationItem]] = None,
-		portAssociationItems:    Nullable[Iterable[AssociationItem]] = None,
+		genericAssociationItems: Nullable[Iterable[GenericAssociationItem]] = None,
+		portAssociationItems:    Nullable[Iterable[PortAssociationItem]] = None,
 		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:
@@ -862,8 +862,8 @@ class ConfigurationInstantiation(Instantiation):
 		self,
 		label: str,
 		configurationSymbol: ConfigurationInstantiationSymbol,
-		genericAssociationItems: Nullable[Iterable[AssociationItem]] = None,
-		portAssociationItems:    Nullable[Iterable[AssociationItem]] = None,
+		genericAssociationItems: Nullable[Iterable[GenericAssociationItem]] = None,
+		portAssociationItems:    Nullable[Iterable[PortAssociationItem]] = None,
 		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:

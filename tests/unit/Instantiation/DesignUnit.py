@@ -40,7 +40,6 @@ one-line smoke test confirming the mixin is wired up.
 from pyTooling.Warning      import CriticalWarning
 from pyTooling.Testing      import Testcase
 
-from pyVHDLModel            import VHDLModelException
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Exception  import BlackboxWarning, VHDLModelWarning
 from pyVHDLModel.Name       import SimpleName, SelectedName
@@ -130,6 +129,19 @@ class DesignUnits(Testcase):
 		self.assertIs(unit, use.Parent)
 		self.assertIs(unit, context.Parent)
 
+	def test_ContextItems_WrongElementType(self) -> None:
+		element = _Element()
+
+		with self.assertRaises(TypeError) as context:
+			_ConcreteDesignUnit("u", [UseClause([]), element])
+
+		self.assertEqual(
+			"Element of parameter 'contextItems' is not of type 'LibraryClause', 'UseClause' or 'ContextReference'.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Got type 'tests.unit._Element'."], context.exception.__notes__)
+		self.assertIsNone(element.Parent)
+
 	def test_DocumentSetter(self) -> None:
 		unit = _ConcreteDesignUnit("u")
 		document = object()
@@ -180,15 +192,18 @@ class Contexts(Testcase):
 		self.assertEqual([contextReference], context.ContextReferences)
 		self.assertIs(context, library.Parent)
 
-	def test_UnknownReferenceKind_Raises(self) -> None:
-		"""Regression test: ``VHDLModelException()`` previously carried no message at all (``# FIXME:
-		needs exception message`` in the source) - now includes the offending reference. Uses a bare
-		``ModelEntity`` (not ``object()``) since the ``.Parent = self`` assignment a few lines above
-		the kind-check runs first and needs a real settable ``Parent``."""
-		with self.assertRaises(VHDLModelException) as context:
-			Context("ctx", [_Element()])
+	def test_References_WrongElementType(self) -> None:
+		element = _Element()
 
-		self.assertIn("neither a library clause, use clause, nor context reference", str(context.exception))
+		with self.assertRaises(TypeError) as context:
+			Context("ctx", [LibraryClause([LibraryReferenceSymbol(SimpleName("ieee"))]), element])
+
+		self.assertEqual(
+			"Element of parameter 'references' is not of type 'LibraryClause', 'UseClause' or 'ContextReference'.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Got type 'tests.unit._Element'."], context.exception.__notes__)
+		self.assertIsNone(element.Parent)
 
 
 class Packages(Testcase):

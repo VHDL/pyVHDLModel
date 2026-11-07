@@ -77,6 +77,7 @@ class Names(Testcase):
 		self.assertIs(prefix, name.Prefix)
 		self.assertTrue(name.HasPrefix)
 		self.assertIs(prefix, name.Root)
+		self.assertIs(name, prefix.Parent)
 
 	def test_RootIsTransitiveAcrossAChain(self) -> None:
 		root = _Name("a")
@@ -86,6 +87,8 @@ class Names(Testcase):
 		self.assertIs(root, middle.Root)
 		self.assertIs(root, leaf.Root)
 		self.assertIs(middle, leaf.Prefix)
+		self.assertIs(middle, root.Parent)
+		self.assertIs(leaf, middle.Parent)
 
 	def test_WithParent(self) -> None:
 		parent = _Element()
@@ -154,6 +157,7 @@ class SelectedNames(Testcase):
 
 		self.assertEqual("member", name.Identifier)
 		self.assertIs(prefix, name.Prefix)
+		self.assertIs(name, prefix.Parent)
 		self.assertEqual("pkg.member", str(name))
 
 	def test_IsExpandedName(self) -> None:

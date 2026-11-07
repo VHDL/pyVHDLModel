@@ -100,6 +100,13 @@ Version 0.43.0 (2026)
    * Breaking change: :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError` takes ``(architecture, library)``;
      its ``Entity`` property is removed, use ``Architecture.Entity``.
    * :exc:`~pyVHDLModel.Exception.NotAChildError` derives from :exc:`pyTooling.Exceptions.NotAChildError` too.
+   * Breaking change: every port interface item is a :class:`~pyVHDLModel.Interface.PortInterfaceItemMixin`; the mixin
+     carries no mode and has no initializer parameter (like the generic and parameter mixins).
+   * A name is the parent of its prefix.
+   * :class:`~pyVHDLModel.DesignUnit.Context` inherits ``LibraryReferences``, ``PackageReferences`` and
+     ``ContextReferences`` from :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
+   * Instantiations annotate their generic and port maps with :class:`~pyVHDLModel.Association.GenericAssociationItem`
+     and :class:`~pyVHDLModel.Association.PortAssociationItem`.
 
    .. rubric:: Bug Fixes
 
@@ -112,6 +119,9 @@ Version 0.43.0 (2026)
      body declaration duplicating one of its package.
    * Adding an architecture, which already exists in the library, raised ``KeyError`` instead of
      :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError`, if the library didn't hold its entity.
+   * A design unit kept a context item of an unknown kind in ``ContextItems`` only, a context declaration raised a plain
+     :exc:`~pyVHDLModel.Exception.VHDLModelException` for it; both raise :exc:`TypeError` now.
+   * A procedure call set an undeclared ``Parent`` attribute on its procedure symbol.
 
 
 Version 0.42.0 (2026)

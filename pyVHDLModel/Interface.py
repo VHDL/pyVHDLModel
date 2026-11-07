@@ -418,7 +418,6 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Generic interface item mixin <pyVHDLModel.Interface.GenericInterfaceItemMixin>`
 	   * :class:`Port interface item mixin <pyVHDLModel.Interface.PortInterfaceItemMixin>`
 	   * :class:`Parameter interface item mixin <pyVHDLModel.Interface.ParameterInterfaceItemMixin>`
-	   * :class:`Port signal interface item <pyVHDLModel.Interface.PortSignalInterfaceItem>`
 	"""
 
 	_group: Nullable[InterfaceGroup]  #: The interface group listing this item, or ``None``.
@@ -471,7 +470,6 @@ class InterfaceItemWithModeMixin(metaclass=ExtendedType, mixin=True):
 
 	.. seealso::
 
-	   * :class:`Port interface item mixin <pyVHDLModel.Interface.PortInterfaceItemMixin>`
 	   * :class:`Generic constant interface item <pyVHDLModel.Interface.GenericConstantInterfaceItem>`
 	   * :class:`Port simple signal interface item <pyVHDLModel.Interface.PortSimpleSignalInterfaceItem>`
 	   * :class:`Parameter constant interface item <pyVHDLModel.Interface.ParameterConstantInterfaceItem>`
@@ -526,19 +524,14 @@ class GenericSubprogramInterfaceItemMixin(GenericInterfaceItemMixin, mixin=True)
 
 
 @export
-class PortInterfaceItemMixin(InterfaceItemMixin, InterfaceItemWithModeMixin, mixin=True):
+class PortInterfaceItemMixin(InterfaceItemMixin, mixin=True):
 	"""
 	A mixin-class for all items in a port clause.
+
+	.. seealso::
+
+	   * :class:`Port signal interface item <pyVHDLModel.Interface.PortSignalInterfaceItem>`
 	"""
-
-	def __init__(self, mode: Mode) -> None:
-		"""
-		Initializes a port interface item.
-
-		:param mode: The interface item's mode.
-		"""
-		super().__init__()
-		InterfaceItemWithModeMixin.__init__(self, mode)
 
 
 @export
@@ -912,7 +905,7 @@ class GenericPackageInterfaceItem(InterfacePackage, GenericInterfaceItemMixin):
 
 @export
 @abstractclass
-class PortSignalInterfaceItem(Signal, InterfaceItemMixin):
+class PortSignalInterfaceItem(Signal, PortInterfaceItemMixin):
 	"""
 	Represents the base-class of all signals in a port clause.
 
@@ -978,7 +971,7 @@ class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem, InterfaceItemWithMo
 		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
-		InterfaceItemMixin.__init__(self)
+		PortInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
 	def Copy(self) -> Self:
@@ -1060,7 +1053,7 @@ class PortViewSignalInterfaceItem(PortSignalInterfaceItem, WithSingleDeclaration
 		:param parent:             Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, modeViewIndication, None, documentation, parent)
-		InterfaceItemMixin.__init__(self)
+		PortInterfaceItemMixin.__init__(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

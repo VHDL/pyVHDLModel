@@ -44,7 +44,7 @@ from pyTooling.MetaClasses     import ExtendedType, abstractmethod, abstractclas
 from pyTooling.Graph           import Vertex
 
 from pyVHDLModel.Common        import AllowBlackboxMixin
-from pyVHDLModel.Exception     import VHDLModelException, AlreadyInDesignError, NotAChildError
+from pyVHDLModel.Exception     import AlreadyInDesignError, NotAChildError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                       normalizedIdentifiersOf, ReservedWord
 from pyVHDLModel.Name          import Name
@@ -287,6 +287,8 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:param documentation: Optional, associated documentation of the design unit. Default: ``None``, no documentation.
 		:param parent:        Optional, reference to the logical parent in the model hierarchy.
 		                      Default: ``None``, no parent.
+		:raises TypeError:    If an element of parameter 'contextItems' is not of type :class:`LibraryClause`,
+		                      :class:`UseClause` or :class:`ContextReference`.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
@@ -301,14 +303,21 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		if contextItems is not None:
 			for item in contextItems:
-				contextItemList.append(item)
-				item.Parent = self
 				if isinstance(item, UseClause):
 					packageReferences.append(item)
 				elif isinstance(item, LibraryClause):
 					libraryReferences.append(item)
 				elif isinstance(item, ContextReference):
 					contextReferences.append(item)
+				else:
+					ex = TypeError(
+						"Element of parameter 'contextItems' is not of type 'LibraryClause', 'UseClause' or 'ContextReference'."
+					)
+					ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+					raise ex
+
+				contextItemList.append(item)
+				item.Parent = self
 
 		self._referencedLibraries = {}
 		self._referencedPackages = {}
@@ -732,20 +741,18 @@ class Context(PrimaryUnit):
 		"""
 		Initializes a context declaration.
 
-		:param identifier:           The identifier of a model entity.
-		:param references:           Optional, all context items, in declaration order. Default: ``None``, no context items.
-		:param documentation:        Optional, the documentation comment associated with this declaration.
-		                             Default: ``None``, no documentation.
-		:param parent:               Optional, the parent model entity of this entity. Default: ``None``, no parent.
-		:raises VHDLModelException: If a context item is neither a library clause, use clause, nor context reference.
+		:param identifier:    The identifier of a model entity.
+		:param references:    Optional, all context items, in declaration order. Default: ``None``, no context items.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:raises TypeError:    If an element of parameter 'references' is not of type :class:`LibraryClause`,
+		                      :class:`UseClause` or :class:`ContextReference`.
 		"""
 		super().__init__(identifier, None, documentation, parent)
 
 		if references is not None:
 			for reference in references:
-				self._contextItems.append(reference)
-				reference.Parent = self
-
 				if isinstance(reference, LibraryClause):
 					self._libraryReferences.append(reference)
 				elif isinstance(reference, UseClause):
@@ -753,7 +760,14 @@ class Context(PrimaryUnit):
 				elif isinstance(reference, ContextReference):
 					self._contextReferences.append(reference)
 				else:
-					raise VHDLModelException(f"Reference '{reference!r}' is neither a library clause, use clause, nor context reference.")
+					ex = TypeError(
+						"Element of parameter 'references' is not of type 'LibraryClause', 'UseClause' or 'ContextReference'."
+					)
+					ex.add_note(f"Got type '{getFullyQualifiedName(reference)}'.")
+					raise ex
+
+				self._contextItems.append(reference)
+				reference.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1375,7 +1389,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		self,
 		identifier:    str,
 		entity:        EntitySymbol,
-		contextItems:  Nullable[Iterable[Context]] = None,
+		contextItems:  Nullable[Iterable[ContextUnion]] = None,
 		declaredItems: Nullable[Iterable] = None,
 		statements:    Iterable[ConcurrentStatement] = None,
 		documentation: Nullable[str] = None,
@@ -1691,7 +1705,7 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 		identifier: str,
 		entity: EntitySymbol,
 		blockConfiguration: BlockConfiguration,
-		contextItems: Nullable[Iterable[Context]] = None,
+		contextItems: Nullable[Iterable[ContextUnion]] = None,
 		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:

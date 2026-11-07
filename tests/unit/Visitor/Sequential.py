@@ -42,7 +42,8 @@ from pyVHDLModel.Sequential import IndexedChoice, SequentialVariableAssignment, 
                                    ElsifBranch, ElseBranch, IfStatement, Case, OthersCase, CaseStatement, \
                                    EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, NextStatement, \
                                    ExitStatement
-from pyVHDLModel.Symbol     import SignalSymbol, VariableSymbol, SimpleObjectOrFunctionCallSymbol, AggregateSymbol
+from pyVHDLModel.Symbol     import SignalSymbol, VariableSymbol, SimpleObjectOrFunctionCallSymbol, AggregateSymbol, \
+                               LoopSymbol
 
 from tests.unit.Visitor     import FullRecorder
 
@@ -326,5 +327,30 @@ class CompoundStatements(Testcase):
 		self.assertEqual(
 			["VisitExitStatement", "VisitWhen", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol",
 			 "VisitTerminator", "DepartExitStatement"],
+			[event[0] for event in recorder.Events]
+		)
+
+	def test_Next_LoopLabel(self) -> None:
+		"""The loop label is walked before the condition."""
+		statement = NextStatement(SimpleObjectOrFunctionCallSymbol(SimpleName("skip")), LoopSymbol(SimpleName("outer")))
+		recorder =  FullRecorder()
+
+		statement.Visit(recorder)
+
+		self.assertEqual(
+			["VisitNextStatement", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitWhen",
+			 "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitTerminator", "DepartNextStatement"],
+			[event[0] for event in recorder.Events]
+		)
+
+	def test_Exit_LoopLabel(self) -> None:
+		statement = ExitStatement(loopLabel=LoopSymbol(SimpleName("outer")))
+		recorder =  FullRecorder()
+
+		statement.Visit(recorder)
+
+		self.assertEqual(
+			["VisitExitStatement", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitTerminator",
+			 "DepartExitStatement"],
 			[event[0] for event in recorder.Events]
 		)

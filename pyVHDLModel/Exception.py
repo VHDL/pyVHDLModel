@@ -38,7 +38,7 @@ message in english, each exception object contains one or multiple references to
 from __future__               import annotations
 
 from pathlib                  import Path
-from typing                   import TYPE_CHECKING, Generic, Optional as Nullable, TypeVar, Union
+from typing                   import TYPE_CHECKING, ClassVar, Generic, Optional as Nullable, TypeVar, Union
 
 from pyTooling.Decorators     import export, readonly
 from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError, InUseError
@@ -243,6 +243,8 @@ class UnresolvedNameWarning(VHDLModelCriticalWarning):
 	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
 	"""
 
+	_LABEL:      ClassVar[str] = "Name"  #: The kind of name, which starts the messages of a name lookup.
+
 	_symbol:     _Symbol                  #: The unresolved symbol.
 	_place:      ModelEntity              #: The model entity containing the name, e.g. a use clause.
 	_namespaces: tuple[_Namespace, ...]   #: The namespaces searched for the name, innermost first.
@@ -323,6 +325,8 @@ class UnresolvedTypeMarkWarning(UnresolvedNameWarning):
 	   As a critical warning, it must be collected by a :class:`~pyTooling.Warning.WarningCollector` up the
 	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
 	"""
+
+	_LABEL: ClassVar[str] = "Type mark"  #: The kind of name, which starts the messages of a type mark lookup.
 
 
 @export

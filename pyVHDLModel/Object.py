@@ -34,21 +34,21 @@ This module contains parts of an abstract document language model for VHDL.
 
 Objects are constants, variables, signals and files.
 """
-from __future__              import annotations
+from __future__            import annotations
 
-from typing                  import TYPE_CHECKING, ClassVar, Generator, Iterable, Optional as Nullable, Self
+from typing                import TYPE_CHECKING, ClassVar, Generator, Iterable, Optional as Nullable, Self
 
-from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType, abstractclass
-from pyTooling.Graph         import Vertex
+from pyTooling.Decorators  import export, readonly
+from pyTooling.MetaClasses import ExtendedType, abstractclass
+from pyTooling.Graph       import Vertex
 
-from pyVHDLModel.Base        import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, \
-                                    ReservedWord
-from pyVHDLModel.Symbol      import Symbol, SubtypeSymbol
+from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, \
+                                  ReservedWord
+from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
-	from pyVHDLModel.Namespace import Namespace
-	from pyVHDLModel.Visitor   import Visitor
+	from pyVHDLModel.Regions import DeclarationRegionMixin
+	from pyVHDLModel.Visitor import Visitor
 
 
 @export
@@ -139,16 +139,16 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 
 	def IterateTypeMarks(
 		self,
-		namespace: Namespace
-	) -> Generator[tuple[Namespace, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarationRegionMixin
+	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this object: the type mark of its subtype indication.
 
-		:param namespace: The namespace of the declarative region declaring this object.
-		:returns:         A generator to iterate (namespace, place, type mark) tuples: the object's subtype indication.
+		:param region:  The declarative region declaring this object.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the object's subtype indication.
 		"""
 		if isinstance(self._subtype, SubtypeSymbol):
-			yield namespace, self, self._subtype
+			yield region, self, self._subtype
 
 	def __str__(self) -> str:
 		"""

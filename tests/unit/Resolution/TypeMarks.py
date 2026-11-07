@@ -45,7 +45,6 @@ from pyVHDLModel.Exception   import IncompleteTypeWarning, UnresolvedNameWarning
 from pyVHDLModel.Interface   import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                     ParameterConstantInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name        import SelectedName, SimpleName
-from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Object      import Constant, Variable
 from pyVHDLModel.Subprogram  import Function, Procedure
 from pyVHDLModel.Symbol      import LibraryReferenceSymbol, SimpleObjectOrFunctionCallSymbol, SimpleSubtypeSymbol
@@ -204,31 +203,31 @@ class Places(Testcase):
 
 
 class DeclarationTypeMarks(Testcase):
-	"""Each declaration iterates its own type marks with the namespace and the place to look them up."""
+	"""Each declaration iterates its own type marks with the region and the place to look them up."""
 
 	def setUp(self) -> None:
-		self._namespace = Namespace("rtl")
+		self._region = Package("p")
 
 	def test_Object(self) -> None:
 		constant = _constant("c", "T")
 
 		self.assertListEqual(
-			[(self._namespace, constant, constant.Subtype)],
-			list(constant.IterateTypeMarks(self._namespace))
+			[(self._region, constant, constant.Subtype)],
+			list(constant.IterateTypeMarks(self._region))
 		)
 
 	def test_Subtype(self) -> None:
 		subtype = Subtype("ST", _subtypeSymbol("T"))
 
-		self.assertListEqual([(self._namespace, subtype, subtype.Type)], list(subtype.IterateTypeMarks(self._namespace)))
+		self.assertListEqual([(self._region, subtype, subtype.Type)], list(subtype.IterateTypeMarks(self._region)))
 
 	def test_ArrayType(self) -> None:
 		"""Index subtypes first, then the element subtype."""
 		array = ArrayType("A", [_subtypeSymbol("I")], _subtypeSymbol("E"))
 
 		self.assertListEqual(
-			[(self._namespace, array, array.Dimensions[0]), (self._namespace, array, array.ElementType)],
-			list(array.IterateTypeMarks(self._namespace))
+			[(self._region, array, array.Dimensions[0]), (self._region, array, array.ElementType)],
+			list(array.IterateTypeMarks(self._region))
 		)
 
 	def test_RecordType(self) -> None:
@@ -238,32 +237,32 @@ class DeclarationTypeMarks(Testcase):
 		])
 
 		self.assertListEqual(
-			[(self._namespace, record, record.Elements[0].Subtype), (self._namespace, record, record.Elements[1].Subtype)],
-			list(record.IterateTypeMarks(self._namespace))
+			[(self._region, record, record.Elements[0].Subtype), (self._region, record, record.Elements[1].Subtype)],
+			list(record.IterateTypeMarks(self._region))
 		)
 
 	def test_AccessType(self) -> None:
 		access = AccessType("AT", _subtypeSymbol("T"))
 
 		self.assertListEqual(
-			[(self._namespace, access, access.DesignatedSubtype)],
-			list(access.IterateTypeMarks(self._namespace))
+			[(self._region, access, access.DesignatedSubtype)],
+			list(access.IterateTypeMarks(self._region))
 		)
 
 	def test_FileType(self) -> None:
 		file = FileType("FT", _subtypeSymbol("T"))
 
 		self.assertListEqual(
-			[(self._namespace, file, file.DesignatedSubtype)],
-			list(file.IterateTypeMarks(self._namespace))
+			[(self._region, file, file.DesignatedSubtype)],
+			list(file.IterateTypeMarks(self._region))
 		)
 
 	def test_Attribute(self) -> None:
 		attribute = Attribute("att", _subtypeSymbol("T"))
 
 		self.assertListEqual(
-			[(self._namespace, attribute, attribute.Subtype)],
-			list(attribute.IterateTypeMarks(self._namespace))
+			[(self._region, attribute, attribute.Subtype)],
+			list(attribute.IterateTypeMarks(self._region))
 		)
 
 	def test_Alias(self) -> None:
@@ -272,10 +271,10 @@ class DeclarationTypeMarks(Testcase):
 		typeAlias =   Alias("AT", SimpleSubtypeSymbol(SimpleName("integer")))
 
 		self.assertListEqual(
-			[(self._namespace, objectAlias, objectAlias.Subtype)],
-			list(objectAlias.IterateTypeMarks(self._namespace))
+			[(self._region, objectAlias, objectAlias.Subtype)],
+			list(objectAlias.IterateTypeMarks(self._region))
 		)
-		self.assertListEqual([], list(typeAlias.IterateTypeMarks(self._namespace)))
+		self.assertListEqual([], list(typeAlias.IterateTypeMarks(self._region)))
 
 	def test_Component(self) -> None:
 		"""Generics and ports, each as the place of its type mark; a generic type has none."""
@@ -285,17 +284,17 @@ class DeclarationTypeMarks(Testcase):
 		component =   Component("comp", genericItems=[genericType, generic], portItems=[port])
 
 		self.assertListEqual(
-			[(self._namespace, generic, generic.Subtype), (self._namespace, port, port.Subtype)],
-			list(component.IterateTypeMarks(self._namespace))
+			[(self._region, generic, generic.Subtype), (self._region, port, port.Subtype)],
+			list(component.IterateTypeMarks(self._region))
 		)
 
 	def test_Function(self) -> None:
-		"""The return type is looked up in the function's namespace, at its first declared item."""
+		"""The return type is looked up in the function's region, at its first declared item."""
 		variable = Variable(("v", ), _subtypeSymbol("T"))
 		function = Function("f", _subtypeSymbol("T"), declaredItems=[variable])
 
 		self.assertListEqual(
-			[(function._namespace, variable, function.ReturnType)], list(function.IterateTypeMarks(self._namespace))
+			[(function, variable, function.ReturnType)], list(function.IterateTypeMarks(self._region))
 		)
 
 	def test_Function_WithoutDeclaredItems(self) -> None:
@@ -303,13 +302,13 @@ class DeclarationTypeMarks(Testcase):
 		function = Function("f", _subtypeSymbol("T"))
 
 		self.assertListEqual(
-			[(function._namespace, function, function.ReturnType)], list(function.IterateTypeMarks(self._namespace))
+			[(function, function, function.ReturnType)], list(function.IterateTypeMarks(self._region))
 		)
 
 	def test_WithoutTypeMarks(self) -> None:
 		enumeration = _enumeration("T", "a", "b")
 
-		self.assertListEqual([], list(enumeration.IterateTypeMarks(self._namespace)))
+		self.assertListEqual([], list(enumeration.IterateTypeMarks(self._region)))
 
 
 class Names(Testcase):

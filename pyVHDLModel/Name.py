@@ -143,7 +143,9 @@ class Name(ModelEntity):
 	@readonly
 	def IsOperatorSymbol(self) -> bool:
 		"""
-		Check if the name is an operator symbol, e.g. ``"and"`` (:attr:`_identifier` in quotation marks).
+		Check if the name is an operator symbol (:attr:`_identifier` in quotation marks).
+
+		An operator symbol names an operator function, e.g. ``"and"`` in an alias declaration.
 
 		:returns: ``True``, if the name is an operator symbol.
 		"""

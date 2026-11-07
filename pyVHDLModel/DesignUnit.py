@@ -48,8 +48,8 @@ from pyVHDLModel.Exception     import VHDLModelException, AlreadyInDesignError, 
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                       normalizedIdentifiersOf, ReservedWord
 from pyVHDLModel.Namespace     import Namespace
-from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin, \
-                                      WithoutStatementsMixin
+from pyVHDLModel.Regions       import DeclarationRegionMixin, ConcurrentDeclarationRegionMixin, WithGenericsMixin, \
+                                      WithPortsMixin, WithoutStatementsMixin
 from pyVHDLModel.Symbol        import Symbol, SubtypeSymbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, GenericGroup, PortGroup
 from pyVHDLModel.Object        import DeferredConstant
@@ -162,6 +162,18 @@ class UseClause(Reference):
 
 	      use std.text_io.all, ieee.numeric_std.all;
 	"""
+
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+		"""
+		Reset the references of this use clause's symbols, which :meth:`~pyVHDLModel.Design.Analyze` linked.
+
+		:param designUnit: The design unit containing this declaration.
+		:param region:     The declarative region declaring this declaration.
+		"""
+		super().ResetReferences(designUnit, region)
+
+		for symbol in self._symbols:
+			symbol._reference = None
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1616,22 +1628,22 @@ class Component(
 
 	def IterateTypeMarks(
 		self,
-		namespace: Namespace
-	) -> Generator[tuple[Namespace, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarationRegionMixin
+	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this component's generics and ports.
 
 		The place of a type mark is the generic or port containing it. A generic is visible to the following generics and
 		ports of the component.
 
-		:param namespace: The namespace of the declarative region declaring this component.
-		:returns:         A generator to iterate (namespace, place, type mark) tuples, in declaration order.
+		:param region:  The declarative region declaring this component.
+		:returns:       A generator to iterate (region, place, type mark) tuples, in declaration order.
 		"""
 		for genericItem in self._genericItems:
-			yield from genericItem.IterateTypeMarks(namespace)
+			yield from genericItem.IterateTypeMarks(region)
 
 		for portItem in self._portItems:
-			yield from portItem.IterateTypeMarks(namespace)
+			yield from portItem.IterateTypeMarks(region)
 
 	def __str__(self) -> str:
 		"""

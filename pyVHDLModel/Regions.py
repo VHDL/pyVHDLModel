@@ -34,31 +34,35 @@ This module contains parts of an abstract document language model for VHDL.
 
 tbd.
 """
-from __future__              import annotations
+from __future__               import annotations
 
-from typing                  import TYPE_CHECKING, Any, Callable, ClassVar, Generator, Iterable, Optional as Nullable
+from typing                   import TYPE_CHECKING, Any, Callable, ClassVar, Generator, Iterable, Optional as Nullable
 
-from pyTooling.Common        import getFullyQualifiedName, getTypeName
-from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType, expects
-from pyTooling.Warning       import WarningCollector
+from pyTooling.Common         import getFullyQualifiedName, getTypeName
+from pyTooling.Decorators     import export, readonly
+from pyTooling.MetaClasses    import ExtendedType, expects
+from pyTooling.Warning        import WarningCollector
 
-from pyVHDLModel.Base        import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf, \
-                                    normalizedIdentifiersOf, normalizedDeclaredNamesOf
-from pyVHDLModel.Exception   import NotImplementedWarning, AlreadyInDesignError, NotAChildError, \
-                                    DuplicateGenericError, DuplicatePortError, DuplicateParameterError, \
-                                    DuplicateDeclarationError, DuplicateTypeError, DuplicateSubtypeError, \
-                                    DuplicateConstantError, DuplicateSignalError, DuplicateVariableError, \
-                                    DuplicateFileError, DuplicateComponentError, DuplicateSubprogramError
-from pyVHDLModel.Namespace   import Namespace
-from pyVHDLModel.Object      import BaseConstant, Constant, DeferredConstant, SharedVariable, File, Variable, Signal
+from pyVHDLModel.Base         import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, identifiersOf, \
+                                     normalizedIdentifiersOf, normalizedDeclaredNamesOf
+from pyVHDLModel.Exception    import NotImplementedWarning, UnresolvedNameWarning, UnresolvedTypeMarkWarning, \
+                                     AlreadyInDesignError, NotAChildError, \
+                                     DuplicateGenericError, DuplicatePortError, DuplicateParameterError, \
+                                     DuplicateDeclarationError, DuplicateTypeError, DuplicateSubtypeError, \
+                                     DuplicateConstantError, DuplicateSignalError, DuplicateVariableError, \
+                                     DuplicateFileError, DuplicateComponentError, DuplicateSubprogramError
+from pyVHDLModel.Name         import AttributeName
+from pyVHDLModel.Namespace    import Namespace
+from pyVHDLModel.Object       import BaseConstant, Constant, DeferredConstant, SharedVariable, File, Variable, Signal
+from pyVHDLModel.Symbol       import Symbol, SubtypeSymbol
 if TYPE_CHECKING:
-	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
-	                                  PortSignalInterfaceItem, SingleGenericDeclarationMixin, \
-	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin, \
-	                                  GenericGroup, PortGroup, ParameterGroup
-	from pyVHDLModel.Type      import Subtype, FullType
-	from pyVHDLModel.Visitor   import Visitor
+	from pyVHDLModel.Interface  import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
+	                                   PortSignalInterfaceItem, SingleGenericDeclarationMixin, \
+	                                   SinglePortDeclarationMixin, SingleParameterDeclarationMixin, \
+	                                   GenericGroup, PortGroup, ParameterGroup
+	from pyVHDLModel.DesignUnit import DesignUnit
+	from pyVHDLModel.Type       import Subtype, FullType
+	from pyVHDLModel.Visitor    import Visitor
 
 # `pyVHDLModel.Subprogram` imports this module (Subprogram is a sequential declaration region), so
 # `Function`/`Procedure` are quoted in annotations and imported lazily where they're needed at runtime.
@@ -1953,6 +1957,190 @@ class DeclarationRegionMixin(
 			return True
 
 		return itemIndex < anchorIndex or (inclusive and itemIndex == anchorIndex)
+
+	def LookupName(
+		self,
+		designUnit:  DesignUnit,
+		place:       ModelEntity,
+		symbol:      Symbol,
+		warningType: type[UnresolvedNameWarning]
+	) -> tuple[ModelEntity, ...]:
+		"""
+		Look up the declarations the simple name or expanded name of a symbol denotes at a place in this region.
+
+		A simple name is looked up at the place (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`); a generic of a component
+		is visible to the following generics and ports of the component. An expanded name ``pkg.T`` or ``lib.pkg.T``
+		resolves its prefix: ``pkg`` to a package visible at the place, else to an enclosing declarative region of that
+		name (e.g. the package or entity containing the place); ``lib.pkg`` by the library (``work`` or a library whose name
+		is visible, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`) and the package's name. Then the suffix
+		is searched among the declarations of the package or region
+		(:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
+
+		A failure is reported as a warning of the given type, whose label names the kind of name in the message
+		(e.g. ``Type mark``); then no declaration is returned.
+
+		:param designUnit:                     The design unit containing the name.
+		:param place:                          The declaration containing the name.
+		:param symbol:                         The symbol of the simple name or expanded name.
+		:param warningType:                    The warning class reporting a failure.
+		:returns:                              Tuple of the directly visible declarations, empty if none is.
+		:raises UnhandledCriticalWarningError: If the name isn't visible, is ambiguous, or has a prefix, which isn't a
+		                                       visible package or an enclosing region, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the warning.
+		"""
+		from pyVHDLModel.DesignUnit import Component, Package
+		from pyVHDLModel.Interface  import InterfaceItemMixin
+
+		namespace =            self._namespace
+		name =                 symbol._name
+		label =                warningType._LABEL
+		normalizedIdentifier = name._normalizedIdentifier
+		if (prefix := name._prefix) is None:
+			if isinstance(place, InterfaceItemMixin) and isinstance(component := place._parent, Component):
+				for genericItem in component._genericItems:
+					if genericItem is place:
+						break
+					elif normalizedIdentifier in normalizedIdentifiersOf(genericItem):
+						return (genericItem, )
+
+			result = namespace.Lookup(normalizedIdentifier, place)
+			if result.HasConflicts:
+				WarningCollector.Raise(warningType(
+					f"{label} '{name!s}' is ambiguous: use clauses import conflicting declarations.",
+					symbol=symbol,
+					place=place,
+					namespaces=result._searchedNamespaces,
+					conflicts=result._conflicts
+				))
+				return ()
+
+			declarations =       result._declarations
+			searchedNamespaces = result._searchedNamespaces
+		else:
+			searchedNamespaces = []
+			if prefix._prefix is None:
+				result =   namespace.Lookup(prefix._normalizedIdentifier, place)
+				packages = [declaration for declaration in result._declarations if isinstance(declaration, Package)]
+				if len(packages) > 0:
+					searchedNamespaces.append(packages[0]._namespace)
+				else:
+					# An enclosing declarative region of that name, e.g. the package declaring the place.
+					enclosingNamespace = namespace
+					while enclosingNamespace is not None:
+						namespaceName = enclosingNamespace._name
+						if namespaceName is not None and namespaceName.lower() == prefix._normalizedIdentifier:
+							searchedNamespaces.append(enclosingNamespace)
+
+						enclosingNamespace = enclosingNamespace._parentNamespace
+			elif prefix._prefix._prefix is None:
+				libraryIdentifier = prefix._prefix._normalizedIdentifier
+				if libraryIdentifier == "work":
+					library = designUnit._parent
+				elif designUnit.IsLibraryVisible(libraryIdentifier):
+					library = designUnit._parent._parent._libraries.get(libraryIdentifier)
+				else:
+					library = None
+
+				if library is not None and (package := library._packages.get(prefix._normalizedIdentifier)) is not None:
+					searchedNamespaces.append(package._namespace)
+
+			if len(searchedNamespaces) == 0:
+				WarningCollector.Raise(warningType(
+					f"Prefix '{prefix!s}' of {label.lower()} '{name!s}' isn't a visible package or an enclosing region.",
+					symbol=symbol,
+					place=place,
+					namespaces=(namespace, )
+				))
+				return ()
+
+			declarations = ()
+			for searchedNamespace in searchedNamespaces:
+				if len(declarations := searchedNamespace.FindDeclarations(normalizedIdentifier)) > 0:
+					break
+
+		if len(declarations) == 0:
+			# An unlabeled region (e.g. a process) has no name; a package body has the name of its package.
+			names = []
+			for searchedNamespace in searchedNamespaces:
+				namespaceName = "?" if searchedNamespace._name is None else searchedNamespace._name
+				if len(names) == 0 or names[-1] != namespaceName:
+					names.append(namespaceName)
+
+			WarningCollector.Raise(warningType(
+				f"{label} '{name!s}' not found in: {', '.join(names)}.",
+				symbol=symbol,
+				place=place,
+				namespaces=tuple(searchedNamespaces)
+			))
+
+		return declarations
+
+	def ResolveTypeMark(
+		self,
+		designUnit: DesignUnit,
+		place:      ModelEntity,
+		symbol:     SubtypeSymbol
+	) -> None:
+		"""
+		Resolve a type mark at its place in this region and set the symbol's reference.
+
+		.. rubric:: Algorithm
+
+		1. Clear the symbol's reference.
+		2. Look up the type mark's name (:meth:`LookupName`).
+		3. An alias of a type is replaced by the type its name references.
+		4. If the declaration is a type, a subtype or a generic type, it becomes the symbol's reference. A full type, which
+		   follows the place in the same region, is visible by its incomplete type declaration only to an access type.
+
+		An attribute name (e.g. ``T'base``) isn't resolved.
+
+		:param designUnit:                     The design unit containing the type mark.
+		:param place:                          The declaration containing the type mark.
+		:param symbol:                         The type mark.
+		:raises UnhandledCriticalWarningError: If the type mark isn't visible, is ambiguous, has a prefix, which isn't a
+		                                       visible package, denotes no type, or denotes an incomplete type outside of an
+		                                       access type, and no :class:`~pyTooling.Warning.WarningCollector` collects
+		                                       the :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		from pyVHDLModel.Declaration import Alias
+		from pyVHDLModel.Type        import AccessType, BaseType, FullType
+
+		symbol._reference = None
+		name =              symbol._name
+		if isinstance(name, AttributeName):
+			return
+
+		if len(declarations := self.LookupName(designUnit, place, symbol, UnresolvedTypeMarkWarning)) == 0:
+			return
+
+		declaration = declarations[0]
+		if isinstance(declaration, Alias) and isinstance(declaration._name._reference, BaseType):
+			declaration = declaration._name._reference
+
+		if not isinstance(declaration, BaseType):
+			WarningCollector.Raise(UnresolvedTypeMarkWarning(
+				f"Type mark '{name!s}' doesn't denote a type or subtype (found: {declaration.__class__.__name__}).",
+				symbol=symbol,
+				place=place,
+				namespaces=(self._namespace, )
+			))
+			return
+		elif (
+			isinstance(declaration, FullType) and not isinstance(place, AccessType)
+			and declaration._parent is (region := place._parent)
+		):
+			if isinstance(region, DeclarationRegionMixin):
+				declarationsOfRegion = region._Declarations()
+				if declarationsOfRegion.index(declaration) > declarationsOfRegion.index(place):
+					WarningCollector.Raise(UnresolvedTypeMarkWarning(
+						f"Type mark '{name!s}' denotes an incomplete type, which only an access type may use.",
+						symbol=symbol,
+						place=place,
+						namespaces=(self._namespace, )
+					))
+					return
+
+		symbol._reference = declaration
 
 	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""

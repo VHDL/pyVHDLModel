@@ -258,10 +258,28 @@ class DesignUnits(Testcase):
 		document = Document(Path("design.vhdl"))
 		design = _design(_document(Entity("ent"), Architecture("rtl", _entitySymbol("ent")), path="other.vhdl"), document)
 
-		with self.assertRaises(ArchitectureExistsInLibraryError) as context:
-			document.AddDesignUnit(Architecture("rtl", _entitySymbol("ent")))
+		architecture = Architecture("rtl", _entitySymbol("ent"))
 
-		self.assertIs(design.GetLibrary("lib").Entities["ent"], context.exception.Entity)
+		with self.assertRaises(ArchitectureExistsInLibraryError) as context:
+			document.AddDesignUnit(architecture)
+
+		self.assertEqual("Architecture 'rtl' for entity 'ent' already exists in library 'lib'.", str(context.exception))
+		self.assertIs(architecture, context.exception.Architecture)
+		self.assertIs(design.GetLibrary("lib"), context.exception.Library)
+		self.assertDictEqual({}, document.Architectures)
+
+	def test_AddDesignUnit_LibraryDuplicateArchitecture_NoEntity(self) -> None:
+		"""The library has an architecture of the entity, but not the entity itself."""
+		document =     Document(Path("design.vhdl"))
+		design =       _design(_document(Architecture("rtl", _entitySymbol("ent")), path="other.vhdl"), document)
+		architecture = Architecture("rtl", _entitySymbol("ent"))
+
+		with self.assertRaises(ArchitectureExistsInLibraryError) as context:
+			document.AddDesignUnit(architecture)
+
+		self.assertEqual("Architecture 'rtl' for entity 'ent' already exists in library 'lib'.", str(context.exception))
+		self.assertIs(architecture, context.exception.Architecture)
+		self.assertIs(design.GetLibrary("lib"), context.exception.Library)
 		self.assertDictEqual({}, document.Architectures)
 
 	def test_RemoveDesignUnit(self) -> None:
@@ -388,6 +406,22 @@ class Documents(Testcase):
 		self.assertEqual(1, len(design.Documents))
 		self.assertDictEqual({}, library.Entities)
 		self.assertIsNone(entity.Parent)
+		self.assertIsNone(document.Library)
+
+	def test_AddDocument_ClashArchitecture_NoEntity(self) -> None:
+		"""The library has an architecture of the entity, but not the entity itself."""
+		design =       _design(_document(Architecture("rtl", _entitySymbol("ent")), path="other.vhdl"))
+		library =      design.GetLibrary("lib")
+		architecture = Architecture("rtl", _entitySymbol("ent"))
+		document =     _document(architecture)
+
+		with self.assertRaises(ArchitectureExistsInLibraryError) as context:
+			design.AddDocument(document, library)
+
+		self.assertEqual("Architecture 'rtl' for entity 'ent' already exists in library 'lib'.", str(context.exception))
+		self.assertIs(architecture, context.exception.Architecture)
+		self.assertIs(library, context.exception.Library)
+		self.assertEqual(1, len(design.Documents))
 		self.assertIsNone(document.Library)
 
 	def test_RemoveDocument(self) -> None:

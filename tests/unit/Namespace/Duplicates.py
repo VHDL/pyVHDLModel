@@ -261,6 +261,20 @@ class RegionsSpanningTwoNamespaces(Testcase):
 
 		self.assertEqual(1, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
 
+	def test_PackageBodyDeclarationDuplicatesPackageDeclaration_Analyze(self) -> None:
+		"""Each analysis reports the duplicate, also an analysis repeated."""
+		design = self._design([], [], [Constant(["c"], _subtypeSymbol("bit"))], [Constant(["c"], _subtypeSymbol("bit"))])
+		design.LoadStdLibrary()
+
+		with WarningCollector() as firstCollector:
+			design.Analyze()
+
+		with WarningCollector() as secondCollector:
+			design.Analyze()
+
+		self.assertEqual(1, len(_warningsOfType(firstCollector, DuplicateDeclarationWarning)))
+		self.assertEqual(1, len(_warningsOfType(secondCollector, DuplicateDeclarationWarning)))
+
 	def test_DistinctNamesAcrossTheRegionAreAccepted(self) -> None:
 		design = self._design([_signal("a", "natural")], [_signal("b", "natural")], [], [])
 

@@ -31,7 +31,8 @@
 """
 Tests for the class hierarchy of the errors raised by the mutators.
 """
-from pyTooling.Exceptions  import AlreadyInHierarchyError, DuplicateElementError, InUseError
+from pyTooling.Exceptions  import AlreadyInHierarchyError, DuplicateElementError, InUseError, \
+                                  NotAChildError as CommonNotAChildError
 from pyTooling.Testing     import Testcase
 
 from pyVHDLModel.Exception import VHDLModelException, AlreadyInDesignError, NotAChildError, DuplicateGenericError, \
@@ -56,6 +57,7 @@ class Exceptions(Testcase):
 
 	def test_NotAChildError(self) -> None:
 		self.assertTrue(issubclass(NotAChildError, VHDLModelException))
+		self.assertTrue(issubclass(NotAChildError, CommonNotAChildError))
 
 	def test_DuplicateGenericError(self) -> None:
 		self.assertTrue(issubclass(DuplicateGenericError, VHDLModelException))

@@ -34,13 +34,15 @@ Mutation tests for generic clauses (:class:`~pyVHDLModel.Regions.WithGenericsMix
 The mutators are tested on an entity and a subprogram (declarative regions with a namespace) and a component (no
 namespace). The generic groups of the language construct stay a partition of its generic clause.
 """
+from pyTooling.Exceptions   import NotAChildError as CommonNotAChildError
 from pyTooling.MetaClasses  import UnfulfilledExpectationError
 from pyTooling.Warning      import WarningCollector
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import ModelEntity
 from pyVHDLModel.DesignUnit import Component, Entity
-from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicateGenericError, NotInNamespaceError
+from pyVHDLModel.Exception  import VHDLModelException, AlreadyInDesignError, NotAChildError, DuplicateGenericError, \
+                                   NotInNamespaceError
 from pyVHDLModel.Interface  import GenericTypeInterfaceItem, GenericFunctionInterfaceItem, GenericGroup
 from pyVHDLModel.Regions    import WithGenericsMixin
 from pyVHDLModel.Subprogram import Procedure
@@ -322,6 +324,8 @@ class Generics(Testcase):
 			entity.RemoveGenericItem(bits)
 
 		self.assertEqual("GenericConstantInterfaceItem 'BITS' is not a generic of this Entity.", str(context.exception))
+		self.assertIsInstance(context.exception, VHDLModelException)
+		self.assertIsInstance(context.exception, CommonNotAChildError)
 		self.assertIs(bits, context.exception.Element)
 		self.assertIs(entity, context.exception.Parent)
 		self.assertEqual(1, entity.GenericCount)

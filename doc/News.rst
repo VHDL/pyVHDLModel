@@ -129,6 +129,14 @@ Version 0.43.0 (2026)
      :exc:`~pyVHDLModel.Exception.PackageNotFoundError` or :exc:`~pyVHDLModel.Exception.ContextNotFoundError`, caused by
      the failed lookup; the message names the real library (was ``working library``), a note names the working library
      for ``work``.
+   * No plain ``VHDLModelException`` is raised anymore. More common bases:
+     :exc:`~pyVHDLModel.Exception.UnknownKindError` (a symbol or secondary unit of unknown kind) and
+     :exc:`~pyVHDLModel.Exception.IEEEFlavorError` (an unknown or conflicting ``ieee`` flavor). A duplicate design unit
+     in a document raises :exc:`~pyVHDLModel.Exception.DuplicateDesignUnitError`, a second architecture of an entity
+     :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError`; single conditions have their own error
+     (:exc:`~pyVHDLModel.Exception.AmbiguousTopLevelError`, :exc:`~pyVHDLModel.Exception.NotAGenericPackageError`,
+     :exc:`~pyVHDLModel.Exception.AncestorNotFoundError`, ...). Failed library and entity lookups are the cause of their
+     error.
 
    .. rubric:: Bug Fixes
 

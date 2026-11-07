@@ -57,7 +57,7 @@ __documentation_url__ = "https://vhdl.github.io/pyVHDLModel"
 __issue_tracker_url__ = "https://GitHub.com/VHDL/pyVHDLModel/issues"
 
 
-from enum                      import unique, Enum, Flag, auto
+from enum                      import unique, Enum, Flag
 from pathlib                   import Path
 
 from typing                    import TYPE_CHECKING, Union, cast, Generator, Optional as Nullable
@@ -422,12 +422,12 @@ class DesignUnitKind(Flag):
 	A ``DesignUnitKind`` is an enumeration and represents the kind of design unit (``Entity``, ``Architecture``, ...).
 
 	"""
-	Context = auto()                                                             #: Context
-	Package = auto()                                                             #: Package
-	PackageBody = auto()                                                         #: Package Body
-	Entity = auto()                                                              #: Entity
-	Architecture = auto()                                                        #: Architecture
-	Configuration = auto()                                                       #: Configuration
+	Context = 1                                                                  #: Context
+	Package = 2                                                                  #: Package
+	PackageBody = 4                                                              #: Package Body
+	Entity = 8                                                                   #: Entity
+	Architecture = 16                                                            #: Architecture
+	Configuration = 32                                                           #: Configuration
 
 	Primary = Context | Configuration | Entity | Package                         #: List of primary design units.
 	Secondary = PackageBody | Architecture                                       #: List of secondary design units.
@@ -443,16 +443,16 @@ class DependencyGraphVertexKind(Flag):
 	"""
 	A ``DependencyGraphVertexKind`` is an enumeration and represents the kind of vertex in the dependency graph.
 	"""
-	Document = auto()       #: A document (VHDL source file).
-	Library = auto()        #: A VHDL library.
+	Document = 1            #: A document (VHDL source file).
+	Library = 2             #: A VHDL library.
 
-	Context = auto()        #: A context design unit.
-	Package = auto()        #: A package design unit.
-	PackageBody = auto()    #: A package body design unit.
-	Entity = auto()         #: A entity design unit.
-	Architecture = auto()   #: A architecture design unit.
-	Component = auto()      #: A VHDL component.
-	Configuration = auto()  #: A configuration design unit.
+	Context = 4             #: A context design unit.
+	Package = 8             #: A package design unit.
+	PackageBody = 16        #: A package body design unit.
+	Entity = 32             #: A entity design unit.
+	Architecture = 64       #: A architecture design unit.
+	Component = 128         #: A VHDL component.
+	Configuration = 256     #: A configuration design unit.
 
 
 @export
@@ -461,20 +461,20 @@ class DependencyGraphEdgeKind(Flag):
 	"""
 	A ``DependencyGraphEdgeKind`` is an enumeration and represents the kind of edge in the dependency graph.
 	"""
-	Document =       auto()
-	Library =        auto()
-	Context =        auto()
-	Package =        auto()
-	Entity =         auto()
+	Document =       1
+	Library =        2
+	Context =        4
+	Package =        8
+	Entity =         16
 	# Architecture = auto()
-	Configuration =  auto()
-	Component =      auto()
+	Configuration =  32
+	Component =      64
 
-	DeclaredIn =     auto()
-	Order =          auto()
-	Reference =      auto()
-	Implementation = auto()
-	Instantiation =  auto()
+	DeclaredIn =     128
+	Order =          256
+	Reference =      512
+	Implementation = 1024
+	Instantiation =  2048
 
 	SourceFile =                 Document | DeclaredIn
 	CompileOrder =               Document | Order
@@ -499,16 +499,16 @@ class ObjectGraphVertexKind(Flag):
 	"""
 	A ``ObjectGraphVertexKind`` is an enumeration and represents the kind of vertex in the object graph.
 	"""
-	Type =             auto()
-	Subtype =          auto()
+	Type =             1
+	Subtype =          2
 
-	Constant =         auto()
-	DeferredConstant = auto()
-	Variable =         auto()
-	Signal =           auto()
-	File =             auto()
+	Constant =         4
+	DeferredConstant = 8
+	Variable =         16
+	Signal =           32
+	File =             64
 
-	Alias =            auto()
+	Alias =            128
 
 
 @export
@@ -517,10 +517,10 @@ class ObjectGraphEdgeKind(Flag):
 	"""
 	A ``ObjectGraphEdgeKind`` is an enumeration and represents the kind of edge in the object graph.
 	"""
-	BaseType = auto()
-	Subtype =  auto()
+	BaseType = 1
+	Subtype =  2
 
-	ReferenceInExpression = auto()
+	ReferenceInExpression = 4
 
 
 @export

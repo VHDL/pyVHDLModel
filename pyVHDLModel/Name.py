@@ -307,9 +307,10 @@ class SimpleName(Name):
 		Determine the model entity this simple name denotes as a part of a type mark, which is an attribute name.
 
 		The type mark is an attribute name like ``s'subtype``. The logical name of a visible library (``work`` or a library
-		clause, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`) denotes the library. Otherwise, the name is
-		looked up at the place (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.LookupName`) and the declaration says
-		what it denotes (:meth:`~pyVHDLModel.Base.ModelEntity.DenoteBy`).
+		clause, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`) denotes the library; the dependency analysis
+		(:meth:`~pyVHDLModel.Design.LinkLibraryReferences`) ensured it exists in the design. Otherwise, the name is looked
+		up at the place (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.LookupName`) and the declaration says what it
+		denotes (:meth:`~pyVHDLModel.Base.ModelEntity.DenoteBy`).
 
 		:param region:                         The declarative region containing the type mark.
 		:param designUnit:                     The design unit containing the type mark.
@@ -327,8 +328,7 @@ class SimpleName(Name):
 		if normalizedIdentifier == "work":
 			return designUnit._parent
 		elif designUnit.IsLibraryVisible(normalizedIdentifier):
-			if (library := designUnit._parent._parent._libraries.get(normalizedIdentifier)) is not None:
-				return library
+			return designUnit._parent._parent._libraries[normalizedIdentifier]
 
 		if len(declarations := region.LookupName(designUnit, place, symbol, self, UnresolvedTypeMarkWarning)) == 0:
 			return None

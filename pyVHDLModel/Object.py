@@ -78,9 +78,8 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	   * :class:`File <pyVHDLModel.Object.File>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]]  #: The reserved words introducing this object class.
-
-	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] = True  #: Usable by a name in its own interface list.
+	_OBJECT_KEYWORD:               ClassVar[tuple[ReservedWord, ...]]         #: The reserved words introducing this object class.
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] =                     True  #: Usable by a name in its own interface list.
 
 	_subtype:      Symbol            #: Reference to the object's subtype.
 	_objectVertex: Nullable[Vertex]  #: The vertex representing this object in the design's object graph.

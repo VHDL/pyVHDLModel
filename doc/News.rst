@@ -97,6 +97,9 @@ Version 0.43.0 (2026)
    * Breaking change: the prototype ``Design.ImportObjects()`` and ``CreateTypeAndObjectGraph()`` are removed; use
      clauses (:meth:`~pyVHDLModel.Design.Analyze`) and :meth:`~pyVHDLModel.Design.AnalyzeObjects` replace them.
    * A protected type and its body chain their namespace to the enclosing region's namespace.
+   * Breaking change: :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError` takes ``(architecture, library)``;
+     its ``Entity`` property is removed, use ``Architecture.Entity``.
+   * :exc:`~pyVHDLModel.Exception.NotAChildError` derives from :exc:`pyTooling.Exceptions.NotAChildError` too.
 
    .. rubric:: Bug Fixes
 
@@ -104,6 +107,11 @@ Version 0.43.0 (2026)
      reference symbols their context (was an extra attribute).
    * A context reference to a context with a use clause of a package named like its library (``use foo.foo.all;``)
      raised ``Referenced package 'foo' already exists``.
+   * :meth:`Design.AnalyzeDependencies() <pyVHDLModel.Design.AnalyzeDependencies>` indexes the package bodies after
+     linking them. Before, they were indexed once by the type-mark resolution, so a repeated analysis didn't report a
+     body declaration duplicating one of its package.
+   * Adding an architecture, which already exists in the library, raised ``KeyError`` instead of
+     :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError`, if the library didn't hold its entity.
 
 
 Version 0.42.0 (2026)

@@ -48,12 +48,13 @@ from pyTooling.Warning        import Warning, CriticalWarning
 from pyVHDLModel.Symbol       import Symbol
 
 if TYPE_CHECKING:  # pragma: no cover
-	from pyVHDLModel            import Document, Library
-	from pyVHDLModel.Base       import ModelElementUnion, ModelEntity
-	from pyVHDLModel.Concurrent import ComponentInstantiation
-	from pyVHDLModel.DesignUnit import Component as _Component
-	from pyVHDLModel.Expression import Literal as _Literal
-	from pyVHDLModel.Namespace  import Namespace as _Namespace, Import as _Import
+	from pyVHDLModel               import Document, Library
+	from pyVHDLModel.Base          import ModelElementUnion, ModelEntity
+	from pyVHDLModel.Concurrent    import ComponentInstantiation, EntityInstantiation
+	from pyVHDLModel.DesignUnit    import Component as _Component, DesignUnit as _DesignUnit, Architecture
+	from pyVHDLModel.Expression    import Literal as _Literal
+	from pyVHDLModel.Instantiation import PackageInstantiation
+	from pyVHDLModel.Namespace     import Namespace as _Namespace, Import as _Import
 
 
 ElementType = TypeVar("ElementType", bound="ModelEntity")  #: Type of the model entity to remove, which is still in use.
@@ -2032,6 +2033,157 @@ class PackageInstantiationNotLinkedError(VHDLModelException, InstantiationNotLin
 
 		self._instantiationName = instantiationName
 		self._genericName =       genericPackageName
+
+
+@export
+class LibraryNotVisibleError(Exception):
+	"""
+	The exception is raised when a design unit references a library, whose name no library clause made visible.
+
+	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
+	``class UseClauseLibraryNotVisibleError(VHDLModelException, LibraryNotVisibleError)``. It has no initializer of its
+	own; the derived exception sets the fields.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.UseClauseLibraryNotVisibleError`
+	      |rarr| Library of a use clause not visible.
+	   :exc:`~pyVHDLModel.Exception.ContextReferenceLibraryNotVisibleError`
+	      |rarr| Library of a context reference not visible.
+	   :exc:`~pyVHDLModel.Exception.PackageInstantiationLibraryNotVisibleError`
+	      |rarr| Library of a package instantiation's generic package not visible.
+	   :exc:`~pyVHDLModel.Exception.EntityInstantiationLibraryNotVisibleError`
+	      |rarr| Library of a direct entity instantiation not visible.
+	"""
+
+	_libraryName: str          #: The name of the library, which isn't visible.
+	_designUnit:  _DesignUnit  #: The design unit referencing the library.
+
+	@readonly
+	def LibraryName(self) -> str:
+		"""
+		Read-only property to access the library name (:attr:`_libraryName`).
+
+		:returns: The name of the library, which isn't visible.
+		"""
+		return self._libraryName
+
+	@readonly
+	def DesignUnit(self) -> _DesignUnit:
+		"""
+		Read-only property to access the design unit referencing the library (:attr:`_designUnit`).
+
+		:returns: The design unit referencing the library.
+		"""
+		return self._designUnit
+
+
+@export
+class UseClauseLibraryNotVisibleError(VHDLModelException, LibraryNotVisibleError):
+	"""
+	This exception is raised, when a use clause references a library, whose name no library clause made visible.
+
+	Message: :pycode:`f"Use clause references library '{libraryName}', which was not referenced by a library clause."`
+	"""
+
+	def __init__(self, libraryName: str, designUnit: _DesignUnit) -> None:
+		"""
+		Initializes the exception message based on the given library name and design unit.
+
+		:param libraryName: The name of the library, which isn't visible.
+		:param designUnit:  The design unit containing the use clause.
+		"""
+		super().__init__(
+			f"Use clause references library '{libraryName}', which was not referenced by a library clause."
+		)
+
+		self._libraryName = libraryName
+		self._designUnit =  designUnit
+
+
+@export
+class ContextReferenceLibraryNotVisibleError(VHDLModelException, LibraryNotVisibleError):
+	"""
+	This exception is raised, when a context reference references a library, whose name no library clause made visible.
+
+	Message: :pycode:`f"Context reference references library '{libraryName}', which was not referenced by a library clause."`
+	"""
+
+	def __init__(self, libraryName: str, designUnit: _DesignUnit) -> None:
+		"""
+		Initializes the exception message based on the given library name and design unit.
+
+		:param libraryName: The name of the library, which isn't visible.
+		:param designUnit:  The design unit containing the context reference.
+		"""
+		super().__init__(
+			f"Context reference references library '{libraryName}', which was not referenced by a library clause."
+		)
+
+		self._libraryName = libraryName
+		self._designUnit =  designUnit
+
+
+@export
+class PackageInstantiationLibraryNotVisibleError(VHDLModelException, LibraryNotVisibleError):
+	"""
+	This exception is raised, when a package instantiation references a library, whose name no library clause made
+	visible.
+
+	Message: :pycode:`f"Package instantiation of '{packageInstantiation._identifier}' references library '{libraryName}', which was not referenced by a library clause."`
+	"""
+
+	def __init__(self, libraryName: str, packageInstantiation: PackageInstantiation) -> None:
+		"""
+		Initializes the exception message based on the given library name and package instantiation.
+
+		:param libraryName:          The name of the library, which isn't visible.
+		:param packageInstantiation: The package instantiation referencing the generic package in that library.
+		"""
+		super().__init__(
+			f"Package instantiation of '{packageInstantiation._identifier}' references library '{libraryName}', which was "
+			"not referenced by a library clause."
+		)
+
+		self._libraryName = libraryName
+		self._designUnit =  packageInstantiation
+
+
+@export
+class EntityInstantiationLibraryNotVisibleError(VHDLModelException, LibraryNotVisibleError):
+	"""
+	This exception is raised, when a direct entity instantiation references a library, whose name no library clause made
+	visible.
+
+	Message: :pycode:`f"Referenced library '{libraryName}' in direct entity instantiation '{label}: entity {entityName!s}' not found in architecture '{architecture!r}'."`
+	"""
+
+	_instantiation: EntityInstantiation  #: The direct entity instantiation referencing the library.
+
+	def __init__(self, instantiation: EntityInstantiation, architecture: Architecture) -> None:
+		"""
+		Initializes the exception message based on the given direct entity instantiation and architecture.
+
+		:param instantiation: The direct entity instantiation referencing the library.
+		:param architecture:  The architecture containing the instantiation.
+		"""
+		super().__init__(
+			f"Referenced library '{instantiation._entity._name._prefix._identifier}' in direct entity instantiation "
+			f"'{instantiation._label}: entity {instantiation._entity._name!s}' not found in architecture '{architecture!r}'."
+		)
+
+		self._libraryName =   instantiation._entity._name._prefix._identifier
+		self._designUnit =    architecture
+		self._instantiation = instantiation
+
+	@readonly
+	def Instantiation(self) -> EntityInstantiation:
+		"""
+		Read-only property to access the direct entity instantiation (:attr:`_instantiation`).
+
+		:returns: The direct entity instantiation referencing the library.
+		"""
+		return self._instantiation
 
 
 @export

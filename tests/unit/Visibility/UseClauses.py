@@ -43,7 +43,10 @@ from pyVHDLModel.DesignUnit    import Architecture, Component, Context, ContextR
                                       Package, PackageBody
 from pyVHDLModel.Exception     import InstantiationNotLinkedError, LibraryNotFoundError, \
                                       PackageInstantiationNotLinkedError, UnresolvedNameWarning, \
-                                      UnresolvedTypeMarkWarning, VHDLModelException
+                                      UnresolvedTypeMarkWarning, VHDLModelException, LibraryNotVisibleError, \
+                                      UseClauseLibraryNotVisibleError, ContextReferenceLibraryNotVisibleError, \
+                                      PackageInstantiationLibraryNotVisibleError, \
+                                      EntityInstantiationLibraryNotVisibleError
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericTypeInterfaceItem
 from pyVHDLModel.Name          import SelectedName, SimpleName
@@ -499,7 +502,7 @@ class LibraryNames(Testcase):
 
 	def test_UseClause_NoLibraryClause(self) -> None:
 		"""``use lib.p.all;`` in library ``lib``."""
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(UseClauseLibraryNotVisibleError) as context:
 			_design(self._package, Entity("e", [_use("lib.p.all")]))
 
 		self.assertEqual(
@@ -507,6 +510,8 @@ class LibraryNames(Testcase):
 			str(context.exception)
 		)
 		self.assertListEqual(["Add a library clause like: 'library lib;'."], context.exception.__notes__)
+		self.assertIsInstance(context.exception, LibraryNotVisibleError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_UseClause_LibraryClause(self) -> None:
 		"""``library lib; use lib.p.all;`` in library ``lib``."""
@@ -527,13 +532,15 @@ class LibraryNames(Testcase):
 		"""``architecture rtl of e is use lib.p.all;`` in library ``lib``."""
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_use("lib.p.all")])
 
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(UseClauseLibraryNotVisibleError) as context:
 			_design(self._package, Entity("e"), architecture)
 
 		self.assertEqual(
 			"Use clause references library 'lib', which was not referenced by a library clause.",
 			str(context.exception)
 		)
+		self.assertIsInstance(context.exception, LibraryNotVisibleError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_UseClause_LibraryClauseOfPrimaryUnit(self) -> None:
 		"""``library lib; entity e ...; architecture rtl of e is use lib.p.all;`` (GHDL accepts)."""
@@ -574,13 +581,15 @@ class LibraryNames(Testcase):
 		"""``use lib.p;`` in library ``lib``: the prefix isn't visible."""
 		entity = Entity("e", [_use("lib.p")])
 
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(UseClauseLibraryNotVisibleError) as context:
 			_design(self._package, entity)
 
 		self.assertEqual(
 			"Use clause references library 'lib', which was not referenced by a library clause.",
 			str(context.exception)
 		)
+		self.assertIsInstance(context.exception, LibraryNotVisibleError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_UseStd_NoLibraryClause(self) -> None:
 		"""``use std.textio.all;`` in an entity."""
@@ -591,7 +600,7 @@ class LibraryNames(Testcase):
 
 	def test_ContextDeclaration_UseStd_NoLibraryClause(self) -> None:
 		"""``context c is use std.textio.all; end context;``: a context has no implicit ``library std;`` (13.2)."""
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(UseClauseLibraryNotVisibleError) as context:
 			_design(Context("c", [_use("std.textio.all")]))
 
 		self.assertEqual(
@@ -599,6 +608,8 @@ class LibraryNames(Testcase):
 			str(context.exception)
 		)
 		self.assertListEqual(["Add a library clause like: 'library std;'."], context.exception.__notes__)
+		self.assertIsInstance(context.exception, LibraryNotVisibleError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_ContextDeclaration_UseStd_LibraryClause(self) -> None:
 		"""``context c is library std; use std.textio.all; end context;``."""
@@ -623,7 +634,7 @@ class LibraryNames(Testcase):
 
 	def test_ContextDeclaration_NoLibraryClause(self) -> None:
 		"""``context c is use lib.p.all; end context;`` in library ``lib``."""
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(UseClauseLibraryNotVisibleError) as context:
 			_design(self._package, Context("c", [_use("lib.p.all")]))
 
 		self.assertEqual(
@@ -631,10 +642,12 @@ class LibraryNames(Testcase):
 			str(context.exception)
 		)
 		self.assertListEqual(["Add a library clause like: 'library lib;'."], context.exception.__notes__)
+		self.assertIsInstance(context.exception, LibraryNotVisibleError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_ContextReference_NoLibraryClause(self) -> None:
 		"""``context lib.c;`` in library ``lib``."""
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(ContextReferenceLibraryNotVisibleError) as context:
 			_design(Context("c"), Entity("e", [_contextReference("lib", "c")]))
 
 		self.assertEqual(
@@ -642,6 +655,8 @@ class LibraryNames(Testcase):
 			str(context.exception)
 		)
 		self.assertListEqual(["Add a library clause like: 'library lib;'."], context.exception.__notes__)
+		self.assertIsInstance(context.exception, LibraryNotVisibleError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_ContextReference_LibraryClause(self) -> None:
 		"""``library lib; context lib.c;`` in library ``lib``."""
@@ -678,7 +693,7 @@ class LibraryNames(Testcase):
 		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")])
 		instantiation =  PackageInstantiation("i", PackageReferenceSymbol(SelectedName("gp", SimpleName("lib"))))
 
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(PackageInstantiationLibraryNotVisibleError) as context:
 			_design(genericPackage, instantiation)
 
 		self.assertEqual(
@@ -686,6 +701,10 @@ class LibraryNames(Testcase):
 			str(context.exception)
 		)
 		self.assertListEqual(["Add a library clause like: 'library lib;'."], context.exception.__notes__)
+		self.assertEqual("lib", context.exception.LibraryName)
+		self.assertIs(instantiation, context.exception.DesignUnit)
+		self.assertIsInstance(context.exception, LibraryNotVisibleError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_PackageInstantiation_LibraryClause(self) -> None:
 		"""``library lib; package i is new lib.gp generic map (...);`` in library ``lib``."""
@@ -712,7 +731,7 @@ class LibraryNames(Testcase):
 		instantiation = EntityInstantiation("inst", EntityInstantiationSymbol(SelectedName("e1", SimpleName("lib"))))
 		architecture =  Architecture("rtl", _entitySymbol("e2"), statements=[instantiation])
 
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(EntityInstantiationLibraryNotVisibleError) as context:
 			_design(Entity("e1"), Entity("e2"), architecture)
 
 		self.assertEqual(
@@ -724,6 +743,11 @@ class LibraryNames(Testcase):
 			["Add a library reference to the architecture or entity using a library clause like: 'library lib;'."],
 			context.exception.__notes__
 		)
+		self.assertEqual("lib", context.exception.LibraryName)
+		self.assertIs(architecture, context.exception.DesignUnit)
+		self.assertIs(instantiation, context.exception.Instantiation)
+		self.assertIsInstance(context.exception, LibraryNotVisibleError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_EntityInstantiation_LibraryClause(self) -> None:
 		"""``library lib; entity e2 ...; inst: entity lib.e1;`` in library ``lib``."""

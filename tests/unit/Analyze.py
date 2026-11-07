@@ -43,7 +43,8 @@ from pyVHDLModel.Configuration import BlockConfiguration
 from pyVHDLModel.Concurrent import EntityInstantiation, ComponentInstantiation
 from pyVHDLModel.Object import Variable
 from pyVHDLModel.Exception import NotImplementedWarning, BlackboxWarning, DuplicateDeclarationWarning, \
-                                  LibraryNotFoundError, PackageNotFoundError
+                                  LibraryNotFoundError, PackageNotFoundError, LibraryNotVisibleError, \
+                                  EntityInstantiationLibraryNotVisibleError
 
 from pyTooling.Warning         import UnhandledCriticalWarningError, WarningCollector
 from pyTooling.Testing         import Testcase
@@ -271,7 +272,7 @@ class LinkInstantiations(Testcase):
 	def test_EntityInstantiation_LibraryNotReferenced(self) -> None:
 		design = self._designWithEntityInstantiation(SelectedName("entity_A", SimpleName("lib_2")))
 
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(EntityInstantiationLibraryNotVisibleError) as context:
 			design.Analyze()
 
 		self.assertEqual(
@@ -279,6 +280,8 @@ class LinkInstantiations(Testcase):
 			"architecture 'lib_1.entity_B(arch_B)'.",
 			str(context.exception)
 		)
+		self.assertIsInstance(context.exception, LibraryNotVisibleError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 
 class StdLibraryNotLoaded(Testcase):

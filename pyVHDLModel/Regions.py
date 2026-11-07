@@ -2386,9 +2386,8 @@ class DeclarationRegionMixin(
 		:param existing: The existing declaration.
 		:returns:        ``True``, if both declarations may share an identifier.
 		"""
-		from pyVHDLModel.Interface  import InterfaceItemMixin
-		from pyVHDLModel.Subprogram import Function, Procedure
-		from pyVHDLModel.Type       import FullType, AnonymousType, ProtectedType, ProtectedTypeBody
+		from pyVHDLModel.Interface import InterfaceItemMixin
+		from pyVHDLModel.Type      import FullType, AnonymousType, ProtectedType, ProtectedTypeBody
 
 		return (
 			(item.IsOverloadable and existing.IsOverloadable)

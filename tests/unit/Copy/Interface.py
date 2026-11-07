@@ -250,7 +250,8 @@ class GenericItems(Testcase):
 		self.assertEqual("cmp", copy.Identifier)
 		self.assertIsNot(returnType, copy.ReturnType)
 		self.assertEqual("boolean", copy.ReturnType.Name.Identifier)
-		self.assertEqual(1, copy.ParameterCount)
+		self.assertEqual(1, len(copy.ParameterItems))
+		self.assertEqual(2, copy.ParameterCount)
 		self.assertIsNot(parameter, copy.ParameterItems[0])
 		self.assertIs(copy, copy.ParameterItems[0].Parent)
 

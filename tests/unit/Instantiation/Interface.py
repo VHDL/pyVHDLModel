@@ -345,6 +345,38 @@ class WithGenericsPortsParametersMixins(Testcase):
 
 		self.assertEqual(1, host.ParameterCount)
 
+	def test_GenericCount_Identifiers(self) -> None:
+		"""A generic constant item with several identifiers declares several generics."""
+		entity = Entity("e", genericItems=[
+			_generic("A", "B"),
+			GenericTypeInterfaceItem("T"),
+			GenericProcedureInterfaceItem("p")
+		])
+
+		self.assertEqual(3, len(entity.GenericItems))
+		self.assertEqual(4, entity.GenericCount)
+
+	def test_PortCount_Identifiers(self) -> None:
+		"""A port item with several identifiers declares several ports."""
+		entity = Entity("e", portItems=[
+			_port("a", "b"),
+			PortSimpleSignalInterfaceItem(["c"], Mode.Out, _subtypeSymbol("bit"))
+		])
+
+		self.assertEqual(2, len(entity.PortItems))
+		self.assertEqual(3, entity.PortCount)
+
+	def test_ParameterCount_Identifiers(self) -> None:
+		"""A parameter item with several identifiers declares several parameters."""
+		procedure = Procedure("p", parameterItems=[
+			_parameter("a", "b"),
+			ParameterVariableInterfaceItem(["v"], Mode.InOut, _subtypeSymbol("integer")),
+			ParameterFileInterfaceItem(["f1", "f2"], _subtypeSymbol("text"))
+		])
+
+		self.assertEqual(3, len(procedure.ParameterItems))
+		self.assertEqual(5, procedure.ParameterCount)
+
 
 class InterfaceItemRendering(Testcase):
 	"""An interface item renders as an object declaration plus its interface mode - an object's own

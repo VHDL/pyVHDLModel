@@ -53,7 +53,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	from pyVHDLModel.Concurrent    import ComponentInstantiation, EntityInstantiation
 	from pyVHDLModel.DesignUnit    import Component as _Component, DesignUnit as _DesignUnit, Architecture
 	from pyVHDLModel.Expression    import Literal as _Literal
-	from pyVHDLModel.Instantiation import PackageInstantiation
+	from pyVHDLModel.Instantiation import PackageInstantiation as _PackageInstantiation
 	from pyVHDLModel.Namespace     import Namespace as _Namespace, Import as _Import
 
 
@@ -796,7 +796,42 @@ class ContextExistsInLibraryError(VHDLModelException):
 
 
 @export
-class ReferencedLibraryNotExistingError(VHDLModelException):
+class LibraryNotInDesignError(Exception):
+	"""
+	The exception is raised when a library is referenced or looked up by name, but doesn't exist in the design.
+
+	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
+	``class LibraryNotFoundError(VHDLModelException, LibraryNotInDesignError)``. It has no initializer of its own; the
+	derived exception sets the fields.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.LibraryNotFoundError`
+	      |rarr| Library looked up by name not found.
+	   :exc:`~pyVHDLModel.Exception.ReferencedLibraryNotExistingError`
+	      |rarr| Library of a context declaration's library clause not found.
+	   :exc:`~pyVHDLModel.Exception.LibraryClauseLibraryNotFoundError`
+	      |rarr| Library of a design unit's library clause not found.
+	   :exc:`~pyVHDLModel.Exception.PackageInstantiationLibraryNotFoundError`
+	      |rarr| Library of a package instantiation's generic package not found.
+	   :exc:`~pyVHDLModel.Exception.EntityInstantiationLibraryNotFoundError`
+	      |rarr| Library of a direct entity instantiation not found.
+	"""
+
+	_libraryName: str  #: The name of the library, which was not found.
+
+	@readonly
+	def LibraryName(self) -> str:
+		"""
+		Read-only property to access the library name (:attr:`_libraryName`).
+
+		:returns: The name of the library, which was not found.
+		"""
+		return self._libraryName
+
+
+@export
+class ReferencedLibraryNotExistingError(VHDLModelException, LibraryNotInDesignError):
 	"""
 	This exception is raised, when a library is referenced by a `library clause`, but doesn't exist in the design.
 
@@ -814,8 +849,9 @@ class ReferencedLibraryNotExistingError(VHDLModelException):
 		:param librarySymbol: The library that already contains the context.
 		"""
 		super().__init__(f"Library '{librarySymbol.Name._identifier}' referenced by library clause of context '{context._identifier}' doesn't exist in design.")
+		self._libraryName =   librarySymbol.Name._identifier
 		self._librarySymbol = librarySymbol
-		self._context = context
+		self._context =       context
 
 	@readonly
 	def LibrarySymbol(self) -> Symbol:
@@ -1817,14 +1853,12 @@ class LibraryInUseError(ElementInUseError["Library", "Document"]):
 
 
 @export
-class LibraryNotFoundError(VHDLModelException):
+class LibraryNotFoundError(VHDLModelException, LibraryNotInDesignError):
 	"""
 	This exception is raised, when a library is looked up by name, but doesn't exist in the design.
 
 	Message: :pycode:`f"Library '{libraryName}' not found in design."`
 	"""
-
-	_libraryName: str  #: The name of the library, which was not found.
 
 	def __init__(self, libraryName: str) -> None:
 		"""
@@ -1835,14 +1869,121 @@ class LibraryNotFoundError(VHDLModelException):
 		super().__init__(f"Library '{libraryName}' not found in design.")
 		self._libraryName = libraryName
 
-	@readonly
-	def LibraryName(self) -> str:
-		"""
-		Read-only property to access the library name (:attr:`_libraryName`).
 
-		:returns: The name of the library, which was not found.
+@export
+class LibraryClauseLibraryNotFoundError(VHDLModelException, LibraryNotInDesignError):
+	"""
+	This exception is raised, when a library clause of a design unit references a library, which doesn't exist in the
+	design.
+
+	Message: :pycode:`f"Library '{librarySymbol.Name._identifier}' referenced by library clause of design unit '{designUnit._identifier}' doesn't exist in design."`
+	"""
+
+	_librarySymbol: _Symbol      #: The library symbol that could not be resolved.
+	_designUnit:    _DesignUnit  #: The design unit containing the library clause.
+
+	def __init__(self, designUnit: _DesignUnit, librarySymbol: _Symbol) -> None:
 		"""
-		return self._libraryName
+		Initializes the exception message based on the given design unit and library symbol.
+
+		:param designUnit:    The design unit containing the library clause.
+		:param librarySymbol: The library symbol that could not be resolved.
+		"""
+		super().__init__(
+			f"Library '{librarySymbol._name._identifier}' referenced by library clause of design unit "
+			f"'{designUnit._identifier}' doesn't exist in design."
+		)
+
+		self._libraryName =   librarySymbol._name._identifier
+		self._librarySymbol = librarySymbol
+		self._designUnit =    designUnit
+
+	@readonly
+	def LibrarySymbol(self) -> _Symbol:
+		"""
+		Read-only property to access the library symbol (:attr:`_librarySymbol`).
+
+		:returns: The library symbol.
+		"""
+		return self._librarySymbol
+
+	@readonly
+	def DesignUnit(self) -> _DesignUnit:
+		"""
+		Read-only property to access the design unit containing the library clause (:attr:`_designUnit`).
+
+		:returns: The design unit.
+		"""
+		return self._designUnit
+
+
+@export
+class PackageInstantiationLibraryNotFoundError(VHDLModelException, LibraryNotInDesignError):
+	"""
+	This exception is raised, when a package instantiation references a library, which doesn't exist in the design.
+
+	Message: :pycode:`f"Package instantiation of '{packageInstantiation._identifier}' references library '{libraryName}', which cannot be found in design."`
+	"""
+
+	_packageInstantiation: _PackageInstantiation  #: The package instantiation referencing the library.
+
+	def __init__(self, libraryName: str, packageInstantiation: _PackageInstantiation) -> None:
+		"""
+		Initializes the exception message based on the given library name and package instantiation.
+
+		:param libraryName:          The name of the library, which was not found.
+		:param packageInstantiation: The package instantiation referencing the generic package in that library.
+		"""
+		super().__init__(
+			f"Package instantiation of '{packageInstantiation._identifier}' references library '{libraryName}', which "
+			"cannot be found in design."
+		)
+
+		self._libraryName =          libraryName
+		self._packageInstantiation = packageInstantiation
+
+	@readonly
+	def PackageInstantiation(self) -> _PackageInstantiation:
+		"""
+		Read-only property to access the package instantiation (:attr:`_packageInstantiation`).
+
+		:returns: The package instantiation referencing the library.
+		"""
+		return self._packageInstantiation
+
+
+@export
+class EntityInstantiationLibraryNotFoundError(VHDLModelException, LibraryNotInDesignError):
+	"""
+	This exception is raised, when a direct entity instantiation references a library, which doesn't exist in the design.
+
+	Message: :pycode:`f"Referenced library '{libraryName}' in direct entity instantiation '{label}: entity {entityName!s}' not found in design."`
+	"""
+
+	_instantiation: EntityInstantiation  #: The direct entity instantiation referencing the library.
+
+	def __init__(self, instantiation: EntityInstantiation) -> None:
+		"""
+		Initializes the exception message based on the given direct entity instantiation.
+
+		:param instantiation: The direct entity instantiation referencing the library.
+		"""
+		super().__init__(
+			f"Referenced library '{instantiation._entity._name._prefix._identifier}' in direct entity instantiation "
+			f"'{instantiation._label}: entity {instantiation._entity._name!s}' not found in design."
+		)
+
+		self._libraryName =   instantiation._entity._name._prefix._identifier
+		self._instantiation = instantiation
+
+	@readonly
+	def Instantiation(self) -> EntityInstantiation:
+		"""
+		Read-only property to access the direct entity instantiation (:attr:`_instantiation`).
+
+		:returns: The direct entity instantiation referencing the library.
+		"""
+		return self._instantiation
 
 
 @export
@@ -2133,7 +2274,7 @@ class PackageInstantiationLibraryNotVisibleError(VHDLModelException, LibraryNotV
 	Message: :pycode:`f"Package instantiation of '{packageInstantiation._identifier}' references library '{libraryName}', which was not referenced by a library clause."`
 	"""
 
-	def __init__(self, libraryName: str, packageInstantiation: PackageInstantiation) -> None:
+	def __init__(self, libraryName: str, packageInstantiation: _PackageInstantiation) -> None:
 		"""
 		Initializes the exception message based on the given library name and package instantiation.
 

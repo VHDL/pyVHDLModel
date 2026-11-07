@@ -80,7 +80,8 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       LibraryInUseError, PackageInstantiationNotLinkedError, \
                                       UseClauseLibraryNotVisibleError, ContextReferenceLibraryNotVisibleError, \
                                       PackageInstantiationLibraryNotVisibleError, \
-                                      EntityInstantiationLibraryNotVisibleError
+                                      EntityInstantiationLibraryNotVisibleError, LibraryClauseLibraryNotFoundError, \
+                                      PackageInstantiationLibraryNotFoundError, EntityInstantiationLibraryNotFoundError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Name          import AllName
 from pyVHDLModel.Namespace     import Namespace
@@ -1936,10 +1937,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   :meth:`AnalyzeDependencies`
 		     Analyze dependencies and link relations.
 
-		:raises LibraryNotFoundError: If library ``std`` isn't loaded. |br|
-		                              Call :meth:`LoadStdLibrary` before.
-		:raises VHDLModelException:   If a secondary unit is neither an architecture nor a package body.
-		:raises VHDLModelException:   If a library clause references a library, which doesn't exist in the design.
+		:raises LibraryNotFoundError:              If library ``std`` isn't loaded. |br|
+		                                           Call :meth:`LoadStdLibrary` before.
+		:raises VHDLModelException:                If a secondary unit is neither an architecture nor a package body.
+		:raises LibraryClauseLibraryNotFoundError: If a library clause references a library, which doesn't exist in the
+		                                           design.
 		"""
 		DEFAULT_LIBRARIES = ("std",)
 
@@ -1996,7 +1998,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					try:
 						library = self._libraries[libraryIdentifier]
 					except KeyError:
-						ex = VHDLModelException(f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+						ex = LibraryClauseLibraryNotFoundError(designUnit, librarySymbol)
 						ex.add_note(f"""Known libraries: '{"', '".join(library for library in self._libraries)}'""")
 						raise ex
 
@@ -2618,10 +2620,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					try:
 						library = self._libraries[normalizedLibraryIdentifier]
 					except KeyError:
-						ex = VHDLModelException(
-							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
-							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in design."
-						)
+						ex = EntityInstantiationLibraryNotFoundError(instance)
 						ex.add_note(f"No design units were parsed into library '{libraryIdentifier}'. Thus it doesn't exist in design.")
 						raise ex
 
@@ -3322,7 +3321,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		      * Set parent namespace of package body's namespace to the package's namespace.
 		      * Add an edge in the dependency graph from the package body's corresponding dependency vertex to the package's corresponding dependency vertex.
 
-		:raises VHDLModelException:                         If the library of the generic package doesn't exist in the
+		:raises PackageInstantiationLibraryNotFoundError:   If the library of the generic package doesn't exist in the
 		                                                    design.
 		:raises PackageInstantiationLibraryNotVisibleError: If the name of that library isn't visible
 		                                                    (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
@@ -3350,7 +3349,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 					library: Library = self
 					libraryIdentifier = library.NormalizedIdentifier
 				elif libraryIdentifier not in self._parent._libraries:
-					raise VHDLModelException(f"Package instantiation of '{packageInstanceName}' references library '{libraryName.Identifier}', which cannot be found in design.")
+					raise PackageInstantiationLibraryNotFoundError(libraryName.Identifier, packageInstance)
 				elif not packageInstance.IsLibraryVisible(libraryIdentifier):
 					ex = PackageInstantiationLibraryNotVisibleError(libraryName.Identifier, packageInstance)
 					ex.add_note(f"Add a library clause like: 'library {libraryName.Identifier};'.")

@@ -46,7 +46,9 @@ from pyVHDLModel.Exception     import InstantiationNotLinkedError, LibraryNotFou
                                       UnresolvedTypeMarkWarning, VHDLModelException, LibraryNotVisibleError, \
                                       UseClauseLibraryNotVisibleError, ContextReferenceLibraryNotVisibleError, \
                                       PackageInstantiationLibraryNotVisibleError, \
-                                      EntityInstantiationLibraryNotVisibleError
+                                      EntityInstantiationLibraryNotVisibleError, LibraryNotInDesignError, \
+                                      ReferencedLibraryNotExistingError, LibraryClauseLibraryNotFoundError, \
+                                      PackageInstantiationLibraryNotFoundError, EntityInstantiationLibraryNotFoundError
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericTypeInterfaceItem
 from pyVHDLModel.Name          import SelectedName, SimpleName
@@ -631,6 +633,39 @@ class LibraryNames(Testcase):
 
 		self.assertEqual("Library 'nolib' not found in design.", str(context.exception))
 		self.assertIsInstance(context.exception.__cause__, KeyError)
+		self.assertIsInstance(context.exception, LibraryNotInDesignError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_ContextDeclaration_LibraryClauseNotInDesign(self) -> None:
+		"""``context c is library nolib; end context;``: the library doesn't exist."""
+		with self.assertRaises(ReferencedLibraryNotExistingError) as context:
+			_design(Context("c", [_libraryClause("nolib")]))
+
+		self.assertEqual(
+			"Library 'nolib' referenced by library clause of context 'c' doesn't exist in design.",
+			str(context.exception)
+		)
+		self.assertEqual("nolib", context.exception.LibraryName)
+		self.assertIsInstance(context.exception, LibraryNotInDesignError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_LibraryClause_NotInDesign(self) -> None:
+		"""``library nolib; entity e ...;``: the library doesn't exist."""
+		entity = Entity("e", [_libraryClause("nolib")])
+
+		with self.assertRaises(LibraryClauseLibraryNotFoundError) as context:
+			_design(entity)
+
+		self.assertEqual(
+			"Library 'nolib' referenced by library clause of design unit 'e' doesn't exist in design.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Known libraries: 'std', 'ieee', 'lib'"], context.exception.__notes__)
+		self.assertEqual("nolib", context.exception.LibraryName)
+		self.assertIs(entity, context.exception.DesignUnit)
+		self.assertIs(entity._libraryReferences[0]._symbols[0], context.exception.LibrarySymbol)
+		self.assertIsInstance(context.exception, LibraryNotInDesignError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_ContextDeclaration_NoLibraryClause(self) -> None:
 		"""``context c is use lib.p.all; end context;`` in library ``lib``."""
@@ -718,13 +753,17 @@ class LibraryNames(Testcase):
 		"""``package i is new nolib.gp generic map (...);``: the library doesn't exist."""
 		instantiation = PackageInstantiation("i", PackageReferenceSymbol(SelectedName("gp", SimpleName("nolib"))))
 
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(PackageInstantiationLibraryNotFoundError) as context:
 			_design(instantiation)
 
 		self.assertEqual(
 			"Package instantiation of 'i' references library 'nolib', which cannot be found in design.",
 			str(context.exception)
 		)
+		self.assertEqual("nolib", context.exception.LibraryName)
+		self.assertIs(instantiation, context.exception.PackageInstantiation)
+		self.assertIsInstance(context.exception, LibraryNotInDesignError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_EntityInstantiation_NoLibraryClause(self) -> None:
 		"""``inst: entity lib.e1;`` in library ``lib``."""
@@ -747,6 +786,31 @@ class LibraryNames(Testcase):
 		self.assertIs(architecture, context.exception.DesignUnit)
 		self.assertIs(instantiation, context.exception.Instantiation)
 		self.assertIsInstance(context.exception, LibraryNotVisibleError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_EntityInstantiation_NotInDesign(self) -> None:
+		"""``library nolib; entity e2 ...; inst: entity nolib.e1;``: linking instantiations before library clauses."""
+		instantiation = EntityInstantiation("inst", EntityInstantiationSymbol(SelectedName("e1", SimpleName("nolib"))))
+		architecture =  Architecture("rtl", _entitySymbol("e2"), statements=[instantiation])
+		design =        _design(Entity("e2", [_libraryClause("nolib")]), architecture, analyze=False)
+		design.CreateDependencyGraph()
+		design.IndexArchitectures()
+		design.LinkArchitectures()
+
+		with self.assertRaises(EntityInstantiationLibraryNotFoundError) as context:
+			design.LinkInstantiations()
+
+		self.assertEqual(
+			"Referenced library 'nolib' in direct entity instantiation 'inst: entity nolib.e1' not found in design.",
+			str(context.exception)
+		)
+		self.assertListEqual(
+			["No design units were parsed into library 'nolib'. Thus it doesn't exist in design."],
+			context.exception.__notes__
+		)
+		self.assertEqual("nolib", context.exception.LibraryName)
+		self.assertIs(instantiation, context.exception.Instantiation)
+		self.assertIsInstance(context.exception, LibraryNotInDesignError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_EntityInstantiation_LibraryClause(self) -> None:

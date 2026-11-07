@@ -146,8 +146,9 @@ class Name(ModelEntity):
 			self._prefix = None
 			self._root = self
 		else:
-			self._prefix = prefix
-			self._root = prefix._root
+			self._prefix =  prefix
+			self._root =    prefix._root
+			prefix.Parent = self
 
 	@readonly
 	def Identifier(self) -> str:

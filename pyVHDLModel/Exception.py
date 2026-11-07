@@ -41,7 +41,8 @@ from pathlib                  import Path
 from typing                   import TYPE_CHECKING, ClassVar, Generic, Optional as Nullable, TypeVar, Union
 
 from pyTooling.Decorators     import export, readonly
-from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError, InUseError
+from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError, InUseError, \
+                                     NotAChildError as CommonNotAChildError
 from pyTooling.Warning        import Warning, CriticalWarning
 
 from pyVHDLModel.Symbol       import Symbol
@@ -895,7 +896,7 @@ class AlreadyInDesignError(VHDLModelException, AlreadyInHierarchyError):
 
 
 @export
-class NotAChildError(VHDLModelException):
+class NotAChildError(VHDLModelException, CommonNotAChildError):
 	"""
 	This exception is raised, when a model entity is removed from a parent, but it isn't a child of that parent.
 	"""

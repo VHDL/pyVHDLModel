@@ -745,6 +745,11 @@ class VHDLDocumentArchitectures(Testcase):
 
 
 class VHDLLibrary(Testcase):
+	def test_IsPredefined(self) -> None:
+		"""A library built by the model isn't predefined, a predefined library (e.g. ``std``) is."""
+		self.assertFalse(Library("lib").IsPredefined)
+		self.assertTrue(Std().IsPredefined)
+
 	def test_DocumentationFromInitializer(self) -> None:
 		"""VHDL has no library declaration to hang a comment on, so a caller supplies one."""
 		library = Library("lib_1", "--! From a compile-order file.")

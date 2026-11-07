@@ -1368,8 +1368,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		3. Clear the references of all design units: referenced libraries, packages and contexts, the symbols of library
 		   clauses, use clauses and context references, and the items imported into namespaces. Use clauses in declarative
 		   regions nested in a design unit are cleared too, as are the references of type marks and alias names
-		   (:meth:`ResolveTypeMarks`) and the base types of subtypes; a subtype of library ``std`` or ``ieee`` keeps its
-		   base type.
+		   (:meth:`ResolveTypeMarks`) and the base types of subtypes; a subtype of a predefined library
+		   (:attr:`Library.IsPredefined`) keeps its base type.
 		4. Unlink architectures from entities and package bodies from packages: an entity's architectures, a package's
 		   body, the symbols referencing the entity or package, and the link to the parent namespace.
 		5. Unlink package instantiations from their generic package: the symbol and the components copied from it.
@@ -1522,7 +1522,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		.. rubric:: Algorithm
 
-		1. Iterate the design units of the predefined libraries ``std`` and ``ieee``, then the design units of all
+		1. Iterate the design units of the predefined libraries (:attr:`Library.IsPredefined`), then the design units of all
 		   documents in compile order (the compile-order graph, :meth:`ComputeCompileOrder`), so a package is resolved
 		   before its users.
 		2. Iterate the declarative regions of each design unit, the outermost first
@@ -1560,8 +1560,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
 		designUnits = []
-		for libraryIdentifier in ("std", "ieee"):
-			if (library := self._libraries.get(libraryIdentifier)) is not None:
+		for library in self._libraries.values():
+			if library.IsPredefined:
 				designUnits.extend(library.IterateDesignUnits(DesignUnitKind.WithDeclaredItems))
 
 		if self._compileOrderGraph.VertexCount > 0:
@@ -3080,6 +3080,20 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		:returns: Dictionary of all package bodies, indexed by normalized identifier.
 		"""
 		return self._packageBodies
+
+	@readonly
+	def IsPredefined(self) -> bool:
+		"""
+		Check if the library is a predefined library built by pyVHDLModel.
+
+		A predefined library is a :class:`~pyVHDLModel.Predefined.PredefinedLibrary`, e.g. ``std``.
+
+		Its declarations are complete when constructed, e.g. a subtype has its base type, so an analysis neither resolves
+		nor resets them. A library ``std`` or ``ieee`` read from VHDL source files isn't predefined in this sense.
+
+		:returns: ``False``
+		"""
+		return False
 
 	@readonly
 	def DependencyVertex(self) -> Vertex:

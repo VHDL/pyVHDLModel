@@ -322,15 +322,15 @@ class Subtype(BaseType):
 
 	def ResetReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
 		"""
-		Reset the reference of this subtype's type mark and its base type; a subtype of library ``std`` or ``ieee`` keeps
-		its base type.
+		Reset the reference of this subtype's type mark and its base type; a subtype of a predefined library
+		(:attr:`~pyVHDLModel.Library.IsPredefined`) keeps its base type.
 
 		:param designUnit: The design unit containing this declaration.
 		:param region:     The declarative region declaring this declaration.
 		"""
 		super().ResetReferences(designUnit, region)
 
-		if designUnit._parent._normalizedIdentifier not in ("std", "ieee"):
+		if not designUnit._parent.IsPredefined:
 			self._baseType = None
 
 	def Visit(self, visitor: Visitor) -> None:

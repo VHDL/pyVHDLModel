@@ -72,7 +72,7 @@ def _selectedSubtypeSymbol(*identifiers: str) -> SimpleSubtypeSymbol:
 
 
 class Places(Testcase):
-	"""Every kind of declaration resolves its type marks (B001-B031, B053)."""
+	"""Every kind of declaration resolves its type marks."""
 
 	def setUp(self) -> None:
 		self._type =    _enumeration("T", "a", "b")
@@ -129,7 +129,7 @@ class Places(Testcase):
 		self.assertIs(self._type, file.DesignatedSubtype.Reference)
 
 	def test_Subtype_BaseType(self) -> None:
-		"""A subtype of a subtype has the type as base type (B019)."""
+		"""A subtype of a subtype has the type as base type."""
 		first =  Subtype("ST1", _subtypeSymbol("T"))
 		second = Subtype("ST2", _subtypeSymbol("ST1"))
 		self._architecture(first, second)
@@ -139,7 +139,7 @@ class Places(Testcase):
 		self.assertIs(self._type, second.BaseType)
 
 	def test_Subprogram(self) -> None:
-		"""Parameter and return type marks (B021, B023)."""
+		"""Parameter and return type marks."""
 		parameter = ParameterConstantInterfaceItem(("x", ), Mode.In, _subtypeSymbol("T"))
 		function =  Function("f", _subtypeSymbol("T"), parameterItems=[parameter])
 		self._architecture(function)
@@ -154,7 +154,7 @@ class Places(Testcase):
 		self.assertIs(self._type, attribute.Subtype.Reference)
 
 	def test_Alias(self) -> None:
-		"""Alias with a subtype indication (B009), alias of a type as type mark (B047)."""
+		"""Alias with a subtype indication, alias of a type as type mark."""
 		constant =    _constant("c", "T")
 		objectAlias = Alias("al", SimpleObjectOrFunctionCallSymbol(SimpleName("c")), _subtypeSymbol("T"))
 		typeAlias =   Alias("AT", SimpleSubtypeSymbol(SimpleName("integer")))
@@ -174,7 +174,7 @@ class Places(Testcase):
 		self.assertIs(self._type, port.Subtype.Reference)
 
 	def test_GenericType(self) -> None:
-		"""A generic type is the target of a type mark (B026)."""
+		"""A generic type is the target of a type mark."""
 		genericType = GenericTypeInterfaceItem("GT")
 		port =        PortSimpleSignalInterfaceItem(("i", ), Mode.In, _subtypeSymbol("GT"))
 		entity =      Entity("e", genericItems=[genericType], portItems=[port])
@@ -183,7 +183,7 @@ class Places(Testcase):
 		self.assertIs(genericType, port.Subtype.Reference)
 
 	def test_ProtectedTypeMethod(self) -> None:
-		"""A method's parameter sees the declarations around the protected type (B053)."""
+		"""A method's parameter sees the declarations around the protected type."""
 		parameter = ParameterConstantInterfaceItem(("x", ), Mode.In, _subtypeSymbol("T"))
 		method =    Procedure("set", parameterItems=[parameter])
 		protected = ProtectedType("PT", [method])
@@ -192,7 +192,7 @@ class Places(Testcase):
 		self.assertIs(self._type, parameter.Subtype.Reference)
 
 	def test_PackageBody(self) -> None:
-		"""A package body sees the package declaration's types (B058)."""
+		"""A package body sees the package declaration's types."""
 		local =       _enumeration("LT", "x", "y")
 		constant =    _constant("c", "LT")
 		package =     Package("q", declaredItems=[local])
@@ -312,7 +312,7 @@ class DeclarationTypeMarks(Testcase):
 
 
 class Names(Testcase):
-	"""Simple names and expanded names (B032-B039, B046)."""
+	"""Simple names and expanded names."""
 
 	def setUp(self) -> None:
 		self._type =    _enumeration("T", "a", "b")
@@ -337,7 +337,7 @@ class Names(Testcase):
 		self.assertIs(stdLogic1164.Types["std_ulogic"], stdLogic1164.Subtypes["std_logic"].Type.Reference)
 
 	def test_PackageName_ViaUsePackage(self) -> None:
-		"""``use work.p; signal s : p.T;`` (B032)."""
+		"""``use work.p; signal s : p.T;``."""
 		constant = Constant(("c", ), _selectedSubtypeSymbol("p", "T"))
 		entity =   Entity("e", [_use("work.p")], declaredItems=[constant])
 		self.assertListEqual([], _resolve(_design(self._package, entity, analyze=False)))
@@ -345,14 +345,14 @@ class Names(Testcase):
 		self.assertIs(self._type, constant.Subtype.Reference)
 
 	def test_WorkPackage(self) -> None:
-		"""``work.p.T`` without a use clause (B033)."""
+		"""``work.p.T`` without a use clause."""
 		constant = Constant(("c", ), _selectedSubtypeSymbol("work", "p", "T"))
 		self.assertListEqual([], _resolve(_design(self._package, Entity("e", declaredItems=[constant]), analyze=False)))
 
 		self.assertIs(self._type, constant.Subtype.Reference)
 
 	def test_LibraryPackage(self) -> None:
-		"""``ieee.std_logic_1164.std_logic`` with a library clause (B039)."""
+		"""``ieee.std_logic_1164.std_logic`` with a library clause."""
 		constant = Constant(("c", ), _selectedSubtypeSymbol("ieee", "std_logic_1164", "std_logic"))
 		entity =   Entity("e", [LibraryClause([LibraryReferenceSymbol(SimpleName("ieee"))])], declaredItems=[constant])
 		design =   _design(entity, analyze=False)
@@ -361,7 +361,7 @@ class Names(Testcase):
 		self.assertIs(design.GetPackage("ieee", "std_logic_1164").Subtypes["std_logic"], constant.Subtype.Reference)
 
 	def test_LocalTypeHidesImported(self) -> None:
-		"""A process' type hides the imported type (B048, B056)."""
+		"""A process' type hides the imported type."""
 		local =        _enumeration("T", "x", "y")
 		variable =     Variable(("v", ), _subtypeSymbol("T"))
 		process =      ProcessStatement("proc", declaredItems=[local, variable])
@@ -372,7 +372,7 @@ class Names(Testcase):
 
 
 class IncompleteTypes(Testcase):
-	"""An incomplete type declaration and its full type declaration (B040, B062)."""
+	"""An incomplete type declaration and its full type declaration."""
 
 	def test_Completed(self) -> None:
 		incomplete =   AnonymousType("node")
@@ -396,7 +396,7 @@ class IncompleteTypes(Testcase):
 
 
 class Diagnostics(Testcase):
-	"""An unresolved type mark is an :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning` (B002-B045)."""
+	"""An unresolved type mark is an :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`."""
 
 	def test_NotFound(self) -> None:
 		signal =       _signal("s", "U")
@@ -428,7 +428,7 @@ class Diagnostics(Testcase):
 		self.assertEqual("Type mark 'LT' not found in: rtl, e.", str(warnings[0]))
 
 	def test_Ambiguous(self) -> None:
-		"""Two use clauses import a type ``T`` (B044)."""
+		"""Two use clauses import a type ``T``."""
 		signal =   _signal("s", "T")
 		first =    Package("p1", declaredItems=[_enumeration("T", "a")])
 		second =   Package("p2", declaredItems=[_enumeration("T", "b")])
@@ -440,7 +440,7 @@ class Diagnostics(Testcase):
 		self.assertEqual(2, len(warnings[0].Conflicts))
 
 	def test_NotAType(self) -> None:
-		"""``signal s : K;`` with a constant ``K`` (B045)."""
+		"""``signal s : K;`` with a constant ``K``."""
 		signal =       _signal("s", "K")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_constant("K", "integer"), signal])
 		warnings =     _resolve(_design(Entity("e"), architecture, analyze=False))
@@ -487,7 +487,7 @@ class Diagnostics(Testcase):
 		self.assertIs(enumeration, constant.Subtype.Reference)
 
 	def test_PrefixNotAPackage(self) -> None:
-		"""``work.nopkg.T`` (B037)."""
+		"""``work.nopkg.T``."""
 		constant = Constant(("c", ), _selectedSubtypeSymbol("work", "nopkg", "T"))
 		warnings = _resolve(_design(Entity("e", declaredItems=[constant]), analyze=False))
 
@@ -497,7 +497,7 @@ class Diagnostics(Testcase):
 		)
 
 	def test_MemberMissing(self) -> None:
-		"""``work.p.U`` (B036)."""
+		"""``work.p.U``."""
 		constant = Constant(("c", ), _selectedSubtypeSymbol("work", "p", "U"))
 		warnings = _resolve(_design(Package("p"), Entity("e", declaredItems=[constant]), analyze=False))
 
@@ -612,7 +612,7 @@ class ReviewFindings(Testcase):
 		self.assertIs(genericType, port.Subtype.Reference)
 
 	def test_IncompleteType_ObjectBeforeFullType(self) -> None:
-		"""``type node; signal s : node; type node is ...;``: only an access type may use an incomplete type (B043)."""
+		"""``type node; signal s : node; type node is ...;``: only an access type may use an incomplete type."""
 		incomplete =   AnonymousType("node")
 		signal =       _signal("s", "node")
 		node =         RecordType("node", [RecordTypeElement(("v", ), _subtypeSymbol("integer"))])

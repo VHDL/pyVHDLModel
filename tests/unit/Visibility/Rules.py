@@ -58,7 +58,7 @@ if __name__ == "__main__":  # pragma: no cover
 
 
 class Hiding(Testcase):
-	"""A declaration hides imported homographs and homographs of enclosing regions (A042-A045, A058, A068, A082)."""
+	"""A declaration hides imported homographs and homographs of enclosing regions."""
 
 	def setUp(self) -> None:
 		self._imported = _constant("K", "integer")
@@ -66,7 +66,7 @@ class Hiding(Testcase):
 		self._package =  Package("p", declaredItems=[self._imported, self._f])
 
 	def test_LocalDeclaration(self) -> None:
-		"""``use work.p.all; signal K : bit;``: ``K`` is the signal (A042)."""
+		"""``use work.p.all; signal K : bit;``: ``K`` is the signal."""
 		signal =       _signal("K", "bit")
 		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p.all")], declaredItems=[signal])
 		_design(self._package, Entity("e"), architecture)
@@ -77,7 +77,7 @@ class Hiding(Testcase):
 		self.assertTupleEqual((), result.Imports)
 
 	def test_EnclosingDeclaration_HidesInnerUseClause(self) -> None:
-		"""A process' ``use work.p.all;`` doesn't make ``K`` visible over the architecture's signal ``K`` (A043)."""
+		"""A process' ``use work.p.all;`` doesn't make ``K`` visible over the architecture's signal ``K``."""
 		signal =       _signal("K", "bit")
 		process =      ProcessStatement("proc", declaredItems=[_use("work.p.all")])
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[signal], statements=[process])
@@ -86,7 +86,7 @@ class Hiding(Testcase):
 		self.assertTupleEqual((signal, ), process._namespace.Lookup("k").Declarations)
 
 	def test_LocalAndImportedOverloads(self) -> None:
-		"""Overloaded subprograms of the region and of a use clause coexist (A058)."""
+		"""Overloaded subprograms of the region and of a use clause coexist."""
 		local =        _function("f", "bit")
 		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p.all")], declaredItems=[local])
 		_design(self._package, Entity("e"), architecture)
@@ -116,7 +116,7 @@ class Hiding(Testcase):
 		self.assertTupleEqual((variable, ), process._namespace.Lookup("f").Declarations)
 
 	def test_LocalType_HidesStdStandard(self) -> None:
-		"""A local type ``natural`` hides ``std.standard.natural``, its literals are visible (A068)."""
+		"""A local type ``natural`` hides ``std.standard.natural``, its literals are visible."""
 		natural =      _enumeration("natural", "one", "two")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[natural])
 		_design(Entity("e"), architecture)
@@ -125,7 +125,7 @@ class Hiding(Testcase):
 		self.assertTupleEqual((natural.Literals[0], ), architecture._namespace.Lookup("one").Declarations)
 
 	def test_LocalObject_HidesEnumerationLiteral(self) -> None:
-		"""``constant red`` in the architecture hides the imported literal ``red`` (A056)."""
+		"""``constant red`` in the architecture hides the imported literal ``red``."""
 		package =      Package("q", declaredItems=[_enumeration("T", "red", "green")])
 		constant =     _constant("red", "integer")
 		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.q.all")], declaredItems=[constant])
@@ -135,7 +135,7 @@ class Hiding(Testcase):
 
 
 class Conflicts(Testcase):
-	"""Potentially visible declarations of two use clauses (A046-A055, A069)."""
+	"""Potentially visible declarations of two use clauses."""
 
 	def setUp(self) -> None:
 		self._k1 = _constant("K", "integer")
@@ -144,7 +144,7 @@ class Conflicts(Testcase):
 		self._p2 = Package("p2", declaredItems=[self._k2, _function("f", "bit"), _enumeration("T2", "b", "c")])
 
 	def test_Constants(self) -> None:
-		"""``K`` of ``p1`` and of ``p2``: neither is directly visible (A047)."""
+		"""``K`` of ``p1`` and of ``p2``: neither is directly visible."""
 		useClause = _use("work.p1.all", "work.p2.all")
 		entity =    Entity("e", [useClause])
 		_design(self._p1, self._p2, entity)
@@ -169,14 +169,14 @@ class Conflicts(Testcase):
 		self.assertTupleEqual((self._k2, self._k1), tuple(imported.Element for imported in result.Conflicts))
 
 	def test_SameDeclarationTwice(self) -> None:
-		"""The same declaration imported by two use clauses is no conflict (A050, A092)."""
+		"""The same declaration imported by two use clauses is no conflict."""
 		entity = Entity("e", [_use("work.p1.all"), _use("work.p1.k")])
 		_design(self._p1, entity)
 
 		self.assertTupleEqual((self._k1, ), entity._namespace.Lookup("k").Declarations)
 
 	def test_Overloadables(self) -> None:
-		"""Subprograms and enumeration literals of two packages coexist (A051, A053)."""
+		"""Subprograms and enumeration literals of two packages coexist."""
 		entity = Entity("e", [_use("work.p1.all", "work.p2.all")])
 		_design(self._p1, self._p2, entity)
 
@@ -184,7 +184,7 @@ class Conflicts(Testcase):
 		self.assertEqual(2, len(entity._namespace.Lookup("b").Declarations))
 
 	def test_LiteralAndObject(self) -> None:
-		"""An imported literal ``red`` and an imported constant ``red`` conflict (A055)."""
+		"""An imported literal ``red`` and an imported constant ``red`` conflict."""
 		literals = Package("p3", declaredItems=[_enumeration("T", "red", "green")])
 		objects =  Package("p4", declaredItems=[_constant("red", "integer")])
 		entity =   Entity("e", [_use("work.p3.all", "work.p4.all")])
@@ -196,7 +196,7 @@ class Conflicts(Testcase):
 		self.assertEqual(2, len(result.Conflicts))
 
 	def test_StdStandard(self) -> None:
-		"""A package's type ``bit`` conflicts with ``std.standard.bit`` (A069)."""
+		"""A package's type ``bit`` conflicts with ``std.standard.bit``."""
 		bit =    _enumeration("bit", "lo", "hi")
 		entity = Entity("e", [_use("work.p3.all")])
 		_design(Package("p3", declaredItems=[bit]), entity)
@@ -209,14 +209,14 @@ class Conflicts(Testcase):
 
 
 class DeclarationOrder(Testcase):
-	"""A declaration and a use clause are visible after their place in the region (A026, A040, A071-A073)."""
+	"""A declaration and a use clause are visible after their place in the region."""
 
 	def setUp(self) -> None:
 		self._imported = _constant("K", "integer")
 		self._package =  Package("p", declaredItems=[self._imported])
 
 	def test_UseClauseAfterDeclaration(self) -> None:
-		"""``constant c1 : integer := K; use work.p.all; constant c2 : integer := K;`` (A026)."""
+		"""``constant c1 : integer := K; use work.p.all; constant c2 : integer := K;``."""
 		c1 =           _constant("c1", "integer")
 		c2 =           _constant("c2", "integer")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[c1, _use("work.p.all"), c2])
@@ -227,7 +227,7 @@ class DeclarationOrder(Testcase):
 		self.assertTupleEqual((self._imported, ), architecture._namespace.Lookup("k").Declarations)
 
 	def test_PortBeforeUseClause(self) -> None:
-		"""A use clause in the entity's declarative part isn't seen by the ports (A040)."""
+		"""A use clause in the entity's declarative part isn't seen by the ports."""
 		port =     PortSimpleSignalInterfaceItem(("x", ), Mode.In, _subtypeSymbol("K"))
 		entity =   Entity("e", portItems=[port], declaredItems=[_use("work.p.all")])
 		warnings = _resolve(_design(self._package, entity, analyze=False))
@@ -238,7 +238,7 @@ class DeclarationOrder(Testcase):
 		self.assertIs(port.Subtype, warnings[0].Symbol)
 
 	def test_Object(self) -> None:
-		"""``constant c1 : integer := c2; constant c2 ...``: ``c2`` isn't visible in ``c1`` (A071)."""
+		"""``constant c1 : integer := c2; constant c2 ...``: ``c2`` isn't visible in ``c1``."""
 		c1 =           _constant("c1", "integer")
 		c2 =           _constant("c2", "integer")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[c1, c2])
@@ -249,7 +249,7 @@ class DeclarationOrder(Testcase):
 		self.assertTupleEqual((c1, ), architecture._namespace.Lookup("c1", c2).Declarations)
 
 	def test_UseClauseBeforeLocalHomograph(self) -> None:
-		"""``use work.p.all; constant k1 := K; signal K : bit; constant k2 := K;`` (A072)."""
+		"""``use work.p.all; constant k1 := K; signal K : bit; constant k2 := K;``."""
 		k1 =           _constant("k1", "integer")
 		signal =       _signal("K", "bit")
 		k2 =           _constant("k2", "integer")

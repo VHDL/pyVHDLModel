@@ -925,6 +925,8 @@ class PortSignalInterfaceItem(Signal, InterfaceItemMixin):
 	   * :class:`Port view signal interface item <pyVHDLModel.Interface.PortViewSignalInterfaceItem>`
 	"""
 
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] = False  #: Not usable by a name in its own interface list.
+
 	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""
 		Split this port by the mutator of its parent (``SplitPortItem()``).
@@ -1120,6 +1122,9 @@ class ParameterConstantInterfaceItem(
 	      --                          ^^                            <- Mode
 	      --                             ^^^^^^^                    <- Subtype
 	"""
+
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] = False  #: Not usable by a name in its own interface list.
+
 	def __init__(
 		self,
 		identifiers: Iterable[str],
@@ -1211,6 +1216,9 @@ class ParameterVariableInterfaceItem(
 	      --                            ^^^         <- Mode
 	      --                                ^^^     <- Subtype
 	"""
+
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] = False  #: Not usable by a name in its own interface list.
+
 	def __init__(
 		self,
 		identifiers: Iterable[str],
@@ -1303,6 +1311,8 @@ class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItemMixin):
 	   * :class:`Parameter simple signal interface item <pyVHDLModel.Interface.ParameterSimpleSignalInterfaceItem>`
 	   * :class:`Parameter view signal interface item <pyVHDLModel.Interface.ParameterViewSignalInterfaceItem>`
 	"""
+
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] = False  #: Not usable by a name in its own interface list.
 
 	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""
@@ -1493,6 +1503,9 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin, WithSingleDe
 	      --                  ^^^                 <- Identifiers
 	      --                        ^^^^^^^^^     <- Subtype
 	"""
+
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] = False  #: Not usable by a name in its own interface list.
+
 	def __init__(
 		self,
 		identifiers: Iterable[str],

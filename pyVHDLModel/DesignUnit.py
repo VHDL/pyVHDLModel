@@ -47,6 +47,7 @@ from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Exception     import VHDLModelException, AlreadyInDesignError, NotAChildError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                       normalizedIdentifiersOf, ReservedWord
+from pyVHDLModel.Name          import Name, Denotation, DenotationKind
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Regions       import DeclarationRegionMixin, ConcurrentDeclarationRegionMixin, WithGenericsMixin, \
                                       WithPortsMixin, WithoutStatementsMixin
@@ -967,6 +968,26 @@ class Package(
 
 				if baseType is not None:
 					yield from baseType.IterateImplicitDeclarations()
+
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[Denotation]:
+		"""
+		Determine what a name denoting this package denotes, as a part of a type mark: this package.
+
+		The type mark is an attribute name like ``pkg.c'subtype``.
+
+		:param name:   The name denoting this declaration, a part of the type mark.
+		:param region: The declarative region containing the type mark.
+		:param place:  The declaration containing the type mark.
+		:param symbol: The type mark.
+		:returns:      What the name denotes.
+		"""
+		return Denotation(DenotationKind.Package, self)
 
 	def _IndexOtherDeclaredItem(self, item) -> None:
 		if isinstance(item, DeferredConstant):

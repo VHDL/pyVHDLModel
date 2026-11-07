@@ -47,7 +47,8 @@ from pyTooling.Warning      import WarningCollector
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                    Range, ReservedWord
-from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning
+from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning, UnresolvedTypeMarkWarning
+from pyVHDLModel.Name       import Name, Denotation, DenotationKind
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import DeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin, \
@@ -102,6 +103,24 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:returns: The base type.
 		"""
 		return self
+
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[Denotation]:
+		"""
+		Determine what a name denoting this type or subtype denotes, as a part of a type mark: this type or subtype.
+
+		:param name:   The name denoting this declaration, a part of the type mark.
+		:param region: The declarative region containing the type mark.
+		:param place:  The declaration containing the type mark.
+		:param symbol: The type mark.
+		:returns:      What the name denotes.
+		"""
+		return Denotation(DenotationKind.Type, self)
 
 	def __str__(self) -> str:
 		"""
@@ -1080,6 +1099,39 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		:returns: The new record type element.
 		"""
 		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
+
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[Denotation]:
+		"""
+		Determine what a name denoting this record element denotes, as a part of a type mark: an object of its subtype.
+
+		The type mark is an attribute name like ``rec.f'subtype``; the name denotes the element of the record object.
+
+		:param name:                           The name denoting this declaration, a part of the type mark.
+		:param region:                         The declarative region containing the type mark.
+		:param place:                          The declaration containing the type mark.
+		:param symbol:                         The type mark.
+		:returns:                              What the name denotes, or ``None`` if it can't be resolved (reported as a
+		                                       warning).
+		:raises UnhandledCriticalWarningError: If the element's subtype isn't resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		if (subtype := self._subtype._reference) is None:
+			WarningCollector.Raise(UnresolvedTypeMarkWarning(
+				f"Subtype of prefix '{name!s}' of type mark '{symbol._name!s}' isn't resolved.",
+				symbol=symbol,
+				place=place,
+				namespaces=(region._namespace, )
+			))
+			return None
+
+		return Denotation(DenotationKind.Object, subtype)
 
 	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""

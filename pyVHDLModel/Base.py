@@ -43,9 +43,11 @@ from typing                  import TYPE_CHECKING, ClassVar, Generator, Type, It
 from pyTooling.Common        import StringEnum, getFullyQualifiedName
 from pyTooling.Decorators    import export, notimplemented, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
+from pyTooling.Warning       import WarningCollector
 if TYPE_CHECKING:
 	from pyVHDLModel.DesignUnit import DesignUnit
 	from pyVHDLModel.Interface import SingleDeclarationMixin
+	from pyVHDLModel.Name      import Name, Denotation
 	from pyVHDLModel.Regions   import DeclarationRegionMixin
 	from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 	from pyVHDLModel.Visitor   import Visitor
@@ -408,6 +410,41 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		"""
 		for _, _, typeMark in self.IterateTypeMarks(region):
 			typeMark._reference = None
+
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[Denotation]:
+		"""
+		Determine what a name denoting this declaration denotes, as a part of a type mark (:meth:`Name.Denote
+		<pyVHDLModel.Name.Name.Denote>`).
+
+		An object, an alias, a type or subtype, a record element and a package override this method; any other
+		declaration (e.g. a subprogram) is reported.
+
+		:param name:                           The name denoting this declaration, a part of the type mark.
+		:param region:                         The declarative region containing the type mark.
+		:param place:                          The declaration containing the type mark.
+		:param symbol:                         The type mark.
+		:returns:                              What the name denotes, or ``None`` if it can't be resolved (reported as a
+		                                       warning).
+		:raises UnhandledCriticalWarningError: If this declaration is neither an object, a type nor a package, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
+
+		WarningCollector.Raise(UnresolvedTypeMarkWarning(
+			f"Prefix '{name!s}' of type mark '{symbol._name!s}' is neither an object, a type nor a package: "
+			f"{self.__class__.__name__}.",
+			symbol=symbol,
+			place=place,
+			namespaces=(region._namespace, )
+		))
+		return None
 
 	@notimplemented("Model element has no walk for a visitor.")
 	def Visit(self, visitor: Visitor) -> None:

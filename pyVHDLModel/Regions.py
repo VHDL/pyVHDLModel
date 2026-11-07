@@ -51,7 +51,7 @@ from pyVHDLModel.Exception    import NotImplementedWarning, UnresolvedNameWarnin
                                      DuplicateDeclarationError, DuplicateTypeError, DuplicateSubtypeError, \
                                      DuplicateConstantError, DuplicateSignalError, DuplicateVariableError, \
                                      DuplicateFileError, DuplicateComponentError, DuplicateSubprogramError
-from pyVHDLModel.Name         import AttributeName
+from pyVHDLModel.Name         import Name, AttributeName
 from pyVHDLModel.Namespace    import Namespace
 from pyVHDLModel.Object       import BaseConstant, Constant, DeferredConstant, SharedVariable, File, Variable, Signal
 from pyVHDLModel.Symbol       import Symbol, SubtypeSymbol
@@ -1963,10 +1963,11 @@ class DeclarationRegionMixin(
 		designUnit:  DesignUnit,
 		place:       ModelEntity,
 		symbol:      Symbol,
+		name:        Name,
 		warningType: type[UnresolvedNameWarning]
 	) -> tuple[ModelEntity, ...]:
 		"""
-		Look up the declarations the simple name or expanded name of a symbol denotes at a place in this region.
+		Look up the declarations a simple name or an expanded name denotes at a place in this region.
 
 		A simple name is looked up at the place (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`); a generic of a component
 		is visible to the following generics and ports of the component. An expanded name ``pkg.T`` or ``lib.pkg.T``
@@ -1977,11 +1978,13 @@ class DeclarationRegionMixin(
 		(:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
 
 		A failure is reported as a warning of the given type, whose label names the kind of name in the message
-		(e.g. ``Type mark``); then no declaration is returned.
+		(e.g. ``Type mark``); then no declaration is returned. A name, which is a part of the symbol's name (e.g. the prefix
+		``s`` of the type mark ``s'subtype``), is reported as a prefix of the symbol's name.
 
 		:param designUnit:                     The design unit containing the name.
 		:param place:                          The declaration containing the name.
-		:param symbol:                         The symbol of the simple name or expanded name.
+		:param symbol:                         The symbol containing the name.
+		:param name:                           The simple name or expanded name: the symbol's name or a part of it.
 		:param warningType:                    The warning class reporting a failure.
 		:returns:                              Tuple of the directly visible declarations, empty if none is.
 		:raises UnhandledCriticalWarningError: If the name isn't visible, is ambiguous, or has a prefix, which isn't a
@@ -1992,9 +1995,13 @@ class DeclarationRegionMixin(
 		from pyVHDLModel.Interface  import InterfaceItemMixin
 
 		namespace =            self._namespace
-		name =                 symbol._name
 		label =                warningType._LABEL
 		normalizedIdentifier = name._normalizedIdentifier
+		if name is symbol._name:
+			subject = f"{label} '{name!s}'"
+		else:
+			subject = f"Prefix '{name!s}' of {label.lower()} '{symbol._name!s}'"
+
 		if (prefix := name._prefix) is None:
 			if isinstance(place, InterfaceItemMixin) and isinstance(component := place._parent, Component):
 				for genericItem in component._genericItems:
@@ -2006,7 +2013,7 @@ class DeclarationRegionMixin(
 			result = namespace.Lookup(normalizedIdentifier, place)
 			if result.HasConflicts:
 				WarningCollector.Raise(warningType(
-					f"{label} '{name!s}' is ambiguous: use clauses import conflicting declarations.",
+					f"{subject} is ambiguous: use clauses import conflicting declarations.",
 					symbol=symbol,
 					place=place,
 					namespaces=result._searchedNamespaces,
@@ -2067,7 +2074,7 @@ class DeclarationRegionMixin(
 					names.append(namespaceName)
 
 			WarningCollector.Raise(warningType(
-				f"{label} '{name!s}' not found in: {', '.join(names)}.",
+				f"{subject} not found in: {', '.join(names)}.",
 				symbol=symbol,
 				place=place,
 				namespaces=tuple(searchedNamespaces)
@@ -2092,7 +2099,8 @@ class DeclarationRegionMixin(
 		4. If the declaration is a type, a subtype or a generic type, it becomes the symbol's reference. A full type, which
 		   follows the place in the same region, is visible by its incomplete type declaration only to an access type.
 
-		An attribute name (e.g. ``T'base``) isn't resolved.
+		An attribute name denoting a type (e.g. ``s'subtype``, ``A'element``) is resolved part by part
+		(:meth:`~pyVHDLModel.Name.Name.Denote`); the type it denotes becomes the symbol's reference.
 
 		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
@@ -2108,9 +2116,12 @@ class DeclarationRegionMixin(
 		symbol._reference = None
 		name =              symbol._name
 		if isinstance(name, AttributeName):
+			if (denotation := name.Denote(self, designUnit, place, symbol)) is not None:
+				symbol._reference = denotation._entity
+
 			return
 
-		if len(declarations := self.LookupName(designUnit, place, symbol, UnresolvedTypeMarkWarning)) == 0:
+		if len(declarations := self.LookupName(designUnit, place, symbol, name, UnresolvedTypeMarkWarning)) == 0:
 			return
 
 		declaration = declarations[0]

@@ -51,9 +51,10 @@ from pyVHDLModel.Name          import Name
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Regions       import DeclarationRegionMixin, ConcurrentDeclarationRegionMixin, WithGenericsMixin, \
                                       WithPortsMixin, WithoutStatementsMixin
-from pyVHDLModel.Symbol        import Symbol, SubtypeSymbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
+from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, GenericGroup, PortGroup
 from pyVHDLModel.Object        import DeferredConstant
+from pyVHDLModel.Subprogram    import Function, Procedure
 from pyVHDLModel.Type          import AnonymousType, Subtype
 from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration
@@ -1502,10 +1503,16 @@ class Component(
 	DocumentedEntityMixin,
 	WithGenericsMixin,
 	WithPortsMixin,
+	DeclarationRegionMixin,
+	WithoutStatementsMixin,
 	AllowBlackboxMixin
 ):
 	"""
 	Represents a component declaration.
+
+	A component declaration is a declarative region (IEEE Std 1076-2008, 12.1): its generics and ports share one
+	namespace, nested in the namespace of the declarative region declaring the component. A component has no declarative
+	part, so it accepts no declared items.
 
 	.. admonition:: Example
 
@@ -1523,9 +1530,14 @@ class Component(
 
 	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Component,)  #: Reserved words after ``end``.
 	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                      #: The reserved words after ``end`` are optional.
+	_DECLARED_ITEM_TYPES:   ClassVar[tuple[type, ...]] =         ()                         #: No declared items.
 
-	_isBlackbox: Nullable[bool]    #: Component is a blackbox.
-	_entity:     Nullable[Entity]  #: Linked entity, or ``None`` if unresolved.
+	_isBlackbox:    Nullable[bool]              #: Component is a blackbox.
+	_entity:        Nullable[Entity]            #: Linked entity, or ``None`` if unresolved.
+	_namespace:     Namespace                   #: The namespace of this component's declarative region.
+	_declaredItems: list                        #: List of all declared items: empty, a component has no declarative part.
+	_functions:     dict[str, list[Function]]   #: Dictionary of all declared functions: empty.
+	_procedures:    dict[str, list[Procedure]]  #: Dictionary of all declared procedures: empty.
 
 	def __init__(
 		self,
@@ -1559,12 +1571,24 @@ class Component(
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
+		DeclarationRegionMixin.__init__(self)
+
+		self._namespace =     Namespace(self._normalizedIdentifier)
+		self._declaredItems = []
+		self._functions =     {}
+		self._procedures =    {}
+
 		WithGenericsMixin.__init__(self, genericItems, genericGroups)
 		WithPortsMixin.__init__(self, portItems, portGroups)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
 		self._isBlackbox = None
 		self._entity =     None
+
+	@ModelEntity.Parent.setter
+	def Parent(self, parent: ModelEntity) -> None:
+		ModelEntity.Parent.fset(self, parent)
+		self._ConnectParentNamespace(parent)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1579,32 +1603,40 @@ class Component(
 		visitor.VisitTerminator(self)
 		visitor.DepartComponent(self)
 
-	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+	def IndexDeclaredItems(self) -> None:
 		"""
-		Add nothing, because a component has no namespace.
+		Index the generics and ports of this component in its namespace.
 
-		:param element: The named element, e.g. an interface item.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in the component and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		"""
+		self._IndexGenericItems()
+		self._IndexPortItems()
+
+		self._areDeclaredItemsIndexed = True
+
+	def _Declarations(self) -> tuple[ModelEntity, ...]:
+		"""
+		Return all declarations of this component.
+
+		:returns: Tuple of declarations: the generics, then the ports.
+		"""
+		return (*self._genericItems, *self._portItems)
+
+	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
+		"""
+		Index nothing, because a component has no declarative part.
+
+		:param item: The declared item.
 		"""
 
-	def _RemoveFromNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+	def _UnindexDeclaredItem(self, item: ModelEntity) -> None:
 		"""
-		Remove nothing, because a component has no namespace.
+		Unindex nothing, because a component has no declarative part.
 
-		:param element: The named element, e.g. an interface item.
+		:param item: The declared item.
 		"""
-
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
-		"""
-		Return the generics and ports of this component sharing an identifier with the given item.
-
-		:param item: The new generic or port.
-		:returns:    Tuple of clashing generics and ports.
-		"""
-		identifiers = set(normalizedIdentifiersOf(item))
-		return tuple(
-			declaration for declaration in (*self._genericItems, *self._portItems)
-			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-		)
 
 	@readonly
 	def IsBlackbox(self) -> Nullable[bool]:
@@ -1631,25 +1663,6 @@ class Component(
 	def Entity(self, value: Entity) -> None:
 		self._entity = value
 		self._isBlackbox = False
-
-	def IterateTypeMarks(
-		self,
-		region: DeclarationRegionMixin
-	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
-		"""
-		Iterate the type marks of this component's generics and ports.
-
-		The place of a type mark is the generic or port containing it. A generic is visible to the following generics and
-		ports of the component.
-
-		:param region:  The declarative region declaring this component.
-		:returns:       A generator to iterate (region, place, type mark) tuples, in declaration order.
-		"""
-		for genericItem in self._genericItems:
-			yield from genericItem.IterateTypeMarks(region)
-
-		for portItem in self._portItems:
-			yield from portItem.IterateTypeMarks(region)
 
 	def __str__(self) -> str:
 		"""

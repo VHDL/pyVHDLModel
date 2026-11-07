@@ -138,14 +138,17 @@ class GenericItems(Testcase):
 		self.assertDictEqual(*_reindexed(entity))
 
 	def test_Move_Component(self) -> None:
-		"""A component has no namespace."""
-		bits = _generic("BITS")
-		depth = _generic("DEPTH")
-		component = Component("c", genericItems=[bits, depth])
+		"""The namespace of a component refers to the generic subprogram declared last."""
+		overload1 = _genericFunction("f")
+		overload2 = _genericFunction("f")
+		component = Component("c", genericItems=[overload1, overload2])
+		component.IndexDeclaredItems()
 
-		component.MoveGenericItem(bits, 1)
+		component.MoveGenericItem(overload2, 0)
 
-		self.assertListEqual([depth, bits], component.GenericItems)
+		self.assertListEqual([overload2, overload1], component.GenericItems)
+		self.assertIs(overload1, component._namespace._elements["f"])
+		self.assertDictEqual(*_reindexed(component))
 
 	def test_Move_Shadowed(self) -> None:
 		"""A generic subprogram shadowed by a duplicate declaration read by a parser isn't in the namespace."""
@@ -277,10 +280,13 @@ class PortItems(Testcase):
 		clock = _port("Clock")
 		reset = _port("Reset")
 		component = Component("c", portItems=[clock, reset])
+		component.IndexDeclaredItems()
 
 		component.MovePortItem(reset, 0)
 
 		self.assertListEqual([reset, clock], component.PortItems)
+		self.assertDictEqual({"clock": clock, "reset": reset}, component._namespace._elements)
+		self.assertDictEqual(*_reindexed(component))
 
 	def test_Move_None(self) -> None:
 		entity = Entity("e", portItems=[_port("Clock")])

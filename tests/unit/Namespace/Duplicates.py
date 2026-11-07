@@ -47,9 +47,9 @@ from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import Design, Document, Library
 from pyVHDLModel.Base       import Mode
-from pyVHDLModel.DesignUnit import Architecture, Entity, Package, PackageBody
+from pyVHDLModel.DesignUnit import Architecture, Component, Entity, Package, PackageBody
 from pyVHDLModel.Exception  import DuplicateDeclarationWarning, VHDLModelCriticalWarning
-from pyVHDLModel.Interface  import PortSimpleSignalInterfaceItem
+from pyVHDLModel.Interface  import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Object     import Constant, Signal
 from pyVHDLModel.Subprogram import Function, Procedure
@@ -202,6 +202,67 @@ class OverloadableDeclarations(Testcase):
 			architecture.IndexDeclaredItems()
 
 		self.assertEqual(1, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
+
+
+class InterfaceItems(Testcase):
+	"""A generic and a port sharing an identifier: GHDL rejects it in an entity and in a component alike."""
+
+	def test_Entity(self) -> None:
+		generic = GenericConstantInterfaceItem(["g"], Mode.Default, _subtypeSymbol("integer"))
+		port =    PortSimpleSignalInterfaceItem(["G"], Mode.In, _subtypeSymbol("bit"))
+		entity =  Entity("ent", genericItems=[generic], portItems=[port])
+
+		with WarningCollector() as collector:
+			entity.IndexDeclaredItems()
+
+		warnings = _warningsOfType(collector, DuplicateDeclarationWarning)
+		self.assertEqual(1, len(warnings))
+		self.assertEqual("Identifier 'g' is already used for a declaration in 'ent'.", str(warnings[0]))
+		self.assertEqual("G", warnings[0].Identifier)
+		self.assertIs(entity._namespace, warnings[0].Namespace)
+		self.assertIs(port, warnings[0].Element)
+		self.assertIs(generic, warnings[0].Existing)
+
+	def test_Component(self) -> None:
+		generic =   GenericConstantInterfaceItem(["g"], Mode.Default, _subtypeSymbol("integer"))
+		port =      PortSimpleSignalInterfaceItem(["G"], Mode.In, _subtypeSymbol("bit"))
+		component = Component("comp", genericItems=[generic], portItems=[port])
+
+		with WarningCollector() as collector:
+			component.IndexDeclaredItems()
+
+		warnings = _warningsOfType(collector, DuplicateDeclarationWarning)
+		self.assertEqual(1, len(warnings))
+		self.assertEqual("Identifier 'g' is already used for a declaration in 'comp'.", str(warnings[0]))
+		self.assertEqual("G", warnings[0].Identifier)
+		self.assertIs(component._namespace, warnings[0].Namespace)
+		self.assertIs(port, warnings[0].Element)
+		self.assertIs(generic, warnings[0].Existing)
+
+	def test_Component_WithoutCollector(self) -> None:
+		"""Without a collector, a duplicate declaration raises, caused by the warning."""
+		generic =   GenericConstantInterfaceItem(["g"], Mode.Default, _subtypeSymbol("integer"))
+		port =      PortSimpleSignalInterfaceItem(["g"], Mode.In, _subtypeSymbol("bit"))
+		component = Component("comp", genericItems=[generic], portItems=[port])
+
+		with self.assertRaises(UnhandledCriticalWarningError) as context:
+			component.IndexDeclaredItems()
+
+		self.assertIsInstance(context.exception.__cause__, DuplicateDeclarationWarning)
+
+	def test_Component_HidesEnclosingDeclaration(self) -> None:
+		"""A component is a region of its own: a generic named like a signal of the architecture hides it."""
+		signal =       _signal("g", "bit")
+		generic =      GenericConstantInterfaceItem(["g"], Mode.Default, _subtypeSymbol("integer"))
+		component =    Component("comp", genericItems=[generic])
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[signal, component])
+
+		with WarningCollector() as collector:
+			architecture.IndexDeclaredItems()
+			component.IndexDeclaredItems()
+
+		self.assertEqual(0, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
+		self.assertFalse(component._namespace.SharesRegionWithParent)
 
 
 class RegionsSpanningTwoNamespaces(Testcase):

@@ -78,14 +78,12 @@ class WithGenericsMixin(
 	A mixin-class for language constructs with a generic clause.
 
 	The host class provides ``_AddToNamespace(element)`` and ``_RemoveFromNamespace(element)``, called when a generic is
-	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace, a language construct
-	without a namespace implements both as no-operations.
+	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace.
 
 	The host class also provides ``_ClashingDeclarations(item)``, called before a generic is inserted: it returns the
 	declarations sharing an identifier with the new item.
 
-	Indexing the generics (``_IndexGenericItems()``) needs the host's namespace ``_namespace``; a host without one, e.g.
-	a component, can't index them.
+	Indexing the generics (``_IndexGenericItems()``) needs the host's namespace ``_namespace``.
 
 	The generic groups (:data:`GenericGroups`) partition the generic clause: concatenated in order, they list every
 	generic exactly once, in declaration order. The mutators keep this partition.
@@ -689,14 +687,12 @@ class WithPortsMixin(
 	A mixin-class for language constructs with a port clause.
 
 	The host class provides ``_AddToNamespace(element)`` and ``_RemoveFromNamespace(element)``, called when a port is
-	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace, a language construct
-	without a namespace implements both as no-operations.
+	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace.
 
 	The host class also provides ``_ClashingDeclarations(item)``, called before a port is inserted: it returns the
 	declarations sharing an identifier with the new item.
 
-	Indexing the ports (``_IndexPortItems()``) needs the host's namespace ``_namespace``; a host without one, e.g.
-	a component, can't index them.
+	Indexing the ports (``_IndexPortItems()``) needs the host's namespace ``_namespace``.
 
 	The port groups (:data:`PortGroups`) partition the port clause: concatenated in order, they list every port exactly
 	once, in declaration order. The mutators keep this partition.
@@ -1875,14 +1871,15 @@ class DeclarationRegionMixin(
 	)
 ):
 	"""
-	A base-class for the concurrent, sequential and protected type declaration region mixins.
+	A base-class for the concurrent, sequential and protected type declaration region mixins and for components.
 
 	It carries what all regions share: adding interface items to the region's namespace, the mutators for declared items
 	(e.g. :meth:`AddDeclaredItem`), and the hooks for declared items no region handles itself.
 
 	The derived region mixin-class provides the namespace ``_namespace``, the declared items ``_declaredItems`` and the
 	lookup tables ``_functions`` and ``_procedures``; it or the host class provides the methods ``_Declarations()``,
-	``_IndexDeclaredItem(item)``, ``_UnindexDeclaredItem(item)`` and ``IndexDeclaredItems()``.
+	``_IndexDeclaredItem(item)``, ``_UnindexDeclaredItem(item)`` and ``IndexDeclaredItems()``. A host class without a
+	declarative part, a component, provides them itself and accepts no declared items.
 
 	An interface item shares the declarative region of the declarative part beside it - VHDL rejects
 	``port (g : in bit)`` beside ``generic (g : integer)``, ``signal x`` beside ``port (x : in bit)``, and a
@@ -1899,6 +1896,7 @@ class DeclarationRegionMixin(
 	   * :class:`Concurrent declaration region mixin <pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin>`
 	   * :class:`Sequential declaration region mixin <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	   * :class:`Protected type declaration region mixin <pyVHDLModel.Regions.ProtectedTypeDeclarationRegionMixin>`
+	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
 
 	A statement label is declared implicitly in the declarative region enclosing the statement, so the host provides the
 	labeled statements of the region by ``_Labels()``: a host with statements gets it from its statements mixin
@@ -1967,14 +1965,12 @@ class DeclarationRegionMixin(
 		"""
 		Look up the declarations a simple name or an expanded name denotes at a place in this region.
 
-		A simple name is looked up at the place (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`); a generic of a component
-		is visible to the following generics and ports of the component. An expanded name ``pkg.T`` or ``lib.pkg.T``
-		resolves its prefix: ``pkg`` to a package visible at the place, else to an enclosing declarative region of that
-		name (e.g. the package or entity containing the place); ``lib.pkg`` by the library (``work`` or a library whose name
-		is visible in the design unit containing the place, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`)
-		and the package's name. Then the suffix
-		is searched among the declarations of the package or region
-		(:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
+		A simple name is looked up at the place (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`). An expanded name
+		``pkg.T`` or ``lib.pkg.T`` resolves its prefix: ``pkg`` to a package visible at the place, else to an enclosing
+		declarative region of that name (e.g. the package or entity containing the place); ``lib.pkg`` by the library
+		(``work`` or a library whose name is visible in the design unit containing the place,
+		:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`) and the package's name. Then the suffix is searched
+		among the declarations of the package or region (:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
 
 		A failure is reported as a warning of the given type, whose label names the kind of name in the message
 		(e.g. ``Type mark``); then no declaration is returned. A name, which is a part of the symbol's name (e.g. the prefix
@@ -1989,8 +1985,7 @@ class DeclarationRegionMixin(
 		                                       visible package or an enclosing region, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the warning.
 		"""
-		from pyVHDLModel.DesignUnit import Component, DesignUnit, Package
-		from pyVHDLModel.Interface  import InterfaceItemMixin
+		from pyVHDLModel.DesignUnit import DesignUnit, Package
 
 		namespace =            self._namespace
 		label =                warningType._LABEL
@@ -2001,13 +1996,6 @@ class DeclarationRegionMixin(
 			subject = f"Prefix '{name!s}' of {label.lower()} '{symbol._name!s}'"
 
 		if (prefix := name._prefix) is None:
-			if isinstance(place, InterfaceItemMixin) and isinstance(component := place._parent, Component):
-				for genericItem in component._genericItems:
-					if genericItem is place:
-						break
-					elif normalizedIdentifier in normalizedIdentifiersOf(genericItem):
-						return (genericItem, )
-
 			result = namespace.Lookup(normalizedIdentifier, place)
 			if result.HasConflicts:
 				WarningCollector.Raise(warningType(
@@ -3031,6 +3019,7 @@ class WithoutStatementsMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Package body <pyVHDLModel.DesignUnit.PackageBody>`
 	   * :class:`Protected type <pyVHDLModel.Type.ProtectedType>`
 	   * :class:`Protected type body <pyVHDLModel.Type.ProtectedTypeBody>`
+	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
 	"""
 
 	def _Labels(self) -> tuple[ModelEntity, ...]:

@@ -210,6 +210,17 @@ class Add(Testcase):
 		self.assertListEqual(["Got type 'pyVHDLModel.Object.Variable'."], context.exception.__notes__)
 		self.assertListEqual([], architecture.DeclaredItems)
 
+	def test_Add_WrongType_Component(self) -> None:
+		"""A component has no declarative part."""
+		component = Component("c")
+
+		with self.assertRaises(TypeError) as context:
+			component.AddDeclaredItem(_signal("s"))
+
+		self.assertEqual("Parameter 'declaredItem' is not a declaration allowed in Component.", str(context.exception))
+		self.assertListEqual(["Got type 'pyVHDLModel.Object.Signal'."], context.exception.__notes__)
+		self.assertTupleEqual((), Component._DECLARED_ITEM_TYPES)
+
 	def test_DeclaredItemTypes(self) -> None:
 		"""The accepted classes are class variables: a package accepts deferred constants, an architecture doesn't."""
 		self.assertIn(DeferredConstant, Package._DECLARED_ITEM_TYPES)

@@ -31,8 +31,8 @@
 """
 Mutation tests for port clauses (:class:`~pyVHDLModel.Regions.WithPortsMixin`).
 
-The mutators are tested on an entity (a declarative region with a namespace) and a component (no namespace). The port
-groups of the language construct stay a partition of its port clause.
+The mutators are tested on declarative regions with a namespace: an entity and a component. The port groups of the
+language construct stay a partition of its port clause.
 """
 from pyTooling.MetaClasses  import UnfulfilledExpectationError
 from pyTooling.Warning      import WarningCollector
@@ -46,7 +46,7 @@ from pyVHDLModel.Object     import Signal
 from pyVHDLModel.Regions    import WithPortsMixin
 
 from tests.unit             import _subtypeSymbol
-from tests.unit.Mutation    import _generic, _port
+from tests.unit.Mutation    import _generic, _port, _reindexed
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -273,6 +273,22 @@ class Ports(Testcase):
 		entity.RemovePortItem(clock)
 
 		self.assertNotIn("clock", entity._namespace._elements)
+
+	def test_Namespace_Component(self) -> None:
+		generic =   _generic("BITS")
+		component = Component("c", genericItems=[generic])
+		component.IndexDeclaredItems()
+		clock = _port("Clock")
+
+		component.AddPortItem(clock)
+
+		self.assertDictEqual({"bits": generic, "clock": clock}, component._namespace._elements)
+		self.assertDictEqual(*_reindexed(component))
+
+		component.RemovePortItem(clock)
+
+		self.assertDictEqual({"bits": generic}, component._namespace._elements)
+		self.assertDictEqual(*_reindexed(component))
 
 	def test_Namespace_AddNotIndexed(self) -> None:
 		"""A port added to a region, which wasn't indexed yet, enters the namespace when the region is indexed."""

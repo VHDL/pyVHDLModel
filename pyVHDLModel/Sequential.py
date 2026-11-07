@@ -36,7 +36,7 @@ Declarations for sequential statements.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, ClassVar, Iterable, Optional as Nullable
+from typing                  import TYPE_CHECKING, ClassVar, Generator, Iterable, Optional as Nullable
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
@@ -55,6 +55,7 @@ from pyVHDLModel.Common      import Statement, ProcedureCallMixin, AssignmentMix
 from pyVHDLModel.Association import ParameterAssociationItem
 
 if TYPE_CHECKING:
+	from pyVHDLModel.Regions   import DeclarationRegionMixin
 	from pyVHDLModel.Visitor   import Visitor
 
 
@@ -126,6 +127,14 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_L
 		:returns: Tuple of labeled statements, depth-first in statement order.
 		"""
 		return tuple(label for statement in self._statements for label in self._LabelsOf(statement))
+
+	def _IterateStatementRegions(self) -> Generator[DeclarationRegionMixin, None, None]:
+		"""
+		Iterate the declarative regions nested in the sequential statements of this construct.
+
+		:returns: An empty generator: a sequential statement has no declarative region.
+		"""
+		yield from ()
 
 	@staticmethod
 	def _LabelsOf(statement: SequentialStatement) -> tuple[SequentialStatement, ...]:

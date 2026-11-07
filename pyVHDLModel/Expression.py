@@ -203,6 +203,34 @@ class EnumerationLiteral(Literal, DocumentedEntityMixin):
 		"""
 		return self._value
 
+	@readonly
+	def NormalizedDesignator(self) -> str:
+		"""
+		Read-only property to return the normalized designator, the key the literal is indexed by in a namespace.
+
+		:returns: The literal's name in lower case.
+		"""
+		return self._value.lower()
+
+	def GetIdentifier(self, normalizedIdentifier: str) -> str:
+		"""
+		Return the literal as declared, for its normalized designator.
+
+		:param normalizedIdentifier: The literal's normalized designator.
+		:returns:                    The literal in its declared spelling.
+		"""
+		return self._value
+
+	@readonly
+	def IsOverloadable(self) -> bool:
+		"""
+		Check if this enumeration literal is overloadable: always, it may share its designator with other enumeration
+		literals and subprograms.
+
+		:returns: ``True``.
+		"""
+		return True
+
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this enumeration literal.
@@ -275,6 +303,18 @@ class CharacterEnumerationLiteral(EnumerationLiteral):
 			ex.add_note(f"Got value '{value}'.")
 			ex.add_note("Pass the character without apostrophes.")
 			raise ex
+
+	@readonly
+	def NormalizedDesignator(self) -> str:
+		"""
+		Read-only property to return the normalized designator, the key the literal is indexed by in a namespace.
+
+		A character literal keeps its case and is enclosed in apostrophes, so the literal ``'a'`` doesn't clash with an
+		identifier ``a``.
+
+		:returns: The character enclosed in apostrophes.
+		"""
+		return f"'{self._value}'"
 
 	def Copy(self) -> Self:
 		"""

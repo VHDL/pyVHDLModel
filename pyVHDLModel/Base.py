@@ -37,7 +37,8 @@ Base-classes for the VHDL language model.
 from __future__            import annotations
 
 from enum                  import unique, Enum
-from typing                import TYPE_CHECKING, ClassVar, Type, Iterable, Optional as Nullable, Union, cast, Self
+from typing                import TYPE_CHECKING, ClassVar, Generator, Type, Iterable, Optional as Nullable, Union, \
+                           cast, Self
 
 from pyTooling.Common      import StringEnum, getFullyQualifiedName
 from pyTooling.Decorators  import export, notimplemented, readonly
@@ -339,6 +340,29 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 
 		return parent
 
+	@readonly
+	def IsOverloadable(self) -> bool:
+		"""
+		Check if this model entity is an overloadable declaration: it may share its designator with other overloadable
+		declarations.
+
+		Subprograms, enumeration literals and aliases, which may denote one of them, are overloadable; they override this
+		property.
+
+		:returns: ``True``, if this model entity is an overloadable declaration.
+		"""
+		return False
+
+	def IterateImplicitDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+		"""
+		Iterate the declarations this declaration implies.
+
+		An enumerated type implies its enumeration literals, a physical type its units; they override this method.
+
+		:returns: A generator to iterate (normalized designator, declaration) pairs, in declaration order: none.
+		"""
+		yield from ()
+
 	@notimplemented("Model element has no walk for a visitor.")
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -402,6 +426,15 @@ class NamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		:returns: Normalized name of a model entity.
 		"""
 		return self._normalizedIdentifier
+
+	def GetIdentifier(self, normalizedIdentifier: str) -> str:
+		"""
+		Return the identifier as declared, for the model entity's normalized identifier.
+
+		:param normalizedIdentifier: The model entity's normalized (lower case) identifier.
+		:returns:                    The identifier in its declared spelling.
+		"""
+		return self._identifier
 
 
 @export
@@ -503,6 +536,15 @@ class MultipleNamedEntityMixin(
 		:returns: Tuple of normalized identifiers.
 		"""
 		return self._normalizedIdentifiers
+
+	def GetIdentifier(self, normalizedIdentifier: str) -> str:
+		"""
+		Return the identifier as declared, for one of the model entity's normalized identifiers.
+
+		:param normalizedIdentifier: One of the model entity's normalized (lower case) identifiers.
+		:returns:                    The identifier in its declared spelling.
+		"""
+		return self._identifiers[self._normalizedIdentifiers.index(normalizedIdentifier)]
 
 	def Split(self) -> tuple[Self, ...]:
 		"""

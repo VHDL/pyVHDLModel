@@ -38,7 +38,8 @@ from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
 from pyVHDLModel.Expression  import EnumerationLiteral, CharacterEnumerationLiteral, IntegerLiteral, \
                                     FloatingPointLiteral, PhysicalIntegerLiteral
-from pyVHDLModel.Type        import EnumeratedType, IntegerType, RealType, PhysicalType, ArrayType, AccessType, Subtype
+from pyVHDLModel.Type        import EnumeratedType, IntegerType, RealType, PhysicalType, PhysicalUnit, ArrayType, \
+                                    AccessType, Subtype
 from pyVHDLModel.Predefined  import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 
 
@@ -133,15 +134,21 @@ class Standard(PredefinedPackage):
 		self._types[real._normalizedIdentifier] = real
 		self._declaredItems.append(real)
 
-		time = PhysicalType("time", SimpleRange(IntegerLiteral(-2**63), IntegerLiteral(2**63 - 1), Direction.To), primaryUnit="fs", units=(
-			("ps", PhysicalIntegerLiteral(1000, "fs")),
-			("ns", PhysicalIntegerLiteral(1000, "ps")),
-			("us", PhysicalIntegerLiteral(1000, "ns")),
-			("ms", PhysicalIntegerLiteral(1000, "us")),
-			("sec", PhysicalIntegerLiteral(1000, "ms")),
-			("min", PhysicalIntegerLiteral(60, "sec")),
-			("hr", PhysicalIntegerLiteral(60, "min")),
-		), parent=None)
+		time = PhysicalType(
+			"time",
+			SimpleRange(IntegerLiteral(-2**63), IntegerLiteral(2**63 - 1), Direction.To),
+			primaryUnit=PhysicalUnit("fs"),
+			secondaryUnits=(
+				PhysicalUnit("ps",  PhysicalIntegerLiteral(1000, "fs")),
+				PhysicalUnit("ns",  PhysicalIntegerLiteral(1000, "ps")),
+				PhysicalUnit("us",  PhysicalIntegerLiteral(1000, "ns")),
+				PhysicalUnit("ms",  PhysicalIntegerLiteral(1000, "us")),
+				PhysicalUnit("sec", PhysicalIntegerLiteral(1000, "ms")),
+				PhysicalUnit("min", PhysicalIntegerLiteral(60, "sec")),
+				PhysicalUnit("hr",  PhysicalIntegerLiteral(60, "min")),
+			),
+			parent=None
+		)
 		self._types[time._normalizedIdentifier] = time
 		self._declaredItems.append(time)
 

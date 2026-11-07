@@ -362,6 +362,16 @@ class Subprogram(
 			self._namespace.ParentNamespace = parent._namespace
 
 	@readonly
+	def IsOverloadable(self) -> bool:
+		"""
+		Check if this subprogram is overloadable: always, it may share its designator with other subprograms and
+		enumeration literals.
+
+		:returns: ``True``.
+		"""
+		return True
+
+	@readonly
 	def IsPure(self) -> bool:
 		"""
 		Check if the subprogram is pure (:attr:`_isPure`).

@@ -81,7 +81,7 @@ class ProcessNamespaces(Testcase):
 		process.IndexDeclaredItems()
 
 		self.assertIs(variable, process.Variables["counter"])
-		self.assertIs(variable, process.Namespace.Elements()["counter"])
+		self.assertIs(variable, process.Namespace.Elements["counter"])
 
 	def test_IndexDeclaredItemsPopulatesEveryKind(self) -> None:
 		integerType = IntegerType("nibble", None)
@@ -96,7 +96,7 @@ class ProcessNamespaces(Testcase):
 		self.assertIs(constant, process.Constants["width"])
 		self.assertIs(variable, process.Variables["index"])
 		self.assertIs(nestedProcedure, process.Procedures["helper"][0])
-		self.assertEqual(4, len(process.Namespace.Elements()))
+		self.assertEqual(4, len(process.Namespace.Elements))
 
 	def test_NamespaceNestsInsideTheArchitecture(self) -> None:
 		architecture = _architecture()
@@ -151,7 +151,7 @@ class SubprogramNamespaces(Testcase):
 		function.IndexDeclaredItems()
 
 		self.assertIs(variable, function.Variables["temp"])
-		self.assertIs(variable, function.Namespace.Elements()["temp"])
+		self.assertIs(variable, function.Namespace.Elements["temp"])
 
 	def test_NamespaceNestsInsideTheArchitecture(self) -> None:
 		architecture = _architecture()

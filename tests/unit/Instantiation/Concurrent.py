@@ -33,6 +33,9 @@ Tests for pyVHDLModel.Concurrent - the concurrent statement kinds not already co
 tests/unit/Assignment.py (conditional/selected signal assignments) or tests/unit/Base.py
 (ConcurrentBlockStatement's BlockStatementMixin/LabeledEntityMixin wiring).
 """
+from typing                  import Generator
+
+from pyTooling.MetaClasses   import AbstractClassError
 from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Base        import Direction, Mode, SimpleRange, WaveformElement
@@ -49,7 +52,7 @@ from pyVHDLModel.Concurrent  import ComponentInstantiation, EntityInstantiation,
                                     IfGenerateBranch, ElsifGenerateBranch, ElseGenerateBranch, GenerateStatement, \
                                     IfGenerateStatement, IndexedGenerateChoice, RangedGenerateChoice, GenerateCase, \
                                     OthersGenerateCase, CaseGenerateStatement, ForGenerateStatement, \
-                                    ConcurrentSimpleSignalAssignment, ConcurrentAssertStatement
+                                    ConcurrentSimpleSignalAssignment, ConcurrentAssertStatement, Instantiation
 
 from tests.unit              import _entitySymbol, _subtypeSymbol
 
@@ -208,20 +211,30 @@ class GenerateBranches(Testcase):
 
 
 class _GenerateStatement(GenerateStatement):
-	"""A generate statement overriding nothing: :class:`~pyVHDLModel.Concurrent.GenerateStatement` is abstract."""
+	"""A generate statement overriding the must-override methods of :class:`~pyVHDLModel.Concurrent.GenerateStatement`."""
+
+	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
+		yield from ()
+
+	def IndexStatement(self) -> None:
+		pass
+
+
+class _IncompleteGenerateStatement(GenerateStatement):
+	"""A generate statement overriding nothing."""
 
 
 class GenerateStatements(Testcase):
-	def test_AbstractMethodsRaise(self) -> None:
-		"""``IterateInstantiations``/``IndexStatement`` of ``GenerateStatement`` (abstract) are placeholders raising
-		``NotImplementedError`` for a subclass that doesn't override them."""
-		statement = _GenerateStatement("gen")
+	def test_MustOverride(self) -> None:
+		"""A generate statement must override ``IterateInstantiations`` and ``IndexStatement``."""
+		with self.assertRaises(AbstractClassError) as context:
+			_IncompleteGenerateStatement("gen")
 
-		with self.assertRaises(NotImplementedError):
-			next(statement.IterateInstantiations())
-
-		with self.assertRaises(NotImplementedError):
-			statement.IndexStatement()
+		self.assertEqual(
+			"Class '_IncompleteGenerateStatement' is abstract. The following methods: 'IterateInstantiations', "
+			"'IndexStatement' need to be overridden in a derived class.",
+			str(context.exception)
+		)
 
 
 class IfGenerateStatements(Testcase):

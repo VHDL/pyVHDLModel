@@ -34,7 +34,8 @@ from pyTooling.Testing      import Testcase
 from pyVHDLModel.Expression import IntegerLiteral, PhysicalIntegerLiteral, EnumerationLiteral, \
                                    CharacterEnumerationLiteral, AscendingRangeExpression
 from pyVHDLModel.Name       import SimpleName
-from pyVHDLModel.Type       import AnonymousType, EnumeratedType, PhysicalType, ArrayType, RecordTypeElement, RecordType
+from pyVHDLModel.Type       import AnonymousType, EnumeratedType, PhysicalType, PhysicalUnit, ArrayType, \
+                                   RecordTypeElement, RecordType
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
 
 from tests.unit.Visitor     import FullRecorder
@@ -108,7 +109,7 @@ class Types(Testcase):
 		right =        IntegerLiteral(1000)
 		rng =          AscendingRangeExpression(left, right)
 		value =        PhysicalIntegerLiteral(1000, "um")
-		physicalType = PhysicalType("distance", rng, "um", [("mm", value)])
+		physicalType = PhysicalType("distance", rng, PhysicalUnit("um"), [PhysicalUnit("mm", value)])
 		recorder =     FullRecorder()
 
 		physicalType.Visit(recorder)

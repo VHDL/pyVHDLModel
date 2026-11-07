@@ -17,6 +17,62 @@ Version 0.43.0 (2026)
      documentation comment: constructor parameter ``documentation``, property
      :data:`~pyVHDLModel.Base.DocumentedEntityMixin.Documentation`. Breaking change: it sits before ``parent``, so pass
      ``parent`` by keyword; on enumeration literals it follows ``parent``.
+   * Visibility (IEEE Std 1076-2008, clause 12): :meth:`Namespace.Lookup() <pyVHDLModel.Namespace.Namespace.Lookup>`
+     returns the declarations directly visible at a place (:class:`~pyVHDLModel.Namespace.LookupResult`): hiding by
+     declarations of the region and enclosing regions, overloaded subprograms, subprogram aliases and enumeration
+     literals, conflicting imports, declaration order, incomplete types.
+   * Use clauses import every declaration of a package (``use lib.pkg.all;``), all declarations of one name, incl. the
+     literals or units of a type (``use lib.pkg.item;``), the package (``use lib.pkg;``) or units of a library
+     (``use work.all;``); also in declarative parts (architecture, block, process, subprogram, package, generate) and
+     through context references, also nested ones. A missing package member or primary unit, a prefix, which isn't a
+     visible package, and an uninstantiated generic package are an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+     The declarations a use clause takes from a package: :meth:`Package.IterateDeclarations()
+     <pyVHDLModel.DesignUnit.Package.IterateDeclarations>`, :meth:`Package.IterateMemberDeclarations()
+     <pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations>`; a package instantiation iterates those of its generic
+     package.
+     Whether a library's name is visible in a design unit: :meth:`DesignUnit.IsLibraryVisible()
+     <pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible>`.
+     A declarative region and the regions nested in it: :meth:`IterateDeclarationRegions()
+     <pyVHDLModel.Regions.DeclarationRegionMixin.IterateDeclarationRegions>`; whether an item precedes another one in
+     it: :meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.Precedes`.
+   * Every model entity tells whether it's an overloadable declaration
+     (:data:`~pyVHDLModel.Base.ModelEntity.IsOverloadable`: subprograms, enumeration literals, aliases which may denote
+     one of them) and which declarations it implies
+     (:meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations`: the literals of an enumerated type, the units
+     of a physical type).
+   * Enumeration literals and physical units of a region's types are declarations of the region
+     (:data:`Namespace.ImplicitDeclarations <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`). An enumeration
+     literal is indexed by :data:`EnumerationLiteral.NormalizedDesignator
+     <pyVHDLModel.Expression.EnumerationLiteral.NormalizedDesignator>` (a character literal with its apostrophes).
+   * Aliases, attribute declarations and packages declared in a region are added to its namespace.
+
+   .. rubric:: Changes
+
+   * Breaking change: :data:`Namespace.Imports <pyVHDLModel.Namespace.Namespace.Imports>` is a read-only property
+     (was a method) of a list of :class:`~pyVHDLModel.Namespace.Import` (declaration and use clause) per identifier;
+     :meth:`~pyVHDLModel.Namespace.Namespace.AddImport` takes the use clause.
+   * Breaking change: :data:`Namespace.Elements <pyVHDLModel.Namespace.Namespace.Elements>` is a read-only property
+     (was a method).
+   * Breaking change: a physical type's units are :class:`~pyVHDLModel.Type.PhysicalUnit` declarations:
+     :attr:`PhysicalType.PrimaryUnit <pyVHDLModel.Type.PhysicalType.PrimaryUnit>` returns the primary unit, which has no
+     value (was its name; formatted, it's still the name), :attr:`PhysicalType.SecondaryUnits
+     <pyVHDLModel.Type.PhysicalType.SecondaryUnits>` the list of secondary units (was (name, value) pairs); a secondary
+     unit's value has the unit as parent (was the physical type). The constructor takes the primary unit and the
+     secondary units (parameter ``secondaryUnits``, was ``units``) as :class:`~pyVHDLModel.Type.PhysicalUnit` (was a
+     name and (name, value) pairs), so a unit keeps its documentation comment.
+   * Aliases without a subtype indication, which may denote a subprogram, are overloadable; aliases, attribute
+     declarations and packages declared in a region are checked for duplicate declarations.
+   * A package instantiation, which isn't linked to its generic package, raises
+     :exc:`~pyVHDLModel.Exception.PackageInstantiationNotLinkedError` (was
+     :exc:`~pyVHDLModel.Exception.VHDLModelException`, from which it derives), with the common base
+     :exc:`~pyVHDLModel.Exception.InstantiationNotLinkedError` for all instantiations of generic language entities.
+
+   .. rubric:: Bug Fixes
+
+   * The symbols of use clauses in contexts and of ``.all``/member use clauses reference their package; context
+     reference symbols their context (was an extra attribute).
+   * A context reference to a context with a use clause of a package named like its library (``use foo.foo.all;``)
+     raised ``Referenced package 'foo' already exists``.
 
 
 Version 0.42.0 (2026)

@@ -44,7 +44,7 @@ from pyTooling.Decorators   import export, readonly
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ReservedWord as _ReservedWord
 from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Name       import Name
-from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol
+from pyVHDLModel.Symbol     import PossibleReference, Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor  import Visitor
@@ -393,6 +393,25 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:returns: The subtype, or ``None`` if not set.
 		"""
 		return self._subtype
+
+	@readonly
+	def IsOverloadable(self) -> bool:
+		"""
+		Check if this alias is overloadable: it has no subtype indication, and its name may denote a subprogram or an
+		enumeration literal.
+
+		The resolved name (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`) decides, else the name's possible references,
+		e.g. ``alias To_SLV is To_StdLogicVector [std_ulogic_vector return std_logic_vector];``.
+
+		:returns: ``True``, if this alias is overloadable.
+		"""
+		if self._subtype is not None:
+			return False
+		elif (reference := self._name._reference) is not None:
+			return reference.IsOverloadable
+
+		overloadables = PossibleReference.SubProgram | PossibleReference.EnumLiteral
+		return (self._name._possibleReferences & overloadables) != PossibleReference.Unknown
 
 	def __str__(self) -> str:
 		"""

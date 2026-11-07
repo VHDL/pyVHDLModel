@@ -40,14 +40,14 @@ from typing                  import TYPE_CHECKING, ClassVar, Union, Iterable, Ge
 
 from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType, abstractclass
+from pyTooling.MetaClasses   import ExtendedType, abstractclass, mustoverride
 
 from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, \
                                     BaseCase, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, \
                                     BlockStatementMixin, WaveformElement, ChoicesMixin, ReservedWord
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
-from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
-                                    WithGenericsMixin, WithPortsMixin
+from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, DeclarationRegionMixin, \
+                                    SequentialDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, \
                                     ConfigurationInstantiationSymbol, Symbol, SignalSymbol
@@ -160,6 +160,29 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 		:returns: Tuple of labeled statements, in statement order.
 		"""
 		return tuple(statement for statement in self._statements if statement._normalizedLabel is not None)
+
+	def _IterateStatementRegions(self) -> Generator[DeclarationRegionMixin, None, None]:
+		"""
+		Iterate the declarative regions of the concurrent statements, each followed by the regions nested in it.
+
+		Blocks, processes and for-generate statements are declarative regions; an if-generate statement has one per branch,
+		a case-generate statement one per alternative.
+
+		:returns: A generator to iterate the declarative regions, in statement order.
+		"""
+		for statement in self._statements:
+			if isinstance(statement, IfGenerateStatement):
+				yield from statement._ifBranch.IterateDeclarationRegions()
+				for branch in statement._elsifBranches:
+					yield from branch.IterateDeclarationRegions()
+
+				if (branch := statement._elseBranch) is not None:
+					yield from branch.IterateDeclarationRegions()
+			elif isinstance(statement, CaseGenerateStatement):
+				for case in statement._cases:
+					yield from case.IterateDeclarationRegions()
+			elif isinstance(statement, DeclarationRegionMixin):
+				yield from statement.IterateDeclarationRegions()
 
 	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
 		for instance in self._instantiations.values():
@@ -1504,13 +1527,21 @@ class GenerateStatement(ConcurrentStatement, AllowBlackboxMixin):
 		super().__init__(label, documentation, parent)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
-	# @mustoverride
+	@mustoverride
 	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:
-		raise NotImplementedError()
+		"""
+		Iterate the instantiations in the branches or the body of this generate statement.
 
-	# @mustoverride
+		:returns: A generator to iterate the instantiations.
+		"""
+		raise NotImplementedError(f"Method 'IterateInstantiations' isn't implemented by '{getTypeName(self)}'.")
+
+	@mustoverride
 	def IndexStatement(self) -> None:
-		raise NotImplementedError()
+		"""
+		Index the statements in the branches or the body of this generate statement.
+		"""
+		raise NotImplementedError(f"Method 'IndexStatement' isn't implemented by '{getTypeName(self)}'.")
 
 
 @export

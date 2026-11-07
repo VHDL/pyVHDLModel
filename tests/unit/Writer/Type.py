@@ -40,7 +40,7 @@ from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHD
 from pyVHDLModel.Name            import SimpleName, AttributeName
 from pyVHDLModel.Symbol          import ConstrainedArraySubtypeSymbol
 from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
-                                        ArrayType, RecordTypeElement, RecordType, AccessType, FileType
+                                        PhysicalUnit, ArrayType, RecordTypeElement, RecordType, AccessType, FileType
 
 from tests.unit                  import _subtypeSymbol
 
@@ -58,9 +58,9 @@ def _to(left: int, right: int) -> AscendingRangeExpression:
 
 def _distance() -> PhysicalType:
 	"""Physical type with two secondary units."""
-	return PhysicalType("distance", _to(0, 1000000), "um", [
-		("mm", PhysicalIntegerLiteral(1000, "um")),
-		("m",  PhysicalIntegerLiteral(1000, "mm"))
+	return PhysicalType("distance", _to(0, 1000000), PhysicalUnit("um"), [
+		PhysicalUnit("mm", PhysicalIntegerLiteral(1000, "um")),
+		PhysicalUnit("m",  PhysicalIntegerLiteral(1000, "mm"))
 	])
 
 
@@ -111,7 +111,7 @@ class ScalarTypes(Testcase):
 		)
 
 	def test_Physical_PrimaryUnitOnly(self) -> None:
-		physicalType = PhysicalType("ticks", _to(0, 100), "tick", [])
+		physicalType = PhysicalType("ticks", _to(0, 100), PhysicalUnit("tick"), [])
 
 		self.assertEqual(dedent("""\
 			type ticks is range 0 to 100

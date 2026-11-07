@@ -46,7 +46,9 @@ from pyVHDLModel.Exception import NotImplementedWarning, BlackboxWarning, Duplic
                                   LibraryNotFoundError, PackageNotFoundError, LibraryNotVisibleError, \
                                   EntityInstantiationLibraryNotVisibleError, DesignUnitNotFoundError, \
                                   ComponentEntityNotFoundError, InstantiatedEntityNotFoundError, \
-                                  ArchitectureEntityNotFoundError, PackageBodyPackageNotFoundError
+                                  ArchitectureEntityNotFoundError, PackageBodyPackageNotFoundError, NotLinkedError, \
+                                  UseClauseNotLinkedError, NotComputedError, HierarchyNotComputedError, \
+                                  CompileOrderNotComputedError
 
 from pyTooling.Warning         import UnhandledCriticalWarningError, WarningCollector
 from pyTooling.Testing         import Testcase
@@ -439,6 +441,40 @@ class LinkContextReferences(Testcase):
 		self.assertIs(ieee, entity.ReferencedLibraries["ieee"])
 		self.assertDictEqual({"std_logic_1164": package}, entity.ReferencedPackages["ieee"])
 
+	def test_UseClauseNotLinked(self) -> None:
+		"""``LinkContextReferences()`` before ``LinkContexts()``."""
+		design =  Design("example")
+		library = design.GetLibrary("lib_1")
+		design.LoadIEEELibrary()
+		design.LoadStdLibrary()
+
+		symbol =  AllPackageMembersReferenceSymbol(AllName(SelectedName("std_logic_1164", SimpleName("ieee"))))
+		context = Context(
+			"ctx_1",
+			[LibraryClause([LibraryReferenceSymbol(SimpleName("ieee"))]), UseClause([symbol])],
+			parent=None
+		)
+		entity = Entity(
+			"entity_A",
+			[ContextReference([ContextReferenceSymbol(SelectedName("ctx_1", SimpleName("work")))])],
+			parent=None
+		)
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(context)
+		document._AddDesignUnit(entity)
+		design.AddDocument(document, library)
+		design.CreateDependencyGraph()
+
+		with self.assertRaises(UseClauseNotLinkedError) as ex:
+			design.LinkContextReferences()
+
+		self.assertEqual("Use clause 'ieee.std_logic_1164.all' of context 'ctx_1' isn't linked.", str(ex.exception))
+		self.assertListEqual(["Call 'LinkContexts()' before 'LinkContextReferences()'."], ex.exception.__notes__)
+		self.assertIs(symbol, ex.exception.Symbol)
+		self.assertIs(context, ex.exception.Context)
+		self.assertIsInstance(ex.exception, NotLinkedError)
+		self.assertIsInstance(ex.exception, VHDLModelException)
+
 
 class LinkPackageBodies(Testcase):
 	"""A package has one package body."""
@@ -625,6 +661,24 @@ class CompileOrderGraph(Testcase):
 		self.assertIs(document1, design.CompileOrderGraph.GetVertexByID(str(Path("a/top.vhdl"))).Value)
 		self.assertIs(document2, design.CompileOrderGraph.GetVertexByID(str(Path("b/top.vhdl"))).Value)
 
+	def test_CompileOrderNotComputed(self) -> None:
+		design =  Design("example")
+		library = design.GetLibrary("lib_1")
+		for name in ("a", "b"):
+			document = Document(Path(f"{name}.vhdl"), parent=None)
+			document._AddDesignUnit(Entity(f"entity_{name}", parent=None))
+			design.AddDocument(document, library)
+
+		design.CreateDependencyGraph()
+		design.CreateCompileOrderGraph()
+
+		with self.assertRaises(CompileOrderNotComputedError) as context:
+			list(design.IterateDocumentsInCompileOrder())
+
+		self.assertEqual("Compile order is not yet computed from dependency graph.", str(context.exception))
+		self.assertIsInstance(context.exception, NotComputedError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
 
 class TopLevel(Testcase):
 	def test_SingleEntityWithoutArchitecture_IsNotMistakenForUncomputedHierarchy(self) -> None:
@@ -646,11 +700,15 @@ class TopLevel(Testcase):
 		self.assertEqual(1, design.HierarchyGraph.VertexCount)
 		self.assertIs(library.Entities["entity_1"], design.TopLevel)
 
-	def test_HierarchyNotYetComputed_RaisesVHDLModelException(self) -> None:
+	def test_HierarchyNotComputed(self) -> None:
 		design = Design("example")
 
-		with self.assertRaises(VHDLModelException):
+		with self.assertRaises(HierarchyNotComputedError) as context:
 			design.TopLevel
+
+		self.assertEqual("Hierarchy is not yet computed from dependency graph.", str(context.exception))
+		self.assertIsInstance(context.exception, NotComputedError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 
 class IndexDeclaredItems(Testcase):

@@ -51,7 +51,8 @@ if TYPE_CHECKING:  # pragma: no cover
 	from pyVHDLModel               import Document, Library
 	from pyVHDLModel.Base          import ModelElementUnion, ModelEntity
 	from pyVHDLModel.Concurrent    import ComponentInstantiation, EntityInstantiation
-	from pyVHDLModel.DesignUnit    import Component as _Component, DesignUnit as _DesignUnit, Architecture
+	from pyVHDLModel.DesignUnit    import Component as _Component, Context as _Context, DesignUnit as _DesignUnit, \
+	                                      Architecture
 	from pyVHDLModel.Expression    import Literal as _Literal
 	from pyVHDLModel.Instantiation import PackageInstantiation as _PackageInstantiation
 	from pyVHDLModel.Namespace     import Namespace as _Namespace, Import as _Import
@@ -2255,7 +2256,27 @@ class PackageBodyPackageNotFoundError(VHDLModelException, DesignUnitNotFoundErro
 
 
 @export
-class InstantiationNotLinkedError(Exception):
+class NotLinkedError(Exception):
+	"""
+	The exception is raised when a linking step of the analysis didn't run before a step, which needs its result.
+
+	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
+	``class UseClauseNotLinkedError(VHDLModelException, NotLinkedError)``. It has no initializer and no fields of its
+	own.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.InstantiationNotLinkedError`
+	      |rarr| Instantiation of a generic language entity not linked.
+	   :exc:`~pyVHDLModel.Exception.LibraryReferenceNotLinkedError`
+	      |rarr| Implicit library reference of a primary unit not linked.
+	   :exc:`~pyVHDLModel.Exception.UseClauseNotLinkedError`
+	      |rarr| Use clause of a context declaration not linked.
+	"""
+
+
+@export
+class InstantiationNotLinkedError(NotLinkedError):
 	"""
 	The exception is raised when an instantiation of a generic language entity isn't linked to it.
 
@@ -2315,6 +2336,139 @@ class PackageInstantiationNotLinkedError(VHDLModelException, InstantiationNotLin
 
 		self._instantiationName = instantiationName
 		self._genericName =       genericPackageName
+
+
+@export
+class LibraryReferenceNotLinkedError(VHDLModelException, NotLinkedError):
+	"""
+	This exception is raised, when a primary unit doesn't reference a library, which every primary unit references
+	implicitly.
+
+	Message: :pycode:`f"Design unit '{designUnit._identifier}' doesn't reference library '{libraryName}'."`
+	"""
+
+	_designUnit:  _DesignUnit  #: The design unit without the library reference.
+	_libraryName: str          #: The name of the implicitly referenced library.
+
+	def __init__(self, designUnit: _DesignUnit, libraryName: str) -> None:
+		"""
+		Initializes the exception message based on the given design unit and library name.
+
+		:param designUnit:  The design unit without the library reference.
+		:param libraryName: The name of the implicitly referenced library.
+		"""
+		super().__init__(f"Design unit '{designUnit._identifier}' doesn't reference library '{libraryName}'.")
+
+		self._designUnit =  designUnit
+		self._libraryName = libraryName
+
+	@readonly
+	def DesignUnit(self) -> _DesignUnit:
+		"""
+		Read-only property to access the design unit (:attr:`_designUnit`).
+
+		:returns: The design unit without the library reference.
+		"""
+		return self._designUnit
+
+	@readonly
+	def LibraryName(self) -> str:
+		"""
+		Read-only property to access the library name (:attr:`_libraryName`).
+
+		:returns: The name of the implicitly referenced library.
+		"""
+		return self._libraryName
+
+
+@export
+class UseClauseNotLinkedError(VHDLModelException, NotLinkedError):
+	"""
+	This exception is raised, when a use clause of a context declaration isn't linked to its package.
+
+	Message: :pycode:`f"Use clause '{symbol._name!s}' of context '{context._identifier}' isn't linked."`
+	"""
+
+	_symbol:  _Symbol   #: The symbol of the use clause, which isn't linked.
+	_context: _Context  #: The context declaration containing the use clause.
+
+	def __init__(self, symbol: _Symbol, context: _Context) -> None:
+		"""
+		Initializes the exception message based on the given symbol and context declaration.
+
+		:param symbol:  The symbol of the use clause, which isn't linked.
+		:param context: The context declaration containing the use clause.
+		"""
+		super().__init__(f"Use clause '{symbol._name!s}' of context '{context._identifier}' isn't linked.")
+
+		self._symbol =  symbol
+		self._context = context
+
+	@readonly
+	def Symbol(self) -> _Symbol:
+		"""
+		Read-only property to access the symbol of the use clause (:attr:`_symbol`).
+
+		:returns: The symbol, which isn't linked.
+		"""
+		return self._symbol
+
+	@readonly
+	def Context(self) -> _Context:
+		"""
+		Read-only property to access the context declaration (:attr:`_context`).
+
+		:returns: The context declaration containing the use clause.
+		"""
+		return self._context
+
+
+@export
+class NotComputedError(Exception):
+	"""
+	The exception is raised when a graph of the analysis isn't computed before it's used.
+
+	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
+	``class HierarchyNotComputedError(VHDLModelException, NotComputedError)``. It has no initializer and no fields of its
+	own.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.HierarchyNotComputedError`
+	      |rarr| Hierarchy graph not computed.
+	   :exc:`~pyVHDLModel.Exception.CompileOrderNotComputedError`
+	      |rarr| Compile order not computed.
+	"""
+
+
+@export
+class HierarchyNotComputedError(VHDLModelException, NotComputedError):
+	"""
+	This exception is raised, when the design's top-level is requested before the hierarchy graph is computed.
+
+	Message: :pycode:`"Hierarchy is not yet computed from dependency graph."`
+	"""
+
+	def __init__(self) -> None:
+		"""
+		Initializes the exception message.
+		"""
+		super().__init__("Hierarchy is not yet computed from dependency graph.")
+
+
+@export
+class CompileOrderNotComputedError(VHDLModelException, NotComputedError):
+	"""
+	This exception is raised, when documents are iterated in compile order before the compile order is computed.
+
+	Message: :pycode:`"Compile order is not yet computed from dependency graph."`
+	"""
+
+	def __init__(self) -> None:
+		"""
+		Initializes the exception message.
+		"""
+		super().__init__("Compile order is not yet computed from dependency graph.")
 
 
 @export

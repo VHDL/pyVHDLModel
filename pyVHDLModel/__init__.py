@@ -84,7 +84,9 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       PackageInstantiationLibraryNotFoundError, \
                                       EntityInstantiationLibraryNotFoundError, ComponentEntityNotFoundError, \
                                       InstantiatedEntityNotFoundError, ArchitectureEntityNotFoundError, \
-                                      PackageBodyPackageNotFoundError
+                                      PackageBodyPackageNotFoundError, LibraryReferenceNotLinkedError, \
+                                      UseClauseNotLinkedError, HierarchyNotComputedError, \
+                                      CompileOrderNotComputedError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Name          import AllName
 from pyVHDLModel.Namespace     import Namespace
@@ -654,16 +656,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		When called the first time, the hierarchy graph is checked for its root elements. When there is only one root element in the graph, a new field ``toplevel``
 		is added to :attr:`_hierarchyGraph` referencing that single element. In addition, the result is cached in :attr:`_toplevel`.
 
-		:returns:                   Reference to the design's *top-level*.
-		:raises VHDLModelException: If the hierarchy graph is not yet computed from dependency graph.
-		:raises VHDLModelException: If there is more than one *top-level*.
+		:returns:                          Reference to the design's *top-level*.
+		:raises HierarchyNotComputedError: If the hierarchy graph is not yet computed from dependency graph.
+		:raises VHDLModelException:        If there is more than one *top-level*.
 		"""
 		# Check for cached result
 		if self._toplevel is not None:
 			return self._toplevel
 
 		if self._hierarchyGraph.VertexCount == 0:
-			raise VHDLModelException("Hierarchy is not yet computed from dependency graph.")
+			raise HierarchyNotComputedError()
 
 		roots = tuple(self._hierarchyGraph.IterateRoots())
 		if len(roots) == 1:
@@ -2064,7 +2066,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   :meth:`AnalyzeDependencies`
 		     Analyze dependencies and link relations.
 
-		:raises VHDLModelException:              If a primary unit doesn't reference library ``std``. |br|
+		:raises LibraryReferenceNotLinkedError:  If a primary unit doesn't reference library ``std``. |br|
 		                                         Call :meth:`LinkLibraryReferences` before.
 		:raises PackageNotFoundError:            If library ``std`` doesn't contain package ``standard``. |br|
 		                                         Call :meth:`LoadStdLibrary` before.
@@ -2088,7 +2090,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				if not (designUnit.Library.NormalizedIdentifier == "std" and designUnit.NormalizedIdentifier == "standard"):
 					for lib, packages in DEFAULT_PACKAGES:
 						if lib not in designUnit._referencedLibraries:
-							ex = VHDLModelException(f"Design unit '{designUnit._identifier}' doesn't reference library '{lib}'.")
+							ex = LibraryReferenceNotLinkedError(designUnit, lib)
 							ex.add_note(f"Every primary unit references library '{lib}' implicitly.")
 							ex.add_note("Call 'LinkLibraryReferences()' before 'LinkPackageReferences()'.")
 							raise ex
@@ -2412,7 +2414,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                                (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
 		:raises ContextNotFoundError:                   If a context reference references a context, which doesn't exist in
 		                                                its library.
-		:raises VHDLModelException:                     If a use clause of a referenced context isn't linked. |br|
+		:raises UseClauseNotLinkedError:                If a use clause of a referenced context isn't linked. |br|
 		                                                Call :meth:`LinkContexts` before.
 		"""
 		for designUnit in self.IterateDesignUnits():
@@ -2480,7 +2482,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				for useClause in context._packageReferences:
 					for symbol in useClause._symbols:
 						if (package := symbol._reference) is None:
-							ex = VHDLModelException(f"Use clause '{symbol._name!s}' of context '{context._identifier}' isn't linked.")
+							ex = UseClauseNotLinkedError(symbol, context)
 							ex.add_note("Call 'LinkContexts()' before 'LinkContextReferences()'.")
 							raise ex
 						elif len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
@@ -2979,8 +2981,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		   * yield the compiler-order vertex' referenced document.
 
-		:returns:                   A generator to iterate all documents in compile-order in the design.
-		:raises VHDLModelException: If compile-order was not computed.
+		:returns:                             A generator to iterate all documents in compile-order in the design.
+		:raises CompileOrderNotComputedError: If compile-order was not computed.
 
 		.. seealso::
 
@@ -2990,7 +2992,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		"""
 		if self._compileOrderGraph.EdgeCount < self._compileOrderGraph.VertexCount - 1:
-			raise VHDLModelException("Compile order is not yet computed from dependency graph.")
+			raise CompileOrderNotComputedError()
 
 		for compileOrderNode in self._compileOrderGraph.IterateTopologically():
 			yield compileOrderNode.Value

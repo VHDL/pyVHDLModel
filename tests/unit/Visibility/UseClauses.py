@@ -51,7 +51,8 @@ from pyVHDLModel.Exception     import InstantiationNotLinkedError, LibraryNotFou
                                       ReferencedLibraryNotExistingError, LibraryClauseLibraryNotFoundError, \
                                       PackageInstantiationLibraryNotFoundError, \
                                       EntityInstantiationLibraryNotFoundError, DesignUnitNotFoundError, \
-                                      PackageNotFoundError, ContextNotFoundError
+                                      PackageNotFoundError, ContextNotFoundError, NotLinkedError, \
+                                      LibraryReferenceNotLinkedError
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericTypeInterfaceItem
 from pyVHDLModel.Name          import SelectedName, SimpleName
@@ -1015,10 +1016,21 @@ class LinkingOrder(Testcase):
 		design.AddDocument(document, design.GetLibrary("lib"))
 		design.CreateDependencyGraph()
 
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(LibraryReferenceNotLinkedError) as context:
 			design.LinkPackageReferences()
 
 		self.assertEqual("Design unit 'e' doesn't reference library 'std'.", str(context.exception))
+		self.assertListEqual(
+			[
+				"Every primary unit references library 'std' implicitly.",
+				"Call 'LinkLibraryReferences()' before 'LinkPackageReferences()'."
+			],
+			context.exception.__notes__
+		)
+		self.assertEqual("std", context.exception.LibraryName)
+		self.assertEqual("e", context.exception.DesignUnit.Identifier)
+		self.assertIsInstance(context.exception, NotLinkedError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 
 class ContextGenericPackage(Testcase):

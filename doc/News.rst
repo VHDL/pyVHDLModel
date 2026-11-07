@@ -66,6 +66,8 @@ Version 0.43.0 (2026)
    * :data:`RecordType.ElementsByIdentifier <pyVHDLModel.Type.RecordType.ElementsByIdentifier>` indexes a record's
      elements by each identifier; :data:`BaseType.BaseType <pyVHDLModel.Type.BaseType.BaseType>` returns a type itself
      (a subtype the base type of its type mark).
+   * :class:`~pyVHDLModel.Symbol.LoopSymbol` references a loop statement by its label
+     (:data:`~pyVHDLModel.Symbol.LoopSymbol.Loop`).
 
    .. rubric:: Changes
 
@@ -128,6 +130,11 @@ Version 0.43.0 (2026)
    * The glossary explains the VHDL terms declarative part, declarative region, design unit, normalized, primary unit
      and secondary unit, with the defining clause of IEEE Std 1076-2008; the normalized identifier, label and designator
      properties refer to it.
+   * Breaking change: next and exit statements dropped their loop label and their own statement label (``lbl : next
+     outer when c;``). :class:`~pyVHDLModel.Sequential.LoopControlStatement` takes ``loopLabel`` as a
+     :class:`~pyVHDLModel.Symbol.LoopSymbol` (was ``str``, ignored) and a ``label``;
+     :data:`~pyVHDLModel.Sequential.LoopControlStatement.LoopReference` returns the symbol. The visitor walks the
+     symbol, the VHDL writer writes it.
 
 
 Version 0.42.0 (2026)

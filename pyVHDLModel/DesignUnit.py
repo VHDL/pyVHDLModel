@@ -755,33 +755,6 @@ class Context(PrimaryUnit):
 				else:
 					raise VHDLModelException(f"Reference '{reference!r}' is neither a library clause, use clause, nor context reference.")
 
-	@readonly
-	def LibraryReferences(self) -> list[LibraryClause]:
-		"""
-		Read-only property to access the library references (:attr:`_libraryReferences`).
-
-		:returns: List of library references.
-		"""
-		return self._libraryReferences
-
-	@readonly
-	def PackageReferences(self) -> list[UseClause]:
-		"""
-		Read-only property to access the package references (:attr:`_packageReferences`).
-
-		:returns: List of package references.
-		"""
-		return self._packageReferences
-
-	@readonly
-	def ContextReferences(self) -> list[ContextReference]:
-		"""
-		Read-only property to access the context references (:attr:`_contextReferences`).
-
-		:returns: List of context references.
-		"""
-		return self._contextReferences
-
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this context declaration and its context items with a visitor.

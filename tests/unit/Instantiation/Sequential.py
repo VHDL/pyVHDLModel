@@ -29,9 +29,10 @@
 # ==================================================================================================================== #
 #
 """
-Tests for pyVHDLModel.Sequential - the sequential statement kinds not already covered by
-tests/unit/Assignment.py (conditional/selected/force/release assignments) or
-tests/unit/Base.py (branches, report/assert statements, choices).
+Tests for pyVHDLModel.Sequential.
+
+Covers the sequential statement kinds not already covered by tests/unit/Assignment.py (conditional/selected/force/
+release assignments) or tests/unit/Base.py (branches, report/assert statements, choices).
 """
 from pyTooling.Testing       import Testcase
 
@@ -125,9 +126,13 @@ class IfStatements(Testcase):
 
 
 class Choices(Testcase):
-	"""Regression test: ``IndexedChoice``'s ``expression.Parent = self`` was previously commented out
+	"""
+	Indexed and ranged choices.
+
+	Regression test: ``IndexedChoice``'s ``expression.Parent = self`` was previously commented out
 	(``# FIXME: received None``) - confirmed stale in the gap analysis (every real construction site
-	always provides a real expression) and now re-enabled."""
+	always provides a real expression) and now re-enabled.
+	"""
 
 	def test_IndexedChoice(self) -> None:
 		expression = IntegerLiteral(0)
@@ -203,10 +208,14 @@ class LoopStatements(Testcase):
 
 
 class LoopControlStatements(Testcase):
-	"""Regression test: ``_loopReference`` was declared but never initialized in
+	"""
+	Next and exit statements: loop reference and parent.
+
+	Regression test: ``_loopReference`` was declared but never initialized in
 	``LoopControlStatement.__init__`` - the same crash-on-first-property-access shape as the fixed
 	``DeferredConstant`` bug. ``NextStatement``/``ExitStatement`` add no state of their own, so the
-	fix is tested via both, once each."""
+	fix is tested via both, once each.
+	"""
 
 	def test_NextStatement(self) -> None:
 		condition = IntegerLiteral(1)

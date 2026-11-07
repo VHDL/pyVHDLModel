@@ -83,9 +83,13 @@ class References(Testcase):
 
 
 class _ConcreteDesignUnit(DesignUnit):
-	"""``DesignUnit`` is abstract - it requires ``__str__`` - so its own plumbing is exercised through a
+	"""
+	Minimal concrete design unit to test the abstract ``DesignUnit``.
+
+	``DesignUnit`` is abstract - it requires ``__str__`` - so its own plumbing is exercised through a
 	stand-in that adds nothing but the required rendering. Using a real unit like ``Context`` instead
-	would drag in that unit's extra state."""
+	would drag in that unit's extra state.
+	"""
 
 	def __str__(self) -> str:
 		return self._identifier
@@ -394,9 +398,13 @@ class Components(Testcase):
 
 
 class Configurations(Testcase):
-	"""The *design-unit* ``configuration cfg of ent is ... end configuration;`` - not to be confused
+	"""
+	Configuration declarations (design units).
+
+	The *design-unit* ``configuration cfg of ent is ... end configuration;`` - not to be confused
 	with ``pyVHDLModel.Configuration.ComponentConfiguration``/``BlockConfiguration``, which are tested
-	in tests/unit/Configuration.py."""
+	in tests/unit/Configuration.py.
+	"""
 
 	def test_Minimal(self) -> None:
 		from pyVHDLModel.Configuration import BlockConfiguration

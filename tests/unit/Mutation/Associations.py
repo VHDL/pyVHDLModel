@@ -30,9 +30,11 @@
 #
 #
 """
-Mutation tests for association lists: generic map aspects (:class:`~pyVHDLModel.Association.GenericMapAspectMixin`),
-port map aspects (:class:`~pyVHDLModel.Association.PortMapAspectMixin`) and the parameter associations of procedure
-calls (:class:`~pyVHDLModel.Common.ProcedureCallMixin`).
+Mutation tests for association lists.
+
+Covers generic map aspects (:class:`~pyVHDLModel.Association.GenericMapAspectMixin`), port map aspects
+(:class:`~pyVHDLModel.Association.PortMapAspectMixin`) and the parameter associations of procedure calls
+(:class:`~pyVHDLModel.Common.ProcedureCallMixin`).
 
 A named association may not repeat the formal of another named association, and positional associations precede the
 named associations.

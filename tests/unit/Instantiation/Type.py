@@ -55,7 +55,10 @@ def _range(left: int = 0, right: int = 15, direction: Direction = Direction.To) 
 
 
 class ParentAndDocumentationWiringAcrossAllLeafTypes(Testcase):
-	"""``BaseType`` provides identifier/documentation/parent handling and the (private,
+	"""
+	Parent and documentation of every concrete type class.
+
+	``BaseType`` provides identifier/documentation/parent handling and the (private,
 	regression-tested-here) ``_objectVertex`` slot to every type class - but ``Type``, ``AnonymousType``,
 	``FullType``, ``ScalarType``, ``CompositeType`` and ``RangedScalarType`` are pure taxonomy markers
 	with no VHDL construct of their own (never directly instantiated anywhere in pyGHDL.dom, confirmed
@@ -78,7 +81,8 @@ class ParentAndDocumentationWiringAcrossAllLeafTypes(Testcase):
 	did) - fixed alongside the ``Parent`` bug, since it's the same forwarding call: every constructor
 	below now accepts ``documentation`` in the same position as ``BaseType`` itself, so each
 	``super().__init__(identifier, documentation, parent)`` call is a plain, correctly-ordered
-	positional forward - no ``parent=`` keyword workaround needed anymore."""
+	positional forward - no ``parent=`` keyword workaround needed anymore.
+	"""
 
 	def test_AllLeafTypes(self) -> None:
 		parent = _Element()
@@ -154,10 +158,14 @@ class EnumeratedTypes(Testcase):
 
 
 class IntegerTypes(Testcase):
-	"""Also covers ``RangedScalarType.Range`` (shared, unmodified, by ``IntegerType``/``RealType``/
+	"""
+	Integer types with a literal or an attribute range.
+
+	Also covers ``RangedScalarType.Range`` (shared, unmodified, by ``IntegerType``/``RealType``/
 	``PhysicalType``): it accepts any ``Range``, so either a ``SimpleRange`` or a ``RangeFromName`` for an
 	attribute-based range like ``type t is range r'range;`` - checked once here since this behaviour
-	genuinely is a single, shared implementation, unlike the constructor-forwarding concern above."""
+	genuinely is a single, shared implementation, unlike the constructor-forwarding concern above.
+	"""
 
 	def test_WithLiteralRange(self) -> None:
 		rng = _range(0, 15)
@@ -276,11 +284,15 @@ class PhysicalTypes(Testcase):
 
 
 class ArrayTypes(Testcase):
-	"""Regression-tracking test, not a regression fix: still-open gap, already confirmed and
+	"""
+	Array types; the parent of indices and element subtype isn't wired yet.
+
+	Regression-tracking test, not a regression fix: still-open gap, already confirmed and
 	documented in the gap analysis - ``ArrayType.__init__`` deliberately (if unfortunately) never
 	wires up ``Parent`` for its indices or element subtype (both ``.Parent = self`` lines are
 	commented out with a FIXME). This locks in the *current* behaviour so a future fix shows up as an
-	intentional test change, not a silent regression."""
+	intentional test change, not a silent regression.
+	"""
 
 	def test_Construction(self) -> None:
 		index = _range(0, 7)
@@ -349,9 +361,13 @@ class RecordTypes(Testcase):
 
 
 class ProtectedTypes(Testcase):
-	"""A protected type declaration admits subprogram declarations only, so ``DeclaredItems`` and
+	"""
+	Protected type declarations and their methods.
+
+	A protected type declaration admits subprogram declarations only, so ``DeclaredItems`` and
 	``Methods`` hold the same items. Real ``Procedure`` instances are needed because ``Methods`` is
-	defined by type, not by position."""
+	defined by type, not by position.
+	"""
 
 	def test_WithMethods(self) -> None:
 		method = Procedure("increment")

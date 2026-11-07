@@ -205,11 +205,15 @@ class AllNames(Testcase):
 
 
 class OpenNames(Testcase):
-	"""Regression test: the ``parent`` argument was previously forwarded positionally into ``Name.
+	"""
+	Open names with and without a parent.
+
+	Regression test: the ``parent`` argument was previously forwarded positionally into ``Name.
 	__init__``'s ``prefix`` parameter instead of its ``parent`` parameter (``super().__init__("open",
 	parent)``), so any ``OpenName(parent=...)`` call crashed with an ``AttributeError`` the moment
 	``Name.__init__`` tried to read ``prefix._root`` off whatever non-``Name`` object had been passed
-	as ``parent``."""
+	as ``parent``.
+	"""
 
 	def test_ConstructionWithoutParent(self) -> None:
 		name = OpenName()

@@ -218,6 +218,8 @@ class BlockPorts(Testcase):
 
 class SubprogramInterfaceItems(Testcase):
 	"""
+	Generics and parameters of subprograms in the namespace.
+
 	``Subprogram`` can't inherit ``WithGenericsMixin``/``WithParametersMixin``:
 	:mod:`pyVHDLModel.Interface` needs ``Procedure``/``Function`` as real base classes for its generic
 	subprogram interface items, so :mod:`pyVHDLModel.Subprogram` may never import it. Indexing therefore

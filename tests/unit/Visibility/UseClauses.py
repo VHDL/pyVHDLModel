@@ -52,7 +52,8 @@ from pyVHDLModel.Exception     import InstantiationNotLinkedError, LibraryNotFou
                                       PackageInstantiationLibraryNotFoundError, \
                                       EntityInstantiationLibraryNotFoundError, DesignUnitNotFoundError, \
                                       PackageNotFoundError, ContextNotFoundError, NotLinkedError, \
-                                      LibraryReferenceNotLinkedError, UnknownKindError, UnknownSymbolKindError
+                                      LibraryReferenceNotLinkedError, UnknownKindError, UnknownSymbolKindError, \
+                                      NotAGenericPackageError
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericTypeInterfaceItem
 from pyVHDLModel.Name          import SelectedName, SimpleName
@@ -947,6 +948,23 @@ class DesignUnitsNotFound(Testcase):
 		)
 		self.assertIsInstance(context.exception.__cause__, KeyError)
 		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+
+class GenericPackages(Testcase):
+	"""A package instantiation referencing a package, which isn't a generic package."""
+
+	def test_NotAGenericPackage(self) -> None:
+		"""``package i is new work.p generic map (...);`` with a package ``p`` without generics."""
+		package =       Package("p")
+		instantiation = PackageInstantiation("i", PackageReferenceSymbol(SelectedName("p", SimpleName("work"))))
+
+		with self.assertRaises(NotAGenericPackageError) as context:
+			_design(package, instantiation)
+
+		self.assertEqual("Package 'work.p' referenced by 'lib.i' is not a generic package.", str(context.exception))
+		self.assertIs(instantiation, context.exception.PackageInstantiation)
+		self.assertIs(package, context.exception.Package)
 		self.assertIsInstance(context.exception, VHDLModelException)
 
 

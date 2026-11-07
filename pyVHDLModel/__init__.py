@@ -87,7 +87,8 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       PackageBodyPackageNotFoundError, LibraryReferenceNotLinkedError, \
                                       UseClauseNotLinkedError, HierarchyNotComputedError, \
                                       CompileOrderNotComputedError, UnknownSymbolKindError, \
-                                      UnknownSecondaryUnitKindError
+                                      UnknownSecondaryUnitKindError, AmbiguousTopLevelError, \
+                                      UnprefixedEntityInstantiationError, NotAGenericPackageError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Name          import AllName
 from pyVHDLModel.Namespace     import Namespace
@@ -660,7 +661,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:returns:                          Reference to the design's *top-level*.
 		:raises HierarchyNotComputedError: If the hierarchy graph is not yet computed from dependency graph. |br|
 		                                   Call :meth:`Analyze` or :meth:`AnalyzeDependencies` before.
-		:raises VHDLModelException:        If there is more than one *top-level*.
+		:raises AmbiguousTopLevelError:    If there is more than one *top-level*.
 		"""
 		# Check for cached result
 		if self._toplevel is not None:
@@ -679,7 +680,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 			return toplevel.Value
 		else:
-			raise VHDLModelException(f"Found more than one toplevel: {', '.join(str(r) for r in roots)}")
+			raise AmbiguousTopLevelError(tuple(root.Value for root in roots))
 
 	def LoadStdLibrary(self) -> Library:
 		"""
@@ -2646,7 +2647,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					entityName =  instance.Entity.Name
 					libraryName = entityName.Prefix
 					if libraryName is None:
-						ex = VHDLModelException(f"Direct entity instantiation '{instance.Label}' has no library prefix.")
+						ex = UnprefixedEntityInstantiationError(instance)
 						ex.add_note(f"Use a selected name like 'work.{entityName.Identifier}'.")
 						ex.add_note("Entities made visible by a use clause aren't supported.")
 						raise ex
@@ -3399,7 +3400,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		:raises PackageInstantiationLibraryNotVisibleError: If the name of that library isn't visible
 		                                                    (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
 		:raises PackageNotFoundError:                       If generic package name doesn't exist.
-		:raises VHDLModelException:                         If the package isn't a generic package.
+		:raises NotAGenericPackageError:                    If the package isn't a generic package.
 
 		.. seealso::
 
@@ -3408,7 +3409,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		   :meth:`LinkPackageBodies`
 		     Link all package bodies to corresponding packages.
 		"""
-		for packageInstanceName, packageInstance in self._packages.items():
+		for packageInstance in self._packages.values():
 			if isinstance(packageInstance, PackageInstantiation):
 				packageSymbol = packageInstance._packageReference
 				packageName = packageSymbol.Name
@@ -3451,7 +3452,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 					raise ex from cause
 
 				if package.GenericCount == 0:
-					raise VHDLModelException(f"Package '{libraryName.Identifier}.{packageName.Identifier}' referenced by '{self._identifier}.{packageInstanceName}' is not a generic package.")
+					raise NotAGenericPackageError(packageInstance, package)
 
 				packageSymbol.Package = package
 

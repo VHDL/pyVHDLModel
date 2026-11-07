@@ -43,13 +43,14 @@ from pyVHDLModel.Configuration import BlockConfiguration
 from pyVHDLModel.Concurrent import EntityInstantiation, ComponentInstantiation
 from pyVHDLModel.Object import Variable
 from pyVHDLModel.Exception import NotImplementedWarning, BlackboxWarning, DuplicateDeclarationWarning, \
-                                  LibraryNotFoundError, PackageNotFoundError, LibraryNotVisibleError, \
-                                  EntityInstantiationLibraryNotVisibleError, DesignUnitNotFoundError, \
-                                  ComponentEntityNotFoundError, InstantiatedEntityNotFoundError, \
-                                  ArchitectureEntityNotFoundError, PackageBodyPackageNotFoundError, NotLinkedError, \
-                                  UseClauseNotLinkedError, NotComputedError, HierarchyNotComputedError, \
-                                  CompileOrderNotComputedError, UnknownKindError, UnknownSecondaryUnitKindError, \
-                                  ArchitectureExistsInLibraryError
+                                  LibraryNotFoundError, PackageNotFoundError, \
+                                  LibraryNotVisibleError, EntityInstantiationLibraryNotVisibleError, \
+                                  DesignUnitNotFoundError, ComponentEntityNotFoundError, \
+                                  InstantiatedEntityNotFoundError, ArchitectureEntityNotFoundError, \
+                                  PackageBodyPackageNotFoundError, NotLinkedError, UseClauseNotLinkedError, \
+                                  NotComputedError, HierarchyNotComputedError, CompileOrderNotComputedError, \
+                                  UnknownKindError, UnknownSecondaryUnitKindError, ArchitectureExistsInLibraryError, \
+                                  AmbiguousTopLevelError, UnprefixedEntityInstantiationError
 
 from pyTooling.Warning         import UnhandledCriticalWarningError, WarningCollector
 from pyTooling.Testing         import Testcase
@@ -265,7 +266,7 @@ class LinkInstantiations(Testcase):
 	def test_EntityInstantiation_NoLibraryPrefix(self) -> None:
 		design = self._designWithEntityInstantiation(SimpleName("entity_A"))
 
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(UnprefixedEntityInstantiationError) as context:
 			design.Analyze()
 
 		self.assertEqual("Direct entity instantiation 'inst' has no library prefix.", str(context.exception))
@@ -273,6 +274,8 @@ class LinkInstantiations(Testcase):
 			["Use a selected name like 'work.entity_A'.", "Entities made visible by a use clause aren't supported."],
 			context.exception.__notes__
 		)
+		self.assertEqual("inst", context.exception.Instantiation.Label)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_EntityInstantiation_LibraryNotReferenced(self) -> None:
 		design = self._designWithEntityInstantiation(SelectedName("entity_A", SimpleName("lib_2")))
@@ -737,6 +740,25 @@ class TopLevel(Testcase):
 		self.assertEqual(0, design.HierarchyGraph.EdgeCount)
 		self.assertEqual(1, design.HierarchyGraph.VertexCount)
 		self.assertIs(library.Entities["entity_1"], design.TopLevel)
+
+	def test_MultipleTopLevels(self) -> None:
+		design =   Design("example")
+		library =  design.GetLibrary("lib_1")
+		entity1 =  Entity("entity_1", parent=None)
+		entity2 =  Entity("entity_2", parent=None)
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(entity1)
+		document._AddDesignUnit(entity2)
+		design.AddDocument(document, library)
+		design.CreateDependencyGraph()
+		design.CreateHierarchyGraph()
+
+		with self.assertRaises(AmbiguousTopLevelError) as context:
+			design.TopLevel
+
+		self.assertEqual(f"Found more than one toplevel: {entity1!s}, {entity2!s}", str(context.exception))
+		self.assertTupleEqual((entity1, entity2), context.exception.TopLevels)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_HierarchyNotComputed(self) -> None:
 		design = Design("example")

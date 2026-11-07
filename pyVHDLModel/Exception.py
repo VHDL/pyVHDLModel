@@ -42,7 +42,7 @@ from typing                   import TYPE_CHECKING, ClassVar, Generic, Optional 
 
 from pyTooling.Decorators     import export, readonly
 from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError, InUseError, \
-                                     NotAChildError as CommonNotAChildError
+                                     NotAChildError as CommonNotAChildError, ElementNotFoundError
 from pyTooling.Warning        import Warning, CriticalWarning
 
 from pyVHDLModel.Symbol       import Symbol
@@ -52,7 +52,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	from pyVHDLModel.Base          import ModelElementUnion, ModelEntity
 	from pyVHDLModel.Concurrent    import ComponentInstantiation, EntityInstantiation
 	from pyVHDLModel.DesignUnit    import Component as _Component, Context as _Context, DesignUnit as _DesignUnit, \
-	                                      Architecture, SecondaryUnit
+	                                      Architecture, Package as _Package, SecondaryUnit
 	from pyVHDLModel.Expression    import Literal as _Literal
 	from pyVHDLModel.Instantiation import PackageInstantiation as _PackageInstantiation
 	from pyVHDLModel.Namespace     import Namespace as _Namespace, Import as _Import
@@ -2715,6 +2715,183 @@ class IEEEFlavorChangeError(VHDLModelException, IEEEFlavorError):
 		:returns: The flavor the library provides.
 		"""
 		return self._currentFlavor
+
+
+@export
+class AncestorNotFoundError(VHDLModelException, ElementNotFoundError):
+	"""
+	This exception is raised, when the parent chain of a model entity contains no ancestor of the requested type.
+
+	Message: :pycode:`f"No ancestor of type '{ancestorType.__name__}' found for {element!r}."`
+	"""
+
+	_element:      ModelEntity  #: The model entity, whose parent chain was searched.
+	_ancestorType: type         #: The requested type of the ancestor.
+
+	def __init__(self, element: ModelEntity, ancestorType: type) -> None:
+		"""
+		Initializes the exception message based on the given model entity and ancestor type.
+
+		:param element:      The model entity, whose parent chain was searched.
+		:param ancestorType: The requested type of the ancestor.
+		"""
+		super().__init__(f"No ancestor of type '{ancestorType.__name__}' found for {element!r}.")
+
+		self._element =      element
+		self._ancestorType = ancestorType
+
+	@readonly
+	def Element(self) -> ModelEntity:
+		"""
+		Read-only property to access the model entity, whose parent chain was searched (:attr:`_element`).
+
+		:returns: The model entity.
+		"""
+		return self._element
+
+	@readonly
+	def AncestorType(self) -> type:
+		"""
+		Read-only property to access the requested type of the ancestor (:attr:`_ancestorType`).
+
+		:returns: The requested type.
+		"""
+		return self._ancestorType
+
+
+@export
+class AllowBlackboxNotSetError(VHDLModelException):
+	"""
+	This exception is raised, when a model entity has no local *allow blackbox* value and no parent to inherit it from.
+
+	Message: :pycode:`f"AllowBlackbox is not set on {element!r} and no parent is available to inherit it from."`
+	"""
+
+	_element: ModelEntity  #: The model entity without an *allow blackbox* value.
+
+	def __init__(self, element: ModelEntity) -> None:
+		"""
+		Initializes the exception message based on the given model entity.
+
+		:param element: The model entity without an *allow blackbox* value.
+		"""
+		super().__init__(f"AllowBlackbox is not set on {element!r} and no parent is available to inherit it from.")
+
+		self._element = element
+
+	@readonly
+	def Element(self) -> ModelEntity:
+		"""
+		Read-only property to access the model entity without an *allow blackbox* value (:attr:`_element`).
+
+		:returns: The model entity.
+		"""
+		return self._element
+
+
+@export
+class AmbiguousTopLevelError(VHDLModelException):
+	"""
+	This exception is raised, when the hierarchy graph of a design has more than one root, i.e. top-level.
+
+	Message: :pycode:`f"Found more than one toplevel: {', '.join(str(topLevel) for topLevel in topLevels)}"`
+	"""
+
+	_topLevels: tuple[_DesignUnit, ...]  #: The design units at the roots of the hierarchy graph.
+
+	def __init__(self, topLevels: tuple[_DesignUnit, ...]) -> None:
+		"""
+		Initializes the exception message based on the given top-level candidates.
+
+		:param topLevels: The design units at the roots of the hierarchy graph.
+		"""
+		super().__init__(f"Found more than one toplevel: {', '.join(str(topLevel) for topLevel in topLevels)}")
+
+		self._topLevels = topLevels
+
+	@readonly
+	def TopLevels(self) -> tuple[_DesignUnit, ...]:
+		"""
+		Read-only property to access the top-level candidates (:attr:`_topLevels`).
+
+		:returns: Tuple of design units at the roots of the hierarchy graph.
+		"""
+		return self._topLevels
+
+
+@export
+class UnprefixedEntityInstantiationError(VHDLModelException):
+	"""
+	This exception is raised, when a direct entity instantiation names its entity without a library prefix.
+
+	Message: :pycode:`f"Direct entity instantiation '{instantiation._label}' has no library prefix."`
+	"""
+
+	_instantiation: EntityInstantiation  #: The direct entity instantiation without a library prefix.
+
+	def __init__(self, instantiation: EntityInstantiation) -> None:
+		"""
+		Initializes the exception message based on the given direct entity instantiation.
+
+		:param instantiation: The direct entity instantiation without a library prefix.
+		"""
+		super().__init__(f"Direct entity instantiation '{instantiation._label}' has no library prefix.")
+
+		self._instantiation = instantiation
+
+	@readonly
+	def Instantiation(self) -> EntityInstantiation:
+		"""
+		Read-only property to access the direct entity instantiation (:attr:`_instantiation`).
+
+		:returns: The direct entity instantiation without a library prefix.
+		"""
+		return self._instantiation
+
+
+@export
+class NotAGenericPackageError(VHDLModelException):
+	"""
+	This exception is raised, when a package instantiation references a package, which isn't a generic package.
+
+	Message: :pycode:`f"Package '{packageName!s}' referenced by '{libraryName}.{packageInstantiation._identifier}' is not a generic package."`
+	"""
+
+	_packageInstantiation: _PackageInstantiation  #: The package instantiation referencing the package.
+	_package:              _Package               #: The referenced package, which isn't a generic package.
+
+	def __init__(self, packageInstantiation: _PackageInstantiation, package: _Package) -> None:
+		"""
+		Initializes the exception message based on the given package instantiation and package.
+
+		:param packageInstantiation: The package instantiation referencing the package.
+		:param package:              The referenced package, which isn't a generic package.
+		"""
+		super().__init__(
+			f"Package '{packageInstantiation._packageReference._name!s}' referenced by "
+			f"'{packageInstantiation._parent._identifier}.{packageInstantiation._identifier}' is not a generic package."
+		)
+
+		self._packageInstantiation = packageInstantiation
+		self._package =              package
+
+	@readonly
+	def PackageInstantiation(self) -> _PackageInstantiation:
+		"""
+		Read-only property to access the package instantiation (:attr:`_packageInstantiation`).
+
+		:returns: The package instantiation referencing the package.
+		"""
+		return self._packageInstantiation
+
+	@readonly
+	def Package(self) -> _Package:
+		"""
+		Read-only property to access the referenced package (:attr:`_package`).
+
+		:returns: The referenced package, which isn't a generic package.
+		"""
+		return self._package
 
 
 @export

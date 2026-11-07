@@ -140,6 +140,27 @@ class Name(ModelEntity):
 		"""
 		return self._prefix is not None
 
+	@readonly
+	def IsOperatorSymbol(self) -> bool:
+		"""
+		Check if the name is an operator symbol, e.g. ``"and"`` (:attr:`_identifier` in quotation marks).
+
+		:returns: ``True``, if the name is an operator symbol.
+		"""
+		return self._identifier.startswith('"')
+
+	@readonly
+	def IsExpandedName(self) -> bool:
+		"""
+		Check if the name is an expanded name ``library.package.item``.
+
+		A selected name ``x.y`` may also select an element of a record object, so only a selected name, whose prefix is a
+		selected name of a simple name, is an expanded name here. Selected names override this property.
+
+		:returns: ``True``, if the name is an expanded name ``library.package.item``.
+		"""
+		return False
+
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this name.
@@ -390,6 +411,15 @@ class SelectedName(Name):
 		"""
 		super().__init__(identifier, prefix, parent)
 
+	@readonly
+	def IsExpandedName(self) -> bool:
+		"""
+		Check if the name is an expanded name ``library.package.item``: its prefix is a selected name of a simple name.
+
+		:returns: ``True``, if the name is an expanded name ``library.package.item``.
+		"""
+		return isinstance(self._prefix, SelectedName) and isinstance(self._prefix._prefix, SimpleName)
+
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this selected name.
@@ -489,6 +519,15 @@ class AllName(SelectedName):
 		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__("all", prefix, parent)  # TODO: the case of 'ALL' is not preserved
+
+	@readonly
+	def IsExpandedName(self) -> bool:
+		"""
+		Check if the name is an expanded name ``library.package.item``: a name ending in ``all`` isn't one.
+
+		:returns: ``False``
+		"""
+		return False
 
 	def Copy(self) -> Self:
 		"""

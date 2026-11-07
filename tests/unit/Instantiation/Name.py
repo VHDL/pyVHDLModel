@@ -101,6 +101,13 @@ class SimpleNames(Testcase):
 		self.assertEqual("sig", name.Identifier)
 		self.assertFalse(name.HasPrefix)
 
+	def test_IsOperatorSymbol(self) -> None:
+		self.assertTrue(SimpleName('"and"').IsOperatorSymbol)
+		self.assertFalse(SimpleName("sig").IsOperatorSymbol)
+
+	def test_IsExpandedName(self) -> None:
+		self.assertFalse(SimpleName("sig").IsExpandedName)
+
 
 class ParenthesisNames(Testcase):
 	"""
@@ -149,6 +156,13 @@ class SelectedNames(Testcase):
 		self.assertIs(prefix, name.Prefix)
 		self.assertEqual("pkg.member", str(name))
 
+	def test_IsExpandedName(self) -> None:
+		"""``lib.pkg.item`` is an expanded name; ``x.y`` may select a record element and isn't one."""
+		self.assertTrue(SelectedName("item", SelectedName("pkg", SimpleName("lib"))).IsExpandedName)
+		self.assertFalse(SelectedName("y", SimpleName("x")).IsExpandedName)
+		indexed = IndexedName(SimpleName("x"), [IntegerLiteral(0)])
+		self.assertFalse(SelectedName("z", SelectedName("y", indexed)).IsExpandedName)
+
 
 class AttributeNames(Testcase):
 	def test_Construction(self) -> None:
@@ -169,6 +183,9 @@ class AllNames(Testcase):
 
 		self.assertEqual("all", name.Identifier)
 		self.assertEqual("numeric_std.all", str(name))
+
+	def test_IsExpandedName(self) -> None:
+		self.assertFalse(AllName(SelectedName("numeric_std", SimpleName("ieee"))).IsExpandedName)
 
 
 class OpenNames(Testcase):

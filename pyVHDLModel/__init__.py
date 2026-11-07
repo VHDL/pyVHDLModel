@@ -1604,13 +1604,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							))
 					elif isinstance(item, Alias) and item._subtype is None:
 						name = item._name._name
-						isExpandedName = (
-							isinstance(name, SelectedName) and not isinstance(name, AllName)
-							and isinstance(name._prefix, SelectedName) and isinstance(name._prefix._prefix, SimpleName)
-						)
 						# Implicitly declared operations (e.g. 'to_string' of an array type) aren't represented in the model.
-						isImplicit = name._normalizedIdentifier in self._IMPLICIT_OPERATIONS or name._identifier.startswith('"')
-						if (isinstance(name, SimpleName) or isExpandedName) and not isImplicit:
+						isImplicit = name._normalizedIdentifier in self._IMPLICIT_OPERATIONS or name.IsOperatorSymbol
+						if (isinstance(name, SimpleName) or name.IsExpandedName) and not isImplicit:
 							item._name._reference = None
 							aliased = self._LookupName(
 								designUnit, region._namespace, item, item._name, UnresolvedNameWarning

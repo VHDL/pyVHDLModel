@@ -57,3 +57,6 @@
 .. role:: pycode(code)
    :language: python
    :class: highlight
+.. role:: vhdlcode(code)
+   :language: VHDL
+   :class: highlight

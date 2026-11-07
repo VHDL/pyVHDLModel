@@ -154,6 +154,8 @@ Version 0.43.0 (2026)
    * Cross-references to renamed or misnamed targets, the alignment of field lists and the summaries of computed
      properties are fixed.
    * Test doc-strings have a one-line summary, so pyTooling's pytest plugin reports them.
+   * New ReST role ``vhdlcode`` in ``doc/prolog.inc`` (like ``pycode``) for VHDL code with syntax highlighting; the
+     rewritten test doc-strings use it, and ``pycode`` for Python fragments.
 
 
 Version 0.42.0 (2026)

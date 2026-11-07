@@ -70,7 +70,7 @@ class FunctionInstantiations(Testcase):
 	"""
 	Generic function instantiations.
 
-	``function f is new g generic map (...);`` - ``ReturnType`` is deliberately ``Nullable``, see
+	:vhdlcode:`function f is new g generic map (...);` - ``ReturnType`` is deliberately ``Nullable``, see
 	the class's own docstring (never resolvable at the parse-only level, a genuinely unresolved
 	forward reference like ``Symbol.Reference``, not a workaround).
 	"""

@@ -401,7 +401,7 @@ class Configurations(Testcase):
 	"""
 	Configuration declarations (design units).
 
-	The *design-unit* ``configuration cfg of ent is ... end configuration;`` - not to be confused
+	The *design-unit* :vhdlcode:`configuration cfg of ent is ... end configuration;` - not to be confused
 	with ``pyVHDLModel.Configuration.ComponentConfiguration``/``BlockConfiguration``, which are tested
 	in tests/unit/Configuration.py.
 	"""

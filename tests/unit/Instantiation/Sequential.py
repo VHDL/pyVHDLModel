@@ -129,7 +129,7 @@ class Choices(Testcase):
 	"""
 	Indexed and ranged choices.
 
-	Regression test: ``IndexedChoice``'s ``expression.Parent = self`` was previously commented out
+	Regression test: ``IndexedChoice``'s :pycode:`expression.Parent = self` was previously commented out
 	(``# FIXME: received None``) - confirmed stale in the gap analysis (every real construction site
 	always provides a real expression) and now re-enabled.
 	"""

@@ -659,7 +659,7 @@ class UnaryExpressions(Testcase):
 	"""
 	Unary expressions: the operand gets the expression as parent.
 
-	Regression test: ``operand.Parent = self`` was previously commented out
+	Regression test: :pycode:`operand.Parent = self` was previously commented out
 	(``# FIXME: operand is provided as None``) - confirmed stale in the gap analysis (every real
 	construction site always provides a real operand) and now re-enabled. Tested once here via
 	``NegationExpression``; every other unary subclass shares the identical, unoverridden
@@ -859,7 +859,7 @@ class FunctionCallAndAllocation(Testcase):
 	"""
 	Function calls and the two allocation forms.
 
-	``Allocation`` itself (``class Allocation(BaseExpression): pass``) is never instantiated
+	``Allocation`` itself (:pycode:`class Allocation(BaseExpression): pass`) is never instantiated
 	directly anywhere - real VHDL always uses one of its two concrete subclasses below (``new T`` or
 	``new T'(expr)``), so unlike ``FunctionCall`` (which *is* the real, direct class for a function
 	call expression - there's no further subclass to move it to), there's no bare ``Allocation()``

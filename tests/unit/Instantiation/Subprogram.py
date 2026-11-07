@@ -111,7 +111,7 @@ class MethodMixinHosts(Testcase):
 	"""
 	Procedure and function methods with and without a protected type.
 
-	Regression test: ``MethodMixin.__init__`` set ``protectedType.Parent = self`` unconditionally,
+	Regression test: ``MethodMixin.__init__`` set :pycode:`protectedType.Parent = self` unconditionally,
 	but ``protectedType`` genuinely defaults to ``None`` at both call sites (a subprogram declared
 	directly in a protected type body still goes through the same constructor) - so the common,
 	no-argument case crashed immediately with ``AttributeError: 'NoneType' object has no attribute

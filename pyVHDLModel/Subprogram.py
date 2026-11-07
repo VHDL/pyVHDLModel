@@ -201,6 +201,10 @@ class SubprogramSignature(ModelEntity):
 
 		The names are compared by :meth:`__eq__` and hashed by :meth:`__hash__`.
 
+		.. seealso::
+
+		   * :term:`Normalized`
+
 		:returns: Tuple of the type marks' normalized names, one per parameter identifier, in declaration order.
 		"""
 		return self._normalizedParameterTypeNames
@@ -212,6 +216,10 @@ class SubprogramSignature(ModelEntity):
 		(:attr:`_normalizedReturnTypeName`).
 
 		The name is compared by :meth:`__eq__` and hashed by :meth:`__hash__`.
+
+		.. seealso::
+
+		   * :term:`Normalized`
 
 		:returns: The return type mark's normalized name, or ``None`` for a procedure.
 		"""

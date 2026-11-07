@@ -164,6 +164,10 @@ class Name(ModelEntity):
 		"""
 		Read-only property to access the normalized identifier this name references (:attr:`_normalizedIdentifier`).
 
+		.. seealso::
+
+		   * :term:`Normalized`
+
 		:returns: The referenced identifier (normalized).
 		"""
 		return self._normalizedIdentifier

@@ -1623,6 +1623,10 @@ class SingleDeclarationMixin(metaclass=ExtendedType, mixin=True, expects=("_pare
 		"""
 		Read-only property to access the normalized identifier (:attr:`_normalizedIdentifier`).
 
+		.. seealso::
+
+		   * :term:`Normalized`
+
 		:returns: The normalized (lower case) identifier.
 		"""
 		return self._normalizedIdentifier

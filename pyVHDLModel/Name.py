@@ -66,42 +66,45 @@ class PredefinedAttribute(StringEnum):
 	``'structure``, which later revisions don't.
 	"""
 
-	Active =        "active"         #: Attribute since VHDL-87.
-	Ascending =     "ascending"      #: Attribute since VHDL-93.
-	Base =          "base"           #: Attribute since VHDL-87.
-	Behavior =      "behavior"       #: Attribute of VHDL-87 only.
-	Converse =      "converse"       #: Attribute since VHDL-2019.
-	Delayed =       "delayed"        #: Attribute since VHDL-87.
-	Driving =       "driving"        #: Attribute since VHDL-93.
-	DrivingValue =  "driving_value"  #: Attribute since VHDL-93.
-	Element =       "element"        #: Attribute since VHDL-2008.
-	Event =         "event"          #: Attribute since VHDL-87.
-	High =          "high"           #: Attribute since VHDL-87.
-	Image =         "image"          #: Attribute since VHDL-93.
-	InstanceName =  "instance_name"  #: Attribute since VHDL-93.
-	LastActive =    "last_active"    #: Attribute since VHDL-87.
-	LastEvent =     "last_event"     #: Attribute since VHDL-87.
-	LastValue =     "last_value"     #: Attribute since VHDL-87.
-	Left =          "left"           #: Attribute since VHDL-87.
-	LeftOf =        "leftof"         #: Attribute since VHDL-87.
-	Length =        "length"         #: Attribute since VHDL-87.
-	Low =           "low"            #: Attribute since VHDL-87.
-	PathName =      "path_name"      #: Attribute since VHDL-93.
-	Pos =           "pos"            #: Attribute since VHDL-87.
-	Pred =          "pred"           #: Attribute since VHDL-87.
-	Quiet =         "quiet"          #: Attribute since VHDL-87.
-	Range =         "range"          #: Attribute since VHDL-87.
-	ReverseRange =  "reverse_range"  #: Attribute since VHDL-87.
-	Right =         "right"          #: Attribute since VHDL-87.
-	RightOf =       "rightof"        #: Attribute since VHDL-87.
-	SimpleName =    "simple_name"    #: Attribute since VHDL-93.
-	Stable =        "stable"         #: Attribute since VHDL-87.
-	Structure =     "structure"      #: Attribute of VHDL-87 only.
-	Subtype =       "subtype"        #: Attribute since VHDL-2008.
-	Succ =          "succ"           #: Attribute since VHDL-87.
-	Transaction =   "transaction"    #: Attribute since VHDL-87.
-	Val =           "val"            #: Attribute since VHDL-87.
-	Value =         "value"          #: Attribute since VHDL-93.
+	Active =            "active"              #: Attribute since VHDL-87.
+	Ascending =         "ascending"           #: Attribute since VHDL-93.
+	Base =              "base"                #: Attribute since VHDL-87.
+	Behavior =          "behavior"            #: Attribute of VHDL-87 only.
+	Converse =          "converse"            #: Attribute since VHDL-2019.
+	Delayed =           "delayed"             #: Attribute since VHDL-87.
+	DesignatedSubtype = "designated_subtype"  #: Attribute since VHDL-2019.
+	Driving =           "driving"             #: Attribute since VHDL-93.
+	DrivingValue =      "driving_value"       #: Attribute since VHDL-93.
+	Element =           "element"             #: Attribute since VHDL-2008.
+	Event =             "event"               #: Attribute since VHDL-87.
+	High =              "high"                #: Attribute since VHDL-87.
+	Image =             "image"               #: Attribute since VHDL-93.
+	Index =             "index"               #: Attribute since VHDL-2019.
+	InstanceName =      "instance_name"       #: Attribute since VHDL-93.
+	LastActive =        "last_active"         #: Attribute since VHDL-87.
+	LastEvent =         "last_event"          #: Attribute since VHDL-87.
+	LastValue =         "last_value"          #: Attribute since VHDL-87.
+	Left =              "left"                #: Attribute since VHDL-87.
+	LeftOf =            "leftof"              #: Attribute since VHDL-87.
+	Length =            "length"              #: Attribute since VHDL-87.
+	Low =               "low"                 #: Attribute since VHDL-87.
+	PathName =          "path_name"           #: Attribute since VHDL-93.
+	Pos =               "pos"                 #: Attribute since VHDL-87.
+	Pred =              "pred"                #: Attribute since VHDL-87.
+	Quiet =             "quiet"               #: Attribute since VHDL-87.
+	Range =             "range"               #: Attribute since VHDL-87.
+	Reflect =           "reflect"             #: Attribute since VHDL-2019.
+	ReverseRange =      "reverse_range"       #: Attribute since VHDL-87.
+	Right =             "right"               #: Attribute since VHDL-87.
+	RightOf =           "rightof"             #: Attribute since VHDL-87.
+	SimpleName =        "simple_name"         #: Attribute since VHDL-93.
+	Stable =            "stable"              #: Attribute since VHDL-87.
+	Structure =         "structure"           #: Attribute of VHDL-87 only.
+	Subtype =           "subtype"             #: Attribute since VHDL-2008.
+	Succ =              "succ"                #: Attribute since VHDL-87.
+	Transaction =       "transaction"         #: Attribute since VHDL-87.
+	Val =               "val"                 #: Attribute since VHDL-87.
+	Value =             "value"               #: Attribute since VHDL-93.
 
 
 @export
@@ -241,9 +244,8 @@ class Name(ModelEntity):
 		Determine the model entity this name denotes as a part of a type mark, which is an attribute name.
 
 		The type mark is an attribute name like ``rec.f'subtype``. A name resolves its prefix first and applies itself to
-		the entity the prefix denotes; the entity's kind (:attr:`~pyVHDLModel.Base.ModelEntity.ReferenceKind`) says what
-		the name can be applied to. A kind of name, which denotes no declaration (e.g. an indexed name ``m(0)`` or
-		``ptr.all``), isn't supported and is reported.
+		the entity the prefix denotes, which must be of a kind the name can be applied to. A kind of name, which denotes no
+		declaration (e.g. an indexed name ``m(0)`` or ``ptr.all``), isn't supported and is reported.
 
 		:param region:                         The declarative region containing the type mark.
 		:param designUnit:                     The design unit containing the type mark.
@@ -573,7 +575,7 @@ class SelectedName(Name):
 		Determine the model entity this selected name denotes as a part of a type mark, which is an attribute name.
 
 		The type mark is an attribute name like ``p.c'subtype`` or ``rec.f'subtype``. Depending on the entity the prefix
-		denotes (:attr:`~pyVHDLModel.Base.ModelEntity.ReferenceKind`), this name denotes:
+		denotes, this name denotes:
 
 		* a library: the package of this name in the library.
 		* a package: the declaration of this name in the package
@@ -598,15 +600,17 @@ class SelectedName(Name):
 		                                       name, and no :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
-		from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
-		from pyVHDLModel.Symbol    import PossibleReference
-		from pyVHDLModel.Type      import RecordType
+		from pyVHDLModel             import Library
+		from pyVHDLModel.Declaration import Alias
+		from pyVHDLModel.DesignUnit  import Package
+		from pyVHDLModel.Exception   import UnresolvedTypeMarkWarning
+		from pyVHDLModel.Object      import Obj
+		from pyVHDLModel.Type        import RecordType, RecordTypeElement
 
 		if (prefix := self._prefix.Denote(region, designUnit, place, symbol)) is None:
 			return None
 
-		referenceKind = prefix.ReferenceKind
-		if referenceKind is PossibleReference.Library:
+		if isinstance(prefix, Library):
 			if (package := prefix._packages.get(self._normalizedIdentifier)) is not None:
 				return package
 
@@ -617,7 +621,7 @@ class SelectedName(Name):
 				namespaces=(region._namespace, )
 			))
 			return None
-		elif referenceKind is PossibleReference.Package:
+		elif isinstance(prefix, Package):
 			if len(declarations := prefix._namespace.FindDeclarations(self._normalizedIdentifier)) > 0:
 				return declarations[0].DenoteBy(self, region, place, symbol)
 
@@ -629,8 +633,8 @@ class SelectedName(Name):
 			))
 			return None
 		elif (
-			(referenceKind & (PossibleReference.Object | PossibleReference.RecordElement)) != PossibleReference.Unknown
-			and (subtype := prefix._subtype._reference) is not None and isinstance(recordType := subtype.BaseType, RecordType)
+			isinstance(prefix, (Obj, RecordTypeElement, Alias)) and (subtype := prefix._subtype._reference) is not None
+			and isinstance(recordType := subtype.BaseType, RecordType)
 		):
 			if (element := recordType._elementsByIdentifier.get(self._normalizedIdentifier)) is not None:
 				return element
@@ -728,9 +732,9 @@ class AttributeName(Name):
 		* ``'base``: the base type of the type or subtype its prefix denotes; only allowed as the prefix of another
 		  attribute.
 
-		The kind of the entity the prefix denotes is its :attr:`~pyVHDLModel.Base.ModelEntity.ReferenceKind`: an object or a
-		record element (``Object | RecordElement``), or a type or subtype (``Type | Subtype``). The constraint of a subtype
-		indication isn't represented: ``s'subtype`` of ``signal s : bit_vector(3 downto 0)`` denotes ``bit_vector``.
+		An object is an object declaration, a record element or an object alias (an alias with a subtype indication); a type
+		is a type or subtype declaration. The constraint of a subtype indication isn't represented: ``s'subtype`` of
+		``signal s : bit_vector(3 downto 0)`` denotes ``bit_vector``.
 
 		:param region:                         The declarative region containing the type mark.
 		:param designUnit:                     The design unit containing the type mark.
@@ -752,17 +756,17 @@ class AttributeName(Name):
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
-		from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
-		from pyVHDLModel.Symbol    import PossibleReference
-		from pyVHDLModel.Type      import ArrayType
+		from pyVHDLModel.Declaration import Alias
+		from pyVHDLModel.Exception   import UnresolvedTypeMarkWarning
+		from pyVHDLModel.Object      import Obj
+		from pyVHDLModel.Type        import ArrayType, BaseType, RecordTypeElement
 
 		if (prefix := self._prefix.Denote(region, designUnit, place, symbol)) is None:
 			return None
 
-		referenceKind = prefix.ReferenceKind
-		attribute =     self._predefinedAttribute
+		attribute = self._predefinedAttribute
 		if attribute is PredefinedAttribute.Subtype:
-			if (referenceKind & (PossibleReference.Object | PossibleReference.RecordElement)) == PossibleReference.Unknown:
+			if not isinstance(prefix, (Obj, RecordTypeElement, Alias)):
 				WarningCollector.Raise(UnresolvedTypeMarkWarning(
 					f"Prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't an object.",
 					symbol=symbol,
@@ -779,9 +783,9 @@ class AttributeName(Name):
 			else:
 				return subtype
 		elif attribute is PredefinedAttribute.Element:
-			if (referenceKind & (PossibleReference.Object | PossibleReference.RecordElement)) != PossibleReference.Unknown:
+			if isinstance(prefix, (Obj, RecordTypeElement, Alias)):
 				prefixType = prefix._subtype._reference
-			elif (referenceKind & (PossibleReference.Type | PossibleReference.Subtype)) != PossibleReference.Unknown:
+			elif isinstance(prefix, BaseType):
 				prefixType = prefix
 			else:
 				WarningCollector.Raise(UnresolvedTypeMarkWarning(
@@ -816,7 +820,7 @@ class AttributeName(Name):
 					place=place,
 					namespaces=(region._namespace, )
 				))
-			elif (referenceKind & (PossibleReference.Type | PossibleReference.Subtype)) == PossibleReference.Unknown:
+			elif not isinstance(prefix, BaseType):
 				WarningCollector.Raise(UnresolvedTypeMarkWarning(
 					f"Prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't a type.",
 					symbol=symbol,

@@ -47,11 +47,11 @@ from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Exception     import VHDLModelException, AlreadyInDesignError, NotAChildError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                       normalizedIdentifiersOf, ReservedWord
+from pyVHDLModel.Name          import Name
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Regions       import DeclarationRegionMixin, ConcurrentDeclarationRegionMixin, WithGenericsMixin, \
                                       WithPortsMixin, WithoutStatementsMixin
-from pyVHDLModel.Symbol        import PossibleReference, Symbol, SubtypeSymbol, PackageSymbol, EntitySymbol, \
-                                      LibraryReferenceSymbol
+from pyVHDLModel.Symbol        import Symbol, SubtypeSymbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, GenericGroup, PortGroup
 from pyVHDLModel.Object        import DeferredConstant
 from pyVHDLModel.Type          import AnonymousType, Subtype
@@ -969,15 +969,23 @@ class Package(
 				if baseType is not None:
 					yield from baseType.IterateImplicitDeclarations()
 
-	@readonly
-	def ReferenceKind(self) -> PossibleReference:
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[ModelEntity]:
 		"""
-		Read-only property to return the kind of reference to this package: :attr:`PossibleReference.Package
-		<pyVHDLModel.Symbol.PossibleReference.Package>`.
+		Return this package, the model entity a name in a type mark denotes.
 
-		:returns: The kind of reference.
+		:param name:   The name denoting this declaration, a part of the type mark.
+		:param region: The declarative region containing the type mark.
+		:param place:  The declaration containing the type mark.
+		:param symbol: The type mark.
+		:returns:      This package.
 		"""
-		return PossibleReference.Package
+		return self
 
 	def _IndexOtherDeclaredItem(self, item) -> None:
 		if isinstance(item, DeferredConstant):

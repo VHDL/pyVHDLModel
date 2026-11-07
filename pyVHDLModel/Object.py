@@ -47,7 +47,7 @@ from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, Documen
                                   ReservedWord
 from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
 from pyVHDLModel.Name      import Name
-from pyVHDLModel.Symbol    import PossibleReference, Symbol, SubtypeSymbol
+from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
 	from pyVHDLModel.Regions import DeclarationRegionMixin
@@ -191,7 +191,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 			))
 			return None
 
-		return super().DenoteBy(name, region, place, symbol)
+		return self
 
 	def __str__(self) -> str:
 		"""
@@ -264,16 +264,6 @@ class BaseConstant(Obj):
 	"""
 
 	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Constant,)  #: The reserved words introducing this object class.
-
-	@readonly
-	def ReferenceKind(self) -> PossibleReference:
-		"""
-		Read-only property to return the kind of reference to this constant: :attr:`PossibleReference.Constant
-		<pyVHDLModel.Symbol.PossibleReference.Constant>`.
-
-		:returns: The kind of reference.
-		"""
-		return PossibleReference.Constant
 
 
 @export
@@ -431,16 +421,6 @@ class Variable(Obj, WithDefaultExpressionMixin):
 
 	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Variable,)  #: The reserved words introducing this object class.
 
-	@readonly
-	def ReferenceKind(self) -> PossibleReference:
-		"""
-		Read-only property to return the kind of reference to this variable: :attr:`PossibleReference.Variable
-		<pyVHDLModel.Symbol.PossibleReference.Variable>`.
-
-		:returns: The kind of reference.
-		"""
-		return PossibleReference.Variable
-
 	def __init__(
 		self,
 		identifiers: Iterable[str],
@@ -497,16 +477,6 @@ class SharedVariable(Obj):
 
 	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Shared, ReservedWord.Variable)  #: The reserved words introducing this object class.
 
-	@readonly
-	def ReferenceKind(self) -> PossibleReference:
-		"""
-		Read-only property to return the kind of reference to this shared variable: :attr:`PossibleReference.Variable
-		<pyVHDLModel.Symbol.PossibleReference.Variable>`.
-
-		:returns: The kind of reference.
-		"""
-		return PossibleReference.Variable
-
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this shared variable declaration, its subtype with a visitor.
@@ -540,16 +510,6 @@ class Signal(Obj, WithDefaultExpressionMixin):
 	"""
 
 	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Signal,)  #: The reserved words introducing this object class.
-
-	@readonly
-	def ReferenceKind(self) -> PossibleReference:
-		"""
-		Read-only property to return the kind of reference to this signal: :attr:`PossibleReference.Signal
-		<pyVHDLModel.Symbol.PossibleReference.Signal>`.
-
-		:returns: The kind of reference.
-		"""
-		return PossibleReference.Signal
 
 	def __init__(
 		self,
@@ -610,16 +570,6 @@ class File(Obj):
 	"""
 
 	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.File,)  #: The reserved words introducing this object class.
-
-	@readonly
-	def ReferenceKind(self) -> PossibleReference:
-		"""
-		Read-only property to return the kind of reference to this file: :attr:`PossibleReference.File
-		<pyVHDLModel.Symbol.PossibleReference.File>`.
-
-		:returns: The kind of reference.
-		"""
-		return PossibleReference.File
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

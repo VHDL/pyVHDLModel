@@ -48,7 +48,8 @@ from pyTooling.Warning      import WarningCollector
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                    Range, ReservedWord
 from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning
-from pyVHDLModel.Symbol     import PossibleReference, Symbol, SubtypeSymbol, SimpleSubtypeSymbol
+from pyVHDLModel.Name       import Name
+from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import DeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin, \
                                    SequentialDeclarationRegionMixin, WithoutStatementsMixin
@@ -103,17 +104,23 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		"""
 		return self
 
-	@readonly
-	def ReferenceKind(self) -> PossibleReference:
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[ModelEntity]:
 		"""
-		Read-only property to return the kind of reference to this type: :attr:`PossibleReference.Type
-		<pyVHDLModel.Symbol.PossibleReference.Type>`.
+		Return this type or subtype, the model entity a name in a type mark denotes.
 
-		A subtype returns ``Subtype``.
-
-		:returns: The kind of reference.
+		:param name:   The name denoting this declaration, a part of the type mark.
+		:param region: The declarative region containing the type mark.
+		:param place:  The declaration containing the type mark.
+		:param symbol: The type mark.
+		:returns:      This type or subtype.
 		"""
-		return PossibleReference.Type
+		return self
 
 	def __str__(self) -> str:
 		"""
@@ -313,16 +320,6 @@ class Subtype(BaseType):
 		:returns: The resolution function.
 		"""
 		return self._resolutionFunction
-
-	@readonly
-	def ReferenceKind(self) -> PossibleReference:
-		"""
-		Read-only property to return the kind of reference to this subtype: :attr:`PossibleReference.Subtype
-		<pyVHDLModel.Symbol.PossibleReference.Subtype>`.
-
-		:returns: The kind of reference.
-		"""
-		return PossibleReference.Subtype
 
 	def IterateTypeMarks(
 		self,
@@ -1093,15 +1090,23 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		"""
 		return self._subtype
 
-	@readonly
-	def ReferenceKind(self) -> PossibleReference:
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[ModelEntity]:
 		"""
-		Read-only property to return the kind of reference to this record element: :attr:`PossibleReference.RecordElement
-		<pyVHDLModel.Symbol.PossibleReference.RecordElement>`.
+		Return this record element, the model entity a name in a type mark denotes.
 
-		:returns: The kind of reference.
+		:param name:   The name denoting this declaration, a part of the type mark.
+		:param region: The declarative region containing the type mark.
+		:param place:  The declaration containing the type mark.
+		:param symbol: The type mark.
+		:returns:      This record element.
 		"""
-		return PossibleReference.RecordElement
+		return self
 
 	def Copy(self) -> Self:
 		"""

@@ -491,19 +491,6 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		super().ResetReferences(designUnit, region)
 
-	@readonly
-	def ReferenceKind(self) -> PossibleReference:
-		"""
-		Read-only property to return the kind of reference to this alias: :attr:`PossibleReference.Object
-		<pyVHDLModel.Symbol.PossibleReference.Object>`, if it has a subtype indication.
-
-		An alias with a subtype indication is an object alias; without one, the declaration its name references says what
-		it is (:meth:`DenoteBy`).
-
-		:returns: The kind of reference.
-		"""
-		return PossibleReference.Object if self._subtype is not None else PossibleReference.Unknown
-
 	def DenoteBy(
 		self,
 		name:   Name,
@@ -531,7 +518,7 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
 		if self._subtype is not None:
-			return super().DenoteBy(name, region, place, symbol)
+			return self
 		elif (reference := self._name._reference) is None:
 			WarningCollector.Raise(UnresolvedTypeMarkWarning(
 				f"Name of prefix '{name!s}' of type mark '{symbol._name!s}' isn't resolved.",

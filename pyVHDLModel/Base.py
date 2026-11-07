@@ -49,7 +49,7 @@ if TYPE_CHECKING:
 	from pyVHDLModel.Interface import SingleDeclarationMixin
 	from pyVHDLModel.Name      import Name
 	from pyVHDLModel.Regions   import DeclarationRegionMixin
-	from pyVHDLModel.Symbol    import PossibleReference, Symbol, SubtypeSymbol
+	from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 	from pyVHDLModel.Visitor   import Visitor
 
 
@@ -411,21 +411,6 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		for _, _, typeMark in self.IterateTypeMarks(region):
 			typeMark._reference = None
 
-	@readonly
-	def ReferenceKind(self) -> PossibleReference:
-		"""
-		Read-only property to return the kind of reference to this model entity
-		(:class:`~pyVHDLModel.Symbol.PossibleReference`).
-
-		A declaration returns its kind, e.g. a signal ``Signal`` or a subtype ``Subtype``; any other model entity returns
-		``Unknown``.
-
-		:returns: The kind of reference.
-		"""
-		from pyVHDLModel.Symbol import PossibleReference
-
-		return PossibleReference.Unknown
-
 	def DenoteBy(
 		self,
 		name:   Name,
@@ -435,39 +420,30 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 	) -> Nullable[ModelEntity]:
 		"""
 		Determine the model entity a name denoting this declaration denotes, as a part of a type mark (:meth:`Name.Denote
-		<pyVHDLModel.Name.Name.Denote>`): this declaration.
+		<pyVHDLModel.Name.Name.Denote>`).
 
-		A declaration, whose kind (:attr:`ReferenceKind`) is neither an object, a record element, a type nor a package (e.g.
-		a subprogram), is reported. An object and an alias extend this method.
+		A declaration, which a name in a type mark can denote, overrides this method and returns itself: an object, an
+		alias, a type or subtype, a record element, a package. Any other declaration (e.g. a subprogram) is reported.
 
 		:param name:                           The name denoting this declaration, a part of the type mark.
 		:param region:                         The declarative region containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
-		:returns:                              This declaration, or ``None`` if a name can't denote it in a type mark
-		                                       (reported as a warning).
-		:raises UnhandledCriticalWarningError: If this declaration is neither an object, a type nor a package, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		:returns:                              ``None``, as a name in a type mark can't denote this declaration (reported
+		                                       as a warning).
+		:raises UnhandledCriticalWarningError: Always, if no :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
 		from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
-		from pyVHDLModel.Symbol    import PossibleReference
 
-		denotable = (
-			PossibleReference.Object | PossibleReference.File | PossibleReference.RecordElement | PossibleReference.Type
-			| PossibleReference.Subtype | PossibleReference.Package
-		)
-		if (self.ReferenceKind & denotable) == PossibleReference.Unknown:
-			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Prefix '{name!s}' of type mark '{symbol._name!s}' is neither an object, a type nor a package: "
-				f"{self.__class__.__name__}.",
-				symbol=symbol,
-				place=place,
-				namespaces=(region._namespace, )
-			))
-			return None
-
-		return self
+		WarningCollector.Raise(UnresolvedTypeMarkWarning(
+			f"Prefix '{name!s}' of type mark '{symbol._name!s}' is neither an object, a type nor a package: "
+			f"{self.__class__.__name__}.",
+			symbol=symbol,
+			place=place,
+			namespaces=(region._namespace, )
+		))
+		return None
 
 	@notimplemented("Model element has no walk for a visitor.")
 	def Visit(self, visitor: Visitor) -> None:

@@ -58,11 +58,10 @@ Version 0.43.0 (2026)
      ``T'base`` as the prefix of another attribute. The prefix may be an object alias, a record element (``r.f``) or a
      declaration of a package (``p.c``, ``work.p.c``); a port or parameter used in its own interface list is reported.
      Each part of the name resolves to the declaration it references (:meth:`Name.Denote()
-     <pyVHDLModel.Name.Name.Denote>`, :meth:`ModelEntity.DenoteBy() <pyVHDLModel.Base.ModelEntity.DenoteBy>`); a
-     declaration says which kind of reference it is (:data:`ModelEntity.ReferenceKind
-     <pyVHDLModel.Base.ModelEntity.ReferenceKind>`, a :class:`~pyVHDLModel.Symbol.PossibleReference`).
-   * :class:`~pyVHDLModel.Name.PredefinedAttribute` enumerates the predefined attributes (IEEE Std 1076-2019, 16.2); an
-     attribute name references its member (:data:`AttributeName.PredefinedAttribute
+     <pyVHDLModel.Name.Name.Denote>`, :meth:`ModelEntity.DenoteBy() <pyVHDLModel.Base.ModelEntity.DenoteBy>`); see
+     :ref:`analyze` for an example.
+   * :class:`~pyVHDLModel.Name.PredefinedAttribute` enumerates the predefined attributes up to VHDL-2019 (IEEE Std
+     1076-2019, 16.2); an attribute name references its member (:data:`AttributeName.PredefinedAttribute
      <pyVHDLModel.Name.AttributeName.PredefinedAttribute>`, ``None`` for a user-defined attribute).
    * :data:`RecordType.ElementsByIdentifier <pyVHDLModel.Type.RecordType.ElementsByIdentifier>` indexes a record's
      elements by each identifier; :data:`BaseType.BaseType <pyVHDLModel.Type.BaseType.BaseType>` returns a type itself

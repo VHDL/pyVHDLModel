@@ -40,8 +40,8 @@ from pyVHDLModel.DesignUnit  import Architecture, Entity, Package
 from pyVHDLModel.Expression  import IntegerLiteral
 from pyVHDLModel.Interface   import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name        import AttributeName, ParenthesisName, SelectedName, SimpleName, AllName, IndexedName
-from pyVHDLModel.Object      import File, SharedVariable, Signal, Variable
-from pyVHDLModel.Symbol      import PossibleReference, SimpleObjectOrFunctionCallSymbol, SimpleSubtypeSymbol
+from pyVHDLModel.Object      import Signal, Variable
+from pyVHDLModel.Symbol      import SimpleObjectOrFunctionCallSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Type        import AccessType, ArrayType, RecordType, RecordTypeElement, Subtype
 
 from tests.unit              import _entitySymbol, _signal, _subtypeSymbol
@@ -350,41 +350,3 @@ class OtherPrefixes(Testcase):
 
 		self.assertEqual(2, len(warnings))
 		self.assertEqual("Name of prefix 'al' of type mark 'al'subtype' isn't resolved.", str(warnings[1]))
-
-
-class ReferenceKinds(Testcase):
-	"""The kind of reference to a declaration, as a symbol's possible references name it."""
-
-	def test_Objects(self) -> None:
-		self.assertIs(PossibleReference.Constant, _constant("c", "bit").ReferenceKind)
-		self.assertIs(PossibleReference.Variable, Variable(("v", ), _subtypeSymbol("bit")).ReferenceKind)
-		self.assertIs(PossibleReference.Variable, SharedVariable(("v", ), _subtypeSymbol("P")).ReferenceKind)
-		self.assertIs(PossibleReference.Signal, _signal("s", "bit").ReferenceKind)
-		self.assertIs(PossibleReference.File, File(("f", ), _subtypeSymbol("text")).ReferenceKind)
-
-	def test_RecordElement(self) -> None:
-		self.assertIs(PossibleReference.RecordElement, RecordTypeElement(("f", ), _subtypeSymbol("bit")).ReferenceKind)
-
-	def test_Types(self) -> None:
-		self.assertIs(PossibleReference.Type, _enumeration("T", "a").ReferenceKind)
-		self.assertIs(PossibleReference.Subtype, Subtype("ST", _subtypeSymbol("T")).ReferenceKind)
-
-	def test_Package(self) -> None:
-		self.assertIs(PossibleReference.Package, Package("p").ReferenceKind)
-
-	def test_Library(self) -> None:
-		design = _design(analyze=False)
-
-		self.assertIs(PossibleReference.Library, design.GetLibrary("lib").ReferenceKind)
-
-	def test_Alias(self) -> None:
-		"""An alias with a subtype indication is an object alias; without one, its kind is unknown."""
-		objectAlias = Alias("al", SimpleObjectOrFunctionCallSymbol(SimpleName("s")), _subtypeSymbol("bit"))
-		otherAlias =  Alias("al", SimpleObjectOrFunctionCallSymbol(SimpleName("s")))
-
-		self.assertIs(PossibleReference.Object, objectAlias.ReferenceKind)
-		self.assertIs(PossibleReference.Unknown, otherAlias.ReferenceKind)
-
-	def test_Other(self) -> None:
-		self.assertIs(PossibleReference.Unknown, _function("f", "integer").ReferenceKind)
-

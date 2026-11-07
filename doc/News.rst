@@ -112,6 +112,11 @@ Version 0.43.0 (2026)
      duplicate identifier is a :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`, the generic and port mutators
      keep the namespace, and generic subprograms of a component overload each other (was
      :exc:`~pyVHDLModel.Exception.DuplicateGenericError`).
+   * Breaking change: :data:`~pyVHDLModel.Regions.WithGenericsMixin.GenericCount`,
+     :data:`~pyVHDLModel.Regions.WithPortsMixin.PortCount` and
+     :data:`~pyVHDLModel.Regions.WithParametersMixin.ParameterCount` count the declared generics, ports and parameters
+     (identifiers): ``port (a, b : in bit)`` declares 2 ports (was 1, the number of interface items). The number of
+     items is the length of ``GenericItems``, ``PortItems`` or ``ParameterItems``.
 
    .. rubric:: Bug Fixes
 

@@ -50,7 +50,8 @@ from pyVHDLModel.Symbol import PossibleReference, Symbol, LibraryReferenceSymbol
                                ArchitectureSymbol, PackageSymbol, RangeAttributeSymbol, RecordElementSymbol, \
                                SubtypeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
                                ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
-                               SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, AggregateSymbol
+                               SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, AggregateSymbol, \
+                               LoopSymbol
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -110,6 +111,7 @@ _SIMPLE_REFERENCE_SYMBOLS = (
 	(EntitySymbol,                        "Entity",        PossibleReference.Entity),
 	(ArchitectureSymbol,                  "Architecture",  PossibleReference.Architecture),
 	(PackageSymbol,                       "Package",       PossibleReference.Package),
+	(LoopSymbol,                          "Loop",          PossibleReference.Label),
 )
 
 

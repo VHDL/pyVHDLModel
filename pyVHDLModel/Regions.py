@@ -51,18 +51,17 @@ from pyVHDLModel.Exception    import NotImplementedWarning, UnresolvedNameWarnin
                                      DuplicateDeclarationError, DuplicateTypeError, DuplicateSubtypeError, \
                                      DuplicateConstantError, DuplicateSignalError, DuplicateVariableError, \
                                      DuplicateFileError, DuplicateComponentError, DuplicateSubprogramError
-from pyVHDLModel.Name         import AttributeName
+from pyVHDLModel.Name         import Name, AttributeName
 from pyVHDLModel.Namespace    import Namespace
 from pyVHDLModel.Object       import BaseConstant, Constant, DeferredConstant, SharedVariable, File, Variable, Signal
 from pyVHDLModel.Symbol       import Symbol, SubtypeSymbol
 if TYPE_CHECKING:
-	from pyVHDLModel.Interface  import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
-	                                   PortSignalInterfaceItem, SingleGenericDeclarationMixin, \
-	                                   SinglePortDeclarationMixin, SingleParameterDeclarationMixin, \
-	                                   GenericGroup, PortGroup, ParameterGroup
-	from pyVHDLModel.DesignUnit import DesignUnit
-	from pyVHDLModel.Type       import Subtype, FullType
-	from pyVHDLModel.Visitor    import Visitor
+	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
+	                                  PortSignalInterfaceItem, SingleGenericDeclarationMixin, \
+	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin, \
+	                                  GenericGroup, PortGroup, ParameterGroup
+	from pyVHDLModel.Type      import Subtype, FullType
+	from pyVHDLModel.Visitor   import Visitor
 
 # `pyVHDLModel.Subprogram` imports this module (Subprogram is a sequential declaration region), so
 # `Function`/`Procedure` are quoted in annotations and imported lazily where they're needed at runtime.
@@ -1960,41 +1959,47 @@ class DeclarationRegionMixin(
 
 	def LookupName(
 		self,
-		designUnit:  DesignUnit,
 		place:       ModelEntity,
 		symbol:      Symbol,
+		name:        Name,
 		warningType: type[UnresolvedNameWarning]
 	) -> tuple[ModelEntity, ...]:
 		"""
-		Look up the declarations the simple name or expanded name of a symbol denotes at a place in this region.
+		Look up the declarations a simple name or an expanded name denotes at a place in this region.
 
 		A simple name is looked up at the place (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`); a generic of a component
 		is visible to the following generics and ports of the component. An expanded name ``pkg.T`` or ``lib.pkg.T``
 		resolves its prefix: ``pkg`` to a package visible at the place, else to an enclosing declarative region of that
 		name (e.g. the package or entity containing the place); ``lib.pkg`` by the library (``work`` or a library whose name
-		is visible, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`) and the package's name. Then the suffix
+		is visible in the design unit containing the place, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`)
+		and the package's name. Then the suffix
 		is searched among the declarations of the package or region
 		(:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
 
 		A failure is reported as a warning of the given type, whose label names the kind of name in the message
-		(e.g. ``Type mark``); then no declaration is returned.
+		(e.g. ``Type mark``); then no declaration is returned. A name, which is a part of the symbol's name (e.g. the prefix
+		``s`` of the type mark ``s'subtype``), is reported as a prefix of the symbol's name.
 
-		:param designUnit:                     The design unit containing the name.
 		:param place:                          The declaration containing the name.
-		:param symbol:                         The symbol of the simple name or expanded name.
+		:param symbol:                         The symbol containing the name.
+		:param name:                           The simple name or expanded name: the symbol's name or a part of it.
 		:param warningType:                    The warning class reporting a failure.
 		:returns:                              Tuple of the directly visible declarations, empty if none is.
 		:raises UnhandledCriticalWarningError: If the name isn't visible, is ambiguous, or has a prefix, which isn't a
 		                                       visible package or an enclosing region, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the warning.
 		"""
-		from pyVHDLModel.DesignUnit import Component, Package
+		from pyVHDLModel.DesignUnit import Component, DesignUnit, Package
 		from pyVHDLModel.Interface  import InterfaceItemMixin
 
 		namespace =            self._namespace
-		name =                 symbol._name
 		label =                warningType._LABEL
 		normalizedIdentifier = name._normalizedIdentifier
+		if name is symbol._name:
+			subject = f"{label} '{name!s}'"
+		else:
+			subject = f"Prefix '{name!s}' of {label.lower()} '{symbol._name!s}'"
+
 		if (prefix := name._prefix) is None:
 			if isinstance(place, InterfaceItemMixin) and isinstance(component := place._parent, Component):
 				for genericItem in component._genericItems:
@@ -2006,7 +2011,7 @@ class DeclarationRegionMixin(
 			result = namespace.Lookup(normalizedIdentifier, place)
 			if result.HasConflicts:
 				WarningCollector.Raise(warningType(
-					f"{label} '{name!s}' is ambiguous: use clauses import conflicting declarations.",
+					f"{subject} is ambiguous: use clauses import conflicting declarations.",
 					symbol=symbol,
 					place=place,
 					namespaces=result._searchedNamespaces,
@@ -2034,6 +2039,7 @@ class DeclarationRegionMixin(
 						enclosingNamespace = enclosingNamespace._parentNamespace
 			elif prefix._prefix._prefix is None:
 				libraryIdentifier = prefix._prefix._normalizedIdentifier
+				designUnit =        place.GetAncestor(DesignUnit)
 				if libraryIdentifier == "work":
 					library = designUnit._parent
 				elif designUnit.IsLibraryVisible(libraryIdentifier):
@@ -2067,7 +2073,7 @@ class DeclarationRegionMixin(
 					names.append(namespaceName)
 
 			WarningCollector.Raise(warningType(
-				f"{label} '{name!s}' not found in: {', '.join(names)}.",
+				f"{subject} not found in: {', '.join(names)}.",
 				symbol=symbol,
 				place=place,
 				namespaces=tuple(searchedNamespaces)
@@ -2077,9 +2083,8 @@ class DeclarationRegionMixin(
 
 	def ResolveTypeMark(
 		self,
-		designUnit: DesignUnit,
-		place:      ModelEntity,
-		symbol:     SubtypeSymbol
+		place:  ModelEntity,
+		symbol: SubtypeSymbol
 	) -> None:
 		"""
 		Resolve a type mark at its place in this region and set the symbol's reference.
@@ -2092,9 +2097,9 @@ class DeclarationRegionMixin(
 		4. If the declaration is a type, a subtype or a generic type, it becomes the symbol's reference. A full type, which
 		   follows the place in the same region, is visible by its incomplete type declaration only to an access type.
 
-		An attribute name (e.g. ``T'base``) isn't resolved.
+		An attribute name denoting a type (e.g. ``s'subtype``, ``A'element``) is resolved part by part
+		(:meth:`~pyVHDLModel.Name.Name.Denote`); the type it denotes becomes the symbol's reference.
 
-		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
 		:raises UnhandledCriticalWarningError: If the type mark isn't visible, is ambiguous, has a prefix, which isn't a
@@ -2108,9 +2113,12 @@ class DeclarationRegionMixin(
 		symbol._reference = None
 		name =              symbol._name
 		if isinstance(name, AttributeName):
+			if (typeOrSubtype := name.Denote(self, place, symbol)) is not None:
+				symbol._reference = typeOrSubtype
+
 			return
 
-		if len(declarations := self.LookupName(designUnit, place, symbol, UnresolvedTypeMarkWarning)) == 0:
+		if len(declarations := self.LookupName(place, symbol, name, UnresolvedTypeMarkWarning)) == 0:
 			return
 
 		declaration = declarations[0]

@@ -48,6 +48,7 @@ from pyTooling.Warning      import WarningCollector
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                    Range, ReservedWord
 from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning
+from pyVHDLModel.Name       import Name
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import DeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin, \
@@ -91,6 +92,35 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._objectVertex = None
+
+	@readonly
+	def BaseType(self) -> BaseType:
+		"""
+		Read-only property to return the base type of this type: the type itself (IEEE Std 1076-2008, 5.1).
+
+		A subtype returns the base type of the type it is derived from (:attr:`Subtype.BaseType`).
+
+		:returns: The base type.
+		"""
+		return self
+
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[ModelEntity]:
+		"""
+		Return this type or subtype, the model entity a name in a type mark denotes.
+
+		:param name:   The name denoting this declaration, a part of the type mark.
+		:param region: The declarative region containing the type mark.
+		:param place:  The declaration containing the type mark.
+		:param symbol: The type mark.
+		:returns:      This type or subtype.
+		"""
+		return self
 
 	def __str__(self) -> str:
 		"""
@@ -267,7 +297,9 @@ class Subtype(BaseType):
 		"""
 		Read-only property to access the base type (:attr:`_baseType`).
 
-		:returns: The base type.
+		It is set, when the subtype's type mark is resolved (:meth:`ResolveReferences`).
+
+		:returns: The base type, or ``None`` if the type mark isn't resolved.
 		"""
 		return self._baseType
 
@@ -318,7 +350,7 @@ class Subtype(BaseType):
 		if (reference := self._type._reference) is None:
 			self._baseType = None
 		else:
-			self._baseType = reference._baseType if isinstance(reference, Subtype) else reference
+			self._baseType = reference.BaseType
 
 	def ResetReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
 		"""
@@ -1058,6 +1090,24 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		"""
 		return self._subtype
 
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[ModelEntity]:
+		"""
+		Return this record element, the model entity a name in a type mark denotes.
+
+		:param name:   The name denoting this declaration, a part of the type mark.
+		:param region: The declarative region containing the type mark.
+		:param place:  The declaration containing the type mark.
+		:param symbol: The type mark.
+		:returns:      This record element.
+		"""
+		return self
+
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this record type element.
@@ -1127,7 +1177,8 @@ class RecordType(CompositeType):
 
 	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Record,)  #: Reserved words after ``end``.
 	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                   #: The reserved words after ``end`` are optional.
-	_elements: list[RecordTypeElement]  #: List of all element declarations, in declaration order.
+	_elements:             list[RecordTypeElement]       #: List of all element declarations, in declaration order.
+	_elementsByIdentifier: dict[str, RecordTypeElement]  #: All element declarations, indexed by normalized identifier.
 
 	def __init__(self, identifier: str, elements: Nullable[Iterable[RecordTypeElement]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -1142,10 +1193,14 @@ class RecordType(CompositeType):
 		"""
 		super().__init__(identifier, documentation, parent)
 
-		self._elements = elementList = []  # TODO: convert to dict
+		self._elements =             elementList = []
+		self._elementsByIdentifier = elementsByIdentifier = {}
 		if elements is not None:
 			for element in elements:
 				elementList.append(element)
+				for normalizedIdentifier in element._normalizedIdentifiers:
+					elementsByIdentifier[normalizedIdentifier] = element
+
 				element.Parent = self
 
 	@readonly
@@ -1156,6 +1211,17 @@ class RecordType(CompositeType):
 		:returns: List of elements.
 		"""
 		return self._elements
+
+	@readonly
+	def ElementsByIdentifier(self) -> dict[str, RecordTypeElement]:
+		"""
+		Read-only property to access the elements by identifier (:attr:`_elementsByIdentifier`).
+
+		An element declaring several identifiers (``a, b : bit``) is indexed by each of them.
+
+		:returns: Dictionary of elements, indexed by normalized identifier.
+		"""
+		return self._elementsByIdentifier
 
 	def SplitElement(self, element: RecordTypeElement) -> tuple[RecordTypeElement, ...]:
 		"""
@@ -1201,6 +1267,9 @@ class RecordType(CompositeType):
 		element._KeepIdentifier(0)
 		self._elements[index + 1:index + 1] = declarations
 		for declaration in declarations:
+			for normalizedIdentifier in declaration._normalizedIdentifiers:
+				self._elementsByIdentifier[normalizedIdentifier] = declaration
+
 			declaration.Parent = self
 
 		return (element, *declarations)

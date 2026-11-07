@@ -41,9 +41,12 @@ from typing                import TYPE_CHECKING, ClassVar, Generator, Iterable, 
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType, abstractclass
 from pyTooling.Graph       import Vertex
+from pyTooling.Warning     import WarningCollector
 
 from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, \
                                   ReservedWord
+from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
+from pyVHDLModel.Name      import Name
 from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
@@ -75,7 +78,8 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	   * :class:`File <pyVHDLModel.Object.File>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]]  #: The reserved words introducing this object class.
+	_OBJECT_KEYWORD:               ClassVar[tuple[ReservedWord, ...]]         #: The reserved words introducing this object class.
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] =                     True  #: Usable by a name in its own interface list.
 
 	_subtype:      Symbol            #: Reference to the object's subtype.
 	_objectVertex: Nullable[Vertex]  #: The vertex representing this object in the design's object graph.
@@ -149,6 +153,45 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 		"""
 		if isinstance(self._subtype, SubtypeSymbol):
 			yield region, self, self._subtype
+
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[ModelEntity]:
+		"""
+		Determine the model entity a name denoting this object denotes, as a part of a type mark: this object.
+
+		A port or a parameter isn't usable in its own interface list (:attr:`_USABLE_IN_OWN_INTERFACE_LIST`): e.g. the
+		subtype of a port can't name another port of the same port list (``i'subtype``).
+
+		:param name:                           The name denoting this declaration, a part of the type mark.
+		:param region:                         The declarative region containing the type mark.
+		:param place:                          The declaration containing the type mark.
+		:param symbol:                         The type mark.
+		:returns:                              This object, or ``None`` if a name can't denote it here (reported as a
+		                                       warning).
+		:raises UnhandledCriticalWarningError: If the object is a port or parameter used in its own interface list, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		from pyVHDLModel.Interface import InterfaceItemMixin
+
+		if (
+			not self._USABLE_IN_OWN_INTERFACE_LIST and isinstance(place, InterfaceItemMixin)
+			and self._parent is place._parent
+		):
+			WarningCollector.Raise(UnresolvedTypeMarkWarning(
+				f"Prefix '{name!s}' of type mark '{symbol._name!s}' isn't usable in its own interface list.",
+				symbol=symbol,
+				place=place,
+				namespaces=(region._namespace, )
+			))
+			return None
+
+		return self
 
 	def __str__(self) -> str:
 		"""

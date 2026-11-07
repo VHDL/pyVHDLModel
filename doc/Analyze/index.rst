@@ -109,3 +109,159 @@ there is a double reference from graph's vertex via ``Value`` to the DOM object 
 =========================
 
 
+Object Analysis
+***************
+
+:meth:`Design.AnalyzeObjects <pyVHDLModel.Design.AnalyzeObjects>` runs after the dependency analysis, which linked the
+use clauses and computed the compile order.
+
+1. Resolve Type Marks
+=====================
+
+:meth:`Design.ResolveTypeMarks <pyVHDLModel.Design.ResolveTypeMarks>` iterates the design units in compile order and
+their declarative regions. Each declaration resolves its type marks
+(:meth:`ModelEntity.ResolveReferences <pyVHDLModel.Base.ModelEntity.ResolveReferences>`) by the region declaring it
+(:meth:`DeclarationRegionMixin.ResolveTypeMark <pyVHDLModel.Regions.DeclarationRegionMixin.ResolveTypeMark>`). A
+resolved type mark references its type or subtype (:attr:`Symbol.Reference <pyVHDLModel.Symbol.Symbol.Reference>`).
+
+Type Attributes
+---------------
+
+A type mark can be an attribute name denoting a type: ``x'subtype``, ``A'element``, or ``T'base`` as the prefix of
+another attribute. Such a name is a chain of names: the attribute name's prefix is a selected name, whose prefix is a
+simple name. Each name resolves its prefix first (:meth:`Name.Denote <pyVHDLModel.Name.Name.Denote>`, a method called
+on the name instance) and applies itself to the declaration the prefix references. Only the type mark's symbol keeps a
+reference; the references of the parts aren't stored.
+
+.. code-block:: vhdl
+
+   entity e is
+   end entity;
+
+   architecture rtl of e is
+     type T  is (a, b);
+     type AT is array (natural range <>) of T;
+     type R  is record
+       f : AT;
+     end record;
+     signal rec : R;
+     signal s2  : rec.f'subtype;
+   begin
+     b: block
+       signal s3 : rec.f'subtype;
+     begin
+     end block;
+   end architecture;
+
+The same as pyVHDLModel instances. The walrus operator names every instance the call hierarchy below refers to; the type
+mark of ``s2`` is the symbol ``typeMark`` with the name chain ``n1`` (``rec.f'subtype``, an
+:class:`~pyVHDLModel.Name.AttributeName`) |rarr| its prefix ``n2`` (``rec.f``, a
+:class:`~pyVHDLModel.Name.SelectedName`) |rarr| its prefix ``n3`` (``rec``, a :class:`~pyVHDLModel.Name.SimpleName`);
+the type mark of ``s3`` in the block ``b`` is ``typeMark3`` with the chain ``n4`` |rarr| ``n5`` |rarr| ``n6``:
+
+.. code-block:: python
+
+   from pathlib                import Path
+
+   from pyTooling.Warning      import WarningCollector
+
+   from pyVHDLModel            import Design, Document
+   from pyVHDLModel.Concurrent import ConcurrentBlockStatement
+   from pyVHDLModel.DesignUnit import Architecture, Entity
+   from pyVHDLModel.Expression import EnumerationLiteral
+   from pyVHDLModel.Name       import AttributeName, SelectedName, SimpleName
+   from pyVHDLModel.Object     import Signal
+   from pyVHDLModel.Symbol     import EntitySymbol, SimpleSubtypeSymbol
+   from pyVHDLModel.Type       import ArrayType, EnumeratedType, RecordType, RecordTypeElement
+
+   entity = Entity("e")
+
+   architecture = Architecture(
+     "rtl",
+     EntitySymbol(SimpleName("e")),
+     declaredItems=[
+       (typeT :=     EnumeratedType("T", [EnumerationLiteral("a"), EnumerationLiteral("b")])),
+       (typeAT :=    ArrayType(
+         "AT", [SimpleSubtypeSymbol(SimpleName("natural"))], SimpleSubtypeSymbol(SimpleName("T"))
+       )),
+       (typeR :=     RecordType("R", [(elementF := RecordTypeElement(["f"], SimpleSubtypeSymbol(SimpleName("AT"))))])),
+       (signalRec := Signal(["rec"], SimpleSubtypeSymbol(SimpleName("R")))),
+       (signalS2 :=  Signal(["s2"], (typeMark := SimpleSubtypeSymbol(
+         (n1 := AttributeName("subtype", (n2 := SelectedName("f", (n3 := SimpleName("rec"))))))
+       ))))
+     ],
+     statements=[
+       (blockB := ConcurrentBlockStatement("b", declaredItems=[
+         (signalS3 := Signal(["s3"], (typeMark3 := SimpleSubtypeSymbol(
+           (n4 := AttributeName("subtype", (n5 := SelectedName("f", (n6 := SimpleName("rec"))))))
+         ))))
+       ]))
+     ]
+   )
+
+   design =   Design("design")
+   design.LoadStdLibrary()
+   document = Document(Path("e.vhdl"))
+   document.AddDesignUnit(entity)
+   document.AddDesignUnit(architecture)
+   design.AddDocument(document, design.GetLibrary("lib"))
+
+   with WarningCollector() as collector:
+     design.Analyze()
+
+   assert len(collector.Warnings) == 0
+   assert typeMark.Reference is typeAT
+   assert typeMark3.Reference is typeAT
+
+:meth:`~pyVHDLModel.Design.Analyze` calls :meth:`~pyVHDLModel.Design.AnalyzeObjects`, which calls
+:meth:`~pyVHDLModel.Design.ResolveTypeMarks`. It iterates the design units and, per design unit, its declarative
+regions, the outermost first (the architecture, then the block ``b``, a process, a subprogram, ...). For ``s2``, both
+the design unit and the region are the instance ``architecture`` (``rtl``: an architecture is a declarative region
+itself). For ``s3``, the design unit is still ``architecture``, the region is ``blockB``. Below the declaration, only
+the region is passed; a name, which needs the design unit (the visibility of a library), finds it from the place
+(:meth:`~pyVHDLModel.Base.ModelEntity.GetAncestor`). The calls, with the instance each method is called on and its
+arguments:
+
+.. code-block:: text
+
+   signalS2.ResolveReferences(designUnit=architecture, region=architecture)
+     architecture.ResolveTypeMark(place=signalS2, symbol=typeMark)
+       # typeMark.Name is n1, an AttributeName
+       n1.Denote(region=architecture, place=signalS2, symbol=typeMark)
+         # first resolve the prefix: n1.Prefix is n2
+         n2.Denote(region=architecture, place=signalS2, symbol=typeMark)
+           # first resolve the prefix: n2.Prefix is n3
+           n3.Denote(region=architecture, place=signalS2, symbol=typeMark)
+             # signalS2.GetAncestor(DesignUnit) is architecture; 'rec' is no library there: look it up
+             architecture.LookupName(place=signalS2, symbol=typeMark, name=n3, warningType=UnresolvedTypeMarkWarning)
+               -> (signalRec, )
+             signalRec.DenoteBy(name=n3, region=architecture, place=signalS2, symbol=typeMark)
+               -> signalRec                       # an object: returns itself
+             -> signalRec
+           # n2 applies '.f' to signalRec: an Obj, signalRec.Subtype.Reference is typeR (a RecordType)
+           # typeR.ElementsByIdentifier["f"]
+           -> elementF
+         # n1 applies 'subtype (n1.PredefinedAttribute is PredefinedAttribute.Subtype) to elementF, an object:
+         # elementF.Subtype.Reference
+         -> typeAT
+       # architecture.ResolveTypeMark sets typeMark's reference
+   typeMark.Reference is typeAT
+
+   signalS3.ResolveReferences(designUnit=architecture, region=blockB)
+     blockB.ResolveTypeMark(place=signalS3, symbol=typeMark3)
+       n4.Denote(region=blockB, place=signalS3, symbol=typeMark3)
+         n5.Denote(region=blockB, place=signalS3, symbol=typeMark3)
+           n6.Denote(region=blockB, place=signalS3, symbol=typeMark3)
+             # 'rec' is no library name; it isn't declared in the block: blockB's namespace continues in architecture's
+             blockB.LookupName(place=signalS3, symbol=typeMark3, name=n6, warningType=UnresolvedTypeMarkWarning)
+               -> (signalRec, )
+             signalRec.DenoteBy(name=n6, region=blockB, place=signalS3, symbol=typeMark3)
+               -> signalRec
+             -> signalRec
+           -> elementF
+         -> typeAT
+   typeMark3.Reference is typeAT
+
+A part, which can't be resolved, is reported where it fails as an
+:exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning` and the type mark stays unresolved, e.g. ``Prefix 'rec' of type
+mark 'rec.g'subtype' has no record element 'g'.``

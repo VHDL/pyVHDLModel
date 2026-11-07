@@ -34,7 +34,7 @@ from pyTooling.Testing       import Testcase
 from pyVHDLModel.Expression  import IntegerLiteral
 from pyVHDLModel.Association import GenericAssociationItem
 from pyVHDLModel.Name        import Name, SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, \
-                                    AttributeName, AllName, OpenName
+                                    AttributeName, AllName, OpenName, PredefinedAttribute
 
 from tests.unit              import _Element
 
@@ -171,6 +171,18 @@ class AttributeNames(Testcase):
 
 		self.assertEqual("range", name.Identifier)
 		self.assertEqual("sig'range", str(name))
+
+	def test_PredefinedAttribute(self) -> None:
+		"""The identifier is compared case-insensitive."""
+		name = AttributeName("Reverse_Range", SimpleName("sig"))
+
+		self.assertIs(PredefinedAttribute.ReverseRange, name.PredefinedAttribute)
+		self.assertIs(PredefinedAttribute.ReverseRange, name.Copy().PredefinedAttribute)
+
+	def test_PredefinedAttribute_UserDefined(self) -> None:
+		name = AttributeName("pin_number", SimpleName("sig"))
+
+		self.assertIsNone(name.PredefinedAttribute)
 
 
 class AllNames(Testcase):

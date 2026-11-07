@@ -139,6 +139,12 @@ class EnumeratedTypes(Testcase):
 		self.assertIs(enumType, literal1.Parent)
 		self.assertEqual("my_bit is ('0', '1')", str(enumType))
 
+	def test_BaseType(self) -> None:
+		"""A type is its own base type."""
+		enumType = EnumeratedType("my_bit", [CharacterEnumerationLiteral("0")])
+
+		self.assertIs(enumType, enumType.BaseType)
+
 	def test_NoLiterals(self) -> None:
 		"""``literals`` has no default value in the signature, but the body still guards for ``None``
 		explicitly - accepted here even though nothing currently calls it that way."""
@@ -331,6 +337,15 @@ class RecordTypes(Testcase):
 		recordType = RecordType("my_record")
 
 		self.assertEqual(0, len(recordType.Elements))
+		self.assertDictEqual({}, recordType.ElementsByIdentifier)
+
+	def test_ElementsByIdentifier(self) -> None:
+		"""An element with an identifier list is indexed by each identifier, normalized."""
+		first =      RecordTypeElement(["Re", "Im"], _subtypeSymbol("real"))
+		second =     RecordTypeElement(["valid"], _subtypeSymbol("bit"))
+		recordType = RecordType("complex", [first, second])
+
+		self.assertDictEqual({"re": first, "im": first, "valid": second}, recordType.ElementsByIdentifier)
 
 
 class ProtectedTypes(Testcase):

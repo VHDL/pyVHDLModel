@@ -48,7 +48,7 @@ from pyVHDLModel.Exception import NotImplementedWarning, BlackboxWarning, Duplic
                                   ComponentEntityNotFoundError, InstantiatedEntityNotFoundError, \
                                   ArchitectureEntityNotFoundError, PackageBodyPackageNotFoundError, NotLinkedError, \
                                   UseClauseNotLinkedError, NotComputedError, HierarchyNotComputedError, \
-                                  CompileOrderNotComputedError
+                                  CompileOrderNotComputedError, UnknownKindError, UnknownSecondaryUnitKindError
 
 from pyTooling.Warning         import UnhandledCriticalWarningError, WarningCollector
 from pyTooling.Testing         import Testcase
@@ -346,6 +346,17 @@ class StdLibraryNotLoaded(Testcase):
 
 class LinkLibraryReferences(Testcase):
 	"""The libraries a design unit references implicitly."""
+
+	def test_UnknownSecondaryUnitKind(self) -> None:
+		"""The exception for a secondary unit of unknown kind; no library of a design holds one."""
+		packageBody = PackageBody(PackageSymbol(SimpleName("pack_1")), parent=None)
+
+		ex = UnknownSecondaryUnitKindError(packageBody)
+
+		self.assertEqual("Secondary unit 'pack_1' is neither an architecture nor a package body.", str(ex))
+		self.assertIs(packageBody, ex.Element)
+		self.assertIsInstance(ex, UnknownKindError)
+		self.assertIsInstance(ex, VHDLModelException)
 
 	@staticmethod
 	def _libraryEdges(designUnit: DesignUnit) -> list[str]:

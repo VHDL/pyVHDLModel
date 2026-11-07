@@ -40,7 +40,7 @@ from pyTooling.Testing         import Testcase
 from pyVHDLModel               import Design, Document
 from pyVHDLModel.Concurrent    import ConcurrentBlockStatement, EntityInstantiation, ProcessStatement
 from pyVHDLModel.DesignUnit    import Architecture, Component, Context, ContextReference, Entity, LibraryClause, \
-                                      Package, PackageBody
+                                      Package, PackageBody, UseClause
 from pyVHDLModel.Exception     import InstantiationNotLinkedError, LibraryNotFoundError, \
                                       PackageInstantiationNotLinkedError, UnresolvedNameWarning, \
                                       UnresolvedTypeMarkWarning, VHDLModelException, \
@@ -52,7 +52,7 @@ from pyVHDLModel.Exception     import InstantiationNotLinkedError, LibraryNotFou
                                       PackageInstantiationLibraryNotFoundError, \
                                       EntityInstantiationLibraryNotFoundError, DesignUnitNotFoundError, \
                                       PackageNotFoundError, ContextNotFoundError, NotLinkedError, \
-                                      LibraryReferenceNotLinkedError
+                                      LibraryReferenceNotLinkedError, UnknownKindError, UnknownSymbolKindError
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericTypeInterfaceItem
 from pyVHDLModel.Name          import SelectedName, SimpleName
@@ -947,6 +947,43 @@ class DesignUnitsNotFound(Testcase):
 		)
 		self.assertIsInstance(context.exception.__cause__, KeyError)
 		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+
+class SymbolKinds(Testcase):
+	"""A use clause with a symbol, which isn't a package reference symbol the model supports."""
+
+	def test_UseClause(self) -> None:
+		"""A use clause of an entity with a library reference symbol."""
+		symbol = LibraryReferenceSymbol(SimpleName("lib"))
+
+		with self.assertRaises(UnknownSymbolKindError) as context:
+			_design(Entity("e", [UseClause([symbol])]))
+
+		self.assertEqual("Unknown package reference symbol type in design unit 'e'.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Symbol.LibraryReferenceSymbol'."],
+			context.exception.__notes__
+		)
+		self.assertIs(symbol, context.exception.Element)
+		self.assertEqual("e", context.exception.DesignUnit.Identifier)
+		self.assertIsInstance(context.exception, UnknownKindError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_ContextDeclaration(self) -> None:
+		"""A use clause of a context declaration with a package reference symbol naming a package member."""
+		symbol = PackageReferenceSymbol(SelectedName("x", SelectedName("p", SimpleName("work"))))
+
+		with self.assertRaises(UnknownSymbolKindError) as context:
+			_design(Package("p"), Context("c", [UseClause([symbol])]))
+
+		self.assertEqual("Unknown package reference symbol type in design unit 'c'.", str(context.exception))
+		self.assertListEqual(
+			["Got type 'pyVHDLModel.Symbol.PackageReferenceSymbol'."],
+			context.exception.__notes__
+		)
+		self.assertIs(symbol, context.exception.Element)
+		self.assertIsInstance(context.exception, UnknownKindError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 
 

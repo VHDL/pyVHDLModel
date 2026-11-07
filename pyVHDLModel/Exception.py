@@ -52,7 +52,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	from pyVHDLModel.Base          import ModelElementUnion, ModelEntity
 	from pyVHDLModel.Concurrent    import ComponentInstantiation, EntityInstantiation
 	from pyVHDLModel.DesignUnit    import Component as _Component, Context as _Context, DesignUnit as _DesignUnit, \
-	                                      Architecture
+	                                      Architecture, SecondaryUnit
 	from pyVHDLModel.Expression    import Literal as _Literal
 	from pyVHDLModel.Instantiation import PackageInstantiation as _PackageInstantiation
 	from pyVHDLModel.Namespace     import Namespace as _Namespace, Import as _Import
@@ -2555,6 +2555,86 @@ class EntityInstantiationLibraryNotVisibleError(VHDLModelException, LibraryNotVi
 		:returns: The direct entity instantiation referencing the library.
 		"""
 		return self._instantiation
+
+
+@export
+class UnknownKindError(Exception):
+	"""
+	The exception is raised when a model element is of a kind, which the model doesn't expect at its place.
+
+	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
+	``class UnknownSymbolKindError(VHDLModelException, UnknownKindError)``. It has no initializer of its own; the derived
+	exception sets the fields.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.UnknownSymbolKindError`
+	      |rarr| Symbol of a use clause of unknown kind.
+	   :exc:`~pyVHDLModel.Exception.UnknownSecondaryUnitKindError`
+	      |rarr| Secondary unit of unknown kind.
+	"""
+
+	_element: ModelEntity | _Symbol  #: The model element of unknown kind.
+
+	@readonly
+	def Element(self) -> ModelEntity | _Symbol:
+		"""
+		Read-only property to access the model element of unknown kind (:attr:`_element`).
+
+		:returns: The model element of unknown kind.
+		"""
+		return self._element
+
+
+@export
+class UnknownSymbolKindError(VHDLModelException, UnknownKindError):
+	"""
+	This exception is raised, when a symbol of a use clause isn't a package reference symbol, which the model supports.
+
+	Message: :pycode:`f"Unknown package reference symbol type in design unit '{designUnit._identifier}'."`
+	"""
+
+	_designUnit: _DesignUnit  #: The design unit containing the use clause.
+
+	def __init__(self, symbol: _Symbol, designUnit: _DesignUnit) -> None:
+		"""
+		Initializes the exception message based on the given symbol and design unit.
+
+		:param symbol:     The symbol of unknown kind.
+		:param designUnit: The design unit containing the use clause.
+		"""
+		super().__init__(f"Unknown package reference symbol type in design unit '{designUnit._identifier}'.")
+
+		self._element =    symbol
+		self._designUnit = designUnit
+
+	@readonly
+	def DesignUnit(self) -> _DesignUnit:
+		"""
+		Read-only property to access the design unit containing the use clause (:attr:`_designUnit`).
+
+		:returns: The design unit.
+		"""
+		return self._designUnit
+
+
+@export
+class UnknownSecondaryUnitKindError(VHDLModelException, UnknownKindError):
+	"""
+	This exception is raised, when a secondary unit is neither an architecture nor a package body.
+
+	Message: :pycode:`f"Secondary unit '{secondaryUnit._identifier}' is neither an architecture nor a package body."`
+	"""
+
+	def __init__(self, secondaryUnit: SecondaryUnit) -> None:
+		"""
+		Initializes the exception message based on the given secondary unit.
+
+		:param secondaryUnit: The secondary unit of unknown kind.
+		"""
+		super().__init__(f"Secondary unit '{secondaryUnit._identifier}' is neither an architecture nor a package body.")
+
+		self._element = secondaryUnit
 
 
 @export

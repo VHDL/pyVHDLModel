@@ -86,7 +86,8 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       InstantiatedEntityNotFoundError, ArchitectureEntityNotFoundError, \
                                       PackageBodyPackageNotFoundError, LibraryReferenceNotLinkedError, \
                                       UseClauseNotLinkedError, HierarchyNotComputedError, \
-                                      CompileOrderNotComputedError
+                                      CompileOrderNotComputedError, UnknownSymbolKindError, \
+                                      UnknownSecondaryUnitKindError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Name          import AllName
 from pyVHDLModel.Namespace     import Namespace
@@ -1712,7 +1713,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:raises LibraryNotFoundError:              If a use clause references a library, which a library clause of a
 		                                           nested context names, and which doesn't exist in the design.
 		:raises PackageNotFoundError:              If a use clause references a package, which doesn't exist in its library.
-		:raises VHDLModelException:                If the type of a symbol in a use clause is unknown.
+		:raises UnknownSymbolKindError:            If the type of a symbol in a use clause is unknown.
 		:raises UnhandledCriticalWarningError:     If a use clause names a package member, which the package doesn't
 		                                           declare, and no :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                           :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
@@ -1809,7 +1810,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 								namespaces=(package._namespace, )
 							))
 					elif not isinstance(symbol, AllPackageMembersReferenceSymbol):
-						ex = VHDLModelException(f"Unknown package reference symbol type in context '{context._identifier}'.")
+						ex = UnknownSymbolKindError(symbol, context)
 						ex.add_note(f"Got type '{getFullyQualifiedName(symbol)}'.")
 						raise ex
 
@@ -1956,7 +1957,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		:raises LibraryNotFoundError:              If library ``std`` isn't loaded. |br|
 		                                           Call :meth:`LoadStdLibrary` before.
-		:raises VHDLModelException:                If a secondary unit is neither an architecture nor a package body.
+		:raises UnknownSecondaryUnitKindError:     If a secondary unit is neither an architecture nor a package body.
 		:raises LibraryClauseLibraryNotFoundError: If a library clause references a library, which doesn't exist in the
 		                                           design.
 		"""
@@ -1997,9 +1998,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				elif isinstance(designUnit, PackageBody):
 					referencedLibraries = designUnit.Package.Package._referencedLibraries
 				else:
-					ex = VHDLModelException(
-						f"Secondary unit '{designUnit._identifier}' is neither an architecture nor a package body."
-					)
+					ex = UnknownSecondaryUnitKindError(designUnit)
 					ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
 					raise ex
 
@@ -2083,7 +2082,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                         Call :meth:`LinkLibraryReferences` before.
 		:raises PackageNotFoundError:            If library ``std`` doesn't contain package ``standard``. |br|
 		                                         Call :meth:`LoadStdLibrary` before.
-		:raises VHDLModelException:              If a secondary unit is neither an architecture nor a package body.
+		:raises UnknownSecondaryUnitKindError:   If a secondary unit is neither an architecture nor a package body.
 		:raises UseClauseLibraryNotVisibleError: If a use clause references a library, whose name isn't visible
 		                                         (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
 		:raises PackageNotFoundError:            If a use clause references a package, which doesn't exist in its library.
@@ -2135,9 +2134,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				elif isinstance(designUnit, PackageBody):
 					referencedPackages = designUnit.Package.Package._referencedPackages
 				else:
-					ex = VHDLModelException(
-						f"Secondary unit '{designUnit._identifier}' is neither an architecture nor a package body."
-					)
+					ex = UnknownSecondaryUnitKindError(designUnit)
 					ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
 					raise ex
 
@@ -2220,7 +2217,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                            (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
 		:raises PackageNotFoundError:               If a use clause references a package, which doesn't exist in its
 		                                            library.
-		:raises VHDLModelException:                 If the type of a symbol in the use clause is unknown.
+		:raises UnknownSymbolKindError:             If the type of a symbol in the use clause is unknown.
 		:raises PackageInstantiationNotLinkedError: If a package instantiation isn't linked to its generic package.
 		:raises UnhandledCriticalWarningError:      If a use clause names a package member, which the package doesn't
 		                                            declare, a primary unit, which the library doesn't contain, a prefix,
@@ -2232,7 +2229,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for packageMemberSymbol in useClause._symbols:
 			symbolTypes = (PackageReferenceSymbol, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol)
 			if not isinstance(packageMemberSymbol, symbolTypes):
-				ex = VHDLModelException("Unknown package reference symbol type.")
+				ex = UnknownSymbolKindError(packageMemberSymbol, designUnit)
 				ex.add_note(f"Got type '{getFullyQualifiedName(packageMemberSymbol)}'.")
 				raise ex
 

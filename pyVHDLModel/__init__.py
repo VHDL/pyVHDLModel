@@ -1482,21 +1482,23 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`LinkArchitectures`
 		8. Link all package bodies. |br|
 		   |rarr| :meth:`LinkPackageBodies`
-		9. Link all package instances. |br|
-		   |rarr| :meth:`LinkPackageInstances`
-		10. Link all library references. |br|
+		9. Index all package bodies. |br|
+		   |rarr| :meth:`IndexPackageBodies`
+		10. Link all package instances. |br|
+		    |rarr| :meth:`LinkPackageInstances`
+		11. Link all library references. |br|
 		    |rarr| :meth:`LinkLibraryReferences`
-		11. Link all package references. |br|
+		12. Link all package references. |br|
 		    |rarr| :meth:`LinkPackageReferences`
-		12. Link all context references. |br|
+		13. Link all context references. |br|
 		    |rarr| :meth:`LinkContextReferences`
-		13. Link all components. |br|
+		14. Link all components. |br|
 		    |rarr| :meth:`LinkComponents`
-		14. Link all instantiations. |br|
+		15. Link all instantiations. |br|
 		    |rarr| :meth:`LinkInstantiations`
-		15. Create the hierarchy graph. |br|
+		16. Create the hierarchy graph. |br|
 		    |rarr| :meth:`CreateHierarchyGraph`
-		16. Compute the compile order. |br|
+		17. Compute the compile order. |br|
 		    |rarr| :meth:`ComputeCompileOrder`
 
 		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
@@ -1513,6 +1515,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		self.LinkContexts()
 		self.LinkArchitectures()
 		self.LinkPackageBodies()
+		self.IndexPackageBodies()
 		self.LinkPackageInstances()
 		self.LinkLibraryReferences()
 		self.LinkPackageReferences()
@@ -2692,13 +2695,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 	def IndexPackageBodies(self) -> None:
 		"""
-		Index all declared items in all packages in all libraries.
+		Index all declared items in all package bodies in all libraries.
 
 		.. rubric:: Algorithm
 
 		1. Iterate all libraries:
 
-		   1. Iterate all packages |br|
+		   1. Iterate all package bodies |br|
 		      |rarr| :meth:`pyVHDLModel.Library.IndexPackageBodies`
 
 		      * Index all declared items in that package body. |br|
@@ -2906,7 +2909,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		2. Iterate the declarative regions of each design unit, the outermost first
 		   (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.IterateDeclarationRegions`):
 
-		   1. Index the declared items of a region not indexed yet, e.g. a package body, a process or a subprogram.
+		   1. Index the declared items of a region not indexed yet, e.g. a process or a subprogram.
 		   2. Iterate the region's declarations in declaration order; each resolves its references
 		      (:meth:`~pyVHDLModel.Base.ModelEntity.ResolveReferences`):
 

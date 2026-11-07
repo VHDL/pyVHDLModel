@@ -49,6 +49,7 @@ from pyVHDLModel.Expression    import EnumerationLiteral
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name          import AllName, SelectedName, SimpleName
+from pyVHDLModel.Object        import Constant
 from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, ComponentInstantiationSymbol, \
                                       ContextReferenceSymbol, EntityInstantiationSymbol, LibraryReferenceSymbol, \
                                       PackageReferenceSymbol, PackageSymbol
@@ -417,3 +418,18 @@ class EntityNamespace(Testcase):
 
 		entity = design.GetEntity("lib", "leaf")
 		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements)
+
+
+class PackageBodyNamespace(Testcase):
+	def test_AnalyzeDependencies_IndexPackageBodies(self) -> None:
+		"""Analyzing the dependencies indexes the package bodies: a body's declarations are declared in its namespace."""
+		constant = Constant(["c"], _subtypeSymbol("bit"))
+		document = Document(Path("a.vhdl"))
+		document.AddDesignUnit(Package("pkg"))
+		document.AddDesignUnit(PackageBody(PackageSymbol(SimpleName("pkg")), declaredItems=[constant]))
+		design = _design(document)
+
+		design.AnalyzeDependencies()
+
+		packageBody = design.GetLibrary("lib").PackageBodies["pkg"]
+		self.assertDictEqual({"c": constant}, packageBody._namespace.Elements)

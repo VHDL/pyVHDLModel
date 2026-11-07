@@ -43,12 +43,15 @@ from pyVHDLModel.DesignUnit    import Architecture, Component, Context, ContextR
                                       Package, PackageBody
 from pyVHDLModel.Exception     import InstantiationNotLinkedError, LibraryNotFoundError, \
                                       PackageInstantiationNotLinkedError, UnresolvedNameWarning, \
-                                      UnresolvedTypeMarkWarning, VHDLModelException, LibraryNotVisibleError, \
-                                      UseClauseLibraryNotVisibleError, ContextReferenceLibraryNotVisibleError, \
+                                      UnresolvedTypeMarkWarning, VHDLModelException, \
+                                      LibraryNotVisibleError, UseClauseLibraryNotVisibleError, \
+                                      ContextReferenceLibraryNotVisibleError, \
                                       PackageInstantiationLibraryNotVisibleError, \
                                       EntityInstantiationLibraryNotVisibleError, LibraryNotInDesignError, \
                                       ReferencedLibraryNotExistingError, LibraryClauseLibraryNotFoundError, \
-                                      PackageInstantiationLibraryNotFoundError, EntityInstantiationLibraryNotFoundError
+                                      PackageInstantiationLibraryNotFoundError, \
+                                      EntityInstantiationLibraryNotFoundError, DesignUnitNotFoundError, \
+                                      PackageNotFoundError, ContextNotFoundError
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericTypeInterfaceItem
 from pyVHDLModel.Name          import SelectedName, SimpleName
@@ -863,6 +866,87 @@ class UseClauseDiagnostics(Testcase):
 			str(collector.Warnings[0])
 		)
 		self.assertFalse(entity._namespace.Lookup("k").IsVisible)
+
+
+class DesignUnitsNotFound(Testcase):
+	"""A use clause, a context reference or a package instantiation naming a design unit, which doesn't exist."""
+
+	def test_UseClause(self) -> None:
+		"""``library lib; use lib.nothere.all;``."""
+		entity = Entity("e", [_libraryClause("lib"), _use("lib.nothere.all")])
+
+		with self.assertRaises(PackageNotFoundError) as context:
+			_design(entity)
+
+		self.assertEqual("Package 'nothere' not found in library 'lib'.", str(context.exception))
+		self.assertListEqual(
+			[f"Caused in design unit '{entity}' in file '{entity.Document}'."],
+			context.exception.__notes__
+		)
+		self.assertEqual("nothere", context.exception.DesignUnitName)
+		self.assertEqual("lib", context.exception.LibraryName)
+		self.assertIsInstance(context.exception.__cause__, KeyError)
+		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_UseClause_Work(self) -> None:
+		"""``use work.nothere.all;`` in library ``lib``."""
+		entity = Entity("e", [_use("work.nothere.all")])
+
+		with self.assertRaises(PackageNotFoundError) as context:
+			_design(entity)
+
+		self.assertEqual("Package 'nothere' not found in library 'lib'.", str(context.exception))
+		self.assertListEqual(
+			[
+				"Library 'work' is the working library 'lib'.",
+				f"Caused in design unit '{entity}' in file '{entity.Document}'."
+			],
+			context.exception.__notes__
+		)
+
+	def test_ContextDeclaration_UseClause_Work(self) -> None:
+		"""``context c is use work.nothere.all; end context;`` in library ``lib``."""
+		with self.assertRaises(PackageNotFoundError) as context:
+			_design(Context("c", [_use("work.nothere.all")]))
+
+		self.assertEqual("Package 'nothere' not found in library 'lib'.", str(context.exception))
+		self.assertListEqual(["Library 'work' is the working library 'lib'."], context.exception.__notes__)
+		self.assertIsInstance(context.exception.__cause__, KeyError)
+		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_ContextReference_Work(self) -> None:
+		"""``context work.nothere;`` in library ``lib``."""
+		with self.assertRaises(ContextNotFoundError) as context:
+			_design(Entity("e", [_contextReference("work", "nothere")]))
+
+		self.assertEqual("Context 'nothere' not found in library 'lib'.", str(context.exception))
+		self.assertListEqual(["Library 'work' is the working library 'lib'."], context.exception.__notes__)
+		self.assertEqual("nothere", context.exception.DesignUnitName)
+		self.assertEqual("lib", context.exception.LibraryName)
+		self.assertIsInstance(context.exception.__cause__, KeyError)
+		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_PackageInstantiation_Work(self) -> None:
+		"""``package i is new work.nothere generic map (...);`` in library ``lib``."""
+		instantiation = PackageInstantiation("i", PackageReferenceSymbol(SelectedName("nothere", SimpleName("work"))))
+
+		with self.assertRaises(PackageNotFoundError) as context:
+			_design(instantiation)
+
+		self.assertEqual("Package 'nothere' not found in library 'lib'.", str(context.exception))
+		self.assertListEqual(
+			[
+				"Library 'work' is the working library 'lib'.",
+				f"Caused in library '{instantiation.Library}' in file '{instantiation.Document}'."
+			],
+			context.exception.__notes__
+		)
+		self.assertIsInstance(context.exception.__cause__, KeyError)
+		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 
 class UseItemSubtype(Testcase):

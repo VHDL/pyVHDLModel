@@ -44,7 +44,9 @@ from pyVHDLModel.Concurrent import EntityInstantiation, ComponentInstantiation
 from pyVHDLModel.Object import Variable
 from pyVHDLModel.Exception import NotImplementedWarning, BlackboxWarning, DuplicateDeclarationWarning, \
                                   LibraryNotFoundError, PackageNotFoundError, LibraryNotVisibleError, \
-                                  EntityInstantiationLibraryNotVisibleError
+                                  EntityInstantiationLibraryNotVisibleError, DesignUnitNotFoundError, \
+                                  ComponentEntityNotFoundError, InstantiatedEntityNotFoundError, \
+                                  ArchitectureEntityNotFoundError, PackageBodyPackageNotFoundError
 
 from pyTooling.Warning         import UnhandledCriticalWarningError, WarningCollector
 from pyTooling.Testing         import Testcase
@@ -283,6 +285,23 @@ class LinkInstantiations(Testcase):
 		self.assertIsInstance(context.exception, LibraryNotVisibleError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 
+	def test_EntityInstantiation_EntityNotFound(self) -> None:
+		design = self._designWithEntityInstantiation(SelectedName("entity_C", SimpleName("work")))
+
+		with self.assertRaises(InstantiatedEntityNotFoundError) as context:
+			design.Analyze()
+
+		self.assertEqual(
+			"Referenced entity 'entity_C' in direct entity instantiation 'inst: entity work.entity_C' not found in "
+			"working library 'lib_1'.",
+			str(context.exception)
+		)
+		self.assertEqual("entity_C", context.exception.DesignUnitName)
+		self.assertEqual("lib_1", context.exception.LibraryName)
+		self.assertEqual("inst", context.exception.Instantiation.Label)
+		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
 
 class StdLibraryNotLoaded(Testcase):
 	"""The implicit ``library std; use std.standard.all;`` needs the predefined library."""
@@ -476,6 +495,52 @@ class LinkPackageBodies(Testcase):
 		with self.assertRaises(UnhandledCriticalWarningError):
 			self._library.LinkPackageBodies()
 
+	def test_NoPackage(self) -> None:
+		design =   Design("example")
+		library =  design.GetLibrary("lib_1")
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(PackageBody(PackageSymbol(SimpleName("pack_2")), parent=None))
+		design.AddDocument(document, library)
+		design.CreateDependencyGraph()
+
+		with self.assertRaises(PackageBodyPackageNotFoundError) as context:
+			library.LinkPackageBodies()
+
+		self.assertEqual(
+			"Package 'pack_2' referenced by package body 'pack_2' doesn't exist in library 'lib_1'.",
+			str(context.exception)
+		)
+		self.assertEqual("pack_2", context.exception.DesignUnitName)
+		self.assertEqual("lib_1", context.exception.LibraryName)
+		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+
+class LinkArchitectures(Testcase):
+	"""An architecture is linked to its entity."""
+
+	def test_NoEntity(self) -> None:
+		design =   Design("example")
+		library =  design.GetLibrary("lib_1")
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(Architecture("arch_1", EntitySymbol(SimpleName("entity_1")), parent=None))
+		document._AddDesignUnit(Architecture("arch_2", EntitySymbol(SimpleName("entity_1")), parent=None))
+		design.AddDocument(document, library)
+		design.CreateDependencyGraph()
+
+		with self.assertRaises(ArchitectureEntityNotFoundError) as context:
+			library.LinkArchitectures()
+
+		self.assertEqual(
+			"Entity 'entity_1' referenced by architecture(s) 'arch_1', 'arch_2' doesn't exist in library 'lib_1'.",
+			str(context.exception)
+		)
+		self.assertEqual("entity_1", context.exception.DesignUnitName)
+		self.assertEqual("lib_1", context.exception.LibraryName)
+		self.assertTupleEqual(("arch_1", "arch_2"), context.exception.ArchitectureNames)
+		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
 
 class Blackboxes(Testcase):
 	"""A component without an entity becomes a blackbox, where the design allows blackboxes."""
@@ -520,6 +585,24 @@ class Blackboxes(Testcase):
 		self.assertEqual(1, len(warnings))
 		self.assertIs(instance, warnings[0].Instance)
 		self.assertIs(component, warnings[0].Component)
+
+	def test_NotAllowed(self) -> None:
+		"""A component without an entity, where the design doesn't allow blackboxes."""
+		design, component, _ = self._design()
+		design.AllowBlackbox = False
+
+		with self.assertRaises(ComponentEntityNotFoundError) as context:
+			design.Analyze()
+
+		self.assertEqual(
+			"Entity 'primitive' not found for component 'primitive' in library 'lib_1'.",
+			str(context.exception)
+		)
+		self.assertEqual("primitive", context.exception.DesignUnitName)
+		self.assertEqual("lib_1", context.exception.LibraryName)
+		self.assertIs(component, context.exception.Component)
+		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 
 class CompileOrderGraph(Testcase):

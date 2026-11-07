@@ -2005,6 +2005,14 @@ class DesignUnitNotFoundError(Exception):
 	      |rarr| Configuration not found.
 	   :exc:`~pyVHDLModel.Exception.ContextNotFoundError`
 	      |rarr| Context not found.
+	   :exc:`~pyVHDLModel.Exception.ComponentEntityNotFoundError`
+	      |rarr| Entity of a component not found.
+	   :exc:`~pyVHDLModel.Exception.InstantiatedEntityNotFoundError`
+	      |rarr| Entity of a direct entity instantiation not found.
+	   :exc:`~pyVHDLModel.Exception.ArchitectureEntityNotFoundError`
+	      |rarr| Entity of architectures not found.
+	   :exc:`~pyVHDLModel.Exception.PackageBodyPackageNotFoundError`
+	      |rarr| Package of a package body not found.
 	"""
 
 	_designUnitName: str  #: The name of the design unit, which was not found.
@@ -2110,6 +2118,139 @@ class ContextNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 		super().__init__(f"Context '{contextName}' not found in library '{libraryName}'.")
 
 		self._designUnitName = contextName
+		self._libraryName =    libraryName
+
+
+@export
+class ComponentEntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+	"""
+	This exception is raised, when no entity matches a component, which doesn't allow blackboxes.
+
+	Message: :pycode:`f"Entity '{component._identifier}' not found for component '{component._identifier}' in library '{libraryName}'."`
+	"""
+
+	_component: _Component  #: The component without a matching entity.
+
+	def __init__(self, component: _Component, libraryName: str) -> None:
+		"""
+		Initializes the exception message based on the given component and library name.
+
+		:param component:   The component without a matching entity.
+		:param libraryName: The name of the searched library.
+		"""
+		super().__init__(
+			f"Entity '{component._identifier}' not found for component '{component._identifier}' in library '{libraryName}'."
+		)
+
+		self._designUnitName = component._identifier
+		self._libraryName =    libraryName
+		self._component =      component
+
+	@readonly
+	def Component(self) -> _Component:
+		"""
+		Read-only property to access the component (:attr:`_component`).
+
+		:returns: The component without a matching entity.
+		"""
+		return self._component
+
+
+@export
+class InstantiatedEntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+	"""
+	This exception is raised, when the entity of a direct entity instantiation doesn't exist in the referenced library.
+
+	Message: :pycode:`f"Referenced entity '{entityIdentifier}' in direct entity instantiation '{label}: entity {entityName!s}' not found in {working}library '{libraryName}'."`
+	"""
+
+	_instantiation: EntityInstantiation  #: The direct entity instantiation referencing the entity.
+
+	def __init__(self, instantiation: EntityInstantiation, libraryName: str) -> None:
+		"""
+		Initializes the exception message based on the given direct entity instantiation and library name.
+
+		:param instantiation: The direct entity instantiation referencing the entity.
+		:param libraryName:   The name of the searched library.
+		"""
+		super().__init__(
+			f"Referenced entity '{instantiation._entity._name._identifier}' in direct entity instantiation "
+			f"'{instantiation._label}: entity {instantiation._entity._name!s}' not found in "
+			f"{'working ' if instantiation._entity._name._prefix._normalizedIdentifier == 'work' else ''}library "
+			f"'{libraryName}'."
+		)
+
+		self._designUnitName = instantiation._entity._name._identifier
+		self._libraryName =    libraryName
+		self._instantiation =  instantiation
+
+	@readonly
+	def Instantiation(self) -> EntityInstantiation:
+		"""
+		Read-only property to access the direct entity instantiation (:attr:`_instantiation`).
+
+		:returns: The direct entity instantiation referencing the entity.
+		"""
+		return self._instantiation
+
+
+@export
+class ArchitectureEntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+	"""
+	This exception is raised, when the entity of one or more architectures doesn't exist in their library.
+
+	Message: :pycode:`f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{libraryName}'."`
+	"""
+
+	_architectureNames: tuple[str, ...]  #: The names of the architectures referencing the entity.
+
+	def __init__(self, entityName: str, architectureNames: tuple[str, ...], libraryName: str) -> None:
+		"""
+		Initializes the exception message based on the given entity name, architecture names and library name.
+
+		:param entityName:        The name of the entity, which was not found.
+		:param architectureNames: The names of the architectures referencing the entity.
+		:param libraryName:       The name of the searched library.
+		"""
+		super().__init__(
+			f"""Entity '{entityName}' referenced by architecture(s) '{"', '".join(architectureNames)}' doesn't exist in """
+			f"library '{libraryName}'."
+		)
+
+		self._designUnitName =    entityName
+		self._libraryName =       libraryName
+		self._architectureNames = architectureNames
+
+	@readonly
+	def ArchitectureNames(self) -> tuple[str, ...]:
+		"""
+		Read-only property to access the architecture names (:attr:`_architectureNames`).
+
+		:returns: Tuple of names of the architectures referencing the entity.
+		"""
+		return self._architectureNames
+
+
+@export
+class PackageBodyPackageNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+	"""
+	This exception is raised, when the package of a package body doesn't exist in its library.
+
+	Message: :pycode:`f"Package '{packageName}' referenced by package body '{packageName}' doesn't exist in library '{libraryName}'."`
+	"""
+
+	def __init__(self, packageName: str, libraryName: str) -> None:
+		"""
+		Initializes the exception message based on the given package name and library name.
+
+		:param packageName: The name of the package, which was not found.
+		:param libraryName: The name of the searched library.
+		"""
+		super().__init__(
+			f"Package '{packageName}' referenced by package body '{packageName}' doesn't exist in library '{libraryName}'."
+		)
+
+		self._designUnitName = packageName
 		self._libraryName =    libraryName
 
 

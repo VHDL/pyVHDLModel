@@ -114,6 +114,11 @@ Version 0.43.0 (2026)
      duplicate identifier is a :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`, the generic and port mutators
      keep the namespace, and generic subprograms of a component overload each other (was
      :exc:`~pyVHDLModel.Exception.DuplicateGenericError`).
+   * Enumerations state their member values as number literals (Flags: powers of two) instead of ``auto()``; the values
+     are unchanged.
+   * Breaking change: ``pyVHDLModel`` no longer imports ``Obj``, ``MultipleNamedEntityMixin``, ``GenerateStatement`` and
+     ``GenerateBranch`` (unused there); import them from their modules (:mod:`pyVHDLModel.Object`,
+     :mod:`pyVHDLModel.Base`, :mod:`pyVHDLModel.Concurrent`).
 
    .. rubric:: Bug Fixes
 
@@ -143,6 +148,12 @@ Version 0.43.0 (2026)
      :class:`~pyVHDLModel.Symbol.LoopSymbol` (was ``str``, ignored) and a ``label``;
      :data:`~pyVHDLModel.Sequential.LoopControlStatement.LoopReference` returns the symbol. The visitor walks the
      symbol, the VHDL writer writes it.
+
+   .. rubric:: Documentation
+
+   * Cross-references to renamed or misnamed targets, the alignment of field lists and the summaries of computed
+     properties are fixed.
+   * Test doc-strings have a one-line summary, so pyTooling's pytest plugin reports them.
 
 
 Version 0.42.0 (2026)

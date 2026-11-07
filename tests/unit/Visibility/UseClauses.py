@@ -73,7 +73,7 @@ def _contextReference(library: str, identifier: str) -> ContextReference:
 
 
 class UseAll(Testcase):
-	"""``use work.p.all;`` makes every declaration of ``p`` potentially visible (A001-A016)."""
+	"""``use work.p.all;`` makes every declaration of ``p`` potentially visible."""
 
 	def setUp(self) -> None:
 		self._type =      _enumeration("T", "a", "b", "'0'")
@@ -124,7 +124,7 @@ class UseAll(Testcase):
 		self.assertTupleEqual((self._component, ), self._namespace.Lookup("comp").Declarations)
 
 	def test_UseClauseNotExported(self) -> None:
-		"""A use clause of ``p`` imports into ``p`` only, ``Q`` isn't a declaration of ``p`` (A033)."""
+		"""A use clause of ``p`` imports into ``p`` only, ``Q`` isn't a declaration of ``p``."""
 		result = self._namespace.Lookup("q")
 
 		self.assertFalse(result.IsVisible)
@@ -145,7 +145,7 @@ class UseAll(Testcase):
 
 
 class UseItem(Testcase):
-	"""``use work.p.item;`` makes the declarations named ``item`` potentially visible (A019-A023, A083, A093)."""
+	"""``use work.p.item;`` makes the declarations named ``item`` potentially visible."""
 
 	def setUp(self) -> None:
 		self._type =     _enumeration("T", "a", "b")
@@ -199,7 +199,7 @@ class UseItem(Testcase):
 
 
 class UsePackage(Testcase):
-	"""``use work.p;`` makes the package name potentially visible, not its declarations (A062, A063)."""
+	"""``use work.p;`` makes the package name potentially visible, not its declarations."""
 
 	def test_PackageName(self) -> None:
 		constant = _constant("K", "integer")
@@ -220,7 +220,7 @@ class UsePackage(Testcase):
 		self.assertTupleEqual((constant, ), entity._namespace.Lookup("k").Declarations)
 
 	def test_LocalPackage(self) -> None:
-		"""A package declared in an architecture is used by a simple name (A088)."""
+		"""A package declared in an architecture is used by a simple name."""
 		localType =    _enumeration("T", "a", "b")
 		localPackage = Package("lp", declaredItems=[localType])
 		signal =       _signal("s", "T")
@@ -232,7 +232,7 @@ class UsePackage(Testcase):
 
 
 class UseLibrary(Testcase):
-	"""``use work.all;`` and ``use work.unit;`` make primary units of the library potentially visible (A060)."""
+	"""``use work.all;`` and ``use work.unit;`` make primary units of the library potentially visible."""
 
 	def test_WorkAll(self) -> None:
 		package = Package("p")
@@ -252,7 +252,7 @@ class UseLibrary(Testcase):
 
 
 class DeclarativeRegions(Testcase):
-	"""A use clause in a declarative part imports into its region; its scope is the rest of the region (A024-A039)."""
+	"""A use clause in a declarative part imports into its region; its scope is the rest of the region."""
 
 	def setUp(self) -> None:
 		self._type =    _enumeration("T", "a", "b")
@@ -273,7 +273,7 @@ class DeclarativeRegions(Testcase):
 		self.assertFalse(entity._namespace.Lookup("t").IsVisible)
 
 	def test_Entity_SeenByArchitecture(self) -> None:
-		"""A use clause in the entity's declarative part is seen by its architecture (A039)."""
+		"""A use clause in the entity's declarative part is seen by its architecture."""
 		signal =       _signal("s", "T")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[signal])
 		_design(self._package, Entity("e", declaredItems=[_use("work.p.all")]), architecture)
@@ -289,7 +289,7 @@ class DeclarativeRegions(Testcase):
 		self.assertFalse(architecture._namespace.Lookup("t").IsVisible)
 
 	def test_Block(self) -> None:
-		"""A block's use clause isn't seen by a process beside the block (A027, A028)."""
+		"""A block's use clause isn't seen by a process beside the block."""
 		block =        ConcurrentBlockStatement("blk", declaredItems=[_use("work.p.all")])
 		process =      ProcessStatement("proc")
 		architecture = Architecture("rtl", _entitySymbol("e"), statements=[block, process])
@@ -308,7 +308,7 @@ class DeclarativeRegions(Testcase):
 		self.assertListEqual([architecture, function, block, process], list(architecture.IterateDeclarationRegions()))
 
 	def test_Subprogram(self) -> None:
-		"""A subprogram's use clause isn't seen by its parameters, which precede it (A030, A031)."""
+		"""A subprogram's use clause isn't seen by its parameters, which precede it."""
 		function = _function("f", "T")
 		function.AddDeclaredItem(_use("work.p.all"))
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[function])
@@ -321,7 +321,7 @@ class DeclarativeRegions(Testcase):
 		self.assertIs(function.ParameterItems[0].Subtype, warnings[0].Symbol)
 
 	def test_PackageBody(self) -> None:
-		"""A use clause in a package body isn't seen by the package declaration (A034, A036)."""
+		"""A use clause in a package body isn't seen by the package declaration."""
 		package =     Package("q")
 		packageBody = PackageBody(_packageSymbol("q"), declaredItems=[_use("work.p.all")])
 		_design(self._package, package, packageBody)
@@ -330,7 +330,7 @@ class DeclarativeRegions(Testcase):
 		self.assertFalse(package._namespace.Lookup("t").IsVisible)
 
 	def test_ContextOfPackage_SeenByBody(self) -> None:
-		"""A use clause in the context clause of a package is seen by its body (A035)."""
+		"""A use clause in the context clause of a package is seen by its body."""
 		package =     Package("q", [_use("work.p.all")])
 		packageBody = PackageBody(_packageSymbol("q"))
 		_design(self._package, package, packageBody)
@@ -338,7 +338,7 @@ class DeclarativeRegions(Testcase):
 		self.assertTupleEqual((self._type, ), packageBody._namespace.Lookup("t").Declarations)
 
 	def test_ContextClause_NotNextUnit(self) -> None:
-		"""A context clause belongs to one design unit (A041)."""
+		"""A context clause belongs to one design unit."""
 		first =  Entity("e1", [_use("work.p.all")])
 		second = Entity("e2")
 		_design(self._package, first, second)
@@ -359,7 +359,7 @@ class DeclarativeRegions(Testcase):
 
 
 class ContextReferences(Testcase):
-	"""A context reference makes the declarations of the context's use clauses potentially visible (A079)."""
+	"""A context reference makes the declarations of the context's use clauses potentially visible."""
 
 	def test_Context(self) -> None:
 		libraryType = _enumeration("T", "a", "b")
@@ -391,7 +391,7 @@ class ContextReferences(Testcase):
 
 
 class ImplicitUseClause(Testcase):
-	"""Every primary unit is preceded by ``use std.standard.all;`` (A066)."""
+	"""Every primary unit is preceded by ``use std.standard.all;``."""
 
 	def test_StdStandard(self) -> None:
 		entity = Entity("e")
@@ -402,7 +402,7 @@ class ImplicitUseClause(Testcase):
 		self.assertIsNone(result.Imports[0].UseClause)
 
 	def test_StandardPackageName(self) -> None:
-		"""The package name ``standard`` isn't made visible (A067)."""
+		"""The package name ``standard`` isn't made visible."""
 		entity = Entity("e")
 		_design(entity)
 
@@ -761,7 +761,7 @@ class UseClauseDiagnostics(Testcase):
 		self.assertEqual("Library 'lib' has no primary unit 'nothere'.", str(collector.Warnings[0]))
 
 	def test_GenericPackage(self) -> None:
-		"""``use work.gp.all;`` with an uninstantiated generic package (A086)."""
+		"""``use work.gp.all;`` with an uninstantiated generic package."""
 		constant =       _constant("K", "integer")
 		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")], declaredItems=[constant])
 		entity =         Entity("e", [_use("work.gp.all")])
@@ -778,7 +778,7 @@ class UseClauseDiagnostics(Testcase):
 
 
 class UseItemSubtype(Testcase):
-	"""``use work.p.ST;`` with a subtype of an enumerated type brings the base type's literals along (A093)."""
+	"""``use work.p.ST;`` with a subtype of an enumerated type brings the base type's literals along."""
 
 	def test_UserSubtype(self) -> None:
 		enumeration = _enumeration("T", "a", "b")

@@ -32,6 +32,7 @@
 """Instantiation tests for the model's top-level composition: names, symbols, design, library and document."""
 from pathlib                   import Path
 
+from pyTooling.Exceptions      import DuplicateElementError
 from pyTooling.Graph           import Graph
 from pyTooling.Testing         import Testcase
 
@@ -53,7 +54,8 @@ from pyVHDLModel.Type          import Subtype, IntegerType, RealType, ArrayType,
 from pyVHDLModel.DesignUnit    import Package, PackageBody, Context, Entity, Architecture, Configuration, \
                                       LibraryClause
 from pyVHDLModel.Association   import GenericAssociationItem
-from pyVHDLModel.Exception     import IEEEFlavorError, UnknownIEEEFlavorError, IEEEFlavorChangeError
+from pyVHDLModel.Exception     import IEEEFlavorError, UnknownIEEEFlavorError, IEEEFlavorChangeError, \
+                                      DuplicateDesignUnitError
 from pyVHDLModel.Instantiation import PackageInstantiation, FunctionInstantiation, ProcedureInstantiation
 from pyVHDLModel.PSLModel      import DefaultClock
 from pyVHDLModel.STD           import Std, Standard
@@ -731,11 +733,13 @@ class VHDLDocumentArchitectures(Testcase):
 
 	def test_Architecture_DuplicateMixedCase(self) -> None:
 		"""A second architecture differing only in case is a duplicate."""
-		document = Document(Path("tests.vhdl"), parent=None)
-		document._AddArchitecture(Architecture("RTL", EntitySymbol(SimpleName("entity_1")), parent=None))
+		document =     Document(Path("tests.vhdl"), parent=None)
+		existing =     Architecture("RTL", EntitySymbol(SimpleName("entity_1")), parent=None)
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("entity_1")), parent=None)
+		document._AddArchitecture(existing)
 
-		with self.assertRaises(VHDLModelException) as context:
-			document._AddArchitecture(Architecture("rtl", EntitySymbol(SimpleName("entity_1")), parent=None))
+		with self.assertRaises(DuplicateDesignUnitError) as context:
+			document._AddArchitecture(architecture)
 
 		self.assertEqual(
 			"An architecture 'rtl' for entity 'entity_1' already exists in this document.",
@@ -743,6 +747,28 @@ class VHDLDocumentArchitectures(Testcase):
 		)
 		self.assertEqual(1, len(document.Architectures["entity_1"]))
 		self.assertEqual(1, len(document.DesignUnits))
+		self.assertEqual("rtl", context.exception.Identifier)
+		self.assertIs(document, context.exception.Parent)
+		self.assertIs(architecture, context.exception.Element)
+		self.assertIs(existing, context.exception.Existing)
+		self.assertIsInstance(context.exception, DuplicateElementError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_Entity_Duplicate(self) -> None:
+		"""A second entity of the same identifier is a duplicate."""
+		document = Document(Path("tests.vhdl"), parent=None)
+		existing = Entity("Entity_1", parent=None)
+		entity =   Entity("entity_1", parent=None)
+		document._AddEntity(existing)
+
+		with self.assertRaises(DuplicateDesignUnitError) as context:
+			document._AddEntity(entity)
+
+		self.assertEqual("An entity 'entity_1' already exists in this document.", str(context.exception))
+		self.assertIs(entity, context.exception.Element)
+		self.assertIs(existing, context.exception.Existing)
+		self.assertIsInstance(context.exception, DuplicateElementError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 
 class VHDLLibrary(Testcase):

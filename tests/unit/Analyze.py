@@ -48,7 +48,8 @@ from pyVHDLModel.Exception import NotImplementedWarning, BlackboxWarning, Duplic
                                   ComponentEntityNotFoundError, InstantiatedEntityNotFoundError, \
                                   ArchitectureEntityNotFoundError, PackageBodyPackageNotFoundError, NotLinkedError, \
                                   UseClauseNotLinkedError, NotComputedError, HierarchyNotComputedError, \
-                                  CompileOrderNotComputedError, UnknownKindError, UnknownSecondaryUnitKindError
+                                  CompileOrderNotComputedError, UnknownKindError, UnknownSecondaryUnitKindError, \
+                                  ArchitectureExistsInLibraryError
 
 from pyTooling.Warning         import UnhandledCriticalWarningError, WarningCollector
 from pyTooling.Testing         import Testcase
@@ -586,6 +587,28 @@ class LinkArchitectures(Testcase):
 		self.assertEqual("lib_1", context.exception.LibraryName)
 		self.assertTupleEqual(("arch_1", "arch_2"), context.exception.ArchitectureNames)
 		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_LinkedTwice(self) -> None:
+		design =       Design("example")
+		library =      design.GetLibrary("lib_1")
+		architecture = Architecture("arch_1", EntitySymbol(SimpleName("entity_1")), parent=None)
+		document =     Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(Entity("entity_1", parent=None))
+		document._AddDesignUnit(architecture)
+		design.AddDocument(document, library)
+		design.CreateDependencyGraph()
+		library.LinkArchitectures()
+
+		with self.assertRaises(ArchitectureExistsInLibraryError) as context:
+			library.LinkArchitectures()
+
+		self.assertEqual(
+			"Architecture 'arch_1' for entity 'entity_1' already exists in library 'lib_1'.",
+			str(context.exception)
+		)
+		self.assertIs(architecture, context.exception.Architecture)
+		self.assertIs(library, context.exception.Library)
 		self.assertIsInstance(context.exception, VHDLModelException)
 
 

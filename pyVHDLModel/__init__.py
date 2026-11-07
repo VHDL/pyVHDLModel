@@ -3288,8 +3288,8 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		      * Set parent namespace of architecture's namespace to the entitie's namespace.
 		      * Add an edge in the dependency graph from the architecture's corresponding dependency vertex to the entity's corresponding dependency vertex.
 
-		:raises ArchitectureEntityNotFoundError: If entity name doesn't exist.
-		:raises VHDLModelException:              If architecture name already exists for entity.
+		:raises ArchitectureEntityNotFoundError:  If entity name doesn't exist.
+		:raises ArchitectureExistsInLibraryError: If architecture name already exists for entity.
 
 		.. seealso::
 
@@ -3313,7 +3313,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 			entity = self._entities[entityName]
 			for architecture in architecturesPerEntity.values():
 				if architecture._normalizedIdentifier in entity._architectures:
-					raise VHDLModelException(f"Architecture '{architecture._identifier}' already exists for entity '{entity._identifier}'.")
+					raise ArchitectureExistsInLibraryError(architecture, self)
 				# TODO: add code position of existing and current
 
 				entity._architectures[architecture._normalizedIdentifier] = architecture
@@ -3669,9 +3669,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add an entity to the document's lists of design units.
 
-		:param item:                Entity object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Entity`.
-		:raises VHDLModelException: If entity name already exists in document.
+		:param item:                      Entity object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Entity`.
+		:raises DuplicateDesignUnitError: If entity name already exists in document.
 		"""
 		if not isinstance(item, Entity):
 			ex = TypeError("Parameter 'item' is not of type 'Entity'.")
@@ -3680,8 +3680,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._entities:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"An entity '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"An entity '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._entities[identifier]
+			)
 
 		self._entities[identifier] = item
 		self._designUnits.append(item)
@@ -3693,9 +3698,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add an architecture to the document's lists of design units.
 
-		:param item:                Architecture object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Architecture`.
-		:raises VHDLModelException: If architecture name already exists for the referenced entity name in document.
+		:param item:                      Architecture object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Architecture`.
+		:raises DuplicateDesignUnitError: If architecture name already exists for the referenced entity name in document.
 		"""
 		if not isinstance(item, Architecture):
 			ex = TypeError("Parameter 'item' is not of type 'Architecture'.")
@@ -3708,9 +3713,14 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		try:
 			architectures = self._architectures[entityIdentifier]
 			if identifier in architectures:
-				# TODO: use a more specific exception
 				# FIXME: this is allowed and should be a warning or a strict mode.
-				raise VHDLModelException(f"An architecture '{item._identifier}' for entity '{entity._identifier}' already exists in this document.")
+				raise DuplicateDesignUnitError(
+					f"An architecture '{item._identifier}' for entity '{entity._identifier}' already exists in this document.",
+					identifier=item._identifier,
+					parent=self,
+					element=item,
+					existing=architectures[identifier]
+				)
 
 			architectures[identifier] = item
 		except KeyError:
@@ -3725,9 +3735,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a package to the document's lists of design units.
 
-		:param item:                Package object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Package`.
-		:raises VHDLModelException: If package name already exists in document.
+		:param item:                      Package object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Package`.
+		:raises DuplicateDesignUnitError: If package name already exists in document.
 		"""
 		if not isinstance(item, (Package, PackageInstantiation)):
 			ex = TypeError("Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
@@ -3736,8 +3746,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._packages:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"A package '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"A package '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._packages[identifier]
+			)
 
 		self._packages[identifier] = item
 		self._designUnits.append(item)
@@ -3749,9 +3764,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a package body to the document's lists of design units.
 
-		:param item:                Package body object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.PackageBody`.
-		:raises VHDLModelException: If package body name already exists in document.
+		:param item:                      Package body object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.PackageBody`.
+		:raises DuplicateDesignUnitError: If package body name already exists in document.
 		"""
 		if not isinstance(item, PackageBody):
 			ex = TypeError("Parameter 'item' is not of type 'PackageBody'.")
@@ -3760,8 +3775,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._packageBodies:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"A package body '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"A package body '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._packageBodies[identifier]
+			)
 
 		self._packageBodies[identifier] = item
 		self._designUnits.append(item)
@@ -3773,9 +3793,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a context to the document's lists of design units.
 
-		:param item:                Context object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Context`.
-		:raises VHDLModelException: If context name already exists in document.
+		:param item:                      Context object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Context`.
+		:raises DuplicateDesignUnitError: If context name already exists in document.
 		"""
 		if not isinstance(item, Context):
 			ex = TypeError("Parameter 'item' is not of type 'Context'.")
@@ -3784,8 +3804,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._contexts:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"A context '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"A context '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._contexts[identifier]
+			)
 
 		self._contexts[identifier] = item
 		self._designUnits.append(item)
@@ -3797,9 +3822,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a configuration to the document's lists of design units.
 
-		:param item:                Configuration object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Configuration`.
-		:raises VHDLModelException: If configuration name already exists in document.
+		:param item:                      Configuration object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Configuration`.
+		:raises DuplicateDesignUnitError: If configuration name already exists in document.
 		"""
 		if not isinstance(item, Configuration):
 			ex = TypeError("Parameter 'item' is not of type 'Configuration'.")
@@ -3808,8 +3833,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._configurations:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"A configuration '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"A configuration '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._configurations[identifier]
+			)
 
 		self._configurations[identifier] = item
 		self._designUnits.append(item)
@@ -3869,10 +3899,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a design unit to the document's lists of design units.
 
-		:param item:                Configuration object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
-		:raises ValueError:         If parameter 'item' is an unknown :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
-		:raises VHDLModelException: If configuration name already exists in document.
+		:param item:                      Configuration object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
+		:raises ValueError:               If parameter 'item' is an unknown :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
+		:raises DuplicateDesignUnitError: If the document contains a design unit of the same kind and identifier.
 		"""
 		if not isinstance(item, DesignUnit):
 			ex = TypeError("Parameter 'item' is not of type 'DesignUnit'.")

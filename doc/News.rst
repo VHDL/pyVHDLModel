@@ -107,6 +107,11 @@ Version 0.43.0 (2026)
      ``ContextReferences`` from :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
    * Instantiations annotate their generic and port maps with :class:`~pyVHDLModel.Association.GenericAssociationItem`
      and :class:`~pyVHDLModel.Association.PortAssociationItem`.
+   * A component declaration is a declarative region (IEEE Std 1076-2008, 12.1) with its own namespace, nested in the
+     enclosing region's namespace: its generics and ports are indexed, also by :meth:`~pyVHDLModel.Design.Analyze`, a
+     duplicate identifier is a :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`, the generic and port mutators
+     keep the namespace, and generic subprograms of a component overload each other (was
+     :exc:`~pyVHDLModel.Exception.DuplicateGenericError`).
 
    .. rubric:: Bug Fixes
 

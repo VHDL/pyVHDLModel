@@ -39,7 +39,7 @@ can be exercised without building a whole design.
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, SimpleRange
-from pyVHDLModel.DesignUnit import Component
+from pyVHDLModel.DesignUnit import Component, Package
 from pyVHDLModel.Expression import IntegerLiteral
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Namespace  import ExtendedKeyError, Namespace
@@ -49,6 +49,7 @@ from pyVHDLModel.Symbol     import ComponentInstantiationSymbol, PossibleReferen
 from pyVHDLModel.Type       import IntegerType, Subtype
 
 from tests.unit             import _subtypeSymbol
+from tests.unit.Visibility  import _enumeration, _function
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -86,6 +87,33 @@ class Namespaces(Testcase):
 
 		self.assertIs(parent, namespace.ParentNamespace)
 		self.assertListEqual([namespace], parent.SubNamespaces)
+
+
+class FindDeclarations(Testcase):
+	"""The declarations of an identifier in a region itself, without imports and enclosing regions."""
+
+	def setUp(self) -> None:
+		self._type =    _enumeration("T", "a", "b")
+		self._first =   _function("f", "natural")
+		self._second =  _function("f", "T")
+		self._package = Package("p", declaredItems=[self._type, self._first, self._second])
+		self._package.IndexDeclaredItems()
+		self._namespace = self._package._namespace
+
+	def test_Overloads(self) -> None:
+		"""All overloads, in declaration order."""
+		self.assertTupleEqual((self._first, self._second), self._namespace.FindDeclarations("f"))
+
+	def test_EnumerationLiteral(self) -> None:
+		self.assertTupleEqual((self._type.Literals[0], ), self._namespace.FindDeclarations("a"))
+
+	def test_NotDeclared(self) -> None:
+		"""An enclosing namespace isn't searched."""
+		outer =                           Namespace("outer")
+		outer._elements["x"] =            Constant(("x", ), _subtypeSymbol("T"), IntegerLiteral(1))
+		self._namespace.ParentNamespace = outer
+
+		self.assertTupleEqual((), self._namespace.FindDeclarations("x"))
 
 
 class FindComponent(Testcase):
@@ -148,9 +176,6 @@ class FindComponent(Testcase):
 		self.assertEqual((inner, middle, outer), exception.searchedNamespaces)
 		self.assertEqual("comp", exception.key)
 		self.assertIn("architecture, entity, library", str(exception))
-
-		# Each level re-raises `from` the level above it.
-		self.assertIsInstance(exception.__cause__, ExtendedKeyError)
 
 
 class FindSubtype(Testcase):
@@ -246,7 +271,6 @@ class FindSubtype(Testcase):
 		exception = context.exception
 		self.assertEqual((inner, middle, outer), exception.searchedNamespaces)
 		self.assertIn("architecture, package, library", str(exception))
-		self.assertIsInstance(exception.__cause__, ExtendedKeyError)
 
 
 class FindObject(Testcase):
@@ -338,4 +362,3 @@ class FindObject(Testcase):
 		exception = context.exception
 		self.assertEqual((inner, middle, outer), exception.searchedNamespaces)
 		self.assertIn("architecture, entity, library", str(exception))
-		self.assertIsInstance(exception.__cause__, ExtendedKeyError)

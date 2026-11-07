@@ -34,18 +34,20 @@ This module contains parts of an abstract document language model for VHDL.
 
 Base-classes for the VHDL language model.
 """
-from __future__            import annotations
+from __future__              import annotations
 
-from enum                  import unique, Enum
-from typing                import TYPE_CHECKING, ClassVar, Generator, Type, Iterable, Optional as Nullable, Union, \
-                           cast, Self
+from enum                    import unique, Enum
+from typing                  import TYPE_CHECKING, ClassVar, Generator, Type, Iterable, Optional as Nullable, Union, \
+                                    cast, Self
 
-from pyTooling.Common      import StringEnum, getFullyQualifiedName
-from pyTooling.Decorators  import export, notimplemented, readonly
-from pyTooling.MetaClasses import ExtendedType, abstractclass
+from pyTooling.Common        import StringEnum, getFullyQualifiedName
+from pyTooling.Decorators    import export, notimplemented, readonly
+from pyTooling.MetaClasses   import ExtendedType, abstractclass
 if TYPE_CHECKING:
+	from pyVHDLModel.DesignUnit import DesignUnit
 	from pyVHDLModel.Interface import SingleDeclarationMixin
-	from pyVHDLModel.Symbol    import Symbol
+	from pyVHDLModel.Regions   import DeclarationRegionMixin
+	from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 	from pyVHDLModel.Visitor   import Visitor
 
 
@@ -362,6 +364,50 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		:returns: A generator to iterate (normalized designator, declaration) pairs, in declaration order: none.
 		"""
 		yield from ()
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarationRegionMixin
+	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this declaration, each with the region and the place to look it up.
+
+		The place of a type mark is the declaration containing it. Declarations with type marks override this method,
+		e.g. an object yields the type mark of its subtype indication, an array type its index and element subtypes.
+
+		:param region:  The declarative region declaring this declaration.
+		:returns:       A generator to iterate (region, place, type mark) tuples, in declaration order: none.
+		"""
+		yield from ()
+
+	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+		"""
+		Resolve the references of this declaration: its type marks (:meth:`IterateTypeMarks`).
+
+		Each type mark is resolved at its place by the region it is looked up in
+		(:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.ResolveTypeMark`). An incomplete type, an alias and a subtype
+		extend this method.
+
+		:param designUnit:                     The design unit containing this declaration.
+		:param region:                         The declarative region declaring this declaration.
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		for typeMarkRegion, place, typeMark in self.IterateTypeMarks(region):
+			typeMarkRegion.ResolveTypeMark(designUnit, place, typeMark)
+
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+		"""
+		Reset the references :meth:`ResolveReferences` derived: the references of this declaration's type marks.
+
+		A use clause, an alias and a subtype extend this method.
+
+		:param designUnit: The design unit containing this declaration.
+		:param region:     The declarative region declaring this declaration.
+		"""
+		for _, _, typeMark in self.IterateTypeMarks(region):
+			typeMark._reference = None
 
 	@notimplemented("Model element has no walk for a visitor.")
 	def Visit(self, visitor: Visitor) -> None:

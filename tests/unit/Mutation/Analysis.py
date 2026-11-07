@@ -47,14 +47,13 @@ from pyVHDLModel.DesignUnit    import Architecture, Component, Context, Entity, 
                                       ContextReference, LibraryClause, UseClause
 from pyVHDLModel.Expression    import EnumerationLiteral
 from pyVHDLModel.Instantiation import PackageInstantiation
-from pyVHDLModel.Interface     import GenericConstantInterfaceItem
+from pyVHDLModel.Interface     import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name          import AllName, SelectedName, SimpleName
 from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, ComponentInstantiationSymbol, \
                                       ContextReferenceSymbol, EntityInstantiationSymbol, LibraryReferenceSymbol, \
                                       PackageReferenceSymbol, PackageSymbol
 
 from tests.unit                import _entitySymbol, _subtypeSymbol
-from tests.unit.Mutation       import _port
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -81,9 +80,10 @@ def _packages() -> Document:
 
 
 def _leaf() -> Document:
-	"""A document with an entity and its architecture."""
+	"""A document with an entity and its architecture; the port type ``bit`` is visible without a use clause."""
 	document = Document(Path("b.vhdl"))
-	document.AddDesignUnit(Entity("leaf", portItems=[_port("clk")]))
+	port =     PortSimpleSignalInterfaceItem(("clk", ), Mode.In, _subtypeSymbol("bit"))
+	document.AddDesignUnit(Entity("leaf", portItems=[port]))
 	document.AddDesignUnit(Architecture("rtl", _entitySymbol("leaf")))
 
 	return document

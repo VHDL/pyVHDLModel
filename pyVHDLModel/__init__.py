@@ -79,12 +79,11 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       NotAChildError, DuplicateDocumentError, DuplicateDesignUnitError, \
                                       LibraryInUseError, PackageInstantiationNotLinkedError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
-from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
 from pyVHDLModel.Name          import AllName
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant, SharedVariable, Variable, File
 from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
-                                      PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
+                                      PackageMemberReferenceSymbol
 from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Regions       import DeclarationRegionMixin, ConcurrentDeclarationRegionMixin, \
                                       SequentialDeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin
@@ -96,7 +95,7 @@ from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, Pac
                                       Configuration, Package, Component, UseClause
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode, PSLEntity
 from pyVHDLModel.Instantiation import PackageInstantiation
-from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType, BaseType
+from pyVHDLModel.Type          import BaseType, Subtype
 from pyVHDLModel.Configuration import ComponentConfiguration
 from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
 from pyVHDLModel.Interface     import ModeViewDeclaration
@@ -550,6 +549,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	_hierarchyGraph:    Graph                 #: A graph derived from dependency graph containing the design hierarchy.
 	_objectGraph:       Graph                 #: The graph of all types and objects in the design.
 	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
+
 
 	def __init__(
 		self,
@@ -1331,7 +1331,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`ResetAnalysis`
 		2. Analyze dependencies of design units. |br|
 		   This will also yield the design hierarchy and the compiler order.
-		3. Analyze dependencies of types and objects.
+		3. Analyze the types and objects of the design. |br|
+		   |rarr| :meth:`AnalyzeObjects`
+
+		A design, which can't be resolved completely, reports what is missing as critical warnings: the analysis isn't
+		aborted, but the model isn't silently incomplete either. Collect them with a
+		:class:`~pyTooling.Warning.WarningCollector`.
 
 		.. seealso::
 
@@ -1342,15 +1347,24 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Analyze the dependencies of design units.
 
 		   :meth:`AnalyzeObjects`
-		     Analyze the dependencies of types and objects.
+		     Analyze the types and objects of the design.
 
 		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
 		"""
 		self.ResetAnalysis()
 		self.AnalyzeDependencies()
-		# self.AnalyzeObjects()
+		self.AnalyzeObjects()
 
 	def ResetAnalysis(self) -> None:
 		"""
@@ -1367,7 +1381,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		2. Clear the references to vertices of all libraries, documents and design units.
 		3. Clear the references of all design units: referenced libraries, packages and contexts, the symbols of library
 		   clauses, use clauses and context references, and the items imported into namespaces. Use clauses in declarative
-		   regions nested in a design unit are cleared too.
+		   regions nested in a design unit are cleared too, as are the references of type marks and alias names
+		   (:meth:`ResolveTypeMarks`) and the base types of subtypes; a subtype of a predefined library
+		   (:attr:`Library.IsPredefined`) keeps its base type.
 		4. Unlink architectures from entities and package bodies from packages: an entity's architectures, a package's
 		   body, the symbols referencing the entity or package, and the link to the parent namespace.
 		5. Unlink package instantiations from their generic package: the symbol and the components copied from it.
@@ -1409,10 +1425,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
 			for region in designUnit.IterateDeclarationRegions():
 				region._namespace.ClearImports()
-				for item in region._declaredItems:
-					if isinstance(item, UseClause):
-						for symbol in item._symbols:
-							symbol._reference = None
+				for item in region._Declarations():
+					item.ResetReferences(designUnit, region)
 
 		for entity in self.IterateDesignUnits(DesignUnitKind.Entity):  # type: Entity
 			for architecture in entity._architectures.values():
@@ -1508,31 +1522,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		self.LinkInstantiations()
 		self.CreateHierarchyGraph()
 		self.ComputeCompileOrder()
-
-	def AnalyzeObjects(self) -> None:
-		"""
-		Analyze the dependencies of types and objects.
-
-		.. rubric:: Algorithm
-
-		1. Index all entities. |br|
-		   |rarr| :meth:`IndexEntities`
-		2. Index all package bodies. |br|
-		   |rarr| :meth:`IndexPackageBodies`
-		3. Import objects. |br|
-		   |rarr| :meth:`ImportObjects`
-		4. Create the type and object graph. |br|
-		   |rarr| :meth:`CreateTypeAndObjectGraph`
-
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
-		"""
-		self.IndexEntities()
-		self.IndexPackageBodies()
-
-		self.ImportObjects()
-		self.CreateTypeAndObjectGraph()
 
 	def CreateDependencyGraph(self) -> None:
 		"""
@@ -1681,180 +1670,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			for designUnit in document._designUnits:
 				edge = dependencyVertex.EdgeFromVertex(designUnit._dependencyVertex)
 				edge["kind"] = DependencyGraphEdgeKind.SourceFile
-
-	def ImportObjects(self) -> None:
-		def _ImportObjects(package: Package) -> None:
-			from pyVHDLModel.Declaration import AttributeSpecification
-
-			for referencedLibrary in package._referencedPackages.values():
-				for referencedPackage in referencedLibrary.values():
-					for declaredItem in referencedPackage._declaredItems:
-						if isinstance(declaredItem, MultipleNamedEntityMixin):
-							for normalizedIdentifier in declaredItem._normalizedIdentifiers:
-								package._namespace.AddImport(normalizedIdentifier, declaredItem)
-						elif isinstance(declaredItem, NamedEntityMixin):
-							package._namespace.AddImport(declaredItem._normalizedIdentifier, declaredItem)
-						elif isinstance(declaredItem, AttributeSpecification):
-							# FIXME: actually, this is not a declared item, but a application of an attribute to named entities
-							WarningCollector.Raise(NotImplementedWarning("Attribute specification.", item=declaredItem))
-
-						else:
-							raise VHDLModelException("Unexpected declared item.")
-
-		for libraryName in ("std", "ieee"):
-			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				_ImportObjects(package)
-
-		for document in self.IterateDocumentsInCompileOrder():
-			for package in document.IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				_ImportObjects(package)
-
-	def CreateTypeAndObjectGraph(self) -> None:
-		def _HandlePackage(package) -> None:
-			packagePrefix = f"{package.Library.NormalizedIdentifier}.{package.NormalizedIdentifier}"
-
-			for deferredConstant in package._deferredConstants.values():
-				print(f"Deferred Constant: {deferredConstant}")
-				deferredConstantVertex = Vertex(
-					vertexID=f"{packagePrefix}.{deferredConstant.NormalizedIdentifiers[0]}",
-					value=deferredConstant,
-					graph=self._objectGraph
-				)
-				deferredConstantVertex["kind"] = ObjectGraphVertexKind.DeferredConstant
-				deferredConstant._objectVertex = deferredConstantVertex
-
-			for constant in package._constants.values():
-				print(f"Constant: {constant}")
-				constantVertex = Vertex(
-					vertexID=f"{packagePrefix}.{constant.NormalizedIdentifiers[0]}",
-					value=constant,
-					graph=self._objectGraph
-				)
-				constantVertex["kind"] = ObjectGraphVertexKind.Constant
-				constant._objectVertex = constantVertex
-
-			for type in package._types.values():
-				print(f"Type: {type}")
-				typeVertex = Vertex(
-					vertexID=f"{packagePrefix}.{type.NormalizedIdentifier}",
-					value=type,
-					graph=self._objectGraph
-				)
-				typeVertex["kind"] = ObjectGraphVertexKind.Type
-				type._objectVertex = typeVertex
-
-			for subtype in package._subtypes.values():
-				print(f"Subtype: {subtype}")
-				subtypeVertex = Vertex(
-					vertexID=f"{packagePrefix}.{subtype.NormalizedIdentifier}",
-					value=subtype,
-					graph=self._objectGraph
-				)
-				subtypeVertex["kind"] = ObjectGraphVertexKind.Subtype
-				subtype._objectVertex = subtypeVertex
-
-			for function in package._functions.values():
-				print(f"Function: {function}")
-				functionVertex = Vertex(
-					vertexID=f"{packagePrefix}.{function.NormalizedIdentifier}",
-					value=function,
-					graph=self._objectGraph
-				)
-				functionVertex["kind"] = ObjectGraphVertexKind.Function
-				function._objectVertex = functionVertex
-
-			for procedure in package._procedures.values():
-				print(f"Procedure: {procedure}")
-				procedureVertex = Vertex(
-					vertexID=f"{packagePrefix}.{procedure.NormalizedIdentifier}",
-					value=procedure,
-					graph=self._objectGraph
-				)
-				procedureVertex["kind"] = ObjectGraphVertexKind.Function
-				procedure._objectVertex = procedureVertex
-
-			for signal in package._signals.values():
-				print(f"Signal: {signal}")
-				signalVertex = Vertex(
-					vertexID=f"{packagePrefix}.{signal.NormalizedIdentifiers[0]}",
-					value=signal,
-					graph=self._objectGraph
-				)
-				signalVertex["kind"] = ObjectGraphVertexKind.Signal
-				signal._objectVertex = signalVertex
-
-		def _LinkSymbolsInExpression(expression, namespace: Namespace, typeVertex: Vertex) -> None:
-			if isinstance(expression, UnaryExpression):
-				_LinkSymbolsInExpression(expression.Operand, namespace, typeVertex)
-			elif isinstance(expression, BinaryExpression):
-				_LinkSymbolsInExpression(expression.LeftOperand, namespace, typeVertex)
-				_LinkSymbolsInExpression(expression.RightOperand, namespace, typeVertex)
-			elif isinstance(expression, TernaryExpression):
-				WarningCollector.Raise(NotImplementedWarning("Handling of ternary expression.", item=expression))
-			elif isinstance(expression, SimpleObjectOrFunctionCallSymbol):
-				obj = namespace.FindObject(expression)
-				expression._reference = obj
-
-				edge = obj._objectVertex.EdgeToVertex(typeVertex)
-				edge["kind"] = ObjectGraphEdgeKind.ReferenceInExpression
-			else:
-				WarningCollector.Raise(NotImplementedWarning("Unhandled else-branch", item=expression))
-
-		def _LinkItems(package: Package) -> None:
-			for item in package._declaredItems:
-				if isinstance(item, Constant):
-					print(f"constant: {item}")
-				elif isinstance(item, DeferredConstant):
-					print(f"deferred constant: {item}")
-				elif isinstance(item, Signal):
-					print(f"signal: {item}")
-				elif isinstance(item, IntegerType):
-					typeNode = item._objectVertex
-
-					_LinkSymbolsInExpression(item.Range.LeftBound, package._namespace, typeNode)
-					_LinkSymbolsInExpression(item.Range.RightBound, package._namespace, typeNode)
-				# elif isinstance(item, FloatingType):
-				# 	print(f"signal: {item}")
-				elif isinstance(item, PhysicalType):
-					typeNode = item._objectVertex
-
-					_LinkSymbolsInExpression(item.Range.LeftBound, package._namespace, typeNode)
-					_LinkSymbolsInExpression(item.Range.RightBound, package._namespace, typeNode)
-				elif isinstance(item, ArrayType):
-					# Resolve dimensions
-					for dimension in item._dimensions:
-						subtype = package._namespace.FindSubtype(dimension)
-						dimension._reference = subtype
-
-						edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
-						edge["kind"] = ObjectGraphEdgeKind.Subtype
-
-					# Resolve element subtype
-					subtype = package._namespace.FindSubtype(item._elementType)
-					item._elementType._reference = subtype
-
-					edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
-					edge["kind"] = ObjectGraphEdgeKind.Subtype
-				elif isinstance(item, RecordType):
-					# Resolve each elements subtype
-					for element in item._elements:
-						subtype = package._namespace.FindSubtype(element._subtype)
-						element._subtype._reference = subtype
-
-						edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
-						edge["kind"] = ObjectGraphEdgeKind.Subtype
-				else:
-					print(f"not handled: {item}")
-
-		for libraryName in ("std", "ieee"):
-			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				_HandlePackage(package)
-				_LinkItems(package)
-
-		for document in self.IterateDocumentsInCompileOrder():
-			for package in document.IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				_HandlePackage(package)
-				_LinkItems(package)
 
 	def LinkContexts(self) -> None:
 		"""
@@ -3042,6 +2857,105 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			e = sourceVertex["dependencyVertex"].EdgeToVertex(destinationVertex["dependencyVertex"])
 			e["kind"] = DependencyGraphEdgeKind.CompileOrder
 
+	def AnalyzeObjects(self) -> None:
+		"""
+		Analyze the types and objects of the design.
+
+		It runs after the dependency analysis (:meth:`AnalyzeDependencies`), which links the use clauses and computes the
+		compile order.
+
+		.. rubric:: Algorithm
+
+		1. Resolve the type marks of all declarations. |br|
+		   |rarr| :meth:`ResolveTypeMarks`
+
+		.. todo::
+
+		   * Resolve the names in expressions, e.g. constants and generics in ranges and constraints, or signal attributes.
+		   * Build the type and object graph (:attr:`ObjectGraph`) from these references.
+		   * Wire the signals into a netlist.
+
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		"""
+		self.ResolveTypeMarks()
+
+	def ResolveTypeMarks(self) -> None:
+		"""
+		Resolve the type marks of all declarations in the design.
+
+		It's the first step of :meth:`AnalyzeObjects`, after the use clauses are linked. Each type mark is looked up at its
+		place (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.LookupName`), so the visibility rules apply: e.g. a type
+		declared after the place isn't visible, and conflicting use clauses make a type mark ambiguous. A resolved type mark
+		references the type, the subtype or the generic type (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`); a type mark
+		denoting an alias of a type references the type. Resolving again yields the same references, as long as the design
+		isn't changed; after a change, :meth:`Analyze` links the use clauses again.
+
+		.. rubric:: Algorithm
+
+		1. Iterate the design units of the predefined libraries (:attr:`Library.IsPredefined`), then the design units of all
+		   documents in compile order (the compile-order graph, :meth:`ComputeCompileOrder`), so a package is resolved
+		   before its users.
+		2. Iterate the declarative regions of each design unit, the outermost first
+		   (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.IterateDeclarationRegions`):
+
+		   1. Index the declared items of a region not indexed yet, e.g. a package body, a process or a subprogram.
+		   2. Iterate the region's declarations in declaration order; each resolves its references
+		      (:meth:`~pyVHDLModel.Base.ModelEntity.ResolveReferences`):
+
+		      * Every declaration resolves its type marks (:meth:`~pyVHDLModel.Base.ModelEntity.IterateTypeMarks`) by the
+		        region looking them up (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.ResolveTypeMark`).
+		      * An incomplete type reports, if no full type declaration follows in its region
+		        (:meth:`~pyVHDLModel.Type.AnonymousType.ResolveReferences`).
+		      * An alias without a subtype indication resolves its name
+		        (:meth:`~pyVHDLModel.Declaration.Alias.ResolveReferences`).
+		      * A subtype sets its base type (:attr:`~pyVHDLModel.Type.Subtype.BaseType`): the resolved type, or the base
+		        type of the resolved subtype.
+
+		.. seealso::
+
+		   :meth:`ResetAnalysis`
+		     Reset everything an analysis derived, including the references of type marks.
+
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		"""
+		designUnits = []
+		for library in self._libraries.values():
+			if library.IsPredefined:
+				designUnits.extend(library.IterateDesignUnits(DesignUnitKind.WithDeclaredItems))
+
+		if self._compileOrderGraph.VertexCount > 0:
+			for vertex in self._compileOrderGraph.IterateTopologically():
+				for designUnit in vertex.Value.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
+					if designUnit not in designUnits:
+						designUnits.append(designUnit)
+
+		for designUnit in designUnits:
+			for region in designUnit.IterateDeclarationRegions():
+				if not region._areDeclaredItemsIndexed:
+					region.IndexDeclaredItems()
+
+				for item in region._Declarations():
+					item.ResolveReferences(designUnit, region)
+
 	def IterateDocumentsInCompileOrder(self) -> Generator[Document, None, None]:
 		"""
 		Iterate all document in compile-order.
@@ -3210,6 +3124,20 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		:returns: Dictionary of all package bodies, indexed by normalized identifier.
 		"""
 		return self._packageBodies
+
+	@readonly
+	def IsPredefined(self) -> bool:
+		"""
+		Check if the library is a predefined library built by pyVHDLModel.
+
+		A predefined library is a :class:`~pyVHDLModel.Predefined.PredefinedLibrary`, e.g. ``std``.
+
+		Its declarations are complete when constructed, e.g. a subtype has its base type, so an analysis neither resolves
+		nor resets them. A library ``std`` or ``ieee`` read from VHDL source files isn't predefined in this sense.
+
+		:returns: ``False``
+		"""
+		return False
 
 	@readonly
 	def DependencyVertex(self) -> Vertex:

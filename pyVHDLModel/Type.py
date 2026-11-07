@@ -37,22 +37,24 @@ Types.
 from __future__             import annotations
 
 from typing                 import TYPE_CHECKING, ClassVar, Generator, Union, Iterator, Iterable, \
-                             Optional as Nullable, Self
+                                   Optional as Nullable, Self
 
 from pyTooling.Common       import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyTooling.Graph        import Vertex
+from pyTooling.Warning      import WarningCollector
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                    Range, ReservedWord
-from pyVHDLModel.Exception  import NotAChildError
-from pyVHDLModel.Symbol     import Symbol, SimpleSubtypeSymbol
+from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning
+from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
-from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
-                                   WithoutStatementsMixin
+from pyVHDLModel.Regions    import DeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin, \
+                                   SequentialDeclarationRegionMixin, WithoutStatementsMixin
 
 if TYPE_CHECKING:
+	from pyVHDLModel.DesignUnit import DesignUnit
 	from pyVHDLModel.Visitor  import Visitor
 
 
@@ -138,6 +140,28 @@ class AnonymousType(Type):
 	        nextNode : ptr;
 	      end record;
 	"""
+
+	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+		"""
+		Check that a full type declaration of the same name completes this incomplete type later in its region.
+
+		:param designUnit:                     The design unit containing this declaration.
+		:param region:                         The declarative region declaring this declaration.
+		:raises UnhandledCriticalWarningError: If no full type declaration follows in the region, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		"""
+		super().ResolveReferences(designUnit, region)
+
+		declarations = region._Declarations()
+		for declaration in declarations[declarations.index(self) + 1:]:
+			if isinstance(declaration, FullType) and declaration._normalizedIdentifier == self._normalizedIdentifier:
+				return
+
+		WarningCollector.Raise(IncompleteTypeWarning(
+			f"Incomplete type '{self._identifier}' has no full type declaration in '{region._namespace._name}'.",
+			incompleteType=self
+		))
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -264,6 +288,50 @@ class Subtype(BaseType):
 		:returns: The resolution function.
 		"""
 		return self._resolutionFunction
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarationRegionMixin
+	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this subtype declaration: the type mark it is derived from.
+
+		:param region:  The declarative region declaring this subtype.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the subtype's type mark.
+		"""
+		if isinstance(self._type, SubtypeSymbol):
+			yield region, self, self._type
+
+	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+		"""
+		Resolve the type mark of this subtype and set its base type (:attr:`BaseType`): the resolved type, or the base type
+		of the resolved subtype; ``None``, if the type mark isn't resolved.
+
+		:param designUnit:                     The design unit containing this declaration.
+		:param region:                         The declarative region declaring this declaration.
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		super().ResolveReferences(designUnit, region)
+
+		if (reference := self._type._reference) is None:
+			self._baseType = None
+		else:
+			self._baseType = reference._baseType if isinstance(reference, Subtype) else reference
+
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+		"""
+		Reset the reference of this subtype's type mark and its base type; a subtype of a predefined library
+		(:attr:`~pyVHDLModel.Library.IsPredefined`) keeps its base type.
+
+		:param designUnit: The design unit containing this declaration.
+		:param region:     The declarative region declaring this declaration.
+		"""
+		super().ResetReferences(designUnit, region)
+
+		if not designUnit._parent.IsPredefined:
+			self._baseType = None
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -882,6 +950,23 @@ class ArrayType(CompositeType):
 		"""
 		return self._elementType
 
+	def IterateTypeMarks(
+		self,
+		region: DeclarationRegionMixin
+	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this array type: its index subtypes, then its element subtype.
+
+		:param region:  The declarative region declaring this type.
+		:returns:       A generator to iterate (region, place, type mark) tuples, in declaration order.
+		"""
+		for dimension in self._dimensions:
+			if isinstance(dimension, SubtypeSymbol):
+				yield region, self, dimension
+
+		if isinstance(self._elementType, SubtypeSymbol):
+			yield region, self, self._elementType
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this array type, its index ranges and its element subtype with a visitor.
@@ -1120,6 +1205,20 @@ class RecordType(CompositeType):
 
 		return (element, *declarations)
 
+	def IterateTypeMarks(
+		self,
+		region: DeclarationRegionMixin
+	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this record type: the element subtypes.
+
+		:param region:  The declarative region declaring this type.
+		:returns:       A generator to iterate (region, place, type mark) tuples, in declaration order.
+		"""
+		for element in self._elements:
+			if isinstance(element._subtype, SubtypeSymbol):
+				yield region, self, element._subtype
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this record type and its element declarations with a visitor.
@@ -1191,6 +1290,11 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 		"""
 		super().__init__(identifier, documentation, parent)
 		ProtectedTypeDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
+
+	@FullType.Parent.setter
+	def Parent(self, parent: ModelEntity) -> None:
+		FullType.Parent.fset(self, parent)
+		self._ConnectParentNamespace(parent)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1266,6 +1370,11 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 		super().__init__(identifier, documentation, parent)
 		SequentialDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
 
+	@FullType.Parent.setter
+	def Parent(self, parent: ModelEntity) -> None:
+		FullType.Parent.fset(self, parent)
+		self._ConnectParentNamespace(parent)
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this protected type body and its declared items with a visitor.
@@ -1336,6 +1445,19 @@ class AccessType(FullType):
 		"""
 		return self._designatedSubtype
 
+	def IterateTypeMarks(
+		self,
+		region: DeclarationRegionMixin
+	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this access type: the subtype its values designate.
+
+		:param region:  The declarative region declaring this type.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the designated subtype.
+		"""
+		if isinstance(self._designatedSubtype, SubtypeSymbol):
+			yield region, self, self._designatedSubtype
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this access type and its designated subtype with a visitor.
@@ -1399,6 +1521,19 @@ class FileType(FullType):
 		:returns: The designated subtype.
 		"""
 		return self._designatedSubtype
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarationRegionMixin
+	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this file type: the subtype of its values.
+
+		:param region:  The declarative region declaring this type.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the designated subtype.
+		"""
+		if isinstance(self._designatedSubtype, SubtypeSymbol):
+			yield region, self, self._designatedSubtype
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

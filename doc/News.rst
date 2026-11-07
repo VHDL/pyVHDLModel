@@ -45,6 +45,15 @@ Version 0.43.0 (2026)
      literal is indexed by :data:`EnumerationLiteral.NormalizedDesignator
      <pyVHDLModel.Expression.EnumerationLiteral.NormalizedDesignator>` (a character literal with its apostrophes).
    * Aliases, attribute declarations and packages declared in a region are added to its namespace.
+   * :meth:`Design.ResolveTypeMarks() <pyVHDLModel.Design.ResolveTypeMarks>` resolves the type marks of all
+     declarations (objects, interface items, record elements, array, access and file types, subtypes, subprograms,
+     attributes, aliases, components), incl. the predefined packages and expanded names (``work.pkg.T``), and sets a
+     subtype's base type. :meth:`~pyVHDLModel.Design.Analyze` runs it as the first step of
+     :meth:`~pyVHDLModel.Design.AnalyzeObjects`. An unresolved type mark is an
+     :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`, an incomplete type without a full type declaration an
+     :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`. Expanded names may name an enclosing region (``q.T`` in
+     ``q``); a component's generics are visible to its ports; an incomplete type used by anything else than an access
+     type and an unresolvable alias name are reported.
 
    .. rubric:: Changes
 
@@ -66,6 +75,16 @@ Version 0.43.0 (2026)
      :exc:`~pyVHDLModel.Exception.PackageInstantiationNotLinkedError` (was
      :exc:`~pyVHDLModel.Exception.VHDLModelException`, from which it derives), with the common base
      :exc:`~pyVHDLModel.Exception.InstantiationNotLinkedError` for all instantiations of generic language entities.
+   * ``FindComponent``, ``FindSubtype`` and ``FindObject`` follow the visibility rules: a declaration of an enclosing
+     region hides an import of an inner region; the message always lists the searched namespaces.
+   * Breaking change: :meth:`Design.Analyze() <pyVHDLModel.Design.Analyze>` analyzes the types and objects too
+     (:meth:`~pyVHDLModel.Design.AnalyzeObjects`, which resolves the type marks). A design with an unresolvable type
+     mark or alias name, or an incomplete type without full type declaration, reports it as a critical warning:
+     collect them with a :class:`~pyTooling.Warning.WarningCollector`, else ``Analyze()`` raises
+     :exc:`~pyTooling.Warning.UnhandledCriticalWarningError`.
+   * Breaking change: the prototype ``Design.ImportObjects()`` and ``CreateTypeAndObjectGraph()`` are removed; use
+     clauses (:meth:`~pyVHDLModel.Design.Analyze`) and :meth:`~pyVHDLModel.Design.AnalyzeObjects` replace them.
+   * A protected type and its body chain their namespace to the enclosing region's namespace.
 
    .. rubric:: Bug Fixes
 

@@ -33,7 +33,7 @@
 from typing                 import Iterable, Optional as Nullable
 
 from pyTooling.Common       import getTypeName
-from pyTooling.Decorators   import export
+from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
 from pyVHDLModel            import Library, Package, PackageBody, AllPackageMembersReferenceSymbol, \
@@ -72,6 +72,15 @@ class PredefinedLibrary(Library):
 		super().__init__(getTypeName(self), documentation)
 
 		self.AddPackages(packages)
+
+	@readonly
+	def IsPredefined(self) -> bool:
+		"""
+		Check if the library is a predefined library built by pyVHDLModel.
+
+		:returns: ``True``
+		"""
+		return True
 
 	def AddPackages(self, packages) -> None:
 		for packageType, packageBodyType in packages:

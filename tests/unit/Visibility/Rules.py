@@ -34,17 +34,20 @@ Visibility rules (IEEE Std 1076-2008, 12.3 and 12.4): hiding, conflicting import
 from pyTooling.Testing       import Testcase
 from pyTooling.Warning       import WarningCollector
 
-from pyVHDLModel.Base        import Mode
+from pyVHDLModel.Base        import Mode, ModelEntity
 from pyVHDLModel.Concurrent  import ProcessStatement
 from pyVHDLModel.Declaration import Alias
+from pyVHDLModel.Exception   import UnresolvedTypeMarkWarning
 from pyVHDLModel.DesignUnit  import Architecture, Entity, Package
 from pyVHDLModel.Interface   import PortSimpleSignalInterfaceItem
-from pyVHDLModel.Name        import SimpleName
+from pyVHDLModel.Name        import Name, SelectedName, SimpleName
+from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Object      import Signal
 from pyVHDLModel.Symbol      import PossibleReference, SignalSymbol, SimpleSubtypeSymbol, Symbol
 from pyVHDLModel.Type        import AccessType, AnonymousType, RecordType, RecordTypeElement
 
 from tests.unit              import _entitySymbol, _signal, _subtypeSymbol, _variable
+from tests.unit.Resolution   import _resolve
 from tests.unit.Visibility   import _constant, _design, _distance, _enumeration, _function, _use
 
 
@@ -225,11 +228,14 @@ class DeclarationOrder(Testcase):
 
 	def test_PortBeforeUseClause(self) -> None:
 		"""A use clause in the entity's declarative part isn't seen by the ports (A040)."""
-		port =   PortSimpleSignalInterfaceItem(("x", ), Mode.In, _subtypeSymbol("K"))
-		entity = Entity("e", portItems=[port], declaredItems=[_use("work.p.all")])
-		_design(self._package, entity)
+		port =     PortSimpleSignalInterfaceItem(("x", ), Mode.In, _subtypeSymbol("K"))
+		entity =   Entity("e", portItems=[port], declaredItems=[_use("work.p.all")])
+		warnings = _resolve(_design(self._package, entity, analyze=False))
 
 		self.assertFalse(entity._namespace.Lookup("k", port).IsVisible)
+		self.assertEqual(1, len(warnings))
+		self.assertIsInstance(warnings[0], UnresolvedTypeMarkWarning)
+		self.assertIs(port.Subtype, warnings[0].Symbol)
 
 	def test_Object(self) -> None:
 		"""``constant c1 : integer := c2; constant c2 ...``: ``c2`` isn't visible in ``c1`` (A071)."""
@@ -279,9 +285,12 @@ class DeclarationOrder(Testcase):
 		pointer =      AccessType("ptr", SimpleSubtypeSymbol(SimpleName("node")))
 		node =         RecordType("node", [RecordTypeElement(("next", ), SimpleSubtypeSymbol(SimpleName("ptr")))])
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[pointer, node])
-		_design(Entity("e"), architecture)
+		warnings =     _resolve(_design(Entity("e"), architecture, analyze=False))
 
 		self.assertFalse(architecture._namespace.Lookup("node", pointer).IsVisible)
+		self.assertEqual(1, len(warnings))
+		self.assertIsInstance(warnings[0], UnresolvedTypeMarkWarning)
+		self.assertIs(pointer.DesignatedSubtype, warnings[0].Symbol)
 
 
 class Designators(Testcase):
@@ -353,19 +362,32 @@ class DeclarationProperties(Testcase):
 		self.assertTupleEqual((), tuple(_constant("K", "integer").IterateImplicitDeclarations()))
 
 
+def _name(*identifiers: str) -> Name:
+	"""A simple name, or an expanded name like ``work.p1.T``."""
+	name = SimpleName(identifiers[0])
+	for identifier in identifiers[1:]:
+		name = SelectedName(identifier, name)
+
+	return name
+
+
+def _alias(identifier: str, *names: str) -> Alias:
+	"""An alias without a subtype indication, as pyGHDL creates it: its name may denote any package member."""
+	return Alias(identifier, Symbol(_name(*names), PossibleReference.PackageMember | PossibleReference.EnumLiteral))
+
+
+def _typeAlias(identifier: str, *names: str) -> Alias:
+	"""An alias of a type by an expanded name, e.g. ``alias T is work.p1.T;``."""
+	return Alias(identifier, SimpleSubtypeSymbol(_name(*names)))
+
+
 class SubprogramAliases(Testcase):
 	"""An alias of a subprogram is overloadable, like the subprogram (IEEE ``std_logic_1164``: ``To_SLV``, ``bread``)."""
 
-	@staticmethod
-	def _alias(identifier: str, name: str) -> Alias:
-		"""An alias without a subtype indication, as pyGHDL creates it: its name may denote any package member."""
-		possibleReferences = PossibleReference.PackageMember | PossibleReference.EnumLiteral
-		return Alias(identifier, Symbol(SimpleName(name), possibleReferences))
-
 	def test_Overloaded(self) -> None:
 		"""``alias f is f1 [...]; alias f is f2 [...];`` in ``p1``, ``function f`` in ``p2`` (GHDL accepts)."""
-		first =    self._alias("f", "f1")
-		second =   self._alias("f", "f2")
+		first =    _alias("f", "f1")
+		second =   _alias("f", "f2")
 		function = _function("f", "boolean")
 		packages = (
 			Package("p1", declaredItems=[_function("f1", "integer"), _function("f2", "bit"), first, second]),
@@ -381,7 +403,7 @@ class SubprogramAliases(Testcase):
 
 	def test_InRegion(self) -> None:
 		"""An alias and a function of the same name in one region are no duplicate."""
-		alias =        self._alias("f", "f1")
+		alias =        _alias("f", "f1")
 		function =     _function("f", "bit")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_function("f1", "integer"), alias, function])
 
@@ -394,6 +416,165 @@ class SubprogramAliases(Testcase):
 	def test_ObjectAlias(self) -> None:
 		"""An alias of a signal isn't overloadable."""
 		self.assertFalse(Alias("x", SignalSymbol(SimpleName("s"))).IsOverloadable)
+
+
+class AliasConflicts(Testcase):
+	"""
+	Use-visible declarations of one designator aren't directly visible, unless all are overloadable (IEEE Std 1076-2008,
+	12.4 c)). It doesn't matter, if they denote the same named entity: that's a condition of homographs (12.3), not of
+	this rule.
+	"""
+
+	def _assertConflict(self, namespace: Namespace, identifier: str, *declarations: ModelEntity) -> None:
+		result = namespace.Lookup(identifier)
+
+		self.assertFalse(result.IsVisible)
+		self.assertTrue(result.HasConflicts)
+		self.assertTupleEqual(declarations, tuple(imported.Element for imported in result.Conflicts))
+
+	def test_Object_AliasAndOriginal(self) -> None:
+		"""``constant K`` in ``p1``, ``alias K is work.p1.K;`` in ``p2`` (GHDL: "due to conflicts")."""
+		original = _constant("K", "integer")
+		alias =    _alias("K", "work", "p1", "K")
+		entity =   Entity("e", [_use("work.p1.all", "work.p2.all")])
+		design =   _design(
+			Package("p1", declaredItems=[original]), Package("p2", declaredItems=[alias]), entity, analyze=False
+		)
+
+		self.assertListEqual([], _resolve(design))
+		self.assertIs(original, alias.Name.Reference)
+		self._assertConflict(entity._namespace, "k", original, alias)
+
+	def test_Object_TwoAliases(self) -> None:
+		"""``alias K is work.p1.K;`` in ``p2`` and ``p3`` (GHDL: "due to conflicts")."""
+		first =  _alias("K", "work", "p1", "K")
+		second = _alias("K", "work", "p1", "K")
+		entity = Entity("e", [_use("work.p2.all", "work.p3.all")])
+		design = _design(
+			Package("p1", declaredItems=[_constant("K", "integer")]),
+			Package("p2", declaredItems=[first]),
+			Package("p3", declaredItems=[second]),
+			entity
+		, analyze=False)
+		self.assertListEqual([], _resolve(design))
+
+		self._assertConflict(entity._namespace, "k", first, second)
+
+	def test_Object_TwoAliases_NotResolved(self) -> None:
+		"""
+		Before :meth:`~pyVHDLModel.Design.AnalyzeObjects` resolves the alias names, an alias with a name of any kind may
+		denote a subprogram, so two of them aren't reported yet.
+		"""
+		first =  _alias("K", "work", "p1", "K")
+		second = _alias("K", "work", "p1", "K")
+		entity = Entity("e", [_use("work.p2.all", "work.p3.all")])
+		design = _design(
+			Package("p1", declaredItems=[_constant("K", "integer")]),
+			Package("p2", declaredItems=[first]),
+			Package("p3", declaredItems=[second]),
+			entity,
+			analyze=False
+		)
+		design.AnalyzeDependencies()
+
+		self.assertTupleEqual((first, second), entity._namespace.Lookup("k").Declarations)
+
+	def test_Type_AliasAndOriginal(self) -> None:
+		"""``type T`` in ``p1``, ``alias T is work.p1.T;`` in ``p2`` (12.4 c); GHDL accepts it)."""
+		original = _enumeration("T", "a", "b")
+		alias =    _typeAlias("T", "work", "p1", "T")
+		entity =   Entity("e", [_use("work.p1.all", "work.p2.all")])
+		_design(Package("p1", declaredItems=[original]), Package("p2", declaredItems=[alias]), entity)
+
+		self._assertConflict(entity._namespace, "t", original, alias)
+
+	def test_Type_TwoAliases(self) -> None:
+		"""``alias T is work.p1.T;`` in ``p2`` and ``p3`` (12.4 c); GHDL accepts it)."""
+		first =  _typeAlias("T", "work", "p1", "T")
+		second = _typeAlias("T", "work", "p1", "T")
+		entity = Entity("e", [_use("work.p2.all", "work.p3.all")])
+		_design(
+			Package("p1", declaredItems=[_enumeration("T", "a", "b")]),
+			Package("p2", declaredItems=[first]),
+			Package("p3", declaredItems=[second]),
+			entity
+		)
+
+		self._assertConflict(entity._namespace, "t", first, second)
+
+	def test_Type_TwoAliases_Resolved(self) -> None:
+		"""The same with a name of any kind, as pyGHDL creates it: the resolved name decides."""
+		first =  _alias("T", "work", "p1", "T")
+		second = _alias("T", "work", "p1", "T")
+		entity = Entity("e", [_use("work.p2.all", "work.p3.all")])
+		design = _design(
+			Package("p1", declaredItems=[_enumeration("T", "a", "b")]),
+			Package("p2", declaredItems=[first]),
+			Package("p3", declaredItems=[second]),
+			entity
+		, analyze=False)
+		self.assertListEqual([], _resolve(design))
+
+		self._assertConflict(entity._namespace, "t", first, second)
+
+	def test_Function_AliasAndOriginal(self) -> None:
+		"""``function f`` in ``p1``, ``alias f is work.p1.f [...];`` in ``p2`` and ``p3`` (GHDL accepts)."""
+		original = _function("f", "integer")
+		first =    _alias("f", "work", "p1", "f")
+		second =   _alias("f", "work", "p1", "f")
+		entity =   Entity("e", [_use("work.p1.all", "work.p2.all", "work.p3.all")])
+		design =   _design(
+			Package("p1", declaredItems=[original]),
+			Package("p2", declaredItems=[first]),
+			Package("p3", declaredItems=[second]),
+			entity
+		, analyze=False)
+		self.assertListEqual([], _resolve(design))
+
+		self.assertTupleEqual((original, first, second), entity._namespace.Lookup("f").Declarations)
+
+	def test_EnumerationLiteral_AliasAndOriginal(self) -> None:
+		"""``type T is (a, b);`` in ``p1``, ``alias a is work.p1.a [...];`` in ``p2`` and ``p3`` (GHDL accepts)."""
+		enumeration = _enumeration("T", "a", "b")
+		first =       _alias("a", "work", "p1", "a")
+		second =      _alias("a", "work", "p1", "a")
+		entity =      Entity("e", [_use("work.p1.all", "work.p2.all", "work.p3.all")])
+		design =      _design(
+			Package("p1", declaredItems=[enumeration]),
+			Package("p2", declaredItems=[first]),
+			Package("p3", declaredItems=[second]),
+			entity
+		, analyze=False)
+		self.assertListEqual([], _resolve(design))
+
+		self.assertTupleEqual((enumeration.Literals[0], first, second), entity._namespace.Lookup("a").Declarations)
+
+	def test_LocalAlias_Object(self) -> None:
+		"""
+		``use work.p1.all; alias K is work.p1.K;``: the local alias hides the use-visible original (GHDL accepts).
+
+		Both may be visible by 12.3, as they denote the same named entity: open, IEEE-P1076/VHDL-Issues#386.
+		"""
+		alias =        _alias("K", "work", "p1", "K")
+		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p1.all")], declaredItems=[alias])
+		design =       _design(
+			Package("p1", declaredItems=[_constant("K", "integer")]), Entity("e"), architecture, analyze=False
+		)
+		self.assertListEqual([], _resolve(design))
+
+		self.assertTupleEqual((alias, ), architecture._namespace.Lookup("k").Declarations)
+
+	def test_LocalAlias_Type(self) -> None:
+		"""``use work.p1.all; alias T is work.p1.T;``: open as above (GHDL accepts)."""
+		original =     _enumeration("T", "a", "b")
+		alias =        _typeAlias("T", "work", "p1", "T")
+		signal =       _signal("s", "T")
+		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p1.all")], declaredItems=[alias, signal])
+		design =       _design(Package("p1", declaredItems=[original]), Entity("e"), architecture, analyze=False)
+		self.assertListEqual([], _resolve(design))
+
+		self.assertTupleEqual((alias, ), architecture._namespace.Lookup("t").Declarations)
+		self.assertIs(original, signal.Subtype.Reference)
 
 
 class StaleImports(Testcase):

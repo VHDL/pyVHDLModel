@@ -36,7 +36,7 @@ Interface items are used in generic, port and parameter declarations.
 """
 from __future__             import annotations
 
-from typing                 import TYPE_CHECKING, ClassVar, Iterable, Optional as Nullable, Iterator, Self
+from typing                 import TYPE_CHECKING, ClassVar, Generator, Iterable, Optional as Nullable, Iterator, Self
 
 from pyTooling.Common       import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators   import export, readonly
@@ -51,6 +51,7 @@ from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
 
 if TYPE_CHECKING:
+	from pyVHDLModel.Regions  import DeclarationRegionMixin
 	from pyVHDLModel.Visitor  import Visitor
 
 
@@ -380,6 +381,18 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 			declaration.Parent = self
 
 		return (element, *declarations)
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarationRegionMixin
+	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this mode view declaration: the subtype it applies to.
+
+		:param region:  The declarative region declaring this mode view.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the mode view's subtype.
+		"""
+		yield region, self, self._subtype
 
 	def __str__(self) -> str:
 		"""

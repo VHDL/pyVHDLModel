@@ -38,7 +38,7 @@ message in english, each exception object contains one or multiple references to
 from __future__               import annotations
 
 from pathlib                  import Path
-from typing                   import TYPE_CHECKING, Generic, Optional as Nullable, TypeVar, Union
+from typing                   import TYPE_CHECKING, ClassVar, Generic, Optional as Nullable, TypeVar, Union
 
 from pyTooling.Decorators     import export, readonly
 from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError, InUseError
@@ -127,6 +127,8 @@ class VHDLModelCriticalWarning(CriticalWarning):
 
 	   * :class:`Duplicate declaration warning <pyVHDLModel.Exception.DuplicateDeclarationWarning>`
 	   * :class:`Unresolved name warning <pyVHDLModel.Exception.UnresolvedNameWarning>`
+	   * :class:`Unresolved type mark warning <pyVHDLModel.Exception.UnresolvedTypeMarkWarning>`
+	   * :class:`Incomplete type warning <pyVHDLModel.Exception.IncompleteTypeWarning>`
 	"""
 	pass
 
@@ -241,6 +243,8 @@ class UnresolvedNameWarning(VHDLModelCriticalWarning):
 	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
 	"""
 
+	_LABEL:      ClassVar[str] = "Name"  #: The kind of name, which starts the messages of a name lookup.
+
 	_symbol:     _Symbol                  #: The unresolved symbol.
 	_place:      ModelEntity              #: The model entity containing the name, e.g. a use clause.
 	_namespaces: tuple[_Namespace, ...]   #: The namespaces searched for the name, innermost first.
@@ -305,6 +309,57 @@ class UnresolvedNameWarning(VHDLModelCriticalWarning):
 		:returns: Tuple of imported declarations with their use clauses, empty if there is no conflict.
 		"""
 		return self._conflicts
+
+
+@export
+class UnresolvedTypeMarkWarning(UnresolvedNameWarning):
+	"""
+	Raised when a type mark can't be resolved (:meth:`~pyVHDLModel.Design.ResolveTypeMarks`): no declaration of it is
+	visible, use clauses made conflicting declarations potentially visible, the prefix of an expanded name isn't a visible
+	package, or it denotes something else than a type or subtype.
+
+	Its place (:attr:`~UnresolvedNameWarning.Place`) is the declaration containing the type mark.
+
+	.. important::
+
+	   As a critical warning, it must be collected by a :class:`~pyTooling.Warning.WarningCollector` up the
+	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
+	"""
+
+	_LABEL: ClassVar[str] = "Type mark"  #: The kind of name, which starts the messages of a type mark lookup.
+
+
+@export
+class IncompleteTypeWarning(VHDLModelCriticalWarning):
+	"""
+	Raised when an incomplete type declaration has no full type declaration later in the same declarative region.
+
+	.. important::
+
+	   As a critical warning, it must be collected by a :class:`~pyTooling.Warning.WarningCollector` up the
+	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
+	"""
+
+	_incompleteType: ModelEntity  #: The incomplete type declaration.
+
+	def __init__(self, message: str, /, *, incompleteType: ModelEntity) -> None:
+		"""
+		Initializes the warning with the incomplete type declaration.
+
+		:param message:        The warning's message.
+		:param incompleteType: The incomplete type declaration.
+		"""
+		super().__init__(message)
+		self._incompleteType = incompleteType
+
+	@readonly
+	def IncompleteType(self) -> ModelEntity:
+		"""
+		Read-only property to access the incomplete type declaration (:attr:`_incompleteType`).
+
+		:returns: The incomplete type declaration.
+		"""
+		return self._incompleteType
 
 
 @export

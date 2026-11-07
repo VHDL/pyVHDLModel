@@ -1366,36 +1366,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		self.AnalyzeDependencies()
 		self.AnalyzeObjects()
 
-	def AnalyzeObjects(self) -> None:
-		"""
-		Analyze the types and objects of the design.
-
-		It runs after the dependency analysis (:meth:`AnalyzeDependencies`), which links the use clauses and computes the
-		compile order.
-
-		.. rubric:: Algorithm
-
-		1. Resolve the type marks of all declarations. |br|
-		   |rarr| :meth:`ResolveTypeMarks`
-
-		.. todo::
-
-		   * Resolve the names in expressions, e.g. constants and generics in ranges and constraints, or signal attributes.
-		   * Build the type and object graph (:attr:`ObjectGraph`) from these references.
-		   * Wire the signals into a netlist.
-
-		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
-		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
-		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
-		"""
-		self.ResolveTypeMarks()
-
 	def ResetAnalysis(self) -> None:
 		"""
 		Reset everything an analysis (:meth:`Analyze`) derived, so the design can be analyzed again.
@@ -1552,75 +1522,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		self.LinkInstantiations()
 		self.CreateHierarchyGraph()
 		self.ComputeCompileOrder()
-
-	def ResolveTypeMarks(self) -> None:
-		"""
-		Resolve the type marks of all declarations in the design.
-
-		It's the first step of :meth:`AnalyzeObjects`, after the use clauses are linked. Each type mark is looked up at its
-		place (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.LookupName`), so the visibility rules apply: e.g. a type
-		declared after the place isn't visible, and conflicting use clauses make a type mark ambiguous. A resolved type mark
-		references the type, the subtype or the generic type (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`); a type mark
-		denoting an alias of a type references the type. Resolving again yields the same references, as long as the design
-		isn't changed; after a change, :meth:`Analyze` links the use clauses again.
-
-		.. rubric:: Algorithm
-
-		1. Iterate the design units of the predefined libraries (:attr:`Library.IsPredefined`), then the design units of all
-		   documents in compile order (the compile-order graph, :meth:`ComputeCompileOrder`), so a package is resolved
-		   before its users.
-		2. Iterate the declarative regions of each design unit, the outermost first
-		   (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.IterateDeclarationRegions`):
-
-		   1. Index the declared items of a region not indexed yet, e.g. a package body, a process or a subprogram.
-		   2. Iterate the region's declarations in declaration order; each resolves its references
-		      (:meth:`~pyVHDLModel.Base.ModelEntity.ResolveReferences`):
-
-		      * Every declaration resolves its type marks (:meth:`~pyVHDLModel.Base.ModelEntity.IterateTypeMarks`) by the
-		        region looking them up (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.ResolveTypeMark`).
-		      * An incomplete type reports, if no full type declaration follows in its region
-		        (:meth:`~pyVHDLModel.Type.AnonymousType.ResolveReferences`).
-		      * An alias without a subtype indication resolves its name
-		        (:meth:`~pyVHDLModel.Declaration.Alias.ResolveReferences`).
-		      * A subtype sets its base type (:attr:`~pyVHDLModel.Type.Subtype.BaseType`): the resolved type, or the base
-		        type of the resolved subtype.
-
-		.. seealso::
-
-		   :meth:`ResetAnalysis`
-		     Reset everything an analysis derived, including the references of type marks.
-
-		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
-		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
-		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
-		"""
-		designUnits = []
-		for library in self._libraries.values():
-			if library.IsPredefined:
-				designUnits.extend(library.IterateDesignUnits(DesignUnitKind.WithDeclaredItems))
-
-		if self._compileOrderGraph.VertexCount > 0:
-			for vertex in self._compileOrderGraph.IterateTopologically():
-				for designUnit in vertex.Value.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
-					if designUnit not in designUnits:
-						designUnits.append(designUnit)
-
-		for designUnit in designUnits:
-			for region in designUnit.IterateDeclarationRegions():
-				if not region._areDeclaredItemsIndexed:
-					region.IndexDeclaredItems()
-
-				for item in region._Declarations():
-					item.ResolveReferences(designUnit, region)
 
 	def CreateDependencyGraph(self) -> None:
 		"""
@@ -2955,6 +2856,105 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 			e = sourceVertex["dependencyVertex"].EdgeToVertex(destinationVertex["dependencyVertex"])
 			e["kind"] = DependencyGraphEdgeKind.CompileOrder
+
+	def AnalyzeObjects(self) -> None:
+		"""
+		Analyze the types and objects of the design.
+
+		It runs after the dependency analysis (:meth:`AnalyzeDependencies`), which links the use clauses and computes the
+		compile order.
+
+		.. rubric:: Algorithm
+
+		1. Resolve the type marks of all declarations. |br|
+		   |rarr| :meth:`ResolveTypeMarks`
+
+		.. todo::
+
+		   * Resolve the names in expressions, e.g. constants and generics in ranges and constraints, or signal attributes.
+		   * Build the type and object graph (:attr:`ObjectGraph`) from these references.
+		   * Wire the signals into a netlist.
+
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		"""
+		self.ResolveTypeMarks()
+
+	def ResolveTypeMarks(self) -> None:
+		"""
+		Resolve the type marks of all declarations in the design.
+
+		It's the first step of :meth:`AnalyzeObjects`, after the use clauses are linked. Each type mark is looked up at its
+		place (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.LookupName`), so the visibility rules apply: e.g. a type
+		declared after the place isn't visible, and conflicting use clauses make a type mark ambiguous. A resolved type mark
+		references the type, the subtype or the generic type (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`); a type mark
+		denoting an alias of a type references the type. Resolving again yields the same references, as long as the design
+		isn't changed; after a change, :meth:`Analyze` links the use clauses again.
+
+		.. rubric:: Algorithm
+
+		1. Iterate the design units of the predefined libraries (:attr:`Library.IsPredefined`), then the design units of all
+		   documents in compile order (the compile-order graph, :meth:`ComputeCompileOrder`), so a package is resolved
+		   before its users.
+		2. Iterate the declarative regions of each design unit, the outermost first
+		   (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.IterateDeclarationRegions`):
+
+		   1. Index the declared items of a region not indexed yet, e.g. a package body, a process or a subprogram.
+		   2. Iterate the region's declarations in declaration order; each resolves its references
+		      (:meth:`~pyVHDLModel.Base.ModelEntity.ResolveReferences`):
+
+		      * Every declaration resolves its type marks (:meth:`~pyVHDLModel.Base.ModelEntity.IterateTypeMarks`) by the
+		        region looking them up (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.ResolveTypeMark`).
+		      * An incomplete type reports, if no full type declaration follows in its region
+		        (:meth:`~pyVHDLModel.Type.AnonymousType.ResolveReferences`).
+		      * An alias without a subtype indication resolves its name
+		        (:meth:`~pyVHDLModel.Declaration.Alias.ResolveReferences`).
+		      * A subtype sets its base type (:attr:`~pyVHDLModel.Type.Subtype.BaseType`): the resolved type, or the base
+		        type of the resolved subtype.
+
+		.. seealso::
+
+		   :meth:`ResetAnalysis`
+		     Reset everything an analysis derived, including the references of type marks.
+
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		"""
+		designUnits = []
+		for library in self._libraries.values():
+			if library.IsPredefined:
+				designUnits.extend(library.IterateDesignUnits(DesignUnitKind.WithDeclaredItems))
+
+		if self._compileOrderGraph.VertexCount > 0:
+			for vertex in self._compileOrderGraph.IterateTopologically():
+				for designUnit in vertex.Value.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
+					if designUnit not in designUnits:
+						designUnits.append(designUnit)
+
+		for designUnit in designUnits:
+			for region in designUnit.IterateDeclarationRegions():
+				if not region._areDeclaredItemsIndexed:
+					region.IndexDeclaredItems()
+
+				for item in region._Declarations():
+					item.ResolveReferences(designUnit, region)
 
 	def IterateDocumentsInCompileOrder(self) -> Generator[Document, None, None]:
 		"""

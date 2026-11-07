@@ -54,6 +54,19 @@ Version 0.43.0 (2026)
      :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`. Expanded names may name an enclosing region (``q.T`` in
      ``q``); a component's generics are visible to its ports; an incomplete type used by anything else than an access
      type and an unresolvable alias name are reported.
+   * Type attributes as type marks: ``x'subtype`` (an object's subtype), ``A'element`` (an array's element subtype) and
+     ``T'base`` as the prefix of another attribute. The prefix may be an object alias, a record element (``r.f``), an
+     element of an array object (``m(0)``), a dereferenced access value (``ptr.all``) or a declaration of a package
+     (``p.c``, ``work.p.c``); a port or parameter used in its own interface list is reported. Each name class
+     determines what it denotes (:meth:`Name.Denote() <pyVHDLModel.Name.Name.Denote>`, a
+     :class:`~pyVHDLModel.Name.Denotation`), each declaration what a name denoting it denotes
+     (:meth:`ModelEntity.DenoteBy() <pyVHDLModel.Base.ModelEntity.DenoteBy>`).
+   * :class:`~pyVHDLModel.Name.PredefinedAttribute` enumerates the predefined attributes (IEEE Std 1076-2019, 16.2); an
+     attribute name references its member (:data:`AttributeName.PredefinedAttribute
+     <pyVHDLModel.Name.AttributeName.PredefinedAttribute>`, ``None`` for a user-defined attribute).
+   * :data:`RecordType.ElementsByIdentifier <pyVHDLModel.Type.RecordType.ElementsByIdentifier>` indexes a record's
+     elements by each identifier; :data:`BaseType.BaseType <pyVHDLModel.Type.BaseType.BaseType>` returns a type itself
+     (a subtype the base type of its type mark).
 
    .. rubric:: Changes
 

@@ -50,7 +50,7 @@ from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNam
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin, \
                                       WithoutStatementsMixin
-from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
+from pyVHDLModel.Symbol        import Symbol, SubtypeSymbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, GenericGroup, PortGroup
 from pyVHDLModel.Object        import DeferredConstant
 from pyVHDLModel.Type          import AnonymousType, Subtype
@@ -1613,6 +1613,25 @@ class Component(
 	def Entity(self, value: Entity) -> None:
 		self._entity = value
 		self._isBlackbox = False
+
+	def IterateTypeMarks(
+		self,
+		namespace: Namespace
+	) -> Generator[tuple[Namespace, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this component's generics and ports.
+
+		The place of a type mark is the generic or port containing it. A generic is visible to the following generics and
+		ports of the component.
+
+		:param namespace: The namespace of the declarative region declaring this component.
+		:returns:         A generator to iterate (namespace, place, type mark) tuples, in declaration order.
+		"""
+		for genericItem in self._genericItems:
+			yield from genericItem.IterateTypeMarks(namespace)
+
+		for portItem in self._portItems:
+			yield from portItem.IterateTypeMarks(namespace)
 
 	def __str__(self) -> str:
 		"""

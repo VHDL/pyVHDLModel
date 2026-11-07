@@ -45,6 +45,7 @@ from pyVHDLModel.Exception   import IncompleteTypeWarning, UnresolvedNameWarning
 from pyVHDLModel.Interface   import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                     ParameterConstantInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name        import SelectedName, SimpleName
+from pyVHDLModel.Namespace   import Namespace
 from pyVHDLModel.Object      import Constant, Variable
 from pyVHDLModel.Subprogram  import Function, Procedure
 from pyVHDLModel.Symbol      import LibraryReferenceSymbol, SimpleObjectOrFunctionCallSymbol, SimpleSubtypeSymbol
@@ -200,6 +201,115 @@ class Places(Testcase):
 		self.assertListEqual([], _resolve(_design(package, packageBody)))
 
 		self.assertIs(local, constant.Subtype.Reference)
+
+
+class DeclarationTypeMarks(Testcase):
+	"""Each declaration iterates its own type marks with the namespace and the place to look them up."""
+
+	def setUp(self) -> None:
+		self._namespace = Namespace("rtl")
+
+	def test_Object(self) -> None:
+		constant = _constant("c", "T")
+
+		self.assertListEqual(
+			[(self._namespace, constant, constant.Subtype)],
+			list(constant.IterateTypeMarks(self._namespace))
+		)
+
+	def test_Subtype(self) -> None:
+		subtype = Subtype("ST", _subtypeSymbol("T"))
+
+		self.assertListEqual([(self._namespace, subtype, subtype.Type)], list(subtype.IterateTypeMarks(self._namespace)))
+
+	def test_ArrayType(self) -> None:
+		"""Index subtypes first, then the element subtype."""
+		array = ArrayType("A", [_subtypeSymbol("I")], _subtypeSymbol("E"))
+
+		self.assertListEqual(
+			[(self._namespace, array, array.Dimensions[0]), (self._namespace, array, array.ElementType)],
+			list(array.IterateTypeMarks(self._namespace))
+		)
+
+	def test_RecordType(self) -> None:
+		record = RecordType("R", [
+			RecordTypeElement(("e1", ), _subtypeSymbol("T")),
+			RecordTypeElement(("e2", ), _subtypeSymbol("U"))
+		])
+
+		self.assertListEqual(
+			[(self._namespace, record, record.Elements[0].Subtype), (self._namespace, record, record.Elements[1].Subtype)],
+			list(record.IterateTypeMarks(self._namespace))
+		)
+
+	def test_AccessType(self) -> None:
+		access = AccessType("AT", _subtypeSymbol("T"))
+
+		self.assertListEqual(
+			[(self._namespace, access, access.DesignatedSubtype)],
+			list(access.IterateTypeMarks(self._namespace))
+		)
+
+	def test_FileType(self) -> None:
+		file = FileType("FT", _subtypeSymbol("T"))
+
+		self.assertListEqual(
+			[(self._namespace, file, file.DesignatedSubtype)],
+			list(file.IterateTypeMarks(self._namespace))
+		)
+
+	def test_Attribute(self) -> None:
+		attribute = Attribute("att", _subtypeSymbol("T"))
+
+		self.assertListEqual(
+			[(self._namespace, attribute, attribute.Subtype)],
+			list(attribute.IterateTypeMarks(self._namespace))
+		)
+
+	def test_Alias(self) -> None:
+		"""Only an alias with a subtype indication has a type mark."""
+		objectAlias = Alias("al", SimpleObjectOrFunctionCallSymbol(SimpleName("c")), _subtypeSymbol("T"))
+		typeAlias =   Alias("AT", SimpleSubtypeSymbol(SimpleName("integer")))
+
+		self.assertListEqual(
+			[(self._namespace, objectAlias, objectAlias.Subtype)],
+			list(objectAlias.IterateTypeMarks(self._namespace))
+		)
+		self.assertListEqual([], list(typeAlias.IterateTypeMarks(self._namespace)))
+
+	def test_Component(self) -> None:
+		"""Generics and ports, each as the place of its type mark; a generic type has none."""
+		genericType = GenericTypeInterfaceItem("GT")
+		generic =     GenericConstantInterfaceItem(("G", ), Mode.Default, _subtypeSymbol("T"))
+		port =        PortSimpleSignalInterfaceItem(("i", ), Mode.In, _subtypeSymbol("GT"))
+		component =   Component("comp", genericItems=[genericType, generic], portItems=[port])
+
+		self.assertListEqual(
+			[(self._namespace, generic, generic.Subtype), (self._namespace, port, port.Subtype)],
+			list(component.IterateTypeMarks(self._namespace))
+		)
+
+	def test_Function(self) -> None:
+		"""The return type is looked up in the function's namespace, at its first declared item."""
+		variable = Variable(("v", ), _subtypeSymbol("T"))
+		function = Function("f", _subtypeSymbol("T"), declaredItems=[variable])
+
+		self.assertListEqual(
+			[(function._namespace, variable, function.ReturnType)], list(function.IterateTypeMarks(self._namespace))
+		)
+
+	def test_Function_WithoutDeclaredItems(self) -> None:
+		"""Without declared items, the function itself is the place of its return type."""
+		function = Function("f", _subtypeSymbol("T"))
+
+		self.assertListEqual(
+			[(function._namespace, function, function.ReturnType)], list(function.IterateTypeMarks(self._namespace))
+		)
+
+	def test_WithoutTypeMarks(self) -> None:
+		enumeration = _enumeration("T", "a", "b")
+
+		self.assertListEqual([], list(enumeration.IterateTypeMarks(self._namespace)))
 
 
 class Names(Testcase):

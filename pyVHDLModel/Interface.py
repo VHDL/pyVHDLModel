@@ -34,24 +34,25 @@ This module contains parts of an abstract document language model for VHDL.
 
 Interface items are used in generic, port and parameter declarations.
 """
-from __future__             import annotations
+from __future__              import annotations
 
-from typing                 import TYPE_CHECKING, ClassVar, Iterable, Optional as Nullable, Iterator, Self
+from typing                  import TYPE_CHECKING, ClassVar, Generator, Iterable, Optional as Nullable, Iterator, Self
 
-from pyTooling.Common       import getFullyQualifiedName, getTypeName
-from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
+from pyTooling.Common        import getFullyQualifiedName, getTypeName
+from pyTooling.Decorators    import export, readonly
+from pyTooling.MetaClasses   import ExtendedType, abstractclass, expects
 
-from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, ModeViewSymbol
-from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin, \
-                                   MultipleNamedEntityMixin, identifiersOf, ExpressionUnion, Mode, ReservedWord
-from pyVHDLModel.Exception  import NotAChildError
-from pyVHDLModel.Object     import Constant, Signal, Variable, File
-from pyVHDLModel.Subprogram import Procedure, Function
-from pyVHDLModel.Type       import Type
+from pyVHDLModel.Symbol      import Symbol, SubtypeSymbol, ModeViewSymbol
+from pyVHDLModel.Base        import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin, \
+                                    MultipleNamedEntityMixin, identifiersOf, ExpressionUnion, Mode, ReservedWord
+from pyVHDLModel.Exception   import NotAChildError
+from pyVHDLModel.Object      import Constant, Signal, Variable, File
+from pyVHDLModel.Subprogram  import Procedure, Function
+from pyVHDLModel.Type        import Type
 
 if TYPE_CHECKING:
-	from pyVHDLModel.Visitor  import Visitor
+	from pyVHDLModel.Namespace import Namespace
+	from pyVHDLModel.Visitor   import Visitor
 
 
 @export
@@ -380,6 +381,18 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 			declaration.Parent = self
 
 		return (element, *declarations)
+
+	def IterateTypeMarks(
+		self,
+		namespace: Namespace
+	) -> Generator[tuple[Namespace, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this mode view declaration: the subtype it applies to.
+
+		:param namespace: The namespace of the declarative region declaring this mode view.
+		:returns:         A generator to iterate (namespace, place, type mark) tuples: the mode view's subtype.
+		"""
+		yield namespace, self, self._subtype
 
 	def __str__(self) -> str:
 		"""

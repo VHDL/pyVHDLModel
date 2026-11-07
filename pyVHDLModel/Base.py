@@ -34,18 +34,19 @@ This module contains parts of an abstract document language model for VHDL.
 
 Base-classes for the VHDL language model.
 """
-from __future__            import annotations
+from __future__              import annotations
 
-from enum                  import unique, Enum
-from typing                import TYPE_CHECKING, ClassVar, Generator, Type, Iterable, Optional as Nullable, Union, \
-                           cast, Self
+from enum                    import unique, Enum
+from typing                  import TYPE_CHECKING, ClassVar, Generator, Type, Iterable, Optional as Nullable, Union, \
+                                    cast, Self
 
-from pyTooling.Common      import StringEnum, getFullyQualifiedName
-from pyTooling.Decorators  import export, notimplemented, readonly
-from pyTooling.MetaClasses import ExtendedType, abstractclass
+from pyTooling.Common        import StringEnum, getFullyQualifiedName
+from pyTooling.Decorators    import export, notimplemented, readonly
+from pyTooling.MetaClasses   import ExtendedType, abstractclass
 if TYPE_CHECKING:
 	from pyVHDLModel.Interface import SingleDeclarationMixin
-	from pyVHDLModel.Symbol    import Symbol
+	from pyVHDLModel.Namespace import Namespace
+	from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 	from pyVHDLModel.Visitor   import Visitor
 
 
@@ -360,6 +361,21 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		An enumerated type implies its enumeration literals, a physical type its units; they override this method.
 
 		:returns: A generator to iterate (normalized designator, declaration) pairs, in declaration order: none.
+		"""
+		yield from ()
+
+	def IterateTypeMarks(
+		self,
+		namespace: Namespace
+	) -> Generator[tuple[Namespace, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this declaration, each with the namespace and the place to look it up.
+
+		The place of a type mark is the declaration containing it. Declarations with type marks override this method,
+		e.g. an object yields the type mark of its subtype indication, an array type its index and element subtypes.
+
+		:param namespace: The namespace of the declarative region declaring this declaration.
+		:returns:         A generator to iterate (namespace, place, type mark) tuples, in declaration order: none.
 		"""
 		yield from ()
 

@@ -34,20 +34,21 @@ This module contains parts of an abstract document language model for VHDL.
 
 
 """
-from __future__             import annotations
+from __future__              import annotations
 
-from enum                   import unique, Enum
-from typing                 import TYPE_CHECKING, ClassVar, Iterable, Union, Optional as Nullable
+from enum                    import unique, Enum
+from typing                  import TYPE_CHECKING, ClassVar, Generator, Iterable, Union, Optional as Nullable
 
-from pyTooling.Decorators   import export, readonly
+from pyTooling.Decorators    import export, readonly
 
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ReservedWord as _ReservedWord
-from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
-from pyVHDLModel.Name       import Name
-from pyVHDLModel.Symbol     import PossibleReference, Symbol, SubtypeSymbol
+from pyVHDLModel.Base        import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ReservedWord as _ReservedWord
+from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
+from pyVHDLModel.Name        import Name
+from pyVHDLModel.Symbol      import PossibleReference, Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
-	from pyVHDLModel.Visitor  import Visitor
+	from pyVHDLModel.Namespace import Namespace
+	from pyVHDLModel.Visitor   import Visitor
 
 
 
@@ -177,6 +178,19 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:returns: The subtype.
 		"""
 		return self._subtype
+
+	def IterateTypeMarks(
+		self,
+		namespace: Namespace
+	) -> Generator[tuple[Namespace, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this attribute declaration: the type mark of its values.
+
+		:param namespace: The namespace of the declarative region declaring this attribute.
+		:returns:         A generator to iterate (namespace, place, type mark) tuples: the attribute's type mark.
+		"""
+		if isinstance(self._subtype, SubtypeSymbol):
+			yield namespace, self, self._subtype
 
 	def __str__(self) -> str:
 		"""
@@ -412,6 +426,20 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		overloadables = PossibleReference.SubProgram | PossibleReference.EnumLiteral
 		return (self._name._possibleReferences & overloadables) != PossibleReference.Unknown
+
+	def IterateTypeMarks(
+		self,
+		namespace: Namespace
+	) -> Generator[tuple[Namespace, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this alias: the type mark of its subtype indication, if it has one.
+
+		:param namespace: The namespace of the declarative region declaring this alias.
+		:returns:         A generator to iterate (namespace, place, type mark) tuples: the alias' subtype indication, if
+		                  given.
+		"""
+		if self._subtype is not None:
+			yield namespace, self, self._subtype
 
 	def __str__(self) -> str:
 		"""

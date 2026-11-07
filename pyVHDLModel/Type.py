@@ -34,26 +34,27 @@ This module contains parts of an abstract document language model for VHDL.
 
 Types.
 """
-from __future__             import annotations
+from __future__              import annotations
 
-from typing                 import TYPE_CHECKING, ClassVar, Generator, Union, Iterator, Iterable, \
-                             Optional as Nullable, Self
+from typing                  import TYPE_CHECKING, ClassVar, Generator, Union, Iterator, Iterable, \
+                                    Optional as Nullable, Self
 
-from pyTooling.Common       import getFullyQualifiedName, getTypeName
-from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType, abstractclass
-from pyTooling.Graph        import Vertex
+from pyTooling.Common        import getFullyQualifiedName, getTypeName
+from pyTooling.Decorators    import export, readonly
+from pyTooling.MetaClasses   import ExtendedType, abstractclass
+from pyTooling.Graph         import Vertex
 
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
-                                   Range, ReservedWord
-from pyVHDLModel.Exception  import NotAChildError
-from pyVHDLModel.Symbol     import Symbol, SimpleSubtypeSymbol
-from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
-from pyVHDLModel.Regions    import DeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin, \
-                                   SequentialDeclarationRegionMixin, WithoutStatementsMixin
+from pyVHDLModel.Base        import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
+                                    Range, ReservedWord
+from pyVHDLModel.Exception   import NotAChildError
+from pyVHDLModel.Symbol      import Symbol, SubtypeSymbol, SimpleSubtypeSymbol
+from pyVHDLModel.Expression  import EnumerationLiteral, PhysicalIntegerLiteral
+from pyVHDLModel.Regions     import DeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin, \
+                                    SequentialDeclarationRegionMixin, WithoutStatementsMixin
 
 if TYPE_CHECKING:
-	from pyVHDLModel.Visitor  import Visitor
+	from pyVHDLModel.Namespace import Namespace
+	from pyVHDLModel.Visitor   import Visitor
 
 
 @export
@@ -264,6 +265,19 @@ class Subtype(BaseType):
 		:returns: The resolution function.
 		"""
 		return self._resolutionFunction
+
+	def IterateTypeMarks(
+		self,
+		namespace: Namespace
+	) -> Generator[tuple[Namespace, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this subtype declaration: the type mark it is derived from.
+
+		:param namespace: The namespace of the declarative region declaring this subtype.
+		:returns:         A generator to iterate (namespace, place, type mark) tuples: the subtype's type mark.
+		"""
+		if isinstance(self._type, SubtypeSymbol):
+			yield namespace, self, self._type
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -882,6 +896,23 @@ class ArrayType(CompositeType):
 		"""
 		return self._elementType
 
+	def IterateTypeMarks(
+		self,
+		namespace: Namespace
+	) -> Generator[tuple[Namespace, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this array type: its index subtypes, then its element subtype.
+
+		:param namespace: The namespace of the declarative region declaring this type.
+		:returns:         A generator to iterate (namespace, place, type mark) tuples, in declaration order.
+		"""
+		for dimension in self._dimensions:
+			if isinstance(dimension, SubtypeSymbol):
+				yield namespace, self, dimension
+
+		if isinstance(self._elementType, SubtypeSymbol):
+			yield namespace, self, self._elementType
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this array type, its index ranges and its element subtype with a visitor.
@@ -1120,6 +1151,20 @@ class RecordType(CompositeType):
 
 		return (element, *declarations)
 
+	def IterateTypeMarks(
+		self,
+		namespace: Namespace
+	) -> Generator[tuple[Namespace, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this record type: the element subtypes.
+
+		:param namespace: The namespace of the declarative region declaring this type.
+		:returns:         A generator to iterate (namespace, place, type mark) tuples, in declaration order.
+		"""
+		for element in self._elements:
+			if isinstance(element._subtype, SubtypeSymbol):
+				yield namespace, self, element._subtype
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this record type and its element declarations with a visitor.
@@ -1354,6 +1399,19 @@ class AccessType(FullType):
 		"""
 		return self._designatedSubtype
 
+	def IterateTypeMarks(
+		self,
+		namespace: Namespace
+	) -> Generator[tuple[Namespace, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this access type: the subtype its values designate.
+
+		:param namespace: The namespace of the declarative region declaring this type.
+		:returns:         A generator to iterate (namespace, place, type mark) tuples: the designated subtype.
+		"""
+		if isinstance(self._designatedSubtype, SubtypeSymbol):
+			yield namespace, self, self._designatedSubtype
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this access type and its designated subtype with a visitor.
@@ -1417,6 +1475,19 @@ class FileType(FullType):
 		:returns: The designated subtype.
 		"""
 		return self._designatedSubtype
+
+	def IterateTypeMarks(
+		self,
+		namespace: Namespace
+	) -> Generator[tuple[Namespace, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this file type: the subtype of its values.
+
+		:param namespace: The namespace of the declarative region declaring this type.
+		:returns:         A generator to iterate (namespace, place, type mark) tuples: the designated subtype.
+		"""
+		if isinstance(self._designatedSubtype, SubtypeSymbol):
+			yield namespace, self, self._designatedSubtype
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

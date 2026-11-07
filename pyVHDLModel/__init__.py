@@ -1427,7 +1427,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					elif isinstance(item, Subtype) and designUnit._parent._normalizedIdentifier not in ("std", "ieee"):
 						item._baseType = None
 
-					for _, _, symbol in self._GetTypeMarksOf(region, item):
+					for _, _, symbol in item.IterateTypeMarks(region._namespace):
 						symbol._reference = None
 
 		for entity in self.IterateDesignUnits(DesignUnitKind.Entity):  # type: Entity
@@ -1552,7 +1552,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		        (:meth:`_LookupName`). The alias isn't overloadable then
 		        (:attr:`~pyVHDLModel.Base.ModelEntity.IsOverloadable`). The name of an implicitly declared operation
 		        (:attr:`_IMPLICIT_OPERATIONS`, an operator symbol) isn't looked up, as the model doesn't represent these.
-		      * Resolve every type mark of the declaration (:meth:`_GetTypeMarksOf`) by :meth:`_ResolveTypeMark`.
+		      * Resolve every type mark of the declaration (:meth:`~pyVHDLModel.Base.ModelEntity.IterateTypeMarks`) by
+		        :meth:`_ResolveTypeMark`.
 		      * Set the base type of a subtype declaration (:attr:`~pyVHDLModel.Type.Subtype.BaseType`): the resolved type,
 		        or the base type of the resolved subtype.
 
@@ -1617,7 +1618,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							if len(aliased) > 0 and not aliased[0].IsOverloadable:
 								item._name._reference = aliased[0]
 
-					for namespace, place, symbol in self._GetTypeMarksOf(region, item):
+					for namespace, place, symbol in item.IterateTypeMarks(region._namespace):
 						self._ResolveTypeMark(designUnit, namespace, place, symbol)
 
 					if isinstance(item, Subtype):
@@ -1625,61 +1626,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							item._baseType = None
 						else:
 							item._baseType = reference._baseType if isinstance(reference, Subtype) else reference
-
-	@staticmethod
-	def _GetTypeMarksOf(
-		region: DeclarationRegionMixin,
-		item:   ModelEntity
-	) -> tuple[tuple[Namespace, ModelEntity, SubtypeSymbol], ...]:
-		"""
-		Return the type marks of a declaration in a declarative region, each with the namespace and the place to look it up.
-
-		The place of a type mark is the declaration containing it. These type marks are returned:
-
-		* the subtype indication of an object, a deferred constant and an interface object (generic, port, parameter),
-		* the type mark of a subtype declaration,
-		* the index subtypes and the element subtype of an array type,
-		* the element subtypes of a record type,
-		* the designated subtype of an access type and of a file type,
-		* the type mark of an attribute declaration, a mode view declaration and an alias with a subtype indication,
-		* the subtype indications of a component's generics and ports, each with the generic or port as place, and
-		* the return type of a function (also a generic function), looked up in the function's namespace before the
-		  function's declared items: at its first declared item, or at the function itself.
-
-		:param region: The declarative region.
-		:param item:   A declaration of the region.
-		:returns:      Tuple of (namespace, place, type mark) tuples, in declaration order.
-		"""
-		from pyVHDLModel.Subprogram import Function
-
-		namespace = region._namespace
-		if isinstance(item, Obj):
-			symbols = (item._subtype, )
-		elif isinstance(item, Subtype):
-			symbols = (item._type, )
-		elif isinstance(item, ArrayType):
-			symbols = (*item._dimensions, item._elementType)
-		elif isinstance(item, RecordType):
-			symbols = tuple(element._subtype for element in item._elements)
-		elif isinstance(item, (AccessType, FileType)):
-			symbols = (item._designatedSubtype, )
-		elif isinstance(item, (Attribute, ModeViewDeclaration, Alias)):
-			symbols = (item._subtype, )
-		elif isinstance(item, Component):
-			return tuple(
-				(namespace, interfaceItem, interfaceItem._subtype)
-				for interfaceItem in (*item._genericItems, *item._portItems)
-				if isinstance(interfaceItem, Obj) and isinstance(interfaceItem._subtype, SubtypeSymbol)
-			)
-		else:
-			symbols = ()
-
-		typeMarks = [(namespace, item, symbol) for symbol in symbols if isinstance(symbol, SubtypeSymbol)]
-		if isinstance(item, Function) and isinstance(item._returnType, SubtypeSymbol):
-			place = item._declaredItems[0] if len(item._declaredItems) > 0 else item
-			typeMarks.append((item._namespace, place, item._returnType))
-
-		return tuple(typeMarks)
 
 	def _LookupName(
 		self,

@@ -505,6 +505,10 @@ class NamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Read-only property to access the model entity's normalized identifier (:attr:`_normalizedIdentifier`).
 
+		.. seealso::
+
+		   * :term:`Normalized`
+
 		:returns: Normalized name of a model entity.
 		"""
 		return self._normalizedIdentifier
@@ -557,6 +561,10 @@ class OptionallyNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 	def NormalizedIdentifier(self) -> Nullable[str]:
 		"""
 		Read-only property to access the model entity's optional normalized identifier (:attr:`_normalizedIdentifier`).
+
+		.. seealso::
+
+		   * :term:`Normalized`
 
 		:returns: Normalized name of a model entity, or ``None`` if unnamed.
 		"""
@@ -614,6 +622,10 @@ class MultipleNamedEntityMixin(
 	def NormalizedIdentifiers(self) -> tuple[str]:
 		"""
 		Read-only property to access the model entity's normalized identifiers (:attr:`_normalizedIdentifiers`).
+
+		.. seealso::
+
+		   * :term:`Normalized`
 
 		:returns: Tuple of normalized identifiers.
 		"""
@@ -804,6 +816,10 @@ class LabeledEntityMixin(metaclass=ExtendedType, mixin=True):
 	def NormalizedLabel(self) -> Nullable[str]:
 		"""
 		Read-only property to access the model entity's normalized label (:attr:`_normalizedLabel`).
+
+		.. seealso::
+
+		   * :term:`Normalized`
 
 		:returns: Normalized label of a model entity.
 		"""

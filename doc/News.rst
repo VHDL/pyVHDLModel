@@ -105,6 +105,12 @@ Version 0.43.0 (2026)
    * A context reference to a context with a use clause of a package named like its library (``use foo.foo.all;``)
      raised ``Referenced package 'foo' already exists``.
 
+   .. rubric:: Documentation
+
+   * The glossary explains the VHDL terms declarative part, declarative region, design unit, normalized, primary unit
+     and secondary unit, with the defining clause of IEEE Std 1076-2008; the normalized identifier, label and designator
+     properties refer to it.
+
 
 Version 0.42.0 (2026)
 *********************

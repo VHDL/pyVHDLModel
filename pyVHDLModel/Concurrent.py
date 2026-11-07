@@ -1298,6 +1298,10 @@ class GenerateBranch(
 		"""
 		Read-only property to access the normalized alternative label (:attr:`_normalizedAlternativeLabel`).
 
+		.. seealso::
+
+		   * :term:`Normalized`
+
 		:returns: The normalized alternative label, or ``None`` if not set.
 		"""
 		return self._normalizedAlternativeLabel

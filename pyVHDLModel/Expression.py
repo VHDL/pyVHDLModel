@@ -208,6 +208,10 @@ class EnumerationLiteral(Literal, DocumentedEntityMixin):
 		"""
 		Read-only property to return the normalized designator, the key the literal is indexed by in a namespace.
 
+		.. seealso::
+
+		   * :term:`Normalized`
+
 		:returns: The literal's name in lower case.
 		"""
 		return self._value.lower()
@@ -311,6 +315,10 @@ class CharacterEnumerationLiteral(EnumerationLiteral):
 
 		A character literal keeps its case and is enclosed in apostrophes, so the literal ``'a'`` doesn't clash with an
 		identifier ``a``.
+
+		.. seealso::
+
+		   * :term:`Normalized`
 
 		:returns: The character enclosed in apostrophes.
 		"""

@@ -181,6 +181,10 @@ class LookupResult(metaclass=ExtendedType, slots=True):
 		"""
 		Read-only property to access the normalized (lower case) identifier looked up (:attr:`_normalizedIdentifier`).
 
+		.. seealso::
+
+		   * :term:`Normalized`
+
 		:returns: The normalized identifier.
 		"""
 		return self._normalizedIdentifier

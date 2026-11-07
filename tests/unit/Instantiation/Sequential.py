@@ -66,7 +66,7 @@ class SequentialProcedureCalls(Testcase):
 		call = SequentialProcedureCall(procedureName, [parameter], label="lbl")
 
 		self.assertIs(procedureName, call.Procedure)
-		self.assertIs(call, procedureName.Parent)
+		self.assertNotIn("Parent", vars(procedureName))
 		self.assertEqual(1, len(call.ParameterAssociationItems))
 		self.assertIs(call, parameter.Parent)
 		self.assertEqual("lbl", call.Label)

@@ -40,12 +40,64 @@ from __future__            import annotations
 
 from typing                import TYPE_CHECKING, Iterable, Optional as Nullable, Self
 
+from pyTooling.Common      import StringEnum
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import abstractclass
 
 from pyVHDLModel.Base      import ModelEntity, ExpressionUnion
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor import Visitor
+
+
+@export
+class PredefinedAttribute(StringEnum):
+	"""
+	A ``PredefinedAttribute`` is an enumeration of VHDL's predefined attributes (IEEE Std 1076-2019, 16.2).
+
+	A member is a :class:`str`: its value is the attribute's designator in lower case, e.g.
+	``PredefinedAttribute.ReverseRange == "reverse_range"``. An attribute name (:class:`AttributeName`) of a predefined
+	attribute references its member (:attr:`AttributeName.PredefinedAttribute`).
+
+	Each member states the revision of IEEE Std 1076 that first defined it. VHDL-87 defined ``'behavior`` and
+	``'structure``, which later revisions don't.
+	"""
+
+	Active =        "active"         #: Attribute since VHDL-87.
+	Ascending =     "ascending"      #: Attribute since VHDL-93.
+	Base =          "base"           #: Attribute since VHDL-87.
+	Behavior =      "behavior"       #: Attribute of VHDL-87 only.
+	Converse =      "converse"       #: Attribute since VHDL-2019.
+	Delayed =       "delayed"        #: Attribute since VHDL-87.
+	Driving =       "driving"        #: Attribute since VHDL-93.
+	DrivingValue =  "driving_value"  #: Attribute since VHDL-93.
+	Element =       "element"        #: Attribute since VHDL-2008.
+	Event =         "event"          #: Attribute since VHDL-87.
+	High =          "high"           #: Attribute since VHDL-87.
+	Image =         "image"          #: Attribute since VHDL-93.
+	InstanceName =  "instance_name"  #: Attribute since VHDL-93.
+	LastActive =    "last_active"    #: Attribute since VHDL-87.
+	LastEvent =     "last_event"     #: Attribute since VHDL-87.
+	LastValue =     "last_value"     #: Attribute since VHDL-87.
+	Left =          "left"           #: Attribute since VHDL-87.
+	LeftOf =        "leftof"         #: Attribute since VHDL-87.
+	Length =        "length"         #: Attribute since VHDL-87.
+	Low =           "low"            #: Attribute since VHDL-87.
+	PathName =      "path_name"      #: Attribute since VHDL-93.
+	Pos =           "pos"            #: Attribute since VHDL-87.
+	Pred =          "pred"           #: Attribute since VHDL-87.
+	Quiet =         "quiet"          #: Attribute since VHDL-87.
+	Range =         "range"          #: Attribute since VHDL-87.
+	ReverseRange =  "reverse_range"  #: Attribute since VHDL-87.
+	Right =         "right"          #: Attribute since VHDL-87.
+	RightOf =       "rightof"        #: Attribute since VHDL-87.
+	SimpleName =    "simple_name"    #: Attribute since VHDL-93.
+	Stable =        "stable"         #: Attribute since VHDL-87.
+	Structure =     "structure"      #: Attribute of VHDL-87 only.
+	Subtype =       "subtype"        #: Attribute since VHDL-2008.
+	Succ =          "succ"           #: Attribute since VHDL-87.
+	Transaction =   "transaction"    #: Attribute since VHDL-87.
+	Val =           "val"            #: Attribute since VHDL-87.
+	Value =         "value"          #: Attribute since VHDL-93.
 
 
 @export
@@ -465,6 +517,9 @@ class AttributeName(Name):
 	      for i in v'range loop
 	      --       ^^^^^^^        <- the attribute name
 	"""
+
+	_predefinedAttribute: Nullable[PredefinedAttribute]  #: The predefined attribute, or ``None`` if user-defined.
+
 	def __init__(self, identifier: str, prefix: Name, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a name selecting an attribute of its prefix.
@@ -474,6 +529,17 @@ class AttributeName(Name):
 		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifier, prefix, parent)
+
+		self._predefinedAttribute = PredefinedAttribute._value2member_map_.get(self._normalizedIdentifier)
+
+	@readonly
+	def PredefinedAttribute(self) -> Nullable[PredefinedAttribute]:
+		"""
+		Read-only property to access the predefined attribute this name selects (:attr:`_predefinedAttribute`).
+
+		:returns: The predefined attribute, or ``None`` for a user-defined attribute.
+		"""
+		return self._predefinedAttribute
 
 	def Copy(self) -> Self:
 		"""

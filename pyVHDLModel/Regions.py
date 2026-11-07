@@ -2142,6 +2142,18 @@ class DeclarationRegionMixin(
 
 		symbol._reference = declaration
 
+	def _ConnectParentNamespace(self, parent: ModelEntity) -> None:
+		"""
+		Connect this region's namespace to the namespace of the enclosing declarative region.
+
+		A declaration of this region then hides a same-named declaration of the enclosing region. A parent, which isn't a
+		declarative region (e.g. a subprogram of an interface list), has no namespace to connect to.
+
+		:param parent: The new parent of this region.
+		"""
+		if isinstance(parent, DeclarationRegionMixin):
+			self._namespace.ParentNamespace = parent._namespace
+
 	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
 		"""
 		Add an element's identifiers to this region's namespace.

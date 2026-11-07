@@ -1294,11 +1294,7 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 	@FullType.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
 		FullType.Parent.fset(self, parent)
-
-		# Connect the namespace to the enclosing declarative region's namespace, so the methods see the declarations around
-		# the protected type.
-		if isinstance(parent, DeclarationRegionMixin):
-			self._namespace.ParentNamespace = parent._namespace
+		self._ConnectParentNamespace(parent)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1377,11 +1373,7 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 	@FullType.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
 		FullType.Parent.fset(self, parent)
-
-		# Connect the namespace to the enclosing declarative region's namespace, so the methods see the declarations around
-		# the protected type body.
-		if isinstance(parent, DeclarationRegionMixin):
-			self._namespace.ParentNamespace = parent._namespace
+		self._ConnectParentNamespace(parent)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

@@ -1735,8 +1735,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					libraryNormalizedIdentifier = libraryName.Name._normalizedIdentifier
 					try:
 						library = self._libraries[libraryNormalizedIdentifier]
-					except KeyError:
-						raise ReferencedLibraryNotExistingError(context, libraryName)
+					except KeyError as cause:
+						raise ReferencedLibraryNotExistingError(context, libraryName) from cause
 						# TODO: add position to these messages
 
 					libraryName.Library = library
@@ -2014,7 +2014,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					try:
 						library = self._libraries[libraryIdentifier]
-					except KeyError:
+					except KeyError as cause:
 						ex = LibraryClauseLibraryNotFoundError(
 							f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit "
 							f"'{designUnit.Identifier}' doesn't exist in design.",
@@ -2022,7 +2022,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							librarySymbol=librarySymbol
 						)
 						ex.add_note(f"""Known libraries: '{"', '".join(library for library in self._libraries)}'""")
-						raise ex
+						raise ex from cause
 
 					librarySymbol.Library = library
 					designUnit._referencedLibraries[libraryIdentifier] = library
@@ -2669,18 +2669,18 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					try:
 						library = self._libraries[normalizedLibraryIdentifier]
-					except KeyError:
+					except KeyError as cause:
 						ex = EntityInstantiationLibraryNotFoundError(
 							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
 							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in design.",
 							instantiation=instance
 						)
 						ex.add_note(f"No design units were parsed into library '{libraryIdentifier}'. Thus it doesn't exist in design.")
-						raise ex
+						raise ex from cause
 
 					try:
 						entity = library._entities[instance.Entity.Name.NormalizedIdentifier]
-					except KeyError:
+					except KeyError as cause:
 						ex = InstantiatedEntityNotFoundError(
 							f"Referenced entity '{entityName.Identifier}' in direct entity instantiation '{instance.Label}: "
 							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in "
@@ -2691,7 +2691,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						libs = [library.Identifier for library in self._libraries.values() for entityIdentifier in library._entities.keys() if entityIdentifier == instance.Entity.Name.NormalizedIdentifier]
 						if libs:
 							ex.add_note(f"Found entity '{instance.Entity!s}' in other libraries: {', '.join(libs)}")
-						raise ex
+						raise ex from cause
 
 					instance.Entity.Entity = entity
 

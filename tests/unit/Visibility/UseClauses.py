@@ -651,6 +651,7 @@ class LibraryNames(Testcase):
 			str(context.exception)
 		)
 		self.assertEqual("nolib", context.exception.LibraryName)
+		self.assertIsInstance(context.exception.__cause__, KeyError)
 		self.assertIsInstance(context.exception, LibraryNotInDesignError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 
@@ -669,6 +670,7 @@ class LibraryNames(Testcase):
 		self.assertEqual("nolib", context.exception.LibraryName)
 		self.assertIs(entity, context.exception.DesignUnit)
 		self.assertIs(entity._libraryReferences[0]._symbols[0], context.exception.LibrarySymbol)
+		self.assertIsInstance(context.exception.__cause__, KeyError)
 		self.assertIsInstance(context.exception, LibraryNotInDesignError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 
@@ -815,6 +817,7 @@ class LibraryNames(Testcase):
 		)
 		self.assertEqual("nolib", context.exception.LibraryName)
 		self.assertIs(instantiation, context.exception.Instantiation)
+		self.assertIsInstance(context.exception.__cause__, KeyError)
 		self.assertIsInstance(context.exception, LibraryNotInDesignError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 

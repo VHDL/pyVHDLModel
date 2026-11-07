@@ -305,6 +305,7 @@ class LinkInstantiations(Testcase):
 		self.assertEqual("entity_C", context.exception.DesignUnitName)
 		self.assertEqual("lib_1", context.exception.LibraryName)
 		self.assertEqual("inst", context.exception.Instantiation.Label)
+		self.assertIsInstance(context.exception.__cause__, KeyError)
 		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 

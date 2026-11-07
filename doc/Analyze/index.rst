@@ -217,22 +217,23 @@ the type mark of ``s3`` in the block ``b`` is ``typeMark3`` with the chain ``n4`
 :meth:`~pyVHDLModel.Design.ResolveTypeMarks`. It iterates the design units and, per design unit, its declarative
 regions, the outermost first (the architecture, then the block ``b``, a process, a subprogram, ...). For ``s2``, both
 the design unit and the region are the instance ``architecture`` (``rtl``: an architecture is a declarative region
-itself). For ``s3``, the design unit is still ``architecture``, the region is ``blockB``. The calls, with the instance
-each method is called on and its arguments:
+itself). For ``s3``, the design unit is still ``architecture``, the region is ``blockB``. Below the declaration, only
+the region is passed; a name, which needs the design unit (the visibility of a library), finds it from the place
+(:meth:`~pyVHDLModel.Base.ModelEntity.GetAncestor`). The calls, with the instance each method is called on and its
+arguments:
 
 .. code-block:: text
 
    signalS2.ResolveReferences(designUnit=architecture, region=architecture)
-     architecture.ResolveTypeMark(designUnit=architecture, place=signalS2, symbol=typeMark)
+     architecture.ResolveTypeMark(place=signalS2, symbol=typeMark)
        # typeMark.Name is n1, an AttributeName
-       n1.Denote(region=architecture, designUnit=architecture, place=signalS2, symbol=typeMark)
+       n1.Denote(region=architecture, place=signalS2, symbol=typeMark)
          # first resolve the prefix: n1.Prefix is n2
-         n2.Denote(region=architecture, designUnit=architecture, place=signalS2, symbol=typeMark)
+         n2.Denote(region=architecture, place=signalS2, symbol=typeMark)
            # first resolve the prefix: n2.Prefix is n3
-           n3.Denote(region=architecture, designUnit=architecture, place=signalS2, symbol=typeMark)
-             # 'rec' is no library name: look it up at the place
-             architecture.LookupName(designUnit=architecture, place=signalS2, symbol=typeMark, name=n3,
-                                     warningType=UnresolvedTypeMarkWarning)
+           n3.Denote(region=architecture, place=signalS2, symbol=typeMark)
+             # signalS2.GetAncestor(DesignUnit) is architecture; 'rec' is no library there: look it up
+             architecture.LookupName(place=signalS2, symbol=typeMark, name=n3, warningType=UnresolvedTypeMarkWarning)
                -> (signalRec, )
              signalRec.DenoteBy(name=n3, region=architecture, place=signalS2, symbol=typeMark)
                -> signalRec                       # an object: returns itself
@@ -247,13 +248,12 @@ each method is called on and its arguments:
    typeMark.Reference is typeAT
 
    signalS3.ResolveReferences(designUnit=architecture, region=blockB)
-     blockB.ResolveTypeMark(designUnit=architecture, place=signalS3, symbol=typeMark3)
-       n4.Denote(region=blockB, designUnit=architecture, place=signalS3, symbol=typeMark3)
-         n5.Denote(region=blockB, designUnit=architecture, place=signalS3, symbol=typeMark3)
-           n6.Denote(region=blockB, designUnit=architecture, place=signalS3, symbol=typeMark3)
-             # 'rec' isn't declared in the block: blockB's namespace continues in architecture's namespace
-             blockB.LookupName(designUnit=architecture, place=signalS3, symbol=typeMark3, name=n6,
-                               warningType=UnresolvedTypeMarkWarning)
+     blockB.ResolveTypeMark(place=signalS3, symbol=typeMark3)
+       n4.Denote(region=blockB, place=signalS3, symbol=typeMark3)
+         n5.Denote(region=blockB, place=signalS3, symbol=typeMark3)
+           n6.Denote(region=blockB, place=signalS3, symbol=typeMark3)
+             # 'rec' is no library name; it isn't declared in the block: blockB's namespace continues in architecture's
+             blockB.LookupName(place=signalS3, symbol=typeMark3, name=n6, warningType=UnresolvedTypeMarkWarning)
                -> (signalRec, )
              signalRec.DenoteBy(name=n6, region=blockB, place=signalS3, symbol=typeMark3)
                -> signalRec

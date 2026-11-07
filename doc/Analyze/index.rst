@@ -200,5 +200,6 @@ The same declarations as a pyVHDLModel instance, analyzed in a :class:`~pyToolin
    <pyVHDLModel.Name.AttributeName.PredefinedAttribute>`) of an object returns the object's subtype: **type** ``AT``.
 6. The region sets the type mark's reference: ``typeMark.Reference`` is ``typeAT``.
 
-A part, which can't be resolved, is reported where it fails as an :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`
-and the type mark stays unresolved, e.g. ``Prefix 'rec' of type mark 'rec.g'subtype' has no record element 'g'.``
+A part, which can't be resolved, is reported where it fails as an
+:exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning` and the type mark stays unresolved, e.g. ``Prefix 'rec' of type
+mark 'rec.g'subtype' has no record element 'g'.``

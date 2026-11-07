@@ -40,7 +40,7 @@ from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Expression import IntegerLiteral
 from pyVHDLModel.Subprogram import Function, Procedure
 from pyVHDLModel.Interface  import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, \
-                                   PortSignalInterfaceItem, PortSimpleSignalInterfaceItem, \
+                                   PortInterfaceItemMixin, PortSignalInterfaceItem, PortSimpleSignalInterfaceItem, \
                                    PortViewSignalInterfaceItem, ParameterSignalInterfaceItem, \
                                    ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem, \
                                    GenericInterfaceItemMixin, GenericSubprogramInterfaceItemMixin, \
@@ -149,6 +149,7 @@ class PortSignalInterfaceItems(Testcase):
 		port = PortSimpleSignalInterfaceItem(["p"], Mode.In, SimpleSubtypeSymbol(SimpleName("bit")))
 
 		self.assertIsInstance(port, PortSignalInterfaceItem)
+		self.assertIsInstance(port, PortInterfaceItemMixin)
 		self.assertEqual(Mode.In, port.Mode)
 		self.assertIsNotNone(port.Subtype)
 
@@ -157,6 +158,8 @@ class PortSignalInterfaceItems(Testcase):
 		port = PortViewSignalInterfaceItem(["p"], modeViewIndication)
 
 		self.assertIsInstance(port, PortSignalInterfaceItem)
+		self.assertIsInstance(port, PortInterfaceItemMixin)
+		self.assertFalse(hasattr(port, "Mode"))
 		self.assertIs(modeViewIndication, port.ModeViewIndication)
 		self.assertIs(modeViewIndication, port.Subtype)
 

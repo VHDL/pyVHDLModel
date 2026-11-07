@@ -642,7 +642,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	@readonly
 	def TopLevel(self) -> Union[Entity, Configuration]:
 		"""
-		Read-only property to access the design's *top-level* (:attr:`_toplevel`).
+		Read-only property to return the design's *top-level* (:attr:`_toplevel`).
 
 		When called the first time, the hierarchy graph is checked for its root elements. When there is only one root element in the graph, a new field ``toplevel``
 		is added to :attr:`_hierarchyGraph` referencing that single element. In addition, the result is cached in :attr:`_toplevel`.
@@ -1291,7 +1291,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		Iterate all design units in the design.
 
-		A union of :class:`DesignUnitKind` values can be given to filter the returned result for suitable design units.
+		A union of :class:`~pyVHDLModel.DesignUnitKind` values can be given to filter the returned result for suitable
+		design units.
 
 		.. rubric:: Algorithm
 
@@ -1678,13 +1679,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		Resolves and links all items (library clauses, use clauses and nested context references) in contexts.
 
 		It iterates all contexts in the design. Therefore, the library of the context is used as the working library. By
-		default, the working library is implicitly referenced in :data:`_referencedLibraries`. In addition, a new empty
-		dictionary is created in :data:`_referencedPackages` and :data:`_referencedContexts` for that working library.
+		default, the working library is implicitly referenced in
+		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedLibraries`. In addition, a new empty dictionary is created in
+		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedPackages` and
+		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedContexts` for that working library.
 
 		At first, all library clauses are resolved (a library clause my have multiple library reference symbols). For each
-		referenced library an entry in :data:`_referencedLibraries` is generated and new empty dictionaries in
-		:data:`_referencedPackages` and :data:`_referencedContexts` for that working library. In addition, a vertex in the
-		dependency graph is added for that relationship.
+		referenced library an entry in :data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedLibraries` is generated and new
+		empty dictionaries in :data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedPackages` and
+		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedContexts` for that working library. In addition, a vertex in
+		the dependency graph is added for that relationship.
 
 		At second, all use clauses are resolved (a use clause my have multiple package member reference symbols). For each
 		referenced package,
@@ -2497,17 +2501,17 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   2. Iterate concurrent statements with declaration regions (block statements, generate statements) if the design
 		      unit is an architecture:
 
-		      * If the statement is an :class:`IfGenerateStatement`:
+		      * If the statement is an :class:`~pyVHDLModel.Concurrent.IfGenerateStatement`:
 
-		        1. Iterate declared components in the :class:`IfGenerateBranch`.
-		        2. Iterate declared components in each :class:`ElIfGenerateBranch`.
-		        3. Iterate declared components in the :class:`ElseGenerateBranch` if it exists.
+		        1. Iterate declared components in the :class:`~pyVHDLModel.Concurrent.IfGenerateBranch`.
+		        2. Iterate declared components in each :class:`~pyVHDLModel.Concurrent.ElsifGenerateBranch`.
+		        3. Iterate declared components in the :class:`~pyVHDLModel.Concurrent.ElseGenerateBranch` if it exists.
 
-		      * If the statement is an :class:`ForGenerateStatement`:
+		      * If the statement is an :class:`~pyVHDLModel.Concurrent.ForGenerateStatement`:
 
 		        1. Iterate declared components.
 
-		      * If the statement is an :class:`CaseGenerateStatement`:
+		      * If the statement is an :class:`~pyVHDLModel.Concurrent.CaseGenerateStatement`:
 
 		        1. Iterate declared components.
 		        2. Iterate
@@ -2791,7 +2795,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		1. Iterate all vertices corresponding to entities and architectures in the dependency graph:
 
 		   * Copy these vertices to the hierarchy graph and create a bidirectional linking. |br|
-		     In addition, set the referenced design unit's :attr:`~pyVHDLModel.Document._hierarchyVertex` field to reference the copied vertex.
+		     In addition, set the referenced design unit's :attr:`~pyVHDLModel.DesignUnit.DesignUnit._hierarchyVertex`
+		     field to reference the copied vertex.
 
 		     * Add a key-value-pair called ``hierarchyVertex`` to the dependency graph's vertex.
 		     * Add a key-value-pair called ``dependencyVertex`` to the hierarchy graph's vertex.
@@ -3156,7 +3161,8 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		"""
 		Iterate all design units in the library.
 
-		A union of :class:`DesignUnitKind` values can be given to filter the returned result for suitable design units.
+		A union of :class:`~pyVHDLModel.DesignUnitKind` values can be given to filter the returned result for suitable
+		design units.
 
 		.. rubric:: Algorithm
 
@@ -4209,7 +4215,8 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Iterate all design units in the document.
 
-		A union of :class:`DesignUnitKind` values can be given to filter the returned result for suitable design units.
+		A union of :class:`~pyVHDLModel.DesignUnitKind` values can be given to filter the returned result for suitable
+		design units.
 
 		.. rubric:: Algorithm
 

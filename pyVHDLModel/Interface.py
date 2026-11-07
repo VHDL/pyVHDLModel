@@ -1643,7 +1643,8 @@ class SingleDeclarationMixin(metaclass=ExtendedType, mixin=True, expects=("_pare
 	@readonly
 	def Declaration(self) -> MultipleNamedEntityMixin:
 		"""
-		Read-only property to access the declaration, which is the single declaration's parent (:attr:`_parent`).
+		Read-only property to access the declaration, which is the single declaration's parent
+		(:attr:`~pyVHDLModel.Base.ModelEntity._parent`).
 
 		:returns: The declaration with the identifier list.
 		"""

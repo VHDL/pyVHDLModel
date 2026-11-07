@@ -3266,8 +3266,8 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		     Iterate all packages in the design and index declared items.
 		   :meth:`pyVHDLModel.Library.IndexPackages`
 		     Iterate all packages in the library and index declared items.
-		   :meth:`pyVHDLModel.Library._IndexOtherDeclaredItem`
-		     Iterate all packages in the library and index declared items.
+		   :meth:`pyVHDLModel.DesignUnit.Package._IndexOtherDeclaredItem`
+		     Index the deferred constants and components of a package.
 
 		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
@@ -3543,7 +3543,7 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		.. seealso::
 
-		   :meth:`ConcurrentDeclarationRegionMixin.IndexDeclaredItems`
+		   :meth:`~pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin.IndexDeclaredItems`
 		     The same algorithm for a concurrent declaration region.
 
 		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
@@ -3726,7 +3726,7 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 
 		.. seealso::
 
-		   :meth:`SequentialDeclarationRegionMixin.IndexDeclaredItems`
+		   :meth:`~pyVHDLModel.Regions.SequentialDeclarationRegionMixin.IndexDeclaredItems`
 		     The same algorithm for the protected type's body.
 
 		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no

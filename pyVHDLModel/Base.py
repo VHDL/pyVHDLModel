@@ -706,8 +706,8 @@ def identifiersOf(item) -> tuple[str, ...]:
 	:class:`MultipleNamedEntityMixin`, where one declaration names several items at once
 	(``port (p1, p2 : in bit)``, and every ``Constant``/``Signal``/``Variable``/``File``-derived item).
 
-	:param item:      A singularly or plurally named entity.
-	:returns:         The item's identifiers.
+	:param item:       A singularly or plurally named entity.
+	:returns:          The item's identifiers.
 	:raises TypeError: If the item is neither singularly nor plurally named.
 
 	.. seealso::
@@ -733,8 +733,8 @@ def normalizedIdentifiersOf(item) -> tuple[str, ...]:
 	This is the form used as dictionary keys and for name resolution, because VHDL identifiers are
 	case-insensitive.
 
-	:param item:      A singularly or plurally named entity.
-	:returns:         The item's normalized identifiers.
+	:param item:       A singularly or plurally named entity.
+	:returns:          The item's normalized identifiers.
 	:raises TypeError: If the item is neither singularly nor plurally named.
 
 	.. seealso::

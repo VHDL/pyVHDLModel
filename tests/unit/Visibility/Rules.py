@@ -37,6 +37,7 @@ from pyTooling.Warning       import WarningCollector
 from pyVHDLModel.Base        import Mode, ModelEntity
 from pyVHDLModel.Concurrent  import ProcessStatement
 from pyVHDLModel.Declaration import Alias
+from pyVHDLModel.Exception   import UnresolvedTypeMarkWarning
 from pyVHDLModel.DesignUnit  import Architecture, Entity, Package
 from pyVHDLModel.Interface   import PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name        import Name, SelectedName, SimpleName
@@ -227,11 +228,14 @@ class DeclarationOrder(Testcase):
 
 	def test_PortBeforeUseClause(self) -> None:
 		"""A use clause in the entity's declarative part isn't seen by the ports (A040)."""
-		port =   PortSimpleSignalInterfaceItem(("x", ), Mode.In, _subtypeSymbol("K"))
-		entity = Entity("e", portItems=[port], declaredItems=[_use("work.p.all")])
-		_design(self._package, entity)
+		port =     PortSimpleSignalInterfaceItem(("x", ), Mode.In, _subtypeSymbol("K"))
+		entity =   Entity("e", portItems=[port], declaredItems=[_use("work.p.all")])
+		warnings = _resolve(_design(self._package, entity, analyze=False))
 
 		self.assertFalse(entity._namespace.Lookup("k", port).IsVisible)
+		self.assertEqual(1, len(warnings))
+		self.assertIsInstance(warnings[0], UnresolvedTypeMarkWarning)
+		self.assertIs(port.Subtype, warnings[0].Symbol)
 
 	def test_Object(self) -> None:
 		"""``constant c1 : integer := c2; constant c2 ...``: ``c2`` isn't visible in ``c1`` (A071)."""
@@ -281,9 +285,12 @@ class DeclarationOrder(Testcase):
 		pointer =      AccessType("ptr", SimpleSubtypeSymbol(SimpleName("node")))
 		node =         RecordType("node", [RecordTypeElement(("next", ), SimpleSubtypeSymbol(SimpleName("ptr")))])
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[pointer, node])
-		_design(Entity("e"), architecture)
+		warnings =     _resolve(_design(Entity("e"), architecture, analyze=False))
 
 		self.assertFalse(architecture._namespace.Lookup("node", pointer).IsVisible)
+		self.assertEqual(1, len(warnings))
+		self.assertIsInstance(warnings[0], UnresolvedTypeMarkWarning)
+		self.assertIs(pointer.DesignatedSubtype, warnings[0].Symbol)
 
 
 class Designators(Testcase):
@@ -430,9 +437,9 @@ class AliasConflicts(Testcase):
 		original = _constant("K", "integer")
 		alias =    _alias("K", "work", "p1", "K")
 		entity =   Entity("e", [_use("work.p1.all", "work.p2.all")])
-		design =   _design(Package("p1", declaredItems=[original]), Package("p2", declaredItems=[alias]), entity)
-
-		self._assertConflict(entity._namespace, "k", original, alias)
+		design =   _design(
+			Package("p1", declaredItems=[original]), Package("p2", declaredItems=[alias]), entity, analyze=False
+		)
 
 		self.assertListEqual([], _resolve(design))
 		self.assertIs(original, alias.Name.Reference)
@@ -448,25 +455,27 @@ class AliasConflicts(Testcase):
 			Package("p2", declaredItems=[first]),
 			Package("p3", declaredItems=[second]),
 			entity
-		)
+		, analyze=False)
 		self.assertListEqual([], _resolve(design))
 
 		self._assertConflict(entity._namespace, "k", first, second)
 
 	def test_Object_TwoAliases_NotResolved(self) -> None:
 		"""
-		Before :meth:`~pyVHDLModel.Design.ResolveTypeMarks`, an alias with a name of any kind may denote a subprogram, so
-		two of them aren't reported yet.
+		Before :meth:`~pyVHDLModel.Design.AnalyzeObjects` resolves the alias names, an alias with a name of any kind may
+		denote a subprogram, so two of them aren't reported yet.
 		"""
 		first =  _alias("K", "work", "p1", "K")
 		second = _alias("K", "work", "p1", "K")
 		entity = Entity("e", [_use("work.p2.all", "work.p3.all")])
-		_design(
+		design = _design(
 			Package("p1", declaredItems=[_constant("K", "integer")]),
 			Package("p2", declaredItems=[first]),
 			Package("p3", declaredItems=[second]),
-			entity
+			entity,
+			analyze=False
 		)
+		design.AnalyzeDependencies()
 
 		self.assertTupleEqual((first, second), entity._namespace.Lookup("k").Declarations)
 
@@ -503,7 +512,7 @@ class AliasConflicts(Testcase):
 			Package("p2", declaredItems=[first]),
 			Package("p3", declaredItems=[second]),
 			entity
-		)
+		, analyze=False)
 		self.assertListEqual([], _resolve(design))
 
 		self._assertConflict(entity._namespace, "t", first, second)
@@ -519,7 +528,7 @@ class AliasConflicts(Testcase):
 			Package("p2", declaredItems=[first]),
 			Package("p3", declaredItems=[second]),
 			entity
-		)
+		, analyze=False)
 		self.assertListEqual([], _resolve(design))
 
 		self.assertTupleEqual((original, first, second), entity._namespace.Lookup("f").Declarations)
@@ -535,7 +544,7 @@ class AliasConflicts(Testcase):
 			Package("p2", declaredItems=[first]),
 			Package("p3", declaredItems=[second]),
 			entity
-		)
+		, analyze=False)
 		self.assertListEqual([], _resolve(design))
 
 		self.assertTupleEqual((enumeration.Literals[0], first, second), entity._namespace.Lookup("a").Declarations)
@@ -548,7 +557,9 @@ class AliasConflicts(Testcase):
 		"""
 		alias =        _alias("K", "work", "p1", "K")
 		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p1.all")], declaredItems=[alias])
-		design =       _design(Package("p1", declaredItems=[_constant("K", "integer")]), Entity("e"), architecture)
+		design =       _design(
+			Package("p1", declaredItems=[_constant("K", "integer")]), Entity("e"), architecture, analyze=False
+		)
 		self.assertListEqual([], _resolve(design))
 
 		self.assertTupleEqual((alias, ), architecture._namespace.Lookup("k").Declarations)
@@ -559,7 +570,7 @@ class AliasConflicts(Testcase):
 		alias =        _typeAlias("T", "work", "p1", "T")
 		signal =       _signal("s", "T")
 		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p1.all")], declaredItems=[alias, signal])
-		design =       _design(Package("p1", declaredItems=[original]), Entity("e"), architecture)
+		design =       _design(Package("p1", declaredItems=[original]), Entity("e"), architecture, analyze=False)
 		self.assertListEqual([], _resolve(design))
 
 		self.assertTupleEqual((alias, ), architecture._namespace.Lookup("t").Declarations)

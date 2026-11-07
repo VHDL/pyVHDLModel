@@ -1331,8 +1331,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`ResetAnalysis`
 		2. Analyze dependencies of design units. |br|
 		   This will also yield the design hierarchy and the compiler order.
+		3. Analyze the types and objects of the design. |br|
+		   |rarr| :meth:`AnalyzeObjects`
 
-		Type marks are resolved by a separate step, :meth:`ResolveTypeMarks`, after the analysis.
+		A design, which can't be resolved completely, reports what is missing as critical warnings: the analysis isn't
+		aborted, but the model isn't silently incomplete either. Collect them with a
+		:class:`~pyTooling.Warning.WarningCollector`.
 
 		.. seealso::
 
@@ -1342,15 +1346,55 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   :meth:`AnalyzeDependencies`
 		     Analyze the dependencies of design units.
 
-		   :meth:`ResolveTypeMarks`
-		     Resolve the type marks of all declarations.
+		   :meth:`AnalyzeObjects`
+		     Analyze the types and objects of the design.
 
 		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
 		"""
 		self.ResetAnalysis()
 		self.AnalyzeDependencies()
+		self.AnalyzeObjects()
+
+	def AnalyzeObjects(self) -> None:
+		"""
+		Analyze the types and objects of the design.
+
+		It runs after the dependency analysis (:meth:`AnalyzeDependencies`), which links the use clauses and computes the
+		compile order.
+
+		.. rubric:: Algorithm
+
+		1. Resolve the type marks of all declarations. |br|
+		   |rarr| :meth:`ResolveTypeMarks`
+
+		.. todo::
+
+		   * Resolve the names in expressions, e.g. constants and generics in ranges and constraints, or signal attributes.
+		   * Build the type and object graph (:attr:`ObjectGraph`) from these references.
+		   * Wire the signals into a netlist.
+
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		"""
+		self.ResolveTypeMarks()
 
 	def ResetAnalysis(self) -> None:
 		"""
@@ -1513,8 +1557,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		Resolve the type marks of all declarations in the design.
 
-		It's a separate step after :meth:`Analyze`, which links the use clauses. Each type mark is looked up at its place
-		(:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.LookupName`), so the visibility rules apply: e.g. a type
+		It's the first step of :meth:`AnalyzeObjects`, after the use clauses are linked. Each type mark is looked up at its
+		place (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.LookupName`), so the visibility rules apply: e.g. a type
 		declared after the place isn't visible, and conflicting use clauses make a type mark ambiguous. A resolved type mark
 		references the type, the subtype or the generic type (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`); a type mark
 		denoting an alias of a type references the type. Resolving again yields the same references, as long as the design

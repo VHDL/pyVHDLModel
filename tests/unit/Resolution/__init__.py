@@ -39,8 +39,8 @@ from pyVHDLModel       import Design
 
 
 def _resolve(design: Design) -> list:
-	"""Resolve the type marks of an analyzed design; return the collected warnings."""
+	"""Analyze a design, which resolves its type marks; return the collected warnings."""
 	with WarningCollector() as collector:
-		design.ResolveTypeMarks()
+		design.Analyze()
 
 	return list(collector.Warnings)

@@ -81,7 +81,7 @@ class Places(Testcase):
 	def _architecture(self, *declaredItems, statements=()) -> Architecture:
 		"""An architecture using ``work.p.all`` with the declared items; the design is analyzed and resolved."""
 		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p.all")], declaredItems, statements)
-		self.assertListEqual([], _resolve(_design(self._package, Entity("e"), architecture)))
+		self.assertListEqual([], _resolve(_design(self._package, Entity("e"), architecture, analyze=False)))
 		return architecture
 
 	def test_Objects(self) -> None:
@@ -102,7 +102,7 @@ class Places(Testcase):
 		generic = GenericConstantInterfaceItem(("G", ), Mode.Default, _subtypeSymbol("T"))
 		port =    PortSimpleSignalInterfaceItem(("i", ), Mode.In, _subtypeSymbol("T"))
 		entity =  Entity("e", [_use("work.p.all")], [generic], [port])
-		self.assertListEqual([], _resolve(_design(self._package, entity)))
+		self.assertListEqual([], _resolve(_design(self._package, entity, analyze=False)))
 
 		self.assertIs(self._type, generic.Subtype.Reference)
 		self.assertIs(self._type, port.Subtype.Reference)
@@ -169,7 +169,7 @@ class Places(Testcase):
 		port =         PortSimpleSignalInterfaceItem(("i", ), Mode.In, _subtypeSymbol("T"))
 		component =    Component("comp", portItems=[port])
 		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p.all")], [component])
-		self.assertListEqual([], _resolve(_design(self._package, Entity("e"), Entity("comp"), architecture)))
+		self.assertListEqual([], _resolve(_design(self._package, Entity("e"), Entity("comp"), architecture, analyze=False)))
 
 		self.assertIs(self._type, port.Subtype.Reference)
 
@@ -178,7 +178,7 @@ class Places(Testcase):
 		genericType = GenericTypeInterfaceItem("GT")
 		port =        PortSimpleSignalInterfaceItem(("i", ), Mode.In, _subtypeSymbol("GT"))
 		entity =      Entity("e", genericItems=[genericType], portItems=[port])
-		self.assertListEqual([], _resolve(_design(entity)))
+		self.assertListEqual([], _resolve(_design(entity, analyze=False)))
 
 		self.assertIs(genericType, port.Subtype.Reference)
 
@@ -197,7 +197,7 @@ class Places(Testcase):
 		constant =    _constant("c", "LT")
 		package =     Package("q", declaredItems=[local])
 		packageBody = PackageBody(_packageSymbol("q"), declaredItems=[constant])
-		self.assertListEqual([], _resolve(_design(package, packageBody)))
+		self.assertListEqual([], _resolve(_design(package, packageBody, analyze=False)))
 
 		self.assertIs(local, constant.Subtype.Reference)
 
@@ -320,14 +320,14 @@ class Names(Testcase):
 
 	def test_StdStandard(self) -> None:
 		signal = _signal("s", "natural")
-		design = _design(Entity("e", declaredItems=[signal]))
+		design = _design(Entity("e", declaredItems=[signal]), analyze=False)
 		self.assertListEqual([], _resolve(design))
 
 		self.assertIs(design.GetPackage("std", "standard").Subtypes["natural"], signal.Subtype.Reference)
 
 	def test_PredefinedPackages(self) -> None:
 		"""The type marks of the predefined packages are resolved, e.g. ``natural`` is a subtype of ``integer``."""
-		design = _design()
+		design = _design(analyze=False)
 		self.assertListEqual([], _resolve(design))
 		standard =     design.GetPackage("std", "standard")
 		stdLogic1164 = design.GetPackage("ieee", "std_logic_1164")
@@ -340,14 +340,14 @@ class Names(Testcase):
 		"""``use work.p; signal s : p.T;`` (B032)."""
 		constant = Constant(("c", ), _selectedSubtypeSymbol("p", "T"))
 		entity =   Entity("e", [_use("work.p")], declaredItems=[constant])
-		self.assertListEqual([], _resolve(_design(self._package, entity)))
+		self.assertListEqual([], _resolve(_design(self._package, entity, analyze=False)))
 
 		self.assertIs(self._type, constant.Subtype.Reference)
 
 	def test_WorkPackage(self) -> None:
 		"""``work.p.T`` without a use clause (B033)."""
 		constant = Constant(("c", ), _selectedSubtypeSymbol("work", "p", "T"))
-		self.assertListEqual([], _resolve(_design(self._package, Entity("e", declaredItems=[constant]))))
+		self.assertListEqual([], _resolve(_design(self._package, Entity("e", declaredItems=[constant]), analyze=False)))
 
 		self.assertIs(self._type, constant.Subtype.Reference)
 
@@ -355,7 +355,7 @@ class Names(Testcase):
 		"""``ieee.std_logic_1164.std_logic`` with a library clause (B039)."""
 		constant = Constant(("c", ), _selectedSubtypeSymbol("ieee", "std_logic_1164", "std_logic"))
 		entity =   Entity("e", [LibraryClause([LibraryReferenceSymbol(SimpleName("ieee"))])], declaredItems=[constant])
-		design =   _design(entity)
+		design =   _design(entity, analyze=False)
 		self.assertListEqual([], _resolve(design))
 
 		self.assertIs(design.GetPackage("ieee", "std_logic_1164").Subtypes["std_logic"], constant.Subtype.Reference)
@@ -366,7 +366,7 @@ class Names(Testcase):
 		variable =     Variable(("v", ), _subtypeSymbol("T"))
 		process =      ProcessStatement("proc", declaredItems=[local, variable])
 		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p.all")], statements=[process])
-		self.assertListEqual([], _resolve(_design(self._package, Entity("e"), architecture)))
+		self.assertListEqual([], _resolve(_design(self._package, Entity("e"), architecture, analyze=False)))
 
 		self.assertIs(local, variable.Subtype.Reference)
 
@@ -379,7 +379,7 @@ class IncompleteTypes(Testcase):
 		pointer =      AccessType("ptr", _subtypeSymbol("node"))
 		node =         RecordType("node", [RecordTypeElement(("nextNode", ), _subtypeSymbol("ptr"))])
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[incomplete, pointer, node])
-		self.assertListEqual([], _resolve(_design(Entity("e"), architecture)))
+		self.assertListEqual([], _resolve(_design(Entity("e"), architecture, analyze=False)))
 
 		self.assertIs(node, pointer.DesignatedSubtype.Reference)
 		self.assertIs(pointer, node.Elements[0].Subtype.Reference)
@@ -387,7 +387,7 @@ class IncompleteTypes(Testcase):
 	def test_NotCompleted(self) -> None:
 		incomplete =   AnonymousType("node")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[incomplete])
-		warnings =     _resolve(_design(Entity("e"), architecture))
+		warnings =     _resolve(_design(Entity("e"), architecture, analyze=False))
 
 		self.assertEqual(1, len(warnings))
 		self.assertIsInstance(warnings[0], IncompleteTypeWarning)
@@ -401,7 +401,7 @@ class Diagnostics(Testcase):
 	def test_NotFound(self) -> None:
 		signal =       _signal("s", "U")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[signal])
-		warnings =     _resolve(_design(Entity("e"), architecture))
+		warnings =     _resolve(_design(Entity("e"), architecture, analyze=False))
 
 		self.assertEqual(1, len(warnings))
 		warning = warnings[0]
@@ -415,7 +415,7 @@ class Diagnostics(Testcase):
 	def test_NotFound_UnlabeledProcess(self) -> None:
 		process =      ProcessStatement(declaredItems=[Variable(("v", ), _subtypeSymbol("U"))])
 		architecture = Architecture("rtl", _entitySymbol("e"), statements=[process])
-		warnings =     _resolve(_design(Entity("e"), architecture))
+		warnings =     _resolve(_design(Entity("e"), architecture, analyze=False))
 
 		self.assertEqual("Type mark 'U' not found in: ?, rtl, e.", str(warnings[0]))
 
@@ -423,7 +423,7 @@ class Diagnostics(Testcase):
 		"""A type declared after the object isn't visible."""
 		signal =       _signal("s", "LT")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[signal, _enumeration("LT", "x", "y")])
-		warnings =     _resolve(_design(Entity("e"), architecture))
+		warnings =     _resolve(_design(Entity("e"), architecture, analyze=False))
 
 		self.assertEqual("Type mark 'LT' not found in: rtl, e.", str(warnings[0]))
 
@@ -433,7 +433,7 @@ class Diagnostics(Testcase):
 		first =    Package("p1", declaredItems=[_enumeration("T", "a")])
 		second =   Package("p2", declaredItems=[_enumeration("T", "b")])
 		entity =   Entity("e", [_use("work.p1.all", "work.p2.all")], declaredItems=[signal])
-		warnings = _resolve(_design(first, second, entity))
+		warnings = _resolve(_design(first, second, entity, analyze=False))
 
 		self.assertEqual(1, len(warnings))
 		self.assertEqual("Type mark 'T' is ambiguous: use clauses import conflicting declarations.", str(warnings[0]))
@@ -443,7 +443,7 @@ class Diagnostics(Testcase):
 		"""``signal s : K;`` with a constant ``K`` (B045)."""
 		signal =       _signal("s", "K")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_constant("K", "integer"), signal])
-		warnings =     _resolve(_design(Entity("e"), architecture))
+		warnings =     _resolve(_design(Entity("e"), architecture, analyze=False))
 
 		self.assertEqual("Type mark 'K' doesn't denote a type or subtype (found: Constant).", str(warnings[0]))
 
@@ -453,7 +453,9 @@ class Diagnostics(Testcase):
 		alias =    Alias("T", _selectedSubtypeSymbol("work", "p1", "T"))
 		signal =   _signal("s", "T")
 		entity =   Entity("e", [_use("work.p1.all", "work.p2.all")], declaredItems=[signal])
-		warnings = _resolve(_design(Package("p1", declaredItems=[original]), Package("p2", declaredItems=[alias]), entity))
+		warnings = _resolve(_design(
+			Package("p1", declaredItems=[original]), Package("p2", declaredItems=[alias]), entity, analyze=False
+		))
 
 		self.assertEqual(1, len(warnings))
 		self.assertEqual("Type mark 'T' is ambiguous: use clauses import conflicting declarations.", str(warnings[0]))
@@ -465,7 +467,7 @@ class Diagnostics(Testcase):
 		"""``constant c : lib.p.T;`` in library ``lib`` (GHDL: ``no declaration for "lib"``)."""
 		constant = Constant(("c", ), _selectedSubtypeSymbol("lib", "p", "T"))
 		entity =   Entity("e", declaredItems=[constant])
-		warnings = _resolve(_design(Package("p", declaredItems=[_enumeration("T", "a", "b")]), entity))
+		warnings = _resolve(_design(Package("p", declaredItems=[_enumeration("T", "a", "b")]), entity, analyze=False))
 
 		self.assertEqual(1, len(warnings))
 		self.assertEqual(
@@ -481,13 +483,13 @@ class Diagnostics(Testcase):
 		libraryClause = LibraryClause([LibraryReferenceSymbol(SimpleName("lib"))])
 		entity =        Entity("e", [libraryClause], declaredItems=[constant])
 
-		self.assertListEqual([], _resolve(_design(Package("p", declaredItems=[enumeration]), entity)))
+		self.assertListEqual([], _resolve(_design(Package("p", declaredItems=[enumeration]), entity, analyze=False)))
 		self.assertIs(enumeration, constant.Subtype.Reference)
 
 	def test_PrefixNotAPackage(self) -> None:
 		"""``work.nopkg.T`` (B037)."""
 		constant = Constant(("c", ), _selectedSubtypeSymbol("work", "nopkg", "T"))
-		warnings = _resolve(_design(Entity("e", declaredItems=[constant])))
+		warnings = _resolve(_design(Entity("e", declaredItems=[constant]), analyze=False))
 
 		self.assertEqual(
 			"Prefix 'work.nopkg' of type mark 'work.nopkg.T' isn't a visible package or an enclosing region.",
@@ -497,7 +499,7 @@ class Diagnostics(Testcase):
 	def test_MemberMissing(self) -> None:
 		"""``work.p.U`` (B036)."""
 		constant = Constant(("c", ), _selectedSubtypeSymbol("work", "p", "U"))
-		warnings = _resolve(_design(Package("p"), Entity("e", declaredItems=[constant])))
+		warnings = _resolve(_design(Package("p"), Entity("e", declaredItems=[constant]), analyze=False))
 
 		self.assertEqual("Type mark 'work.p.U' not found in: p.", str(warnings[0]))
 
@@ -505,17 +507,17 @@ class Diagnostics(Testcase):
 class Reanalysis(Testcase):
 	"""Resolving again and resetting an analysis."""
 
-	def test_AnalyzeDoesNotResolve(self) -> None:
-		"""Resolution is a separate step after :meth:`~pyVHDLModel.Design.Analyze`."""
+	def test_AnalyzeResolves(self) -> None:
+		""":meth:`~pyVHDLModel.Design.Analyze` resolves the type marks (:meth:`~pyVHDLModel.Design.AnalyzeObjects`)."""
 		signal = _signal("s", "integer")
-		_design(Entity("e", declaredItems=[signal]))
+		design = _design(Entity("e", declaredItems=[signal]))
 
-		self.assertIsNone(signal.Subtype.Reference)
+		self.assertIs(design.GetPackage("std", "standard").Types["integer"], signal.Subtype.Reference)
 
 	def test_ResetAnalysis(self) -> None:
 		subtype = Subtype("ST", _subtypeSymbol("integer"))
 		signal =  _signal("s", "ST")
-		design =  _design(Entity("e", declaredItems=[subtype, signal]))
+		design =  _design(Entity("e", declaredItems=[subtype, signal]), analyze=False)
 		_resolve(design)
 
 		design.ResetAnalysis()
@@ -529,7 +531,7 @@ class Reanalysis(Testcase):
 
 	def test_ResolveAgain(self) -> None:
 		signal = _signal("s", "integer")
-		design = _design(Entity("e", declaredItems=[signal]))
+		design = _design(Entity("e", declaredItems=[signal]), analyze=False)
 		_resolve(design)
 		reference = signal.Subtype.Reference
 
@@ -537,11 +539,11 @@ class Reanalysis(Testcase):
 		self.assertIs(reference, signal.Subtype.Reference)
 
 	def test_WithoutCollector(self) -> None:
-		"""An unresolved type mark is a critical warning."""
-		design = _design(Entity("e", declaredItems=[_signal("s", "U")]))
+		"""An unresolved type mark is a critical warning: the analysis isn't silently incomplete."""
+		design = _design(Entity("e", declaredItems=[_signal("s", "U")]), analyze=False)
 
 		with self.assertRaises(UnhandledCriticalWarningError):
-			design.ResolveTypeMarks()
+			design.Analyze()
 
 
 class ReviewFindings(Testcase):
@@ -571,7 +573,7 @@ class ReviewFindings(Testcase):
 		packageType = _enumeration("T", "a", "b")
 		localType =   _enumeration("T", "x", "y")
 		function =    Function("f", _subtypeSymbol("T"), declaredItems=[localType])
-		design =      _design(Package("p", declaredItems=[packageType, function]))
+		design =      _design(Package("p", declaredItems=[packageType, function]), analyze=False)
 
 		for _ in range(2):
 			self.assertListEqual([], _resolve(design))
@@ -582,7 +584,7 @@ class ReviewFindings(Testcase):
 		enumeration = _enumeration("T", "a", "b")
 		constant =    _constant("c", "T")
 		package =     Package("p", declaredItems=[enumeration, constant])
-		design =      _design(package)
+		design =      _design(package, analyze=False)
 		_resolve(design)
 
 		package.RemoveDeclaredItem(enumeration)
@@ -595,7 +597,7 @@ class ReviewFindings(Testcase):
 		"""``constant k : q.T`` inside package ``q`` (GHDL accepts)."""
 		enumeration = _enumeration("T", "a", "b")
 		constant =    Constant(("k", ), _selectedSubtypeSymbol("q", "T"))
-		self.assertListEqual([], _resolve(_design(Package("q", declaredItems=[enumeration, constant]))))
+		self.assertListEqual([], _resolve(_design(Package("q", declaredItems=[enumeration, constant]), analyze=False)))
 
 		self.assertIs(enumeration, constant.Subtype.Reference)
 
@@ -605,7 +607,7 @@ class ReviewFindings(Testcase):
 		port =         PortSimpleSignalInterfaceItem(("p", ), Mode.In, _subtypeSymbol("GT"))
 		component =    Component("c", [genericType], [port])
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[component])
-		self.assertListEqual([], _resolve(_design(Entity("e"), Entity("c"), architecture)))
+		self.assertListEqual([], _resolve(_design(Entity("e"), Entity("c"), architecture, analyze=False)))
 
 		self.assertIs(genericType, port.Subtype.Reference)
 
@@ -615,7 +617,7 @@ class ReviewFindings(Testcase):
 		signal =       _signal("s", "node")
 		node =         RecordType("node", [RecordTypeElement(("v", ), _subtypeSymbol("integer"))])
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[incomplete, signal, node])
-		warnings =     _resolve(_design(Entity("e"), architecture))
+		warnings =     _resolve(_design(Entity("e"), architecture, analyze=False))
 
 		self.assertEqual(1, len(warnings))
 		self.assertEqual(
@@ -627,7 +629,7 @@ class ReviewFindings(Testcase):
 	def test_AliasName_NotFound(self) -> None:
 		"""``alias AT is nothere;``: the alias name is reported, the type mark using the alias too."""
 		alias =    Alias("AT", SimpleObjectOrFunctionCallSymbol(SimpleName("nothere")))
-		warnings = _resolve(_design(Package("q", declaredItems=[alias])))
+		warnings = _resolve(_design(Package("q", declaredItems=[alias]), analyze=False))
 
 		self.assertEqual(1, len(warnings))
 		self.assertIsInstance(warnings[0], UnresolvedNameWarning)
@@ -637,7 +639,9 @@ class ReviewFindings(Testcase):
 	def test_PackageAndBody_SearchedOnce(self) -> None:
 		"""A package body and its package share a name; the message names it once."""
 		constant = _constant("c", "U")
-		warnings = _resolve(_design(Package("q"), PackageBody(_packageSymbol("q"), declaredItems=[constant])))
+		warnings = _resolve(_design(
+			Package("q"), PackageBody(_packageSymbol("q"), declaredItems=[constant]), analyze=False
+		))
 
 		self.assertEqual("Type mark 'U' not found in: q.", str(warnings[0]))
 
@@ -645,4 +649,4 @@ class ReviewFindings(Testcase):
 		"""``alias to_bstring is to_string [...];``: implicitly declared operations aren't represented, so not reported."""
 		alias = Alias("to_bstring", SimpleObjectOrFunctionCallSymbol(SimpleName("to_string")))
 
-		self.assertListEqual([], _resolve(_design(Package("q", declaredItems=[alias]))))
+		self.assertListEqual([], _resolve(_design(Package("q", declaredItems=[alias]), analyze=False)))

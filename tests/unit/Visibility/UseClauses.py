@@ -42,7 +42,8 @@ from pyVHDLModel.Concurrent    import ConcurrentBlockStatement, EntityInstantiat
 from pyVHDLModel.DesignUnit    import Architecture, Component, Context, ContextReference, Entity, LibraryClause, \
                                       Package, PackageBody
 from pyVHDLModel.Exception     import InstantiationNotLinkedError, LibraryNotFoundError, \
-                                      PackageInstantiationNotLinkedError, UnresolvedNameWarning, VHDLModelException
+                                      PackageInstantiationNotLinkedError, UnresolvedNameWarning, \
+                                      UnresolvedTypeMarkWarning, VHDLModelException
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericTypeInterfaceItem
 from pyVHDLModel.Name          import SelectedName, SimpleName
@@ -51,6 +52,7 @@ from pyVHDLModel.Symbol        import ContextReferenceSymbol, EntityInstantiatio
 from pyVHDLModel.Type          import Subtype
 
 from tests.unit                import _entitySymbol, _signal, _subtypeSymbol
+from tests.unit.Resolution     import _resolve
 from tests.unit.Visibility     import _constant, _design, _distance, _enumeration, _function, _packageSymbol, _use
 
 
@@ -310,10 +312,13 @@ class DeclarativeRegions(Testcase):
 		function = _function("f", "T")
 		function.AddDeclaredItem(_use("work.p.all"))
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[function])
-		_design(self._package, Entity("e"), architecture)
+		warnings =     _resolve(_design(self._package, Entity("e"), architecture, analyze=False))
 
 		self.assertTupleEqual((self._type, ), function._namespace.Lookup("t").Declarations)
 		self.assertFalse(function._namespace.Lookup("t", function.ParameterItems[0]).IsVisible)
+		self.assertEqual(1, len(warnings))
+		self.assertIsInstance(warnings[0], UnresolvedTypeMarkWarning)
+		self.assertIs(function.ParameterItems[0].Subtype, warnings[0].Symbol)
 
 	def test_PackageBody(self) -> None:
 		"""A use clause in a package body isn't seen by the package declaration (A034, A036)."""

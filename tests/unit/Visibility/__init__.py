@@ -79,11 +79,16 @@ def _use(*selectedNames: str) -> UseClause:
 	return UseClause(symbols)
 
 
-def _design(*designUnits: DesignUnit, libraries: Iterable[tuple[str, Iterable[DesignUnit]]] = ()) -> Design:
+def _design(
+	*designUnits: DesignUnit,
+	libraries:    Iterable[tuple[str, Iterable[DesignUnit]]] = (),
+	analyze:      bool = True
+) -> Design:
 	"""
 	An analyzed design: the design units in library ``lib``, preceded by the design units of further libraries.
 
-	The predefined libraries ``std`` and ``ieee`` are loaded.
+	The predefined libraries ``std`` and ``ieee`` are loaded. With ``analyze=False``, the caller analyzes the design,
+	e.g. in a :class:`~pyTooling.Warning.WarningCollector` collecting the critical warnings of unresolved names.
 	"""
 	design = Design("design")
 	design.LoadStdLibrary()
@@ -95,7 +100,8 @@ def _design(*designUnits: DesignUnit, libraries: Iterable[tuple[str, Iterable[De
 
 		design.AddDocument(document, design.GetLibrary(libraryName))
 
-	design.Analyze()
+	if analyze:
+		design.Analyze()
 
 	return design
 

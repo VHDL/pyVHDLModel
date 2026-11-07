@@ -139,6 +139,12 @@ class EnumeratedTypes(Testcase):
 		self.assertIs(enumType, literal1.Parent)
 		self.assertEqual("my_bit is ('0', '1')", str(enumType))
 
+	def test_BaseType(self) -> None:
+		"""A type is its own base type."""
+		enumType = EnumeratedType("my_bit", [CharacterEnumerationLiteral("0")])
+
+		self.assertIs(enumType, enumType.BaseType)
+
 	def test_NoLiterals(self) -> None:
 		"""``literals`` has no default value in the signature, but the body still guards for ``None``
 		explicitly - accepted here even though nothing currently calls it that way."""

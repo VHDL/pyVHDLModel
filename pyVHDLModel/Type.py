@@ -92,6 +92,17 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		self._objectVertex = None
 
+	@readonly
+	def BaseType(self) -> BaseType:
+		"""
+		Read-only property to return the base type of this type: the type itself (IEEE Std 1076-2008, 5.1).
+
+		A subtype returns the base type of the type it is derived from (:attr:`Subtype.BaseType`).
+
+		:returns: The base type.
+		"""
+		return self
+
 	def __str__(self) -> str:
 		"""
 		Formats the type declaration.
@@ -267,7 +278,9 @@ class Subtype(BaseType):
 		"""
 		Read-only property to access the base type (:attr:`_baseType`).
 
-		:returns: The base type.
+		It is set, when the subtype's type mark is resolved (:meth:`ResolveReferences`).
+
+		:returns: The base type, or ``None`` if the type mark isn't resolved.
 		"""
 		return self._baseType
 
@@ -318,7 +331,7 @@ class Subtype(BaseType):
 		if (reference := self._type._reference) is None:
 			self._baseType = None
 		else:
-			self._baseType = reference._baseType if isinstance(reference, Subtype) else reference
+			self._baseType = reference.BaseType
 
 	def ResetReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
 		"""

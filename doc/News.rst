@@ -119,6 +119,16 @@ Version 0.43.0 (2026)
    * Breaking change: ``pyVHDLModel`` no longer imports ``Obj``, ``MultipleNamedEntityMixin``, ``GenerateStatement`` and
      ``GenerateBranch`` (unused there); import them from their modules (:mod:`pyVHDLModel.Object`,
      :mod:`pyVHDLModel.Base`, :mod:`pyVHDLModel.Concurrent`).
+   * Linking errors are raised as specific exceptions derived from :exc:`~pyVHDLModel.Exception.VHDLModelException`
+     (were plain ``VHDLModelException``), grouped by common bases: :exc:`~pyVHDLModel.Exception.LibraryNotVisibleError`
+     (no library clause makes the library visible), :exc:`~pyVHDLModel.Exception.LibraryNotInDesignError` (the library
+     doesn't exist in the design), :exc:`~pyVHDLModel.Exception.DesignUnitNotFoundError` (a design unit is missing in
+     its library), :exc:`~pyVHDLModel.Exception.NotLinkedError` and :exc:`~pyVHDLModel.Exception.NotComputedError` (an
+     analysis step didn't run). The messages are unchanged.
+   * A package or context not found for a use clause, a context reference or a package instantiation raises
+     :exc:`~pyVHDLModel.Exception.PackageNotFoundError` or :exc:`~pyVHDLModel.Exception.ContextNotFoundError`, caused by
+     the failed lookup; the message names the real library (was ``working library``), a note names the working library
+     for ``work``.
 
    .. rubric:: Bug Fixes
 

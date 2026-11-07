@@ -47,10 +47,9 @@ from pyTooling.Warning     import WarningCollector
 
 from pyVHDLModel.Base      import ModelEntity, ExpressionUnion
 if TYPE_CHECKING:
-	from pyVHDLModel.DesignUnit import DesignUnit
-	from pyVHDLModel.Regions    import DeclarationRegionMixin
-	from pyVHDLModel.Symbol     import Symbol
-	from pyVHDLModel.Visitor    import Visitor
+	from pyVHDLModel.Regions import DeclarationRegionMixin
+	from pyVHDLModel.Symbol  import Symbol
+	from pyVHDLModel.Visitor import Visitor
 
 
 @export
@@ -235,10 +234,9 @@ class Name(ModelEntity):
 
 	def Denote(
 		self,
-		region:     DeclarationRegionMixin,
-		designUnit: DesignUnit,
-		place:      ModelEntity,
-		symbol:     Symbol
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
 	) -> Nullable[ModelEntity]:
 		"""
 		Determine the model entity this name denotes as a part of a type mark, which is an attribute name.
@@ -248,7 +246,6 @@ class Name(ModelEntity):
 		declaration (e.g. an indexed name ``m(0)`` or ``ptr.all``), isn't supported and is reported.
 
 		:param region:                         The declarative region containing the type mark.
-		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
 		:returns:                              The denoted model entity, or ``None`` if it can't be resolved (reported as a
@@ -300,22 +297,21 @@ class SimpleName(Name):
 
 	def Denote(
 		self,
-		region:     DeclarationRegionMixin,
-		designUnit: DesignUnit,
-		place:      ModelEntity,
-		symbol:     Symbol
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
 	) -> Nullable[ModelEntity]:
 		"""
 		Determine the model entity this simple name denotes as a part of a type mark, which is an attribute name.
 
-		The type mark is an attribute name like ``s'subtype``. The logical name of a visible library (``work`` or a library
-		clause, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`) denotes the library; the dependency analysis
+		The type mark is an attribute name like ``s'subtype``. The logical name of a library visible in the design unit
+		containing the place (``work`` or a library clause, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`)
+		denotes the library; the dependency analysis
 		(:meth:`~pyVHDLModel.Design.LinkLibraryReferences`) ensured it exists in the design. Otherwise, the name is looked
 		up at the place (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.LookupName`) and the declaration says what it
 		denotes (:meth:`~pyVHDLModel.Base.ModelEntity.DenoteBy`).
 
 		:param region:                         The declarative region containing the type mark.
-		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
 		:returns:                              The denoted model entity, or ``None`` if it can't be resolved (reported as a
@@ -324,15 +320,17 @@ class SimpleName(Name):
 		                                       nor a package, and no :class:`~pyTooling.Warning.WarningCollector` collects
 		                                       the :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
-		from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
+		from pyVHDLModel.DesignUnit import DesignUnit
+		from pyVHDLModel.Exception  import UnresolvedTypeMarkWarning
 
 		normalizedIdentifier = self._normalizedIdentifier
+		designUnit =           place.GetAncestor(DesignUnit)
 		if normalizedIdentifier == "work":
 			return designUnit._parent
 		elif designUnit.IsLibraryVisible(normalizedIdentifier):
 			return designUnit._parent._parent._libraries[normalizedIdentifier]
 
-		if len(declarations := region.LookupName(designUnit, place, symbol, self, UnresolvedTypeMarkWarning)) == 0:
+		if len(declarations := region.LookupName(place, symbol, self, UnresolvedTypeMarkWarning)) == 0:
 			return None
 
 		return declarations[0].DenoteBy(self, region, place, symbol)
@@ -566,10 +564,9 @@ class SelectedName(Name):
 
 	def Denote(
 		self,
-		region:     DeclarationRegionMixin,
-		designUnit: DesignUnit,
-		place:      ModelEntity,
-		symbol:     Symbol
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
 	) -> Nullable[ModelEntity]:
 		"""
 		Determine the model entity this selected name denotes as a part of a type mark, which is an attribute name.
@@ -585,7 +582,6 @@ class SelectedName(Name):
 		  (:attr:`~pyVHDLModel.Type.RecordType.ElementsByIdentifier`).
 
 		:param region:                         The declarative region containing the type mark.
-		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
 		:returns:                              The denoted model entity, or ``None`` if it can't be resolved (reported as a
@@ -607,7 +603,7 @@ class SelectedName(Name):
 		from pyVHDLModel.Object      import Obj
 		from pyVHDLModel.Type        import RecordType, RecordTypeElement
 
-		if (prefix := self._prefix.Denote(region, designUnit, place, symbol)) is None:
+		if (prefix := self._prefix.Denote(region, place, symbol)) is None:
 			return None
 
 		if isinstance(prefix, Library):
@@ -716,10 +712,9 @@ class AttributeName(Name):
 
 	def Denote(
 		self,
-		region:     DeclarationRegionMixin,
-		designUnit: DesignUnit,
-		place:      ModelEntity,
-		symbol:     Symbol
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
 	) -> Nullable[ModelEntity]:
 		"""
 		Determine the type or subtype this attribute name denotes as a type mark or as a part of one (IEEE Std 1076-2008,
@@ -737,7 +732,6 @@ class AttributeName(Name):
 		``signal s : bit_vector(3 downto 0)`` denotes ``bit_vector``.
 
 		:param region:                         The declarative region containing the type mark.
-		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
 		:returns:                              The denoted type or subtype, or ``None`` if it can't be resolved (reported as
@@ -761,7 +755,7 @@ class AttributeName(Name):
 		from pyVHDLModel.Object      import Obj
 		from pyVHDLModel.Type        import ArrayType, BaseType, RecordTypeElement
 
-		if (prefix := self._prefix.Denote(region, designUnit, place, symbol)) is None:
+		if (prefix := self._prefix.Denote(region, place, symbol)) is None:
 			return None
 
 		attribute = self._predefinedAttribute
@@ -904,10 +898,9 @@ class AllName(SelectedName):
 
 	def Denote(
 		self,
-		region:     DeclarationRegionMixin,
-		designUnit: DesignUnit,
-		place:      ModelEntity,
-		symbol:     Symbol
+		region: DeclarationRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
 	) -> Nullable[ModelEntity]:
 		"""
 		Report an ``all`` name as a part of a type mark as unsupported.
@@ -916,7 +909,6 @@ class AllName(SelectedName):
 		designates, which has no declaration.
 
 		:param region:                         The declarative region containing the type mark.
-		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
 		:returns:                              ``None``, as the name isn't supported (reported as a warning).

@@ -56,13 +56,12 @@ from pyVHDLModel.Namespace    import Namespace
 from pyVHDLModel.Object       import BaseConstant, Constant, DeferredConstant, SharedVariable, File, Variable, Signal
 from pyVHDLModel.Symbol       import Symbol, SubtypeSymbol
 if TYPE_CHECKING:
-	from pyVHDLModel.Interface  import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
-	                                   PortSignalInterfaceItem, SingleGenericDeclarationMixin, \
-	                                   SinglePortDeclarationMixin, SingleParameterDeclarationMixin, \
-	                                   GenericGroup, PortGroup, ParameterGroup
-	from pyVHDLModel.DesignUnit import DesignUnit
-	from pyVHDLModel.Type       import Subtype, FullType
-	from pyVHDLModel.Visitor    import Visitor
+	from pyVHDLModel.Interface import GenericInterfaceItemMixin, PortInterfaceItemMixin, ParameterInterfaceItemMixin, \
+	                                  PortSignalInterfaceItem, SingleGenericDeclarationMixin, \
+	                                  SinglePortDeclarationMixin, SingleParameterDeclarationMixin, \
+	                                  GenericGroup, PortGroup, ParameterGroup
+	from pyVHDLModel.Type      import Subtype, FullType
+	from pyVHDLModel.Visitor   import Visitor
 
 # `pyVHDLModel.Subprogram` imports this module (Subprogram is a sequential declaration region), so
 # `Function`/`Procedure` are quoted in annotations and imported lazily where they're needed at runtime.
@@ -1960,7 +1959,6 @@ class DeclarationRegionMixin(
 
 	def LookupName(
 		self,
-		designUnit:  DesignUnit,
 		place:       ModelEntity,
 		symbol:      Symbol,
 		name:        Name,
@@ -1973,7 +1971,8 @@ class DeclarationRegionMixin(
 		is visible to the following generics and ports of the component. An expanded name ``pkg.T`` or ``lib.pkg.T``
 		resolves its prefix: ``pkg`` to a package visible at the place, else to an enclosing declarative region of that
 		name (e.g. the package or entity containing the place); ``lib.pkg`` by the library (``work`` or a library whose name
-		is visible, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`) and the package's name. Then the suffix
+		is visible in the design unit containing the place, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`)
+		and the package's name. Then the suffix
 		is searched among the declarations of the package or region
 		(:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
 
@@ -1981,7 +1980,6 @@ class DeclarationRegionMixin(
 		(e.g. ``Type mark``); then no declaration is returned. A name, which is a part of the symbol's name (e.g. the prefix
 		``s`` of the type mark ``s'subtype``), is reported as a prefix of the symbol's name.
 
-		:param designUnit:                     The design unit containing the name.
 		:param place:                          The declaration containing the name.
 		:param symbol:                         The symbol containing the name.
 		:param name:                           The simple name or expanded name: the symbol's name or a part of it.
@@ -1991,7 +1989,7 @@ class DeclarationRegionMixin(
 		                                       visible package or an enclosing region, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the warning.
 		"""
-		from pyVHDLModel.DesignUnit import Component, Package
+		from pyVHDLModel.DesignUnit import Component, DesignUnit, Package
 		from pyVHDLModel.Interface  import InterfaceItemMixin
 
 		namespace =            self._namespace
@@ -2041,6 +2039,7 @@ class DeclarationRegionMixin(
 						enclosingNamespace = enclosingNamespace._parentNamespace
 			elif prefix._prefix._prefix is None:
 				libraryIdentifier = prefix._prefix._normalizedIdentifier
+				designUnit =        place.GetAncestor(DesignUnit)
 				if libraryIdentifier == "work":
 					library = designUnit._parent
 				elif designUnit.IsLibraryVisible(libraryIdentifier):
@@ -2084,9 +2083,8 @@ class DeclarationRegionMixin(
 
 	def ResolveTypeMark(
 		self,
-		designUnit: DesignUnit,
-		place:      ModelEntity,
-		symbol:     SubtypeSymbol
+		place:  ModelEntity,
+		symbol: SubtypeSymbol
 	) -> None:
 		"""
 		Resolve a type mark at its place in this region and set the symbol's reference.
@@ -2102,7 +2100,6 @@ class DeclarationRegionMixin(
 		An attribute name denoting a type (e.g. ``s'subtype``, ``A'element``) is resolved part by part
 		(:meth:`~pyVHDLModel.Name.Name.Denote`); the type it denotes becomes the symbol's reference.
 
-		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
 		:raises UnhandledCriticalWarningError: If the type mark isn't visible, is ambiguous, has a prefix, which isn't a
@@ -2116,12 +2113,12 @@ class DeclarationRegionMixin(
 		symbol._reference = None
 		name =              symbol._name
 		if isinstance(name, AttributeName):
-			if (typeOrSubtype := name.Denote(self, designUnit, place, symbol)) is not None:
+			if (typeOrSubtype := name.Denote(self, place, symbol)) is not None:
 				symbol._reference = typeOrSubtype
 
 			return
 
-		if len(declarations := self.LookupName(designUnit, place, symbol, name, UnresolvedTypeMarkWarning)) == 0:
+		if len(declarations := self.LookupName(place, symbol, name, UnresolvedTypeMarkWarning)) == 0:
 			return
 
 		declaration = declarations[0]

@@ -473,7 +473,7 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 			isImplicit = name._normalizedIdentifier in self._IMPLICIT_OPERATIONS or name.IsOperatorSymbol
 			if (isinstance(name, SimpleName) or name.IsExpandedName) and not isImplicit:
 				self._name._reference = None
-				aliased =               region.LookupName(designUnit, self, self._name, name, UnresolvedNameWarning)
+				aliased =               region.LookupName(self, self._name, name, UnresolvedNameWarning)
 				if len(aliased) > 0 and not aliased[0].IsOverloadable:
 					self._name._reference = aliased[0]
 

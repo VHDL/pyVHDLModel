@@ -397,7 +397,7 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
 		for typeMarkRegion, place, typeMark in self.IterateTypeMarks(region):
-			typeMarkRegion.ResolveTypeMark(designUnit, place, typeMark)
+			typeMarkRegion.ResolveTypeMark(place, typeMark)
 
 	def ResetReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
 		"""

@@ -1140,7 +1140,8 @@ class RecordType(CompositeType):
 
 	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Record,)  #: Reserved words after ``end``.
 	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                   #: The reserved words after ``end`` are optional.
-	_elements: list[RecordTypeElement]  #: List of all element declarations, in declaration order.
+	_elements:             list[RecordTypeElement]       #: List of all element declarations, in declaration order.
+	_elementsByIdentifier: dict[str, RecordTypeElement]  #: All element declarations, indexed by normalized identifier.
 
 	def __init__(self, identifier: str, elements: Nullable[Iterable[RecordTypeElement]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -1155,10 +1156,14 @@ class RecordType(CompositeType):
 		"""
 		super().__init__(identifier, documentation, parent)
 
-		self._elements = elementList = []  # TODO: convert to dict
+		self._elements =             elementList = []
+		self._elementsByIdentifier = elementsByIdentifier = {}
 		if elements is not None:
 			for element in elements:
 				elementList.append(element)
+				for normalizedIdentifier in element._normalizedIdentifiers:
+					elementsByIdentifier[normalizedIdentifier] = element
+
 				element.Parent = self
 
 	@readonly
@@ -1169,6 +1174,17 @@ class RecordType(CompositeType):
 		:returns: List of elements.
 		"""
 		return self._elements
+
+	@readonly
+	def ElementsByIdentifier(self) -> dict[str, RecordTypeElement]:
+		"""
+		Read-only property to access the elements by identifier (:attr:`_elementsByIdentifier`).
+
+		An element declaring several identifiers (``a, b : bit``) is indexed by each of them.
+
+		:returns: Dictionary of elements, indexed by normalized identifier.
+		"""
+		return self._elementsByIdentifier
 
 	def SplitElement(self, element: RecordTypeElement) -> tuple[RecordTypeElement, ...]:
 		"""
@@ -1214,6 +1230,9 @@ class RecordType(CompositeType):
 		element._KeepIdentifier(0)
 		self._elements[index + 1:index + 1] = declarations
 		for declaration in declarations:
+			for normalizedIdentifier in declaration._normalizedIdentifiers:
+				self._elementsByIdentifier[normalizedIdentifier] = declaration
+
 			declaration.Parent = self
 
 		return (element, *declarations)

@@ -337,6 +337,15 @@ class RecordTypes(Testcase):
 		recordType = RecordType("my_record")
 
 		self.assertEqual(0, len(recordType.Elements))
+		self.assertDictEqual({}, recordType.ElementsByIdentifier)
+
+	def test_ElementsByIdentifier(self) -> None:
+		"""An element with an identifier list is indexed by each identifier, normalized."""
+		first =      RecordTypeElement(["Re", "Im"], _subtypeSymbol("real"))
+		second =     RecordTypeElement(["valid"], _subtypeSymbol("bit"))
+		recordType = RecordType("complex", [first, second])
+
+		self.assertDictEqual({"re": first, "im": first, "valid": second}, recordType.ElementsByIdentifier)
 
 
 class ProtectedTypes(Testcase):

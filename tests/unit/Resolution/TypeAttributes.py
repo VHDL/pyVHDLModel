@@ -39,10 +39,9 @@ from pyVHDLModel.Declaration import Alias
 from pyVHDLModel.DesignUnit  import Architecture, Entity, Package
 from pyVHDLModel.Expression  import IntegerLiteral
 from pyVHDLModel.Interface   import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem
-from pyVHDLModel.Name        import AttributeName, ParenthesisName, SelectedName, SimpleName, AllName, IndexedName, \
-                                    Denotation, DenotationKind
-from pyVHDLModel.Object      import Signal, Variable
-from pyVHDLModel.Symbol      import SimpleObjectOrFunctionCallSymbol, SimpleSubtypeSymbol
+from pyVHDLModel.Name        import AttributeName, ParenthesisName, SelectedName, SimpleName, AllName, IndexedName
+from pyVHDLModel.Object      import File, SharedVariable, Signal, Variable
+from pyVHDLModel.Symbol      import PossibleReference, SimpleObjectOrFunctionCallSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Type        import AccessType, ArrayType, RecordType, RecordTypeElement, Subtype
 
 from tests.unit              import _entitySymbol, _signal, _subtypeSymbol
@@ -198,7 +197,7 @@ class InterfaceLists(Testcase):
 
 
 class Prefixes(Testcase):
-	"""Object aliases, record elements and indexed names as prefixes (GHDL accepts)."""
+	"""Object aliases and record elements as prefixes (GHDL accepts)."""
 
 	def setUp(self) -> None:
 		self._type =  _enumeration("T", "a", "b")
@@ -229,25 +228,6 @@ class Prefixes(Testcase):
 		self.assertListEqual([], self._resolve(record, signal, other))
 		self.assertIs(self._array, other.Subtype.Reference)
 
-	def test_IndexedName(self) -> None:
-		"""``signal sig1 : m(0)'subtype;`` with ``m`` of type ``AT``."""
-		signal =  _signal("m", "AT")
-		indexed = ParenthesisName(SimpleName("m"), [IntegerLiteral(0)])
-		other =   Signal(("sig1", ), SimpleSubtypeSymbol(AttributeName("subtype", indexed)))
-
-		self.assertListEqual([], self._resolve(signal, other))
-		self.assertIs(self._type, other.Subtype.Reference)
-
-
-class Denotations(Testcase):
-	"""What a name denotes: the value class."""
-
-	def test_Construction(self) -> None:
-		enumeration = _enumeration("T", "a")
-		denotation =  Denotation(DenotationKind.Type, enumeration)
-
-		self.assertIs(DenotationKind.Type, denotation.Kind)
-		self.assertIs(enumeration, denotation.Entity)
 
 
 class LibrariesAndPackages(Testcase):
@@ -303,7 +283,7 @@ class LibrariesAndPackages(Testcase):
 
 
 class OtherPrefixes(Testcase):
-	"""Dereferenced access values, subprograms and unsupported kinds of names as prefixes."""
+	"""Subprograms, unresolved aliases and names without a declaration (unsupported) as prefixes."""
 
 	def setUp(self) -> None:
 		self._type =  _enumeration("T", "a", "b")
@@ -317,23 +297,28 @@ class OtherPrefixes(Testcase):
 		return _resolve(_design(Entity("e"), architecture, analyze=False))
 
 	def test_AllName(self) -> None:
-		"""``type A is access AT;`` and in a process ``variable ptr : A; variable v : ptr.all'subtype;``."""
+		"""``ptr.all'subtype`` isn't supported: ``ptr.all`` denotes an object without a declaration."""
 		access =   AccessType("A", _subtypeSymbol("AT"))
 		pointer =  Variable(("ptr", ), _subtypeSymbol("A"))
 		variable = Variable(("v", ), SimpleSubtypeSymbol(AttributeName("subtype", AllName(SimpleName("ptr")))))
 		process =  ProcessStatement("proc", declaredItems=[pointer, variable])
+		warnings = self._resolve(access, statements=[process])
 
-		self.assertListEqual([], self._resolve(access, statements=[process]))
-		self.assertIs(self._array, variable.Subtype.Reference)
+		self.assertEqual(1, len(warnings))
+		self.assertEqual("Prefix 'ptr.all' of type mark 'ptr.all'subtype' isn't supported: AllName.", str(warnings[0]))
 
-	def test_AllName_NoAccess(self) -> None:
-		"""``s.all'subtype`` with ``s`` of the array type ``AT``."""
-		signal =   _signal("s", "AT")
-		other =    Signal(("s2", ), SimpleSubtypeSymbol(AttributeName("subtype", AllName(SimpleName("s")))))
+	def test_ParenthesisName(self) -> None:
+		"""``m(0)'subtype`` isn't supported: ``m(0)`` denotes an object without a declaration."""
+		signal =   _signal("m", "AT")
+		indexed =  ParenthesisName(SimpleName("m"), [IntegerLiteral(0)])
+		other =    Signal(("s2", ), SimpleSubtypeSymbol(AttributeName("subtype", indexed)))
 		warnings = self._resolve(signal, other)
 
 		self.assertEqual(1, len(warnings))
-		self.assertEqual("Prefix 's' of type mark 's.all'subtype' isn't an object of an access type.", str(warnings[0]))
+		self.assertEqual(
+			"Prefix 'm(0)' of type mark 'm(0)'subtype' isn't supported: ParenthesisName.",
+			str(warnings[0])
+		)
 
 	def test_Function(self) -> None:
 		"""``f'subtype`` with a function ``f``."""
@@ -348,7 +333,7 @@ class OtherPrefixes(Testcase):
 		)
 
 	def test_IndexedName(self) -> None:
-		"""An indexed name isn't supported as a prefix: a parenthesis name is (``m(0)'subtype``, :class:`Prefixes`)."""
+		"""``m(0)'subtype`` with an indexed name isn't supported."""
 		signal =   _signal("m", "AT")
 		indexed =  IndexedName(SimpleName("m"), [IntegerLiteral(0)])
 		other =    Signal(("s2", ), SimpleSubtypeSymbol(AttributeName("subtype", indexed)))
@@ -365,4 +350,41 @@ class OtherPrefixes(Testcase):
 
 		self.assertEqual(2, len(warnings))
 		self.assertEqual("Name of prefix 'al' of type mark 'al'subtype' isn't resolved.", str(warnings[1]))
+
+
+class ReferenceKinds(Testcase):
+	"""The kind of reference to a declaration, as a symbol's possible references name it."""
+
+	def test_Objects(self) -> None:
+		self.assertIs(PossibleReference.Constant, _constant("c", "bit").ReferenceKind)
+		self.assertIs(PossibleReference.Variable, Variable(("v", ), _subtypeSymbol("bit")).ReferenceKind)
+		self.assertIs(PossibleReference.Variable, SharedVariable(("v", ), _subtypeSymbol("P")).ReferenceKind)
+		self.assertIs(PossibleReference.Signal, _signal("s", "bit").ReferenceKind)
+		self.assertIs(PossibleReference.File, File(("f", ), _subtypeSymbol("text")).ReferenceKind)
+
+	def test_RecordElement(self) -> None:
+		self.assertIs(PossibleReference.RecordElement, RecordTypeElement(("f", ), _subtypeSymbol("bit")).ReferenceKind)
+
+	def test_Types(self) -> None:
+		self.assertIs(PossibleReference.Type, _enumeration("T", "a").ReferenceKind)
+		self.assertIs(PossibleReference.Subtype, Subtype("ST", _subtypeSymbol("T")).ReferenceKind)
+
+	def test_Package(self) -> None:
+		self.assertIs(PossibleReference.Package, Package("p").ReferenceKind)
+
+	def test_Library(self) -> None:
+		design = _design(analyze=False)
+
+		self.assertIs(PossibleReference.Library, design.GetLibrary("lib").ReferenceKind)
+
+	def test_Alias(self) -> None:
+		"""An alias with a subtype indication is an object alias; without one, its kind is unknown."""
+		objectAlias = Alias("al", SimpleObjectOrFunctionCallSymbol(SimpleName("s")), _subtypeSymbol("bit"))
+		otherAlias =  Alias("al", SimpleObjectOrFunctionCallSymbol(SimpleName("s")))
+
+		self.assertIs(PossibleReference.Object, objectAlias.ReferenceKind)
+		self.assertIs(PossibleReference.Unknown, otherAlias.ReferenceKind)
+
+	def test_Other(self) -> None:
+		self.assertIs(PossibleReference.Unknown, _function("f", "integer").ReferenceKind)
 

@@ -47,9 +47,8 @@ from pyTooling.Warning      import WarningCollector
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                    Range, ReservedWord
-from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning, UnresolvedTypeMarkWarning
-from pyVHDLModel.Name       import Name, Denotation, DenotationKind
-from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol
+from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning
+from pyVHDLModel.Symbol     import PossibleReference, Symbol, SubtypeSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import DeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin, \
                                    SequentialDeclarationRegionMixin, WithoutStatementsMixin
@@ -104,23 +103,17 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		"""
 		return self
 
-	def DenoteBy(
-		self,
-		name:   Name,
-		region: DeclarationRegionMixin,
-		place:  ModelEntity,
-		symbol: Symbol
-	) -> Nullable[Denotation]:
+	@readonly
+	def ReferenceKind(self) -> PossibleReference:
 		"""
-		Determine what a name denoting this type or subtype denotes, as a part of a type mark: this type or subtype.
+		Read-only property to return the kind of reference to this type: :attr:`PossibleReference.Type
+		<pyVHDLModel.Symbol.PossibleReference.Type>`.
 
-		:param name:   The name denoting this declaration, a part of the type mark.
-		:param region: The declarative region containing the type mark.
-		:param place:  The declaration containing the type mark.
-		:param symbol: The type mark.
-		:returns:      What the name denotes.
+		A subtype returns ``Subtype``.
+
+		:returns: The kind of reference.
 		"""
-		return Denotation(DenotationKind.Type, self)
+		return PossibleReference.Type
 
 	def __str__(self) -> str:
 		"""
@@ -320,6 +313,16 @@ class Subtype(BaseType):
 		:returns: The resolution function.
 		"""
 		return self._resolutionFunction
+
+	@readonly
+	def ReferenceKind(self) -> PossibleReference:
+		"""
+		Read-only property to return the kind of reference to this subtype: :attr:`PossibleReference.Subtype
+		<pyVHDLModel.Symbol.PossibleReference.Subtype>`.
+
+		:returns: The kind of reference.
+		"""
+		return PossibleReference.Subtype
 
 	def IterateTypeMarks(
 		self,
@@ -1090,6 +1093,16 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		"""
 		return self._subtype
 
+	@readonly
+	def ReferenceKind(self) -> PossibleReference:
+		"""
+		Read-only property to return the kind of reference to this record element: :attr:`PossibleReference.RecordElement
+		<pyVHDLModel.Symbol.PossibleReference.RecordElement>`.
+
+		:returns: The kind of reference.
+		"""
+		return PossibleReference.RecordElement
+
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this record type element.
@@ -1099,39 +1112,6 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		:returns: The new record type element.
 		"""
 		return self.__class__(self._identifiers, self._subtype.Copy(), self._documentation)
-
-	def DenoteBy(
-		self,
-		name:   Name,
-		region: DeclarationRegionMixin,
-		place:  ModelEntity,
-		symbol: Symbol
-	) -> Nullable[Denotation]:
-		"""
-		Determine what a name denoting this record element denotes, as a part of a type mark: an object of its subtype.
-
-		The type mark is an attribute name like ``rec.f'subtype``; the name denotes the element of the record object.
-
-		:param name:                           The name denoting this declaration, a part of the type mark.
-		:param region:                         The declarative region containing the type mark.
-		:param place:                          The declaration containing the type mark.
-		:param symbol:                         The type mark.
-		:returns:                              What the name denotes, or ``None`` if it can't be resolved (reported as a
-		                                       warning).
-		:raises UnhandledCriticalWarningError: If the element's subtype isn't resolved, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
-		"""
-		if (subtype := self._subtype._reference) is None:
-			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Subtype of prefix '{name!s}' of type mark '{symbol._name!s}' isn't resolved.",
-				symbol=symbol,
-				place=place,
-				namespaces=(region._namespace, )
-			))
-			return None
-
-		return Denotation(DenotationKind.Object, subtype)
 
 	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""

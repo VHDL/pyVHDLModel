@@ -38,21 +38,18 @@ combined identifiers. :mod:`Symbols <pyVHDLModel.Symbol>` are structures represe
 """
 from __future__            import annotations
 
-from enum                  import Enum, auto
 from typing                import TYPE_CHECKING, Iterable, Optional as Nullable, Self
 
 from pyTooling.Common      import StringEnum
 from pyTooling.Decorators  import export, readonly
-from pyTooling.MetaClasses import ExtendedType, abstractclass
+from pyTooling.MetaClasses import abstractclass
 from pyTooling.Warning     import WarningCollector
 
 from pyVHDLModel.Base      import ModelEntity, ExpressionUnion
 if TYPE_CHECKING:
-	from pyVHDLModel            import Library
-	from pyVHDLModel.DesignUnit import DesignUnit, Package
+	from pyVHDLModel.DesignUnit import DesignUnit
 	from pyVHDLModel.Regions    import DeclarationRegionMixin
 	from pyVHDLModel.Symbol     import Symbol
-	from pyVHDLModel.Type       import BaseType
 	from pyVHDLModel.Visitor    import Visitor
 
 
@@ -105,60 +102,6 @@ class PredefinedAttribute(StringEnum):
 	Transaction =   "transaction"    #: Attribute since VHDL-87.
 	Val =           "val"            #: Attribute since VHDL-87.
 	Value =         "value"          #: Attribute since VHDL-93.
-
-
-@export
-class DenotationKind(Enum):
-	"""
-	The kind of entity a name denotes (:class:`Denotation`).
-	"""
-
-	Library = auto()  #: A library, denoted by its logical name.
-	Package = auto()  #: A package.
-	Type =    auto()  #: A type or a subtype.
-	Object =  auto()  #: An object, an element of a composite object, or an alias of an object.
-
-
-@export
-class Denotation(metaclass=ExtendedType, slots=True):
-	"""
-	Represents what a name denotes: a library, a package, a type or subtype, or an object.
-
-	A name is resolved part by part (:meth:`Name.Denote`): ``rec.f'subtype`` denotes the object ``rec``, then its record
-	element ``f``, which is an object of the element's subtype, then that subtype. An object is represented by its type
-	or subtype only.
-	"""
-
-	_kind:   DenotationKind                #: The kind of entity the name denotes.
-	_entity: Library | Package | BaseType  #: The library, the package, the type or subtype, or the object's subtype.
-
-	def __init__(self, kind: DenotationKind, entity: Library | Package | BaseType) -> None:
-		"""
-		Initializes a denotation.
-
-		:param kind:   The kind of entity the name denotes.
-		:param entity: The library, the package, the type or subtype, or the type or subtype of the object.
-		"""
-		self._kind =   kind
-		self._entity = entity
-
-	@readonly
-	def Kind(self) -> DenotationKind:
-		"""
-		Read-only property to access the kind of entity the name denotes (:attr:`_kind`).
-
-		:returns: The kind of entity.
-		"""
-		return self._kind
-
-	@readonly
-	def Entity(self) -> Library | Package | BaseType:
-		"""
-		Read-only property to access the denoted entity (:attr:`_entity`).
-
-		:returns: The library, the package, the type or subtype, or the type or subtype of the denoted object.
-		"""
-		return self._entity
 
 
 @export
@@ -293,19 +236,20 @@ class Name(ModelEntity):
 		designUnit: DesignUnit,
 		place:      ModelEntity,
 		symbol:     Symbol
-	) -> Nullable[Denotation]:
+	) -> Nullable[ModelEntity]:
 		"""
-		Determine what this name denotes as a part of a type mark, which is an attribute name.
+		Determine the model entity this name denotes as a part of a type mark, which is an attribute name.
 
 		The type mark is an attribute name like ``rec.f'subtype``. A name resolves its prefix first and applies itself to
-		what the prefix denotes. A kind of name, which doesn't implement it (e.g. an indexed or a sliced name), is reported
-		as unsupported.
+		the entity the prefix denotes; the entity's kind (:attr:`~pyVHDLModel.Base.ModelEntity.ReferenceKind`) says what
+		the name can be applied to. A kind of name, which denotes no declaration (e.g. an indexed name ``m(0)`` or
+		``ptr.all``), isn't supported and is reported.
 
 		:param region:                         The declarative region containing the type mark.
 		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
-		:returns:                              What this name denotes, or ``None`` if it can't be resolved (reported as a
+		:returns:                              The denoted model entity, or ``None`` if it can't be resolved (reported as a
 		                                       warning).
 		:raises UnhandledCriticalWarningError: If this kind of name isn't supported as a part of a type mark, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
@@ -358,9 +302,9 @@ class SimpleName(Name):
 		designUnit: DesignUnit,
 		place:      ModelEntity,
 		symbol:     Symbol
-	) -> Nullable[Denotation]:
+	) -> Nullable[ModelEntity]:
 		"""
-		Determine what this simple name denotes as a part of a type mark, which is an attribute name.
+		Determine the model entity this simple name denotes as a part of a type mark, which is an attribute name.
 
 		The type mark is an attribute name like ``s'subtype``. The logical name of a visible library (``work`` or a library
 		clause, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`) denotes the library. Otherwise, the name is
@@ -371,7 +315,7 @@ class SimpleName(Name):
 		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
-		:returns:                              What this name denotes, or ``None`` if it can't be resolved (reported as a
+		:returns:                              The denoted model entity, or ``None`` if it can't be resolved (reported as a
 		                                       warning).
 		:raises UnhandledCriticalWarningError: If the name isn't visible, is ambiguous, or denotes neither an object, a type
 		                                       nor a package, and no :class:`~pyTooling.Warning.WarningCollector` collects
@@ -381,10 +325,10 @@ class SimpleName(Name):
 
 		normalizedIdentifier = self._normalizedIdentifier
 		if normalizedIdentifier == "work":
-			return Denotation(DenotationKind.Library, designUnit._parent)
+			return designUnit._parent
 		elif designUnit.IsLibraryVisible(normalizedIdentifier):
 			if (library := designUnit._parent._parent._libraries.get(normalizedIdentifier)) is not None:
-				return Denotation(DenotationKind.Library, library)
+				return library
 
 		if len(declarations := region.LookupName(designUnit, place, symbol, self, UnresolvedTypeMarkWarning)) == 0:
 			return None
@@ -443,55 +387,6 @@ class ParenthesisName(Name):
 		:returns: The new parenthesis name.
 		"""
 		return self.__class__(self._prefix.Copy(), [association.Copy() for association in self._associations])
-
-	def Denote(
-		self,
-		region:     DeclarationRegionMixin,
-		designUnit: DesignUnit,
-		place:      ModelEntity,
-		symbol:     Symbol
-	) -> Nullable[Denotation]:
-		"""
-		Determine what this parenthesis name denotes as a part of a type mark, which is an attribute name.
-
-		The type mark is an attribute name like ``m(0)'subtype``. The prefix denotes an object of an array type; this name
-		denotes an element: an object of the array's element subtype.
-
-		:param region:                         The declarative region containing the type mark.
-		:param designUnit:                     The design unit containing the type mark.
-		:param place:                          The declaration containing the type mark.
-		:param symbol:                         The type mark.
-		:returns:                              What this name denotes, or ``None`` if it can't be resolved (reported as a
-		                                       warning).
-		:raises UnhandledCriticalWarningError: If the prefix isn't an array object, or the array's element type isn't
-		                                       resolved, and no :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
-		"""
-		from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
-		from pyVHDLModel.Type      import ArrayType
-
-		if (denotation := self._prefix.Denote(region, designUnit, place, symbol)) is None:
-			return None
-
-		if denotation._kind is DenotationKind.Object and isinstance(arrayType := denotation._entity.BaseType, ArrayType):
-			if (elementType := arrayType._elementType._reference) is not None:
-				return Denotation(DenotationKind.Object, elementType)
-
-			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Element type of prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't resolved.",
-				symbol=symbol,
-				place=place,
-				namespaces=(region._namespace, )
-			))
-			return None
-
-		WarningCollector.Raise(UnresolvedTypeMarkWarning(
-			f"Prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't an array object.",
-			symbol=symbol,
-			place=place,
-			namespaces=(region._namespace, )
-		))
-		return None
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -673,25 +568,25 @@ class SelectedName(Name):
 		designUnit: DesignUnit,
 		place:      ModelEntity,
 		symbol:     Symbol
-	) -> Nullable[Denotation]:
+	) -> Nullable[ModelEntity]:
 		"""
-		Determine what this selected name denotes as a part of a type mark, which is an attribute name.
+		Determine the model entity this selected name denotes as a part of a type mark, which is an attribute name.
 
-		The type mark is an attribute name like ``pkg.c'subtype`` or ``rec.f'subtype``. Depending on what the prefix
-		denotes, this name denotes:
+		The type mark is an attribute name like ``p.c'subtype`` or ``rec.f'subtype``. Depending on the entity the prefix
+		denotes (:attr:`~pyVHDLModel.Base.ModelEntity.ReferenceKind`), this name denotes:
 
 		* a library: the package of this name in the library.
 		* a package: the declaration of this name in the package
 		  (:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`); the declaration says what it denotes
 		  (:meth:`~pyVHDLModel.Base.ModelEntity.DenoteBy`).
 		* an object of a record type: the record element of this name
-		  (:attr:`~pyVHDLModel.Type.RecordType.ElementsByIdentifier`), an object of the element's subtype.
+		  (:attr:`~pyVHDLModel.Type.RecordType.ElementsByIdentifier`).
 
 		:param region:                         The declarative region containing the type mark.
 		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
-		:returns:                              What this name denotes, or ``None`` if it can't be resolved (reported as a
+		:returns:                              The denoted model entity, or ``None`` if it can't be resolved (reported as a
 		                                       warning).
 		:raises UnhandledCriticalWarningError: If the library has no package of this name, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
@@ -704,38 +599,41 @@ class SelectedName(Name):
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
 		from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
+		from pyVHDLModel.Symbol    import PossibleReference
 		from pyVHDLModel.Type      import RecordType
 
-		if (denotation := self._prefix.Denote(region, designUnit, place, symbol)) is None:
+		if (prefix := self._prefix.Denote(region, designUnit, place, symbol)) is None:
 			return None
 
-		kind =   denotation._kind
-		entity = denotation._entity
-		if kind is DenotationKind.Library:
-			if (package := entity._packages.get(self._normalizedIdentifier)) is not None:
-				return Denotation(DenotationKind.Package, package)
+		referenceKind = prefix.ReferenceKind
+		if referenceKind is PossibleReference.Library:
+			if (package := prefix._packages.get(self._normalizedIdentifier)) is not None:
+				return package
 
 			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Prefix '{self!s}' of type mark '{symbol._name!s}' isn't a package of library '{entity._identifier}'.",
+				f"Prefix '{self!s}' of type mark '{symbol._name!s}' isn't a package of library '{prefix._identifier}'.",
 				symbol=symbol,
 				place=place,
 				namespaces=(region._namespace, )
 			))
 			return None
-		elif kind is DenotationKind.Package:
-			if len(declarations := entity._namespace.FindDeclarations(self._normalizedIdentifier)) > 0:
+		elif referenceKind is PossibleReference.Package:
+			if len(declarations := prefix._namespace.FindDeclarations(self._normalizedIdentifier)) > 0:
 				return declarations[0].DenoteBy(self, region, place, symbol)
 
 			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Prefix '{self!s}' of type mark '{symbol._name!s}' not found in: {entity._namespace._name}.",
+				f"Prefix '{self!s}' of type mark '{symbol._name!s}' not found in: {prefix._namespace._name}.",
 				symbol=symbol,
 				place=place,
-				namespaces=(entity._namespace, )
+				namespaces=(prefix._namespace, )
 			))
 			return None
-		elif kind is DenotationKind.Object and isinstance(recordType := entity.BaseType, RecordType):
+		elif (
+			(referenceKind & (PossibleReference.Object | PossibleReference.RecordElement)) != PossibleReference.Unknown
+			and (subtype := prefix._subtype._reference) is not None and isinstance(recordType := subtype.BaseType, RecordType)
+		):
 			if (element := recordType._elementsByIdentifier.get(self._normalizedIdentifier)) is not None:
-				return element.DenoteBy(self, region, place, symbol)
+				return element
 
 		WarningCollector.Raise(UnresolvedTypeMarkWarning(
 			f"Prefix '{self._prefix!s}' of type mark '{symbol._name!s}' has no record element '{self._identifier}'.",
@@ -818,9 +716,10 @@ class AttributeName(Name):
 		designUnit: DesignUnit,
 		place:      ModelEntity,
 		symbol:     Symbol
-	) -> Nullable[Denotation]:
+	) -> Nullable[ModelEntity]:
 		"""
-		Determine what this attribute name denotes as a type mark or as a part of one (IEEE Std 1076-2008, 16.2).
+		Determine the type or subtype this attribute name denotes as a type mark or as a part of one (IEEE Std 1076-2008,
+		16.2).
 
 		Depending on the predefined attribute (:attr:`PredefinedAttribute`), this name denotes:
 
@@ -829,17 +728,18 @@ class AttributeName(Name):
 		* ``'base``: the base type of the type or subtype its prefix denotes; only allowed as the prefix of another
 		  attribute.
 
-		The constraint of a subtype indication isn't represented: ``s'subtype`` of ``signal s : bit_vector(3 downto 0)``
-		denotes ``bit_vector``.
+		The kind of the entity the prefix denotes is its :attr:`~pyVHDLModel.Base.ModelEntity.ReferenceKind`: an object or a
+		record element (``Object | RecordElement``), or a type or subtype (``Type | Subtype``). The constraint of a subtype
+		indication isn't represented: ``s'subtype`` of ``signal s : bit_vector(3 downto 0)`` denotes ``bit_vector``.
 
 		:param region:                         The declarative region containing the type mark.
 		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
-		:returns:                              What this name denotes, or ``None`` if it can't be resolved (reported as a
-		                                       warning).
-		:raises UnhandledCriticalWarningError: If the prefix of ``'subtype`` isn't an object, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		:returns:                              The denoted type or subtype, or ``None`` if it can't be resolved (reported as
+		                                       a warning).
+		:raises UnhandledCriticalWarningError: If the prefix of ``'subtype`` isn't an object, or the object's subtype isn't
+		                                       resolved, and no :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		:raises UnhandledCriticalWarningError: If the prefix of ``'element`` isn't an array, or the array's element type
 		                                       isn't resolved, and no :class:`~pyTooling.Warning.WarningCollector`
@@ -853,35 +753,36 @@ class AttributeName(Name):
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
 		from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
+		from pyVHDLModel.Symbol    import PossibleReference
 		from pyVHDLModel.Type      import ArrayType
 
-		if (denotation := self._prefix.Denote(region, designUnit, place, symbol)) is None:
+		if (prefix := self._prefix.Denote(region, designUnit, place, symbol)) is None:
 			return None
 
-		kind =      denotation._kind
-		entity =    denotation._entity
-		attribute = self._predefinedAttribute
+		referenceKind = prefix.ReferenceKind
+		attribute =     self._predefinedAttribute
 		if attribute is PredefinedAttribute.Subtype:
-			if kind is DenotationKind.Object:
-				return Denotation(DenotationKind.Type, entity)
-
-			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't an object.",
-				symbol=symbol,
-				place=place,
-				namespaces=(region._namespace, )
-			))
-		elif attribute is PredefinedAttribute.Element:
-			if kind in (DenotationKind.Object, DenotationKind.Type) and isinstance(arrayType := entity.BaseType, ArrayType):
-				if (elementType := arrayType._elementType._reference) is not None:
-					return Denotation(DenotationKind.Type, elementType)
-
+			if (referenceKind & (PossibleReference.Object | PossibleReference.RecordElement)) == PossibleReference.Unknown:
 				WarningCollector.Raise(UnresolvedTypeMarkWarning(
-					f"Element type of prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't resolved.",
+					f"Prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't an object.",
 					symbol=symbol,
 					place=place,
 					namespaces=(region._namespace, )
 				))
+			elif (subtype := prefix._subtype._reference) is None:
+				WarningCollector.Raise(UnresolvedTypeMarkWarning(
+					f"Subtype of prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't resolved.",
+					symbol=symbol,
+					place=place,
+					namespaces=(region._namespace, )
+				))
+			else:
+				return subtype
+		elif attribute is PredefinedAttribute.Element:
+			if (referenceKind & (PossibleReference.Object | PossibleReference.RecordElement)) != PossibleReference.Unknown:
+				prefixType = prefix._subtype._reference
+			elif (referenceKind & (PossibleReference.Type | PossibleReference.Subtype)) != PossibleReference.Unknown:
+				prefixType = prefix
 			else:
 				WarningCollector.Raise(UnresolvedTypeMarkWarning(
 					f"Prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't an array.",
@@ -889,6 +790,24 @@ class AttributeName(Name):
 					place=place,
 					namespaces=(region._namespace, )
 				))
+				return None
+
+			if prefixType is None or not isinstance(arrayType := prefixType.BaseType, ArrayType):
+				WarningCollector.Raise(UnresolvedTypeMarkWarning(
+					f"Prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't an array.",
+					symbol=symbol,
+					place=place,
+					namespaces=(region._namespace, )
+				))
+			elif (elementType := arrayType._elementType._reference) is None:
+				WarningCollector.Raise(UnresolvedTypeMarkWarning(
+					f"Element type of prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't resolved.",
+					symbol=symbol,
+					place=place,
+					namespaces=(region._namespace, )
+				))
+			else:
+				return elementType
 		elif attribute is PredefinedAttribute.Base:
 			if self is symbol._name:
 				WarningCollector.Raise(UnresolvedTypeMarkWarning(
@@ -897,14 +816,14 @@ class AttributeName(Name):
 					place=place,
 					namespaces=(region._namespace, )
 				))
-			elif kind is not DenotationKind.Type:
+			elif (referenceKind & (PossibleReference.Type | PossibleReference.Subtype)) == PossibleReference.Unknown:
 				WarningCollector.Raise(UnresolvedTypeMarkWarning(
 					f"Prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't a type.",
 					symbol=symbol,
 					place=place,
 					namespaces=(region._namespace, )
 				))
-			elif (baseType := entity.BaseType) is None:
+			elif (baseType := prefix.BaseType) is None:
 				WarningCollector.Raise(UnresolvedTypeMarkWarning(
 					f"Base type of prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't resolved.",
 					symbol=symbol,
@@ -912,7 +831,7 @@ class AttributeName(Name):
 					namespaces=(region._namespace, )
 				))
 			else:
-				return Denotation(DenotationKind.Type, baseType)
+				return baseType
 		else:
 			WarningCollector.Raise(UnresolvedTypeMarkWarning(
 				f"Attribute name '{self!s}' doesn't denote a type.",
@@ -985,43 +904,25 @@ class AllName(SelectedName):
 		designUnit: DesignUnit,
 		place:      ModelEntity,
 		symbol:     Symbol
-	) -> Nullable[Denotation]:
+	) -> Nullable[ModelEntity]:
 		"""
-		Determine what this ``all`` name denotes as a part of a type mark, which is an attribute name.
+		Report an ``all`` name as a part of a type mark as unsupported.
 
-		The type mark is an attribute name like ``ptr.all'subtype``. The prefix denotes an object of an access type; this
-		name denotes the object it designates: an object of the access type's designated subtype.
+		The type mark is an attribute name like ``ptr.all'subtype``: ``ptr.all`` denotes the object an access value
+		designates, which has no declaration.
 
 		:param region:                         The declarative region containing the type mark.
 		:param designUnit:                     The design unit containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
-		:returns:                              What this name denotes, or ``None`` if it can't be resolved (reported as a
-		                                       warning).
-		:raises UnhandledCriticalWarningError: If the prefix isn't an object of an access type, or the designated subtype
-		                                       isn't resolved, and no :class:`~pyTooling.Warning.WarningCollector` collects
-		                                       the :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:returns:                              ``None``, as the name isn't supported (reported as a warning).
+		:raises UnhandledCriticalWarningError: Always, if no :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
 		from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
-		from pyVHDLModel.Type      import AccessType
-
-		if (denotation := self._prefix.Denote(region, designUnit, place, symbol)) is None:
-			return None
-
-		if denotation._kind is DenotationKind.Object and isinstance(accessType := denotation._entity.BaseType, AccessType):
-			if (designatedSubtype := accessType._designatedSubtype._reference) is not None:
-				return Denotation(DenotationKind.Object, designatedSubtype)
-
-			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Designated subtype of prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't resolved.",
-				symbol=symbol,
-				place=place,
-				namespaces=(region._namespace, )
-			))
-			return None
 
 		WarningCollector.Raise(UnresolvedTypeMarkWarning(
-			f"Prefix '{self._prefix!s}' of type mark '{symbol._name!s}' isn't an object of an access type.",
+			f"Prefix '{self!s}' of type mark '{symbol._name!s}' isn't supported: {self.__class__.__name__}.",
 			symbol=symbol,
 			place=place,
 			namespaces=(region._namespace, )

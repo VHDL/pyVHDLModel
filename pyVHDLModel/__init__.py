@@ -83,7 +83,7 @@ from pyVHDLModel.Name          import AllName
 from pyVHDLModel.Namespace     import Namespace
 from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant, SharedVariable, Variable, File
 from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
-                                      PackageMemberReferenceSymbol
+                                      PackageMemberReferenceSymbol, PossibleReference
 from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Regions       import DeclarationRegionMixin, ConcurrentDeclarationRegionMixin, \
                                       SequentialDeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin
@@ -3486,6 +3486,16 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 			for architecture in architectures.values():
 				architecture.IndexDeclaredItems()
 				architecture.IndexStatements()
+
+	@readonly
+	def ReferenceKind(self) -> PossibleReference:
+		"""
+		Read-only property to return the kind of reference to this library: :attr:`PossibleReference.Library
+		<pyVHDLModel.Symbol.PossibleReference.Library>`.
+
+		:returns: The kind of reference.
+		"""
+		return PossibleReference.Library
 
 	def __repr__(self) -> str:
 		"""

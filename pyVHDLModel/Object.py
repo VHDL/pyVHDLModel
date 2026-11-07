@@ -46,8 +46,8 @@ from pyTooling.Warning     import WarningCollector
 from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, \
                                   ReservedWord
 from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
-from pyVHDLModel.Name      import Name, Denotation, DenotationKind
-from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
+from pyVHDLModel.Name      import Name
+from pyVHDLModel.Symbol    import PossibleReference, Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
 	from pyVHDLModel.Regions import DeclarationRegionMixin
@@ -161,9 +161,9 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 		region: DeclarationRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
-	) -> Nullable[Denotation]:
+	) -> Nullable[ModelEntity]:
 		"""
-		Determine what a name denoting this object denotes, as a part of a type mark: the object, of its subtype.
+		Determine the model entity a name denoting this object denotes, as a part of a type mark: this object.
 
 		A port or a parameter isn't usable in its own interface list (:attr:`_USABLE_IN_OWN_INTERFACE_LIST`): e.g. the
 		subtype of a port can't name another port of the same port list (``i'subtype``).
@@ -172,12 +172,9 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 		:param region:                         The declarative region containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
-		:returns:                              What the name denotes, or ``None`` if it can't be resolved (reported as a
+		:returns:                              This object, or ``None`` if a name can't denote it here (reported as a
 		                                       warning).
 		:raises UnhandledCriticalWarningError: If the object is a port or parameter used in its own interface list, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
-		:raises UnhandledCriticalWarningError: If the object's subtype isn't resolved, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
@@ -194,16 +191,8 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 				namespaces=(region._namespace, )
 			))
 			return None
-		elif (subtype := self._subtype._reference) is None:
-			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Subtype of prefix '{name!s}' of type mark '{symbol._name!s}' isn't resolved.",
-				symbol=symbol,
-				place=place,
-				namespaces=(region._namespace, )
-			))
-			return None
 
-		return Denotation(DenotationKind.Object, subtype)
+		return super().DenoteBy(name, region, place, symbol)
 
 	def __str__(self) -> str:
 		"""
@@ -276,6 +265,16 @@ class BaseConstant(Obj):
 	"""
 
 	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Constant,)  #: The reserved words introducing this object class.
+
+	@readonly
+	def ReferenceKind(self) -> PossibleReference:
+		"""
+		Read-only property to return the kind of reference to this constant: :attr:`PossibleReference.Constant
+		<pyVHDLModel.Symbol.PossibleReference.Constant>`.
+
+		:returns: The kind of reference.
+		"""
+		return PossibleReference.Constant
 
 
 @export
@@ -433,6 +432,16 @@ class Variable(Obj, WithDefaultExpressionMixin):
 
 	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Variable,)  #: The reserved words introducing this object class.
 
+	@readonly
+	def ReferenceKind(self) -> PossibleReference:
+		"""
+		Read-only property to return the kind of reference to this variable: :attr:`PossibleReference.Variable
+		<pyVHDLModel.Symbol.PossibleReference.Variable>`.
+
+		:returns: The kind of reference.
+		"""
+		return PossibleReference.Variable
+
 	def __init__(
 		self,
 		identifiers: Iterable[str],
@@ -489,6 +498,16 @@ class SharedVariable(Obj):
 
 	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Shared, ReservedWord.Variable)  #: The reserved words introducing this object class.
 
+	@readonly
+	def ReferenceKind(self) -> PossibleReference:
+		"""
+		Read-only property to return the kind of reference to this shared variable: :attr:`PossibleReference.Variable
+		<pyVHDLModel.Symbol.PossibleReference.Variable>`.
+
+		:returns: The kind of reference.
+		"""
+		return PossibleReference.Variable
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this shared variable declaration, its subtype with a visitor.
@@ -522,6 +541,16 @@ class Signal(Obj, WithDefaultExpressionMixin):
 	"""
 
 	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Signal,)  #: The reserved words introducing this object class.
+
+	@readonly
+	def ReferenceKind(self) -> PossibleReference:
+		"""
+		Read-only property to return the kind of reference to this signal: :attr:`PossibleReference.Signal
+		<pyVHDLModel.Symbol.PossibleReference.Signal>`.
+
+		:returns: The kind of reference.
+		"""
+		return PossibleReference.Signal
 
 	def __init__(
 		self,
@@ -582,6 +611,16 @@ class File(Obj):
 	"""
 
 	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.File,)  #: The reserved words introducing this object class.
+
+	@readonly
+	def ReferenceKind(self) -> PossibleReference:
+		"""
+		Read-only property to return the kind of reference to this file: :attr:`PossibleReference.File
+		<pyVHDLModel.Symbol.PossibleReference.File>`.
+
+		:returns: The kind of reference.
+		"""
+		return PossibleReference.File
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

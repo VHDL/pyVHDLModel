@@ -2116,8 +2116,8 @@ class DeclarationRegionMixin(
 		symbol._reference = None
 		name =              symbol._name
 		if isinstance(name, AttributeName):
-			if (denotation := name.Denote(self, designUnit, place, symbol)) is not None:
-				symbol._reference = denotation._entity
+			if (typeOrSubtype := name.Denote(self, designUnit, place, symbol)) is not None:
+				symbol._reference = typeOrSubtype
 
 			return
 

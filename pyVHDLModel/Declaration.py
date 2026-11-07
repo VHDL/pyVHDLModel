@@ -45,7 +45,7 @@ from pyTooling.Warning      import WarningCollector
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ReservedWord as _ReservedWord
 from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Exception  import UnresolvedNameWarning, UnresolvedTypeMarkWarning
-from pyVHDLModel.Name       import Name, SimpleName, Denotation, DenotationKind
+from pyVHDLModel.Name       import Name, SimpleName
 from pyVHDLModel.Symbol     import PossibleReference, Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
@@ -491,28 +491,38 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		super().ResetReferences(designUnit, region)
 
+	@readonly
+	def ReferenceKind(self) -> PossibleReference:
+		"""
+		Read-only property to return the kind of reference to this alias: :attr:`PossibleReference.Object
+		<pyVHDLModel.Symbol.PossibleReference.Object>`, if it has a subtype indication.
+
+		An alias with a subtype indication is an object alias; without one, the declaration its name references says what
+		it is (:meth:`DenoteBy`).
+
+		:returns: The kind of reference.
+		"""
+		return PossibleReference.Object if self._subtype is not None else PossibleReference.Unknown
+
 	def DenoteBy(
 		self,
 		name:   Name,
 		region: DeclarationRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
-	) -> Nullable[Denotation]:
+	) -> Nullable[ModelEntity]:
 		"""
-		Determine what a name denoting this alias denotes, as a part of a type mark.
+		Determine the model entity a name denoting this alias denotes, as a part of a type mark.
 
-		The type mark is an attribute name like ``al'subtype``. An alias with a subtype indication denotes an object of that
-		subtype; otherwise, the declaration its name references says what it denotes (e.g. an object or a type).
+		The type mark is an attribute name like ``al'subtype``. An alias with a subtype indication denotes itself, an object
+		alias; otherwise, the declaration its name references says what it denotes (e.g. an object or a type).
 
 		:param name:                           The name denoting this declaration, a part of the type mark.
 		:param region:                         The declarative region containing the type mark.
 		:param place:                          The declaration containing the type mark.
 		:param symbol:                         The type mark.
-		:returns:                              What the name denotes, or ``None`` if it can't be resolved (reported as a
+		:returns:                              The denoted model entity, or ``None`` if it can't be resolved (reported as a
 		                                       warning).
-		:raises UnhandledCriticalWarningError: If the alias' subtype isn't resolved, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		:raises UnhandledCriticalWarningError: If the alias' name isn't resolved, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
@@ -521,16 +531,7 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
 		"""
 		if self._subtype is not None:
-			if (subtype := self._subtype._reference) is not None:
-				return Denotation(DenotationKind.Object, subtype)
-
-			WarningCollector.Raise(UnresolvedTypeMarkWarning(
-				f"Subtype of prefix '{name!s}' of type mark '{symbol._name!s}' isn't resolved.",
-				symbol=symbol,
-				place=place,
-				namespaces=(region._namespace, )
-			))
-			return None
+			return super().DenoteBy(name, region, place, symbol)
 		elif (reference := self._name._reference) is None:
 			WarningCollector.Raise(UnresolvedTypeMarkWarning(
 				f"Name of prefix '{name!s}' of type mark '{symbol._name!s}' isn't resolved.",

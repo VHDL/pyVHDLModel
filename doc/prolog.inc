@@ -4,16 +4,6 @@
 .. include:: <isonum.txt>
 .. include:: <mmlalias.txt>
 
-.. # define a hard line break for HTML
-.. |br| raw:: html
-
-   <br />
-
-.. # define horizontal line for HTML
-.. |hr| raw:: html
-
-   <hr />
-
 .. role:: vhdlcode(code)
    :language: VHDL
    :class: highlight

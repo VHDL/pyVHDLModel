@@ -2225,11 +2225,10 @@ class LoopControlStatement(SequentialStatement, ConditionalMixin):
 		super().__init__(label, documentation, parent)
 		ConditionalMixin.__init__(self, condition)
 
-		if loopLabel is not None:
-			if not isinstance(loopLabel, LoopSymbol):
-				ex = TypeError("Parameter 'loopLabel' is not of type 'LoopSymbol'.")
-				ex.add_note(f"Got type '{getFullyQualifiedName(loopLabel)}'.")
-				raise ex
+		if loopLabel is not None and not isinstance(loopLabel, LoopSymbol):
+			ex = TypeError("Parameter 'loopLabel' is not of type 'LoopSymbol'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(loopLabel)}'.")
+			raise ex
 
 		self._loopReference = loopLabel
 

@@ -187,11 +187,13 @@ class WithGenericsMixin(
 	@readonly
 	def GenericCount(self) -> int:
 		"""
-		Read-only property to return the number of generics in :attr:`_genericItems`.
+		Read-only property to return the number of generics declared by :attr:`_genericItems`.
 
-		:returns: The generic count.
+		A generic constant item with several identifiers (``generic (A, B : natural)``) declares several generics.
+
+		:returns: The number of generics.
 		"""
-		return len(self._genericItems)
+		return sum(len(identifiersOf(item)) for item in self._genericItems)
 
 	@readonly
 	def GenericGroups(self) -> list[GenericGroup]:
@@ -286,7 +288,7 @@ class WithGenericsMixin(
 		generic group of the first generic. If there are no generics, the generic forms a new unnamed generic group. A
 		generic group given must contain ``index`` or end at it, so the generic groups stay contiguous.
 
-		:param index:                  Position, from ``0`` (first) to :data:`GenericCount` (append).
+		:param index:                  Position, from ``0`` (first) to the length of :data:`GenericItems` (append).
 		                               A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
 		                               before the last generic.
 		:param genericItem:            The generic to insert.
@@ -401,8 +403,8 @@ class WithGenericsMixin(
 		At position ``0``, the generic joins the generic group of the first generic. If there are no generic groups, the
 		generic forms a new unnamed generic group.
 
-		:param position:    Position of the generic in the generic clause, from ``0`` (first) to :data:`GenericCount`
-		                    (last).
+		:param position:    Position of the generic in the generic clause, from ``0`` (first) to the length of
+		                    :data:`GenericItems` (last).
 		:param genericItem: The generic to add, which isn't in a generic group.
 		"""
 		from pyVHDLModel.Interface import GenericGroup
@@ -507,9 +509,9 @@ class WithGenericsMixin(
 		index ``0``, the generic group of the first generic. A move to the generic's current position changes nothing.
 
 		:param genericItem:          The generic to move.
-		:param index:                Position of the generic after the move, from ``0`` (first) to :data:`GenericCount`
-		                             minus one (last). A negative index counts from the end, as for a :class:`list`
-		                             index: ``-1`` moves the generic to the end.
+		:param index:                Position of the generic after the move, from ``0`` (first) to the length of
+		                             :data:`GenericItems` minus one (last). A negative index counts from the end, as for a
+		                             :class:`list` index: ``-1`` moves the generic to the end.
 		:raises ValueError:          If parameter 'genericItem' is ``None``.
 		:raises TypeError:           If parameter 'genericItem' is not of type
 		                             :class:`~pyVHDLModel.Interface.GenericInterfaceItemMixin`.
@@ -793,11 +795,13 @@ class WithPortsMixin(
 	@readonly
 	def PortCount(self) -> int:
 		"""
-		Read-only property to return the number of ports in :attr:`_portItems`.
+		Read-only property to return the number of ports declared by :attr:`_portItems`.
 
-		:returns: The port count.
+		A port item with several identifiers (``port (a, b : in bit)``) declares several ports.
+
+		:returns: The number of ports.
 		"""
-		return len(self._portItems)
+		return sum(len(item._identifiers) for item in self._portItems)
 
 	@readonly
 	def PortGroups(self) -> list[PortGroup]:
@@ -880,7 +884,7 @@ class WithPortsMixin(
 		of the first port. If there are no ports, the port forms a new unnamed port group. A port group given must
 		contain ``index`` or end at it, so the port groups stay contiguous.
 
-		:param index:                 Position, from ``0`` (first) to :data:`PortCount` (append).
+		:param index:                 Position, from ``0`` (first) to the length of :data:`PortItems` (append).
 		                              A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
 		                              before the last port.
 		:param portItem:              The port to insert.
@@ -994,7 +998,8 @@ class WithPortsMixin(
 
 		If there are no port groups, the port forms a new unnamed port group.
 
-		:param position: Position of the port in the port clause, from ``0`` (first) to :data:`PortCount` (last).
+		:param position: Position of the port in the port clause, from ``0`` (first) to the length of :data:`PortItems`
+		                 (last).
 		:param portItem: The port to add, which isn't in a port group.
 		"""
 		from pyVHDLModel.Interface import PortGroup
@@ -1096,9 +1101,9 @@ class WithPortsMixin(
 		the port's current position changes nothing.
 
 		:param portItem:        The port to move.
-		:param index:           Position of the port after the move, from ``0`` (first) to :data:`PortCount` minus one
-		                        (last). A negative index counts from the end, as for a :class:`list` index: ``-1`` moves the
-		                        port to the end.
+		:param index:           Position of the port after the move, from ``0`` (first) to the length of :data:`PortItems`
+		                        minus one (last). A negative index counts from the end, as for a :class:`list` index:
+		                        ``-1`` moves the port to the end.
 		:raises ValueError:     If parameter 'portItem' is ``None``.
 		:raises TypeError:      If parameter 'portItem' is not of type
 		                        :class:`~pyVHDLModel.Interface.PortSignalInterfaceItem`.
@@ -1373,11 +1378,13 @@ class WithParametersMixin(
 	@readonly
 	def ParameterCount(self) -> int:
 		"""
-		Read-only property to return the number of parameters in :attr:`_parameterItems`.
+		Read-only property to return the number of parameters declared by :attr:`_parameterItems`.
 
-		:returns: The parameter count.
+		A parameter item with several identifiers (``procedure p(a, b : in bit)``) declares several parameters.
+
+		:returns: The number of parameters.
 		"""
-		return len(self._parameterItems)
+		return sum(len(item._identifiers) for item in self._parameterItems)
 
 	@readonly
 	def ParameterGroups(self) -> list[ParameterGroup]:
@@ -1470,7 +1477,7 @@ class WithParametersMixin(
 		parameter group. A parameter group given must contain ``index`` or end at it, so the parameter groups stay
 		contiguous.
 
-		:param index:                    Position, from ``0`` (first) to :data:`ParameterCount` (append).
+		:param index:                    Position, from ``0`` (first) to the length of :data:`ParameterItems` (append).
 		                                 A negative index counts from the end, as for :meth:`list.insert`: ``-1`` inserts
 		                                 before the last parameter.
 		:param parameterItem:            The parameter to insert.
@@ -1586,8 +1593,8 @@ class WithParametersMixin(
 		At position ``0``, the parameter joins the parameter group of the first parameter. If there are no parameter
 		groups, the parameter forms a new unnamed parameter group.
 
-		:param position:      Position of the parameter in the parameter list, from ``0`` (first) to
-		                      :data:`ParameterCount` (last).
+		:param position:      Position of the parameter in the parameter list, from ``0`` (first) to the length of
+		                      :data:`ParameterItems` (last).
 		:param parameterItem: The parameter to add, which isn't in a parameter group.
 		"""
 		from pyVHDLModel.Interface import ParameterGroup
@@ -1692,9 +1699,9 @@ class WithParametersMixin(
 		changes nothing.
 
 		:param parameterItem:   The parameter to move.
-		:param index:           Position of the parameter after the move, from ``0`` (first) to :data:`ParameterCount`
-		                        minus one (last). A negative index counts from the end, as for a :class:`list` index:
-		                        ``-1`` moves the parameter to the end.
+		:param index:           Position of the parameter after the move, from ``0`` (first) to the length of
+		                        :data:`ParameterItems` minus one (last). A negative index counts from the end, as for a
+		                        :class:`list` index: ``-1`` moves the parameter to the end.
 		:raises ValueError:     If parameter 'parameterItem' is ``None``.
 		:raises TypeError:      If parameter 'parameterItem' is not of type
 		                        :class:`~pyVHDLModel.Interface.ParameterInterfaceItemMixin`.

@@ -47,7 +47,7 @@ from pyVHDLModel.Base        import ModelEntity, ExpressionUnion, Range, BaseCho
                                     AssertStatementMixin, WaveformElement, ChoicesMixin, LabeledEntityMixin, \
                                     DocumentedEntityMixin, ReservedWord
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
-from pyVHDLModel.Symbol      import Symbol, SignalSymbol, VariableSymbol
+from pyVHDLModel.Symbol      import Symbol, SignalSymbol, VariableSymbol, LoopSymbol
 from pyVHDLModel.Common      import Statement, ProcedureCallMixin, AssignmentMixin, SignalAssignmentMixin, \
                                     VariableAssignmentMixin, ConditionalWaveform, ConditionalExpression, \
                                     ConditionalWaveformsMixin, WaveformMixin, ExpressionMixin, SelectedWaveformsMixin, \
@@ -2199,39 +2199,45 @@ class LoopControlStatement(SequentialStatement, ConditionalMixin):
 	   * :class:`Exit statement <pyVHDLModel.Sequential.ExitStatement>`
 	"""
 
-	_loopReference: LoopStatement  #: Reference to the loop this statement controls.
+	_loopReference: Nullable[LoopSymbol]  #: Reference to the controlled loop, or ``None`` for the innermost loop.
 
 	def __init__(
 		self,
 		condition:     Nullable[ExpressionUnion] = None,
-		loopLabel:     Nullable[str] = None,
-		documentation: Nullable[str] = None,
-		parent:        Nullable[ModelEntity] = None
-	) -> None:  # TODO: is this label (currently str) a Name or a Label class?
+		loopLabel:     Nullable[LoopSymbol] =      None,
+		label:         Nullable[str] =             None,
+		documentation: Nullable[str] =             None,
+		parent:        Nullable[ModelEntity] =     None
+	) -> None:
 		"""
 		Initializes a loop control statement.
 
 		:param condition:     Optional, the condition guarding this statement.
 		                      Default: ``None``, an unconditional ``next`` or ``exit``.
-		:param loopLabel:     Optional, the label of the controlled loop. Default: ``None``, the innermost loop.
+		:param loopLabel:     Optional, reference to the controlled loop by its label.
+		                      Default: ``None``, the innermost loop.
+		:param label:         Optional, the label of a model entity. Default: ``None``, no label.
 		:param documentation: Optional, the documentation comment associated with this declaration.
 		                      Default: ``None``, no documentation.
 		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:raises TypeError:    If parameter 'loopLabel' is not of type :class:`~pyVHDLModel.Symbol.LoopSymbol`.
 		"""
-		super().__init__(None, documentation, parent)
+		super().__init__(label, documentation, parent)
 		ConditionalMixin.__init__(self, condition)
 
-		self._loopReference = None
+		if loopLabel is not None and not isinstance(loopLabel, LoopSymbol):
+			ex = TypeError("Parameter 'loopLabel' is not of type 'LoopSymbol'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(loopLabel)}'.")
+			raise ex
 
-		# TODO: loopLabel
-		# TODO: loop reference -> is it a symbol?
+		self._loopReference = loopLabel
 
 	@readonly
-	def LoopReference(self) -> LoopStatement:
+	def LoopReference(self) -> Nullable[LoopSymbol]:
 		"""
-		Read-only property to access the loop reference (:attr:`_loopReference`).
+		Read-only property to access the reference to the controlled loop (:attr:`_loopReference`).
 
-		:returns: The loop reference.
+		:returns: The reference to the controlled loop, or ``None`` if not set (the innermost loop).
 		"""
 		return self._loopReference
 
@@ -2256,11 +2262,14 @@ class NextStatement(LoopControlStatement):
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this next statement and its condition (if any) with a visitor.
+		Walk this next statement, its loop label (if any) and its condition (if any) with a visitor.
 
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitNextStatement(self)
+		if self._loopReference is not None:
+			self._loopReference.Visit(visitor)
+
 		if self._condition is not None:
 			visitor.VisitWhen(self)
 			self._condition.Visit(visitor)
@@ -2289,11 +2298,14 @@ class ExitStatement(LoopControlStatement):
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this exit statement and its condition (if any) with a visitor.
+		Walk this exit statement, its loop label (if any) and its condition (if any) with a visitor.
 
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitExitStatement(self)
+		if self._loopReference is not None:
+			self._loopReference.Visit(visitor)
+
 		if self._condition is not None:
 			visitor.VisitWhen(self)
 			self._condition.Visit(visitor)

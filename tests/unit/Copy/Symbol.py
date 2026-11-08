@@ -51,7 +51,7 @@ from pyVHDLModel.Symbol          import PossibleReference, Symbol, LibraryRefere
                                         SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
                                         ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
                                         SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, \
-                                        AggregateSymbol
+                                        AggregateSymbol, LoopSymbol
 
 from tests.unit                  import _Element, _signal
 from tests.unit.Copy             import _concreteModelClasses, _copyAboveConstructor
@@ -130,6 +130,7 @@ class Symbols(Testcase):
 			EntitySymbol,
 			ArchitectureSymbol,
 			PackageSymbol,
+			LoopSymbol,
 			RecordElementSymbol,
 			SubtypeSymbol,
 			SimpleSubtypeSymbol,

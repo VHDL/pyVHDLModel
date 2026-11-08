@@ -1118,6 +1118,55 @@ class PackageSymbol(Symbol):
 
 
 @export
+class LoopSymbol(Symbol):
+	"""
+	Represents a reference (label) to a loop statement in a next or exit statement.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	        next outer when k = 1;
+	      --     ^^^^^
+	"""
+
+	def __init__(self, name: Name) -> None:
+		"""
+		Initializes a reference (label) to a loop statement in a next or exit statement.
+
+		:param name: The name to reference the language entity.
+		"""
+		super().__init__(name, PossibleReference.Label)
+
+	@property
+	def Loop(self) -> Nullable[LoopStatement]:
+		"""
+		Property to access the loop statement (:attr:`_reference`).
+
+		:returns: The loop statement, or ``None`` if not set.
+		"""
+		return self._reference
+
+	@Loop.setter
+	def Loop(self, value: LoopStatement) -> None:
+		self._reference = value
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this loop symbol.
+
+		The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new loop symbol.
+		"""
+		copy =            self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
+
+@export
 class RecordElementSymbol(Symbol):
 	"""
 	Represents a reference to a record element.

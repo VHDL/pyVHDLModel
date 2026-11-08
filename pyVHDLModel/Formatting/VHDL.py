@@ -4035,24 +4035,24 @@ class VHDLWriter(Visitor):
 		"""
 		Write the label, if any, and the reserved word ``next`` of a next statement.
 
-		**Format:** ``next when skip;``
-
-		The model keeps no loop label, so none is written.
+		**Format:** ``next outer when skip;``
 
 		:param statement: The next statement.
 		"""
 		self._WriteStatementStart(statement)
 		self._Write(self._Keyword(ReservedWord.Next))
+		if statement.LoopReference is not None:
+			self._Write(" ")
 
 	def VisitExitStatement(self, statement: ExitStatement) -> None:
 		"""
 		Write the label, if any, and the reserved word ``exit`` of an exit statement.
 
-		**Format:** ``exit when done;``
-
-		The model keeps no loop label, so none is written.
+		**Format:** ``exit outer when done;``
 
 		:param statement: The exit statement.
 		"""
 		self._WriteStatementStart(statement)
 		self._Write(self._Keyword(ReservedWord.Exit))
+		if statement.LoopReference is not None:
+			self._Write(" ")

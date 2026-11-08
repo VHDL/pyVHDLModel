@@ -37,7 +37,7 @@ from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Base        import ModelEntity, Direction, SimpleRange, WaveformElement
 from pyVHDLModel.Name        import SimpleName
-from pyVHDLModel.Symbol      import SignalSymbol, VariableSymbol, Symbol, PossibleReference
+from pyVHDLModel.Symbol      import SignalSymbol, VariableSymbol, Symbol, PossibleReference, LoopSymbol
 from pyVHDLModel.Expression  import IntegerLiteral, CharacterLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Association import ParameterAssociationItem
 from pyVHDLModel.Sequential  import SequentialProcedureCall, SequentialSignalAssignment, \
@@ -234,6 +234,39 @@ class LoopControlStatements(Testcase):
 
 		self.assertIs(parent, statement.Parent)
 		self.assertIsNone(statement.Label)
+
+	def test_NextStatement_LoopLabel(self) -> None:
+		condition = IntegerLiteral(1)
+		loopLabel = LoopSymbol(SimpleName("outer"))
+		statement = NextStatement(condition, loopLabel, "lbl")
+
+		self.assertIs(condition, statement.Condition)
+		self.assertIs(loopLabel, statement.LoopReference)
+		self.assertNotIn("Parent", vars(loopLabel))
+		self.assertEqual("lbl", statement.Label)
+
+	def test_ExitStatement_LoopLabel(self) -> None:
+		loopLabel = LoopSymbol(SimpleName("outer"))
+		statement = ExitStatement(loopLabel=loopLabel, label="lbl")
+
+		self.assertIsNone(statement.Condition)
+		self.assertIs(loopLabel, statement.LoopReference)
+		self.assertNotIn("Parent", vars(loopLabel))
+		self.assertEqual("lbl", statement.Label)
+
+	def test_NextStatement_LoopLabel_NoSymbol(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			NextStatement(loopLabel="outer")
+
+		self.assertEqual("Parameter 'loopLabel' is not of type 'LoopSymbol'.", str(context.exception))
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_ExitStatement_LoopLabel_NoSymbol(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			ExitStatement(loopLabel="outer")
+
+		self.assertEqual("Parameter 'loopLabel' is not of type 'LoopSymbol'.", str(context.exception))
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
 
 
 class NullStatements(Testcase):

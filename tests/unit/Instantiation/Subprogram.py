@@ -51,10 +51,14 @@ def _returnType(name: str = "integer") -> SimpleSubtypeSymbol:
 
 
 class Procedures(Testcase):
-	"""``Subprogram`` itself is not meant to be instantiated directly (there's no VHDL construct that
+	"""
+	Procedures, also testing the shared subprogram behaviour.
+
+	``Subprogram`` itself is not meant to be instantiated directly (there's no VHDL construct that
 	is "just" a subprogram, only procedures and functions) - its shared declared-items/statements/
 	generic-items/parameter-items wiring is tested once here via ``Procedure``, the simpler of its two
-	concrete subclasses, rather than on the base class itself."""
+	concrete subclasses, rather than on the base class itself.
+	"""
 
 	def test_Minimal(self) -> None:
 		procedure = Procedure("proc")
@@ -104,11 +108,15 @@ class Functions(Testcase):
 
 
 class MethodMixinHosts(Testcase):
-	"""Regression test: ``MethodMixin.__init__`` set ``protectedType.Parent = self`` unconditionally,
+	"""
+	Procedure and function methods with and without a protected type.
+
+	Regression test: ``MethodMixin.__init__`` set :pycode:`protectedType.Parent = self` unconditionally,
 	but ``protectedType`` genuinely defaults to ``None`` at both call sites (a subprogram declared
 	directly in a protected type body still goes through the same constructor) - so the common,
 	no-argument case crashed immediately with ``AttributeError: 'NoneType' object has no attribute
-	'Parent'``. Fixed to null-check like every other optional-reference mixin in this codebase."""
+	'Parent'``. Fixed to null-check like every other optional-reference mixin in this codebase.
+	"""
 
 	def test_ProcedureMethod_WithoutProtectedType(self) -> None:
 		method = ProcedureMethod("proc")

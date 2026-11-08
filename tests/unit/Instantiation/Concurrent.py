@@ -29,9 +29,10 @@
 # ==================================================================================================================== #
 #
 """
-Tests for pyVHDLModel.Concurrent - the concurrent statement kinds not already covered by
-tests/unit/Assignment.py (conditional/selected signal assignments) or tests/unit/Base.py
-(ConcurrentBlockStatement's BlockStatementMixin/LabeledEntityMixin wiring).
+Tests for pyVHDLModel.Concurrent.
+
+Covers the concurrent statement kinds not already covered by tests/unit/Assignment.py (conditional/selected signal
+assignments) or tests/unit/Base.py (ConcurrentBlockStatement's BlockStatementMixin/LabeledEntityMixin wiring).
 """
 from typing                  import Generator
 
@@ -136,10 +137,14 @@ class ConcurrentProcedureCalls(Testcase):
 
 
 class ConcurrentBlockStatements(Testcase):
-	"""``BlockStatementMixin``/``LabeledEntityMixin`` wiring is already covered in tests/unit/Base.py;
+	"""
+	Block statements: block header, declared items and statements.
+
+	``BlockStatementMixin``/``LabeledEntityMixin`` wiring is already covered in tests/unit/Base.py;
 	this covers the block-specific state: the block header (generic and port clauses with their map
 	aspects) and the declared items/statements via
-	``ConcurrentDeclarationRegionMixin``/``ConcurrentStatementsMixin``."""
+	``ConcurrentDeclarationRegionMixin``/``ConcurrentStatementsMixin``.
+	"""
 
 	def test_WithPortItems(self) -> None:
 		portItem = PortSimpleSignalInterfaceItem(["p"], Mode.In, _subtypeSymbol("bit"))

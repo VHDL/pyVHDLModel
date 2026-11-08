@@ -420,6 +420,8 @@ class SubprogramAliases(Testcase):
 
 class AliasConflicts(Testcase):
 	"""
+	Use-visible aliases and originals of one designator.
+
 	Use-visible declarations of one designator aren't directly visible, unless all are overloadable (IEEE Std 1076-2008,
 	12.4 c)). It doesn't matter, if they denote the same named entity: that's a condition of homographs (12.3), not of
 	this rule.

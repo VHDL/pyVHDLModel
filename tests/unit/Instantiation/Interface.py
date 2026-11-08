@@ -288,10 +288,14 @@ class ParameterInterfaceItems(Testcase):
 
 
 class WithGenericsPortsParametersMixins(Testcase):
-	"""Tested via a minimal local host combining each mixin with itself (mixins can't be
+	"""
+	Item counts of the generic, port and parameter mixins.
+
+	Tested via a minimal local host combining each mixin with itself (mixins can't be
 	instantiated standalone - see the design note in tests/unit/Base.py); real design-unit/
 	subprogram hosts already exercise these mixins incidentally in their own slices, but nothing
-	elsewhere reads the ``*Count`` properties, so that's the focus here."""
+	elsewhere reads the ``*Count`` properties, so that's the focus here.
+	"""
 
 	def test_WithGenericsMixin(self) -> None:
 		class _Host(WithGenericsMixin):
@@ -423,7 +427,10 @@ class InterfaceItemRendering(Testcase):
 
 
 class Groups(Testcase):
-	"""Regression test (``__str__``): all three built their string via
+	"""
+	String format of generic, port and parameter groups.
+
+	Regression test (``__str__``): all three built their string via
 	``p._identifier for p in self._xItems``, but interface items come in two incompatible shapes -
 	``NamedEntityMixin``-based (singular ``_identifier`` - the four ``Generic*`` subprogram/package/
 	type items) vs. ``MultipleNamedEntityMixin``-based (plural ``_identifiers`` - every
@@ -432,7 +439,8 @@ class Groups(Testcase):
 	once: ``port (p1, p2 : in bit);``). ``PortGroup``/``ParameterGroup.__str__`` crashed for
 	essentially any realistic content, and ``GenericGroup.__str__`` crashed the moment a
 	``GenericConstantInterfaceItem`` was included or a group mixed both item shapes. Fixed via the
-	shared ``_identifiersOf()`` helper, which flattens either shape into a plain tuple of names."""
+	shared ``_identifiersOf()`` helper, which flattens either shape into a plain tuple of names.
+	"""
 
 	def test_GenericGroup(self) -> None:
 		item = GenericTypeInterfaceItem("T")

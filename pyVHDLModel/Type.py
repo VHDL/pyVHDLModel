@@ -98,7 +98,7 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		"""
 		Read-only property to return the base type of this type: the type itself (IEEE Std 1076-2008, 5.1).
 
-		A subtype returns the base type of the type it is derived from (:attr:`Subtype.BaseType`).
+		A subtype returns the base type of the type it is derived from (:attr:`~pyVHDLModel.Type.Subtype.BaseType`).
 
 		:returns: The base type.
 		"""
@@ -1380,7 +1380,7 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 	@readonly
 	def Methods(self) -> list[Union[Procedure, Function]]:
 		"""
-		Read-only property to access the declared methods, in declaration order.
+		Read-only property to return the declared methods, in declaration order.
 
 		A protected type declares nothing but subprograms, so this is every declared item
 		(:attr:`_declaredItems`). It is kept as a named view because "method" is the VHDL term for a
@@ -1460,7 +1460,7 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 	@readonly
 	def Methods(self) -> list[Union[Procedure, Function]]:
 		"""
-		Read-only property to access the implemented methods, in declaration order.
+		Read-only property to return the implemented methods, in declaration order.
 
 		A protected type body may also declare variables, types, subtypes, aliases and files, so this is
 		the subprogram subset of :attr:`_declaredItems` rather than all of them.

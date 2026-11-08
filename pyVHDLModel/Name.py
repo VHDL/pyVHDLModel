@@ -531,7 +531,7 @@ class SelectedName(Name):
 
 	For example, the library and entity name in a direct entity instantiation is a selected name. Here the entity
 	identifier is a selected name. The library identifier is a :class:`simple name <SimpleName>`, which is
-	referenced by the selected name via the :attr:`~pyVHDLModel.Name.Prefix` property.
+	referenced by the selected name via the :attr:`~pyVHDLModel.Name.Name.Prefix` property.
 
 	.. seealso::
 

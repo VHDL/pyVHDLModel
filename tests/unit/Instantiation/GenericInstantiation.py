@@ -67,9 +67,13 @@ class ProcedureInstantiations(Testcase):
 
 
 class FunctionInstantiations(Testcase):
-	"""``function f is new g generic map (...);`` - ``ReturnType`` is deliberately ``Nullable``, see
+	"""
+	Generic function instantiations.
+
+	:vhdlcode:`function f is new g generic map (...);` - ``ReturnType`` is deliberately ``Nullable``, see
 	the class's own docstring (never resolvable at the parse-only level, a genuinely unresolved
-	forward reference like ``Symbol.Reference``, not a workaround)."""
+	forward reference like ``Symbol.Reference``, not a workaround).
+	"""
 
 	def test_Construction(self) -> None:
 		reference = SubprogramReferenceSymbol(SimpleName("g"))

@@ -36,7 +36,7 @@ Symbols are entity specific wrappers for names that reference VHDL language enti
 """
 from __future__            import annotations
 
-from enum                  import Flag, auto
+from enum                  import Flag
 from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping, Self
 
 from pyTooling.Common      import getFullyQualifiedName, getTypeName
@@ -56,39 +56,39 @@ class PossibleReference(Flag):
 	"""
 
 	Unknown =         0
-	Library =         auto()  #: Library
-	Entity =          auto()  #: Entity
-	Architecture =    auto()  #: Architecture
-	Component =       auto()  #: Component
-	Package =         auto()  #: Package
-	Configuration =   auto()  #: Configuration
-	Context =         auto()  #: Context
-	Type =            auto()  #: Type
-	Subtype =         auto()  #: Subtype
-	ScalarType =      auto()  #: ScalarType
-	ArrayType =       auto()  #: ArrayType
-	RecordType =      auto()  #: RecordType
-	RecordElement =   auto()  #: RecordElement
-	AccessType =      auto()  #: AccessType
-	ProtectedType =   auto()  #: ProtectedType
-	FileType =        auto()  #: FileType
+	Library =         1           #: Library
+	Entity =          2           #: Entity
+	Architecture =    4           #: Architecture
+	Component =       8           #: Component
+	Package =         16          #: Package
+	Configuration =   32          #: Configuration
+	Context =         64          #: Context
+	Type =            128         #: Type
+	Subtype =         256         #: Subtype
+	ScalarType =      512         #: ScalarType
+	ArrayType =       1024        #: ArrayType
+	RecordType =      2048        #: RecordType
+	RecordElement =   4096        #: RecordElement
+	AccessType =      8192        #: AccessType
+	ProtectedType =   16384       #: ProtectedType
+	FileType =        32768       #: FileType
 #	Alias =           auto()   # TODO: Is this needed?
-	Attribute =       auto()  #: Attribute
-	TypeAttribute =   auto()  #: TypeAttribute
-	ValueAttribute =  auto()  #: ValueAttribute
-	SignalAttribute = auto()  #: SignalAttribute
-	RangeAttribute =  auto()  #: RangeAttribute
-	ViewAttribute =   auto()  #: ViewAttribute
-	Constant =        auto()  #: Constant
-	Variable =        auto()  #: Variable
-	Signal =          auto()  #: Signal
-	File =            auto()  #: File
+	Attribute =       65536       #: Attribute
+	TypeAttribute =   131072      #: TypeAttribute
+	ValueAttribute =  262144      #: ValueAttribute
+	SignalAttribute = 524288      #: SignalAttribute
+	RangeAttribute =  1048576     #: RangeAttribute
+	ViewAttribute =   2097152     #: ViewAttribute
+	Constant =        4194304     #: Constant
+	Variable =        8388608     #: Variable
+	Signal =          16777216    #: Signal
+	File =            33554432    #: File
 #	Object =          auto()   # TODO: Is this needed?
-	EnumLiteral =     auto()  #: EnumLiteral
-	Procedure =       auto()  #: Procedure
-	Function =        auto()  #: Function
-	Label =           auto()  #: Label
-	View =            auto()  #: View
+	EnumLiteral =     67108864    #: EnumLiteral
+	Procedure =       134217728   #: Procedure
+	Function =        268435456   #: Function
+	Label =           536870912   #: Label
+	View =            1073741824  #: View
 
 	AnyType = ScalarType | ArrayType | RecordType | ProtectedType | AccessType | FileType | Subtype  #: Any possible type incl. subtypes.
 	Object = Constant | Variable | Signal  # | File                                                     #: Any object

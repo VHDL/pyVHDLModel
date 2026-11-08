@@ -78,7 +78,7 @@ class Ieee(PredefinedLibrary):
 
 	* Synopsys packages
 
-	  * :class:`~pyVHDLModel.IEEE.Std_Logic_Arith`
+	  * :class:`~pyVHDLModel.IEEE.Std_Logic_Arith_Synopsys`
 	  * :class:`~pyVHDLModel.IEEE.Std_Logic_Misc`
 	  * :class:`~pyVHDLModel.IEEE.Std_Logic_Signed`
 	  * :class:`~pyVHDLModel.IEEE.Std_Logic_TextIO`
@@ -86,7 +86,7 @@ class Ieee(PredefinedLibrary):
 
 	* Mentor Graphics packages
 
-	  * :class:`~pyVHDLModel.IEEE.Std_Logic_Arith`
+	  * :class:`~pyVHDLModel.IEEE.Std_Logic_Arith_MentorGraphics`
 
 	* VITAL packages
 

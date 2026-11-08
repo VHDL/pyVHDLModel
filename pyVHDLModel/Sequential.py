@@ -1567,9 +1567,9 @@ class IfStatement(CompoundStatement):
 	@readonly
 	def ElsIfBranches(self) -> list[ElsifBranch]:
 		"""
-		Read-only property to access the elsif-branch of the if-statement (:attr:`_elsifBranch`).
+		Read-only property to access the elsif-branches of the if-statement (:attr:`_elsifBranches`).
 
-		:returns: The elsif-branch.
+		:returns: List of elsif-branches, in the order they were written.
 		"""
 		return self._elsifBranches
 

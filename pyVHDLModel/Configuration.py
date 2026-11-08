@@ -223,7 +223,8 @@ class BindingIndication(ModelEntity, GenericMapAspectMixin, PortMapAspectMixin):
 	Represents a binding indication: which design entity a component is bound to.
 
 	The entity aspect is available as :data:`EntityAspect`, together with the generic and port maps
-	(:data:`GenericAssociations`, :data:`PortAssociations`).
+	(:attr:`~pyVHDLModel.Association.GenericMapAspectMixin.GenericAssociationItems`,
+	:attr:`~pyVHDLModel.Association.PortMapAspectMixin.PortAssociationItems`).
 	"""
 
 	_entityAspect: Nullable[EntityAspect]  #: The bound design entity, or ``None`` if not given.
@@ -446,7 +447,7 @@ class BlockConfiguration(ModelEntity, DocumentedEntityMixin):
 	"""
 	Represents the configuration of one block: an architecture, a block statement or a generate body.
 
-	Nested configurations are available as :data:`ConfigurationItems`.
+	Nested configurations are available as :attr:`Items`.
 
 	.. admonition:: Example
 

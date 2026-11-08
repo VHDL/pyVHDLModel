@@ -569,6 +569,8 @@ class TopLevel(Testcase):
 
 class IndexDeclaredItems(Testcase):
 	"""
+	``IndexDeclaredItems`` reports an unsupported declared item as ``NotImplementedWarning``.
+
 	Regression tests for replacing a stray ``print()`` with ``WarningCollector.Raise(NotImplementedWarning(...))`` in
 	``IndexDeclaredItems``, consistent with the same warning idiom used elsewhere in this codebase and mirrored by
 	pyGHDL.dom's own ``WarningCollector`` usage (both build on ``pyTooling.Warning``).

@@ -218,9 +218,13 @@ class EnumerationLiteralDocumentation(Testcase):
 
 
 class PhysicalLiterals(Testcase):
-	"""``PhysicalLiteral`` itself is never instantiated directly - its own ``_value`` is only declared
+	"""
+	Physical literals, via their integer and floating-point subclasses.
+
+	``PhysicalLiteral`` itself is never instantiated directly - its own ``_value`` is only declared
 	by ``PhysicalIntegerLiteral``/``PhysicalFloatingLiteral``, so it's exercised only through those two
-	concrete subclasses."""
+	concrete subclasses.
+	"""
 
 	def test_PhysicalIntegerLiteral(self) -> None:
 		literal = PhysicalIntegerLiteral(5, "ns")
@@ -652,11 +656,15 @@ class BitStringLiteralLengths(Testcase):
 
 
 class UnaryExpressions(Testcase):
-	"""Regression test: ``operand.Parent = self`` was previously commented out
+	"""
+	Unary expressions: the operand gets the expression as parent.
+
+	Regression test: :pycode:`operand.Parent = self` was previously commented out
 	(``# FIXME: operand is provided as None``) - confirmed stale in the gap analysis (every real
 	construction site always provides a real operand) and now re-enabled. Tested once here via
 	``NegationExpression``; every other unary subclass shares the identical, unoverridden
-	constructor."""
+	constructor.
+	"""
 
 	def test_Construction(self) -> None:
 		operand = IntegerLiteral(1)
@@ -699,11 +707,15 @@ class UnaryExpressionFormats(Testcase):
 
 
 class TypeConversions(Testcase):
-	"""Regression test: ``TypeConversion`` previously had no field for the target type at all (just
+	"""
+	Type conversions: target subtype and string format.
+
+	Regression test: ``TypeConversion`` previously had no field for the target type at all (just
 	``pass``, inheriting ``UnaryExpression`` unchanged) - unlike every other ``UnaryExpression``
 	subclass, its "operator" is the target type name itself, not a fixed ``_FORMAT`` string, so
 	``str()`` always raised ``AttributeError``. Fixed by adding ``_targetSubtype`` (mirroring
-	``QualifiedExpression._subtype``) and a dedicated ``__str__``."""
+	``QualifiedExpression._subtype``) and a dedicated ``__str__``.
+	"""
 
 	def test_Construction(self) -> None:
 		"""``natural(x)``"""
@@ -719,9 +731,13 @@ class TypeConversions(Testcase):
 
 
 class BinaryExpressions(Testcase):
-	"""Both operands' ``Parent`` wiring is already active (no FIXME here, unlike
+	"""
+	Binary expressions: both operands get the expression as parent.
+
+	Both operands' ``Parent`` wiring is already active (no FIXME here, unlike
 	``UnaryExpression``) - tested once via ``AdditionExpression``; every other binary subclass shares
-	the identical, unoverridden constructor."""
+	the identical, unoverridden constructor.
+	"""
 
 	def test_Construction(self) -> None:
 		left = IntegerLiteral(1)
@@ -808,7 +824,10 @@ class QualifiedExpressions(Testcase):
 
 
 class TernaryExpressions(Testcase):
-	"""Regression test: the constructor previously never accepted or set its three operands at all
+	"""
+	Ternary expressions: three operands and their string format.
+
+	Regression test: the constructor previously never accepted or set its three operands at all
 	(``# FIXME: parameters and initializers are missing !!``), and ``__str__`` separately indexed past
 	the end of the 4-element ``_FORMAT`` tuple (``self._FORMAT[4]``). Both fixed together - the
 	constructor now takes the three operands (wiring ``Parent`` for each), and ``__str__`` reads
@@ -817,7 +836,8 @@ class TernaryExpressions(Testcase):
 	``TernaryExpression`` itself deliberately exposes no public ``FirstOperand``/``SecondOperand``/
 	``ThirdOperand`` properties (see its class docstring) - only ``WhenElseExpression``'s own
 	``ThenValue``/``Condition``/``ElseValue`` are public, so this is tested only through that concrete
-	subclass."""
+	subclass.
+	"""
 
 	def test_Construction(self) -> None:
 		"""``thenValue when condition else elseValue``"""
@@ -836,11 +856,15 @@ class TernaryExpressions(Testcase):
 
 
 class FunctionCallAndAllocation(Testcase):
-	"""``Allocation`` itself (``class Allocation(BaseExpression): pass``) is never instantiated
+	"""
+	Function calls and the two allocation forms.
+
+	``Allocation`` itself (:pycode:`class Allocation(BaseExpression): pass`) is never instantiated
 	directly anywhere - real VHDL always uses one of its two concrete subclasses below (``new T`` or
 	``new T'(expr)``), so unlike ``FunctionCall`` (which *is* the real, direct class for a function
 	call expression - there's no further subclass to move it to), there's no bare ``Allocation()``
-	test here."""
+	test here.
+	"""
 
 	def test_FunctionCall(self) -> None:
 		call = FunctionCall()

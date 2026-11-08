@@ -67,7 +67,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	Each object references a subtype via :data:`_subtype`.
 
 	Objects are elements in the type and object graph, thus a reference to a vertex in that graph is stored in
-	:data:`__objectVertex`.
+	:data:`_objectVertex`.
 
 	.. seealso::
 
@@ -209,7 +209,7 @@ class WithDefaultExpressionMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A ``WithDefaultExpression`` is a mixin-class for all objects declarations accepting default expressions.
 
-	The default expression is referenced by :data:`__defaultExpression`. If no default expression is present, this field
+	The default expression is referenced by :data:`_defaultExpression`. If no default expression is present, this field
 	is ``None``.
 
 	.. seealso::
@@ -337,7 +337,7 @@ class DeferredConstant(BaseConstant):
 	Represents a deferred constant.
 
 	Deferred constants are forward declarations for a (complete) constant declaration, thus it contains a
-	field :data:`__constantReference` to the complete constant declaration.
+	field :data:`_constantReference` to the complete constant declaration.
 
 	.. admonition:: Example
 

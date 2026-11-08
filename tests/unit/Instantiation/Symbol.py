@@ -151,9 +151,13 @@ class SimpleReferenceSymbols(Testcase):
 
 
 class NoPropertyReferenceSymbols(Testcase):
-	"""``RecordElementSymbol``, ``SimpleObjectOrFunctionCallSymbol`` and
+	"""
+	Symbols without a dedicated reference property.
+
+	``RecordElementSymbol``, ``SimpleObjectOrFunctionCallSymbol`` and
 	``IndexedObjectOrFunctionCallSymbol`` fix a ``PossibleReference`` like the table above, but expose
-	no dedicated named property - only the base ``Symbol.Reference``."""
+	no dedicated named property - only the base ``Symbol.Reference``.
+	"""
 
 	def test_RecordElementSymbol(self) -> None:
 		symbol = RecordElementSymbol(SimpleName("field"))

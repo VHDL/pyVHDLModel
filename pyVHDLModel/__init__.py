@@ -57,7 +57,7 @@ __documentation_url__ = "https://vhdl.github.io/pyVHDLModel"
 __issue_tracker_url__ = "https://GitHub.com/VHDL/pyVHDLModel/issues"
 
 
-from enum                      import unique, Enum, Flag, auto
+from enum                      import unique, Enum, Flag
 from pathlib                   import Path
 
 from typing                    import TYPE_CHECKING, Union, cast, Generator, Optional as Nullable
@@ -78,19 +78,18 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       ConfigurationNotFoundError, ContextNotFoundError, AlreadyInDesignError, \
                                       NotAChildError, DuplicateDocumentError, DuplicateDesignUnitError, \
                                       LibraryInUseError, PackageInstantiationNotLinkedError
-from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Name          import AllName
 from pyVHDLModel.Namespace     import Namespace
-from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant, SharedVariable, Variable, File
+from pyVHDLModel.Object        import Signal, Constant, DeferredConstant, SharedVariable, Variable, File
 from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
                                       PackageMemberReferenceSymbol
 from pyVHDLModel.Common        import AllowBlackboxMixin
 from pyVHDLModel.Regions       import DeclarationRegionMixin, ConcurrentDeclarationRegionMixin, \
                                       SequentialDeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation, \
-                                      GenerateStatement, IfGenerateStatement, ForGenerateStatement, \
-                                      CaseGenerateStatement, GenerateBranch, ConcurrentStatementsMixin, \
-                                      ConcurrentBlockStatement
+                                      IfGenerateStatement, ForGenerateStatement, CaseGenerateStatement, \
+                                      ConcurrentStatementsMixin, ConcurrentBlockStatement
 from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, \
                                       Configuration, Package, Component, UseClause
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode, PSLEntity
@@ -379,11 +378,11 @@ class IEEEFlavor(Flag):
 	* ``WithVITAL`` - IEEE Std. 1076.4
 
 	"""
-	Unknown = 0         #: Unknown IEEE flavor
-	IEEE = 1            #: IEEE Std. 1076 compliant list of IEEE packages.
-	Synopsys = 2        #: Additional packages created by Synopsys are visible within the IEEE library.
-	MentorGraphics = 4  #: Additional packages created by Mentor Graphics are visible within the IEEE library.
-	WithVITAL = 32      #: Additionally load IEEE Std 1076.4 VITAL packages. (VITAL = VHDL Initiative Towards ASIC Libraries)
+	Unknown =        0   #: Unknown IEEE flavor
+	IEEE =           1   #: IEEE Std. 1076 compliant list of IEEE packages.
+	Synopsys =       2   #: Additional packages created by Synopsys are visible within the IEEE library.
+	MentorGraphics = 4   #: Additional packages created by Mentor Graphics are visible within the IEEE library.
+	WithVITAL =      32  #: Additionally load IEEE Std 1076.4 VITAL packages. (VITAL = VHDL Initiative Towards ASIC Libraries)
 
 
 @export
@@ -423,19 +422,19 @@ class DesignUnitKind(Flag):
 	A ``DesignUnitKind`` is an enumeration and represents the kind of design unit (``Entity``, ``Architecture``, ...).
 
 	"""
-	Context = auto()                                                             #: Context
-	Package = auto()                                                             #: Package
-	PackageBody = auto()                                                         #: Package Body
-	Entity = auto()                                                              #: Entity
-	Architecture = auto()                                                        #: Architecture
-	Configuration = auto()                                                       #: Configuration
+	Context =           1                                                              #: Context
+	Package =           2                                                              #: Package
+	PackageBody =       4                                                              #: Package Body
+	Entity =            8                                                              #: Entity
+	Architecture =      16                                                             #: Architecture
+	Configuration =     32                                                             #: Configuration
 
-	Primary = Context | Configuration | Entity | Package                         #: List of primary design units.
-	Secondary = PackageBody | Architecture                                       #: List of secondary design units.
-	WithContext = Configuration | Package | Entity | PackageBody | Architecture  #: List of design units with a context.
-	WithDeclaredItems = Package | Entity | PackageBody | Architecture            #: List of design units having a declaration region.
+	Primary =           Context | Configuration | Entity | Package                     #: List of primary design units.
+	Secondary =         PackageBody | Architecture                                     #: List of secondary design units.
+	WithContext =       Configuration | Package | Entity | PackageBody | Architecture  #: List of design units with a context.
+	WithDeclaredItems = Package | Entity | PackageBody | Architecture                  #: List of design units having a declaration region.
 
-	All = Primary | Secondary                                                    #: List of all design units.
+	All =               Primary | Secondary                                            #: List of all design units.
 
 
 @export
@@ -444,16 +443,16 @@ class DependencyGraphVertexKind(Flag):
 	"""
 	A ``DependencyGraphVertexKind`` is an enumeration and represents the kind of vertex in the dependency graph.
 	"""
-	Document = auto()       #: A document (VHDL source file).
-	Library = auto()        #: A VHDL library.
+	Document =      1    #: A document (VHDL source file).
+	Library =       2    #: A VHDL library.
 
-	Context = auto()        #: A context design unit.
-	Package = auto()        #: A package design unit.
-	PackageBody = auto()    #: A package body design unit.
-	Entity = auto()         #: A entity design unit.
-	Architecture = auto()   #: A architecture design unit.
-	Component = auto()      #: A VHDL component.
-	Configuration = auto()  #: A configuration design unit.
+	Context =       4    #: A context design unit.
+	Package =       8    #: A package design unit.
+	PackageBody =   16   #: A package body design unit.
+	Entity =        32   #: A entity design unit.
+	Architecture =  64   #: A architecture design unit.
+	Component =     128  #: A VHDL component.
+	Configuration = 256  #: A configuration design unit.
 
 
 @export
@@ -462,20 +461,20 @@ class DependencyGraphEdgeKind(Flag):
 	"""
 	A ``DependencyGraphEdgeKind`` is an enumeration and represents the kind of edge in the dependency graph.
 	"""
-	Document =       auto()
-	Library =        auto()
-	Context =        auto()
-	Package =        auto()
-	Entity =         auto()
+	Document =                   1
+	Library =                    2
+	Context =                    4
+	Package =                    8
+	Entity =                     16
 	# Architecture = auto()
-	Configuration =  auto()
-	Component =      auto()
+	Configuration =              32
+	Component =                  64
 
-	DeclaredIn =     auto()
-	Order =          auto()
-	Reference =      auto()
-	Implementation = auto()
-	Instantiation =  auto()
+	DeclaredIn =                 128
+	Order =                      256
+	Reference =                  512
+	Implementation =             1024
+	Instantiation =              2048
 
 	SourceFile =                 Document | DeclaredIn
 	CompileOrder =               Document | Order
@@ -500,16 +499,16 @@ class ObjectGraphVertexKind(Flag):
 	"""
 	A ``ObjectGraphVertexKind`` is an enumeration and represents the kind of vertex in the object graph.
 	"""
-	Type =             auto()
-	Subtype =          auto()
+	Type =             1
+	Subtype =          2
 
-	Constant =         auto()
-	DeferredConstant = auto()
-	Variable =         auto()
-	Signal =           auto()
-	File =             auto()
+	Constant =         4
+	DeferredConstant = 8
+	Variable =         16
+	Signal =           32
+	File =             64
 
-	Alias =            auto()
+	Alias =            128
 
 
 @export
@@ -518,10 +517,10 @@ class ObjectGraphEdgeKind(Flag):
 	"""
 	A ``ObjectGraphEdgeKind`` is an enumeration and represents the kind of edge in the object graph.
 	"""
-	BaseType = auto()
-	Subtype =  auto()
+	BaseType =              1
+	Subtype =               2
 
-	ReferenceInExpression = auto()
+	ReferenceInExpression = 4
 
 
 @export
@@ -643,7 +642,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	@readonly
 	def TopLevel(self) -> Union[Entity, Configuration]:
 		"""
-		Read-only property to access the design's *top-level* (:attr:`_toplevel`).
+		Read-only property to return the design's *top-level* (:attr:`_toplevel`).
 
 		When called the first time, the hierarchy graph is checked for its root elements. When there is only one root element in the graph, a new field ``toplevel``
 		is added to :attr:`_hierarchyGraph` referencing that single element. In addition, the result is cached in :attr:`_toplevel`.
@@ -1292,7 +1291,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		Iterate all design units in the design.
 
-		A union of :class:`DesignUnitKind` values can be given to filter the returned result for suitable design units.
+		A union of :class:`~pyVHDLModel.DesignUnitKind` values can be given to filter the returned result for suitable
+		design units.
 
 		.. rubric:: Algorithm
 
@@ -1679,13 +1679,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		Resolves and links all items (library clauses, use clauses and nested context references) in contexts.
 
 		It iterates all contexts in the design. Therefore, the library of the context is used as the working library. By
-		default, the working library is implicitly referenced in :data:`_referencedLibraries`. In addition, a new empty
-		dictionary is created in :data:`_referencedPackages` and :data:`_referencedContexts` for that working library.
+		default, the working library is implicitly referenced in
+		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedLibraries`. In addition, a new empty dictionary is created in
+		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedPackages` and
+		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedContexts` for that working library.
 
 		At first, all library clauses are resolved (a library clause my have multiple library reference symbols). For each
-		referenced library an entry in :data:`_referencedLibraries` is generated and new empty dictionaries in
-		:data:`_referencedPackages` and :data:`_referencedContexts` for that working library. In addition, a vertex in the
-		dependency graph is added for that relationship.
+		referenced library an entry in :data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedLibraries` is generated and new
+		empty dictionaries in :data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedPackages` and
+		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedContexts` for that working library. In addition, a vertex in
+		the dependency graph is added for that relationship.
 
 		At second, all use clauses are resolved (a use clause my have multiple package member reference symbols). For each
 		referenced package,
@@ -2498,17 +2501,17 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   2. Iterate concurrent statements with declaration regions (block statements, generate statements) if the design
 		      unit is an architecture:
 
-		      * If the statement is an :class:`IfGenerateStatement`:
+		      * If the statement is an :class:`~pyVHDLModel.Concurrent.IfGenerateStatement`:
 
-		        1. Iterate declared components in the :class:`IfGenerateBranch`.
-		        2. Iterate declared components in each :class:`ElIfGenerateBranch`.
-		        3. Iterate declared components in the :class:`ElseGenerateBranch` if it exists.
+		        1. Iterate declared components in the :class:`~pyVHDLModel.Concurrent.IfGenerateBranch`.
+		        2. Iterate declared components in each :class:`~pyVHDLModel.Concurrent.ElsifGenerateBranch`.
+		        3. Iterate declared components in the :class:`~pyVHDLModel.Concurrent.ElseGenerateBranch` if it exists.
 
-		      * If the statement is an :class:`ForGenerateStatement`:
+		      * If the statement is an :class:`~pyVHDLModel.Concurrent.ForGenerateStatement`:
 
 		        1. Iterate declared components.
 
-		      * If the statement is an :class:`CaseGenerateStatement`:
+		      * If the statement is an :class:`~pyVHDLModel.Concurrent.CaseGenerateStatement`:
 
 		        1. Iterate declared components.
 		        2. Iterate
@@ -2792,7 +2795,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		1. Iterate all vertices corresponding to entities and architectures in the dependency graph:
 
 		   * Copy these vertices to the hierarchy graph and create a bidirectional linking. |br|
-		     In addition, set the referenced design unit's :attr:`~pyVHDLModel.Document._hierarchyVertex` field to reference the copied vertex.
+		     In addition, set the referenced design unit's :attr:`~pyVHDLModel.DesignUnit.DesignUnit._hierarchyVertex`
+		     field to reference the copied vertex.
 
 		     * Add a key-value-pair called ``hierarchyVertex`` to the dependency graph's vertex.
 		     * Add a key-value-pair called ``dependencyVertex`` to the hierarchy graph's vertex.
@@ -3157,7 +3161,8 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		"""
 		Iterate all design units in the library.
 
-		A union of :class:`DesignUnitKind` values can be given to filter the returned result for suitable design units.
+		A union of :class:`~pyVHDLModel.DesignUnitKind` values can be given to filter the returned result for suitable
+		design units.
 
 		.. rubric:: Algorithm
 
@@ -4210,7 +4215,8 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Iterate all design units in the document.
 
-		A union of :class:`DesignUnitKind` values can be given to filter the returned result for suitable design units.
+		A union of :class:`~pyVHDLModel.DesignUnitKind` values can be given to filter the returned result for suitable
+		design units.
 
 		.. rubric:: Algorithm
 

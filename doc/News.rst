@@ -127,6 +127,9 @@ Version 0.43.0 (2026)
      its library), :exc:`~pyVHDLModel.Exception.NotLinkedError` and :exc:`~pyVHDLModel.Exception.NotComputedError` (an
      analysis step didn't run). The messages are unchanged. ``LibraryNotInDesignError`` and ``DesignUnitNotFoundError``
      derive from :exc:`pyTooling.Exceptions.ElementNotFoundError` too, so they are a :exc:`LookupError`.
+   * The errors on a library or design unit, which already exists (e.g. ``LibraryExistsInDesignError``,
+     ``EntityExistsInLibraryError``), derive from :exc:`pyTooling.Exceptions.DuplicateElementError` too,
+     ``LibraryRegisteredToForeignDesignError`` from :exc:`pyTooling.Exceptions.AlreadyInHierarchyError`.
    * A package or context not found for a use clause, a context reference or a package instantiation raises
      :exc:`~pyVHDLModel.Exception.PackageNotFoundError` or :exc:`~pyVHDLModel.Exception.ContextNotFoundError`, caused by
      the failed lookup; the message is unchanged, a note names the working library for a reference through ``work``.

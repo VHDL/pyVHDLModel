@@ -41,7 +41,10 @@ from pyVHDLModel.Exception import VHDLModelException, AlreadyInDesignError, NotA
                                   DuplicateSignalError, DuplicateVariableError, DuplicateFileError, \
                                   DuplicateComponentError, DuplicateSubprogramError, NotInNamespaceError, \
                                   DuplicateDocumentError, DuplicateDesignUnitError, ElementInUseError, \
-                                  LibraryInUseError
+                                  LibraryInUseError, LibraryExistsInDesignError, \
+                                  LibraryRegisteredToForeignDesignError, EntityExistsInLibraryError, \
+                                  ArchitectureExistsInLibraryError, PackageExistsInLibraryError, \
+                                  PackageBodyExistsError, ConfigurationExistsInLibraryError, ContextExistsInLibraryError
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -102,6 +105,38 @@ class Exceptions(Testcase):
 	def test_DuplicateDesignUnitError(self) -> None:
 		self.assertTrue(issubclass(DuplicateDesignUnitError, VHDLModelException))
 		self.assertTrue(issubclass(DuplicateDesignUnitError, DuplicateElementError))
+
+	def test_LibraryExistsInDesignError(self) -> None:
+		self.assertTrue(issubclass(LibraryExistsInDesignError, VHDLModelException))
+		self.assertTrue(issubclass(LibraryExistsInDesignError, DuplicateElementError))
+
+	def test_EntityExistsInLibraryError(self) -> None:
+		self.assertTrue(issubclass(EntityExistsInLibraryError, VHDLModelException))
+		self.assertTrue(issubclass(EntityExistsInLibraryError, DuplicateElementError))
+
+	def test_ArchitectureExistsInLibraryError(self) -> None:
+		self.assertTrue(issubclass(ArchitectureExistsInLibraryError, VHDLModelException))
+		self.assertTrue(issubclass(ArchitectureExistsInLibraryError, DuplicateElementError))
+
+	def test_PackageExistsInLibraryError(self) -> None:
+		self.assertTrue(issubclass(PackageExistsInLibraryError, VHDLModelException))
+		self.assertTrue(issubclass(PackageExistsInLibraryError, DuplicateElementError))
+
+	def test_PackageBodyExistsError(self) -> None:
+		self.assertTrue(issubclass(PackageBodyExistsError, VHDLModelException))
+		self.assertTrue(issubclass(PackageBodyExistsError, DuplicateElementError))
+
+	def test_ConfigurationExistsInLibraryError(self) -> None:
+		self.assertTrue(issubclass(ConfigurationExistsInLibraryError, VHDLModelException))
+		self.assertTrue(issubclass(ConfigurationExistsInLibraryError, DuplicateElementError))
+
+	def test_ContextExistsInLibraryError(self) -> None:
+		self.assertTrue(issubclass(ContextExistsInLibraryError, VHDLModelException))
+		self.assertTrue(issubclass(ContextExistsInLibraryError, DuplicateElementError))
+
+	def test_LibraryRegisteredToForeignDesignError(self) -> None:
+		self.assertTrue(issubclass(LibraryRegisteredToForeignDesignError, VHDLModelException))
+		self.assertTrue(issubclass(LibraryRegisteredToForeignDesignError, AlreadyInHierarchyError))
 
 	def test_LibraryInUseError(self) -> None:
 		self.assertTrue(issubclass(LibraryInUseError, ElementInUseError))

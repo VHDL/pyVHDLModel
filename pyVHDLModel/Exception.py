@@ -462,7 +462,7 @@ class VHDLModelException(ExceptionBase):
 
 
 @export
-class LibraryExistsInDesignError(VHDLModelException):
+class LibraryExistsInDesignError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the library is already existing in the design.
 	"""
@@ -490,7 +490,7 @@ class LibraryExistsInDesignError(VHDLModelException):
 
 
 @export
-class LibraryRegisteredToForeignDesignError(VHDLModelException):
+class LibraryRegisteredToForeignDesignError(VHDLModelException, AlreadyInHierarchyError):
 	"""
 	This exception is raised, when the library is already registered to a foreign design.
 	"""
@@ -546,7 +546,7 @@ class LibraryNotRegisteredError(VHDLModelException):
 
 
 @export
-class EntityExistsInLibraryError(VHDLModelException):
+class EntityExistsInLibraryError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the entity already existing in the library.
 	"""
@@ -586,7 +586,7 @@ class EntityExistsInLibraryError(VHDLModelException):
 
 
 @export
-class ArchitectureExistsInLibraryError(VHDLModelException):
+class ArchitectureExistsInLibraryError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the architecture already existing in the library.
 	"""
@@ -626,7 +626,7 @@ class ArchitectureExistsInLibraryError(VHDLModelException):
 
 
 @export
-class PackageExistsInLibraryError(VHDLModelException):
+class PackageExistsInLibraryError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the package already existing in the library.
 	"""
@@ -666,7 +666,7 @@ class PackageExistsInLibraryError(VHDLModelException):
 
 
 @export
-class PackageBodyExistsError(VHDLModelException):
+class PackageBodyExistsError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the package body already existing in the library.
 	"""
@@ -706,7 +706,7 @@ class PackageBodyExistsError(VHDLModelException):
 
 
 @export
-class ConfigurationExistsInLibraryError(VHDLModelException):
+class ConfigurationExistsInLibraryError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the configuration already existing in the library.
 	"""
@@ -746,7 +746,7 @@ class ConfigurationExistsInLibraryError(VHDLModelException):
 
 
 @export
-class ContextExistsInLibraryError(VHDLModelException):
+class ContextExistsInLibraryError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the context already existing in the library.
 	"""

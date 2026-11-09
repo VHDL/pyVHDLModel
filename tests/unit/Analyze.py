@@ -52,7 +52,7 @@ from pyVHDLModel.Exception import NotImplementedWarning, BlackboxWarning, Duplic
                                   UnknownKindError, UnknownSecondaryUnitKindError, ArchitectureExistsInLibraryError, \
                                   AmbiguousTopLevelError, UnprefixedEntityInstantiationError
 
-from pyTooling.Exceptions      import AmbiguousError, UnknownKindError as CommonUnknownKindError
+from pyTooling.Exceptions      import AmbiguousError, ElementNotFoundError, UnknownKindError as CommonUnknownKindError
 from pyTooling.Warning         import UnhandledCriticalWarningError, WarningCollector
 from pyTooling.Testing         import Testcase
 
@@ -308,6 +308,7 @@ class LinkInstantiations(Testcase):
 		self.assertEqual("inst", context.exception.Instantiation.Label)
 		self.assertIsInstance(context.exception.__cause__, KeyError)
 		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, ElementNotFoundError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 
 
@@ -762,7 +763,7 @@ class TopLevel(Testcase):
 		with self.assertRaises(AmbiguousTopLevelError) as context:
 			design.TopLevel
 
-		self.assertEqual(f"Found more than one toplevel: {entity1!s}, {entity2!s}", str(context.exception))
+		self.assertEqual(f"Found more than one toplevel: {entity1!s}, {entity2!s}.", str(context.exception))
 		self.assertTupleEqual((entity1, entity2), context.exception.TopLevels)
 		self.assertIsInstance(context.exception, AmbiguousError)
 		self.assertIsInstance(context.exception, VHDLModelException)

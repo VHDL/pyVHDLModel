@@ -712,7 +712,7 @@ class TopLevel(Testcase):
 
 		self.assertEqual("Hierarchy is not yet computed from dependency graph.", str(context.exception))
 		self.assertListEqual(
-			["Call 'Analyze()' or 'AnalyzeDependencies()' before 'TopLevel'."],
+			["Call 'Analyze()' or 'AnalyzeDependencies()' before accessing 'TopLevel'."],
 			context.exception.__notes__
 		)
 		self.assertIsInstance(context.exception, NotComputedError)

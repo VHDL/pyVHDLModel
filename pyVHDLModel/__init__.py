@@ -667,7 +667,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		if self._hierarchyGraph.VertexCount == 0:
 			ex = HierarchyNotComputedError("Hierarchy is not yet computed from dependency graph.")
-			ex.add_note("Call 'Analyze()' or 'AnalyzeDependencies()' before 'TopLevel'.")
+			ex.add_note("Call 'Analyze()' or 'AnalyzeDependencies()' before accessing 'TopLevel'.")
 			raise ex
 
 		roots = tuple(self._hierarchyGraph.IterateRoots())

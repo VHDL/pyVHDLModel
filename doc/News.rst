@@ -71,6 +71,7 @@ Version 0.43.0 (2026)
 
    .. rubric:: Changes
 
+   * pyTooling 10.2 is required.
    * Breaking change: :data:`Namespace.Imports <pyVHDLModel.Namespace.Namespace.Imports>` is a read-only property
      (was a method) of a list of :class:`~pyVHDLModel.Namespace.Import` (declaration and use clause) per identifier;
      :meth:`~pyVHDLModel.Namespace.Namespace.AddImport` takes the use clause.

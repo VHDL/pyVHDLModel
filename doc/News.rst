@@ -33,8 +33,8 @@ Version 0.43.0 (2026)
      Whether a library's name is visible in a design unit: :meth:`DesignUnit.IsLibraryVisible()
      <pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible>`.
      A declarative region and the regions nested in it: :meth:`IterateDeclarationRegions()
-     <pyVHDLModel.Regions.DeclarationRegionMixin.IterateDeclarationRegions>`; whether an item precedes another one in
-     it: :meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.Precedes`.
+     <pyVHDLModel.Regions.DeclarativeRegionMixin.IterateDeclarationRegions>`; whether an item precedes another one in
+     it: :meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.Precedes`.
    * Every model entity tells whether it's an overloadable declaration
      (:data:`~pyVHDLModel.Base.ModelEntity.IsOverloadable`: subprograms, enumeration literals, aliases which may denote
      one of them) and which declarations it implies
@@ -114,7 +114,10 @@ Version 0.43.0 (2026)
      enclosing region's namespace: its generics and ports are indexed, also by :meth:`~pyVHDLModel.Design.Analyze`, a
      duplicate identifier is a :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`, the generic and port mutators
      keep the namespace, and generic subprograms of a component overload each other (was
-     :exc:`~pyVHDLModel.Exception.DuplicateGenericError`).
+     :exc:`~pyVHDLModel.Exception.DuplicateGenericError`). For it, :class:`~pyVHDLModel.Regions.DeclarationRegionMixin`
+     is split into :class:`~pyVHDLModel.Regions.DeclarativeRegionMixin` (namespace and name lookup), which a component
+     derives from, and :class:`~pyVHDLModel.Regions.DeclarativePartMixin` (declared items and their mutators); it
+     combines both.
    * Enumerations state their member values as number literals (Flags: powers of two) instead of ``auto()``; the values
      are unchanged.
    * Breaking change: ``pyVHDLModel`` no longer imports ``Obj``, ``MultipleNamedEntityMixin``, ``GenerateStatement`` and

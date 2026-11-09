@@ -99,7 +99,7 @@ Version 0.43.0 (2026)
    * Breaking change: the prototype ``Design.ImportObjects()`` and ``CreateTypeAndObjectGraph()`` are removed; use
      clauses (:meth:`~pyVHDLModel.Design.Analyze`) and :meth:`~pyVHDLModel.Design.AnalyzeObjects` replace them.
    * A protected type and its body chain their namespace to the enclosing region's namespace.
-   * Breaking change: :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError` takes ``(architecture, library)``;
+   * Breaking change: :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError` doesn't take the entity anymore;
      its ``Entity`` property is removed, use ``Architecture.Entity``.
    * :exc:`~pyVHDLModel.Exception.NotAChildError` derives from :exc:`pyTooling.Exceptions.NotAChildError` too.
    * Breaking change: every port interface item is a :class:`~pyVHDLModel.Interface.PortInterfaceItemMixin`; the mixin
@@ -137,6 +137,11 @@ Version 0.43.0 (2026)
      (:exc:`~pyVHDLModel.Exception.AmbiguousTopLevelError`, :exc:`~pyVHDLModel.Exception.NotAGenericPackageError`,
      :exc:`~pyVHDLModel.Exception.AncestorNotFoundError`, ...). Failed library and entity lookups are the cause of their
      error.
+   * Breaking change: the exceptions, which built their message from their arguments, take the message as the first,
+     positional-only parameter and the descriptive values as keyword-only parameters, e.g.
+     ``LibraryNotFoundError(message, /, *, libraryName)`` or
+     ``EntityExistsInLibraryError(message, /, *, entity, library)``; the raising code builds the message. Fields,
+     properties and messages are unchanged.
 
    .. rubric:: Bug Fixes
 

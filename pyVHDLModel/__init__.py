@@ -666,7 +666,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			return self._toplevel
 
 		if self._hierarchyGraph.VertexCount == 0:
-			ex = HierarchyNotComputedError()
+			ex = HierarchyNotComputedError("Hierarchy is not yet computed from dependency graph.")
 			ex.add_note("Call 'Analyze()' or 'AnalyzeDependencies()' before 'TopLevel'.")
 			raise ex
 
@@ -1761,7 +1761,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						library: Library = context._parent
 						libraryNormalizedIdentifier = library._normalizedIdentifier
 					elif not context.IsLibraryVisible(libraryNormalizedIdentifier):
-						ex = UseClauseLibraryNotVisibleError(libraryName._identifier, context)
+						ex = UseClauseLibraryNotVisibleError(
+							f"Use clause references library '{libraryName._identifier}', which was not referenced by a library "
+							"clause.",
+							libraryName=libraryName._identifier,
+							designUnit=context
+						)
 						ex.add_note(f"Add a library clause like: 'library {libraryName._identifier};'.")
 						raise ex
 					else:
@@ -2010,7 +2015,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					try:
 						library = self._libraries[libraryIdentifier]
 					except KeyError:
-						ex = LibraryClauseLibraryNotFoundError(designUnit, librarySymbol)
+						ex = LibraryClauseLibraryNotFoundError(
+							f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit "
+							f"'{designUnit.Identifier}' doesn't exist in design.",
+							designUnit=designUnit,
+							librarySymbol=librarySymbol
+						)
 						ex.add_note(f"""Known libraries: '{"', '".join(library for library in self._libraries)}'""")
 						raise ex
 
@@ -2093,7 +2103,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				if not (designUnit.Library.NormalizedIdentifier == "std" and designUnit.NormalizedIdentifier == "standard"):
 					for lib, packages in DEFAULT_PACKAGES:
 						if lib not in designUnit._referencedLibraries:
-							ex = LibraryReferenceNotLinkedError(designUnit, lib)
+							ex = LibraryReferenceNotLinkedError(
+								f"Design unit '{designUnit._identifier}' doesn't reference library '{lib}'.",
+								designUnit=designUnit,
+								libraryName=lib
+							)
 							ex.add_note(f"Every primary unit references library '{lib}' implicitly.")
 							ex.add_note("Call 'LinkLibraryReferences()' before 'LinkPackageReferences()'.")
 							raise ex
@@ -2300,7 +2314,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					library: Library = designUnit.Library
 					libraryIdentifier = library.NormalizedIdentifier
 				elif not designUnit.IsLibraryVisible(libraryIdentifier):
-					ex = UseClauseLibraryNotVisibleError(libraryName._identifier, designUnit)
+					ex = UseClauseLibraryNotVisibleError(
+						f"Use clause references library '{libraryName._identifier}', which was not referenced by a library clause.",
+						libraryName=libraryName._identifier,
+						designUnit=designUnit
+					)
 					ex.add_note(f"Add a library clause like: 'library {libraryName._identifier};'.")
 					raise ex
 				else:
@@ -2434,7 +2452,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						referencedLibrary = designUnit.Library
 						libraryIdentifier = referencedLibrary.NormalizedIdentifier
 					elif not designUnit.IsLibraryVisible(libraryIdentifier):
-						ex = ContextReferenceLibraryNotVisibleError(libraryName.Identifier, designUnit)
+						ex = ContextReferenceLibraryNotVisibleError(
+							f"Context reference references library '{libraryName.Identifier}', which was not referenced by a library "
+							"clause.",
+							libraryName=libraryName.Identifier,
+							designUnit=designUnit
+						)
 						ex.add_note(f"Add a library clause like: 'library {libraryName.Identifier};'.")
 						raise ex
 					else:
@@ -2485,7 +2508,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				for useClause in context._packageReferences:
 					for symbol in useClause._symbols:
 						if (package := symbol._reference) is None:
-							ex = UseClauseNotLinkedError(symbol, context)
+							ex = UseClauseNotLinkedError(
+								f"Use clause '{symbol._name!s}' of context '{context._identifier}' isn't linked.",
+								symbol=symbol,
+								context=context
+							)
 							ex.add_note("Call 'LinkContexts()' before 'LinkContextReferences()'.")
 							raise ex
 						elif len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
@@ -2550,7 +2577,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					component._isBlackbox = True
 					continue
 				else:
-					raise ComponentEntityNotFoundError(component, library.Identifier)
+					raise ComponentEntityNotFoundError(
+						f"Entity '{component.Identifier}' not found for component '{component.Identifier}' in library "
+						f"'{library.Identifier}'.",
+						component=component,
+						libraryName=library.Identifier
+					)
 
 			component.Entity = entity
 
@@ -2628,21 +2660,36 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						libraryIdentifier = architecture.Library.Identifier
 						normalizedLibraryIdentifier = architecture.Library.NormalizedIdentifier
 					elif not architecture.IsLibraryVisible(normalizedLibraryIdentifier):
-						ex = EntityInstantiationLibraryNotVisibleError(instance, architecture)
+						ex = EntityInstantiationLibraryNotVisibleError(
+							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in architecture '{architecture!r}'.",
+							instantiation=instance,
+							architecture=architecture
+						)
 						ex.add_note(f"Add a library reference to the architecture or entity using a library clause like: 'library {libraryIdentifier};'.")
 						raise ex
 
 					try:
 						library = self._libraries[normalizedLibraryIdentifier]
 					except KeyError:
-						ex = EntityInstantiationLibraryNotFoundError(instance)
+						ex = EntityInstantiationLibraryNotFoundError(
+							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in design.",
+							instantiation=instance
+						)
 						ex.add_note(f"No design units were parsed into library '{libraryIdentifier}'. Thus it doesn't exist in design.")
 						raise ex
 
 					try:
 						entity = library._entities[instance.Entity.Name.NormalizedIdentifier]
 					except KeyError:
-						ex =   InstantiatedEntityNotFoundError(instance, libraryIdentifier)
+						ex = InstantiatedEntityNotFoundError(
+							f"Referenced entity '{entityName.Identifier}' in direct entity instantiation '{instance.Label}: "
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in "
+							f"{'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{libraryIdentifier}'.",
+							instantiation=instance,
+							libraryName=libraryIdentifier
+						)
 						libs = [library.Identifier for library in self._libraries.values() for entityIdentifier in library._entities.keys() if entityIdentifier == instance.Entity.Name.NormalizedIdentifier]
 						if libs:
 							ex.add_note(f"Found entity '{instance.Entity!s}' in other libraries: {', '.join(libs)}")
@@ -2996,7 +3043,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		"""
 		if self._compileOrderGraph.EdgeCount < self._compileOrderGraph.VertexCount - 1:
-			ex = CompileOrderNotComputedError()
+			ex = CompileOrderNotComputedError("Compile order is not yet computed from dependency graph.")
 			ex.add_note("Call 'Analyze()' or 'AnalyzeDependencies()' before 'IterateDocumentsInCompileOrder()'.")
 			raise ex
 
@@ -3256,7 +3303,14 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		"""
 		for entityName, architecturesPerEntity in self._architectures.items():
 			if entityName not in self._entities:
-				raise ArchitectureEntityNotFoundError(entityName, tuple(architecturesPerEntity.keys()), self._identifier)
+				architectureNames = tuple(architecturesPerEntity.keys())
+				raise ArchitectureEntityNotFoundError(
+					f"""Entity '{entityName}' referenced by architecture(s) '{"', '".join(architectureNames)}' doesn't """
+					f"exist in library '{self._identifier}'.",
+					entityName=entityName,
+					architectureNames=architectureNames,
+					libraryName=self._identifier
+				)
 			# TODO: add code position
 
 			entity = self._entities[entityName]
@@ -3302,7 +3356,12 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		"""
 		for packageBodyName, packageBody in self._packageBodies.items():
 			if packageBodyName not in self._packages:
-				raise PackageBodyPackageNotFoundError(packageBodyName, self._identifier)
+				raise PackageBodyPackageNotFoundError(
+					f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library "
+					f"'{self._identifier}'.",
+					packageName=packageBodyName,
+					libraryName=self._identifier
+				)
 
 			package = self._packages[packageBodyName]
 			if (existing := package._packageBody) is not None and existing is not packageBody:
@@ -3366,9 +3425,19 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 					library: Library = self
 					libraryIdentifier = library.NormalizedIdentifier
 				elif libraryIdentifier not in self._parent._libraries:
-					raise PackageInstantiationLibraryNotFoundError(libraryName.Identifier, packageInstance)
+					raise PackageInstantiationLibraryNotFoundError(
+						f"Package instantiation of '{packageInstance._identifier}' references library '{libraryName.Identifier}', "
+						"which cannot be found in design.",
+						libraryName=libraryName.Identifier,
+						packageInstantiation=packageInstance
+					)
 				elif not packageInstance.IsLibraryVisible(libraryIdentifier):
-					ex = PackageInstantiationLibraryNotVisibleError(libraryName.Identifier, packageInstance)
+					ex = PackageInstantiationLibraryNotVisibleError(
+						f"Package instantiation of '{packageInstance._identifier}' references library '{libraryName.Identifier}', "
+						"which was not referenced by a library clause.",
+						libraryName=libraryName.Identifier,
+						packageInstantiation=packageInstance
+					)
 					ex.add_note(f"Add a library clause like: 'library {libraryName.Identifier};'.")
 					raise ex
 				else:

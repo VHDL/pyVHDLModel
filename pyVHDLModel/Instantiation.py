@@ -373,7 +373,12 @@ class PackageInstantiation(Package, GenericInstantiationMixin, GenericMapAspectM
 		                                            clauses.
 		"""
 		if (genericPackage := self._packageReference._reference) is None:
-			ex = PackageInstantiationNotLinkedError(self._identifier, str(self._packageReference._name))
+			ex = PackageInstantiationNotLinkedError(
+				f"Package instantiation '{self._identifier}' isn't linked to its generic package "
+				f"'{self._packageReference._name}'.",
+				instantiationName=self._identifier,
+				genericPackageName=str(self._packageReference._name)
+			)
 			ex.add_note("Call 'LinkPackageInstances()' before linking use clauses.")
 			raise ex
 
@@ -387,7 +392,12 @@ class PackageInstantiation(Package, GenericInstantiationMixin, GenericMapAspectM
 		"""
 		genericPackage: Package = self._packageReference.Package
 		if genericPackage is None:
-			raise PackageInstantiationNotLinkedError(self._identifier, str(self._packageReference._name))
+			raise PackageInstantiationNotLinkedError(
+				f"Package instantiation '{self._identifier}' isn't linked to its generic package "
+				f"'{self._packageReference._name}'.",
+				instantiationName=self._identifier,
+				genericPackageName=str(self._packageReference._name)
+			)
 
 		# TODO: components might need to be copied and derived
 		for componentName, component in genericPackage._components.items():

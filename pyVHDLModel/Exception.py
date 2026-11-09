@@ -464,19 +464,18 @@ class VHDLModelException(ExceptionBase):
 class LibraryExistsInDesignError(VHDLModelException):
 	"""
 	This exception is raised, when the library is already existing in the design.
-
-	Message: :pycode:`f"Library '{library._identifier}' already exists in design."`
 	"""
 
 	_library: Library  #: The library involved in this error.
 
-	def __init__(self, library: Library) -> None:
+	def __init__(self, message: str, /, *, library: Library) -> None:
 		"""
-		Initializes the exception message based on given library object.
+		Initializes the exception with a message and the library, which already exists in the design.
 
+		:param message: The exception message.
 		:param library: The library that already exists in the design.
 		"""
-		super().__init__(f"Library '{library._identifier}' already exists in design.")
+		super().__init__(message)
 		self._library = library
 
 	@readonly
@@ -493,19 +492,18 @@ class LibraryExistsInDesignError(VHDLModelException):
 class LibraryRegisteredToForeignDesignError(VHDLModelException):
 	"""
 	This exception is raised, when the library is already registered to a foreign design.
-
-	Message: :pycode:`f"Library '{library._identifier}' already registered in design '{library.Parent}'."`
 	"""
 
 	_library: Library  #: The library involved in this error.
 
-	def __init__(self, library: Library) -> None:
+	def __init__(self, message: str, /, *, library: Library) -> None:
 		"""
-		Initializes the exception message based on given library object.
+		Initializes the exception with a message and the library, which is already registered to another design.
 
+		:param message: The exception message.
 		:param library: The library that is already registered to another design.
 		"""
-		super().__init__(f"Library '{library._identifier}' already registered in design '{library.Parent}'.")
+		super().__init__(message)
 		self._library = library
 
 	@readonly
@@ -522,19 +520,18 @@ class LibraryRegisteredToForeignDesignError(VHDLModelException):
 class LibraryNotRegisteredError(VHDLModelException):
 	"""
 	This exception is raised, when the library is not registered in the design.
-
-	Message: :pycode:`f"Library '{library._identifier}' is not registered in the design."`
 	"""
 
 	_library: Library  #: The library involved in this error.
 
-	def __init__(self, library: Library) -> None:
+	def __init__(self, message: str, /, *, library: Library) -> None:
 		"""
-		Initializes the exception message based on given library object.
+		Initializes the exception with a message and the library, which isn't registered in the design.
 
+		:param message: The exception message.
 		:param library: The library that isn't registered in the design.
 		"""
-		super().__init__(f"Library '{library._identifier}' is not registered in the design.")
+		super().__init__(message)
 		self._library = library
 
 	@readonly
@@ -551,23 +548,22 @@ class LibraryNotRegisteredError(VHDLModelException):
 class EntityExistsInLibraryError(VHDLModelException):
 	"""
 	This exception is raised, when the entity already existing in the library.
-
-	Message: :pycode:`f"Entity '{entity._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library: Library  #: The library involved in this error.
 	_entity:  Entity   #: The entity involved in this error.
 
-	def __init__(self, entity: Entity, library: Library) -> None:
+	def __init__(self, message: str, /, *, entity: Entity, library: Library) -> None:
 		"""
-		Initializes the exception message based on given entity and library objects.
+		Initializes the exception with a message, the entity and the library, which already contains it.
 
+		:param message: The exception message.
 		:param entity:  The entity that already exists in the library.
 		:param library: The library that already contains the entity.
 		"""
-		super().__init__(f"Entity '{entity._identifier}' already exists in library '{library._identifier}'.")
+		super().__init__(message)
 		self._library = library
-		self._entity = entity
+		self._entity =  entity
 
 	@readonly
 	def Library(self) -> Library:
@@ -592,24 +588,20 @@ class EntityExistsInLibraryError(VHDLModelException):
 class ArchitectureExistsInLibraryError(VHDLModelException):
 	"""
 	This exception is raised, when the architecture already existing in the library.
-
-	Message: :pycode:`f"Architecture '{architecture._identifier}' for entity '{architecture._entity._name._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library:      Library       #: The library involved in this error.
 	_architecture: Architecture  #: The architecture involved in this error.
 
-	def __init__(self, architecture: Architecture, library: Library) -> None:
+	def __init__(self, message: str, /, *, architecture: Architecture, library: Library) -> None:
 		"""
-		Initializes the exception message based on given architecture and library objects.
+		Initializes the exception with a message, the architecture and the library, which already contains it.
 
+		:param message:      The exception message.
 		:param architecture: The architecture that already exists in the library.
 		:param library:      The library that already contains the architecture.
 		"""
-		super().__init__(
-			f"Architecture '{architecture._identifier}' for entity '{architecture._entity._name._identifier}' already exists "
-			f"in library '{library._identifier}'."
-		)
+		super().__init__(message)
 		self._library =      library
 		self._architecture = architecture
 
@@ -636,21 +628,20 @@ class ArchitectureExistsInLibraryError(VHDLModelException):
 class PackageExistsInLibraryError(VHDLModelException):
 	"""
 	This exception is raised, when the package already existing in the library.
-
-	Message: :pycode:`f"Package '{package._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library: Library  #: The library involved in this error.
 	_package: Package  #: The package involved in this error.
 
-	def __init__(self, package: Package, library: Library) -> None:
+	def __init__(self, message: str, /, *, package: Package, library: Library) -> None:
 		"""
-		Initializes the exception message based on given package and library objects.
+		Initializes the exception with a message, the package and the library, which already contains it.
 
+		:param message: The exception message.
 		:param package: The package that already exists in the library.
 		:param library: The library that already contains the package.
 		"""
-		super().__init__(f"Package '{package._identifier}' already exists in library '{library._identifier}'.")
+		super().__init__(message)
 		self._library = library
 		self._package = package
 
@@ -677,22 +668,21 @@ class PackageExistsInLibraryError(VHDLModelException):
 class PackageBodyExistsError(VHDLModelException):
 	"""
 	This exception is raised, when the package body already existing in the library.
-
-	Message: :pycode:`f"Package body '{packageBody._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library:     Library      #: The library involved in this error.
 	_packageBody: PackageBody  #: The package body involved in this error.
 
-	def __init__(self, packageBody: PackageBody, library: Library) -> None:
+	def __init__(self, message: str, /, *, packageBody: PackageBody, library: Library) -> None:
 		"""
-		Initializes the exception message based on given package body and library objects.
+		Initializes the exception with a message, the package body and the library, which already contains it.
 
+		:param message:     The exception message.
 		:param packageBody: The package body that already exists in the library.
 		:param library:     The library that already contains the package body.
 		"""
-		super().__init__(f"Package body '{packageBody._identifier}' already exists in library '{library._identifier}'.")
-		self._library = library
+		super().__init__(message)
+		self._library =     library
 		self._packageBody = packageBody
 
 	@readonly
@@ -718,22 +708,21 @@ class PackageBodyExistsError(VHDLModelException):
 class ConfigurationExistsInLibraryError(VHDLModelException):
 	"""
 	This exception is raised, when the configuration already existing in the library.
-
-	Message: :pycode:`f"Configuration '{configuration._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library:       Library        #: The library involved in this error.
 	_configuration: Configuration  #: The configuration involved in this error.
 
-	def __init__(self, configuration: Configuration, library: Library) -> None:
+	def __init__(self, message: str, /, *, configuration: Configuration, library: Library) -> None:
 		"""
-		Initializes the exception message based on given configuration and library objects.
+		Initializes the exception with a message, the configuration and the library, which already contains it.
 
+		:param message:       The exception message.
 		:param configuration: The configuration that already exists in the library.
 		:param library:       The library that already contains the configuration.
 		"""
-		super().__init__(f"Configuration '{configuration._identifier}' already exists in library '{library._identifier}'.")
-		self._library = library
+		super().__init__(message)
+		self._library =       library
 		self._configuration = configuration
 
 	@readonly
@@ -759,21 +748,20 @@ class ConfigurationExistsInLibraryError(VHDLModelException):
 class ContextExistsInLibraryError(VHDLModelException):
 	"""
 	This exception is raised, when the context already existing in the library.
-
-	Message: :pycode:`f"Context '{context._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library: Library  #: The library involved in this error.
 	_context: Context  #: The context involved in this error.
 
-	def __init__(self, context: Context, library: Library) -> None:
+	def __init__(self, message: str, /, *, context: Context, library: Library) -> None:
 		"""
-		Initializes the exception message based on given context and library objects.
+		Initializes the exception with a message, the context and the library, which already contains it.
 
+		:param message: The exception message.
 		:param context: The context that already exists in the library.
 		:param library: The library that already contains the context.
 		"""
-		super().__init__(f"Context '{context._identifier}' already exists in library '{library._identifier}'.")
+		super().__init__(message)
 		self._library = library
 		self._context = context
 
@@ -835,21 +823,20 @@ class LibraryNotInDesignError(Exception):
 class ReferencedLibraryNotExistingError(VHDLModelException, LibraryNotInDesignError):
 	"""
 	This exception is raised, when a library is referenced by a `library clause`, but doesn't exist in the design.
-
-	Message: :pycode:`f"Library '{librarySymbol.Name._identifier}' referenced by library clause of context '{context._identifier}' doesn't exist in design."`
 	"""
 
 	_librarySymbol: Symbol   #: The library symbol that could not be resolved.
 	_context:       Context  #: The context involved in this error.
 
-	def __init__(self, context: Context, librarySymbol: Symbol) -> None:
+	def __init__(self, message: str, /, *, context: Context, librarySymbol: Symbol) -> None:
 		"""
-		Initializes the exception message based on given context and library objects.
+		Initializes the exception with a message, the context and the unresolved library symbol of its library clause.
 
-		:param context:       The context that already exists in the library.
-		:param librarySymbol: The library that already contains the context.
+		:param message:       The exception message.
+		:param context:       The context containing the library clause.
+		:param librarySymbol: The library symbol that could not be resolved.
 		"""
-		super().__init__(f"Library '{librarySymbol.Name._identifier}' referenced by library clause of context '{context._identifier}' doesn't exist in design.")
+		super().__init__(message)
 		self._libraryName =   librarySymbol.Name._identifier
 		self._librarySymbol = librarySymbol
 		self._context =       context
@@ -1857,17 +1844,16 @@ class LibraryInUseError(ElementInUseError["Library", "Document"]):
 class LibraryNotFoundError(VHDLModelException, LibraryNotInDesignError):
 	"""
 	This exception is raised, when a library is looked up by name, but doesn't exist in the design.
-
-	Message: :pycode:`f"Library '{libraryName}' not found in design."`
 	"""
 
-	def __init__(self, libraryName: str) -> None:
+	def __init__(self, message: str, /, *, libraryName: str) -> None:
 		"""
-		Initializes the exception message based on the given library name.
+		Initializes the exception with a message and the name of the library, which was not found.
 
+		:param message:     The exception message.
 		:param libraryName: The name of the library, which was not found.
 		"""
-		super().__init__(f"Library '{libraryName}' not found in design.")
+		super().__init__(message)
 		self._libraryName = libraryName
 
 
@@ -2027,19 +2013,17 @@ class DesignUnitNotFoundError(Exception):
 class EntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 	"""
 	This exception is raised, when an entity is looked up by name, but doesn't exist in the searched library.
-
-	Message: :pycode:`f"Entity '{entityName}' not found in library '{libraryName}'."`
 	"""
 
-	def __init__(self, entityName: str, libraryName: str) -> None:
+	def __init__(self, message: str, /, *, entityName: str, libraryName: str) -> None:
 		"""
-		Initializes the exception message based on the given entity name and library name.
+		Initializes the exception with a message, the name of the entity, which was not found, and the library name.
 
+		:param message:     The exception message.
 		:param entityName:  The name of the entity, which was not found.
 		:param libraryName: The name of the searched library.
 		"""
-		super().__init__(f"Entity '{entityName}' not found in library '{libraryName}'.")
-
+		super().__init__(message)
 		self._designUnitName = entityName
 		self._libraryName =    libraryName
 
@@ -2048,19 +2032,17 @@ class EntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 class PackageNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 	"""
 	This exception is raised, when a package is looked up by name, but doesn't exist in the searched library.
-
-	Message: :pycode:`f"Package '{packageName}' not found in library '{libraryName}'."`
 	"""
 
-	def __init__(self, packageName: str, libraryName: str) -> None:
+	def __init__(self, message: str, /, *, packageName: str, libraryName: str) -> None:
 		"""
-		Initializes the exception message based on the given package name and library name.
+		Initializes the exception with a message, the name of the package, which was not found, and the library name.
 
+		:param message:     The exception message.
 		:param packageName: The name of the package, which was not found.
 		:param libraryName: The name of the searched library.
 		"""
-		super().__init__(f"Package '{packageName}' not found in library '{libraryName}'.")
-
+		super().__init__(message)
 		self._designUnitName = packageName
 		self._libraryName =    libraryName
 
@@ -2069,19 +2051,17 @@ class PackageNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 class ConfigurationNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 	"""
 	This exception is raised, when a configuration is looked up by name, but doesn't exist in the searched library.
-
-	Message: :pycode:`f"Configuration '{configurationName}' not found in library '{libraryName}'."`
 	"""
 
-	def __init__(self, configurationName: str, libraryName: str) -> None:
+	def __init__(self, message: str, /, *, configurationName: str, libraryName: str) -> None:
 		"""
-		Initializes the exception message based on the given configuration name and library name.
+		Initializes the exception with a message, the name of the configuration, which was not found, and the library name.
 
+		:param message:           The exception message.
 		:param configurationName: The name of the configuration, which was not found.
 		:param libraryName:       The name of the searched library.
 		"""
-		super().__init__(f"Configuration '{configurationName}' not found in library '{libraryName}'.")
-
+		super().__init__(message)
 		self._designUnitName = configurationName
 		self._libraryName =    libraryName
 
@@ -2090,19 +2070,17 @@ class ConfigurationNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 class ContextNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 	"""
 	This exception is raised, when a context is looked up by name, but doesn't exist in the searched library.
-
-	Message: :pycode:`f"Context '{contextName}' not found in library '{libraryName}'."`
 	"""
 
-	def __init__(self, contextName: str, libraryName: str) -> None:
+	def __init__(self, message: str, /, *, contextName: str, libraryName: str) -> None:
 		"""
-		Initializes the exception message based on the given context name and library name.
+		Initializes the exception with a message, the name of the context, which was not found, and the library name.
 
+		:param message:     The exception message.
 		:param contextName: The name of the context, which was not found.
 		:param libraryName: The name of the searched library.
 		"""
-		super().__init__(f"Context '{contextName}' not found in library '{libraryName}'.")
-
+		super().__init__(message)
 		self._designUnitName = contextName
 		self._libraryName =    libraryName
 
@@ -2291,21 +2269,17 @@ class InstantiationNotLinkedError(NotLinkedError):
 class PackageInstantiationNotLinkedError(VHDLModelException, InstantiationNotLinkedError):
 	"""
 	This exception is raised, when a package instantiation isn't linked to its generic package.
-
-	Message: :pycode:`f"Package instantiation '{instantiationName}' isn't linked to its generic package '{packageName}'."`
 	"""
 
-	def __init__(self, instantiationName: str, genericPackageName: str) -> None:
+	def __init__(self, message: str, /, *, instantiationName: str, genericPackageName: str) -> None:
 		"""
-		Initializes the exception message based on the given instantiation name and generic package name.
+		Initializes the exception with a message, the name of the package instantiation and of its generic package.
 
+		:param message:            The exception message.
 		:param instantiationName:  The name of the package instantiation, which isn't linked.
 		:param genericPackageName: The name of the generic package, as the instantiation references it.
 		"""
-		super().__init__(
-			f"Package instantiation '{instantiationName}' isn't linked to its generic package '{genericPackageName}'."
-		)
-
+		super().__init__(message)
 		self._instantiationName = instantiationName
 		self._genericName =       genericPackageName
 

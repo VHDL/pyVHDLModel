@@ -1486,6 +1486,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):
 			designUnit._namespace.ClearImports()
 
+		for context in self.IterateDesignUnits(DesignUnitKind.Context):
+			context._namespace.ClearImports()
+
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
 			for region in designUnit.IterateDeclarationRegions():
 				region._namespace.ClearImports()
@@ -1538,18 +1541,18 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`IndexPackages`
 		4. Index all entities. |br|
 		   |rarr| :meth:`IndexEntities`
-		5. Link all contexts |br|
-		   |rarr| :meth:`LinkContexts`
-		6. Link all architectures. |br|
+		5. Link all architectures. |br|
 		   |rarr| :meth:`LinkArchitectures`
-		7. Index all architectures. |br|
+		6. Index all architectures. |br|
 		   |rarr| :meth:`IndexArchitectures`
-		8. Link all package bodies. |br|
+		7. Link all package bodies. |br|
 		   |rarr| :meth:`LinkPackageBodies`
-		9. Index all package bodies. |br|
+		8. Index all package bodies. |br|
 		   |rarr| :meth:`IndexPackageBodies`
-		10. Link all package instances. |br|
-		    |rarr| :meth:`LinkPackageInstances`
+		9. Link all package instances. |br|
+		   |rarr| :meth:`LinkPackageInstances`
+		10. Link all contexts. |br|
+		    |rarr| :meth:`LinkContexts`
 		11. Link all library references. |br|
 		    |rarr| :meth:`LinkLibraryReferences`
 		12. Link all package references. |br|
@@ -1575,12 +1578,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		self.IndexPackages()
 		self.IndexEntities()
 
-		self.LinkContexts()
 		self.LinkArchitectures()
 		self.IndexArchitectures()
 		self.LinkPackageBodies()
 		self.IndexPackageBodies()
 		self.LinkPackageInstances()
+		self.LinkContexts()
 		self.LinkLibraryReferences()
 		self.LinkPackageReferences()
 		self.LinkContextReferences()
@@ -1754,20 +1757,30 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedContexts` for that working library. In addition, a vertex in
 		the dependency graph is added for that relationship.
 
-		At second, all use clauses are resolved (a use clause my have multiple package member reference symbols). For each
-		referenced package,
+		The library clauses of all contexts are resolved before the use clauses of any context.
 
-		:raises ReferencedLibraryNotExistingError: If a library clause references a library, which doesn't exist in the
-		                                           design.
-		:raises UseClauseLibraryNotVisibleError:   If a use clause references a library, whose name isn't visible
-		                                           (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
-		:raises LibraryNotFoundError:              If a use clause references a library, which a library clause of a
-		                                           nested context names, and which doesn't exist in the design.
-		:raises PackageNotFoundError:              If a use clause references a package, which doesn't exist in its library.
-		:raises UnknownSymbolKindError:            If the type of a symbol in a use clause is unknown.
-		:raises UnhandledCriticalWarningError:     If a use clause names a package member, which the package doesn't
-		                                           declare, and no :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                           :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		At second, all use clauses are linked as the use clauses of a design unit's context clause (a use clause may have
+		multiple package member reference symbols). |br|
+		|rarr| :meth:`_LinkUseClause`
+
+		The declarations they make potentially visible are imported into the context's namespace. The design units
+		referencing the context import them from there (:meth:`LinkContextReferences`).
+
+		:raises ReferencedLibraryNotExistingError:  If a library clause references a library, which doesn't exist in the
+		                                            design.
+		:raises UseClauseLibraryNotVisibleError:    If a use clause references a library, whose name isn't visible
+		                                            (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
+		:raises PackageNotFoundError:               If a use clause references a package, which doesn't exist in its
+		                                            library.
+		:raises UnknownSymbolKindError:             If the type of a symbol in a use clause is unknown.
+		:raises PackageInstantiationNotLinkedError: If a use clause names a package instantiation, which isn't linked to its
+		                                            generic package. |br|
+		                                            Call :meth:`LinkPackageInstances` before.
+		:raises UnhandledCriticalWarningError:      If a use clause names a package member, which the package doesn't
+		                                            declare, a primary unit, which the library doesn't contain, a prefix,
+		                                            which isn't a visible package, or an uninstantiated generic package, and
+		                                            no :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                            :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
 		for context in self.IterateDesignUnits(DesignUnitKind.Context):  # type: Context
 			# Create entries in _referenced*** for the current working library under its real name.
@@ -1803,84 +1816,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					dependency = context._dependencyVertex.EdgeToVertex(library._dependencyVertex, edgeValue=libraryReference)
 					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
-			# Process all use clauses
-			for packageReference in context.PackageReferences:
-				# A use clause can have multiple comma-separated references
-				for symbol in packageReference.Symbols:  # type: PackageReferenceSymbol
-					packageName = symbol.Name.Prefix
-					libraryName = packageName.Prefix
-
-					libraryNormalizedIdentifier = libraryName._normalizedIdentifier
-					packageNormalizedIdentifier = packageName._normalizedIdentifier
-
-					# In case work is used, resolve to the real library name.
-					if libraryNormalizedIdentifier == "work":
-						library: Library = context._parent
-						libraryNormalizedIdentifier = library._normalizedIdentifier
-					elif not context.IsLibraryVisible(libraryNormalizedIdentifier):
-						ex = UseClauseLibraryNotVisibleError(
-							f"Use clause references library '{libraryName._identifier}', which was not referenced by a library "
-							"clause.",
-							libraryName=libraryName._identifier,
-							designUnit=context
-						)
-						ex.add_note(f"Add a library clause like: 'library {libraryName._identifier};'.")
-						raise ex
-					else:
-						try:
-							library = self._libraries[libraryNormalizedIdentifier]
-						except KeyError as cause:
-							raise LibraryNotFoundError(
-								f"Library '{libraryName._identifier}' not found in design.",
-								libraryName=libraryName._identifier
-							) from cause
-
-					try:
-						package = library._packages[packageNormalizedIdentifier]
-					except KeyError as cause:
-						ex = PackageNotFoundError(
-							f"Package '{packageName._identifier}' not found in "
-							f"{'working ' if libraryName._normalizedIdentifier == 'work' else ''}library '{library._identifier}'.",
-							packageName=packageName._identifier,
-							libraryName=library._identifier
-						)
-						if libraryName._normalizedIdentifier == "work":
-							ex.add_note(f"Library 'work' is the working library '{library._identifier}'.")
-
-						raise ex from cause
-
-					symbol._reference = package
-					if len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
-						WarningCollector.Raise(UnresolvedNameWarning(
-							f"Use clause '{symbol._name!s}' names the uninstantiated generic package '{package._identifier}'.",
-							symbol=symbol,
-							place=packageReference,
-							namespaces=(package._namespace, )
-						))
-						continue
-
-					context._referencedPackages.setdefault(libraryNormalizedIdentifier, {})[packageNormalizedIdentifier] = package
-
-					dependency = context._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=packageReference)
-					dependency["kind"] = DependencyGraphEdgeKind.UseClause
-
-					# The items are imported into the namespaces of the design units referencing the context.
-					if isinstance(symbol, PackageMemberReferenceSymbol):
-						if len(tuple(package.IterateMemberDeclarations(symbol._name._normalizedIdentifier))) == 0:
-							WarningCollector.Raise(UnresolvedNameWarning(
-								f"Package '{package._identifier}' has no declaration '{symbol._name._identifier}'.",
-								symbol=symbol,
-								place=packageReference,
-								namespaces=(package._namespace, )
-							))
-					elif not isinstance(symbol, AllPackageMembersReferenceSymbol):
-						ex = UnknownSymbolKindError(
-							f"Unknown package reference symbol type in design unit '{context._identifier}'.",
-							symbol=symbol,
-							designUnit=context
-						)
-						ex.add_note(f"Got type '{getFullyQualifiedName(symbol)}'.")
-						raise ex
+		for context in self.IterateDesignUnits(DesignUnitKind.Context):  # type: Context
+			for packageReference in context._packageReferences:
+				self._LinkUseClause(context, context._namespace, packageReference, True)
 
 	def LinkArchitectures(self) -> None:
 		"""
@@ -2290,7 +2228,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   * ``PackageReferenceSymbol`` (``use lib.pkg;``): the package itself.
 
 		:param designUnit:                          The design unit containing the use clause.
-		:param namespace:                           The namespace of the declarative region containing the use clause.
+		:param namespace:                           The namespace of the declarative region or of the context declaration
+		                                            containing the use clause.
 		:param useClause:                           The use clause.
 		:param isContextItem:                       ``True``, if the use clause is an item of the design unit's context
 		                                            clause.
@@ -2505,8 +2444,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		        * Add an entry in the design unit's ``_referencedPackages`` dictionary referencing the referenced package.
 
 		3. Iterate all design units with a namespace, the contexts they reference and, transitively, the contexts these
-		   reference: import the declarations the use clauses of the contexts make potentially visible into the design
-		   unit's namespace, as :meth:`_LinkUseClause` does.
+		   reference: import the declarations, which :meth:`LinkContexts` imported into the namespace of a context, into the
+		   design unit's namespace.
 
 		.. seealso::
 
@@ -2598,26 +2537,19 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						if symbol._reference not in contexts:
 							contexts.append(symbol._reference)
 
-				for useClause in context._packageReferences:
-					for symbol in useClause._symbols:
-						if (package := symbol._reference) is None:
-							ex = UseClauseNotLinkedError(
-								f"Use clause '{symbol._name!s}' of context '{context._identifier}' isn't linked.",
-								symbol=symbol,
-								context=context
-							)
-							ex.add_note("Call 'LinkContexts()' before 'LinkContextReferences()'.")
-							raise ex
-						elif len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
-							# LinkContexts reported the uninstantiated generic package.
-							continue
-						elif isinstance(symbol, AllPackageMembersReferenceSymbol):
-							declarations = package.IterateDeclarations()
-						else:
-							declarations = package.IterateMemberDeclarations(symbol._name._normalizedIdentifier)
+				if len(context._packageReferences) > 0 and len(context._referencedLibraries) == 0:
+					symbol = context._packageReferences[0]._symbols[0]
+					ex = UseClauseNotLinkedError(
+						f"Use clause '{symbol._name!s}' of context '{context._identifier}' isn't linked.",
+						symbol=symbol,
+						context=context
+					)
+					ex.add_note("Call 'LinkContexts()' before 'LinkContextReferences()'.")
+					raise ex
 
-						for normalizedIdentifier, declaration in declarations:
-							designUnit._namespace.AddImport(normalizedIdentifier, declaration, useClause)
+				for normalizedIdentifier, imports in context._namespace._imports.items():
+					for imported in imports:
+						designUnit._namespace.AddImport(normalizedIdentifier, imported._element, imported._useClause)
 
 	def LinkComponents(self) -> None:
 		"""

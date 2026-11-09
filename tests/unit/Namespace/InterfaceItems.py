@@ -46,6 +46,7 @@ from pyVHDLModel.Interface  import GenericConstantInterfaceItem, GenericTypeInte
                                    ParameterVariableInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Object     import Signal
+from pyVHDLModel.Regions    import DeclarativeRegionMixin, DeclarativePartMixin, DeclarationRegionMixin
 from pyVHDLModel.Subprogram import Procedure
 from pyVHDLModel.Symbol     import EntitySymbol, SignalSymbol, SimpleSubtypeSymbol, VariableSymbol
 
@@ -194,6 +195,30 @@ class ComponentInterfaceItems(Testcase):
 		component.IndexDeclaredItems()
 
 		self.assertTupleEqual((signal, ), component._namespace.Lookup("s", port).Declarations)
+
+	def test_NoDeclarativePart(self) -> None:
+		"""A component is a declarative region without a declarative part: no declared items, no mutators for them."""
+		component = Component("comp")
+
+		self.assertIsInstance(component, DeclarativeRegionMixin)
+		self.assertNotIsInstance(component, DeclarativePartMixin)
+		self.assertNotIsInstance(component, DeclarationRegionMixin)
+		for name in (
+			"_DECLARED_ITEM_TYPES",
+			"_declaredItems",
+			"DeclaredItems",
+			"AddDeclaredItem",
+			"InsertDeclaredItem",
+			"InsertDeclaredItemBefore",
+			"InsertDeclaredItemAfter",
+			"RemoveDeclaredItem",
+			"MoveDeclaredItem",
+			"MoveDeclaredItemBefore",
+			"MoveDeclaredItemAfter",
+			"SplitDeclaredItem"
+		):
+			with self.subTest(name=name):
+				self.assertFalse(hasattr(component, name))
 
 
 class PackageGenerics(Testcase):

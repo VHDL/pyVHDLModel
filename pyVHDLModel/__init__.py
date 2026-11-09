@@ -740,10 +740,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		libraryIdentifier = library.NormalizedIdentifier
 		if libraryIdentifier in self._libraries:
-			raise LibraryExistsInDesignError(library)
+			raise LibraryExistsInDesignError(f"Library '{library._identifier}' already exists in design.", library=library)
 
 		if library._parent is not None:
-			raise LibraryRegisteredToForeignDesignError(library)
+			raise LibraryRegisteredToForeignDesignError(
+				f"Library '{library._identifier}' already registered in design '{library.Parent}'.",
+				library=library
+			)
 
 		self._libraries[libraryIdentifier] = library
 		library.Parent = self
@@ -850,12 +853,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		libraryIdentifier = libraryName.lower()
 		if libraryIdentifier not in self._libraries:
-			raise LibraryNotFoundError(libraryName)
+			raise LibraryNotFoundError(f"Library '{libraryName}' not found in design.", libraryName=libraryName)
 
 		library =          self._libraries[libraryIdentifier]
 		entityIdentifier = entityName.lower()
 		if entityIdentifier not in library._entities:
-			raise EntityNotFoundError(entityName, libraryName)
+			raise EntityNotFoundError(
+				f"Entity '{entityName}' not found in library '{libraryName}'.",
+				entityName=entityName,
+				libraryName=libraryName
+			)
 
 		return library._entities[entityIdentifier]
 
@@ -923,12 +930,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		libraryIdentifier = libraryName.lower()
 		if libraryIdentifier not in self._libraries:
-			raise LibraryNotFoundError(libraryName)
+			raise LibraryNotFoundError(f"Library '{libraryName}' not found in design.", libraryName=libraryName)
 
 		library =           self._libraries[libraryIdentifier]
 		packageIdentifier = packageName.lower()
 		if packageIdentifier not in library._packages:
-			raise PackageNotFoundError(packageName, libraryName)
+			raise PackageNotFoundError(
+				f"Package '{packageName}' not found in library '{libraryName}'.",
+				packageName=packageName,
+				libraryName=libraryName
+			)
 
 		return library._packages[packageIdentifier]
 
@@ -996,12 +1007,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		libraryIdentifier = libraryName.lower()
 		if libraryIdentifier not in self._libraries:
-			raise LibraryNotFoundError(libraryName)
+			raise LibraryNotFoundError(f"Library '{libraryName}' not found in design.", libraryName=libraryName)
 
 		library =                 self._libraries[libraryIdentifier]
 		configurationIdentifier = configurationName.lower()
 		if configurationIdentifier not in library._configurations:
-			raise ConfigurationNotFoundError(configurationName, libraryName)
+			raise ConfigurationNotFoundError(
+				f"Configuration '{configurationName}' not found in library '{libraryName}'.",
+				configurationName=configurationName,
+				libraryName=libraryName
+			)
 
 		return library._configurations[configurationIdentifier]
 
@@ -1070,12 +1085,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		libraryIdentifier = libraryName.lower()
 		if libraryIdentifier not in self._libraries:
-			raise LibraryNotFoundError(libraryName)
+			raise LibraryNotFoundError(f"Library '{libraryName}' not found in design.", libraryName=libraryName)
 
 		library =           self._libraries[libraryIdentifier]
 		contextIdentifier = contextName.lower()
 		if contextIdentifier not in library._contexts:
-			raise ContextNotFoundError(contextName, libraryName)
+			raise ContextNotFoundError(
+				f"Context '{contextName}' not found in library '{libraryName}'.",
+				contextName=contextName,
+				libraryName=libraryName
+			)
 
 		return library._contexts[contextIdentifier]
 
@@ -1175,33 +1194,61 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			ex.add_note(f"Got type '{getFullyQualifiedName(library)}'.")
 			raise ex
 		elif self._libraries.get(library._normalizedIdentifier) is not library:
-			raise LibraryNotRegisteredError(library)
+			raise LibraryNotRegisteredError(
+				f"Library '{library._identifier}' is not registered in the design.",
+				library=library
+			)
 
 		for entityIdentifier, entity in document._entities.items():
 			if entityIdentifier in library._entities:
-				raise EntityExistsInLibraryError(entity, library)
+				raise EntityExistsInLibraryError(
+					f"Entity '{entity._identifier}' already exists in library '{library._identifier}'.",
+					entity=entity,
+					library=library
+				)
 
 		for entityIdentifier, architectures in document._architectures.items():
 			architecturesPerEntity = library._architectures.get(entityIdentifier, {})
 			for architectureIdentifier, architecture in architectures.items():
 				if architectureIdentifier in architecturesPerEntity:
-					raise ArchitectureExistsInLibraryError(architecture, library)
+					raise ArchitectureExistsInLibraryError(
+						f"Architecture '{architecture._identifier}' for entity '{architecture._entity._name._identifier}' already "
+						f"exists in library '{library._identifier}'.",
+						architecture=architecture,
+						library=library
+					)
 
 		for packageIdentifier, package in document._packages.items():
 			if packageIdentifier in library._packages:
-				raise PackageExistsInLibraryError(package, library)
+				raise PackageExistsInLibraryError(
+					f"Package '{package._identifier}' already exists in library '{library._identifier}'.",
+					package=package,
+					library=library
+				)
 
 		for packageBodyIdentifier, packageBody in document._packageBodies.items():
 			if packageBodyIdentifier in library._packageBodies:
-				raise PackageBodyExistsError(packageBody, library)
+				raise PackageBodyExistsError(
+					f"Package body '{packageBody._identifier}' already exists in library '{library._identifier}'.",
+					packageBody=packageBody,
+					library=library
+				)
 
 		for configurationIdentifier, configuration in document._configurations.items():
 			if configurationIdentifier in library._configurations:
-				raise ConfigurationExistsInLibraryError(configuration, library)
+				raise ConfigurationExistsInLibraryError(
+					f"Configuration '{configuration._identifier}' already exists in library '{library._identifier}'.",
+					configuration=configuration,
+					library=library
+				)
 
 		for contextIdentifier, context in document._contexts.items():
 			if contextIdentifier in library._contexts:
-				raise ContextExistsInLibraryError(context, library)
+				raise ContextExistsInLibraryError(
+					f"Context '{context._identifier}' already exists in library '{library._identifier}'.",
+					context=context,
+					library=library
+				)
 
 		self._documents.append(document)
 		self._documentsByPath[document._path] = document
@@ -1739,7 +1786,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					try:
 						library = self._libraries[libraryNormalizedIdentifier]
 					except KeyError as cause:
-						raise ReferencedLibraryNotExistingError(context, libraryName) from cause
+						raise ReferencedLibraryNotExistingError(
+							f"Library '{libraryName.Name._identifier}' referenced by library clause of context "
+							f"'{context._identifier}' doesn't exist in design.",
+							context=context,
+							librarySymbol=libraryName
+						) from cause
 						# TODO: add position to these messages
 
 					libraryName.Library = library
@@ -1778,12 +1830,20 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						try:
 							library = self._libraries[libraryNormalizedIdentifier]
 						except KeyError as cause:
-							raise LibraryNotFoundError(libraryName._identifier) from cause
+							raise LibraryNotFoundError(
+								f"Library '{libraryName._identifier}' not found in design.",
+								libraryName=libraryName._identifier
+							) from cause
 
 					try:
 						package = library._packages[packageNormalizedIdentifier]
 					except KeyError as cause:
-						ex = PackageNotFoundError(packageName._identifier, library._identifier)
+						ex = PackageNotFoundError(
+							f"Package '{packageName._identifier}' not found in "
+							f"{'working ' if libraryName._normalizedIdentifier == 'work' else ''}library '{library._identifier}'.",
+							packageName=packageName._identifier,
+							libraryName=library._identifier
+						)
 						if libraryName._normalizedIdentifier == "work":
 							ex.add_note(f"Library 'work' is the working library '{library._identifier}'.")
 
@@ -1978,7 +2038,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					try:
 						referencedLibrary = self._libraries[libraryIdentifier]
 					except KeyError as cause:
-						ex = LibraryNotFoundError(libraryIdentifier)
+						ex = LibraryNotFoundError(
+							f"Library '{libraryIdentifier}' not found in design.",
+							libraryName=libraryIdentifier
+						)
 						ex.add_note("Call 'LoadStdLibrary()' before analyzing a design.")
 						raise ex from cause
 
@@ -2126,7 +2189,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							try:
 								referencedPackage = self._libraries[lib]._packages[package]
 							except KeyError as cause:
-								ex = PackageNotFoundError(package, lib)
+								ex = PackageNotFoundError(
+									f"Package '{package}' not found in library '{lib}'.",
+									packageName=package,
+									libraryName=lib
+								)
 								ex.add_note("Call 'LoadStdLibrary()' before analyzing a design.")
 								raise ex from cause
 
@@ -2342,7 +2409,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				try:
 					package = library._packages[packageIdentifier]
 				except KeyError as cause:
-					ex = PackageNotFoundError(packageName._identifier, library._identifier)
+					ex = PackageNotFoundError(
+						f"Package '{packageName._identifier}' not found in "
+						f"{'working ' if libraryName._normalizedIdentifier == 'work' else ''}library '{library._identifier}'.",
+						packageName=packageName._identifier,
+						libraryName=library._identifier
+					)
 					if libraryName._normalizedIdentifier == "work":
 						ex.add_note(f"Library 'work' is the working library '{library._identifier}'.")
 
@@ -2481,7 +2553,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					try:
 						referencedContext = referencedLibrary._contexts[contextIdentifier]
 					except KeyError as cause:
-						ex = ContextNotFoundError(contextSymbol.Name.Identifier, referencedLibrary.Identifier)
+						ex = ContextNotFoundError(
+							f"Context '{contextSymbol.Name.Identifier}' not found in "
+							f"{'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library "
+							f"'{referencedLibrary.Identifier}'.",
+							contextName=contextSymbol.Name.Identifier,
+							libraryName=referencedLibrary.Identifier
+						)
 						if libraryName.NormalizedIdentifier == "work":
 							ex.add_note(f"Library 'work' is the working library '{referencedLibrary.Identifier}'.")
 
@@ -3334,7 +3412,11 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 			entity = self._entities[entityName]
 			for architecture in architecturesPerEntity.values():
 				if architecture._normalizedIdentifier in entity._architectures:
-					raise ArchitectureExistsInLibraryError(architecture, self)
+					raise ArchitectureExistsInLibraryError(
+						f"Architecture '{architecture._identifier}' already exists for entity '{entity._identifier}'.",
+						architecture=architecture,
+						library=self
+					)
 				# TODO: add code position of existing and current
 
 				entity._architectures[architecture._normalizedIdentifier] = architecture
@@ -3464,7 +3546,12 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 				try:
 					package = library._packages[packageIdentifier]
 				except KeyError as cause:
-					ex = PackageNotFoundError(packageName.Identifier, library.Identifier)
+					ex = PackageNotFoundError(
+						f"Package '{packageName.Identifier}' not found in "
+						f"{'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.",
+						packageName=packageName.Identifier,
+						libraryName=library.Identifier
+					)
 					if libraryName.NormalizedIdentifier == "work":
 						ex.add_note(f"Library 'work' is the working library '{library.Identifier}'.")
 
@@ -4101,17 +4188,42 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		if libraryUnits is not None and identifier in libraryUnits:
 			if isinstance(designUnit, Entity):
-				raise EntityExistsInLibraryError(designUnit, library)
+				raise EntityExistsInLibraryError(
+					f"Entity '{designUnit._identifier}' already exists in library '{library._identifier}'.",
+					entity=designUnit,
+					library=library
+				)
 			elif isinstance(designUnit, Architecture):
-				raise ArchitectureExistsInLibraryError(designUnit, library)
+				raise ArchitectureExistsInLibraryError(
+					f"Architecture '{designUnit._identifier}' for entity '{designUnit._entity._name._identifier}' already "
+					f"exists in library '{library._identifier}'.",
+					architecture=designUnit,
+					library=library
+				)
 			elif isinstance(designUnit, Package):
-				raise PackageExistsInLibraryError(designUnit, library)
+				raise PackageExistsInLibraryError(
+					f"Package '{designUnit._identifier}' already exists in library '{library._identifier}'.",
+					package=designUnit,
+					library=library
+				)
 			elif isinstance(designUnit, PackageBody):
-				raise PackageBodyExistsError(designUnit, library)
+				raise PackageBodyExistsError(
+					f"Package body '{designUnit._identifier}' already exists in library '{library._identifier}'.",
+					packageBody=designUnit,
+					library=library
+				)
 			elif isinstance(designUnit, Context):
-				raise ContextExistsInLibraryError(designUnit, library)
+				raise ContextExistsInLibraryError(
+					f"Context '{designUnit._identifier}' already exists in library '{library._identifier}'.",
+					context=designUnit,
+					library=library
+				)
 			else:
-				raise ConfigurationExistsInLibraryError(designUnit, library)
+				raise ConfigurationExistsInLibraryError(
+					f"Configuration '{designUnit._identifier}' already exists in library '{library._identifier}'.",
+					configuration=designUnit,
+					library=library
+				)
 
 		self._designUnits.insert(index, designUnit)
 		designUnit._document = self

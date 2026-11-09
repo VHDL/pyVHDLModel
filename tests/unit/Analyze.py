@@ -613,7 +613,7 @@ class LinkArchitectures(Testcase):
 			library.LinkArchitectures()
 
 		self.assertEqual(
-			"Architecture 'arch_1' for entity 'entity_1' already exists in library 'lib_1'.",
+			"Architecture 'arch_1' already exists for entity 'entity_1'.",
 			str(context.exception)
 		)
 		self.assertIs(architecture, context.exception.Architecture)

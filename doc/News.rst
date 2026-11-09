@@ -110,6 +110,8 @@ Version 0.43.0 (2026)
      :class:`~pyVHDLModel.Base.ModelEntity`. A symbol's parent is the model entity using it, e.g. a statement, an
      expression or a declaration; a symbol is the parent of its name, an aggregate symbol of its targets. The symbol
      classes take an optional keyword-only ``parent`` and declare their fields as slots.
+   * Breaking change: ``ModelElementUnion`` (:mod:`pyVHDLModel.Base`) is removed; use
+     :class:`~pyVHDLModel.Base.ModelEntity`.
    * :class:`~pyVHDLModel.DesignUnit.Context` inherits ``LibraryReferences``, ``PackageReferences`` and
      ``ContextReferences`` from :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
    * Instantiations annotate their generic and port maps with :class:`~pyVHDLModel.Association.GenericAssociationItem`

@@ -53,7 +53,7 @@ if TYPE_CHECKING:
 	from pyVHDLModel.Visitor   import Visitor
 
 
-__all__ = ["ExpressionUnion", "ModelElementUnion"]
+__all__ = ["ExpressionUnion"]
 
 
 ExpressionUnion = Union[
@@ -64,12 +64,6 @@ ExpressionUnion = Union[
 	# ConstantOrSymbol,     TODO: ObjectSymbol
 	'Literal',
 ]
-
-ModelElementUnion = Union['ModelEntity', 'Symbol']
-"""
-A model element a visitor walks or the VHDL writer writes: a :class:`ModelEntity` or a
-:class:`~pyVHDLModel.Symbol.Symbol`.
-"""
 
 
 @export

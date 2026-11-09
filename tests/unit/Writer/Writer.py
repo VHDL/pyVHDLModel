@@ -525,7 +525,7 @@ class Dispatch(Testcase):
 		with self.assertRaises(TypeError) as context:
 			VHDLWriter().Format("clk")
 
-		self.assertEqual("Parameter 'element' is not of type 'ModelEntity' or 'Symbol'.", str(context.exception))
+		self.assertEqual("Parameter 'element' is not of type 'ModelEntity'.", str(context.exception))
 		self.assertEqual(["Got type 'str'."], context.exception.__notes__)
 
 	def test_Unsupported(self) -> None:

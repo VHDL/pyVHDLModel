@@ -42,7 +42,8 @@ from typing                   import TYPE_CHECKING, ClassVar, Generic, Optional 
 
 from pyTooling.Decorators     import export, readonly
 from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError, InUseError, \
-                                     NotAChildError as CommonNotAChildError, ElementNotFoundError
+                                     NotAChildError as CommonNotAChildError, ElementNotFoundError, AmbiguousError, \
+                                     UnknownKindError as CommonUnknownKindError
 from pyTooling.Warning        import Warning, CriticalWarning
 
 from pyVHDLModel.Symbol       import Symbol
@@ -2558,13 +2559,13 @@ class EntityInstantiationLibraryNotVisibleError(VHDLModelException, LibraryNotVi
 
 
 @export
-class UnknownKindError(Exception):
+class UnknownKindError(CommonUnknownKindError):
 	"""
 	The exception is raised when a model element is of a kind, which the model doesn't expect at its place.
 
 	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
 	``class UnknownSymbolKindError(VHDLModelException, UnknownKindError)``. It has no initializer of its own; the derived
-	exception sets the fields.
+	exception sets the fields. It derives from pyTooling's common base :exc:`pyTooling.Exceptions.UnknownKindError`.
 
 	.. seealso::
 
@@ -2778,7 +2779,7 @@ class AllowBlackboxNotSetError(VHDLModelException):
 
 
 @export
-class AmbiguousTopLevelError(VHDLModelException):
+class AmbiguousTopLevelError(VHDLModelException, AmbiguousError):
 	"""
 	This exception is raised, when the hierarchy graph of a design has more than one root, i.e. top-level.
 	"""

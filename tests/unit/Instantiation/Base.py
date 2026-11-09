@@ -300,12 +300,12 @@ class Ranges(Testcase):
 
 	def test_Construction_Symbols(self) -> None:
 		"""``HIGH downto LOW``"""
-		left =  SimpleObjectOrFunctionCallSymbol(SimpleName("HIGH"))
-		right = SimpleObjectOrFunctionCallSymbol(SimpleName("LOW"))
-		rng =   SimpleRange(left, right, Direction.DownTo)
+		left =        SimpleObjectOrFunctionCallSymbol(SimpleName("HIGH"))
+		right =       SimpleObjectOrFunctionCallSymbol(SimpleName("LOW"))
+		simpleRange = SimpleRange(left, right, Direction.DownTo)
 
-		self.assertIs(left, rng.LeftBound)
-		self.assertIs(right, rng.RightBound)
+		self.assertIs(left, simpleRange.LeftBound)
+		self.assertIs(right, simpleRange.RightBound)
 		self.assertNotIn("Parent", vars(left))
 		self.assertNotIn("Parent", vars(right))
 

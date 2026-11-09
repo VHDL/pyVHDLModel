@@ -38,7 +38,8 @@ from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Base        import ModelEntity, Direction, SimpleRange, WaveformElement
 from pyVHDLModel.Name        import SimpleName
-from pyVHDLModel.Symbol      import SignalSymbol, VariableSymbol, Symbol, PossibleReference, LoopSymbol
+from pyVHDLModel.Symbol      import SignalSymbol, VariableSymbol, Symbol, PossibleReference, LoopSymbol, \
+                                    SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Expression  import IntegerLiteral, CharacterLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Association import ParameterAssociationItem
 from pyVHDLModel.Sequential  import SequentialProcedureCall, SequentialSignalAssignment, \
@@ -141,6 +142,14 @@ class Choices(Testcase):
 		self.assertIs(expression, choice.Expression)
 		self.assertIs(choice, expression.Parent)
 		self.assertEqual("0", str(choice))
+
+	def test_IndexedChoice_Symbol(self) -> None:
+		"""``when IDLE =>``"""
+		expression = SimpleObjectOrFunctionCallSymbol(SimpleName("IDLE"))
+		choice =     IndexedChoice(expression)
+
+		self.assertIs(expression, choice.Expression)
+		self.assertNotIn("Parent", vars(expression))
 
 	def test_RangedChoice(self) -> None:
 		rng = SimpleRange(IntegerLiteral(0), IntegerLiteral(3), Direction.To)
@@ -323,6 +332,14 @@ class WaitStatements(Testcase):
 		self.assertIs(statement, condition.Parent)
 		self.assertIs(timeout, statement.Timeout)
 		self.assertIs(statement, timeout.Parent)
+
+	def test_Timeout_Symbol(self) -> None:
+		"""``wait for DELAY;``"""
+		timeout =   SimpleObjectOrFunctionCallSymbol(SimpleName("DELAY"))
+		statement = WaitStatement(timeout=timeout)
+
+		self.assertIs(timeout, statement.Timeout)
+		self.assertNotIn("Parent", vars(timeout))
 
 
 class Documentation(Testcase):

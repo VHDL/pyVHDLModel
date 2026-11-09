@@ -227,7 +227,7 @@ class WithDefaultExpressionMixin(metaclass=ExtendedType, mixin=True):
 		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
 		"""
 		self._defaultExpression = defaultExpression
-		if defaultExpression is not None:
+		if isinstance(defaultExpression, ModelEntity):
 			defaultExpression.Parent = self
 
 	@readonly

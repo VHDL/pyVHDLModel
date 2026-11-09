@@ -372,7 +372,8 @@ class ParenthesisName(Name):
 		self._associations = associationList = []
 		for association in associations:
 			associationList.append(association)
-			association.Parent = self
+			if isinstance(association, ModelEntity):
+				association.Parent = self
 
 	@readonly
 	def Associations(self) -> list:
@@ -449,7 +450,8 @@ class IndexedName(Name):
 		self._indices = indexList = []
 		for index in indices:
 			indexList.append(index)
-			index.Parent = self
+			if isinstance(index, ModelEntity):
+				index.Parent = self
 
 	@readonly
 	def Indices(self) -> list[ExpressionUnion]:

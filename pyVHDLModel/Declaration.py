@@ -256,7 +256,8 @@ class AttributeSpecification(ModelEntity, DocumentedEntityMixin):
 		self._entityClass = entityClass
 
 		self._expression = expression
-		expression.Parent = self
+		if isinstance(expression, ModelEntity):
+			expression.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

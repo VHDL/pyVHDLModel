@@ -886,7 +886,7 @@ class ConditionalMixin(metaclass=ExtendedType, mixin=True):
 		:param condition: Optional, the expression representing the condition. Default: ``None``, no condition.
 		"""
 		self._condition = condition
-		if condition is not None:
+		if isinstance(condition, ModelEntity):
 			condition.Parent = self
 
 	@readonly
@@ -995,11 +995,11 @@ class ReportStatementMixin(metaclass=ExtendedType, mixin=True):
 		:param severity: Optional, the reported severity level. Default: ``None``, no severity level.
 		"""
 		self._message = message
-		if message is not None:
+		if isinstance(message, ModelEntity):
 			message.Parent = self
 
 		self._severity = severity
-		if severity is not None:
+		if isinstance(severity, ModelEntity):
 			severity.Parent = self
 
 	def _VisitReportAndSeverity(self, visitor: Visitor) -> None:
@@ -1189,10 +1189,12 @@ class SimpleRange(Range):
 		super().__init__(parent)
 
 		self._leftBound = leftBound
-		leftBound.Parent = self
+		if isinstance(leftBound, ModelEntity):
+			leftBound.Parent = self
 
 		self._rightBound = rightBound
-		rightBound.Parent = self
+		if isinstance(rightBound, ModelEntity):
+			rightBound.Parent = self
 
 		self._direction = direction
 
@@ -1365,10 +1367,11 @@ class WaveformElement(ModelEntity):
 		super().__init__(parent)
 
 		self._expression = expression
-		expression.Parent = self
+		if isinstance(expression, ModelEntity):
+			expression.Parent = self
 
 		self._after = after
-		if after is not None:
+		if isinstance(after, ModelEntity):
 			after.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:

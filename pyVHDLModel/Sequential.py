@@ -1622,7 +1622,8 @@ class IndexedChoice(SequentialChoice):
 		super().__init__(parent)
 
 		self._expression = expression
-		expression.Parent = self
+		if isinstance(expression, ModelEntity):
+			expression.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1907,7 +1908,8 @@ class CaseStatement(CompoundStatement):
 		super().__init__(label, documentation, parent)
 
 		self._expression = expression
-		expression.Parent = self
+		if isinstance(expression, ModelEntity):
+			expression.Parent = self
 
 		self._cases = caseList = []
 		if cases is not None:
@@ -2378,7 +2380,7 @@ class ReturnStatement(SequentialStatement):
 		super().__init__(label, documentation, parent)
 
 		self._returnValue = returnValue
-		if returnValue is not None:
+		if isinstance(returnValue, ModelEntity):
 			returnValue.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -2453,7 +2455,7 @@ class WaitStatement(SequentialStatement, ConditionalMixin):
 			self._sensitivityList = list(sensitivityList)  # TODO: convert to dict
 
 		self._timeout = timeout
-		if timeout is not None:
+		if isinstance(timeout, ModelEntity):
 			timeout.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:

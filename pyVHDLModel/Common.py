@@ -482,7 +482,8 @@ class VariableAssignmentMixin(AssignmentMixin, mixin=True):
 		super().__init__(target)
 
 		self._expression = expression
-		expression.Parent = self
+		if isinstance(expression, ModelEntity):
+			expression.Parent = self
 
 	@readonly
 	def Target(self) -> VariableSymbol:
@@ -578,7 +579,8 @@ class ExpressionMixin(metaclass=ExtendedType, mixin=True):
 		:param expression: The expression held by this construct.
 		"""
 		self._expression = expression
-		expression.Parent = self
+		if isinstance(expression, ModelEntity):
+			expression.Parent = self
 
 	@readonly
 	def Expression(self) -> ExpressionUnion:

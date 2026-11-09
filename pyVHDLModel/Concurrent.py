@@ -1737,7 +1737,8 @@ class IndexedGenerateChoice(ConcurrentChoice):
 		super().__init__(parent)
 
 		self._expression = expression
-		expression.Parent = self
+		if isinstance(expression, ModelEntity):
+			expression.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -2047,7 +2048,8 @@ class CaseGenerateStatement(GenerateStatement):
 		super().__init__(label, allowBlackbox, documentation, parent)
 
 		self._expression = expression
-		expression.Parent = self
+		if isinstance(expression, ModelEntity):
+			expression.Parent = self
 
 		# TODO: create a mixin for things with cases
 		self._cases = caseList = []

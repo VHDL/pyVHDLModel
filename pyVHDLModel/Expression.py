@@ -1212,7 +1212,8 @@ class UnaryExpression(BaseExpression):
 		super().__init__(parent)
 
 		self._operand = operand
-		operand.Parent = self
+		if isinstance(operand, ModelEntity):
+			operand.Parent = self
 
 	@readonly
 	def Operand(self) -> ExpressionUnion:
@@ -1647,10 +1648,12 @@ class BinaryExpression(BaseExpression):
 		super().__init__(parent)
 
 		self._leftOperand = leftOperand
-		leftOperand.Parent = self
+		if isinstance(leftOperand, ModelEntity):
+			leftOperand.Parent = self
 
 		self._rightOperand = rightOperand
-		rightOperand.Parent = self
+		if isinstance(rightOperand, ModelEntity):
+			rightOperand.Parent = self
 
 	@readonly
 	def LeftOperand(self) -> ExpressionUnion:
@@ -2670,7 +2673,8 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 		super().__init__(parent)
 
 		self._operand = operand
-		operand.Parent = self
+		if isinstance(operand, ModelEntity):
+			operand.Parent = self
 
 		self._subtype = subtype
 
@@ -2760,13 +2764,16 @@ class TernaryExpression(BaseExpression):
 		super().__init__(parent)
 
 		self._firstOperand = firstOperand
-		firstOperand.Parent = self
+		if isinstance(firstOperand, ModelEntity):
+			firstOperand.Parent = self
 
 		self._secondOperand = secondOperand
-		secondOperand.Parent = self
+		if isinstance(secondOperand, ModelEntity):
+			secondOperand.Parent = self
 
 		self._thirdOperand = thirdOperand
-		thirdOperand.Parent = self
+		if isinstance(thirdOperand, ModelEntity):
+			thirdOperand.Parent = self
 
 	def __str__(self) -> str:
 		"""
@@ -3079,7 +3086,8 @@ class AggregateElement(ModelEntity):
 		super().__init__(parent)
 
 		self._expression = expression
-		expression.Parent = self
+		if isinstance(expression, ModelEntity):
+			expression.Parent = self
 
 	@readonly
 	def Expression(self) -> ExpressionUnion:

@@ -91,7 +91,7 @@ class ObjectsWithDefaultExpression(Testcase):
 				self.assertIsNot(defaultExpression, copy.DefaultExpression)
 				self.assertIs(copy, copy.DefaultExpression.Parent)
 				self.assertIsNot(defaultExpression.LeftOperand, copy.DefaultExpression.LeftOperand)
-				self.assertIs(copy.DefaultExpression, copy.DefaultExpression.LeftOperand.Parent)
+				self.assertNotIn("Parent", vars(copy.DefaultExpression.LeftOperand))
 				self.assertEqual("BITS + 1", VHDLWriter().Format(copy.DefaultExpression))
 				self.assertEqual(str(original), str(copy))
 

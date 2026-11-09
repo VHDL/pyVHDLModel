@@ -44,7 +44,7 @@ from pyTooling.Testing      import Testcase
 from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.Exception  import VHDLModelException, LiteralError
 from pyVHDLModel.Name       import SimpleName
-from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
+from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Expression import OperatorPrecedence, BaseExpression, Literal, NullLiteral, EnumerationLiteral, \
                                    IntegerLiteral, FloatingPointLiteral, PhysicalIntegerLiteral, \
                                    PhysicalFloatingLiteral, CharacterLiteral, StringLiteral, BinaryBitStringLiteral, \
@@ -821,6 +821,15 @@ class QualifiedExpressions(Testcase):
 		self.assertIs(expression, operand.Parent)
 		self.assertNotIn("Parent", vars(subtype))
 		self.assertEqual("bit_vector?'(1)", str(expression))
+
+	def test_Construction_SymbolOperand(self) -> None:
+		"""``bit_vector'(VALUE)``"""
+		subtype =    SimpleSubtypeSymbol(SimpleName("bit_vector"))
+		operand =    SimpleObjectOrFunctionCallSymbol(SimpleName("VALUE"))
+		expression = QualifiedExpression(subtype, operand)
+
+		self.assertIs(operand, expression.Operand)
+		self.assertNotIn("Parent", vars(operand))
 
 
 class TernaryExpressions(Testcase):

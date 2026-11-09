@@ -55,7 +55,8 @@ from pyVHDLModel.Sequential  import IfBranch, ElsifBranch, ElseBranch, Sequentia
 from pyVHDLModel.Concurrent  import ConcurrentBlockStatement
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Object      import Signal
-from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol, SimpleSubtypeSymbol
+from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol, SimpleSubtypeSymbol, \
+                                    SimpleObjectOrFunctionCallSymbol
 
 from tests.unit              import _Element
 
@@ -240,6 +241,17 @@ class ReportAndAssertStatementMixins(Testcase):
 		self.assertIs(message, statement.Message)
 		self.assertIsNone(statement.Severity)
 
+	def test_ReportStatement_Symbols(self) -> None:
+		"""``report MESSAGE severity LEVEL;``"""
+		message =   SimpleObjectOrFunctionCallSymbol(SimpleName("MESSAGE"))
+		severity =  SimpleObjectOrFunctionCallSymbol(SimpleName("LEVEL"))
+		statement = SequentialReportStatement(message, severity)
+
+		self.assertIs(message, statement.Message)
+		self.assertIs(severity, statement.Severity)
+		self.assertNotIn("Parent", vars(message))
+		self.assertNotIn("Parent", vars(severity))
+
 	def test_AssertStatement(self) -> None:
 		"""``AssertStatementMixin`` adds a required ``Condition`` on top of ``ReportStatementMixin``'s
 		optional message/severity."""
@@ -285,6 +297,17 @@ class Ranges(Testcase):
 		self.assertIs(Direction.DownTo, rng.Direction)
 		self.assertIs(rng, left.Parent)
 		self.assertIs(rng, right.Parent)
+
+	def test_Construction_Symbols(self) -> None:
+		"""``HIGH downto LOW``"""
+		left =  SimpleObjectOrFunctionCallSymbol(SimpleName("HIGH"))
+		right = SimpleObjectOrFunctionCallSymbol(SimpleName("LOW"))
+		rng =   SimpleRange(left, right, Direction.DownTo)
+
+		self.assertIs(left, rng.LeftBound)
+		self.assertIs(right, rng.RightBound)
+		self.assertNotIn("Parent", vars(left))
+		self.assertNotIn("Parent", vars(right))
 
 	def test_ToString(self) -> None:
 		rng = SimpleRange(IntegerLiteral(0), IntegerLiteral(7), Direction.To)
@@ -344,3 +367,14 @@ class WaveformElements(Testcase):
 
 		self.assertIs(after, element.After)
 		self.assertIs(element, after.Parent)
+
+	def test_WithAfter_Symbols(self) -> None:
+		"""``VALUE after DELAY``"""
+		expression = SimpleObjectOrFunctionCallSymbol(SimpleName("VALUE"))
+		after =      SimpleObjectOrFunctionCallSymbol(SimpleName("DELAY"))
+		element =    WaveformElement(expression, after)
+
+		self.assertIs(expression, element.Expression)
+		self.assertIs(after, element.After)
+		self.assertNotIn("Parent", vars(expression))
+		self.assertNotIn("Parent", vars(after))

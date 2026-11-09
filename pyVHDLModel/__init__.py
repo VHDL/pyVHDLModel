@@ -657,7 +657,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		is added to :attr:`_hierarchyGraph` referencing that single element. In addition, the result is cached in :attr:`_toplevel`.
 
 		:returns:                          Reference to the design's *top-level*.
-		:raises HierarchyNotComputedError: If the hierarchy graph is not yet computed from dependency graph.
+		:raises HierarchyNotComputedError: If the hierarchy graph is not yet computed from dependency graph. |br|
+		                                   Call :meth:`Analyze` or :meth:`AnalyzeDependencies` before.
 		:raises VHDLModelException:        If there is more than one *top-level*.
 		"""
 		# Check for cached result
@@ -665,7 +666,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			return self._toplevel
 
 		if self._hierarchyGraph.VertexCount == 0:
-			raise HierarchyNotComputedError()
+			ex = HierarchyNotComputedError()
+			ex.add_note("Call 'Analyze()' or 'AnalyzeDependencies()' before 'TopLevel'.")
+			raise ex
 
 		roots = tuple(self._hierarchyGraph.IterateRoots())
 		if len(roots) == 1:
@@ -2982,7 +2985,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   * yield the compiler-order vertex' referenced document.
 
 		:returns:                             A generator to iterate all documents in compile-order in the design.
-		:raises CompileOrderNotComputedError: If compile-order was not computed.
+		:raises CompileOrderNotComputedError: If compile-order was not computed. |br|
+		                                      Call :meth:`Analyze` or :meth:`AnalyzeDependencies` before.
 
 		.. seealso::
 
@@ -2992,7 +2996,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		"""
 		if self._compileOrderGraph.EdgeCount < self._compileOrderGraph.VertexCount - 1:
-			raise CompileOrderNotComputedError()
+			ex = CompileOrderNotComputedError()
+			ex.add_note("Call 'Analyze()' or 'AnalyzeDependencies()' before 'IterateDocumentsInCompileOrder()'.")
+			raise ex
 
 		for compileOrderNode in self._compileOrderGraph.IterateTopologically():
 			yield compileOrderNode.Value

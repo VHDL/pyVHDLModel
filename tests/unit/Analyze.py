@@ -676,6 +676,10 @@ class CompileOrderGraph(Testcase):
 			list(design.IterateDocumentsInCompileOrder())
 
 		self.assertEqual("Compile order is not yet computed from dependency graph.", str(context.exception))
+		self.assertListEqual(
+			["Call 'Analyze()' or 'AnalyzeDependencies()' before 'IterateDocumentsInCompileOrder()'."],
+			context.exception.__notes__
+		)
 		self.assertIsInstance(context.exception, NotComputedError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 
@@ -707,6 +711,10 @@ class TopLevel(Testcase):
 			design.TopLevel
 
 		self.assertEqual("Hierarchy is not yet computed from dependency graph.", str(context.exception))
+		self.assertListEqual(
+			["Call 'Analyze()' or 'AnalyzeDependencies()' before 'TopLevel'."],
+			context.exception.__notes__
+		)
 		self.assertIsInstance(context.exception, NotComputedError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 

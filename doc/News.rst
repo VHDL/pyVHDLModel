@@ -129,8 +129,7 @@ Version 0.43.0 (2026)
      derive from :exc:`pyTooling.Exceptions.ElementNotFoundError` too, so they are a :exc:`LookupError`.
    * A package or context not found for a use clause, a context reference or a package instantiation raises
      :exc:`~pyVHDLModel.Exception.PackageNotFoundError` or :exc:`~pyVHDLModel.Exception.ContextNotFoundError`, caused by
-     the failed lookup; the message names the real library (was ``working library``), a note names the working library
-     for ``work``.
+     the failed lookup; the message is unchanged, a note names the working library for a reference through ``work``.
    * No plain ``VHDLModelException`` is raised anymore. More common bases:
      :exc:`~pyVHDLModel.Exception.UnknownKindError` (a symbol or secondary unit of unknown kind) and
      :exc:`~pyVHDLModel.Exception.IEEEFlavorError` (an unknown or conflicting ``ieee`` flavor). A duplicate design unit

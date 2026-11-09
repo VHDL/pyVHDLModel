@@ -86,7 +86,9 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       InstantiatedEntityNotFoundError, ArchitectureEntityNotFoundError, \
                                       PackageBodyPackageNotFoundError, LibraryReferenceNotLinkedError, \
                                       UseClauseNotLinkedError, HierarchyNotComputedError, \
-                                      CompileOrderNotComputedError
+                                      CompileOrderNotComputedError, UnknownSymbolKindError, \
+                                      UnknownSecondaryUnitKindError, AmbiguousTopLevelError, \
+                                      UnprefixedEntityInstantiationError, NotAGenericPackageError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Name          import AllName
 from pyVHDLModel.Namespace     import Namespace
@@ -659,7 +661,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:returns:                          Reference to the design's *top-level*.
 		:raises HierarchyNotComputedError: If the hierarchy graph is not yet computed from dependency graph. |br|
 		                                   Call :meth:`Analyze` or :meth:`AnalyzeDependencies` before.
-		:raises VHDLModelException:        If there is more than one *top-level*.
+		:raises AmbiguousTopLevelError:    If there is more than one *top-level*.
 		"""
 		# Check for cached result
 		if self._toplevel is not None:
@@ -678,7 +680,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 			return toplevel.Value
 		else:
-			raise VHDLModelException(f"Found more than one toplevel: {', '.join(str(r) for r in roots)}")
+			raise AmbiguousTopLevelError(
+				f"Found more than one toplevel: {', '.join(str(r) for r in roots)}",
+				topLevels=tuple(root.Value for root in roots)
+			)
 
 	def LoadStdLibrary(self) -> Library:
 		"""
@@ -1712,7 +1717,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:raises LibraryNotFoundError:              If a use clause references a library, which a library clause of a
 		                                           nested context names, and which doesn't exist in the design.
 		:raises PackageNotFoundError:              If a use clause references a package, which doesn't exist in its library.
-		:raises VHDLModelException:                If the type of a symbol in a use clause is unknown.
+		:raises UnknownSymbolKindError:            If the type of a symbol in a use clause is unknown.
 		:raises UnhandledCriticalWarningError:     If a use clause names a package member, which the package doesn't
 		                                           declare, and no :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                           :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
@@ -1733,8 +1738,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					libraryNormalizedIdentifier = libraryName.Name._normalizedIdentifier
 					try:
 						library = self._libraries[libraryNormalizedIdentifier]
-					except KeyError:
-						raise ReferencedLibraryNotExistingError(context, libraryName)
+					except KeyError as cause:
+						raise ReferencedLibraryNotExistingError(context, libraryName) from cause
 						# TODO: add position to these messages
 
 					libraryName.Library = library
@@ -1809,7 +1814,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 								namespaces=(package._namespace, )
 							))
 					elif not isinstance(symbol, AllPackageMembersReferenceSymbol):
-						ex = VHDLModelException(f"Unknown package reference symbol type in context '{context._identifier}'.")
+						ex = UnknownSymbolKindError(
+							f"Unknown package reference symbol type in design unit '{context._identifier}'.",
+							symbol=symbol,
+							designUnit=context
+						)
 						ex.add_note(f"Got type '{getFullyQualifiedName(symbol)}'.")
 						raise ex
 
@@ -1956,7 +1965,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		:raises LibraryNotFoundError:              If library ``std`` isn't loaded. |br|
 		                                           Call :meth:`LoadStdLibrary` before.
-		:raises VHDLModelException:                If a secondary unit is neither an architecture nor a package body.
+		:raises UnknownSecondaryUnitKindError:     If a secondary unit is neither an architecture nor a package body.
 		:raises LibraryClauseLibraryNotFoundError: If a library clause references a library, which doesn't exist in the
 		                                           design.
 		"""
@@ -1997,8 +2006,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				elif isinstance(designUnit, PackageBody):
 					referencedLibraries = designUnit.Package.Package._referencedLibraries
 				else:
-					ex = VHDLModelException(
-						f"Secondary unit '{designUnit._identifier}' is neither an architecture nor a package body."
+					ex = UnknownSecondaryUnitKindError(
+						f"Secondary unit '{designUnit._identifier}' is neither an architecture nor a package body.",
+						secondaryUnit=designUnit
 					)
 					ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
 					raise ex
@@ -2014,7 +2024,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					try:
 						library = self._libraries[libraryIdentifier]
-					except KeyError:
+					except KeyError as cause:
 						ex = LibraryClauseLibraryNotFoundError(
 							f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit "
 							f"'{designUnit.Identifier}' doesn't exist in design.",
@@ -2022,7 +2032,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							librarySymbol=librarySymbol
 						)
 						ex.add_note(f"""Known libraries: '{"', '".join(library for library in self._libraries)}'""")
-						raise ex
+						raise ex from cause
 
 					librarySymbol.Library = library
 					designUnit._referencedLibraries[libraryIdentifier] = library
@@ -2083,7 +2093,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                         Call :meth:`LinkLibraryReferences` before.
 		:raises PackageNotFoundError:            If library ``std`` doesn't contain package ``standard``. |br|
 		                                         Call :meth:`LoadStdLibrary` before.
-		:raises VHDLModelException:              If a secondary unit is neither an architecture nor a package body.
+		:raises UnknownSecondaryUnitKindError:   If a secondary unit is neither an architecture nor a package body.
 		:raises UseClauseLibraryNotVisibleError: If a use clause references a library, whose name isn't visible
 		                                         (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
 		:raises PackageNotFoundError:            If a use clause references a package, which doesn't exist in its library.
@@ -2135,8 +2145,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				elif isinstance(designUnit, PackageBody):
 					referencedPackages = designUnit.Package.Package._referencedPackages
 				else:
-					ex = VHDLModelException(
-						f"Secondary unit '{designUnit._identifier}' is neither an architecture nor a package body."
+					ex = UnknownSecondaryUnitKindError(
+						f"Secondary unit '{designUnit._identifier}' is neither an architecture nor a package body.",
+						secondaryUnit=designUnit
 					)
 					ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
 					raise ex
@@ -2220,7 +2231,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                            (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
 		:raises PackageNotFoundError:               If a use clause references a package, which doesn't exist in its
 		                                            library.
-		:raises VHDLModelException:                 If the type of a symbol in the use clause is unknown.
+		:raises UnknownSymbolKindError:             If the type of a symbol in the use clause is unknown.
 		:raises PackageInstantiationNotLinkedError: If a package instantiation isn't linked to its generic package.
 		:raises UnhandledCriticalWarningError:      If a use clause names a package member, which the package doesn't
 		                                            declare, a primary unit, which the library doesn't contain, a prefix,
@@ -2232,7 +2243,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for packageMemberSymbol in useClause._symbols:
 			symbolTypes = (PackageReferenceSymbol, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol)
 			if not isinstance(packageMemberSymbol, symbolTypes):
-				ex = VHDLModelException("Unknown package reference symbol type.")
+				ex = UnknownSymbolKindError(
+					f"Unknown package reference symbol type in design unit '{designUnit._identifier}'.",
+					symbol=packageMemberSymbol,
+					designUnit=designUnit
+				)
 				ex.add_note(f"Got type '{getFullyQualifiedName(packageMemberSymbol)}'.")
 				raise ex
 
@@ -2649,7 +2664,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					entityName =  instance.Entity.Name
 					libraryName = entityName.Prefix
 					if libraryName is None:
-						ex = VHDLModelException(f"Direct entity instantiation '{instance.Label}' has no library prefix.")
+						ex = UnprefixedEntityInstantiationError(
+							f"Direct entity instantiation '{instance.Label}' has no library prefix.",
+							instantiation=instance
+						)
 						ex.add_note(f"Use a selected name like 'work.{entityName.Identifier}'.")
 						ex.add_note("Entities made visible by a use clause aren't supported.")
 						raise ex
@@ -2671,18 +2689,18 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					try:
 						library = self._libraries[normalizedLibraryIdentifier]
-					except KeyError:
+					except KeyError as cause:
 						ex = EntityInstantiationLibraryNotFoundError(
 							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
 							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in design.",
 							instantiation=instance
 						)
 						ex.add_note(f"No design units were parsed into library '{libraryIdentifier}'. Thus it doesn't exist in design.")
-						raise ex
+						raise ex from cause
 
 					try:
 						entity = library._entities[instance.Entity.Name.NormalizedIdentifier]
-					except KeyError:
+					except KeyError as cause:
 						ex = InstantiatedEntityNotFoundError(
 							f"Referenced entity '{entityName.Identifier}' in direct entity instantiation '{instance.Label}: "
 							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in "
@@ -2693,7 +2711,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						libs = [library.Identifier for library in self._libraries.values() for entityIdentifier in library._entities.keys() if entityIdentifier == instance.Entity.Name.NormalizedIdentifier]
 						if libs:
 							ex.add_note(f"Found entity '{instance.Entity!s}' in other libraries: {', '.join(libs)}")
-						raise ex
+						raise ex from cause
 
 					instance.Entity.Entity = entity
 
@@ -3291,8 +3309,8 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		      * Set parent namespace of architecture's namespace to the entitie's namespace.
 		      * Add an edge in the dependency graph from the architecture's corresponding dependency vertex to the entity's corresponding dependency vertex.
 
-		:raises ArchitectureEntityNotFoundError: If entity name doesn't exist.
-		:raises VHDLModelException:              If architecture name already exists for entity.
+		:raises ArchitectureEntityNotFoundError:  If entity name doesn't exist.
+		:raises ArchitectureExistsInLibraryError: If architecture name already exists for entity.
 
 		.. seealso::
 
@@ -3316,7 +3334,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 			entity = self._entities[entityName]
 			for architecture in architecturesPerEntity.values():
 				if architecture._normalizedIdentifier in entity._architectures:
-					raise VHDLModelException(f"Architecture '{architecture._identifier}' already exists for entity '{entity._identifier}'.")
+					raise ArchitectureExistsInLibraryError(architecture, self)
 				# TODO: add code position of existing and current
 
 				entity._architectures[architecture._normalizedIdentifier] = architecture
@@ -3402,7 +3420,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		:raises PackageInstantiationLibraryNotVisibleError: If the name of that library isn't visible
 		                                                    (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
 		:raises PackageNotFoundError:                       If generic package name doesn't exist.
-		:raises VHDLModelException:                         If the package isn't a generic package.
+		:raises NotAGenericPackageError:                    If the package isn't a generic package.
 
 		.. seealso::
 
@@ -3411,7 +3429,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		   :meth:`LinkPackageBodies`
 		     Link all package bodies to corresponding packages.
 		"""
-		for packageInstanceName, packageInstance in self._packages.items():
+		for packageInstance in self._packages.values():
 			if isinstance(packageInstance, PackageInstantiation):
 				packageSymbol = packageInstance._packageReference
 				packageName = packageSymbol.Name
@@ -3454,7 +3472,12 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 					raise ex from cause
 
 				if package.GenericCount == 0:
-					raise VHDLModelException(f"Package '{libraryName.Identifier}.{packageName.Identifier}' referenced by '{self._identifier}.{packageInstanceName}' is not a generic package.")
+					raise NotAGenericPackageError(
+						f"Package '{libraryName.Identifier}.{packageName.Identifier}' referenced by "
+						f"'{self._identifier}.{packageInstance._identifier}' is not a generic package.",
+						packageInstantiation=packageInstance,
+						package=package
+					)
 
 				packageSymbol.Package = package
 
@@ -3672,9 +3695,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add an entity to the document's lists of design units.
 
-		:param item:                Entity object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Entity`.
-		:raises VHDLModelException: If entity name already exists in document.
+		:param item:                      Entity object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Entity`.
+		:raises DuplicateDesignUnitError: If entity name already exists in document.
 		"""
 		if not isinstance(item, Entity):
 			ex = TypeError("Parameter 'item' is not of type 'Entity'.")
@@ -3683,8 +3706,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._entities:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"An entity '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"An entity '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._entities[identifier]
+			)
 
 		self._entities[identifier] = item
 		self._designUnits.append(item)
@@ -3696,9 +3724,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add an architecture to the document's lists of design units.
 
-		:param item:                Architecture object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Architecture`.
-		:raises VHDLModelException: If architecture name already exists for the referenced entity name in document.
+		:param item:                      Architecture object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Architecture`.
+		:raises DuplicateDesignUnitError: If architecture name already exists for the referenced entity name in document.
 		"""
 		if not isinstance(item, Architecture):
 			ex = TypeError("Parameter 'item' is not of type 'Architecture'.")
@@ -3711,9 +3739,14 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		try:
 			architectures = self._architectures[entityIdentifier]
 			if identifier in architectures:
-				# TODO: use a more specific exception
 				# FIXME: this is allowed and should be a warning or a strict mode.
-				raise VHDLModelException(f"An architecture '{item._identifier}' for entity '{entity._identifier}' already exists in this document.")
+				raise DuplicateDesignUnitError(
+					f"An architecture '{item._identifier}' for entity '{entity._identifier}' already exists in this document.",
+					identifier=item._identifier,
+					parent=self,
+					element=item,
+					existing=architectures[identifier]
+				)
 
 			architectures[identifier] = item
 		except KeyError:
@@ -3728,9 +3761,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a package to the document's lists of design units.
 
-		:param item:                Package object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Package`.
-		:raises VHDLModelException: If package name already exists in document.
+		:param item:                      Package object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Package`.
+		:raises DuplicateDesignUnitError: If package name already exists in document.
 		"""
 		if not isinstance(item, (Package, PackageInstantiation)):
 			ex = TypeError("Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
@@ -3739,8 +3772,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._packages:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"A package '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"A package '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._packages[identifier]
+			)
 
 		self._packages[identifier] = item
 		self._designUnits.append(item)
@@ -3752,9 +3790,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a package body to the document's lists of design units.
 
-		:param item:                Package body object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.PackageBody`.
-		:raises VHDLModelException: If package body name already exists in document.
+		:param item:                      Package body object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.PackageBody`.
+		:raises DuplicateDesignUnitError: If package body name already exists in document.
 		"""
 		if not isinstance(item, PackageBody):
 			ex = TypeError("Parameter 'item' is not of type 'PackageBody'.")
@@ -3763,8 +3801,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._packageBodies:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"A package body '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"A package body '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._packageBodies[identifier]
+			)
 
 		self._packageBodies[identifier] = item
 		self._designUnits.append(item)
@@ -3776,9 +3819,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a context to the document's lists of design units.
 
-		:param item:                Context object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Context`.
-		:raises VHDLModelException: If context name already exists in document.
+		:param item:                      Context object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Context`.
+		:raises DuplicateDesignUnitError: If context name already exists in document.
 		"""
 		if not isinstance(item, Context):
 			ex = TypeError("Parameter 'item' is not of type 'Context'.")
@@ -3787,8 +3830,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._contexts:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"A context '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"A context '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._contexts[identifier]
+			)
 
 		self._contexts[identifier] = item
 		self._designUnits.append(item)
@@ -3800,9 +3848,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a configuration to the document's lists of design units.
 
-		:param item:                Configuration object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Configuration`.
-		:raises VHDLModelException: If configuration name already exists in document.
+		:param item:                      Configuration object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Configuration`.
+		:raises DuplicateDesignUnitError: If configuration name already exists in document.
 		"""
 		if not isinstance(item, Configuration):
 			ex = TypeError("Parameter 'item' is not of type 'Configuration'.")
@@ -3811,8 +3859,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._configurations:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"A configuration '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"A configuration '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._configurations[identifier]
+			)
 
 		self._configurations[identifier] = item
 		self._designUnits.append(item)
@@ -3872,10 +3925,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a design unit to the document's lists of design units.
 
-		:param item:                Configuration object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
-		:raises ValueError:         If parameter 'item' is an unknown :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
-		:raises VHDLModelException: If configuration name already exists in document.
+		:param item:                      Configuration object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
+		:raises ValueError:               If parameter 'item' is an unknown :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
+		:raises DuplicateDesignUnitError: If the document contains a design unit of the same kind and identifier.
 		"""
 		if not isinstance(item, DesignUnit):
 			ex = TypeError("Parameter 'item' is not of type 'DesignUnit'.")

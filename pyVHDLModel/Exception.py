@@ -42,17 +42,18 @@ from typing                   import TYPE_CHECKING, ClassVar, Generic, Optional 
 
 from pyTooling.Decorators     import export, readonly
 from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError, InUseError, \
-                                     NotAChildError as CommonNotAChildError
+                                     NotAChildError as CommonNotAChildError, ElementNotFoundError, AmbiguousError, \
+                                     UnknownKindError as CommonUnknownKindError
 from pyTooling.Warning        import Warning, CriticalWarning
 
 from pyVHDLModel.Symbol       import Symbol
 
 if TYPE_CHECKING:  # pragma: no cover
-	from pyVHDLModel               import Document, Library
+	from pyVHDLModel               import Document, IEEEFlavor, Library
 	from pyVHDLModel.Base          import ModelElementUnion, ModelEntity
 	from pyVHDLModel.Concurrent    import ComponentInstantiation, EntityInstantiation
 	from pyVHDLModel.DesignUnit    import Component as _Component, Context as _Context, DesignUnit as _DesignUnit, \
-	                                      Architecture
+	                                      Architecture, Package as _Package, SecondaryUnit
 	from pyVHDLModel.Expression    import Literal as _Literal
 	from pyVHDLModel.Instantiation import PackageInstantiation as _PackageInstantiation
 	from pyVHDLModel.Namespace     import Namespace as _Namespace, Import as _Import
@@ -2555,6 +2556,322 @@ class EntityInstantiationLibraryNotVisibleError(VHDLModelException, LibraryNotVi
 		:returns: The direct entity instantiation referencing the library.
 		"""
 		return self._instantiation
+
+
+@export
+class UnknownKindError(CommonUnknownKindError):
+	"""
+	The exception is raised when a model element is of a kind, which the model doesn't expect at its place.
+
+	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
+	``class UnknownSymbolKindError(VHDLModelException, UnknownKindError)``. It has no initializer of its own; the derived
+	exception sets the fields. It derives from pyTooling's common base :exc:`pyTooling.Exceptions.UnknownKindError`.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.UnknownSymbolKindError`
+	      |rarr| Symbol of a use clause of unknown kind.
+	   :exc:`~pyVHDLModel.Exception.UnknownSecondaryUnitKindError`
+	      |rarr| Secondary unit of unknown kind.
+	"""
+
+	_element: ModelEntity | _Symbol  #: The model element of unknown kind.
+
+	@readonly
+	def Element(self) -> ModelEntity | _Symbol:
+		"""
+		Read-only property to access the model element of unknown kind (:attr:`_element`).
+
+		:returns: The model element of unknown kind.
+		"""
+		return self._element
+
+
+@export
+class UnknownSymbolKindError(VHDLModelException, UnknownKindError):
+	"""
+	This exception is raised, when a symbol of a use clause isn't a package reference symbol, which the model supports.
+	"""
+
+	_designUnit: _DesignUnit  #: The design unit containing the use clause.
+
+	def __init__(self, message: str, /, *, symbol: _Symbol, designUnit: _DesignUnit) -> None:
+		"""
+		Initializes the exception with a message, the symbol of unknown kind and the design unit of the use clause.
+
+		:param message:    The exception message.
+		:param symbol:     The symbol of unknown kind.
+		:param designUnit: The design unit containing the use clause.
+		"""
+		super().__init__(message)
+		self._element =    symbol
+		self._designUnit = designUnit
+
+	@readonly
+	def DesignUnit(self) -> _DesignUnit:
+		"""
+		Read-only property to access the design unit containing the use clause (:attr:`_designUnit`).
+
+		:returns: The design unit.
+		"""
+		return self._designUnit
+
+
+@export
+class UnknownSecondaryUnitKindError(VHDLModelException, UnknownKindError):
+	"""
+	This exception is raised, when a secondary unit is neither an architecture nor a package body.
+	"""
+
+	def __init__(self, message: str, /, *, secondaryUnit: SecondaryUnit) -> None:
+		"""
+		Initializes the exception with a message and the secondary unit of unknown kind.
+
+		:param message:       The exception message.
+		:param secondaryUnit: The secondary unit of unknown kind.
+		"""
+		super().__init__(message)
+		self._element = secondaryUnit
+
+
+@export
+class IEEEFlavorError(Exception):
+	"""
+	The exception is raised when the ``ieee`` library can't provide a requested flavor.
+
+	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
+	``class UnknownIEEEFlavorError(VHDLModelException, IEEEFlavorError)``. It has no initializer of its own; the derived
+	exception sets the fields.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.UnknownIEEEFlavorError`
+	      |rarr| Unknown flavor requested.
+	   :exc:`~pyVHDLModel.Exception.IEEEFlavorChangeError`
+	      |rarr| Flavor of a library with a non-IEEE flavor changed.
+	"""
+
+	_flavor: IEEEFlavor  #: The requested flavor.
+
+	@readonly
+	def Flavor(self) -> IEEEFlavor:
+		"""
+		Read-only property to access the requested flavor (:attr:`_flavor`).
+
+		:returns: The requested flavor.
+		"""
+		return self._flavor
+
+
+@export
+class UnknownIEEEFlavorError(VHDLModelException, IEEEFlavorError):
+	"""
+	This exception is raised, when the ``ieee`` library is requested with an unknown flavor.
+	"""
+
+	def __init__(self, message: str, /, *, flavor: IEEEFlavor) -> None:
+		"""
+		Initializes the exception with a message and the unknown flavor.
+
+		:param message: The exception message.
+		:param flavor:  The requested flavor.
+		"""
+		super().__init__(message)
+		self._flavor = flavor
+
+
+@export
+class IEEEFlavorChangeError(VHDLModelException, IEEEFlavorError):
+	"""
+	This exception is raised, when the flavor of an ``ieee`` library, which provides a non-IEEE flavor, is changed.
+	"""
+
+	_currentFlavor: IEEEFlavor  #: The flavor the library provides.
+
+	def __init__(self, message: str, /, *, currentFlavor: IEEEFlavor, flavor: IEEEFlavor) -> None:
+		"""
+		Initializes the exception with a message, the current and the requested flavor.
+
+		:param message:       The exception message.
+		:param currentFlavor: The flavor the library provides.
+		:param flavor:        The requested flavor.
+		"""
+		super().__init__(message)
+		self._flavor =        flavor
+		self._currentFlavor = currentFlavor
+
+	@readonly
+	def CurrentFlavor(self) -> IEEEFlavor:
+		"""
+		Read-only property to access the flavor the library provides (:attr:`_currentFlavor`).
+
+		:returns: The flavor the library provides.
+		"""
+		return self._currentFlavor
+
+
+@export
+class AncestorNotFoundError(VHDLModelException, ElementNotFoundError):
+	"""
+	This exception is raised, when the parent chain of a model entity contains no ancestor of the requested type.
+	"""
+
+	_element:      ModelEntity  #: The model entity, whose parent chain was searched.
+	_ancestorType: type         #: The requested type of the ancestor.
+
+	def __init__(self, message: str, /, *, element: ModelEntity, ancestorType: type) -> None:
+		"""
+		Initializes the exception with a message, the searched model entity and the requested ancestor type.
+
+		:param message:      The exception message.
+		:param element:      The model entity, whose parent chain was searched.
+		:param ancestorType: The requested type of the ancestor.
+		"""
+		super().__init__(message)
+		self._element =      element
+		self._ancestorType = ancestorType
+
+	@readonly
+	def Element(self) -> ModelEntity:
+		"""
+		Read-only property to access the model entity, whose parent chain was searched (:attr:`_element`).
+
+		:returns: The model entity.
+		"""
+		return self._element
+
+	@readonly
+	def AncestorType(self) -> type:
+		"""
+		Read-only property to access the requested type of the ancestor (:attr:`_ancestorType`).
+
+		:returns: The requested type.
+		"""
+		return self._ancestorType
+
+
+@export
+class AllowBlackboxNotSetError(VHDLModelException):
+	"""
+	This exception is raised, when a model entity has no local *allow blackbox* value and no parent to inherit it from.
+	"""
+
+	_element: ModelEntity  #: The model entity without an *allow blackbox* value.
+
+	def __init__(self, message: str, /, *, element: ModelEntity) -> None:
+		"""
+		Initializes the exception with a message and the model entity without an *allow blackbox* value.
+
+		:param message: The exception message.
+		:param element: The model entity without an *allow blackbox* value.
+		"""
+		super().__init__(message)
+		self._element = element
+
+	@readonly
+	def Element(self) -> ModelEntity:
+		"""
+		Read-only property to access the model entity without an *allow blackbox* value (:attr:`_element`).
+
+		:returns: The model entity.
+		"""
+		return self._element
+
+
+@export
+class AmbiguousTopLevelError(VHDLModelException, AmbiguousError):
+	"""
+	This exception is raised, when the hierarchy graph of a design has more than one root, i.e. top-level.
+	"""
+
+	_topLevels: tuple[_DesignUnit, ...]  #: The design units at the roots of the hierarchy graph.
+
+	def __init__(self, message: str, /, *, topLevels: tuple[_DesignUnit, ...]) -> None:
+		"""
+		Initializes the exception with a message and the top-level candidates.
+
+		:param message:   The exception message.
+		:param topLevels: The design units at the roots of the hierarchy graph.
+		"""
+		super().__init__(message)
+		self._topLevels = topLevels
+
+	@readonly
+	def TopLevels(self) -> tuple[_DesignUnit, ...]:
+		"""
+		Read-only property to access the top-level candidates (:attr:`_topLevels`).
+
+		:returns: Tuple of design units at the roots of the hierarchy graph.
+		"""
+		return self._topLevels
+
+
+@export
+class UnprefixedEntityInstantiationError(VHDLModelException):
+	"""
+	This exception is raised, when a direct entity instantiation names its entity without a library prefix.
+	"""
+
+	_instantiation: EntityInstantiation  #: The direct entity instantiation without a library prefix.
+
+	def __init__(self, message: str, /, *, instantiation: EntityInstantiation) -> None:
+		"""
+		Initializes the exception with a message and the direct entity instantiation without a library prefix.
+
+		:param message:       The exception message.
+		:param instantiation: The direct entity instantiation without a library prefix.
+		"""
+		super().__init__(message)
+		self._instantiation = instantiation
+
+	@readonly
+	def Instantiation(self) -> EntityInstantiation:
+		"""
+		Read-only property to access the direct entity instantiation (:attr:`_instantiation`).
+
+		:returns: The direct entity instantiation without a library prefix.
+		"""
+		return self._instantiation
+
+
+@export
+class NotAGenericPackageError(VHDLModelException):
+	"""
+	This exception is raised, when a package instantiation references a package, which isn't a generic package.
+	"""
+
+	_packageInstantiation: _PackageInstantiation  #: The package instantiation referencing the package.
+	_package:              _Package               #: The referenced package, which isn't a generic package.
+
+	def __init__(self, message: str, /, *, packageInstantiation: _PackageInstantiation, package: _Package) -> None:
+		"""
+		Initializes the exception with a message, the package instantiation and the referenced non-generic package.
+
+		:param message:              The exception message.
+		:param packageInstantiation: The package instantiation referencing the package.
+		:param package:              The referenced package, which isn't a generic package.
+		"""
+		super().__init__(message)
+		self._packageInstantiation = packageInstantiation
+		self._package =              package
+
+	@readonly
+	def PackageInstantiation(self) -> _PackageInstantiation:
+		"""
+		Read-only property to access the package instantiation (:attr:`_packageInstantiation`).
+
+		:returns: The package instantiation referencing the package.
+		"""
+		return self._packageInstantiation
+
+	@readonly
+	def Package(self) -> _Package:
+		"""
+		Read-only property to access the referenced package (:attr:`_package`).
+
+		:returns: The referenced package, which isn't a generic package.
+		"""
+		return self._package
 
 
 @export

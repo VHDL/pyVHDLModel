@@ -43,7 +43,12 @@ from pyVHDLModel.Configuration import BlockConfiguration
 from pyVHDLModel.Concurrent import EntityInstantiation, ComponentInstantiation
 from pyVHDLModel.Object import Variable
 from pyVHDLModel.Exception import NotImplementedWarning, BlackboxWarning, DuplicateDeclarationWarning, \
-                                  LibraryNotFoundError, PackageNotFoundError
+                                  LibraryNotFoundError, PackageNotFoundError, LibraryNotVisibleError, \
+                                  EntityInstantiationLibraryNotVisibleError, DesignUnitNotFoundError, \
+                                  ComponentEntityNotFoundError, InstantiatedEntityNotFoundError, \
+                                  ArchitectureEntityNotFoundError, PackageBodyPackageNotFoundError, NotLinkedError, \
+                                  UseClauseNotLinkedError, NotComputedError, HierarchyNotComputedError, \
+                                  CompileOrderNotComputedError
 
 from pyTooling.Warning         import UnhandledCriticalWarningError, WarningCollector
 from pyTooling.Testing         import Testcase
@@ -271,7 +276,7 @@ class LinkInstantiations(Testcase):
 	def test_EntityInstantiation_LibraryNotReferenced(self) -> None:
 		design = self._designWithEntityInstantiation(SelectedName("entity_A", SimpleName("lib_2")))
 
-		with self.assertRaises(VHDLModelException) as context:
+		with self.assertRaises(EntityInstantiationLibraryNotVisibleError) as context:
 			design.Analyze()
 
 		self.assertEqual(
@@ -279,6 +284,25 @@ class LinkInstantiations(Testcase):
 			"architecture 'lib_1.entity_B(arch_B)'.",
 			str(context.exception)
 		)
+		self.assertIsInstance(context.exception, LibraryNotVisibleError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_EntityInstantiation_EntityNotFound(self) -> None:
+		design = self._designWithEntityInstantiation(SelectedName("entity_C", SimpleName("work")))
+
+		with self.assertRaises(InstantiatedEntityNotFoundError) as context:
+			design.Analyze()
+
+		self.assertEqual(
+			"Referenced entity 'entity_C' in direct entity instantiation 'inst: entity work.entity_C' not found in "
+			"working library 'lib_1'.",
+			str(context.exception)
+		)
+		self.assertEqual("entity_C", context.exception.DesignUnitName)
+		self.assertEqual("lib_1", context.exception.LibraryName)
+		self.assertEqual("inst", context.exception.Instantiation.Label)
+		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 
 class StdLibraryNotLoaded(Testcase):
@@ -417,6 +441,40 @@ class LinkContextReferences(Testcase):
 		self.assertIs(ieee, entity.ReferencedLibraries["ieee"])
 		self.assertDictEqual({"std_logic_1164": package}, entity.ReferencedPackages["ieee"])
 
+	def test_UseClauseNotLinked(self) -> None:
+		"""``LinkContextReferences()`` before ``LinkContexts()``."""
+		design =  Design("example")
+		library = design.GetLibrary("lib_1")
+		design.LoadIEEELibrary()
+		design.LoadStdLibrary()
+
+		symbol =  AllPackageMembersReferenceSymbol(AllName(SelectedName("std_logic_1164", SimpleName("ieee"))))
+		context = Context(
+			"ctx_1",
+			[LibraryClause([LibraryReferenceSymbol(SimpleName("ieee"))]), UseClause([symbol])],
+			parent=None
+		)
+		entity = Entity(
+			"entity_A",
+			[ContextReference([ContextReferenceSymbol(SelectedName("ctx_1", SimpleName("work")))])],
+			parent=None
+		)
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(context)
+		document._AddDesignUnit(entity)
+		design.AddDocument(document, library)
+		design.CreateDependencyGraph()
+
+		with self.assertRaises(UseClauseNotLinkedError) as ex:
+			design.LinkContextReferences()
+
+		self.assertEqual("Use clause 'ieee.std_logic_1164.all' of context 'ctx_1' isn't linked.", str(ex.exception))
+		self.assertListEqual(["Call 'LinkContexts()' before 'LinkContextReferences()'."], ex.exception.__notes__)
+		self.assertIs(symbol, ex.exception.Symbol)
+		self.assertIs(context, ex.exception.Context)
+		self.assertIsInstance(ex.exception, NotLinkedError)
+		self.assertIsInstance(ex.exception, VHDLModelException)
+
 
 class LinkPackageBodies(Testcase):
 	"""A package has one package body."""
@@ -473,6 +531,52 @@ class LinkPackageBodies(Testcase):
 		with self.assertRaises(UnhandledCriticalWarningError):
 			self._library.LinkPackageBodies()
 
+	def test_NoPackage(self) -> None:
+		design =   Design("example")
+		library =  design.GetLibrary("lib_1")
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(PackageBody(PackageSymbol(SimpleName("pack_2")), parent=None))
+		design.AddDocument(document, library)
+		design.CreateDependencyGraph()
+
+		with self.assertRaises(PackageBodyPackageNotFoundError) as context:
+			library.LinkPackageBodies()
+
+		self.assertEqual(
+			"Package 'pack_2' referenced by package body 'pack_2' doesn't exist in library 'lib_1'.",
+			str(context.exception)
+		)
+		self.assertEqual("pack_2", context.exception.DesignUnitName)
+		self.assertEqual("lib_1", context.exception.LibraryName)
+		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+
+class LinkArchitectures(Testcase):
+	"""An architecture is linked to its entity."""
+
+	def test_NoEntity(self) -> None:
+		design =   Design("example")
+		library =  design.GetLibrary("lib_1")
+		document = Document(Path("tests.vhdl"), parent=None)
+		document._AddDesignUnit(Architecture("arch_1", EntitySymbol(SimpleName("entity_1")), parent=None))
+		document._AddDesignUnit(Architecture("arch_2", EntitySymbol(SimpleName("entity_1")), parent=None))
+		design.AddDocument(document, library)
+		design.CreateDependencyGraph()
+
+		with self.assertRaises(ArchitectureEntityNotFoundError) as context:
+			library.LinkArchitectures()
+
+		self.assertEqual(
+			"Entity 'entity_1' referenced by architecture(s) 'arch_1', 'arch_2' doesn't exist in library 'lib_1'.",
+			str(context.exception)
+		)
+		self.assertEqual("entity_1", context.exception.DesignUnitName)
+		self.assertEqual("lib_1", context.exception.LibraryName)
+		self.assertTupleEqual(("arch_1", "arch_2"), context.exception.ArchitectureNames)
+		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
 
 class Blackboxes(Testcase):
 	"""A component without an entity becomes a blackbox, where the design allows blackboxes."""
@@ -518,6 +622,24 @@ class Blackboxes(Testcase):
 		self.assertIs(instance, warnings[0].Instance)
 		self.assertIs(component, warnings[0].Component)
 
+	def test_NotAllowed(self) -> None:
+		"""A component without an entity, where the design doesn't allow blackboxes."""
+		design, component, _ = self._design()
+		design.AllowBlackbox = False
+
+		with self.assertRaises(ComponentEntityNotFoundError) as context:
+			design.Analyze()
+
+		self.assertEqual(
+			"Entity 'primitive' not found for component 'primitive' in library 'lib_1'.",
+			str(context.exception)
+		)
+		self.assertEqual("primitive", context.exception.DesignUnitName)
+		self.assertEqual("lib_1", context.exception.LibraryName)
+		self.assertIs(component, context.exception.Component)
+		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
 
 class CompileOrderGraph(Testcase):
 	def test_Documents_SameFileName(self) -> None:
@@ -538,6 +660,28 @@ class CompileOrderGraph(Testcase):
 
 		self.assertIs(document1, design.CompileOrderGraph.GetVertexByID(str(Path("a/top.vhdl"))).Value)
 		self.assertIs(document2, design.CompileOrderGraph.GetVertexByID(str(Path("b/top.vhdl"))).Value)
+
+	def test_CompileOrderNotComputed(self) -> None:
+		design =  Design("example")
+		library = design.GetLibrary("lib_1")
+		for name in ("a", "b"):
+			document = Document(Path(f"{name}.vhdl"), parent=None)
+			document._AddDesignUnit(Entity(f"entity_{name}", parent=None))
+			design.AddDocument(document, library)
+
+		design.CreateDependencyGraph()
+		design.CreateCompileOrderGraph()
+
+		with self.assertRaises(CompileOrderNotComputedError) as context:
+			list(design.IterateDocumentsInCompileOrder())
+
+		self.assertEqual("Compile order is not yet computed from dependency graph.", str(context.exception))
+		self.assertListEqual(
+			["Call 'Analyze()' or 'AnalyzeDependencies()' before 'IterateDocumentsInCompileOrder()'."],
+			context.exception.__notes__
+		)
+		self.assertIsInstance(context.exception, NotComputedError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 
 class TopLevel(Testcase):
@@ -560,11 +704,19 @@ class TopLevel(Testcase):
 		self.assertEqual(1, design.HierarchyGraph.VertexCount)
 		self.assertIs(library.Entities["entity_1"], design.TopLevel)
 
-	def test_HierarchyNotYetComputed_RaisesVHDLModelException(self) -> None:
+	def test_HierarchyNotComputed(self) -> None:
 		design = Design("example")
 
-		with self.assertRaises(VHDLModelException):
+		with self.assertRaises(HierarchyNotComputedError) as context:
 			design.TopLevel
+
+		self.assertEqual("Hierarchy is not yet computed from dependency graph.", str(context.exception))
+		self.assertListEqual(
+			["Call 'Analyze()' or 'AnalyzeDependencies()' before accessing 'TopLevel'."],
+			context.exception.__notes__
+		)
+		self.assertIsInstance(context.exception, NotComputedError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 
 class IndexDeclaredItems(Testcase):

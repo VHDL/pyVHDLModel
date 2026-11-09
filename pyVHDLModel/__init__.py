@@ -77,7 +77,16 @@ from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning,
                                       LibraryNotFoundError, EntityNotFoundError, PackageNotFoundError, \
                                       ConfigurationNotFoundError, ContextNotFoundError, AlreadyInDesignError, \
                                       NotAChildError, DuplicateDocumentError, DuplicateDesignUnitError, \
-                                      LibraryInUseError, PackageInstantiationNotLinkedError
+                                      LibraryInUseError, PackageInstantiationNotLinkedError, \
+                                      UseClauseLibraryNotVisibleError, ContextReferenceLibraryNotVisibleError, \
+                                      PackageInstantiationLibraryNotVisibleError, \
+                                      EntityInstantiationLibraryNotVisibleError, LibraryClauseLibraryNotFoundError, \
+                                      PackageInstantiationLibraryNotFoundError, \
+                                      EntityInstantiationLibraryNotFoundError, ComponentEntityNotFoundError, \
+                                      InstantiatedEntityNotFoundError, ArchitectureEntityNotFoundError, \
+                                      PackageBodyPackageNotFoundError, LibraryReferenceNotLinkedError, \
+                                      UseClauseNotLinkedError, HierarchyNotComputedError, \
+                                      CompileOrderNotComputedError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
 from pyVHDLModel.Name          import AllName
 from pyVHDLModel.Namespace     import Namespace
@@ -647,16 +656,19 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		When called the first time, the hierarchy graph is checked for its root elements. When there is only one root element in the graph, a new field ``toplevel``
 		is added to :attr:`_hierarchyGraph` referencing that single element. In addition, the result is cached in :attr:`_toplevel`.
 
-		:returns:                   Reference to the design's *top-level*.
-		:raises VHDLModelException: If the hierarchy graph is not yet computed from dependency graph.
-		:raises VHDLModelException: If there is more than one *top-level*.
+		:returns:                          Reference to the design's *top-level*.
+		:raises HierarchyNotComputedError: If the hierarchy graph is not yet computed from dependency graph. |br|
+		                                   Call :meth:`Analyze` or :meth:`AnalyzeDependencies` before.
+		:raises VHDLModelException:        If there is more than one *top-level*.
 		"""
 		# Check for cached result
 		if self._toplevel is not None:
 			return self._toplevel
 
 		if self._hierarchyGraph.VertexCount == 0:
-			raise VHDLModelException("Hierarchy is not yet computed from dependency graph.")
+			ex = HierarchyNotComputedError("Hierarchy is not yet computed from dependency graph.")
+			ex.add_note("Call 'Analyze()' or 'AnalyzeDependencies()' before accessing 'TopLevel'.")
+			raise ex
 
 		roots = tuple(self._hierarchyGraph.IterateRoots())
 		if len(roots) == 1:
@@ -1695,11 +1707,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		:raises ReferencedLibraryNotExistingError: If a library clause references a library, which doesn't exist in the
 		                                           design.
-		:raises VHDLModelException:                If a use clause references a library, whose name isn't visible
+		:raises UseClauseLibraryNotVisibleError:   If a use clause references a library, whose name isn't visible
 		                                           (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
 		:raises LibraryNotFoundError:              If a use clause references a library, which a library clause of a
 		                                           nested context names, and which doesn't exist in the design.
-		:raises VHDLModelException:                If a use clause references a package, which doesn't exist in its library.
+		:raises PackageNotFoundError:              If a use clause references a package, which doesn't exist in its library.
 		:raises VHDLModelException:                If the type of a symbol in a use clause is unknown.
 		:raises UnhandledCriticalWarningError:     If a use clause names a package member, which the package doesn't
 		                                           declare, and no :class:`~pyTooling.Warning.WarningCollector` collects the
@@ -1749,9 +1761,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						library: Library = context._parent
 						libraryNormalizedIdentifier = library._normalizedIdentifier
 					elif not context.IsLibraryVisible(libraryNormalizedIdentifier):
-						ex = VHDLModelException(
+						ex = UseClauseLibraryNotVisibleError(
 							f"Use clause references library '{libraryName._identifier}', which was not referenced by a library "
-							"clause."
+							"clause.",
+							libraryName=libraryName._identifier,
+							designUnit=context
 						)
 						ex.add_note(f"Add a library clause like: 'library {libraryName._identifier};'.")
 						raise ex
@@ -1763,8 +1777,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					try:
 						package = library._packages[packageNormalizedIdentifier]
-					except KeyError:
-						raise VHDLModelException(f"Package '{packageName._identifier}' not found in {'working ' if libraryName._normalizedIdentifier == 'work' else ''}library '{library._identifier}'.")
+					except KeyError as cause:
+						ex = PackageNotFoundError(packageName._identifier, library._identifier)
+						if libraryName._normalizedIdentifier == "work":
+							ex.add_note(f"Library 'work' is the working library '{library._identifier}'.")
+
+						raise ex from cause
 
 					symbol._reference = package
 					if len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
@@ -1936,10 +1954,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   :meth:`AnalyzeDependencies`
 		     Analyze dependencies and link relations.
 
-		:raises LibraryNotFoundError: If library ``std`` isn't loaded. |br|
-		                              Call :meth:`LoadStdLibrary` before.
-		:raises VHDLModelException:   If a secondary unit is neither an architecture nor a package body.
-		:raises VHDLModelException:   If a library clause references a library, which doesn't exist in the design.
+		:raises LibraryNotFoundError:              If library ``std`` isn't loaded. |br|
+		                                           Call :meth:`LoadStdLibrary` before.
+		:raises VHDLModelException:                If a secondary unit is neither an architecture nor a package body.
+		:raises LibraryClauseLibraryNotFoundError: If a library clause references a library, which doesn't exist in the
+		                                           design.
 		"""
 		DEFAULT_LIBRARIES = ("std",)
 
@@ -1996,7 +2015,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					try:
 						library = self._libraries[libraryIdentifier]
 					except KeyError:
-						ex = VHDLModelException(f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+						ex = LibraryClauseLibraryNotFoundError(
+							f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit "
+							f"'{designUnit.Identifier}' doesn't exist in design.",
+							designUnit=designUnit,
+							librarySymbol=librarySymbol
+						)
 						ex.add_note(f"""Known libraries: '{"', '".join(library for library in self._libraries)}'""")
 						raise ex
 
@@ -2055,19 +2079,19 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   :meth:`AnalyzeDependencies`
 		     Analyze dependencies and link relations.
 
-		:raises VHDLModelException:            If a primary unit doesn't reference library ``std``. |br|
-		                                       Call :meth:`LinkLibraryReferences` before.
-		:raises PackageNotFoundError:          If library ``std`` doesn't contain package ``standard``. |br|
-		                                       Call :meth:`LoadStdLibrary` before.
-		:raises VHDLModelException:            If a secondary unit is neither an architecture nor a package body.
-		:raises VHDLModelException:            If a use clause references a library, whose name isn't visible
-		                                       (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
-		:raises VHDLModelException:            If a use clause references a package, which doesn't exist in its library.
-		:raises UnhandledCriticalWarningError: If a use clause names a package member, which the package doesn't declare,
-		                                       a primary unit, which the library doesn't contain, a prefix, which isn't a
-		                                       visible package, or an uninstantiated generic package, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises LibraryReferenceNotLinkedError:  If a primary unit doesn't reference library ``std``. |br|
+		                                         Call :meth:`LinkLibraryReferences` before.
+		:raises PackageNotFoundError:            If library ``std`` doesn't contain package ``standard``. |br|
+		                                         Call :meth:`LoadStdLibrary` before.
+		:raises VHDLModelException:              If a secondary unit is neither an architecture nor a package body.
+		:raises UseClauseLibraryNotVisibleError: If a use clause references a library, whose name isn't visible
+		                                         (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
+		:raises PackageNotFoundError:            If a use clause references a package, which doesn't exist in its library.
+		:raises UnhandledCriticalWarningError:   If a use clause names a package member, which the package doesn't declare,
+		                                         a primary unit, which the library doesn't contain, a prefix, which isn't a
+		                                         visible package, or an uninstantiated generic package, and no
+		                                         :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                         :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
 		DEFAULT_PACKAGES = (
 			("std", ("standard",)),
@@ -2079,7 +2103,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				if not (designUnit.Library.NormalizedIdentifier == "std" and designUnit.NormalizedIdentifier == "standard"):
 					for lib, packages in DEFAULT_PACKAGES:
 						if lib not in designUnit._referencedLibraries:
-							ex = VHDLModelException(f"Design unit '{designUnit._identifier}' doesn't reference library '{lib}'.")
+							ex = LibraryReferenceNotLinkedError(
+								f"Design unit '{designUnit._identifier}' doesn't reference library '{lib}'.",
+								designUnit=designUnit,
+								libraryName=lib
+							)
 							ex.add_note(f"Every primary unit references library '{lib}' implicitly.")
 							ex.add_note("Call 'LinkLibraryReferences()' before 'LinkPackageReferences()'.")
 							raise ex
@@ -2188,9 +2216,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:param useClause:                           The use clause.
 		:param isContextItem:                       ``True``, if the use clause is an item of the design unit's context
 		                                            clause.
-		:raises VHDLModelException:                 If a use clause references a library, whose name isn't visible
+		:raises UseClauseLibraryNotVisibleError:    If a use clause references a library, whose name isn't visible
 		                                            (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
-		:raises VHDLModelException:                 If a use clause references a package, which doesn't exist in its
+		:raises PackageNotFoundError:               If a use clause references a package, which doesn't exist in its
 		                                            library.
 		:raises VHDLModelException:                 If the type of a symbol in the use clause is unknown.
 		:raises PackageInstantiationNotLinkedError: If a package instantiation isn't linked to its generic package.
@@ -2286,8 +2314,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					library: Library = designUnit.Library
 					libraryIdentifier = library.NormalizedIdentifier
 				elif not designUnit.IsLibraryVisible(libraryIdentifier):
-					ex = VHDLModelException(
-						f"Use clause references library '{libraryName._identifier}', which was not referenced by a library clause."
+					ex = UseClauseLibraryNotVisibleError(
+						f"Use clause references library '{libraryName._identifier}', which was not referenced by a library clause.",
+						libraryName=libraryName._identifier,
+						designUnit=designUnit
 					)
 					ex.add_note(f"Add a library clause like: 'library {libraryName._identifier};'.")
 					raise ex
@@ -2296,13 +2326,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 				try:
 					package = library._packages[packageIdentifier]
-				except KeyError:
-					working = "working " if libraryName._normalizedIdentifier == "work" else ""
-					ex = VHDLModelException(
-						f"Package '{packageName._identifier}' not found in {working}library '{library._identifier}'."
-					)
+				except KeyError as cause:
+					ex = PackageNotFoundError(packageName._identifier, library._identifier)
+					if libraryName._normalizedIdentifier == "work":
+						ex.add_note(f"Library 'work' is the working library '{library._identifier}'.")
+
 					ex.add_note(f"Caused in design unit '{designUnit}' in file '{designUnit.Document}'.")
-					raise ex
+					raise ex from cause
 
 				if isContextItem:
 					designUnit._referencedPackages.setdefault(libraryIdentifier, {})[packageIdentifier] = package
@@ -2400,11 +2430,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   :meth:`AnalyzeDependencies`
 		     Analyze dependencies and link relations.
 
-		:raises VHDLModelException: If a context reference references a library, whose name isn't visible
-		                            (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
-		:raises VHDLModelException: If a context reference references a context, which doesn't exist in its library.
-		:raises VHDLModelException: If a use clause of a referenced context isn't linked. |br|
-		                            Call :meth:`LinkContexts` before.
+		:raises ContextReferenceLibraryNotVisibleError: If a context reference references a library, whose name isn't
+		                                                visible
+		                                                (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
+		:raises ContextNotFoundError:                   If a context reference references a context, which doesn't exist in
+		                                                its library.
+		:raises UseClauseNotLinkedError:                If a use clause of a referenced context isn't linked. |br|
+		                                                Call :meth:`LinkContexts` before.
 		"""
 		for designUnit in self.IterateDesignUnits():
 			for contextReference in designUnit._contextReferences:
@@ -2420,9 +2452,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						referencedLibrary = designUnit.Library
 						libraryIdentifier = referencedLibrary.NormalizedIdentifier
 					elif not designUnit.IsLibraryVisible(libraryIdentifier):
-						ex = VHDLModelException(
+						ex = ContextReferenceLibraryNotVisibleError(
 							f"Context reference references library '{libraryName.Identifier}', which was not referenced by a library "
-							"clause."
+							"clause.",
+							libraryName=libraryName.Identifier,
+							designUnit=designUnit
 						)
 						ex.add_note(f"Add a library clause like: 'library {libraryName.Identifier};'.")
 						raise ex
@@ -2431,8 +2465,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					try:
 						referencedContext = referencedLibrary._contexts[contextIdentifier]
-					except KeyError:
-						raise VHDLModelException(f"Context '{contextSymbol.Name.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{referencedLibrary.Identifier}'.")
+					except KeyError as cause:
+						ex = ContextNotFoundError(contextSymbol.Name.Identifier, referencedLibrary.Identifier)
+						if libraryName.NormalizedIdentifier == "work":
+							ex.add_note(f"Library 'work' is the working library '{referencedLibrary.Identifier}'.")
+
+						raise ex from cause
 
 					contextSymbol.Context = referencedContext
 
@@ -2470,7 +2508,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				for useClause in context._packageReferences:
 					for symbol in useClause._symbols:
 						if (package := symbol._reference) is None:
-							ex = VHDLModelException(f"Use clause '{symbol._name!s}' of context '{context._identifier}' isn't linked.")
+							ex = UseClauseNotLinkedError(
+								f"Use clause '{symbol._name!s}' of context '{context._identifier}' isn't linked.",
+								symbol=symbol,
+								context=context
+							)
 							ex.add_note("Call 'LinkContexts()' before 'LinkContextReferences()'.")
 							raise ex
 						elif len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
@@ -2516,7 +2558,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		        1. Iterate declared components.
 		        2. Iterate
 
-		:raises VHDLModelException: If no entity is found for a component, which doesn't allow blackboxes.
+		:raises ComponentEntityNotFoundError: If no entity is found for a component, which doesn't allow blackboxes.
 
 		.. seealso::
 
@@ -2535,8 +2577,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					component._isBlackbox = True
 					continue
 				else:
-					raise VHDLModelException(
-						f"Entity '{component.Identifier}' not found for component '{component.Identifier}' in library '{library.Identifier}'.")
+					raise ComponentEntityNotFoundError(
+						f"Entity '{component.Identifier}' not found for component '{component.Identifier}' in library "
+						f"'{library.Identifier}'.",
+						component=component,
+						libraryName=library.Identifier
+					)
 
 			component.Entity = entity
 
@@ -2614,9 +2660,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						libraryIdentifier = architecture.Library.Identifier
 						normalizedLibraryIdentifier = architecture.Library.NormalizedIdentifier
 					elif not architecture.IsLibraryVisible(normalizedLibraryIdentifier):
-						ex = VHDLModelException(
+						ex = EntityInstantiationLibraryNotVisibleError(
 							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
-							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in architecture '{architecture!r}'."
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in architecture '{architecture!r}'.",
+							instantiation=instance,
+							architecture=architecture
 						)
 						ex.add_note(f"Add a library reference to the architecture or entity using a library clause like: 'library {libraryIdentifier};'.")
 						raise ex
@@ -2624,9 +2672,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					try:
 						library = self._libraries[normalizedLibraryIdentifier]
 					except KeyError:
-						ex = VHDLModelException(
+						ex = EntityInstantiationLibraryNotFoundError(
 							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
-							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in design."
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in design.",
+							instantiation=instance
 						)
 						ex.add_note(f"No design units were parsed into library '{libraryIdentifier}'. Thus it doesn't exist in design.")
 						raise ex
@@ -2634,7 +2683,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					try:
 						entity = library._entities[instance.Entity.Name.NormalizedIdentifier]
 					except KeyError:
-						ex = VHDLModelException(f"Referenced entity '{instance.Entity.Name.Identifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Name.Prefix.Identifier}.{instance.Entity.Name.Identifier}' not found in {'working ' if instance.Entity.Name.Prefix.NormalizedIdentifier == 'work' else ''}library '{libraryIdentifier}'.")
+						ex = InstantiatedEntityNotFoundError(
+							f"Referenced entity '{entityName.Identifier}' in direct entity instantiation '{instance.Label}: "
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in "
+							f"{'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{libraryIdentifier}'.",
+							instantiation=instance,
+							libraryName=libraryIdentifier
+						)
 						libs = [library.Identifier for library in self._libraries.values() for entityIdentifier in library._entities.keys() if entityIdentifier == instance.Entity.Name.NormalizedIdentifier]
 						if libs:
 							ex.add_note(f"Found entity '{instance.Entity!s}' in other libraries: {', '.join(libs)}")
@@ -2976,8 +3031,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		   * yield the compiler-order vertex' referenced document.
 
-		:returns:                   A generator to iterate all documents in compile-order in the design.
-		:raises VHDLModelException: If compile-order was not computed.
+		:returns:                             A generator to iterate all documents in compile-order in the design.
+		:raises CompileOrderNotComputedError: If compile-order was not computed. |br|
+		                                      Call :meth:`Analyze` or :meth:`AnalyzeDependencies` before.
 
 		.. seealso::
 
@@ -2987,7 +3043,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		"""
 		if self._compileOrderGraph.EdgeCount < self._compileOrderGraph.VertexCount - 1:
-			raise VHDLModelException("Compile order is not yet computed from dependency graph.")
+			ex = CompileOrderNotComputedError("Compile order is not yet computed from dependency graph.")
+			ex.add_note("Call 'Analyze()' or 'AnalyzeDependencies()' before 'IterateDocumentsInCompileOrder()'.")
+			raise ex
 
 		for compileOrderNode in self._compileOrderGraph.IterateTopologically():
 			yield compileOrderNode.Value
@@ -3233,8 +3291,8 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		      * Set parent namespace of architecture's namespace to the entitie's namespace.
 		      * Add an edge in the dependency graph from the architecture's corresponding dependency vertex to the entity's corresponding dependency vertex.
 
-		:raises VHDLModelException: If entity name doesn't exist.
-		:raises VHDLModelException: If architecture name already exists for entity.
+		:raises ArchitectureEntityNotFoundError: If entity name doesn't exist.
+		:raises VHDLModelException:              If architecture name already exists for entity.
 
 		.. seealso::
 
@@ -3245,8 +3303,14 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		"""
 		for entityName, architecturesPerEntity in self._architectures.items():
 			if entityName not in self._entities:
-				architectureNames = "', '".join(architecturesPerEntity.keys())
-				raise VHDLModelException(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{self._identifier}'.")
+				architectureNames = tuple(architecturesPerEntity.keys())
+				raise ArchitectureEntityNotFoundError(
+					f"""Entity '{entityName}' referenced by architecture(s) '{"', '".join(architectureNames)}' doesn't """
+					f"exist in library '{self._identifier}'.",
+					entityName=entityName,
+					architectureNames=architectureNames,
+					libraryName=self._identifier
+				)
 			# TODO: add code position
 
 			entity = self._entities[entityName]
@@ -3278,10 +3342,10 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		   * Set parent namespace of package body's namespace to the package's namespace.
 		   * Add an edge in the dependency graph from the package body's corresponding dependency vertex to the package's corresponding dependency vertex.
 
-		:raises VHDLModelException:            If package name doesn't exist.
-		:raises UnhandledCriticalWarningError: If a package has another package body, which is replaced, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:raises PackageBodyPackageNotFoundError: If package name doesn't exist.
+		:raises UnhandledCriticalWarningError:   If a package has another package body, which is replaced, and no
+		                                         :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                         :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 
 		.. seealso::
 
@@ -3292,7 +3356,12 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		"""
 		for packageBodyName, packageBody in self._packageBodies.items():
 			if packageBodyName not in self._packages:
-				raise VHDLModelException(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{self._identifier}'.")
+				raise PackageBodyPackageNotFoundError(
+					f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library "
+					f"'{self._identifier}'.",
+					packageName=packageBodyName,
+					libraryName=self._identifier
+				)
 
 			package = self._packages[packageBodyName]
 			if (existing := package._packageBody) is not None and existing is not packageBody:
@@ -3328,11 +3397,12 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		      * Set parent namespace of package body's namespace to the package's namespace.
 		      * Add an edge in the dependency graph from the package body's corresponding dependency vertex to the package's corresponding dependency vertex.
 
-		:raises VHDLModelException: If the library of the generic package doesn't exist in the design.
-		:raises VHDLModelException: If the name of that library isn't visible
-		                            (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
-		:raises VHDLModelException: If generic package name doesn't exist.
-		:raises VHDLModelException: If the package isn't a generic package.
+		:raises PackageInstantiationLibraryNotFoundError:   If the library of the generic package doesn't exist in the
+		                                                    design.
+		:raises PackageInstantiationLibraryNotVisibleError: If the name of that library isn't visible
+		                                                    (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
+		:raises PackageNotFoundError:                       If generic package name doesn't exist.
+		:raises VHDLModelException:                         If the package isn't a generic package.
 
 		.. seealso::
 
@@ -3355,11 +3425,18 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 					library: Library = self
 					libraryIdentifier = library.NormalizedIdentifier
 				elif libraryIdentifier not in self._parent._libraries:
-					raise VHDLModelException(f"Package instantiation of '{packageInstanceName}' references library '{libraryName.Identifier}', which cannot be found in design.")
+					raise PackageInstantiationLibraryNotFoundError(
+						f"Package instantiation of '{packageInstance._identifier}' references library '{libraryName.Identifier}', "
+						"which cannot be found in design.",
+						libraryName=libraryName.Identifier,
+						packageInstantiation=packageInstance
+					)
 				elif not packageInstance.IsLibraryVisible(libraryIdentifier):
-					ex = VHDLModelException(
-						f"Package instantiation of '{packageInstanceName}' references library '{libraryName.Identifier}', which "
-						"was not referenced by a library clause."
+					ex = PackageInstantiationLibraryNotVisibleError(
+						f"Package instantiation of '{packageInstance._identifier}' references library '{libraryName.Identifier}', "
+						"which was not referenced by a library clause.",
+						libraryName=libraryName.Identifier,
+						packageInstantiation=packageInstance
 					)
 					ex.add_note(f"Add a library clause like: 'library {libraryName.Identifier};'.")
 					raise ex
@@ -3368,11 +3445,13 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 
 				try:
 					package = library._packages[packageIdentifier]
-				except KeyError:
-					ex = VHDLModelException(
-						f"Package '{packageName.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+				except KeyError as cause:
+					ex = PackageNotFoundError(packageName.Identifier, library.Identifier)
+					if libraryName.NormalizedIdentifier == "work":
+						ex.add_note(f"Library 'work' is the working library '{library.Identifier}'.")
+
 					ex.add_note(f"Caused in library '{self}' in file '{packageInstance.Document}'.")
-					raise ex
+					raise ex from cause
 
 				if package.GenericCount == 0:
 					raise VHDLModelException(f"Package '{libraryName.Identifier}.{packageName.Identifier}' referenced by '{self._identifier}.{packageInstanceName}' is not a generic package.")

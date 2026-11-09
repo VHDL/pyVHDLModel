@@ -141,7 +141,8 @@ Version 0.43.0 (2026)
      (:exc:`~pyVHDLModel.Exception.AmbiguousTopLevelError`, :exc:`~pyVHDLModel.Exception.NotAGenericPackageError`,
      :exc:`~pyVHDLModel.Exception.AncestorNotFoundError`, ...). Failed library and entity lookups are the cause of their
      error. ``UnknownKindError`` derives from :exc:`pyTooling.Exceptions.UnknownKindError`, ``AmbiguousTopLevelError``
-     from :exc:`pyTooling.Exceptions.AmbiguousError`; the message of the latter ends with a period.
+     from :exc:`pyTooling.Exceptions.AmbiguousError`; the message of the latter ends with a period. Every common base
+     derives from :exc:`~pyVHDLModel.Exception.VHDLModelException`.
    * Breaking change: the exceptions, which built their message from their arguments, take the message as the first,
      positional-only parameter and the descriptive values as keyword-only parameters, e.g.
      ``LibraryNotFoundError(message, /, *, libraryName)`` or

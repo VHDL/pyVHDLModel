@@ -31,8 +31,8 @@
 """
 Tests for the class hierarchy of the errors raised by the mutators.
 """
-from pyTooling.Exceptions  import AlreadyInHierarchyError, DuplicateElementError, InUseError, \
-                                  NotAChildError as CommonNotAChildError
+from pyTooling.Exceptions  import AlreadyInHierarchyError, DuplicateElementError, InUseError, ElementNotFoundError, \
+                                  NotAChildError as CommonNotAChildError, UnknownKindError as CommonUnknownKindError
 from pyTooling.Testing     import Testcase
 
 from pyVHDLModel.Exception import VHDLModelException, AlreadyInDesignError, NotAChildError, DuplicateGenericError, \
@@ -44,7 +44,10 @@ from pyVHDLModel.Exception import VHDLModelException, AlreadyInDesignError, NotA
                                   LibraryInUseError, LibraryExistsInDesignError, \
                                   LibraryRegisteredToForeignDesignError, EntityExistsInLibraryError, \
                                   ArchitectureExistsInLibraryError, PackageExistsInLibraryError, \
-                                  PackageBodyExistsError, ConfigurationExistsInLibraryError, ContextExistsInLibraryError
+                                  PackageBodyExistsError, ConfigurationExistsInLibraryError, \
+                                  ContextExistsInLibraryError, LibraryNotVisibleError, LibraryNotInDesignError, \
+                                  DesignUnitNotFoundError, NotLinkedError, InstantiationNotLinkedError, \
+                                  NotComputedError, UnknownKindError, IEEEFlavorError
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -146,3 +149,32 @@ class Exceptions(Testcase):
 	def test_ElementInUseError(self) -> None:
 		self.assertTrue(issubclass(ElementInUseError, VHDLModelException))
 		self.assertTrue(issubclass(ElementInUseError, InUseError))
+
+
+class GroupBases(Testcase):
+	"""The common bases of the linking and analysis errors are model exceptions."""
+
+	def test_LibraryNotVisibleError(self) -> None:
+		self.assertTrue(issubclass(LibraryNotVisibleError, VHDLModelException))
+
+	def test_LibraryNotInDesignError(self) -> None:
+		self.assertTrue(issubclass(LibraryNotInDesignError, VHDLModelException))
+		self.assertTrue(issubclass(LibraryNotInDesignError, ElementNotFoundError))
+
+	def test_DesignUnitNotFoundError(self) -> None:
+		self.assertTrue(issubclass(DesignUnitNotFoundError, VHDLModelException))
+		self.assertTrue(issubclass(DesignUnitNotFoundError, ElementNotFoundError))
+
+	def test_NotLinkedError(self) -> None:
+		self.assertTrue(issubclass(NotLinkedError, VHDLModelException))
+		self.assertTrue(issubclass(InstantiationNotLinkedError, NotLinkedError))
+
+	def test_NotComputedError(self) -> None:
+		self.assertTrue(issubclass(NotComputedError, VHDLModelException))
+
+	def test_UnknownKindError(self) -> None:
+		self.assertTrue(issubclass(UnknownKindError, VHDLModelException))
+		self.assertTrue(issubclass(UnknownKindError, CommonUnknownKindError))
+
+	def test_IEEEFlavorError(self) -> None:
+		self.assertTrue(issubclass(IEEEFlavorError, VHDLModelException))

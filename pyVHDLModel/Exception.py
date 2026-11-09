@@ -786,14 +786,14 @@ class ContextExistsInLibraryError(VHDLModelException, DuplicateElementError):
 
 
 @export
-class LibraryNotInDesignError(ElementNotFoundError):
+class LibraryNotInDesignError(VHDLModelException, ElementNotFoundError):
 	"""
 	The exception is raised when a library is referenced or looked up by name, but doesn't exist in the design.
 
-	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
-	``class LibraryNotFoundError(VHDLModelException, LibraryNotInDesignError)``. It has no initializer of its own; the
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class LibraryNotFoundError(LibraryNotInDesignError)``. It has no initializer of its own; the
 	derived exception sets the fields.
-	It derives from pyTooling's common base :exc:`pyTooling.Exceptions.ElementNotFoundError`, so it's a
+	It also derives from pyTooling's common base :exc:`pyTooling.Exceptions.ElementNotFoundError`, so it's a
 	:exc:`LookupError`.
 
 	.. seealso::
@@ -823,7 +823,7 @@ class LibraryNotInDesignError(ElementNotFoundError):
 
 
 @export
-class ReferencedLibraryNotExistingError(VHDLModelException, LibraryNotInDesignError):
+class ReferencedLibraryNotExistingError(LibraryNotInDesignError):
 	"""
 	This exception is raised, when a library is referenced by a `library clause`, but doesn't exist in the design.
 	"""
@@ -1844,7 +1844,7 @@ class LibraryInUseError(ElementInUseError["Library", "Document"]):
 
 
 @export
-class LibraryNotFoundError(VHDLModelException, LibraryNotInDesignError):
+class LibraryNotFoundError(LibraryNotInDesignError):
 	"""
 	This exception is raised, when a library is looked up by name, but doesn't exist in the design.
 	"""
@@ -1861,7 +1861,7 @@ class LibraryNotFoundError(VHDLModelException, LibraryNotInDesignError):
 
 
 @export
-class LibraryClauseLibraryNotFoundError(VHDLModelException, LibraryNotInDesignError):
+class LibraryClauseLibraryNotFoundError(LibraryNotInDesignError):
 	"""
 	This exception is raised, when a library clause of a design unit references a library, which doesn't exist in the
 	design.
@@ -1903,7 +1903,7 @@ class LibraryClauseLibraryNotFoundError(VHDLModelException, LibraryNotInDesignEr
 
 
 @export
-class PackageInstantiationLibraryNotFoundError(VHDLModelException, LibraryNotInDesignError):
+class PackageInstantiationLibraryNotFoundError(LibraryNotInDesignError):
 	"""
 	This exception is raised, when a package instantiation references a library, which doesn't exist in the design.
 	"""
@@ -1933,7 +1933,7 @@ class PackageInstantiationLibraryNotFoundError(VHDLModelException, LibraryNotInD
 
 
 @export
-class EntityInstantiationLibraryNotFoundError(VHDLModelException, LibraryNotInDesignError):
+class EntityInstantiationLibraryNotFoundError(LibraryNotInDesignError):
 	"""
 	This exception is raised, when a direct entity instantiation references a library, which doesn't exist in the design.
 	"""
@@ -1962,14 +1962,14 @@ class EntityInstantiationLibraryNotFoundError(VHDLModelException, LibraryNotInDe
 
 
 @export
-class DesignUnitNotFoundError(ElementNotFoundError):
+class DesignUnitNotFoundError(VHDLModelException, ElementNotFoundError):
 	"""
 	The exception is raised when a design unit is looked up by name, but doesn't exist in the searched library.
 
-	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
-	``class EntityNotFoundError(VHDLModelException, DesignUnitNotFoundError)``. It has no initializer of its own; the
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class EntityNotFoundError(DesignUnitNotFoundError)``. It has no initializer of its own; the
 	derived exception sets the fields.
-	It derives from pyTooling's common base :exc:`pyTooling.Exceptions.ElementNotFoundError`, so it's a
+	It also derives from pyTooling's common base :exc:`pyTooling.Exceptions.ElementNotFoundError`, so it's a
 	:exc:`LookupError`.
 
 	.. seealso::
@@ -2015,7 +2015,7 @@ class DesignUnitNotFoundError(ElementNotFoundError):
 
 
 @export
-class EntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+class EntityNotFoundError(DesignUnitNotFoundError):
 	"""
 	This exception is raised, when an entity is looked up by name, but doesn't exist in the searched library.
 	"""
@@ -2034,7 +2034,7 @@ class EntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 
 
 @export
-class PackageNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+class PackageNotFoundError(DesignUnitNotFoundError):
 	"""
 	This exception is raised, when a package is looked up by name, but doesn't exist in the searched library.
 	"""
@@ -2053,7 +2053,7 @@ class PackageNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 
 
 @export
-class ConfigurationNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+class ConfigurationNotFoundError(DesignUnitNotFoundError):
 	"""
 	This exception is raised, when a configuration is looked up by name, but doesn't exist in the searched library.
 	"""
@@ -2072,7 +2072,7 @@ class ConfigurationNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 
 
 @export
-class ContextNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+class ContextNotFoundError(DesignUnitNotFoundError):
 	"""
 	This exception is raised, when a context is looked up by name, but doesn't exist in the searched library.
 	"""
@@ -2091,7 +2091,7 @@ class ContextNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 
 
 @export
-class ComponentEntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+class ComponentEntityNotFoundError(DesignUnitNotFoundError):
 	"""
 	This exception is raised, when no entity matches a component, which doesn't allow blackboxes.
 	"""
@@ -2122,7 +2122,7 @@ class ComponentEntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
 
 
 @export
-class InstantiatedEntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+class InstantiatedEntityNotFoundError(DesignUnitNotFoundError):
 	"""
 	This exception is raised, when the entity of a direct entity instantiation doesn't exist in the referenced library.
 	"""
@@ -2153,7 +2153,7 @@ class InstantiatedEntityNotFoundError(VHDLModelException, DesignUnitNotFoundErro
 
 
 @export
-class ArchitectureEntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+class ArchitectureEntityNotFoundError(DesignUnitNotFoundError):
 	"""
 	This exception is raised, when the entity of one or more architectures doesn't exist in their library.
 	"""
@@ -2192,7 +2192,7 @@ class ArchitectureEntityNotFoundError(VHDLModelException, DesignUnitNotFoundErro
 
 
 @export
-class PackageBodyPackageNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+class PackageBodyPackageNotFoundError(DesignUnitNotFoundError):
 	"""
 	This exception is raised, when the package of a package body doesn't exist in its library.
 	"""
@@ -2211,12 +2211,12 @@ class PackageBodyPackageNotFoundError(VHDLModelException, DesignUnitNotFoundErro
 
 
 @export
-class NotLinkedError(Exception):
+class NotLinkedError(VHDLModelException):
 	"""
 	The exception is raised when a linking step of the analysis didn't run before a step, which needs its result.
 
-	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
-	``class UseClauseNotLinkedError(VHDLModelException, NotLinkedError)``. It has no initializer and no fields of its
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class UseClauseNotLinkedError(NotLinkedError)``. It has no initializer and no fields of its
 	own.
 
 	.. seealso::
@@ -2238,8 +2238,8 @@ class InstantiationNotLinkedError(NotLinkedError):
 	A package instantiation is linked to its generic package by :meth:`~pyVHDLModel.Design.LinkPackageInstances`; the
 	generic language entity's declarations are available only after linking.
 
-	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
-	``class PackageInstantiationNotLinkedError(VHDLModelException, InstantiationNotLinkedError)``. It has no initializer
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class PackageInstantiationNotLinkedError(InstantiationNotLinkedError)``. It has no initializer
 	of its own; the derived exception sets the fields.
 
 	.. seealso::
@@ -2271,7 +2271,7 @@ class InstantiationNotLinkedError(NotLinkedError):
 
 
 @export
-class PackageInstantiationNotLinkedError(VHDLModelException, InstantiationNotLinkedError):
+class PackageInstantiationNotLinkedError(InstantiationNotLinkedError):
 	"""
 	This exception is raised, when a package instantiation isn't linked to its generic package.
 	"""
@@ -2290,7 +2290,7 @@ class PackageInstantiationNotLinkedError(VHDLModelException, InstantiationNotLin
 
 
 @export
-class LibraryReferenceNotLinkedError(VHDLModelException, NotLinkedError):
+class LibraryReferenceNotLinkedError(NotLinkedError):
 	"""
 	This exception is raised, when a primary unit doesn't reference a library, which every primary unit references
 	implicitly.
@@ -2331,7 +2331,7 @@ class LibraryReferenceNotLinkedError(VHDLModelException, NotLinkedError):
 
 
 @export
-class UseClauseNotLinkedError(VHDLModelException, NotLinkedError):
+class UseClauseNotLinkedError(NotLinkedError):
 	"""
 	This exception is raised, when a use clause of a context declaration isn't linked to its package.
 	"""
@@ -2371,12 +2371,12 @@ class UseClauseNotLinkedError(VHDLModelException, NotLinkedError):
 
 
 @export
-class NotComputedError(Exception):
+class NotComputedError(VHDLModelException):
 	"""
 	The exception is raised when a graph of the analysis isn't computed before it's used.
 
-	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
-	``class HierarchyNotComputedError(VHDLModelException, NotComputedError)``. It has no initializer and no fields of its
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class HierarchyNotComputedError(NotComputedError)``. It has no initializer and no fields of its
 	own.
 
 	.. seealso::
@@ -2389,26 +2389,26 @@ class NotComputedError(Exception):
 
 
 @export
-class HierarchyNotComputedError(VHDLModelException, NotComputedError):
+class HierarchyNotComputedError(NotComputedError):
 	"""
 	This exception is raised, when the design's top-level is requested before the hierarchy graph is computed.
 	"""
 
 
 @export
-class CompileOrderNotComputedError(VHDLModelException, NotComputedError):
+class CompileOrderNotComputedError(NotComputedError):
 	"""
 	This exception is raised, when documents are iterated in compile order before the compile order is computed.
 	"""
 
 
 @export
-class LibraryNotVisibleError(Exception):
+class LibraryNotVisibleError(VHDLModelException):
 	"""
 	The exception is raised when a design unit references a library, whose name no library clause made visible.
 
-	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
-	``class UseClauseLibraryNotVisibleError(VHDLModelException, LibraryNotVisibleError)``. It has no initializer of its
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class UseClauseLibraryNotVisibleError(LibraryNotVisibleError)``. It has no initializer of its
 	own; the derived exception sets the fields.
 
 	.. seealso::
@@ -2446,7 +2446,7 @@ class LibraryNotVisibleError(Exception):
 
 
 @export
-class UseClauseLibraryNotVisibleError(VHDLModelException, LibraryNotVisibleError):
+class UseClauseLibraryNotVisibleError(LibraryNotVisibleError):
 	"""
 	This exception is raised, when a use clause references a library, whose name no library clause made visible.
 	"""
@@ -2465,7 +2465,7 @@ class UseClauseLibraryNotVisibleError(VHDLModelException, LibraryNotVisibleError
 
 
 @export
-class ContextReferenceLibraryNotVisibleError(VHDLModelException, LibraryNotVisibleError):
+class ContextReferenceLibraryNotVisibleError(LibraryNotVisibleError):
 	"""
 	This exception is raised, when a context reference references a library, whose name no library clause made visible.
 	"""
@@ -2485,7 +2485,7 @@ class ContextReferenceLibraryNotVisibleError(VHDLModelException, LibraryNotVisib
 
 
 @export
-class PackageInstantiationLibraryNotVisibleError(VHDLModelException, LibraryNotVisibleError):
+class PackageInstantiationLibraryNotVisibleError(LibraryNotVisibleError):
 	"""
 	This exception is raised, when a package instantiation references a library, whose name no library clause made
 	visible.
@@ -2505,7 +2505,7 @@ class PackageInstantiationLibraryNotVisibleError(VHDLModelException, LibraryNotV
 
 
 @export
-class EntityInstantiationLibraryNotVisibleError(VHDLModelException, LibraryNotVisibleError):
+class EntityInstantiationLibraryNotVisibleError(LibraryNotVisibleError):
 	"""
 	This exception is raised, when a direct entity instantiation references a library, whose name no library clause made
 	visible.
@@ -2537,13 +2537,13 @@ class EntityInstantiationLibraryNotVisibleError(VHDLModelException, LibraryNotVi
 
 
 @export
-class UnknownKindError(CommonUnknownKindError):
+class UnknownKindError(VHDLModelException, CommonUnknownKindError):
 	"""
 	The exception is raised when a model element is of a kind, which the model doesn't expect at its place.
 
-	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
-	``class UnknownSymbolKindError(VHDLModelException, UnknownKindError)``. It has no initializer of its own; the derived
-	exception sets the fields. It derives from pyTooling's common base :exc:`pyTooling.Exceptions.UnknownKindError`.
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class UnknownSymbolKindError(UnknownKindError)``. It has no initializer of its own; the derived
+	exception sets the fields. It also derives from pyTooling's common base :exc:`pyTooling.Exceptions.UnknownKindError`.
 
 	.. seealso::
 
@@ -2566,7 +2566,7 @@ class UnknownKindError(CommonUnknownKindError):
 
 
 @export
-class UnknownSymbolKindError(VHDLModelException, UnknownKindError):
+class UnknownSymbolKindError(UnknownKindError):
 	"""
 	This exception is raised, when a symbol of a use clause isn't a package reference symbol, which the model supports.
 	"""
@@ -2596,7 +2596,7 @@ class UnknownSymbolKindError(VHDLModelException, UnknownKindError):
 
 
 @export
-class UnknownSecondaryUnitKindError(VHDLModelException, UnknownKindError):
+class UnknownSecondaryUnitKindError(UnknownKindError):
 	"""
 	This exception is raised, when a secondary unit is neither an architecture nor a package body.
 	"""
@@ -2613,12 +2613,12 @@ class UnknownSecondaryUnitKindError(VHDLModelException, UnknownKindError):
 
 
 @export
-class IEEEFlavorError(Exception):
+class IEEEFlavorError(VHDLModelException):
 	"""
 	The exception is raised when the ``ieee`` library can't provide a requested flavor.
 
-	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
-	``class UnknownIEEEFlavorError(VHDLModelException, IEEEFlavorError)``. It has no initializer of its own; the derived
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class UnknownIEEEFlavorError(IEEEFlavorError)``. It has no initializer of its own; the derived
 	exception sets the fields.
 
 	.. seealso::
@@ -2642,7 +2642,7 @@ class IEEEFlavorError(Exception):
 
 
 @export
-class UnknownIEEEFlavorError(VHDLModelException, IEEEFlavorError):
+class UnknownIEEEFlavorError(IEEEFlavorError):
 	"""
 	This exception is raised, when the ``ieee`` library is requested with an unknown flavor.
 	"""
@@ -2659,7 +2659,7 @@ class UnknownIEEEFlavorError(VHDLModelException, IEEEFlavorError):
 
 
 @export
-class IEEEFlavorChangeError(VHDLModelException, IEEEFlavorError):
+class IEEEFlavorChangeError(IEEEFlavorError):
 	"""
 	This exception is raised, when the flavor of an ``ieee`` library, which provides a non-IEEE flavor, is changed.
 	"""

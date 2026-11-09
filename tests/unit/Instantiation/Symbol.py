@@ -39,7 +39,7 @@ itself, the object/function-call symbols with no dedicated property) get their o
 """
 from pyTooling.Testing      import Testcase
 
-from pyVHDLModel.Base   import Direction, SimpleRange, RangeFromName
+from pyVHDLModel.Base   import ModelEntity, Direction, SimpleRange, RangeFromName
 from pyVHDLModel.Name   import SimpleName, SelectedName, AllName, AttributeName
 from pyVHDLModel.Expression import IntegerLiteral
 from pyVHDLModel.Symbol import PossibleReference, Symbol, LibraryReferenceSymbol, PackageReferenceSymbol, \
@@ -52,6 +52,8 @@ from pyVHDLModel.Symbol import PossibleReference, Symbol, LibraryReferenceSymbol
                                ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
                                SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, AggregateSymbol, \
                                LoopSymbol
+
+from tests.unit         import _Element
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -78,6 +80,36 @@ class SymbolBase(Testcase):
 		self.assertFalse(bool(symbol))
 		self.assertEqual("s?", str(symbol))
 		self.assertEqual("Symbol: 's' -> unresolved", repr(symbol))
+
+	def test_ModelEntity(self) -> None:
+		"""A symbol is a model entity without a parent; it is the parent of its name."""
+		name =   SimpleName("s")
+		symbol = Symbol(name, PossibleReference.Signal)
+
+		self.assertIsInstance(symbol, ModelEntity)
+		self.assertIsNone(symbol.Parent)
+		self.assertIs(symbol, name.Parent)
+
+	def test_Parent(self) -> None:
+		parent = _Element()
+		symbol = Symbol(SimpleName("s"), PossibleReference.Signal, parent=parent)
+
+		self.assertIs(parent, symbol.Parent)
+
+	def test_Parent_Assigned(self) -> None:
+		"""The model entity using a symbol sets its parent."""
+		parent =        _Element()
+		symbol =        Symbol(SimpleName("s"), PossibleReference.Signal)
+		symbol.Parent = parent
+
+		self.assertIs(parent, symbol.Parent)
+
+	def test_Slots(self) -> None:
+		"""A symbol has no instance dictionary: an undeclared attribute can't be set."""
+		symbol = Symbol(SimpleName("s"), PossibleReference.Signal)
+
+		with self.assertRaises(AttributeError):
+			symbol.Undeclared = 1
 
 	def test_Resolved(self) -> None:
 		"""Resolution is exposed through each subclass's own named property (see
@@ -134,6 +166,16 @@ class SimpleReferenceSymbols(Testcase):
 				self.assertIs(target, symbol.Reference)
 				self.assertTrue(symbol.IsResolved)
 
+	def test_AllVariants_Parent(self) -> None:
+		for symbolClass, _, _ in _SIMPLE_REFERENCE_SYMBOLS:
+			with self.subTest(symbol=symbolClass.__name__):
+				parent = _Element()
+				name =   SimpleName("target")
+				symbol = symbolClass(name, parent=parent)
+
+				self.assertIs(parent, symbol.Parent)
+				self.assertIs(symbol, name.Parent)
+
 	def test_AllPackageMembersReferenceSymbol(self) -> None:
 		"""Same shape as the table above, but the name must be an ``AllName``
 		(``use pkg.all;``), not a plain ``Name``, and the property is plural (``Members``)."""
@@ -148,6 +190,14 @@ class SimpleReferenceSymbols(Testcase):
 		symbol.Members = target
 
 		self.assertIs(target, symbol.Members)
+
+	def test_AllPackageMembersReferenceSymbol_Parent(self) -> None:
+		parent = _Element()
+		name =   AllName(SimpleName("pkg"))
+		symbol = AllPackageMembersReferenceSymbol(name, parent=parent)
+
+		self.assertIs(parent, symbol.Parent)
+		self.assertIs(symbol, name.Parent)
 
 
 class NoPropertyReferenceSymbols(Testcase):
@@ -181,6 +231,16 @@ class NoPropertyReferenceSymbols(Testcase):
 		)
 		self.assertIs(expected, symbol._possibleReferences)
 
+	def test_Parent(self) -> None:
+		for symbolClass in (RecordElementSymbol, SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol):
+			with self.subTest(symbol=symbolClass.__name__):
+				parent = _Element()
+				name =   SimpleName("x")
+				symbol = symbolClass(name, parent=parent)
+
+				self.assertIs(parent, symbol.Parent)
+				self.assertIs(symbol, name.Parent)
+
 
 class SubtypeSymbols(Testcase):
 	def test_SubtypeSymbol(self) -> None:
@@ -210,6 +270,16 @@ class SubtypeSymbols(Testcase):
 		symbol = SimpleSubtypeSymbol(SimpleName("bit"))
 
 		self.assertIsNone(symbol.Subtype)
+
+	def test_Parent(self) -> None:
+		for symbolClass in (SubtypeSymbol, SimpleSubtypeSymbol):
+			with self.subTest(symbol=symbolClass.__name__):
+				parent = _Element()
+				name =   SimpleName("bit")
+				symbol = symbolClass(name, parent=parent)
+
+				self.assertIs(parent, symbol.Parent)
+				self.assertIs(symbol, name.Parent)
 
 
 class ConstrainedSubtypeSymbols(Testcase):
@@ -250,6 +320,34 @@ class ConstrainedSubtypeSymbols(Testcase):
 		self.assertEqual(1, len(symbol.Constraints))
 		self.assertIs(constraint, symbol.Constraints[element])
 
+	def test_ScalarConstraint_Parent(self) -> None:
+		parent =     _Element()
+		name =       SimpleName("integer")
+		constraint = SimpleRange(IntegerLiteral(0), IntegerLiteral(15), Direction.To)
+		symbol =     ConstrainedScalarSubtypeSymbol(name, constraint, parent=parent)
+
+		self.assertIs(parent, symbol.Parent)
+		self.assertIs(symbol, name.Parent)
+
+	def test_ArrayConstraint_Parent(self) -> None:
+		parent =     _Element()
+		name =       SimpleName("std_logic_vector")
+		constraint = SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)
+		symbol =     ConstrainedArraySubtypeSymbol(name, [constraint], parent=parent)
+
+		self.assertIs(parent, symbol.Parent)
+		self.assertIs(symbol, name.Parent)
+
+	def test_RecordConstraint_Parent(self) -> None:
+		parent =     _Element()
+		name =       SimpleName("rec_t")
+		element =    RecordElementSymbol(SimpleName("field"))
+		constraint = SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)
+		symbol =     ConstrainedRecordSubtypeSymbol(name, {element: constraint}, parent=parent)
+
+		self.assertIs(parent, symbol.Parent)
+		self.assertIs(symbol, name.Parent)
+
 
 class AggregateSymbols(Testcase):
 	def test_Construction(self) -> None:
@@ -266,6 +364,17 @@ class AggregateSymbols(Testcase):
 			"AggregateSymbol: (VariableSymbol: 'carry' -> unresolved, VariableSymbol: 'sum' -> unresolved)",
 			repr(symbol)
 		)
+
+	def test_Parent(self) -> None:
+		"""The group is the parent of its targets."""
+		parent = _Element()
+		carry =  VariableSymbol(SimpleName("carry"))
+		sum =    VariableSymbol(SimpleName("sum"))
+		symbol = AggregateSymbol([carry, sum], parent=parent)
+
+		self.assertIs(parent, symbol.Parent)
+		self.assertIs(symbol, carry.Parent)
+		self.assertIs(symbol, sum.Parent)
 
 	def test_PossibleReferences(self) -> None:
 		"""The group can reference what any of its targets can reference."""

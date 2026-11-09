@@ -67,7 +67,7 @@ class SequentialProcedureCalls(Testcase):
 		call = SequentialProcedureCall(procedureName, [parameter], label="lbl")
 
 		self.assertIs(procedureName, call.Procedure)
-		self.assertNotIn("Parent", vars(procedureName))
+		self.assertIs(call, procedureName.Parent)
 		self.assertEqual(1, len(call.ParameterAssociationItems))
 		self.assertIs(call, parameter.Parent)
 		self.assertEqual("lbl", call.Label)
@@ -251,7 +251,7 @@ class LoopControlStatements(Testcase):
 
 		self.assertIs(condition, statement.Condition)
 		self.assertIs(loopLabel, statement.LoopReference)
-		self.assertNotIn("Parent", vars(loopLabel))
+		self.assertIs(statement, loopLabel.Parent)
 		self.assertEqual("lbl", statement.Label)
 
 	def test_ExitStatement_LoopLabel(self) -> None:
@@ -260,7 +260,7 @@ class LoopControlStatements(Testcase):
 
 		self.assertIsNone(statement.Condition)
 		self.assertIs(loopLabel, statement.LoopReference)
-		self.assertNotIn("Parent", vars(loopLabel))
+		self.assertIs(statement, loopLabel.Parent)
 		self.assertEqual("lbl", statement.Label)
 
 	def test_NextStatement_LoopLabel_NoSymbol(self) -> None:

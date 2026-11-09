@@ -106,6 +106,10 @@ Version 0.43.0 (2026)
    * Breaking change: every port interface item is a :class:`~pyVHDLModel.Interface.PortInterfaceItemMixin`; the mixin
      carries no mode and has no initializer parameter (like the generic and parameter mixins).
    * A name is the parent of its prefix.
+   * Symbols are model entities: :class:`~pyVHDLModel.Symbol.Symbol` derives from
+     :class:`~pyVHDLModel.Base.ModelEntity`. A symbol's parent is the model entity using it, e.g. a statement, an
+     expression or a declaration; a symbol is the parent of its name, an aggregate symbol of its targets. The symbol
+     classes take an optional keyword-only ``parent`` and declare their fields as slots.
    * :class:`~pyVHDLModel.DesignUnit.Context` inherits ``LibraryReferences``, ``PackageReferences`` and
      ``ContextReferences`` from :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
    * Instantiations annotate their generic and port maps with :class:`~pyVHDLModel.Association.GenericAssociationItem`
@@ -162,7 +166,6 @@ Version 0.43.0 (2026)
      :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError`, if the library didn't hold its entity.
    * A design unit kept a context item of an unknown kind in ``ContextItems`` only, a context declaration raised a plain
      :exc:`~pyVHDLModel.Exception.VHDLModelException` for it; both raise :exc:`TypeError` now.
-   * A procedure call set an undeclared ``Parent`` attribute on its procedure symbol.
    * :data:`~pyVHDLModel.Regions.WithGenericsMixin.GenericCount`, :data:`~pyVHDLModel.Regions.WithPortsMixin.PortCount`
      and :data:`~pyVHDLModel.Regions.WithParametersMixin.ParameterCount` counted interface items instead of the declared
      generics, ports and parameters: ``port (a, b : in bit)`` gave 1. They count the identifiers now (2).

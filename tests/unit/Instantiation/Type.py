@@ -305,16 +305,13 @@ class ArrayTypes(Testcase):
 		self.assertEqual("my_vector is array(0 to 7) of std_logic?", str(arrayType))
 
 	def test_ParentIsNotWiredYet(self) -> None:
-		"""``index.Parent`` is genuinely ``None`` (``Range`` is a ``ModelEntity`` with a declared
-		``Parent`` property), but ``elementSubtype.Parent`` doesn't even exist as an attribute -
-		``Symbol`` isn't a ``ModelEntity`` (see the design note in tests/unit/Symbol.py) and nothing
-		ever assigns it here, so there's no ad-hoc attribute to find either."""
+		"""An array type doesn't set the parent of its index ranges and its element subtype yet."""
 		index = _range(0, 7)
 		elementSubtype = _subtypeSymbol("std_logic")
-		arrayType = ArrayType("my_vector", [index], elementSubtype)
+		ArrayType("my_vector", [index], elementSubtype)
 
 		self.assertIsNone(index.Parent)
-		self.assertFalse(hasattr(elementSubtype, "Parent"))
+		self.assertIsNone(elementSubtype.Parent)
 
 
 class RecordTypeElements(Testcase):

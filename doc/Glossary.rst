@@ -11,7 +11,8 @@ Glossary
      :term:`declarative region`.
 
      In pyVHDLModel, a declarative part is the list of declared items of a model entity, e.g.
-     :attr:`~pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin.DeclaredItems`.
+     :attr:`~pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin.DeclaredItems`. Its mutators are provided by
+     :class:`~pyVHDLModel.Regions.DeclarativePartMixin`.
 
      See :term:`LRM` (IEEE Std 1076-2008), clause 3 (design entities), 4 (subprograms and packages) and 11 (concurrent
      statements) for the declarative parts of each construct.
@@ -22,8 +23,9 @@ Glossary
      its package body, a component declaration, a subprogram, a block, a process or a loop statement. Regions nest; a
      declaration hides a homograph of an enclosing region.
 
-     In pyVHDLModel, a declarative region has a namespace (:class:`~pyVHDLModel.Namespace.Namespace`); entity and
-     architecture, as well as package and package body, share one region.
+     In pyVHDLModel, a declarative region (:class:`~pyVHDLModel.Regions.DeclarativeRegionMixin`) has a namespace
+     (:class:`~pyVHDLModel.Namespace.Namespace`); entity and architecture, as well as package and package body, share
+     one region.
 
      See :term:`LRM` (IEEE Std 1076-2008), clause 12.1.
 

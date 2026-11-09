@@ -45,7 +45,7 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf, ReservedWord
 from pyVHDLModel.Symbol     import SubtypeSymbol
 from pyVHDLModel.Type       import ProtectedType
-from pyVHDLModel.Regions    import DeclarationRegionMixin, SequentialDeclarationRegionMixin, WithGenericsMixin, \
+from pyVHDLModel.Regions    import DeclarativeRegionMixin, SequentialDeclarationRegionMixin, WithGenericsMixin, \
                                    WithParametersMixin
 from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixin
 
@@ -659,8 +659,8 @@ class Function(Subprogram):
 
 	def IterateTypeMarks(
 		self,
-		region: DeclarationRegionMixin
-	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this function: its return type.
 

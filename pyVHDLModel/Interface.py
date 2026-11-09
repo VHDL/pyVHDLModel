@@ -51,7 +51,7 @@ from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
 
 if TYPE_CHECKING:
-	from pyVHDLModel.Regions  import DeclarationRegionMixin
+	from pyVHDLModel.Regions  import DeclarativeRegionMixin
 	from pyVHDLModel.Visitor  import Visitor
 
 
@@ -384,8 +384,8 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	def IterateTypeMarks(
 		self,
-		region: DeclarationRegionMixin
-	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this mode view declaration: the subtype it applies to.
 

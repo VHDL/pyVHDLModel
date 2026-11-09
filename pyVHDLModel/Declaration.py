@@ -50,7 +50,7 @@ from pyVHDLModel.Symbol     import PossibleReference, Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
 	from pyVHDLModel.DesignUnit import DesignUnit
-	from pyVHDLModel.Regions  import DeclarationRegionMixin
+	from pyVHDLModel.Regions  import DeclarativeRegionMixin
 	from pyVHDLModel.Visitor  import Visitor
 
 
@@ -184,8 +184,8 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	def IterateTypeMarks(
 		self,
-		region: DeclarationRegionMixin
-	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this attribute declaration: the type mark of its values.
 
@@ -437,8 +437,8 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 	def IterateTypeMarks(
 		self,
-		region: DeclarationRegionMixin
-	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this alias: the type mark of its subtype indication, if it has one.
 
@@ -449,13 +449,13 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		if self._subtype is not None:
 			yield region, self, self._subtype
 
-	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
 		Resolve the name of this alias, if it has no subtype indication, then its type marks.
 
 		The name is resolved, if it's a simple name or an expanded name ``lib.pkg.item``
 		(:attr:`~pyVHDLModel.Name.Name.IsExpandedName`) and denotes a declaration, which isn't overloadable, e.g. a type or
-		an object (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.LookupName`); the alias isn't overloadable then
+		an object (:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.LookupName`); the alias isn't overloadable then
 		(:attr:`IsOverloadable`). The name of an implicitly declared operation (:attr:`_IMPLICIT_OPERATIONS`, an operator
 		symbol) isn't looked up, as the model doesn't represent these.
 
@@ -479,7 +479,7 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		super().ResolveReferences(designUnit, region)
 
-	def ResetReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
 		Reset the reference of this alias' name, if it has no subtype indication, and the references of its type marks.
 
@@ -494,7 +494,7 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	def DenoteBy(
 		self,
 		name:   Name,
-		region: DeclarationRegionMixin,
+		region: DeclarativeRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
 	) -> Nullable[ModelEntity]:

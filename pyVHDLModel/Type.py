@@ -51,7 +51,7 @@ from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning
 from pyVHDLModel.Name       import Name
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
-from pyVHDLModel.Regions    import DeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin, \
+from pyVHDLModel.Regions    import DeclarativeRegionMixin, ProtectedTypeDeclarationRegionMixin, \
                                    SequentialDeclarationRegionMixin, WithoutStatementsMixin
 
 if TYPE_CHECKING:
@@ -107,7 +107,7 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	def DenoteBy(
 		self,
 		name:   Name,
-		region: DeclarationRegionMixin,
+		region: DeclarativeRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
 	) -> Nullable[ModelEntity]:
@@ -171,7 +171,7 @@ class AnonymousType(Type):
 	      end record;
 	"""
 
-	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
 		Check that a full type declaration of the same name completes this incomplete type later in its region.
 
@@ -323,8 +323,8 @@ class Subtype(BaseType):
 
 	def IterateTypeMarks(
 		self,
-		region: DeclarationRegionMixin
-	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this subtype declaration: the type mark it is derived from.
 
@@ -334,7 +334,7 @@ class Subtype(BaseType):
 		if isinstance(self._type, SubtypeSymbol):
 			yield region, self, self._type
 
-	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
 		Resolve the type mark of this subtype and set its base type (:attr:`BaseType`): the resolved type, or the base type
 		of the resolved subtype; ``None``, if the type mark isn't resolved.
@@ -352,7 +352,7 @@ class Subtype(BaseType):
 		else:
 			self._baseType = reference.BaseType
 
-	def ResetReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
 		Reset the reference of this subtype's type mark and its base type; a subtype of a predefined library
 		(:attr:`~pyVHDLModel.Library.IsPredefined`) keeps its base type.
@@ -984,8 +984,8 @@ class ArrayType(CompositeType):
 
 	def IterateTypeMarks(
 		self,
-		region: DeclarationRegionMixin
-	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this array type: its index subtypes, then its element subtype.
 
@@ -1093,7 +1093,7 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 	def DenoteBy(
 		self,
 		name:   Name,
-		region: DeclarationRegionMixin,
+		region: DeclarativeRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
 	) -> Nullable[ModelEntity]:
@@ -1276,8 +1276,8 @@ class RecordType(CompositeType):
 
 	def IterateTypeMarks(
 		self,
-		region: DeclarationRegionMixin
-	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this record type: the element subtypes.
 
@@ -1516,8 +1516,8 @@ class AccessType(FullType):
 
 	def IterateTypeMarks(
 		self,
-		region: DeclarationRegionMixin
-	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this access type: the subtype its values designate.
 
@@ -1593,8 +1593,8 @@ class FileType(FullType):
 
 	def IterateTypeMarks(
 		self,
-		region: DeclarationRegionMixin
-	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this file type: the subtype of its values.
 

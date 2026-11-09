@@ -286,7 +286,7 @@ For a declaration in a language construct, ``Split()`` calls the construct's mut
 directly. It inserts the new declarations right after the declaration; the namespace of an indexed declarative region
 refers to them:
 
-* :meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.SplitDeclaredItem` for a declared item,
+* :meth:`~pyVHDLModel.Regions.DeclarativePartMixin.SplitDeclaredItem` for a declared item,
 * :meth:`~pyVHDLModel.Regions.WithGenericsMixin.SplitGenericItem`,
   :meth:`~pyVHDLModel.Regions.WithPortsMixin.SplitPortItem` and
   :meth:`~pyVHDLModel.Regions.WithParametersMixin.SplitParameterItem` for an interface item,

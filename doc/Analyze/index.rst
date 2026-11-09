@@ -121,7 +121,7 @@ use clauses and computed the compile order.
 :meth:`Design.ResolveTypeMarks <pyVHDLModel.Design.ResolveTypeMarks>` iterates the design units in compile order and
 their declarative regions. Each declaration resolves its type marks
 (:meth:`ModelEntity.ResolveReferences <pyVHDLModel.Base.ModelEntity.ResolveReferences>`) by the region declaring it
-(:meth:`DeclarationRegionMixin.ResolveTypeMark <pyVHDLModel.Regions.DeclarationRegionMixin.ResolveTypeMark>`). A
+(:meth:`DeclarativeRegionMixin.ResolveTypeMark <pyVHDLModel.Regions.DeclarativeRegionMixin.ResolveTypeMark>`). A
 resolved type mark references its type or subtype (:attr:`Symbol.Reference <pyVHDLModel.Symbol.Symbol.Reference>`).
 
 Type Attributes

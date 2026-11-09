@@ -46,7 +46,7 @@ from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedE
                                     BaseCase, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, \
                                     BlockStatementMixin, WaveformElement, ChoicesMixin, ReservedWord
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
-from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, DeclarationRegionMixin, \
+from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, DeclarativeRegionMixin, \
                                     SequentialDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, \
@@ -161,7 +161,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 		"""
 		return tuple(statement for statement in self._statements if statement._normalizedLabel is not None)
 
-	def _IterateStatementRegions(self) -> Generator[DeclarationRegionMixin, None, None]:
+	def _IterateStatementRegions(self) -> Generator[DeclarativeRegionMixin, None, None]:
 		"""
 		Iterate the declarative regions of the concurrent statements, each followed by the regions nested in it.
 
@@ -181,7 +181,7 @@ class ConcurrentStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_C
 			elif isinstance(statement, CaseGenerateStatement):
 				for case in statement._cases:
 					yield from case.IterateDeclarationRegions()
-			elif isinstance(statement, DeclarationRegionMixin):
+			elif isinstance(statement, DeclarativeRegionMixin):
 				yield from statement.IterateDeclarationRegions()
 
 	def IterateInstantiations(self) -> Generator[Instantiation, None, None]:

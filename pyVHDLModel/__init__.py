@@ -1538,12 +1538,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`IndexPackages`
 		4. Index all entities. |br|
 		   |rarr| :meth:`IndexEntities`
-		5. Index all architectures. |br|
-		   |rarr| :meth:`IndexArchitectures`
-		6. Link all contexts |br|
+		5. Link all contexts |br|
 		   |rarr| :meth:`LinkContexts`
-		7. Link all architectures. |br|
+		6. Link all architectures. |br|
 		   |rarr| :meth:`LinkArchitectures`
+		7. Index all architectures. |br|
+		   |rarr| :meth:`IndexArchitectures`
 		8. Link all package bodies. |br|
 		   |rarr| :meth:`LinkPackageBodies`
 		9. Index all package bodies. |br|
@@ -1574,10 +1574,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		self.IndexPackages()
 		self.IndexEntities()
-		self.IndexArchitectures()
 
 		self.LinkContexts()
 		self.LinkArchitectures()
+		self.IndexArchitectures()
 		self.LinkPackageBodies()
 		self.IndexPackageBodies()
 		self.LinkPackageInstances()
@@ -2879,13 +2879,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 	def IndexEntities(self) -> None:
 		"""
-		Index all declared items in all packages in all libraries.
+		Index all declared items in all entities in all libraries.
 
 		.. rubric:: Algorithm
 
 		1. Iterate all libraries:
 
-		   1. Iterate all packages |br|
+		   1. Iterate all entities |br|
 		      |rarr| :meth:`pyVHDLModel.Library.IndexEntities`
 
 		      * Index all declared items in that entity. |br|
@@ -2909,13 +2909,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 	def IndexArchitectures(self) -> None:
 		"""
-		Index all declared items in all packages in all libraries.
+		Index all declared items in all architectures in all libraries.
 
 		.. rubric:: Algorithm
 
 		1. Iterate all libraries:
 
-		   1. Iterate all packages |br|
+		   1. Iterate all architectures |br|
 		      |rarr| :meth:`pyVHDLModel.Library.IndexArchitectures`
 
 		      * Index all declared items in that architecture. |br|

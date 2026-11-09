@@ -313,6 +313,48 @@ class RegionsSpanningTwoNamespaces(Testcase):
 
 		self.assertEqual(1, len(_warningsOfType(collector, DuplicateDeclarationWarning)))
 
+	def test_ArchitectureDeclarationDuplicatesEntityDeclaration_Analyze(self) -> None:
+		"""Each analysis reports a signal of the architecture named like a signal of its entity."""
+		entitySignal =       _signal("x", "natural")
+		architectureSignal = _signal("x", "natural")
+		design =             self._design([entitySignal], [architectureSignal], [], [])
+		design.LoadStdLibrary()
+
+		with WarningCollector() as firstCollector:
+			design.Analyze()
+
+		with WarningCollector() as secondCollector:
+			design.Analyze()
+
+		for collector in (firstCollector, secondCollector):
+			warnings = _warningsOfType(collector, DuplicateDeclarationWarning)
+			self.assertEqual(1, len(warnings))
+			self.assertEqual("Identifier 'x' is already used for a declaration in 'ent'.", str(warnings[0]))
+			self.assertIs(architectureSignal, warnings[0].Element)
+			self.assertIs(entitySignal, warnings[0].Existing)
+
+	def test_ArchitectureDeclarationDuplicatesEntityPort_Analyze(self) -> None:
+		"""A signal of the architecture named like a port of its entity."""
+		port =    PortSimpleSignalInterfaceItem(["p"], Mode.In, _subtypeSymbol("bit"))
+		signal =  _signal("p", "natural")
+		design =  Design()
+		library = Library("work")
+		design.AddLibrary(library)
+		document = Document(Path("virtual.vhdl"))
+		document._AddDesignUnit(Entity("ent", portItems=[port]))
+		document._AddDesignUnit(Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[signal]))
+		design.AddDocument(document, library)
+		design.LoadStdLibrary()
+
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		warnings = _warningsOfType(collector, DuplicateDeclarationWarning)
+		self.assertEqual(1, len(warnings))
+		self.assertEqual("Identifier 'p' is already used for a declaration in 'ent'.", str(warnings[0]))
+		self.assertIs(signal, warnings[0].Element)
+		self.assertIs(port, warnings[0].Existing)
+
 	def test_PackageBodyDeclarationDuplicatesPackageDeclaration(self) -> None:
 		design = self._design([], [], [Constant(["c"], _subtypeSymbol("bit"))], [Constant(["c"], _subtypeSymbol("bit"))])
 

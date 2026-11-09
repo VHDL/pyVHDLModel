@@ -2450,10 +2450,7 @@ class WaitStatement(SequentialStatement, ConditionalMixin):
 		if sensitivityList is None:
 			self._sensitivityList = None
 		else:
-			self._sensitivityList = signalSymbols = []  # TODO: convert to dict
-			for signalSymbol in sensitivityList:
-				signalSymbols.append(signalSymbol)
-				signalSymbol.Parent = self
+			self._sensitivityList = list(sensitivityList)  # TODO: convert to dict
 
 		self._timeout = timeout
 		if timeout is not None:

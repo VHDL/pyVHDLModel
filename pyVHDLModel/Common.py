@@ -423,7 +423,6 @@ class AssignmentMixin(metaclass=ExtendedType, mixin=True):
 		:param target: Reference to the assignment's destination.
 		"""
 		self._target = target
-		target.Parent = self
 
 	@readonly
 	def Target(self) -> Symbol:

@@ -99,7 +99,6 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._subtype = subtype
-		subtype.Parent = self
 
 		self._objectVertex = None
 

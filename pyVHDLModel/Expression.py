@@ -1539,7 +1539,6 @@ class TypeConversion(UnaryExpression):
 		super().__init__(operand, parent)
 
 		self._targetSubtype = targetSubtype
-		targetSubtype.Parent = self
 
 	@readonly
 	def TargetSubtype(self) -> SubtypeSymbol:
@@ -2674,7 +2673,6 @@ class QualifiedExpression(BaseExpression, ParenthesisExpression):
 		operand.Parent = self
 
 		self._subtype = subtype
-		subtype.Parent = self
 
 	@readonly
 	def Operand(self) -> ExpressionUnion:
@@ -2943,7 +2941,6 @@ class SubtypeAllocation(Allocation):
 		super().__init__(parent)
 
 		self._subtype = subtype
-		subtype.Parent = self
 
 	@readonly
 	def Subtype(self) -> Symbol:
@@ -3310,7 +3307,6 @@ class NamedAggregateElement(AggregateElement):
 		super().__init__(expression, parent)
 
 		self._name = name
-		name.Parent = self
 
 	@readonly
 	def Name(self) -> Symbol:

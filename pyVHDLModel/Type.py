@@ -1079,7 +1079,6 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._subtype = subtype
-		subtype.Parent = self
 
 	@readonly
 	def Subtype(self) -> Symbol:
@@ -1503,7 +1502,6 @@ class AccessType(FullType):
 		super().__init__(identifier, documentation, parent)
 
 		self._designatedSubtype = designatedSubtype
-		designatedSubtype.Parent = self
 
 	@readonly
 	def DesignatedSubtype(self) -> Symbol:
@@ -1580,7 +1578,6 @@ class FileType(FullType):
 		super().__init__(identifier, documentation, parent)
 
 		self._designatedSubtype = designatedSubtype
-		designatedSubtype.Parent = self
 
 	@readonly
 	def DesignatedSubtype(self) -> Symbol:

@@ -160,7 +160,6 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._subtype = subtype
-		subtype.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -376,12 +375,8 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
 
-		self._name = name
-		name.Parent = self
-
+		self._name =    name
 		self._subtype = subtype
-		if subtype is not None:
-			subtype.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

@@ -157,7 +157,8 @@ Version 0.43.0 (2026)
      :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError`, if the library didn't hold its entity.
    * A design unit kept a context item of an unknown kind in ``ContextItems`` only, a context declaration raised a plain
      :exc:`~pyVHDLModel.Exception.VHDLModelException` for it; both raise :exc:`TypeError` now.
-   * A procedure call set an undeclared ``Parent`` attribute on its procedure symbol.
+   * Model entities, e.g. instantiations, declarations, expressions and statements, set an undeclared ``Parent``
+     attribute on their symbols.
    * :data:`~pyVHDLModel.Regions.WithGenericsMixin.GenericCount`, :data:`~pyVHDLModel.Regions.WithPortsMixin.PortCount`
      and :data:`~pyVHDLModel.Regions.WithParametersMixin.ParameterCount` counted interface items instead of the declared
      generics, ports and parameters: ``port (a, b : in bit)`` gave 1. They count the identifiers now (2).

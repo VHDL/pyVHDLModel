@@ -85,7 +85,7 @@ class SequentialSignalAssignments(Testcase):
 		assignment = SequentialSignalAssignment(target, label="lbl")
 
 		self.assertIs(target, assignment.Target)
-		self.assertIs(assignment, target.Parent)
+		self.assertNotIn("Parent", vars(target))
 		self.assertEqual("lbl", assignment.Label)
 
 
@@ -318,7 +318,7 @@ class WaitStatements(Testcase):
 
 		self.assertEqual(1, len(statement.SensitivityList))
 		self.assertIs(sensitivitySignal, statement.SensitivityList[0])
-		self.assertIs(statement, sensitivitySignal.Parent)
+		self.assertNotIn("Parent", vars(sensitivitySignal))
 		self.assertIs(condition, statement.Condition)
 		self.assertIs(statement, condition.Parent)
 		self.assertIs(timeout, statement.Timeout)

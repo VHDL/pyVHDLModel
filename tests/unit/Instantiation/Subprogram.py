@@ -98,7 +98,7 @@ class Functions(Testcase):
 		function = Function("func", returnType)
 
 		self.assertIs(returnType, function.ReturnType)
-		self.assertIs(function, returnType.Parent)
+		self.assertNotIn("Parent", vars(returnType))
 		self.assertTrue(function.IsPure)
 
 	def test_Impure(self) -> None:

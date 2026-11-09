@@ -106,12 +106,8 @@ class EntityAspectEntity(EntityAspect):
 		"""
 		super().__init__(parent)
 
-		self._entity = entity
-		entity.Parent = self
-
+		self._entity =       entity
 		self._architecture = architecture
-		if architecture is not None:
-			architecture.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -172,7 +168,6 @@ class EntityAspectConfiguration(EntityAspect):
 		super().__init__(parent)
 
 		self._configuration = configuration
-		configuration.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -382,7 +377,6 @@ class ComponentConfiguration(ModelEntity, DocumentedEntityMixin):
 				label.Parent = self
 
 		self._componentName = componentName
-		componentName.Parent = self
 
 		self._bindingIndication = bindingIndication
 		if bindingIndication is not None:
@@ -484,7 +478,6 @@ class BlockConfiguration(ModelEntity, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._blockSpecification = blockSpecification
-		blockSpecification.Parent = self
 
 		self._items = itemList = []
 		if items is not None:

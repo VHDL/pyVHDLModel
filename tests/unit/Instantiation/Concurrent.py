@@ -72,7 +72,7 @@ class Instantiations(Testcase):
 		instance = ComponentInstantiation("inst", componentSymbol, [generic], [port])
 
 		self.assertIs(componentSymbol, instance.Component)
-		self.assertIs(instance, componentSymbol.Parent)
+		self.assertNotIn("Parent", vars(componentSymbol))
 		self.assertEqual(1, len(instance.GenericAssociationItems))
 		self.assertIs(instance, generic.Parent)
 		self.assertEqual(1, len(instance.PortAssociationItems))
@@ -85,7 +85,7 @@ class Instantiations(Testcase):
 
 		self.assertIs(entitySymbol, instance.Entity)
 		self.assertIs(architectureSymbol, instance.Architecture)
-		self.assertIs(instance, architectureSymbol.Parent)
+		self.assertNotIn("Parent", vars(architectureSymbol))
 
 	def test_EntityInstantiation_WithoutArchitecture(self) -> None:
 		instance = EntityInstantiation("inst", EntityInstantiationSymbol(SimpleName("ent")))
@@ -97,7 +97,7 @@ class Instantiations(Testcase):
 		instance = ConfigurationInstantiation("inst", configurationSymbol)
 
 		self.assertIs(configurationSymbol, instance.Configuration)
-		self.assertIs(instance, configurationSymbol.Parent)
+		self.assertNotIn("Parent", vars(configurationSymbol))
 
 
 class ProcessStatements(Testcase):

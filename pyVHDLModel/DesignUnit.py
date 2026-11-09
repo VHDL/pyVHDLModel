@@ -1122,7 +1122,6 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		)
 
 		self._package = packageSymbol
-		packageSymbol.Parent = self
 
 	@readonly
 	def Package(self) -> PackageSymbol:
@@ -1423,7 +1422,6 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
 		self._entity = entity
-		entity.Parent = self
 
 	@readonly
 	def Entity(self) -> EntitySymbol:  # FIXME: change to entitySymbol, offer entity directly, but raise exception if not resolved.
@@ -1740,7 +1738,6 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 		self._namespace = Namespace(self._normalizedIdentifier)
 
 		self._entity = entity
-		entity.Parent = self
 
 		self._blockConfiguration = blockConfiguration
 		blockConfiguration.Parent = self

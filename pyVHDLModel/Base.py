@@ -1289,7 +1289,6 @@ class RangeFromName(Range):
 		super().__init__(parent)
 
 		self._symbol = symbol
-		symbol.Parent = self
 
 	@readonly
 	def Symbol(self) -> Symbol:

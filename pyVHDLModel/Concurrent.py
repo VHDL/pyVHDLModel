@@ -725,7 +725,6 @@ class ComponentInstantiation(Instantiation):
 		super().__init__(label, genericAssociationItems, portAssociationItems, documentation, parent)
 
 		self._component = componentSymbol
-		componentSymbol.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -797,12 +796,8 @@ class EntityInstantiation(Instantiation):
 		"""
 		super().__init__(label, genericAssociationItems, portAssociationItems, documentation, parent)
 
-		self._entity = entitySymbol
-		entitySymbol.Parent = self
-
+		self._entity =       entitySymbol
 		self._architecture = architectureSymbol
-		if architectureSymbol is not None:
-			architectureSymbol.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -883,7 +878,6 @@ class ConfigurationInstantiation(Instantiation):
 		super().__init__(label, genericAssociationItems, portAssociationItems, documentation, parent)
 
 		self._configuration = configurationSymbol
-		configurationSymbol.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

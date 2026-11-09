@@ -66,7 +66,7 @@ class RecordTypeElements(Testcase):
 		self.assertEqual("Documentation.", declarations[1].Documentation)
 		self.assertIs(subtype, original.Subtype)
 		self.assertIsNot(subtype, declarations[1].Subtype)
-		self.assertIs(declarations[1], declarations[1].Subtype.Parent)
+		self.assertNotIn("Parent", vars(declarations[1].Subtype))
 		self.assertListEqual(["a : bit;\n", "B : bit;\n"], _formatted(declarations))
 
 	def test_Split_OneIdentifier(self) -> None:

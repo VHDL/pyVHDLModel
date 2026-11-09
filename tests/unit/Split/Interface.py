@@ -94,7 +94,7 @@ class InterfaceItemsWithMode(Testcase):
 				self.assertEqual("Documentation.", declarations[1].Documentation)
 				self.assertIs(subtype, original.Subtype)
 				self.assertIsNot(subtype, declarations[1].Subtype)
-				self.assertIs(declarations[1], declarations[1].Subtype.Parent)
+				self.assertNotIn("Parent", vars(declarations[1].Subtype))
 				self.assertIs(defaultExpression, original.DefaultExpression)
 				self.assertIsNot(defaultExpression, declarations[1].DefaultExpression)
 				self.assertIs(declarations[1], declarations[1].DefaultExpression.Parent)
@@ -417,7 +417,7 @@ class ModeViewElements(Testcase):
 		self.assertIs(CompositeModeViewElement, type(declarations[1]))
 		self.assertIs(modeViewName, original.ModeViewName)
 		self.assertIsNot(modeViewName, declarations[1].ModeViewName)
-		self.assertIs(declarations[1], declarations[1].ModeViewName.Parent)
+		self.assertNotIn("Parent", vars(declarations[1].ModeViewName))
 
 	def test_Split_ModeViewDeclaration(self) -> None:
 		first = SimpleModeViewElement(("first", ), Mode.In)

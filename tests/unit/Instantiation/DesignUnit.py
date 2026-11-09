@@ -243,7 +243,7 @@ class PackageBodies(Testcase):
 		body = PackageBody(packageSymbol)
 
 		self.assertIs(packageSymbol, body.Package)
-		self.assertIs(body, packageSymbol.Parent)
+		self.assertNotIn("Parent", vars(packageSymbol))
 		self.assertEqual(0, len(body.DeclaredItems))
 
 	def test_LinkDeclaredItemsToPackage_IsANoOpStub(self) -> None:
@@ -267,7 +267,7 @@ class Architectures(Testcase):
 		architecture = Architecture("rtl", entitySymbol)
 
 		self.assertIs(entitySymbol, architecture.Entity)
-		self.assertIs(architecture, entitySymbol.Parent)
+		self.assertNotIn("Parent", vars(entitySymbol))
 		self.assertEqual(0, len(architecture.DeclaredItems))
 		self.assertEqual(0, len(architecture.Statements))
 
@@ -416,6 +416,6 @@ class Configurations(Testcase):
 		configuration = Configuration("cfg", entitySymbol, blockConfiguration)
 
 		self.assertIs(entitySymbol, configuration.Entity)
-		self.assertIs(configuration, entitySymbol.Parent)
+		self.assertNotIn("Parent", vars(entitySymbol))
 		self.assertIs(blockConfiguration, configuration.BlockConfiguration)
 		self.assertIs(configuration, blockConfiguration.Parent)

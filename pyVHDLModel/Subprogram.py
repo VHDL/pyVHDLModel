@@ -638,7 +638,6 @@ class Function(Subprogram):
 		)
 
 		self._returnType = returnType
-		returnType.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

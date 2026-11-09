@@ -110,7 +110,6 @@ class SubprogramInstantiationMixin(GenericInstantiationMixin, GenericMapAspectMi
 		GenericMapAspectMixin.__init__(self, genericAssociationItems)
 
 		self._subprogramReference = subprogramReference
-		subprogramReference.Parent = self
 
 	@readonly
 	def SubprogramReference(self) -> SubprogramReferenceSymbol:
@@ -338,7 +337,6 @@ class PackageInstantiation(Package, GenericInstantiationMixin, GenericMapAspectM
 		GenericMapAspectMixin.__init__(self, genericAssociationItems)
 
 		self._packageReference = genericPackage
-		self._packageReference.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

@@ -235,7 +235,7 @@ class GenericInterfaceItems(Testcase):
 
 		self.assertEqual("func", item.Identifier)
 		self.assertIs(returnType, item.ReturnType)
-		self.assertIs(item, returnType.Parent)
+		self.assertNotIn("Parent", vars(returnType))
 
 	def test_GenericFunctionInterfaceItem_Mixin(self) -> None:
 		"""A generic function is a generic subprogram and a generic interface item."""

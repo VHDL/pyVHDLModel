@@ -724,7 +724,7 @@ class TypeConversions(Testcase):
 		expression = TypeConversion(targetSubtype, operand)
 
 		self.assertIs(targetSubtype, expression.TargetSubtype)
-		self.assertIs(expression, targetSubtype.Parent)
+		self.assertNotIn("Parent", vars(targetSubtype))
 		self.assertIs(operand, expression.Operand)
 		self.assertIs(expression, operand.Parent)
 		self.assertEqual("natural?(1)", str(expression))
@@ -819,7 +819,7 @@ class QualifiedExpressions(Testcase):
 		self.assertIs(operand, expression.Operand)
 		self.assertIs(subtype, expression.Subtype)
 		self.assertIs(expression, operand.Parent)
-		self.assertIs(expression, subtype.Parent)
+		self.assertNotIn("Parent", vars(subtype))
 		self.assertEqual("bit_vector?'(1)", str(expression))
 
 
@@ -876,7 +876,7 @@ class FunctionCallAndAllocation(Testcase):
 		allocation = SubtypeAllocation(subtype)
 
 		self.assertIs(subtype, allocation.Subtype)
-		self.assertIs(allocation, subtype.Parent)
+		self.assertNotIn("Parent", vars(subtype))
 		self.assertEqual("new integer?", str(allocation))
 
 	def test_QualifiedExpressionAllocation(self) -> None:
@@ -924,7 +924,7 @@ class AggregateElements(Testcase):
 		element = NamedAggregateElement(name, expression)
 
 		self.assertIs(name, element.Name)
-		self.assertIs(element, name.Parent)
+		self.assertNotIn("Parent", vars(name))
 		self.assertEqual("field? => 1", str(element))
 
 	def test_OthersAggregateElement(self) -> None:

@@ -84,7 +84,7 @@ class ObjectsWithDefaultExpression(Testcase):
 					self.assertIsNone(declaration.Parent)
 					self.assertEqual("Documentation.", declaration.Documentation)
 					self.assertIsNot(subtype, declaration.Subtype)
-					self.assertIs(declaration, declaration.Subtype.Parent)
+					self.assertNotIn("Parent", vars(declaration.Subtype))
 					self.assertIsNot(defaultExpression, declaration.DefaultExpression)
 					self.assertIs(declaration, declaration.DefaultExpression.Parent)
 
@@ -155,7 +155,7 @@ class ObjectsWithoutDefaultExpression(Testcase):
 				self.assertIsNone(declarations[1].Parent)
 				self.assertEqual("Documentation.", declarations[1].Documentation)
 				self.assertIsNot(subtype, declarations[1].Subtype)
-				self.assertIs(declarations[1], declarations[1].Subtype.Parent)
+				self.assertNotIn("Parent", vars(declarations[1].Subtype))
 
 	def test_Split_ConstantReference(self) -> None:
 		"""A new deferred constant refers to the same full constant declaration."""

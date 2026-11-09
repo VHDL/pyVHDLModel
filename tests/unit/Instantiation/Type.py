@@ -324,7 +324,7 @@ class RecordTypeElements(Testcase):
 
 		self.assertEqual(("a", "b"), element.Identifiers)
 		self.assertIs(subtype, element.Subtype)
-		self.assertIs(element, subtype.Parent)
+		self.assertNotIn("Parent", vars(subtype))
 		self.assertEqual("a, b : natural?", str(element))
 		self.assertIsNone(element.Documentation)
 
@@ -432,7 +432,7 @@ class AccessTypes(Testcase):
 		accessType = AccessType("my_pointer", designated)
 
 		self.assertIs(designated, accessType.DesignatedSubtype)
-		self.assertIs(accessType, designated.Parent)
+		self.assertNotIn("Parent", vars(designated))
 		self.assertEqual("my_pointer is access natural?", str(accessType))
 
 
@@ -445,5 +445,5 @@ class FileTypes(Testcase):
 		fileType = FileType("text", designated)
 
 		self.assertIs(designated, fileType.DesignatedSubtype)
-		self.assertIs(fileType, designated.Parent)
+		self.assertNotIn("Parent", vars(designated))
 		self.assertEqual("text is file of character?", str(fileType))

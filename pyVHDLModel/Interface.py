@@ -208,7 +208,6 @@ class CompositeModeViewElement(ModeViewElement):
 		super().__init__(identifiers, documentation, parent)
 
 		self._modeViewName = modeViewName
-		modeViewName.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -292,7 +291,6 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._subtype = subtype
-		subtype.Parent = self
 
 		self._elements = elementList = []
 		if elements is not None:

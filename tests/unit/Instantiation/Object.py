@@ -61,7 +61,7 @@ class ObjBaseBehaviour(Testcase):
 		self.assertEqual(("s",), signal.Identifiers)
 		self.assertEqual(("s",), signal.NormalizedIdentifiers)
 		self.assertIs(subtype, signal.Subtype)
-		self.assertIs(signal, subtype.Parent)
+		self.assertNotIn("Parent", vars(subtype))
 
 	def test_MultipleIdentifiers(self) -> None:
 		"""``signal a, b, C : bit;`` declares three signals from one declaration."""

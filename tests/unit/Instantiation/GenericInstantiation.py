@@ -56,7 +56,7 @@ class ProcedureInstantiations(Testcase):
 
 		self.assertEqual("p", instantiation.Identifier)
 		self.assertIs(reference, instantiation.SubprogramReference)
-		self.assertIs(instantiation, reference.Parent)
+		self.assertNotIn("Parent", vars(reference))
 		self.assertEqual(1, len(instantiation.GenericAssociationItems))
 		self.assertIs(instantiation, generic.Parent)
 
@@ -98,7 +98,7 @@ class PackageInstantiations(Testcase):
 		instantiation = PackageInstantiation("p", reference, genericAssociationItems=[generic])
 
 		self.assertIs(reference, instantiation.PackageReference)
-		self.assertIs(instantiation, reference.Parent)
+		self.assertNotIn("Parent", vars(reference))
 		self.assertEqual(1, len(instantiation.GenericAssociationItems))
 		self.assertIs(instantiation, generic.Parent)
 

@@ -305,7 +305,7 @@ class RangesFromName(Testcase):
 		rng = RangeFromName(symbol)
 
 		self.assertIs(symbol, rng.Symbol)
-		self.assertIs(rng, symbol.Parent)
+		self.assertNotIn("Parent", vars(symbol))
 		self.assertIsInstance(rng, Range)
 
 	def test_ToStringUnresolved(self) -> None:

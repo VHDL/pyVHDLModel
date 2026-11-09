@@ -1839,7 +1839,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						package = library._packages[packageNormalizedIdentifier]
 					except KeyError as cause:
 						ex = PackageNotFoundError(
-							f"Package '{packageName._identifier}' not found in library '{library._identifier}'.",
+							f"Package '{packageName._identifier}' not found in "
+							f"{'working ' if libraryName._normalizedIdentifier == 'work' else ''}library '{library._identifier}'.",
 							packageName=packageName._identifier,
 							libraryName=library._identifier
 						)
@@ -2409,7 +2410,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					package = library._packages[packageIdentifier]
 				except KeyError as cause:
 					ex = PackageNotFoundError(
-						f"Package '{packageName._identifier}' not found in library '{library._identifier}'.",
+						f"Package '{packageName._identifier}' not found in "
+						f"{'working ' if libraryName._normalizedIdentifier == 'work' else ''}library '{library._identifier}'.",
 						packageName=packageName._identifier,
 						libraryName=library._identifier
 					)
@@ -2552,7 +2554,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						referencedContext = referencedLibrary._contexts[contextIdentifier]
 					except KeyError as cause:
 						ex = ContextNotFoundError(
-							f"Context '{contextSymbol.Name.Identifier}' not found in library '{referencedLibrary.Identifier}'.",
+							f"Context '{contextSymbol.Name.Identifier}' not found in "
+							f"{'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library "
+							f"'{referencedLibrary.Identifier}'.",
 							contextName=contextSymbol.Name.Identifier,
 							libraryName=referencedLibrary.Identifier
 						)
@@ -3409,8 +3413,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 			for architecture in architecturesPerEntity.values():
 				if architecture._normalizedIdentifier in entity._architectures:
 					raise ArchitectureExistsInLibraryError(
-						f"Architecture '{architecture._identifier}' for entity '{architecture._entity._name._identifier}' already "
-						f"exists in library '{self._identifier}'.",
+						f"Architecture '{architecture._identifier}' already exists for entity '{entity._identifier}'.",
 						architecture=architecture,
 						library=self
 					)
@@ -3544,7 +3547,8 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 					package = library._packages[packageIdentifier]
 				except KeyError as cause:
 					ex = PackageNotFoundError(
-						f"Package '{packageName.Identifier}' not found in library '{library.Identifier}'.",
+						f"Package '{packageName.Identifier}' not found in "
+						f"{'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.",
 						packageName=packageName.Identifier,
 						libraryName=library.Identifier
 					)

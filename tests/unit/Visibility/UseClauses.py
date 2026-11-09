@@ -901,7 +901,7 @@ class DesignUnitsNotFound(Testcase):
 		with self.assertRaises(PackageNotFoundError) as context:
 			_design(entity)
 
-		self.assertEqual("Package 'nothere' not found in library 'lib'.", str(context.exception))
+		self.assertEqual("Package 'nothere' not found in working library 'lib'.", str(context.exception))
 		self.assertListEqual(
 			[
 				"Library 'work' is the working library 'lib'.",
@@ -915,7 +915,7 @@ class DesignUnitsNotFound(Testcase):
 		with self.assertRaises(PackageNotFoundError) as context:
 			_design(Context("c", [_use("work.nothere.all")]))
 
-		self.assertEqual("Package 'nothere' not found in library 'lib'.", str(context.exception))
+		self.assertEqual("Package 'nothere' not found in working library 'lib'.", str(context.exception))
 		self.assertListEqual(["Library 'work' is the working library 'lib'."], context.exception.__notes__)
 		self.assertIsInstance(context.exception.__cause__, KeyError)
 		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
@@ -926,7 +926,7 @@ class DesignUnitsNotFound(Testcase):
 		with self.assertRaises(ContextNotFoundError) as context:
 			_design(Entity("e", [_contextReference("work", "nothere")]))
 
-		self.assertEqual("Context 'nothere' not found in library 'lib'.", str(context.exception))
+		self.assertEqual("Context 'nothere' not found in working library 'lib'.", str(context.exception))
 		self.assertListEqual(["Library 'work' is the working library 'lib'."], context.exception.__notes__)
 		self.assertEqual("nothere", context.exception.DesignUnitName)
 		self.assertEqual("lib", context.exception.LibraryName)
@@ -941,7 +941,7 @@ class DesignUnitsNotFound(Testcase):
 		with self.assertRaises(PackageNotFoundError) as context:
 			_design(instantiation)
 
-		self.assertEqual("Package 'nothere' not found in library 'lib'.", str(context.exception))
+		self.assertEqual("Package 'nothere' not found in working library 'lib'.", str(context.exception))
 		self.assertListEqual(
 			[
 				"Library 'work' is the working library 'lib'.",

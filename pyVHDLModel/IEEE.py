@@ -122,7 +122,7 @@ class Ieee(PredefinedLibrary):
 		elif IEEEFlavor.MentorGraphics in flavor:
 			self.LoadMentorGraphicsPackages()
 		else:
-			raise UnknownIEEEFlavorError(flavor)
+			raise UnknownIEEEFlavorError(f"Unknown IEEE library flavor '{flavor}'.", flavor=flavor)
 
 		if IEEEFlavor.WithVITAL in flavor:
 			self.LoadVITALPackages()
@@ -138,14 +138,22 @@ class Ieee(PredefinedLibrary):
 
 	def LoadSynopsysPackages(self) -> None:
 		if IEEEFlavor.IEEE not in self._flavor:
-			raise IEEEFlavorChangeError(self._flavor, IEEEFlavor.Synopsys)
+			raise IEEEFlavorChangeError(
+				f"IEEE library flavor is '{self._flavor}' and can't be changed to '{IEEEFlavor.Synopsys}'.",
+				currentFlavor=self._flavor,
+				flavor=IEEEFlavor.Synopsys
+			)
 
 		self._flavor = (self._flavor & ~IEEEFlavor.IEEE) | IEEEFlavor.Synopsys
 		self.AddPackages(SYNOPSYS_PACKAGES)
 
 	def LoadMentorGraphicsPackages(self) -> None:
 		if IEEEFlavor.IEEE not in self._flavor:
-			raise IEEEFlavorChangeError(self._flavor, IEEEFlavor.MentorGraphics)
+			raise IEEEFlavorChangeError(
+				f"IEEE library flavor is '{self._flavor}' and can't be changed to '{IEEEFlavor.MentorGraphics}'.",
+				currentFlavor=self._flavor,
+				flavor=IEEEFlavor.MentorGraphics
+			)
 
 		self._flavor = (self._flavor & ~IEEEFlavor.IEEE) | IEEEFlavor.MentorGraphics
 		self.AddPackages(MENTOR_GRAPHICS_PACKAGES)

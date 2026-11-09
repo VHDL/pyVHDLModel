@@ -2590,21 +2590,19 @@ class UnknownKindError(Exception):
 class UnknownSymbolKindError(VHDLModelException, UnknownKindError):
 	"""
 	This exception is raised, when a symbol of a use clause isn't a package reference symbol, which the model supports.
-
-	Message: :pycode:`f"Unknown package reference symbol type in design unit '{designUnit._identifier}'."`
 	"""
 
 	_designUnit: _DesignUnit  #: The design unit containing the use clause.
 
-	def __init__(self, symbol: _Symbol, designUnit: _DesignUnit) -> None:
+	def __init__(self, message: str, /, *, symbol: _Symbol, designUnit: _DesignUnit) -> None:
 		"""
-		Initializes the exception message based on the given symbol and design unit.
+		Initializes the exception with a message, the symbol of unknown kind and the design unit of the use clause.
 
+		:param message:    The exception message.
 		:param symbol:     The symbol of unknown kind.
 		:param designUnit: The design unit containing the use clause.
 		"""
-		super().__init__(f"Unknown package reference symbol type in design unit '{designUnit._identifier}'.")
-
+		super().__init__(message)
 		self._element =    symbol
 		self._designUnit = designUnit
 
@@ -2622,18 +2620,16 @@ class UnknownSymbolKindError(VHDLModelException, UnknownKindError):
 class UnknownSecondaryUnitKindError(VHDLModelException, UnknownKindError):
 	"""
 	This exception is raised, when a secondary unit is neither an architecture nor a package body.
-
-	Message: :pycode:`f"Secondary unit '{secondaryUnit._identifier}' is neither an architecture nor a package body."`
 	"""
 
-	def __init__(self, secondaryUnit: SecondaryUnit) -> None:
+	def __init__(self, message: str, /, *, secondaryUnit: SecondaryUnit) -> None:
 		"""
-		Initializes the exception message based on the given secondary unit.
+		Initializes the exception with a message and the secondary unit of unknown kind.
 
+		:param message:       The exception message.
 		:param secondaryUnit: The secondary unit of unknown kind.
 		"""
-		super().__init__(f"Secondary unit '{secondaryUnit._identifier}' is neither an architecture nor a package body.")
-
+		super().__init__(message)
 		self._element = secondaryUnit
 
 
@@ -2670,18 +2666,16 @@ class IEEEFlavorError(Exception):
 class UnknownIEEEFlavorError(VHDLModelException, IEEEFlavorError):
 	"""
 	This exception is raised, when the ``ieee`` library is requested with an unknown flavor.
-
-	Message: :pycode:`f"Unknown IEEE library flavor '{flavor}'."`
 	"""
 
-	def __init__(self, flavor: IEEEFlavor) -> None:
+	def __init__(self, message: str, /, *, flavor: IEEEFlavor) -> None:
 		"""
-		Initializes the exception message based on the given flavor.
+		Initializes the exception with a message and the unknown flavor.
 
-		:param flavor: The requested flavor.
+		:param message: The exception message.
+		:param flavor:  The requested flavor.
 		"""
-		super().__init__(f"Unknown IEEE library flavor '{flavor}'.")
-
+		super().__init__(message)
 		self._flavor = flavor
 
 
@@ -2689,21 +2683,19 @@ class UnknownIEEEFlavorError(VHDLModelException, IEEEFlavorError):
 class IEEEFlavorChangeError(VHDLModelException, IEEEFlavorError):
 	"""
 	This exception is raised, when the flavor of an ``ieee`` library, which provides a non-IEEE flavor, is changed.
-
-	Message: :pycode:`f"IEEE library flavor is '{currentFlavor}' and can't be changed to '{flavor}'."`
 	"""
 
 	_currentFlavor: IEEEFlavor  #: The flavor the library provides.
 
-	def __init__(self, currentFlavor: IEEEFlavor, flavor: IEEEFlavor) -> None:
+	def __init__(self, message: str, /, *, currentFlavor: IEEEFlavor, flavor: IEEEFlavor) -> None:
 		"""
-		Initializes the exception message based on the current and the requested flavor.
+		Initializes the exception with a message, the current and the requested flavor.
 
+		:param message:       The exception message.
 		:param currentFlavor: The flavor the library provides.
 		:param flavor:        The requested flavor.
 		"""
-		super().__init__(f"IEEE library flavor is '{currentFlavor}' and can't be changed to '{flavor}'.")
-
+		super().__init__(message)
 		self._flavor =        flavor
 		self._currentFlavor = currentFlavor
 
@@ -2721,22 +2713,20 @@ class IEEEFlavorChangeError(VHDLModelException, IEEEFlavorError):
 class AncestorNotFoundError(VHDLModelException, ElementNotFoundError):
 	"""
 	This exception is raised, when the parent chain of a model entity contains no ancestor of the requested type.
-
-	Message: :pycode:`f"No ancestor of type '{ancestorType.__name__}' found for {element!r}."`
 	"""
 
 	_element:      ModelEntity  #: The model entity, whose parent chain was searched.
 	_ancestorType: type         #: The requested type of the ancestor.
 
-	def __init__(self, element: ModelEntity, ancestorType: type) -> None:
+	def __init__(self, message: str, /, *, element: ModelEntity, ancestorType: type) -> None:
 		"""
-		Initializes the exception message based on the given model entity and ancestor type.
+		Initializes the exception with a message, the searched model entity and the requested ancestor type.
 
+		:param message:      The exception message.
 		:param element:      The model entity, whose parent chain was searched.
 		:param ancestorType: The requested type of the ancestor.
 		"""
-		super().__init__(f"No ancestor of type '{ancestorType.__name__}' found for {element!r}.")
-
+		super().__init__(message)
 		self._element =      element
 		self._ancestorType = ancestorType
 
@@ -2763,20 +2753,18 @@ class AncestorNotFoundError(VHDLModelException, ElementNotFoundError):
 class AllowBlackboxNotSetError(VHDLModelException):
 	"""
 	This exception is raised, when a model entity has no local *allow blackbox* value and no parent to inherit it from.
-
-	Message: :pycode:`f"AllowBlackbox is not set on {element!r} and no parent is available to inherit it from."`
 	"""
 
 	_element: ModelEntity  #: The model entity without an *allow blackbox* value.
 
-	def __init__(self, element: ModelEntity) -> None:
+	def __init__(self, message: str, /, *, element: ModelEntity) -> None:
 		"""
-		Initializes the exception message based on the given model entity.
+		Initializes the exception with a message and the model entity without an *allow blackbox* value.
 
+		:param message: The exception message.
 		:param element: The model entity without an *allow blackbox* value.
 		"""
-		super().__init__(f"AllowBlackbox is not set on {element!r} and no parent is available to inherit it from.")
-
+		super().__init__(message)
 		self._element = element
 
 	@readonly
@@ -2793,20 +2781,18 @@ class AllowBlackboxNotSetError(VHDLModelException):
 class AmbiguousTopLevelError(VHDLModelException):
 	"""
 	This exception is raised, when the hierarchy graph of a design has more than one root, i.e. top-level.
-
-	Message: :pycode:`f"Found more than one toplevel: {', '.join(str(topLevel) for topLevel in topLevels)}"`
 	"""
 
 	_topLevels: tuple[_DesignUnit, ...]  #: The design units at the roots of the hierarchy graph.
 
-	def __init__(self, topLevels: tuple[_DesignUnit, ...]) -> None:
+	def __init__(self, message: str, /, *, topLevels: tuple[_DesignUnit, ...]) -> None:
 		"""
-		Initializes the exception message based on the given top-level candidates.
+		Initializes the exception with a message and the top-level candidates.
 
+		:param message:   The exception message.
 		:param topLevels: The design units at the roots of the hierarchy graph.
 		"""
-		super().__init__(f"Found more than one toplevel: {', '.join(str(topLevel) for topLevel in topLevels)}")
-
+		super().__init__(message)
 		self._topLevels = topLevels
 
 	@readonly
@@ -2823,20 +2809,18 @@ class AmbiguousTopLevelError(VHDLModelException):
 class UnprefixedEntityInstantiationError(VHDLModelException):
 	"""
 	This exception is raised, when a direct entity instantiation names its entity without a library prefix.
-
-	Message: :pycode:`f"Direct entity instantiation '{instantiation._label}' has no library prefix."`
 	"""
 
 	_instantiation: EntityInstantiation  #: The direct entity instantiation without a library prefix.
 
-	def __init__(self, instantiation: EntityInstantiation) -> None:
+	def __init__(self, message: str, /, *, instantiation: EntityInstantiation) -> None:
 		"""
-		Initializes the exception message based on the given direct entity instantiation.
+		Initializes the exception with a message and the direct entity instantiation without a library prefix.
 
+		:param message:       The exception message.
 		:param instantiation: The direct entity instantiation without a library prefix.
 		"""
-		super().__init__(f"Direct entity instantiation '{instantiation._label}' has no library prefix.")
-
+		super().__init__(message)
 		self._instantiation = instantiation
 
 	@readonly
@@ -2853,25 +2837,20 @@ class UnprefixedEntityInstantiationError(VHDLModelException):
 class NotAGenericPackageError(VHDLModelException):
 	"""
 	This exception is raised, when a package instantiation references a package, which isn't a generic package.
-
-	Message: :pycode:`f"Package '{packageName!s}' referenced by '{libraryName}.{packageInstantiation._identifier}' is not a generic package."`
 	"""
 
 	_packageInstantiation: _PackageInstantiation  #: The package instantiation referencing the package.
 	_package:              _Package               #: The referenced package, which isn't a generic package.
 
-	def __init__(self, packageInstantiation: _PackageInstantiation, package: _Package) -> None:
+	def __init__(self, message: str, /, *, packageInstantiation: _PackageInstantiation, package: _Package) -> None:
 		"""
-		Initializes the exception message based on the given package instantiation and package.
+		Initializes the exception with a message, the package instantiation and the referenced non-generic package.
 
+		:param message:              The exception message.
 		:param packageInstantiation: The package instantiation referencing the package.
 		:param package:              The referenced package, which isn't a generic package.
 		"""
-		super().__init__(
-			f"Package '{packageInstantiation._packageReference._name!s}' referenced by "
-			f"'{packageInstantiation._parent._identifier}.{packageInstantiation._identifier}' is not a generic package."
-		)
-
+		super().__init__(message)
 		self._packageInstantiation = packageInstantiation
 		self._package =              package
 

@@ -680,7 +680,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 			return toplevel.Value
 		else:
-			raise AmbiguousTopLevelError(tuple(root.Value for root in roots))
+			raise AmbiguousTopLevelError(
+				f"Found more than one toplevel: {', '.join(str(r) for r in roots)}",
+				topLevels=tuple(root.Value for root in roots)
+			)
 
 	def LoadStdLibrary(self) -> Library:
 		"""
@@ -1811,7 +1814,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 								namespaces=(package._namespace, )
 							))
 					elif not isinstance(symbol, AllPackageMembersReferenceSymbol):
-						ex = UnknownSymbolKindError(symbol, context)
+						ex = UnknownSymbolKindError(
+							f"Unknown package reference symbol type in design unit '{context._identifier}'.",
+							symbol=symbol,
+							designUnit=context
+						)
 						ex.add_note(f"Got type '{getFullyQualifiedName(symbol)}'.")
 						raise ex
 
@@ -1999,7 +2006,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				elif isinstance(designUnit, PackageBody):
 					referencedLibraries = designUnit.Package.Package._referencedLibraries
 				else:
-					ex = UnknownSecondaryUnitKindError(designUnit)
+					ex = UnknownSecondaryUnitKindError(
+						f"Secondary unit '{designUnit._identifier}' is neither an architecture nor a package body.",
+						secondaryUnit=designUnit
+					)
 					ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
 					raise ex
 
@@ -2135,7 +2145,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				elif isinstance(designUnit, PackageBody):
 					referencedPackages = designUnit.Package.Package._referencedPackages
 				else:
-					ex = UnknownSecondaryUnitKindError(designUnit)
+					ex = UnknownSecondaryUnitKindError(
+						f"Secondary unit '{designUnit._identifier}' is neither an architecture nor a package body.",
+						secondaryUnit=designUnit
+					)
 					ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
 					raise ex
 
@@ -2230,7 +2243,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for packageMemberSymbol in useClause._symbols:
 			symbolTypes = (PackageReferenceSymbol, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol)
 			if not isinstance(packageMemberSymbol, symbolTypes):
-				ex = UnknownSymbolKindError(packageMemberSymbol, designUnit)
+				ex = UnknownSymbolKindError(
+					f"Unknown package reference symbol type in design unit '{designUnit._identifier}'.",
+					symbol=packageMemberSymbol,
+					designUnit=designUnit
+				)
 				ex.add_note(f"Got type '{getFullyQualifiedName(packageMemberSymbol)}'.")
 				raise ex
 
@@ -2647,7 +2664,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					entityName =  instance.Entity.Name
 					libraryName = entityName.Prefix
 					if libraryName is None:
-						ex = UnprefixedEntityInstantiationError(instance)
+						ex = UnprefixedEntityInstantiationError(
+							f"Direct entity instantiation '{instance.Label}' has no library prefix.",
+							instantiation=instance
+						)
 						ex.add_note(f"Use a selected name like 'work.{entityName.Identifier}'.")
 						ex.add_note("Entities made visible by a use clause aren't supported.")
 						raise ex
@@ -3452,7 +3472,12 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 					raise ex from cause
 
 				if package.GenericCount == 0:
-					raise NotAGenericPackageError(packageInstance, package)
+					raise NotAGenericPackageError(
+						f"Package '{libraryName.Identifier}.{packageName.Identifier}' referenced by "
+						f"'{self._identifier}.{packageInstance._identifier}' is not a generic package.",
+						packageInstantiation=packageInstance,
+						package=package
+					)
 
 				packageSymbol.Package = package
 

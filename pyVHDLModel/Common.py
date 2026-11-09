@@ -117,7 +117,10 @@ class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True, expects=("_parent",
 		elif self._parent is None:
 			from pyVHDLModel.Exception import AllowBlackboxNotSetError
 
-			raise AllowBlackboxNotSetError(self)
+			raise AllowBlackboxNotSetError(
+				f"AllowBlackbox is not set on {self!r} and no parent is available to inherit it from.",
+				element=self
+			)
 		else:
 			return self._parent.AllowBlackbox
 

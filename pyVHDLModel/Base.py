@@ -340,7 +340,11 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 
 			parent = parent._parent
 		else:
-			raise AncestorNotFoundError(self, type)
+			raise AncestorNotFoundError(
+				f"No ancestor of type '{type.__name__}' found for {self!r}.",
+				element=self,
+				ancestorType=type
+			)
 
 		return parent
 

@@ -356,7 +356,10 @@ class LinkLibraryReferences(Testcase):
 		"""The exception for a secondary unit of unknown kind; no library of a design holds one."""
 		packageBody = PackageBody(PackageSymbol(SimpleName("pack_1")), parent=None)
 
-		ex = UnknownSecondaryUnitKindError(packageBody)
+		ex = UnknownSecondaryUnitKindError(
+			"Secondary unit 'pack_1' is neither an architecture nor a package body.",
+			secondaryUnit=packageBody
+		)
 
 		self.assertEqual("Secondary unit 'pack_1' is neither an architecture nor a package body.", str(ex))
 		self.assertIs(packageBody, ex.Element)

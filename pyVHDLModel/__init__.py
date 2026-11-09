@@ -681,7 +681,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			return toplevel.Value
 		else:
 			raise AmbiguousTopLevelError(
-				f"Found more than one toplevel: {', '.join(str(r) for r in roots)}",
+				f"Found more than one toplevel: {', '.join(str(r) for r in roots)}.",
 				topLevels=tuple(root.Value for root in roots)
 			)
 
@@ -4012,7 +4012,7 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a design unit to the document's lists of design units.
 
-		:param item:                      Configuration object to be added to the document.
+		:param item:                      Design unit to be added to the document.
 		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
 		:raises ValueError:               If parameter 'item' is an unknown :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
 		:raises DuplicateDesignUnitError: If the document contains a design unit of the same kind and identifier.

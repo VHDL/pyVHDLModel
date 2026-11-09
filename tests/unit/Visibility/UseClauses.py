@@ -34,6 +34,7 @@ Use clauses (IEEE Std 1076-2008, 12.4): what ``use lib.pkg.all``, ``use lib.pkg.
 """
 from pathlib                   import Path
 
+from pyTooling.Exceptions      import ElementNotFoundError
 from pyTooling.Warning         import WarningCollector
 from pyTooling.Testing         import Testcase
 
@@ -639,6 +640,7 @@ class LibraryNames(Testcase):
 		self.assertEqual("Library 'nolib' not found in design.", str(context.exception))
 		self.assertIsInstance(context.exception.__cause__, KeyError)
 		self.assertIsInstance(context.exception, LibraryNotInDesignError)
+		self.assertIsInstance(context.exception, ElementNotFoundError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_ContextDeclaration_LibraryClauseNotInDesign(self) -> None:

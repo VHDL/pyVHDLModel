@@ -786,13 +786,15 @@ class ContextExistsInLibraryError(VHDLModelException):
 
 
 @export
-class LibraryNotInDesignError(Exception):
+class LibraryNotInDesignError(ElementNotFoundError):
 	"""
 	The exception is raised when a library is referenced or looked up by name, but doesn't exist in the design.
 
 	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
 	``class LibraryNotFoundError(VHDLModelException, LibraryNotInDesignError)``. It has no initializer of its own; the
 	derived exception sets the fields.
+	It derives from pyTooling's common base :exc:`pyTooling.Exceptions.ElementNotFoundError`, so it's a
+	:exc:`LookupError`.
 
 	.. seealso::
 
@@ -1960,13 +1962,15 @@ class EntityInstantiationLibraryNotFoundError(VHDLModelException, LibraryNotInDe
 
 
 @export
-class DesignUnitNotFoundError(Exception):
+class DesignUnitNotFoundError(ElementNotFoundError):
 	"""
 	The exception is raised when a design unit is looked up by name, but doesn't exist in the searched library.
 
 	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
 	``class EntityNotFoundError(VHDLModelException, DesignUnitNotFoundError)``. It has no initializer of its own; the
 	derived exception sets the fields.
+	It derives from pyTooling's common base :exc:`pyTooling.Exceptions.ElementNotFoundError`, so it's a
+	:exc:`LookupError`.
 
 	.. seealso::
 

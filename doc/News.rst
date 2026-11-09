@@ -125,7 +125,8 @@ Version 0.43.0 (2026)
      (no library clause makes the library visible), :exc:`~pyVHDLModel.Exception.LibraryNotInDesignError` (the library
      doesn't exist in the design), :exc:`~pyVHDLModel.Exception.DesignUnitNotFoundError` (a design unit is missing in
      its library), :exc:`~pyVHDLModel.Exception.NotLinkedError` and :exc:`~pyVHDLModel.Exception.NotComputedError` (an
-     analysis step didn't run). The messages are unchanged.
+     analysis step didn't run). The messages are unchanged. ``LibraryNotInDesignError`` and ``DesignUnitNotFoundError``
+     derive from :exc:`pyTooling.Exceptions.ElementNotFoundError` too, so they are a :exc:`LookupError`.
    * A package or context not found for a use clause, a context reference or a package instantiation raises
      :exc:`~pyVHDLModel.Exception.PackageNotFoundError` or :exc:`~pyVHDLModel.Exception.ContextNotFoundError`, caused by
      the failed lookup; the message names the real library (was ``working library``), a note names the working library
@@ -137,7 +138,8 @@ Version 0.43.0 (2026)
      :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError`; single conditions have their own error
      (:exc:`~pyVHDLModel.Exception.AmbiguousTopLevelError`, :exc:`~pyVHDLModel.Exception.NotAGenericPackageError`,
      :exc:`~pyVHDLModel.Exception.AncestorNotFoundError`, ...). Failed library and entity lookups are the cause of their
-     error.
+     error. ``UnknownKindError`` derives from :exc:`pyTooling.Exceptions.UnknownKindError`, ``AmbiguousTopLevelError``
+     from :exc:`pyTooling.Exceptions.AmbiguousError`; the message of the latter ends with a period.
    * Breaking change: the exceptions, which built their message from their arguments, take the message as the first,
      positional-only parameter and the descriptive values as keyword-only parameters, e.g.
      ``LibraryNotFoundError(message, /, *, libraryName)`` or

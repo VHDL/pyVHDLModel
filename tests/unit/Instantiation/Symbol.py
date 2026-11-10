@@ -50,8 +50,8 @@ from pyVHDLModel.Symbol import PossibleReference, Symbol, LibraryReferenceSymbol
                                ArchitectureSymbol, PackageSymbol, RangeAttributeSymbol, RecordElementSymbol, \
                                SubtypeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
                                ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
-                               SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, AggregateSymbol, \
-                               LoopSymbol
+                               ArrayElementConstraint, RecordElementConstraint, SimpleObjectOrFunctionCallSymbol, \
+                               IndexedObjectOrFunctionCallSymbol, AggregateSymbol, LoopSymbol
 
 from tests.unit         import _Element
 
@@ -316,9 +316,9 @@ class ConstrainedSubtypeSymbols(Testcase):
 		self.assertIs(symbol, constraint.Parent)
 
 	def test_RecordConstraint(self) -> None:
-		element = RecordElementSymbol(SimpleName("field"))
-		constraint = SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)
-		symbol = ConstrainedRecordSubtypeSymbol(SimpleName("rec_t"), {element: constraint})
+		element =    RecordElementSymbol(SimpleName("field"))
+		constraint = ArrayElementConstraint([SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)])
+		symbol =     ConstrainedRecordSubtypeSymbol(SimpleName("rec_t"), {element: constraint})
 
 		self.assertEqual(1, len(symbol.Constraints))
 		self.assertIs(constraint, symbol.Constraints[element])
@@ -347,11 +347,81 @@ class ConstrainedSubtypeSymbols(Testcase):
 		parent =     _Element()
 		name =       SimpleName("rec_t")
 		element =    RecordElementSymbol(SimpleName("field"))
-		constraint = SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)
+		constraint = ArrayElementConstraint([SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)])
 		symbol =     ConstrainedRecordSubtypeSymbol(name, {element: constraint}, parent=parent)
 
 		self.assertIs(parent, symbol.Parent)
 		self.assertIs(symbol, name.Parent)
+
+
+class ElementConstraints(Testcase):
+	"""``signal s : rec_t(data(7 downto 0), m(0 to 1, 0 to 7), inner(field(3 downto 0)));``"""
+
+	def test_ArrayElementConstraint(self) -> None:
+		rng =        SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)
+		constraint = ArrayElementConstraint([rng])
+
+		self.assertIsNone(constraint.Parent)
+		self.assertListEqual([rng], constraint.Constraints)
+		self.assertIs(constraint, rng.Parent)
+		self.assertEqual("(7 downto 0)", str(constraint))
+
+	def test_ArrayElementConstraint_Dimensions(self) -> None:
+		rows =       SimpleRange(IntegerLiteral(0), IntegerLiteral(1), Direction.To)
+		columns =    SimpleRange(IntegerLiteral(0), IntegerLiteral(7), Direction.To)
+		constraint = ArrayElementConstraint([rows, columns])
+
+		self.assertListEqual([rows, columns], constraint.Constraints)
+		self.assertIs(constraint, rows.Parent)
+		self.assertIs(constraint, columns.Parent)
+		self.assertEqual("(0 to 1, 0 to 7)", str(constraint))
+
+	def test_ArrayElementConstraint_Parent(self) -> None:
+		parent =     _Element()
+		constraint = ArrayElementConstraint(
+			[SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)],
+			parent=parent
+		)
+
+		self.assertIs(parent, constraint.Parent)
+
+	def test_RecordElementConstraint(self) -> None:
+		element =    RecordElementSymbol(SimpleName("field"))
+		inner =      ArrayElementConstraint([SimpleRange(IntegerLiteral(3), IntegerLiteral(0), Direction.DownTo)])
+		constraint = RecordElementConstraint({element: inner})
+
+		self.assertIsNone(constraint.Parent)
+		self.assertDictEqual({element: inner}, constraint.Constraints)
+		self.assertIs(constraint, element.Parent)
+		self.assertIs(constraint, inner.Parent)
+		self.assertEqual("(field(3 downto 0))", str(constraint))
+
+	def test_RecordElementConstraint_Parent(self) -> None:
+		parent =     _Element()
+		inner =      ArrayElementConstraint([SimpleRange(IntegerLiteral(3), IntegerLiteral(0), Direction.DownTo)])
+		constraint = RecordElementConstraint({RecordElementSymbol(SimpleName("field")): inner}, parent=parent)
+
+		self.assertIs(parent, constraint.Parent)
+
+	def test_RecordConstraint_Nested(self) -> None:
+		"""A record element constraint is the parent of its elements and element constraints, at every level."""
+		data =        RecordElementSymbol(SimpleName("data"))
+		dataRange =   ArrayElementConstraint([SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)])
+		field =       RecordElementSymbol(SimpleName("field"))
+		fieldRange =  ArrayElementConstraint([SimpleRange(IntegerLiteral(3), IntegerLiteral(0), Direction.DownTo)])
+		inner =       RecordElementSymbol(SimpleName("inner"))
+		innerRecord = RecordElementConstraint({field: fieldRange})
+		symbol =      ConstrainedRecordSubtypeSymbol(SimpleName("rec_t"), {data: dataRange, inner: innerRecord})
+
+		self.assertListEqual([data, inner], list(symbol.Constraints))
+		self.assertIs(dataRange, symbol.Constraints[data])
+		self.assertIs(innerRecord, symbol.Constraints[inner])
+		self.assertIs(symbol, data.Parent)
+		self.assertIs(symbol, dataRange.Parent)
+		self.assertIs(symbol, inner.Parent)
+		self.assertIs(symbol, innerRecord.Parent)
+		self.assertIs(innerRecord, field.Parent)
+		self.assertIs(innerRecord, fieldRange.Parent)
 
 
 class AggregateSymbols(Testcase):

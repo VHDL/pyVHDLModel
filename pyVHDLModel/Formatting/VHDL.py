@@ -104,7 +104,8 @@ from pyVHDLModel.Sequential    import IndexedChoice, SequentialProcedureCall, Se
                                       LoopControlStatement, NextStatement, ExitStatement
 from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
 from pyVHDLModel.Symbol        import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
-                                      ConstrainedRecordSubtypeSymbol, AggregateSymbol
+                                      ConstrainedRecordSubtypeSymbol, ArrayElementConstraint, \
+                                      RecordElementConstraint, AggregateSymbol
 from pyVHDLModel.Type          import AnonymousType, FullType, Subtype, EnumeratedType, IntegerType, RealType, \
                                       PhysicalType, ArrayType, RecordTypeElement, RecordType, AccessType, FileType, \
                                       ProtectedType, ProtectedTypeBody
@@ -1017,7 +1018,7 @@ class VHDLWriter(Visitor):
 	def VisitElementSeparator(
 		self,
 		element: IndexedName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol |
-		         EnumeratedType | ArrayType | AggregateSymbol
+		         ArrayElementConstraint | RecordElementConstraint | EnumeratedType | ArrayType | AggregateSymbol
 	) -> None:
 		"""
 		Write the comma between two elements of a parenthesized list, which is no association list.
@@ -2077,44 +2078,44 @@ class VHDLWriter(Visitor):
 
 	def VisitIndexConstraint(
 		self,
-		element: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol | ArrayType
+		element: ConstrainedArraySubtypeSymbol | ArrayElementConstraint | ArrayType
 	) -> None:
 		"""
 		Write the left parenthesis of an index constraint.
 
 		**Format:** ``bit_vector(7 downto 0)``
 
-		:param element: The constrained subtype symbol or the array type.
+		:param element: The constrained subtype symbol, the array element constraint or the array type.
 		"""
 		self._Write("(")
 		self._minimum = OperatorPrecedence.Range
 
 	def DepartIndexConstraint(
 		self,
-		element: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol | ArrayType
+		element: ConstrainedArraySubtypeSymbol | ArrayElementConstraint | ArrayType
 	) -> None:
 		"""
 		Write the right parenthesis of an index constraint.
 
-		:param element: The constrained subtype symbol or the array type.
+		:param element: The constrained subtype symbol, the array element constraint or the array type.
 		"""
 		self._Write(")")
 
-	def VisitRecordConstraint(self, symbol: ConstrainedRecordSubtypeSymbol) -> None:
+	def VisitRecordConstraint(self, element: ConstrainedRecordSubtypeSymbol | RecordElementConstraint) -> None:
 		"""
 		Write the left parenthesis of a record constraint.
 
-		**Format:** ``frame(data(7 downto 0), mask(3 downto 0))``
+		**Format:** ``frame(data(7 downto 0), inner(field(3 downto 0)))``
 
-		:param symbol: The constrained subtype symbol.
+		:param element: The constrained subtype symbol or the record element constraint.
 		"""
 		self._Write("(")
 
-	def DepartRecordConstraint(self, symbol: ConstrainedRecordSubtypeSymbol) -> None:
+	def DepartRecordConstraint(self, element: ConstrainedRecordSubtypeSymbol | RecordElementConstraint) -> None:
 		"""
 		Write the right parenthesis of a record constraint.
 
-		:param symbol: The constrained subtype symbol.
+		:param element: The constrained subtype symbol or the record element constraint.
 		"""
 		self._Write(")")
 

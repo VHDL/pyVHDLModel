@@ -128,7 +128,8 @@ if TYPE_CHECKING:
 	                                      LoopControlStatement, NextStatement, ExitStatement
 	from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
 	from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
-	                                      ConstrainedRecordSubtypeSymbol, AggregateSymbol
+	                                      ConstrainedRecordSubtypeSymbol, ArrayElementConstraint, \
+	                                      RecordElementConstraint, AggregateSymbol
 	from pyVHDLModel.Type          import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
 	                                      ArrayType, RecordTypeElement, RecordType, AccessType, FileType, ProtectedType, \
 	                                      ProtectedTypeBody
@@ -174,7 +175,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	def VisitElementSeparator(
 		self,
 		element: IndexedName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol |
-		         EnumeratedType | ArrayType | AggregateSymbol
+		         ArrayElementConstraint | RecordElementConstraint | EnumeratedType | ArrayType | AggregateSymbol
 	) -> None:
 		"""
 		Visit the comma between two elements of a parenthesized list, which is no association list.
@@ -1137,37 +1138,39 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def VisitIndexConstraint(
 		self,
-		element: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol | ArrayType
+		element: ConstrainedArraySubtypeSymbol | ArrayElementConstraint | ArrayType
 	) -> None:
 		"""
 		Visit the index constraint of a subtype indication, of a record element or of an array type, before its first range.
 
-		:param element: The constrained subtype symbol or the array type.
+		:param element: The constrained subtype symbol, the array element constraint or the array type.
 		"""
 
 	def DepartIndexConstraint(
 		self,
-		element: ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol | ArrayType
+		element: ConstrainedArraySubtypeSymbol | ArrayElementConstraint | ArrayType
 	) -> None:
 		"""
 		Depart from the index constraint of a subtype indication, of a record element or of an array type, after its last
 		range.
 
-		:param element: The constrained subtype symbol or the array type.
+		:param element: The constrained subtype symbol, the array element constraint or the array type.
 		"""
 
-	def VisitRecordConstraint(self, symbol: ConstrainedRecordSubtypeSymbol) -> None:
+	def VisitRecordConstraint(self, element: ConstrainedRecordSubtypeSymbol | RecordElementConstraint) -> None:
 		"""
-		Visit the record constraint of a subtype indication, before its first record element constraint.
+		Visit the record constraint of a subtype indication or of a record element, before its first record element
+		constraint.
 
-		:param symbol: The constrained subtype symbol.
+		:param element: The constrained subtype symbol or the record element constraint.
 		"""
 
-	def DepartRecordConstraint(self, symbol: ConstrainedRecordSubtypeSymbol) -> None:
+	def DepartRecordConstraint(self, element: ConstrainedRecordSubtypeSymbol | RecordElementConstraint) -> None:
 		"""
-		Depart from the record constraint of a subtype indication, after its last record element constraint.
+		Depart from the record constraint of a subtype indication or of a record element, after its last record element
+		constraint.
 
-		:param symbol: The constrained subtype symbol.
+		:param element: The constrained subtype symbol or the record element constraint.
 		"""
 
 	def VisitGenericClause(self, element: WithGenericsMixin) -> None:
@@ -1238,6 +1241,34 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		Depart from a constrained record subtype symbol, after its record constraint.
 
 		:param symbol: The constrained subtype symbol.
+		"""
+
+	def VisitArrayElementConstraint(self, constraint: ArrayElementConstraint) -> None:
+		"""
+		Visit the array constraint of a record element, before its index constraint.
+
+		:param constraint: The array element constraint.
+		"""
+
+	def DepartArrayElementConstraint(self, constraint: ArrayElementConstraint) -> None:
+		"""
+		Depart from the array constraint of a record element, after its index constraint.
+
+		:param constraint: The array element constraint.
+		"""
+
+	def VisitRecordElementConstraint(self, constraint: RecordElementConstraint) -> None:
+		"""
+		Visit the nested record constraint of a record element, before its record constraint.
+
+		:param constraint: The record element constraint.
+		"""
+
+	def DepartRecordElementConstraint(self, constraint: RecordElementConstraint) -> None:
+		"""
+		Depart from the nested record constraint of a record element, after its record constraint.
+
+		:param constraint: The record element constraint.
 		"""
 
 	def VisitConstant(self, constant: Constant) -> None:

@@ -100,7 +100,8 @@ from pyVHDLModel.Symbol          import RecordElementSymbol, SimpleSubtypeSymbol
                                         ContextReferenceSymbol, EntitySymbol, ArchitectureSymbol, PackageSymbol, \
                                         PackageReferenceSymbol, ComponentInstantiationSymbol, SignalSymbol, \
                                         EntityInstantiationSymbol, ConfigurationInstantiationSymbol, \
-                                        ConfigurationSymbol, VariableSymbol
+                                        ConfigurationSymbol, VariableSymbol, ArrayElementConstraint, \
+                                        RecordElementConstraint
 from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
                                         PhysicalUnit, ArrayType, RecordTypeElement, RecordType, AccessType, FileType, \
                                         ProtectedType, ProtectedTypeBody
@@ -333,7 +334,18 @@ class GHDLOracleDeclarations(Testcase):
 			SimpleRange(IntegerLiteral(0), IntegerLiteral(15), Direction.To)
 		)
 		frame =    ConstrainedRecordSubtypeSymbol(SimpleName("frame_t"), {
-			RecordElementSymbol(SimpleName("data")): DescendingRangeExpression(IntegerLiteral(7), IntegerLiteral(0))
+			RecordElementSymbol(SimpleName("data")):  ArrayElementConstraint([
+				DescendingRangeExpression(IntegerLiteral(7), IntegerLiteral(0))
+			]),
+			RecordElementSymbol(SimpleName("inner")): RecordElementConstraint({
+				RecordElementSymbol(SimpleName("field")): ArrayElementConstraint([
+					DescendingRangeExpression(IntegerLiteral(3), IntegerLiteral(0))
+				])
+			}),
+			RecordElementSymbol(SimpleName("m")):     ArrayElementConstraint([
+				AscendingRangeExpression(IntegerLiteral(0), IntegerLiteral(1)),
+				AscendingRangeExpression(IntegerLiteral(0), IntegerLiteral(7))
+			])
 		})
 		package =  "".join(writer.Format(declaration) for declaration in (
 			Constant(["A", "B"], _integer("natural"), IntegerLiteral(1)),
@@ -351,8 +363,14 @@ class GHDLOracleDeclarations(Testcase):
 		source =   dedent("""\
 			package objects is
 				constant v : bit_vector(7 downto 0) := x"A5";
+				type matrix_t is array(natural range <>, natural range <>) of bit;
+				type inner_t is record
+					field : bit_vector;
+				end record;
 				type frame_t is record
-					data : bit_vector;
+					data  : bit_vector;
+					inner : inner_t;
+					m     : matrix_t;
 				end record;
 				type text_file is file of string;
 				type counter_t is protected

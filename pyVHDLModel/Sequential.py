@@ -2231,6 +2231,8 @@ class LoopControlStatement(SequentialStatement, ConditionalMixin):
 			raise ex
 
 		self._loopReference = loopLabel
+		if loopLabel is not None:
+			loopLabel.Parent = self
 
 	@readonly
 	def LoopReference(self) -> Nullable[LoopSymbol]:

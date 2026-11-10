@@ -43,7 +43,7 @@ from pyVHDLModel.Base        import Direction, Mode, SimpleRange, WaveformElemen
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, \
                                     ConfigurationInstantiationSymbol, SignalSymbol, Symbol, PossibleReference, \
-                                    EntitySymbol
+                                    EntitySymbol, SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Expression  import IntegerLiteral, CharacterLiteral
 from pyVHDLModel.Association import GenericAssociationItem, PortAssociationItem
 from pyVHDLModel.DesignUnit  import Architecture
@@ -293,6 +293,14 @@ class GenerateChoices(Testcase):
 		self.assertIs(expression, choice.Expression)
 		self.assertIs(choice, expression.Parent)
 		self.assertEqual("0", str(choice))
+
+	def test_IndexedGenerateChoice_Symbol(self) -> None:
+		"""``when MODE =>``"""
+		expression = SimpleObjectOrFunctionCallSymbol(SimpleName("MODE"))
+		choice =     IndexedGenerateChoice(expression)
+
+		self.assertIs(expression, choice.Expression)
+		self.assertIs(choice, expression.Parent)
 
 	def test_RangedGenerateChoice(self) -> None:
 		rng = SimpleRange(IntegerLiteral(0), IntegerLiteral(3), Direction.To)

@@ -38,7 +38,7 @@ message in english, each exception object contains one or multiple references to
 from __future__               import annotations
 
 from pathlib                  import Path
-from typing                   import TYPE_CHECKING, ClassVar, Generic, Optional as Nullable, TypeVar, Union
+from typing                   import TYPE_CHECKING, ClassVar, Generic, Optional as Nullable, TypeVar
 
 from pyTooling.Decorators     import export, readonly
 from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError, InUseError, \
@@ -50,7 +50,7 @@ from pyVHDLModel.Symbol       import Symbol
 
 if TYPE_CHECKING:  # pragma: no cover
 	from pyVHDLModel               import Document, IEEEFlavor, Library
-	from pyVHDLModel.Base          import ModelElementUnion, ModelEntity
+	from pyVHDLModel.Base          import ModelEntity
 	from pyVHDLModel.Concurrent    import ComponentInstantiation, EntityInstantiation
 	from pyVHDLModel.DesignUnit    import Component as _Component, Context as _Context, DesignUnit as _DesignUnit, \
 	                                      Architecture, Package as _Package, SecondaryUnit
@@ -94,25 +94,25 @@ class NotImplementedWarning(VHDLModelWarning):
 	   dropped silently.
 	"""
 
-	_item: Nullable[Union[ModelEntity, Symbol]]  #: The model element or symbol of the construct.
+	_item: Nullable[ModelEntity]  #: The model element of the construct.
 
-	def __init__(self, message: str, /, *, item: Nullable[Union[ModelEntity, Symbol]] = None) -> None:
+	def __init__(self, message: str, /, *, item: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes the warning with the construct that isn't modelled yet.
 
 		:param message: The warning's message.
-		:param item:    Optional, the model element or symbol of the construct - a declared item, an expression, a symbol or
-		                an instantiation. Default: ``None``.
+		:param item:    Optional, the model element of the construct - a declared item, an expression, a symbol or an
+		                instantiation. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._item = item
 
 	@readonly
-	def Item(self) -> Nullable[Union[ModelEntity, Symbol]]:
+	def Item(self) -> Nullable[ModelEntity]:
 		"""
-		Read-only property to access the model element or symbol of the construct (:attr:`_item`).
+		Read-only property to access the model element of the construct (:attr:`_item`).
 
-		:returns: The model element or symbol, or ``None`` if the construct has none or it wasn't recorded.
+		:returns: The model element, or ``None`` if the construct has none or it wasn't recorded.
 		"""
 		return self._item
 
@@ -2553,10 +2553,10 @@ class UnknownKindError(VHDLModelException, CommonUnknownKindError):
 	      |rarr| Secondary unit of unknown kind.
 	"""
 
-	_element: ModelEntity | _Symbol  #: The model element of unknown kind.
+	_element: ModelEntity  #: The model element of unknown kind.
 
 	@readonly
-	def Element(self) -> ModelEntity | _Symbol:
+	def Element(self) -> ModelEntity:
 		"""
 		Read-only property to access the model element of unknown kind (:attr:`_element`).
 
@@ -2860,9 +2860,9 @@ class VHDLWriterError(VHDLModelException):
 	The element's content has no VHDL notation, e.g. a string literal containing a control character.
 	"""
 
-	_element: ModelElementUnion  #: The model element the writer could not write.
+	_element: ModelEntity  #: The model element the writer could not write.
 
-	def __init__(self, message: str, element: ModelElementUnion) -> None:
+	def __init__(self, message: str, element: ModelEntity) -> None:
 		"""
 		Initializes the exception with a message and the model element that could not be written.
 
@@ -2873,7 +2873,7 @@ class VHDLWriterError(VHDLModelException):
 		self._element = element
 
 	@readonly
-	def Element(self) -> ModelElementUnion:
+	def Element(self) -> ModelEntity:
 		"""
 		Read-only property to access the model element that could not be written (:attr:`_element`).
 

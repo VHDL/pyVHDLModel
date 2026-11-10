@@ -182,7 +182,8 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 		:param parameterAssociationItems: Optional, list of all parameter associations of the call.
 		                                  Default: ``None``, no parameter associations.
 		"""
-		self._procedure = procedureName
+		self._procedure =      procedureName
+		procedureName.Parent = self
 
 		# TODO: extract to mixin
 		self._parameterAssociationItems = parameterAssociationItemList = []

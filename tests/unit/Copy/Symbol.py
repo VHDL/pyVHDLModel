@@ -32,7 +32,7 @@
 """
 Copy tests for symbols (:mod:`pyVHDLModel.Symbol`).
 
-A symbol has no parent (it is no :class:`~pyVHDLModel.Base.ModelEntity`), so only its owned children are checked.
+A copy of a symbol has no parent; it is the parent of its copied name.
 """
 from pyTooling.Testing           import Testcase
 
@@ -78,13 +78,15 @@ class CopyMethods(Testcase):
 
 class Symbols(Testcase):
 	def test_Copy(self) -> None:
-		original = Symbol(SimpleName("proc"), PossibleReference.Procedure)
+		original = Symbol(SimpleName("proc"), PossibleReference.Procedure, parent=_Element())
 
 		copy = original.Copy()
 
 		self.assertIs(Symbol, type(copy))
 		self.assertIsNot(original, copy)
+		self.assertIsNone(copy.Parent)
 		self.assertIsNot(original.Name, copy.Name)
+		self.assertIs(copy, copy.Name.Parent)
 		self.assertEqual("proc", copy.Name.Identifier)
 		self.assertIs(PossibleReference.Procedure, copy._possibleReferences)
 		self.assertIsNone(copy.Reference)
@@ -138,14 +140,16 @@ class Symbols(Testcase):
 			IndexedObjectOrFunctionCallSymbol
 		):
 			with self.subTest(cls.__name__):
-				original = cls(SelectedName("b", SimpleName("a")))
+				original =            cls(SelectedName("b", SimpleName("a")), parent=_Element())
 				original._reference = declaration
 
 				copy = original.Copy()
 
 				self.assertIs(cls, type(copy))
 				self.assertIsNot(original, copy)
+				self.assertIsNone(copy.Parent)
 				self.assertIsNot(original.Name, copy.Name)
+				self.assertIs(copy, copy.Name.Parent)
 				self.assertIsNot(original.Name.Prefix, copy.Name.Prefix)
 				self.assertIs(original._possibleReferences, copy._possibleReferences)
 				self.assertIs(declaration, copy.Reference)
@@ -268,3 +272,4 @@ class ConstrainedRecordSubtypeSymbols(Testcase):
 		self.assertEqual("(carry?, sum?)", str(copy))
 		for originalElement, copiedElement in zip(original.Targets, copy.Targets):
 			self.assertIsNot(originalElement, copiedElement)
+			self.assertIs(copy, copiedElement.Parent)

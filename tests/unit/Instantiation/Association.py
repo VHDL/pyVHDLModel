@@ -63,12 +63,10 @@ class AssociationItems(Testcase):
 		self.assertIs(association, formal.Parent)
 
 	def test_Formal_Symbol(self) -> None:
-		"""A symbol has no parent: the association leaves it alone."""
-		formal = _signalSymbol("a")
+		formal =      _signalSymbol("a")
+		association = PortAssociationItem(formal, SimpleName("s"))
 
-		PortAssociationItem(formal, SimpleName("s"))
-
-		self.assertNotIn("Parent", vars(formal))
+		self.assertIs(association, formal.Parent)
 
 	def test_Actual(self) -> None:
 		actual = IntegerLiteral(1)
@@ -83,11 +81,10 @@ class AssociationItems(Testcase):
 		self.assertIs(association, actual.Parent)
 
 	def test_Actual_Symbol(self) -> None:
-		actual = _signalSymbol("s")
+		actual =      _signalSymbol("s")
+		association = PortAssociationItem(SimpleName("p"), actual)
 
-		PortAssociationItem(SimpleName("p"), actual)
-
-		self.assertNotIn("Parent", vars(actual))
+		self.assertIs(association, actual.Parent)
 
 	def test_Actual_None(self) -> None:
 		association = ParameterAssociationItem(SimpleName("x"), None)

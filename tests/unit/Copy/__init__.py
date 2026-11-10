@@ -40,7 +40,7 @@ from typing             import Iterable
 
 from pyVHDLModel.Base   import ModelEntity
 from pyVHDLModel.Name   import SimpleName
-from pyVHDLModel.Symbol import Symbol as SymbolBase, SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Symbol import SimpleObjectOrFunctionCallSymbol
 
 
 def _object(name: str) -> SimpleObjectOrFunctionCallSymbol:
@@ -54,7 +54,7 @@ def _concreteModelClasses(module: ModuleType) -> list[type]:
 		cls for cls in vars(module).values()
 		if isinstance(cls, type)
 		and cls.__module__ == module.__name__
-		and issubclass(cls, (ModelEntity, SymbolBase))
+		and issubclass(cls, ModelEntity)
 		and not cls.__isAbstract__
 		and not cls.__isMixin__
 	]

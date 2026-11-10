@@ -155,9 +155,15 @@ Version 0.43.0 (2026)
      reference symbols their context (was an extra attribute).
    * A context reference to a context with a use clause of a package named like its library (``use foo.foo.all;``)
      raised ``Referenced package 'foo' already exists``.
-   * :meth:`Design.AnalyzeDependencies() <pyVHDLModel.Design.AnalyzeDependencies>` indexes the package bodies after
-     linking them. Before, they were indexed once by the type-mark resolution, so a repeated analysis didn't report a
-     body declaration duplicating one of its package.
+   * A use clause of a context declaration naming a package (``use lib.pkg;``), units of a library (``use lib.all;``,
+     ``use lib.unit;``) or a package by a simple name (``use pkg.all;``) raised ``AttributeError``. A context
+     declaration links its use clauses as a design unit does; :meth:`~pyVHDLModel.Design.LinkContexts` needs
+     :meth:`~pyVHDLModel.Design.LinkPackageInstances` before.
+   * :meth:`Design.AnalyzeDependencies() <pyVHDLModel.Design.AnalyzeDependencies>` indexes the architectures and the
+     package bodies after linking them. Before, an architecture was indexed before it was linked to its entity, so a
+     declaration duplicating a declaration or a port of the entity wasn't reported, and package bodies were indexed
+     once by the type-mark resolution, so a repeated analysis didn't report a body declaration duplicating one of its
+     package.
    * Adding an architecture, which already exists in the library, raised ``KeyError`` instead of
      :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError`, if the library didn't hold its entity.
    * A design unit kept a context item of an unknown kind in ``ContextItems`` only, a context declaration raised a plain

@@ -718,7 +718,7 @@ class Context(PrimaryUnit):
 	* :data:`_referencedPackages` (:pycode:`dict[libName, [pkgName, Package]]`)
 	* :data:`_referencedContexts` (:pycode:`dict[libName, [ctxName, Context]]`)
 
-	are populated.
+	are populated. The declarations the use clauses make potentially visible are imported into :data:`_namespace`.
 
 	.. admonition:: Example
 
@@ -738,6 +738,8 @@ class Context(PrimaryUnit):
 	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                     #: The reserved words after ``end`` are optional.
 	_IMPLICIT_LIBRARIES:    ClassVar[tuple[str, ...]] =          ("work", )               #: No ``std``: a context declaration has no implicit library clause (13.2).
 
+	_namespace: Namespace  #: The namespace of the declarations imported by this context's use clauses.
+
 	def __init__(self, identifier: str, references: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a context declaration.
@@ -751,6 +753,8 @@ class Context(PrimaryUnit):
 		                      :class:`UseClause` or :class:`ContextReference`.
 		"""
 		super().__init__(identifier, None, documentation, parent)
+
+		self._namespace = Namespace(self._normalizedIdentifier)
 
 		if references is not None:
 			for reference in references:

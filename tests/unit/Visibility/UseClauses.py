@@ -42,7 +42,7 @@ from pyVHDLModel               import Design, Document
 from pyVHDLModel.Concurrent    import ConcurrentBlockStatement, EntityInstantiation, ProcessStatement
 from pyVHDLModel.DesignUnit    import Architecture, Component, Context, ContextReference, Entity, LibraryClause, \
                                       Package, PackageBody, UseClause
-from pyVHDLModel.Exception     import InstantiationNotLinkedError, LibraryNotFoundError, \
+from pyVHDLModel.Exception     import InstantiationNotLinkedError, \
                                       PackageInstantiationNotLinkedError, UnresolvedNameWarning, \
                                       UnresolvedTypeMarkWarning, VHDLModelException, \
                                       LibraryNotVisibleError, UseClauseLibraryNotVisibleError, \
@@ -461,6 +461,70 @@ class ContextDeclarations(Testcase):
 
 		self.assertTupleEqual((self._type, ), architecture._namespace.Lookup("t", signal).Declarations)
 
+	def test_UsePackage(self) -> None:
+		"""``use lib1.p;`` in a context declaration makes the package name visible, not its declarations (GHDL accepts)."""
+		context = Context("c1", [_libraryClause("lib1"), _use("lib1.p")])
+		entity =  Entity("e", [_libraryClause("lib1"), _contextReference("lib1", "c1")])
+		_design(entity, libraries=[("lib1", [self._package, context])])
+
+		self.assertIs(self._package, context.PackageReferences[0].Symbols[0].Package)
+		self.assertDictEqual({"p": self._package}, entity.ReferencedPackages["lib1"])
+		self.assertTupleEqual((self._package, ), entity._namespace.Lookup("p").Declarations)
+		self.assertFalse(entity._namespace.Lookup("t").IsVisible)
+
+	def test_UsePackage_SimpleNamePrefix(self) -> None:
+		"""``use lib1.p; use p.all;`` in a context declaration: ``p`` denotes the visible package (GHDL accepts)."""
+		context = Context("c1", [_libraryClause("lib1"), _use("lib1.p"), _use("p.all")])
+		entity =  Entity("e", [_libraryClause("lib1"), _contextReference("lib1", "c1")])
+		_design(entity, libraries=[("lib1", [self._package, context])])
+
+		self.assertIs(self._package, context.PackageReferences[1].Symbols[0].Package)
+		self.assertTupleEqual((self._type, ), entity._namespace.Lookup("t").Declarations)
+
+	def test_UseLibrary(self) -> None:
+		"""``use lib1.all;`` in a context declaration makes the primary units of ``lib1`` visible (GHDL accepts)."""
+		other =   Entity("other")
+		context = Context("c1", [_libraryClause("lib1"), _use("lib1.all")])
+		entity =  Entity("e", [_libraryClause("lib1"), _contextReference("lib1", "c1")])
+		_design(entity, libraries=[("lib1", [self._package, other, context])])
+
+		self.assertTupleEqual((self._package, ), entity._namespace.Lookup("p").Declarations)
+		self.assertTupleEqual((other, ), entity._namespace.Lookup("other").Declarations)
+		self.assertFalse(entity._namespace.Lookup("t").IsVisible)
+
+	def test_UseLibraryUnit(self) -> None:
+		"""``use lib1.other;`` in a context declaration names an entity of ``lib1`` (GHDL accepts)."""
+		other =   Entity("other")
+		context = Context("c1", [_libraryClause("lib1"), _use("lib1.other")])
+		entity =  Entity("e", [_libraryClause("lib1"), _contextReference("lib1", "c1")])
+		_design(entity, libraries=[("lib1", [other, context])])
+
+		self.assertTupleEqual((other, ), entity._namespace.Lookup("other").Declarations)
+
+	def test_UsePackageInstantiation(self) -> None:
+		"""``use lib1.i.all;`` in a context declaration names a package instantiation of ``lib1.gp``."""
+		constant =       _constant("K", "integer")
+		genericPackage = Package("gp", genericItems=[GenericTypeInterfaceItem("GT")], declaredItems=[constant])
+		symbol =         PackageReferenceSymbol(SelectedName("gp", SimpleName("lib1")))
+		instantiation =  PackageInstantiation("i", symbol, [_libraryClause("lib1")])
+		context =        Context("c1", [_libraryClause("lib1"), _use("lib1.i.all")])
+		entity =         Entity("e", [_libraryClause("lib1"), _contextReference("lib1", "c1")])
+		_design(entity, libraries=[("lib1", [genericPackage, instantiation, context])])
+
+		self.assertIs(instantiation, context.PackageReferences[0].Symbols[0].Members)
+		self.assertTupleEqual((constant, ), entity._namespace.Lookup("k").Declarations)
+
+	def test_ResetAnalysis(self) -> None:
+		"""Resetting the analysis clears the imports of a context declaration."""
+		context = Context("c1", [_libraryClause("lib1"), _use("lib1.p.all")])
+		design =  _design(libraries=[("lib1", [self._package, context])])
+
+		self.assertNotEqual({}, context._namespace.Imports)
+
+		design.ResetAnalysis()
+
+		self.assertDictEqual({}, context._namespace.Imports)
+
 
 class LibraryNames(Testcase):
 	"""
@@ -630,14 +694,18 @@ class LibraryNames(Testcase):
 		)
 
 	def test_ContextDeclaration_NestedLibraryNotInDesign(self) -> None:
-		"""``c0`` references ``c1``, which has ``library nolib;``; ``c0`` uses ``nolib.p.all``."""
+		"""``c0`` references ``c1``, which has ``library nolib;``; ``c0`` uses ``nolib.p.all``: ``c1`` is reported."""
 		first =  Context("c0", [_libraryClause("lib"), _contextReference("lib", "c1"), _use("nolib.p.all")])
 		second = Context("c1", [_libraryClause("nolib")])
 
-		with self.assertRaises(LibraryNotFoundError) as context:
+		with self.assertRaises(ReferencedLibraryNotExistingError) as context:
 			_design(first, second)
 
-		self.assertEqual("Library 'nolib' not found in design.", str(context.exception))
+		self.assertEqual(
+			"Library 'nolib' referenced by library clause of context 'c1' doesn't exist in design.",
+			str(context.exception)
+		)
+		self.assertIs(second, context.exception.Context)
 		self.assertIsInstance(context.exception.__cause__, KeyError)
 		self.assertIsInstance(context.exception, LibraryNotInDesignError)
 		self.assertIsInstance(context.exception, ElementNotFoundError)
@@ -918,7 +986,13 @@ class DesignUnitsNotFound(Testcase):
 			_design(Context("c", [_use("work.nothere.all")]))
 
 		self.assertEqual("Package 'nothere' not found in working library 'lib'.", str(context.exception))
-		self.assertListEqual(["Library 'work' is the working library 'lib'."], context.exception.__notes__)
+		self.assertListEqual(
+			[
+				"Library 'work' is the working library 'lib'.",
+				"Caused in design unit 'Context: lib.c' in file 'Document: 'lib.vhdl''."
+			],
+			context.exception.__notes__
+		)
 		self.assertIsInstance(context.exception.__cause__, KeyError)
 		self.assertIsInstance(context.exception, DesignUnitNotFoundError)
 		self.assertIsInstance(context.exception, VHDLModelException)
@@ -994,18 +1068,19 @@ class SymbolKinds(Testcase):
 		self.assertIsInstance(context.exception, VHDLModelException)
 
 	def test_ContextDeclaration(self) -> None:
-		"""A use clause of a context declaration with a package reference symbol naming a package member."""
-		symbol = PackageReferenceSymbol(SelectedName("x", SelectedName("p", SimpleName("work"))))
+		"""A use clause of a context declaration with a library reference symbol."""
+		symbol = LibraryReferenceSymbol(SimpleName("lib"))
 
 		with self.assertRaises(UnknownSymbolKindError) as context:
-			_design(Package("p"), Context("c", [UseClause([symbol])]))
+			_design(Context("c", [UseClause([symbol])]))
 
 		self.assertEqual("Unknown package reference symbol type in design unit 'c'.", str(context.exception))
 		self.assertListEqual(
-			["Got type 'pyVHDLModel.Symbol.PackageReferenceSymbol'."],
+			["Got type 'pyVHDLModel.Symbol.LibraryReferenceSymbol'."],
 			context.exception.__notes__
 		)
 		self.assertIs(symbol, context.exception.Element)
+		self.assertEqual("c", context.exception.DesignUnit.Identifier)
 		self.assertIsInstance(context.exception, UnknownKindError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 

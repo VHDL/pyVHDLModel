@@ -290,6 +290,7 @@ class ConstrainedSubtypeSymbols(Testcase):
 		symbol = ConstrainedScalarSubtypeSymbol(SimpleName("integer"), constraint)
 
 		self.assertIs(constraint, symbol.Constraint)
+		self.assertIs(symbol, constraint.Parent)
 
 	def test_ScalarConstraint_RangeIsMandatory(self) -> None:
 		"""``integer range`` isn't a VHDL construct - a type mark without a range constraint is a
@@ -304,6 +305,7 @@ class ConstrainedSubtypeSymbols(Testcase):
 		symbol = ConstrainedScalarSubtypeSymbol(SimpleName("natural"), constraint)
 
 		self.assertIs(constraint, symbol.Constraint)
+		self.assertIs(symbol, constraint.Parent)
 
 	def test_ArrayConstraint(self) -> None:
 		constraint = SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)
@@ -311,6 +313,7 @@ class ConstrainedSubtypeSymbols(Testcase):
 
 		self.assertEqual(1, len(symbol.Constraints))
 		self.assertIs(constraint, symbol.Constraints[0])
+		self.assertIs(symbol, constraint.Parent)
 
 	def test_RecordConstraint(self) -> None:
 		element = RecordElementSymbol(SimpleName("field"))
@@ -319,6 +322,8 @@ class ConstrainedSubtypeSymbols(Testcase):
 
 		self.assertEqual(1, len(symbol.Constraints))
 		self.assertIs(constraint, symbol.Constraints[element])
+		self.assertIs(symbol, element.Parent)
+		self.assertIs(symbol, constraint.Parent)
 
 	def test_ScalarConstraint_Parent(self) -> None:
 		parent =     _Element()

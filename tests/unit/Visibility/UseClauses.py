@@ -973,10 +973,7 @@ class DesignUnitsNotFound(Testcase):
 
 		self.assertEqual("Package 'nothere' not found in working library 'lib'.", str(context.exception))
 		self.assertListEqual(
-			[
-				"Library 'work' is the working library 'lib'.",
-				f"Caused in design unit '{entity}' in file '{entity.Document}'."
-			],
+			[f"Caused in design unit '{entity}' in file '{entity.Document}'."],
 			context.exception.__notes__
 		)
 
@@ -987,10 +984,7 @@ class DesignUnitsNotFound(Testcase):
 
 		self.assertEqual("Package 'nothere' not found in working library 'lib'.", str(context.exception))
 		self.assertListEqual(
-			[
-				"Library 'work' is the working library 'lib'.",
-				"Caused in design unit 'Context: lib.c' in file 'Document: 'lib.vhdl''."
-			],
+			["Caused in design unit 'Context: lib.c' in file 'Document: 'lib.vhdl''."],
 			context.exception.__notes__
 		)
 		self.assertIsInstance(context.exception.__cause__, KeyError)
@@ -1003,7 +997,7 @@ class DesignUnitsNotFound(Testcase):
 			_design(Entity("e", [_contextReference("work", "nothere")]))
 
 		self.assertEqual("Context 'nothere' not found in working library 'lib'.", str(context.exception))
-		self.assertListEqual(["Library 'work' is the working library 'lib'."], context.exception.__notes__)
+		self.assertFalse(hasattr(context.exception, "__notes__"))
 		self.assertEqual("nothere", context.exception.DesignUnitName)
 		self.assertEqual("lib", context.exception.LibraryName)
 		self.assertIsInstance(context.exception.__cause__, KeyError)
@@ -1019,10 +1013,7 @@ class DesignUnitsNotFound(Testcase):
 
 		self.assertEqual("Package 'nothere' not found in working library 'lib'.", str(context.exception))
 		self.assertListEqual(
-			[
-				"Library 'work' is the working library 'lib'.",
-				f"Caused in library '{instantiation.Library}' in file '{instantiation.Document}'."
-			],
+			[f"Caused in library '{instantiation.Library}' in file '{instantiation.Document}'."],
 			context.exception.__notes__
 		)
 		self.assertIsInstance(context.exception.__cause__, KeyError)

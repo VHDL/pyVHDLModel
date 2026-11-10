@@ -183,12 +183,6 @@ Version 0.43.0 (2026)
    * :data:`~pyVHDLModel.Regions.WithGenericsMixin.GenericCount`, :data:`~pyVHDLModel.Regions.WithPortsMixin.PortCount`
      and :data:`~pyVHDLModel.Regions.WithParametersMixin.ParameterCount` counted interface items instead of the declared
      generics, ports and parameters: ``port (a, b : in bit)`` gave 1. They count the identifiers now (2).
-
-   .. rubric:: Documentation
-
-   * The glossary explains the VHDL terms declarative part, declarative region, design unit, normalized, primary unit
-     and secondary unit, with the defining clause of IEEE Std 1076-2008; the normalized identifier, label and designator
-     properties refer to it.
    * Breaking change: next and exit statements dropped their loop label and their own statement label (``lbl : next
      outer when c;``). :class:`~pyVHDLModel.Sequential.LoopControlStatement` takes ``loopLabel`` as a
      :class:`~pyVHDLModel.Symbol.LoopSymbol` (was ``str``, ignored) and a ``label``;
@@ -197,6 +191,9 @@ Version 0.43.0 (2026)
 
    .. rubric:: Documentation
 
+   * The glossary explains the VHDL terms declarative part, declarative region, design unit, normalized, primary unit
+     and secondary unit, with the defining clause of IEEE Std 1076-2008; the normalized identifier, label and designator
+     properties refer to it.
    * Cross-references to renamed or misnamed targets, the alignment of field lists and the summaries of computed
      properties are fixed.
    * Test doc-strings have a one-line summary, so pyTooling's pytest plugin reports them.

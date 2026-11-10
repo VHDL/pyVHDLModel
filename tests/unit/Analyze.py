@@ -564,10 +564,7 @@ class LinkPackageBodies(Testcase):
 		with self.assertRaises(PackageBodyPackageNotFoundError) as context:
 			library.LinkPackageBodies()
 
-		self.assertEqual(
-			"Package 'pack_2' referenced by package body 'pack_2' doesn't exist in library 'lib_1'.",
-			str(context.exception)
-		)
+		self.assertEqual("Package body 'pack_2' has no package in library 'lib_1'.", str(context.exception))
 		self.assertEqual("pack_2", context.exception.DesignUnitName)
 		self.assertEqual("lib_1", context.exception.LibraryName)
 		self.assertIsInstance(context.exception, DesignUnitNotFoundError)

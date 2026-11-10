@@ -134,14 +134,15 @@ Version 0.43.0 (2026)
      (no library clause makes the library visible), :exc:`~pyVHDLModel.Exception.LibraryNotInDesignError` (the library
      doesn't exist in the design), :exc:`~pyVHDLModel.Exception.DesignUnitNotFoundError` (a design unit is missing in
      its library), :exc:`~pyVHDLModel.Exception.NotLinkedError` and :exc:`~pyVHDLModel.Exception.NotComputedError` (an
-     analysis step didn't run). The messages are unchanged. ``LibraryNotInDesignError`` and ``DesignUnitNotFoundError``
+     analysis step didn't run). The messages are unchanged, except for a package body without its package:
+     ``Package body 'p' has no package in library 'l'.`` ``LibraryNotInDesignError`` and ``DesignUnitNotFoundError``
      derive from :exc:`pyTooling.Exceptions.ElementNotFoundError` too, so they are a :exc:`LookupError`.
    * The errors on a library or design unit, which already exists (e.g. ``LibraryExistsInDesignError``,
      ``EntityExistsInLibraryError``), derive from :exc:`pyTooling.Exceptions.DuplicateElementError` too,
      ``LibraryRegisteredToForeignDesignError`` from :exc:`pyTooling.Exceptions.AlreadyInHierarchyError`.
    * A package or context not found for a use clause, a context reference or a package instantiation raises
      :exc:`~pyVHDLModel.Exception.PackageNotFoundError` or :exc:`~pyVHDLModel.Exception.ContextNotFoundError`, caused by
-     the failed lookup; the message is unchanged, a note names the working library for a reference through ``work``.
+     the failed lookup; the message is unchanged.
    * No plain ``VHDLModelException`` is raised anymore. More common bases:
      :exc:`~pyVHDLModel.Exception.UnknownKindError` (a symbol or secondary unit of unknown kind) and
      :exc:`~pyVHDLModel.Exception.IEEEFlavorError` (an unknown or conflicting ``ieee`` flavor). A duplicate design unit

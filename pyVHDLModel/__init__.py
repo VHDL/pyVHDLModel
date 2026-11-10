@@ -2355,9 +2355,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						packageName=packageName._identifier,
 						libraryName=library._identifier
 					)
-					if libraryName._normalizedIdentifier == "work":
-						ex.add_note(f"Library 'work' is the working library '{library._identifier}'.")
-
 					ex.add_note(f"Caused in design unit '{designUnit}' in file '{designUnit.Document}'.")
 					raise ex from cause
 
@@ -2493,17 +2490,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					try:
 						referencedContext = referencedLibrary._contexts[contextIdentifier]
 					except KeyError as cause:
-						ex = ContextNotFoundError(
+						raise ContextNotFoundError(
 							f"Context '{contextSymbol.Name.Identifier}' not found in "
 							f"{'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library "
 							f"'{referencedLibrary.Identifier}'.",
 							contextName=contextSymbol.Name.Identifier,
 							libraryName=referencedLibrary.Identifier
-						)
-						if libraryName.NormalizedIdentifier == "work":
-							ex.add_note(f"Library 'work' is the working library '{referencedLibrary.Identifier}'.")
-
-						raise ex from cause
+						) from cause
 
 					contextSymbol.Context = referencedContext
 
@@ -3390,8 +3383,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		for packageBodyName, packageBody in self._packageBodies.items():
 			if packageBodyName not in self._packages:
 				raise PackageBodyPackageNotFoundError(
-					f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library "
-					f"'{self._identifier}'.",
+					f"Package body '{packageBodyName}' has no package in library '{self._identifier}'.",
 					packageName=packageBodyName,
 					libraryName=self._identifier
 				)
@@ -3485,9 +3477,6 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 						packageName=packageName.Identifier,
 						libraryName=library.Identifier
 					)
-					if libraryName.NormalizedIdentifier == "work":
-						ex.add_note(f"Library 'work' is the working library '{library.Identifier}'.")
-
 					ex.add_note(f"Caused in library '{self}' in file '{packageInstance.Document}'.")
 					raise ex from cause
 

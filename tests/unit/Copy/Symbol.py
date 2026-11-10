@@ -50,6 +50,7 @@ from pyVHDLModel.Symbol          import PossibleReference, Symbol, LibraryRefere
                                         PackageSymbol, RecordElementSymbol, RangeAttributeSymbol, SubtypeSymbol, \
                                         SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
                                         ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
+                                        ArrayElementConstraint, RecordElementConstraint, \
                                         SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, \
                                         AggregateSymbol, LoopSymbol
 
@@ -240,29 +241,86 @@ class ConstrainedArraySubtypeSymbols(Testcase):
 
 class ConstrainedRecordSubtypeSymbols(Testcase):
 	def test_Copy(self) -> None:
-		element = RecordElementSymbol(SimpleName("data"))
-		constraint = DescendingRangeExpression(IntegerLiteral(7), IntegerLiteral(0))
-		original = ConstrainedRecordSubtypeSymbol(SimpleName("frame"), {element: constraint})
+		declaration =      _Element()
+		element =          RecordElementSymbol(SimpleName("data"))
+		rng =              DescendingRangeExpression(IntegerLiteral(7), IntegerLiteral(0))
+		constraint =       ArrayElementConstraint([rng])
+		original =         ConstrainedRecordSubtypeSymbol(SimpleName("frame"), {element: constraint})
+		original.Subtype = declaration
 
 		copy = original.Copy()
 
 		self.assertIs(ConstrainedRecordSubtypeSymbol, type(copy))
+		self.assertIsNone(copy.Parent)
 		self.assertIsNot(original.Name, copy.Name)
 		self.assertIsNot(original.Constraints, copy.Constraints)
 		self.assertNotIn(element, copy.Constraints)
 		copyElement, copyConstraint = next(iter(copy.Constraints.items()))
 		self.assertIs(RecordElementSymbol, type(copyElement))
 		self.assertEqual("data", copyElement.Name.Identifier)
+		self.assertIs(copy, copyElement.Parent)
+		self.assertIs(ArrayElementConstraint, type(copyConstraint))
 		self.assertIsNot(constraint, copyConstraint)
-		self.assertEqual("7 downto 0", VHDLWriter().Format(copyConstraint))
+		self.assertIs(copy, copyConstraint.Parent)
+		self.assertIsNot(rng, copyConstraint.Constraints[0])
+		self.assertEqual("frame(data(7 downto 0))", VHDLWriter().Format(copy))
+		self.assertIs(declaration, copy.Subtype)
 
-	def test_Copy_WithoutConstraint(self) -> None:
-		"""A record element without a translated constraint (``None``) keeps it."""
-		original = ConstrainedRecordSubtypeSymbol(SimpleName("frame"), {RecordElementSymbol(SimpleName("data")): None})
+	def test_Copy_Nested(self) -> None:
+		"""A nested record element constraint is copied with its elements and element constraints."""
+		field =    RecordElementSymbol(SimpleName("field"))
+		inner =    RecordElementConstraint({
+			field: ArrayElementConstraint([DescendingRangeExpression(IntegerLiteral(3), IntegerLiteral(0))])
+		})
+		original = ConstrainedRecordSubtypeSymbol(SimpleName("rec_t"), {RecordElementSymbol(SimpleName("inner")): inner})
 
 		copy = original.Copy()
 
-		self.assertListEqual([None], list(copy.Constraints.values()))
+		copyInner = next(iter(copy.Constraints.values()))
+		self.assertIs(RecordElementConstraint, type(copyInner))
+		self.assertIsNot(inner, copyInner)
+		self.assertIs(copy, copyInner.Parent)
+		self.assertNotIn(field, copyInner.Constraints)
+		self.assertEqual("rec_t(inner(field(3 downto 0)))", VHDLWriter().Format(copy))
+
+
+class ArrayElementConstraints(Testcase):
+	def test_Copy(self) -> None:
+		rows =     DescendingRangeExpression(IntegerLiteral(1), IntegerLiteral(0))
+		columns =  DescendingRangeExpression(IntegerLiteral(7), IntegerLiteral(0))
+		original = ArrayElementConstraint([rows, columns], parent=_Element())
+
+		copy = original.Copy()
+
+		self.assertIs(ArrayElementConstraint, type(copy))
+		self.assertIsNone(copy.Parent)
+		self.assertIsNot(original.Constraints, copy.Constraints)
+		self.assertEqual(2, len(copy.Constraints))
+		self.assertIsNot(rows, copy.Constraints[0])
+		self.assertIsNot(columns, copy.Constraints[1])
+		self.assertIs(copy, copy.Constraints[0].Parent)
+		self.assertIs(copy, copy.Constraints[1].Parent)
+		self.assertEqual("(1 downto 0, 7 downto 0)", VHDLWriter().Format(copy))
+
+
+class RecordElementConstraints(Testcase):
+	def test_Copy(self) -> None:
+		element =    RecordElementSymbol(SimpleName("field"))
+		constraint = ArrayElementConstraint([DescendingRangeExpression(IntegerLiteral(3), IntegerLiteral(0))])
+		original =   RecordElementConstraint({element: constraint}, parent=_Element())
+
+		copy = original.Copy()
+
+		self.assertIs(RecordElementConstraint, type(copy))
+		self.assertIsNone(copy.Parent)
+		self.assertIsNot(original.Constraints, copy.Constraints)
+		copyElement, copyConstraint = next(iter(copy.Constraints.items()))
+		self.assertIsNot(element, copyElement)
+		self.assertEqual("field", copyElement.Name.Identifier)
+		self.assertIs(copy, copyElement.Parent)
+		self.assertIsNot(constraint, copyConstraint)
+		self.assertIs(copy, copyConstraint.Parent)
+		self.assertEqual("(field(3 downto 0))", VHDLWriter().Format(copy))
 
 	def test_Copy_AggregateSymbol(self) -> None:
 		original = AggregateSymbol([VariableSymbol(SimpleName("carry")), VariableSymbol(SimpleName("sum"))])

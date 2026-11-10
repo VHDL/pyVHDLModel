@@ -40,7 +40,8 @@ from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName
 from pyVHDLModel.Object          import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
 from pyVHDLModel.Symbol          import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
-                                        ConstrainedRecordSubtypeSymbol, RecordElementSymbol
+                                        ConstrainedRecordSubtypeSymbol, RecordElementSymbol, ArrayElementConstraint, \
+                                        RecordElementConstraint
 
 from tests.unit                  import _subtypeSymbol
 from tests.unit.Writer           import _object
@@ -85,12 +86,39 @@ class SubtypeIndications(Testcase):
 		self.assertEqual("matrix(3 downto 0, state)", VHDLWriter().Format(symbol))
 
 	def test_Record(self) -> None:
+		symbol = ConstrainedRecordSubtypeSymbol(SimpleName("rec_t"), {
+			RecordElementSymbol(SimpleName("data")): ArrayElementConstraint([_downto(7, 0)])
+		})
+
+		self.assertEqual("rec_t(data(7 downto 0))", VHDLWriter().Format(symbol))
+
+	def test_Record_Elements(self) -> None:
 		symbol = ConstrainedRecordSubtypeSymbol(SimpleName("frame"), {
-			RecordElementSymbol(SimpleName("data")): _downto(7, 0),
-			RecordElementSymbol(SimpleName("mask")): _downto(3, 0),
+			RecordElementSymbol(SimpleName("data")): ArrayElementConstraint([_downto(7, 0)]),
+			RecordElementSymbol(SimpleName("mask")): ArrayElementConstraint([_downto(3, 0)]),
 		})
 
 		self.assertEqual("frame(data(7 downto 0), mask(3 downto 0))", VHDLWriter().Format(symbol))
+
+	def test_Record_Dimensions(self) -> None:
+		symbol = ConstrainedRecordSubtypeSymbol(SimpleName("rec_t"), {
+			RecordElementSymbol(SimpleName("m")): ArrayElementConstraint([
+				AscendingRangeExpression(IntegerLiteral(0), IntegerLiteral(1)),
+				AscendingRangeExpression(IntegerLiteral(0), IntegerLiteral(7))
+			])
+		})
+
+		self.assertEqual("rec_t(m(0 to 1, 0 to 7))", VHDLWriter().Format(symbol))
+
+	def test_Record_Nested(self) -> None:
+		symbol = ConstrainedRecordSubtypeSymbol(SimpleName("rec_t"), {
+			RecordElementSymbol(SimpleName("data")):  ArrayElementConstraint([_downto(7, 0)]),
+			RecordElementSymbol(SimpleName("inner")): RecordElementConstraint({
+				RecordElementSymbol(SimpleName("field")): ArrayElementConstraint([_downto(3, 0)])
+			})
+		})
+
+		self.assertEqual("rec_t(data(7 downto 0), inner(field(3 downto 0)))", VHDLWriter().Format(symbol))
 
 	def test_UpperCase(self) -> None:
 		symbol = ConstrainedScalarSubtypeSymbol(

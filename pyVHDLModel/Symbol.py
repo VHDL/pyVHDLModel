@@ -1356,7 +1356,7 @@ class SimpleSubtypeSymbol(SubtypeSymbol):
 @export
 class Constraint(metaclass=ExtendedType, mixin=True):
 	"""
-	A mixin-class for symbols carrying a constraint.
+	A mixin-class for symbols and element constraints carrying a constraint.
 
 	.. seealso::
 
@@ -1472,6 +1472,7 @@ class ArrayConstraint(Constraint, mixin=True):
 	.. seealso::
 
 	   * :class:`Constrained array subtype symbol <pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol>`
+	   * :class:`Array element constraint <pyVHDLModel.Symbol.ArrayElementConstraint>`
 	"""
 	_constraints: list[Range]  #: List of all index ranges, one per dimension.
 
@@ -1495,40 +1496,208 @@ class ArrayConstraint(Constraint, mixin=True):
 		"""
 		return self._constraints
 
+	def _VisitArrayConstraint(self, visitor: Visitor) -> None:
+		"""
+		Walk the index constraint, one range per dimension, with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitIndexConstraint(self)
+		for index, constraint in enumerate(self._constraints):
+			if index > 0:
+				visitor.VisitElementSeparator(self)
+
+			constraint.Visit(visitor)
+
+		visitor.DepartIndexConstraint(self)
+
+
+@export
+class ArrayElementConstraint(ModelEntity, ArrayConstraint):
+	"""
+	Represents the constraint of an array element in a record constraint: one range per dimension.
+
+	The ranges are available as :data:`Constraints`. The constraint has no type mark of its own: the element's type is
+	the subtype of the record element (IEEE Std 1076-2008, 6.3: ``element_constraint ::= array_constraint |
+	record_constraint``).
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      signal s : rec_t(data(7 downto 0), m(0 to 1, 0 to 7));
+	      --                    ^^^^^^^^^^                         <- Constraints
+	      --                                   ^^^^^^^^^^^^^^      <- Constraints
+
+	.. seealso::
+
+	   * :class:`Record element constraint <pyVHDLModel.Symbol.RecordElementConstraint>`
+	   * :class:`Constrained record subtype symbol <pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol>`
+	"""
+
+	def __init__(self, constraints: Iterable[Range], *, parent: Nullable[ModelEntity] = None) -> None:
+		"""
+		Initializes the constraint of an array element.
+
+		:param constraints: List of all index ranges, one per dimension.
+		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		"""
+		super().__init__(parent)
+		ArrayConstraint.__init__(self, constraints)
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this array element constraint.
+
+		The copy has no parent. The index ranges are copied.
+
+		:returns: The new array element constraint.
+		"""
+		return self.__class__([constraint.Copy() for constraint in self._constraints])
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this array element constraint and its index constraint with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitArrayElementConstraint(self)
+		self._VisitArrayConstraint(visitor)
+		visitor.DepartArrayElementConstraint(self)
+
+	def __str__(self) -> str:
+		"""
+		Formats the array element constraint.
+
+		**Format:** ``(0 to 1, 0 to 7)``
+
+		:returns: Formatted array element constraint.
+		"""
+		return f"({', '.join(str(constraint) for constraint in self._constraints)})"
+
 
 @export
 class RecordConstraint(Constraint, mixin=True):
 	"""
-	A mixin-class for a record constraint: one constraint per element.
+	A mixin-class for a record constraint: one element constraint per constrained record element.
 
-	The constraints are available as :data:`Constraints`.
+	The element constraints are available as :data:`Constraints`. An element constraint is an
+	:class:`~pyVHDLModel.Symbol.ArrayElementConstraint` or a nested :class:`~pyVHDLModel.Symbol.RecordElementConstraint`
+	(IEEE Std 1076-2008, 6.3: ``record_element_constraint ::= record_element_simple_name element_constraint``).
 
 	.. seealso::
 
 	   * :class:`Constrained record subtype symbol <pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol>`
+	   * :class:`Record element constraint <pyVHDLModel.Symbol.RecordElementConstraint>`
 	"""
-	_constraints: dict[RecordElementSymbol, Range]  #: Dictionary of the constraint per constrained record element.
+	_constraints: dict[RecordElementSymbol, ArrayElementConstraint | RecordElementConstraint]  #: Dictionary of the element constraint per constrained record element.
 
-	def __init__(self, constraints: Mapping[RecordElementSymbol, Range]) -> None:
+	def __init__(
+		self,
+		constraints: Mapping[RecordElementSymbol, ArrayElementConstraint | RecordElementConstraint]
+	) -> None:
 		"""
 		Initializes a record constraint.
 
-		:param constraints: Dictionary of the constraint per constrained record element.
+		:param constraints: Dictionary of the element constraint per constrained record element.
 		"""
 		self._constraints = dict(constraints)
 		for element, constraint in self._constraints.items():
-			element.Parent = self
-			if constraint is not None:
-				constraint.Parent = self
+			element.Parent =    self
+			constraint.Parent = self
 
 	@readonly
-	def Constraints(self) -> dict[RecordElementSymbol, Range]:
+	def Constraints(self) -> dict[RecordElementSymbol, ArrayElementConstraint | RecordElementConstraint]:
 		"""
-		Read-only property to access the constraints (:attr:`_constraints`).
+		Read-only property to access the element constraints (:attr:`_constraints`).
 
-		:returns: Dictionary of constraints.
+		:returns: Dictionary of element constraints, indexed by record element.
 		"""
 		return self._constraints
+
+	def _VisitRecordConstraint(self, visitor: Visitor) -> None:
+		"""
+		Walk the record constraint, each record element followed by its element constraint, with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRecordConstraint(self)
+		for index, (element, constraint) in enumerate(self._constraints.items()):
+			if index > 0:
+				visitor.VisitElementSeparator(self)
+
+			element.Visit(visitor)
+			constraint.Visit(visitor)
+
+		visitor.DepartRecordConstraint(self)
+
+
+@export
+class RecordElementConstraint(ModelEntity, RecordConstraint):
+	"""
+	Represents the constraint of a record element in a record constraint: a nested record constraint.
+
+	The element constraints are available as :data:`Constraints`. The constraint has no type mark of its own: the
+	element's type is the subtype of the record element (IEEE Std 1076-2008, 6.3: ``element_constraint ::=
+	array_constraint | record_constraint``).
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      signal s : rec_t(inner(field(3 downto 0)));
+	      --                     ^^^^^^^^^^^^^^^^^      <- Constraints
+
+	.. seealso::
+
+	   * :class:`Array element constraint <pyVHDLModel.Symbol.ArrayElementConstraint>`
+	   * :class:`Constrained record subtype symbol <pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol>`
+	"""
+
+	def __init__(
+		self,
+		constraints: Mapping[RecordElementSymbol, ArrayElementConstraint | RecordElementConstraint],
+		*,
+		parent:      Nullable[ModelEntity] = None
+	) -> None:
+		"""
+		Initializes the constraint of a record element.
+
+		:param constraints: Dictionary of the element constraint per constrained record element.
+		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		"""
+		super().__init__(parent)
+		RecordConstraint.__init__(self, constraints)
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this record element constraint.
+
+		The copy has no parent. The record elements and their element constraints are copied.
+
+		:returns: The new record element constraint.
+		"""
+		return self.__class__({element.Copy(): constraint.Copy() for element, constraint in self._constraints.items()})
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this record element constraint and its record constraint with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRecordElementConstraint(self)
+		self._VisitRecordConstraint(visitor)
+		visitor.DepartRecordElementConstraint(self)
+
+	def __str__(self) -> str:
+		"""
+		Formats the record element constraint.
+
+		**Format:** ``(field(3 downto 0))``
+
+		:returns: Formatted record element constraint.
+		"""
+		return f"({', '.join(f'{element._name!s}{constraint!s}' for element, constraint in self._constraints.items())})"
 
 
 @export
@@ -1603,14 +1772,7 @@ class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol, ArrayCons
 		"""
 		visitor.VisitConstrainedArraySubtypeSymbol(self)
 		self._name.Visit(visitor)
-		visitor.VisitIndexConstraint(self)
-		for index, constraint in enumerate(self._constraints):
-			if index > 0:
-				visitor.VisitElementSeparator(self)
-
-			constraint.Visit(visitor)
-
-		visitor.DepartIndexConstraint(self)
+		self._VisitArrayConstraint(visitor)
 		visitor.DepartConstrainedArraySubtypeSymbol(self)
 
 
@@ -1619,15 +1781,31 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 	"""
 	Represents a reference to a record subtype with constrained elements.
 
-	The referenced language entity is available as :data:`Reference` once resolved.
+	The referenced language entity is available as :data:`Reference` once resolved. Each constrained record element has
+	an element constraint: an :class:`~pyVHDLModel.Symbol.ArrayElementConstraint` or a nested
+	:class:`~pyVHDLModel.Symbol.RecordElementConstraint`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      signal s : rec_t(data(7 downto 0), inner(field(3 downto 0)));
+	      --         ^^^^^                                                <- Name
+	      --               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^     <- Constraints
 	"""
 
-	def __init__(self, name: Name, constraints: Mapping, *, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(
+		self,
+		name:        Name,
+		constraints: Mapping[RecordElementSymbol, ArrayElementConstraint | RecordElementConstraint],
+		*,
+		parent:      Nullable[ModelEntity] = None
+	) -> None:
 		"""
 		Initializes a reference to a record subtype with constrained elements.
 
 		:param name:        The name to reference the language entity.
-		:param constraints: Dictionary of the constraint per constrained record element.
+		:param constraints: Dictionary of the element constraint per constrained record element.
 		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(name, parent=parent)
@@ -1637,16 +1815,13 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 		"""
 		Create a copy of this constrained record subtype symbol.
 
-		The copy has no parent. The name, the record elements and their constraints are copied; the reference, if resolved,
-		is the same.
+		The copy has no parent. The name, the record elements and their element constraints are copied; the reference, if
+		resolved, is the same.
 
 		:returns: The new constrained record subtype symbol.
 		"""
-		constraints = {
-			element.Copy(): None if constraint is None else constraint.Copy()
-			for element, constraint in self._constraints.items()
-		}
-		copy = self.__class__(self._name.Copy(), constraints)
+		constraints =     {element.Copy(): constraint.Copy() for element, constraint in self._constraints.items()}
+		copy =            self.__class__(self._name.Copy(), constraints)
 		copy._reference = self._reference
 		return copy
 
@@ -1654,23 +1829,13 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 		"""
 		Walk this constrained record subtype symbol, its name and its record constraint with a visitor.
 
-		Each record element constraint is walked as the element's name followed by an index constraint.
+		Each record element is followed by its element constraint.
 
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitConstrainedRecordSubtypeSymbol(self)
 		self._name.Visit(visitor)
-		visitor.VisitRecordConstraint(self)
-		for index, (element, constraint) in enumerate(self._constraints.items()):
-			if index > 0:
-				visitor.VisitElementSeparator(self)
-
-			element.Visit(visitor)
-			visitor.VisitIndexConstraint(self)
-			constraint.Visit(visitor)
-			visitor.DepartIndexConstraint(self)
-
-		visitor.DepartRecordConstraint(self)
+		self._VisitRecordConstraint(visitor)
 		visitor.DepartConstrainedRecordSubtypeSymbol(self)
 
 

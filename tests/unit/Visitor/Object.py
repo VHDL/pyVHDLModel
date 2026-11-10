@@ -36,7 +36,8 @@ from pyVHDLModel.Expression import IntegerLiteral
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Object     import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
-                                   ConstrainedRecordSubtypeSymbol, RecordElementSymbol
+                                   ConstrainedRecordSubtypeSymbol, RecordElementSymbol, ArrayElementConstraint, \
+                                   RecordElementConstraint
 
 from tests.unit.Visitor     import FullRecorder
 
@@ -102,12 +103,13 @@ class SubtypeIndications(Testcase):
 		], recorder.Events)
 
 	def test_Record(self) -> None:
-		"""Each record element constraint is the element's name followed by an index constraint."""
-		name =     SimpleName("frame")
-		element =  RecordElementSymbol(SimpleName("data"))
-		index =    SimpleSubtypeSymbol(SimpleName("byte_range"))
-		symbol =   ConstrainedRecordSubtypeSymbol(name, {element: index})
-		recorder = FullRecorder()
+		"""Each record element constraint is the element's name followed by its element constraint."""
+		name =       SimpleName("frame")
+		element =    RecordElementSymbol(SimpleName("data"))
+		index =      SimpleSubtypeSymbol(SimpleName("byte_range"))
+		constraint = ArrayElementConstraint([index])
+		symbol =     ConstrainedRecordSubtypeSymbol(name, {element: constraint})
+		recorder =   FullRecorder()
 
 		symbol.Visit(recorder)
 
@@ -120,12 +122,110 @@ class SubtypeIndications(Testcase):
 			("VisitSimpleName",                      element.Name),
 			("DepartSimpleName",                     element.Name),
 			("DepartSymbol",                         element),
-			("VisitIndexConstraint",                 symbol),
+			("VisitArrayElementConstraint",          constraint),
+			("VisitIndexConstraint",                 constraint),
 			("VisitSymbol",                          index),
 			("VisitSimpleName",                      index.Name),
 			("DepartSimpleName",                     index.Name),
 			("DepartSymbol",                         index),
-			("DepartIndexConstraint",                symbol),
+			("DepartIndexConstraint",                constraint),
+			("DepartArrayElementConstraint",         constraint),
+			("DepartRecordConstraint",               symbol),
+			("DepartConstrainedRecordSubtypeSymbol", symbol),
+		], recorder.Events)
+
+	def test_Record_Elements(self) -> None:
+		"""Two record element constraints are separated; an array element constraint separates its dimensions."""
+		name =       SimpleName("rec_t")
+		data =       RecordElementSymbol(SimpleName("data"))
+		byte =       SimpleSubtypeSymbol(SimpleName("byte_range"))
+		dataRange =  ArrayElementConstraint([byte])
+		matrix =     RecordElementSymbol(SimpleName("m"))
+		rows =       SimpleSubtypeSymbol(SimpleName("rows"))
+		columns =    SimpleSubtypeSymbol(SimpleName("columns"))
+		matrixSize = ArrayElementConstraint([rows, columns])
+		symbol =     ConstrainedRecordSubtypeSymbol(name, {data: dataRange, matrix: matrixSize})
+		recorder =   FullRecorder()
+
+		symbol.Visit(recorder)
+
+		self.assertEqual([
+			("VisitConstrainedRecordSubtypeSymbol",  symbol),
+			("VisitSimpleName",                      name),
+			("DepartSimpleName",                     name),
+			("VisitRecordConstraint",                symbol),
+			("VisitSymbol",                          data),
+			("VisitSimpleName",                      data.Name),
+			("DepartSimpleName",                     data.Name),
+			("DepartSymbol",                         data),
+			("VisitArrayElementConstraint",          dataRange),
+			("VisitIndexConstraint",                 dataRange),
+			("VisitSymbol",                          byte),
+			("VisitSimpleName",                      byte.Name),
+			("DepartSimpleName",                     byte.Name),
+			("DepartSymbol",                         byte),
+			("DepartIndexConstraint",                dataRange),
+			("DepartArrayElementConstraint",         dataRange),
+			("VisitElementSeparator",                symbol),
+			("VisitSymbol",                          matrix),
+			("VisitSimpleName",                      matrix.Name),
+			("DepartSimpleName",                     matrix.Name),
+			("DepartSymbol",                         matrix),
+			("VisitArrayElementConstraint",          matrixSize),
+			("VisitIndexConstraint",                 matrixSize),
+			("VisitSymbol",                          rows),
+			("VisitSimpleName",                      rows.Name),
+			("DepartSimpleName",                     rows.Name),
+			("DepartSymbol",                         rows),
+			("VisitElementSeparator",                matrixSize),
+			("VisitSymbol",                          columns),
+			("VisitSimpleName",                      columns.Name),
+			("DepartSimpleName",                     columns.Name),
+			("DepartSymbol",                         columns),
+			("DepartIndexConstraint",                matrixSize),
+			("DepartArrayElementConstraint",         matrixSize),
+			("DepartRecordConstraint",               symbol),
+			("DepartConstrainedRecordSubtypeSymbol", symbol),
+		], recorder.Events)
+
+	def test_Record_Nested(self) -> None:
+		"""A nested record element constraint walks its own record constraint."""
+		name =        SimpleName("rec_t")
+		inner =       RecordElementSymbol(SimpleName("inner"))
+		field =       RecordElementSymbol(SimpleName("field"))
+		nibble =      SimpleSubtypeSymbol(SimpleName("nibble_range"))
+		fieldRange =  ArrayElementConstraint([nibble])
+		innerRecord = RecordElementConstraint({field: fieldRange})
+		symbol =      ConstrainedRecordSubtypeSymbol(name, {inner: innerRecord})
+		recorder =    FullRecorder()
+
+		symbol.Visit(recorder)
+
+		self.assertEqual([
+			("VisitConstrainedRecordSubtypeSymbol",  symbol),
+			("VisitSimpleName",                      name),
+			("DepartSimpleName",                     name),
+			("VisitRecordConstraint",                symbol),
+			("VisitSymbol",                          inner),
+			("VisitSimpleName",                      inner.Name),
+			("DepartSimpleName",                     inner.Name),
+			("DepartSymbol",                         inner),
+			("VisitRecordElementConstraint",         innerRecord),
+			("VisitRecordConstraint",                innerRecord),
+			("VisitSymbol",                          field),
+			("VisitSimpleName",                      field.Name),
+			("DepartSimpleName",                     field.Name),
+			("DepartSymbol",                         field),
+			("VisitArrayElementConstraint",          fieldRange),
+			("VisitIndexConstraint",                 fieldRange),
+			("VisitSymbol",                          nibble),
+			("VisitSimpleName",                      nibble.Name),
+			("DepartSimpleName",                     nibble.Name),
+			("DepartSymbol",                         nibble),
+			("DepartIndexConstraint",                fieldRange),
+			("DepartArrayElementConstraint",         fieldRange),
+			("DepartRecordConstraint",               innerRecord),
+			("DepartRecordElementConstraint",        innerRecord),
 			("DepartRecordConstraint",               symbol),
 			("DepartConstrainedRecordSubtypeSymbol", symbol),
 		], recorder.Events)

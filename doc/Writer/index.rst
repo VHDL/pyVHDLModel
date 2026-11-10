@@ -390,7 +390,10 @@ Subtype indications
    A constrained subtype symbol is written with its constraint: a range constraint
    (:class:`~pyVHDLModel.Symbol.ConstrainedScalarSubtypeSymbol`, ``integer range 0 to 7``), an index constraint
    (:class:`~pyVHDLModel.Symbol.ConstrainedArraySubtypeSymbol`, ``bit_vector(7 downto 0)``) or a record constraint
-   (:class:`~pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol`, ``frame_t(data(7 downto 0))``).
+   (:class:`~pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol`, ``frame_t(data(7 downto 0))``). In a record
+   constraint, each record element is followed by its element constraint: an array constraint
+   (:class:`~pyVHDLModel.Symbol.ArrayElementConstraint`, ``data(7 downto 0)``) or a nested record constraint
+   (:class:`~pyVHDLModel.Symbol.RecordElementConstraint`, ``inner(field(3 downto 0))``).
 
 Object declarations
    Constants, deferred constants, variables, shared variables, signals and files are written with their identifiers,

@@ -6,6 +6,29 @@ News
 See :gh:`pyVHDLModel Release Pages <VHDL/pyVHDLModel/releases>` for detail release notes on every release.
 
 
+Version 0.44.0 (2026)
+*********************
+
+.. topic:: :gh:`v0.44.0 - unreleased <VHDL/pyVHDLModel/releases/v0.44.0>`
+
+   .. rubric:: New Features
+
+   * Record element constraints (IEEE Std 1076-2008, 6.3) are model entities: an array element constraint
+     (:class:`~pyVHDLModel.Symbol.ArrayElementConstraint`, one range per dimension: ``data(7 downto 0)``,
+     ``m(0 to 1, 0 to 7)``) or a nested record constraint (:class:`~pyVHDLModel.Symbol.RecordElementConstraint`:
+     ``inner(field(3 downto 0))``). Both can be copied, walked by a visitor (events ``VisitArrayElementConstraint``,
+     ``VisitRecordElementConstraint``) and written by the VHDL writer.
+
+   .. rubric:: Changes
+
+   * Breaking change: :data:`RecordConstraint.Constraints <pyVHDLModel.Symbol.RecordConstraint.Constraints>` and the
+     ``constraints`` parameter of :class:`~pyVHDLModel.Symbol.ConstrainedRecordSubtypeSymbol` map each record element to
+     its element constraint (was a range); ``None`` isn't accepted. The index constraint events of a record element are
+     raised for its :class:`~pyVHDLModel.Symbol.ArrayElementConstraint` (was the constrained record subtype symbol); the
+     record constraint events take the constrained record subtype symbol or the record element constraint (parameter
+     ``element``, was ``symbol``).
+
+
 Version 0.43.0 (2026)
 *********************
 

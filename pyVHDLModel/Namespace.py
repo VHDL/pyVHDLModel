@@ -590,12 +590,12 @@ class Namespace(Generic[K, O]):
 		:param normalizedIdentifier: The normalized (lower case) identifier or designator.
 		:returns:                    List of (declaration, item in declaration order) pairs.
 		"""
-		from pyVHDLModel.Regions import DeclarationRegionMixin
+		from pyVHDLModel.Regions import DeclarativeRegionMixin
 
 		declarations = []
 		if (element := self._elements.get(normalizedIdentifier)) is not None:
 			region = element._parent
-			if element.IsOverloadable and isinstance(region, DeclarationRegionMixin):
+			if element.IsOverloadable and isinstance(region, DeclarativeRegionMixin):
 				for declaration in region._Declarations():
 					if (
 						declaration.IsOverloadable
@@ -618,12 +618,12 @@ class Namespace(Generic[K, O]):
 		:returns:     The place itself or its ancestor, whose parent is the declarative region of this namespace, or
 		              ``None``, if the place isn't inside the region, e.g. inside an architecture of an entity.
 		"""
-		from pyVHDLModel.Regions import DeclarationRegionMixin
+		from pyVHDLModel.Regions import DeclarativeRegionMixin
 
 		item = place
 		while item is not None:
 			parent = item._parent
-			if isinstance(parent, DeclarationRegionMixin) and parent._namespace is self:
+			if isinstance(parent, DeclarativeRegionMixin) and parent._namespace is self:
 				return item
 
 			item = parent

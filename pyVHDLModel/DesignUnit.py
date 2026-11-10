@@ -49,12 +49,11 @@ from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNam
                                       normalizedIdentifiersOf, ReservedWord
 from pyVHDLModel.Name          import Name
 from pyVHDLModel.Namespace     import Namespace
-from pyVHDLModel.Regions       import DeclarationRegionMixin, ConcurrentDeclarationRegionMixin, WithGenericsMixin, \
+from pyVHDLModel.Regions       import DeclarativeRegionMixin, ConcurrentDeclarationRegionMixin, WithGenericsMixin, \
                                       WithPortsMixin, WithoutStatementsMixin
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, GenericGroup, PortGroup
 from pyVHDLModel.Object        import DeferredConstant
-from pyVHDLModel.Subprogram    import Function, Procedure
 from pyVHDLModel.Type          import AnonymousType, Subtype
 from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration
@@ -165,7 +164,7 @@ class UseClause(Reference):
 	      use std.text_io.all, ieee.numeric_std.all;
 	"""
 
-	def ResetReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
 		Reset the references of this use clause's symbols, which :meth:`~pyVHDLModel.Design.Analyze` linked.
 
@@ -964,7 +963,7 @@ class Package(
 	def DenoteBy(
 		self,
 		name:   Name,
-		region: DeclarationRegionMixin,
+		region: DeclarativeRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
 	) -> Nullable[ModelEntity]:
@@ -1507,7 +1506,7 @@ class Component(
 	DocumentedEntityMixin,
 	WithGenericsMixin,
 	WithPortsMixin,
-	DeclarationRegionMixin,
+	DeclarativeRegionMixin,
 	WithoutStatementsMixin,
 	AllowBlackboxMixin
 ):
@@ -1516,7 +1515,7 @@ class Component(
 
 	A component declaration is a declarative region (IEEE Std 1076-2008, 12.1): its generics and ports share one
 	namespace, nested in the namespace of the declarative region declaring the component. A component has no declarative
-	part, so it accepts no declared items.
+	part, so it has no declared items and no mutators for them.
 
 	.. admonition:: Example
 
@@ -1534,14 +1533,10 @@ class Component(
 
 	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Component,)  #: Reserved words after ``end``.
 	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                      #: The reserved words after ``end`` are optional.
-	_DECLARED_ITEM_TYPES:   ClassVar[tuple[type, ...]] =         ()                         #: No declared items.
 
-	_isBlackbox:    Nullable[bool]              #: Component is a blackbox.
-	_entity:        Nullable[Entity]            #: Linked entity, or ``None`` if unresolved.
-	_namespace:     Namespace                   #: The namespace of this component's declarative region.
-	_declaredItems: list                        #: List of all declared items: empty, a component has no declarative part.
-	_functions:     dict[str, list[Function]]   #: Dictionary of all declared functions: empty.
-	_procedures:    dict[str, list[Procedure]]  #: Dictionary of all declared procedures: empty.
+	_isBlackbox: Nullable[bool]    #: Component is a blackbox.
+	_entity:     Nullable[Entity]  #: Linked entity, or ``None`` if unresolved.
+	_namespace:  Namespace         #: The namespace of this component's declarative region.
 
 	def __init__(
 		self,
@@ -1575,12 +1570,9 @@ class Component(
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
-		DeclarationRegionMixin.__init__(self)
+		DeclarativeRegionMixin.__init__(self)
 
-		self._namespace =     Namespace(self._normalizedIdentifier)
-		self._declaredItems = []
-		self._functions =     {}
-		self._procedures =    {}
+		self._namespace = Namespace(self._normalizedIdentifier)
 
 		WithGenericsMixin.__init__(self, genericItems, genericGroups)
 		WithPortsMixin.__init__(self, portItems, portGroups)
@@ -1627,20 +1619,6 @@ class Component(
 		:returns: Tuple of declarations: the generics, then the ports.
 		"""
 		return (*self._genericItems, *self._portItems)
-
-	def _IndexDeclaredItem(self, item: ModelEntity) -> None:
-		"""
-		Index nothing, because a component has no declarative part.
-
-		:param item: The declared item.
-		"""
-
-	def _UnindexDeclaredItem(self, item: ModelEntity) -> None:
-		"""
-		Unindex nothing, because a component has no declarative part.
-
-		:param item: The declared item.
-		"""
 
 	@readonly
 	def IsBlackbox(self) -> Nullable[bool]:

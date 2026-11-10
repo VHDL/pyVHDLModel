@@ -50,7 +50,7 @@ from pyVHDLModel.Name      import Name
 from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
-	from pyVHDLModel.Regions import DeclarationRegionMixin
+	from pyVHDLModel.Regions import DeclarativeRegionMixin
 	from pyVHDLModel.Visitor import Visitor
 
 
@@ -143,8 +143,8 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 
 	def IterateTypeMarks(
 		self,
-		region: DeclarationRegionMixin
-	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this object: the type mark of its subtype indication.
 
@@ -157,7 +157,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	def DenoteBy(
 		self,
 		name:   Name,
-		region: DeclarationRegionMixin,
+		region: DeclarativeRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
 	) -> Nullable[ModelEntity]:

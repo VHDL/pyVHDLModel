@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 	from pyVHDLModel.DesignUnit import DesignUnit
 	from pyVHDLModel.Interface import SingleDeclarationMixin
 	from pyVHDLModel.Name      import Name
-	from pyVHDLModel.Regions   import DeclarationRegionMixin
+	from pyVHDLModel.Regions   import DeclarativeRegionMixin
 	from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 	from pyVHDLModel.Visitor   import Visitor
 
@@ -373,8 +373,8 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 
 	def IterateTypeMarks(
 		self,
-		region: DeclarationRegionMixin
-	) -> Generator[tuple[DeclarationRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
 		Iterate the type marks of this declaration, each with the region and the place to look it up.
 
@@ -386,12 +386,12 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		"""
 		yield from ()
 
-	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
 		Resolve the references of this declaration: its type marks (:meth:`IterateTypeMarks`).
 
 		Each type mark is resolved at its place by the region it is looked up in
-		(:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.ResolveTypeMark`). An incomplete type, an alias and a subtype
+		(:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.ResolveTypeMark`). An incomplete type, an alias and a subtype
 		extend this method.
 
 		:param designUnit:                     The design unit containing this declaration.
@@ -403,7 +403,7 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		for typeMarkRegion, place, typeMark in self.IterateTypeMarks(region):
 			typeMarkRegion.ResolveTypeMark(place, typeMark)
 
-	def ResetReferences(self, designUnit: DesignUnit, region: DeclarationRegionMixin) -> None:
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
 		Reset the references :meth:`ResolveReferences` derived: the references of this declaration's type marks.
 
@@ -418,7 +418,7 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 	def DenoteBy(
 		self,
 		name:   Name,
-		region: DeclarationRegionMixin,
+		region: DeclarativeRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
 	) -> Nullable[ModelEntity]:
@@ -590,7 +590,7 @@ class MultipleNamedEntityMixin(
 
 	The host class provides ``Copy()`` and ``_SplitInParent()``, called by :meth:`Split`: the latter calls the parent's
 	mutator splitting the declaration, e.g.
-	:meth:`DeclarationRegionMixin.SplitDeclaredItem <pyVHDLModel.Regions.DeclarationRegionMixin.SplitDeclaredItem>`.
+	:meth:`DeclarativePartMixin.SplitDeclaredItem <pyVHDLModel.Regions.DeclarativePartMixin.SplitDeclaredItem>`.
 
 	.. seealso::
 

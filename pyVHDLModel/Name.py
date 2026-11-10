@@ -47,7 +47,7 @@ from pyTooling.Warning     import WarningCollector
 
 from pyVHDLModel.Base      import ModelEntity, ExpressionUnion
 if TYPE_CHECKING:
-	from pyVHDLModel.Regions import DeclarationRegionMixin
+	from pyVHDLModel.Regions import DeclarativeRegionMixin
 	from pyVHDLModel.Symbol  import Symbol
 	from pyVHDLModel.Visitor import Visitor
 
@@ -239,7 +239,7 @@ class Name(ModelEntity):
 
 	def Denote(
 		self,
-		region: DeclarationRegionMixin,
+		region: DeclarativeRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
 	) -> Nullable[ModelEntity]:
@@ -302,7 +302,7 @@ class SimpleName(Name):
 
 	def Denote(
 		self,
-		region: DeclarationRegionMixin,
+		region: DeclarativeRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
 	) -> Nullable[ModelEntity]:
@@ -313,7 +313,7 @@ class SimpleName(Name):
 		containing the place (``work`` or a library clause, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`)
 		denotes the library; the dependency analysis
 		(:meth:`~pyVHDLModel.Design.LinkLibraryReferences`) ensured it exists in the design. Otherwise, the name is looked
-		up at the place (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.LookupName`) and the declaration says what it
+		up at the place (:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.LookupName`) and the declaration says what it
 		denotes (:meth:`~pyVHDLModel.Base.ModelEntity.DenoteBy`).
 
 		:param region:                         The declarative region containing the type mark.
@@ -569,7 +569,7 @@ class SelectedName(Name):
 
 	def Denote(
 		self,
-		region: DeclarationRegionMixin,
+		region: DeclarativeRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
 	) -> Nullable[ModelEntity]:
@@ -717,7 +717,7 @@ class AttributeName(Name):
 
 	def Denote(
 		self,
-		region: DeclarationRegionMixin,
+		region: DeclarativeRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
 	) -> Nullable[ModelEntity]:
@@ -903,7 +903,7 @@ class AllName(SelectedName):
 
 	def Denote(
 		self,
-		region: DeclarationRegionMixin,
+		region: DeclarativeRegionMixin,
 		place:  ModelEntity,
 		symbol: Symbol
 	) -> Nullable[ModelEntity]:

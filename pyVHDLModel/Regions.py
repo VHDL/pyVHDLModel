@@ -78,7 +78,7 @@ class WithGenericsMixin(
 	A mixin-class for language constructs with a generic clause.
 
 	The host class provides ``_AddToNamespace(element)`` and ``_RemoveFromNamespace(element)``, called when a generic is
-	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace.
+	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarativeRegionMixin` updates its namespace.
 
 	The host class also provides ``_ClashingDeclarations(item)``, called before a generic is inserted: it returns the
 	declarations sharing an identifier with the new item.
@@ -689,7 +689,7 @@ class WithPortsMixin(
 	A mixin-class for language constructs with a port clause.
 
 	The host class provides ``_AddToNamespace(element)`` and ``_RemoveFromNamespace(element)``, called when a port is
-	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace.
+	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarativeRegionMixin` updates its namespace.
 
 	The host class also provides ``_ClashingDeclarations(item)``, called before a port is inserted: it returns the
 	declarations sharing an identifier with the new item.
@@ -1268,7 +1268,7 @@ class WithParametersMixin(
 	A mixin-class for language constructs with a parameter list.
 
 	The host class provides ``_AddToNamespace(element)`` and ``_RemoveFromNamespace(element)``, called when a parameter is
-	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarationRegionMixin` updates its namespace, a language construct
+	inserted or removed: :class:`~pyVHDLModel.Regions.DeclarativeRegionMixin` updates its namespace, a language construct
 	without a namespace implements both as no-operations.
 
 	The host class also provides ``_ClashingDeclarations(item)``, called before a parameter is inserted: it returns the
@@ -1861,32 +1861,29 @@ class WithParametersMixin(
 
 
 @export
-class DeclarationRegionMixin(
+class DeclarativeRegionMixin(
 	metaclass=ExtendedType,
 	mixin=True,
 	expects=(
 		"_namespace",
-		"_functions",
-		"_procedures",
-		"_declaredItems",
 		"_Declarations",
-		"_IndexDeclaredItem",
-		"_UnindexDeclaredItem",
 		"IndexDeclaredItems",
 		"_Labels",
 		"_IterateStatementRegions"
 	)
 ):
 	"""
-	A base-class for the concurrent, sequential and protected type declaration region mixins and for components.
+	A mixin-class for language constructs forming a declarative region.
 
-	It carries what all regions share: adding interface items to the region's namespace, the mutators for declared items
-	(e.g. :meth:`AddDeclaredItem`), and the hooks for declared items no region handles itself.
+	A declarative region (IEEE Std 1076-2008, 12.1) has a namespace, nested in the namespace of the enclosing declarative
+	region. It carries what all regions share: looking up names (:meth:`LookupName`, :meth:`ResolveTypeMark`), the
+	declaration order (:meth:`Precedes`), the nested regions (:meth:`IterateDeclarationRegions`), and adding interface
+	items to the region's namespace.
 
-	The derived region mixin-class provides the namespace ``_namespace``, the declared items ``_declaredItems`` and the
-	lookup tables ``_functions`` and ``_procedures``; it or the host class provides the methods ``_Declarations()``,
-	``_IndexDeclaredItem(item)``, ``_UnindexDeclaredItem(item)`` and ``IndexDeclaredItems()``. A host class without a
-	declarative part, a component, provides them itself and accepts no declared items.
+	The host class provides the namespace ``_namespace`` and the methods ``_Declarations()`` and
+	``IndexDeclaredItems()``. A language construct with a declarative part gets them from
+	:class:`DeclarationRegionMixin` and its derived region mixin-classes; a component declaration, a declarative region
+	without a declarative part, provides them itself.
 
 	An interface item shares the declarative region of the declarative part beside it - VHDL rejects
 	``port (g : in bit)`` beside ``generic (g : integer)``, ``signal x`` beside ``port (x : in bit)``, and a
@@ -1894,33 +1891,31 @@ class DeclarationRegionMixin(
 	declaration". So they belong in the region's *own* namespace, not a separate one.
 
 	Which of the three a region has is known statically by the class that declares them, so each derived
-	class calls the ones it needs from its own :meth:`IndexDeclaredItems` before delegating upwards.
+	class calls the ones it needs from its own ``IndexDeclaredItems()`` before delegating upwards.
 	Interface items are added to the namespace only - ``GenericItems``/``PortItems``/``ParameterItems``
 	already expose them as ordered lists, so no extra lookup table is needed.
-
-	.. seealso::
-
-	   * :class:`Concurrent declaration region mixin <pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin>`
-	   * :class:`Sequential declaration region mixin <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
-	   * :class:`Protected type declaration region mixin <pyVHDLModel.Regions.ProtectedTypeDeclarationRegionMixin>`
-	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
 
 	A statement label is declared implicitly in the declarative region enclosing the statement, so the host provides the
 	labeled statements of the region by ``_Labels()``: a host with statements gets it from its statements mixin
 	(e.g. :class:`~pyVHDLModel.Concurrent.ConcurrentStatementsMixin`), a host without statements from
 	:class:`WithoutStatementsMixin`. The same holds for the declarative regions nested in the statements
 	(``_IterateStatementRegions()``), which :meth:`IterateDeclarationRegions` walks.
+
+	.. seealso::
+
+	   * :class:`Declaration region mixin <pyVHDLModel.Regions.DeclarationRegionMixin>`
+	   * :class:`Component <pyVHDLModel.DesignUnit.Component>`
+	   * :class:`Namespace <pyVHDLModel.Namespace.Namespace>`
 	"""
-	_DECLARED_ITEM_TYPES:     ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
-	_areDeclaredItemsIndexed: bool                        #: ``True`` if :meth:`IndexDeclaredItems` filled the namespace.
+	_areDeclaredItemsIndexed: bool  #: ``True`` if ``IndexDeclaredItems()`` filled the namespace.
 
 	def __init__(self) -> None:
 		"""
-		Initializes a declaration region, which isn't indexed yet.
+		Initializes a declarative region, which isn't indexed yet.
 		"""
 		self._areDeclaredItemsIndexed = False
 
-	def IterateDeclarationRegions(self) -> Generator[DeclarationRegionMixin, None, None]:
+	def IterateDeclarationRegions(self) -> Generator[DeclarativeRegionMixin, None, None]:
 		"""
 		Iterate this declarative region and all declarative regions nested in it.
 
@@ -1932,7 +1927,7 @@ class DeclarationRegionMixin(
 		yield self
 
 		for item in self._Declarations():
-			if isinstance(item, DeclarationRegionMixin):
+			if isinstance(item, DeclarativeRegionMixin):
 				yield from item.IterateDeclarationRegions()
 
 		yield from self._IterateStatementRegions()
@@ -2132,7 +2127,7 @@ class DeclarationRegionMixin(
 			isinstance(declaration, FullType) and not isinstance(place, AccessType)
 			and declaration._parent is (region := place._parent)
 		):
-			if isinstance(region, DeclarationRegionMixin):
+			if isinstance(region, DeclarativeRegionMixin):
 				declarationsOfRegion = region._Declarations()
 				if declarationsOfRegion.index(declaration) > declarationsOfRegion.index(place):
 					WarningCollector.Raise(UnresolvedTypeMarkWarning(
@@ -2154,7 +2149,7 @@ class DeclarationRegionMixin(
 
 		:param parent: The new parent of this region.
 		"""
-		if isinstance(parent, DeclarationRegionMixin):
+		if isinstance(parent, DeclarativeRegionMixin):
 			self._namespace.ParentNamespace = parent._namespace
 
 	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
@@ -2200,6 +2195,163 @@ class DeclarationRegionMixin(
 
 		for normalizedIdentifier in normalizedIdentifiersOf(element):
 			self._namespace.RemoveElement(normalizedIdentifier, element)
+
+	def _AddOverloadToNamespace(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Add a function or procedure to the namespace, if it's the overload declared last.
+
+		The namespace keeps one entry per identifier: the overload declared last, as after :meth:`IndexDeclaredItems`, which
+		adds interface items first, then declared items (:meth:`_Declarations`).
+
+		:param item: The function or procedure, already an interface item or declared item of this region.
+		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
+		normalizedIdentifier = item._normalizedIdentifier
+		overloads = [
+			declaration for declaration in self._Declarations()
+			if isinstance(declaration, (Function, Procedure)) and declaration._normalizedIdentifier == normalizedIdentifier
+		]
+		if overloads[-1] is item:
+			self._namespace.AddElement(normalizedIdentifier, item, overloadable=True)
+
+	def _RemoveOverloadFromNamespace(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+		"""
+		Remove a function or procedure from the namespace.
+
+		Removing the overload the namespace refers to, the namespace refers to the remaining overload declared last
+		(:meth:`_Declarations`), or the identifier is removed, if no overload remains. Removing another overload leaves the
+		namespace unchanged. The namespace is checked before it's changed.
+
+		:param item:                 The function or procedure, still an interface item or declared item of this region.
+		:raises NotInNamespaceError: If the identifier isn't declared in the namespace.
+		:raises NotInNamespaceError: If the identifier refers to an element, which is no overload, e.g. a duplicate
+		                             declaration.
+		"""
+		from pyVHDLModel.Subprogram import Function, Procedure
+
+		normalizedIdentifier = item._normalizedIdentifier
+		entry =                self._namespace.Elements.get(normalizedIdentifier)
+		if entry is item:
+			remaining = [
+				declaration for declaration in self._Declarations()
+				if declaration is not item
+				and isinstance(declaration, (Function, Procedure))
+				and declaration._normalizedIdentifier == normalizedIdentifier
+			]
+			if len(remaining) == 0:
+				self._namespace.RemoveElement(normalizedIdentifier, item)
+			else:
+				self._namespace.AddElement(normalizedIdentifier, remaining[-1], overloadable=True)
+		elif entry is None or not entry.IsOverloadable:
+			# raises NotInNamespaceError, naming the reason
+			self._namespace.RemoveElement(normalizedIdentifier, item)
+
+	def _SharedRegions(self) -> tuple[DeclarativeRegionMixin, ...]:
+		"""
+		Return the other language constructs forming one declarative region with this one.
+
+		An entity and each of its architectures form one declarative region, as do a package and its body. Derived classes
+		override it.
+
+		:returns: Tuple of declarative regions.
+		"""
+		return ()
+
+	def _MayShareIdentifier(self, item: ModelEntity, existing: ModelEntity) -> bool:
+		"""
+		Check if two declarations may share an identifier in one declarative region.
+
+		Subprograms are overloadable. A protected type body completes its protected type, a full type completes its
+		incomplete type, and a constant completes its deferred constant.
+
+		:param item:     The new declaration.
+		:param existing: The existing declaration.
+		:returns:        ``True``, if both declarations may share an identifier.
+		"""
+		from pyVHDLModel.Interface import InterfaceItemMixin
+		from pyVHDLModel.Type      import FullType, AnonymousType, ProtectedType, ProtectedTypeBody
+
+		return (
+			(item.IsOverloadable and existing.IsOverloadable)
+			or (isinstance(item, ProtectedTypeBody) and isinstance(existing, ProtectedType))
+			or (isinstance(item, ProtectedType) and isinstance(existing, ProtectedTypeBody))
+			or (isinstance(item, FullType) and isinstance(existing, AnonymousType))
+			or (isinstance(item, AnonymousType) and isinstance(existing, FullType))
+			or (
+				isinstance(item, Constant) and not isinstance(item, InterfaceItemMixin)
+				and isinstance(existing, DeferredConstant)
+			)
+			or (
+				isinstance(item, DeferredConstant)
+				and isinstance(existing, Constant) and not isinstance(existing, InterfaceItemMixin)
+			)
+		)
+
+	def _ClashingDeclarations(self, item: ModelEntity) -> tuple[ModelEntity, ...]:
+		"""
+		Return the declarations sharing an identifier with the given item, which may not share it.
+
+		The declarations (:meth:`_Declarations`) and the labeled statements (``_Labels()``) of this declarative region and
+		of the language constructs sharing it (:meth:`_SharedRegions`) are searched: a statement label is declared
+		implicitly. Items imported into the namespace (e.g. by a use clause) are no declarations.
+
+		:param item: The new declaration, or the new labeled statement.
+		:returns:    Tuple of clashing declarations, interface items first, then declared items in declaration order, then
+		             labeled statements.
+		"""
+		if len(names := set(normalizedDeclaredNamesOf(item))) == 0:
+			return ()
+
+		return tuple(
+			declaration
+			for region in (self, *self._SharedRegions())
+			for declaration in (*region._Declarations(), *region._Labels())
+			if (
+				declaration is not item
+				and not names.isdisjoint(normalizedDeclaredNamesOf(declaration))
+				and not self._MayShareIdentifier(item, declaration)
+			)
+		)
+
+
+@export
+class DeclarativePartMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=(
+		"_namespace",
+		"_functions",
+		"_procedures",
+		"_declaredItems",
+		"_areDeclaredItemsIndexed",
+		"_Declarations",
+		"_IndexDeclaredItem",
+		"_UnindexDeclaredItem",
+		"IndexDeclaredItems",
+		"_ClashingDeclarations",
+		"_AddOverloadToNamespace",
+		"_RemoveOverloadFromNamespace"
+	)
+):
+	"""
+	A mixin-class for language constructs with a declarative part.
+
+	A declarative part lists the declared items of a declarative region, e.g. the declarations of an architecture before
+	its ``begin``. It carries the mutators for declared items (e.g. :meth:`AddDeclaredItem`) and the hooks for declared
+	items no region handles itself.
+
+	The host class provides the declared items ``_declaredItems``, the lookup tables ``_functions`` and ``_procedures``,
+	and the methods ``_IndexDeclaredItem(item)``, ``_UnindexDeclaredItem(item)`` and ``IndexDeclaredItems()``. The
+	declarative region the declared items belong to (:class:`DeclarativeRegionMixin`) provides the namespace and the
+	checks for clashing declarations.
+
+	.. seealso::
+
+	   * :class:`Declaration region mixin <pyVHDLModel.Regions.DeclarationRegionMixin>`
+	   * :class:`Declarative region mixin <pyVHDLModel.Regions.DeclarativeRegionMixin>`
+	"""
+	_DECLARED_ITEM_TYPES: ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
 
 	def _IndexOtherDeclaredItem(self, item: ModelEntity) -> None:
 		"""
@@ -2281,8 +2433,8 @@ class DeclarationRegionMixin(
 		"""
 		from pyVHDLModel.Subprogram import Function, Procedure
 
-		kind = Function if isinstance(item, Function) else Procedure
-		lookupTable = self._functions if kind is Function else self._procedures
+		kind =                 Function if isinstance(item, Function) else Procedure
+		lookupTable =          self._functions if kind is Function else self._procedures
 		normalizedIdentifier = item._normalizedIdentifier
 		lookupTable[normalizedIdentifier] = [
 			declaration for declaration in self._declaredItems
@@ -2307,129 +2459,11 @@ class DeclarationRegionMixin(
 		self._RemoveOverloadFromNamespace(item)
 
 		normalizedIdentifier = item._normalizedIdentifier
-		lookupTable = self._functions if isinstance(item, Function) else self._procedures
-		overloads = lookupTable[normalizedIdentifier]
+		lookupTable =          self._functions if isinstance(item, Function) else self._procedures
+		overloads =            lookupTable[normalizedIdentifier]
 		overloads.remove(item)
 		if len(overloads) == 0:
 			del lookupTable[normalizedIdentifier]
-
-	def _AddOverloadToNamespace(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
-		"""
-		Add a function or procedure to the namespace, if it's the overload declared last.
-
-		The namespace keeps one entry per identifier: the overload declared last, as after :meth:`IndexDeclaredItems`, which
-		adds interface items first, then declared items (:meth:`_Declarations`).
-
-		:param item: The function or procedure, already an interface item or declared item of this region.
-		"""
-		from pyVHDLModel.Subprogram import Function, Procedure
-
-		normalizedIdentifier = item._normalizedIdentifier
-		overloads = [
-			declaration for declaration in self._Declarations()
-			if isinstance(declaration, (Function, Procedure)) and declaration._normalizedIdentifier == normalizedIdentifier
-		]
-		if overloads[-1] is item:
-			self._namespace.AddElement(normalizedIdentifier, item, overloadable=True)
-
-	def _RemoveOverloadFromNamespace(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
-		"""
-		Remove a function or procedure from the namespace.
-
-		Removing the overload the namespace refers to, the namespace refers to the remaining overload declared last
-		(:meth:`_Declarations`), or the identifier is removed, if no overload remains. Removing another overload leaves the
-		namespace unchanged. The namespace is checked before it's changed.
-
-		:param item:                 The function or procedure, still an interface item or declared item of this region.
-		:raises NotInNamespaceError: If the identifier isn't declared in the namespace.
-		:raises NotInNamespaceError: If the identifier refers to an element, which is no overload, e.g. a duplicate
-		                             declaration.
-		"""
-		from pyVHDLModel.Subprogram import Function, Procedure
-
-		normalizedIdentifier = item._normalizedIdentifier
-		entry =                self._namespace.Elements.get(normalizedIdentifier)
-		if entry is item:
-			remaining = [
-				declaration for declaration in self._Declarations()
-				if declaration is not item
-				and isinstance(declaration, (Function, Procedure))
-				and declaration._normalizedIdentifier == normalizedIdentifier
-			]
-			if len(remaining) == 0:
-				self._namespace.RemoveElement(normalizedIdentifier, item)
-			else:
-				self._namespace.AddElement(normalizedIdentifier, remaining[-1], overloadable=True)
-		elif entry is None or not entry.IsOverloadable:
-			# raises NotInNamespaceError, naming the reason
-			self._namespace.RemoveElement(normalizedIdentifier, item)
-
-	def _SharedRegions(self) -> tuple[DeclarationRegionMixin, ...]:
-		"""
-		Return the other language constructs forming one declarative region with this one.
-
-		An entity and each of its architectures form one declarative region, as do a package and its body. Derived classes
-		override it.
-
-		:returns: Tuple of declarative regions.
-		"""
-		return ()
-
-	def _MayShareIdentifier(self, item: ModelEntity, existing: ModelEntity) -> bool:
-		"""
-		Check if two declarations may share an identifier in one declarative region.
-
-		Subprograms are overloadable. A protected type body completes its protected type, a full type completes its
-		incomplete type, and a constant completes its deferred constant.
-
-		:param item:     The new declaration.
-		:param existing: The existing declaration.
-		:returns:        ``True``, if both declarations may share an identifier.
-		"""
-		from pyVHDLModel.Interface import InterfaceItemMixin
-		from pyVHDLModel.Type      import FullType, AnonymousType, ProtectedType, ProtectedTypeBody
-
-		return (
-			(item.IsOverloadable and existing.IsOverloadable)
-			or (isinstance(item, ProtectedTypeBody) and isinstance(existing, ProtectedType))
-			or (isinstance(item, ProtectedType) and isinstance(existing, ProtectedTypeBody))
-			or (isinstance(item, FullType) and isinstance(existing, AnonymousType))
-			or (isinstance(item, AnonymousType) and isinstance(existing, FullType))
-			or (
-				isinstance(item, Constant) and not isinstance(item, InterfaceItemMixin)
-				and isinstance(existing, DeferredConstant)
-			)
-			or (
-				isinstance(item, DeferredConstant)
-				and isinstance(existing, Constant) and not isinstance(existing, InterfaceItemMixin)
-			)
-		)
-
-	def _ClashingDeclarations(self, item: ModelEntity) -> tuple[ModelEntity, ...]:
-		"""
-		Return the declarations sharing an identifier with the given item, which may not share it.
-
-		The declarations (:meth:`_Declarations`) and the labeled statements (``_Labels()``) of this declarative region and
-		of the language constructs sharing it (:meth:`_SharedRegions`) are searched: a statement label is declared
-		implicitly. Items imported into the namespace (e.g. by a use clause) are no declarations.
-
-		:param item: The new declaration, or the new labeled statement.
-		:returns:    Tuple of clashing declarations, interface items first, then declared items in declaration order, then
-		             labeled statements.
-		"""
-		if len(names := set(normalizedDeclaredNamesOf(item))) == 0:
-			return ()
-
-		return tuple(
-			declaration
-			for region in (self, *self._SharedRegions())
-			for declaration in (*region._Declarations(), *region._Labels())
-			if (
-				declaration is not item
-				and not names.isdisjoint(normalizedDeclaredNamesOf(declaration))
-				and not self._MayShareIdentifier(item, declaration)
-			)
-		)
 
 	def _DeclaredItemsSharingIdentifiers(self, declaredItem: ModelEntity) -> list[ModelEntity]:
 		"""
@@ -2571,7 +2605,7 @@ class DeclarationRegionMixin(
 			else:
 				errorClass = DuplicateDeclarationError
 			region = clashes[0]._parent
-			while not isinstance(region, DeclarationRegionMixin):
+			while not isinstance(region, DeclarativeRegionMixin):
 				region = region._parent
 			ex = errorClass(
 				f"{getTypeName(region)} already declares '{identifier}'.",
@@ -3012,6 +3046,26 @@ class DeclarationRegionMixin(
 
 
 @export
+class DeclarationRegionMixin(DeclarativeRegionMixin, DeclarativePartMixin, mixin=True):
+	"""
+	A base-class for the concurrent, sequential and protected type declaration region mixins.
+
+	It combines a declarative region (:class:`DeclarativeRegionMixin`) with its declarative part
+	(:class:`DeclarativePartMixin`).
+
+	The derived region mixin-class provides the namespace ``_namespace``, the declared items ``_declaredItems`` and the
+	lookup tables ``_functions`` and ``_procedures``; it or the host class provides the methods ``_Declarations()``,
+	``_IndexDeclaredItem(item)``, ``_UnindexDeclaredItem(item)`` and ``IndexDeclaredItems()``.
+
+	.. seealso::
+
+	   * :class:`Concurrent declaration region mixin <pyVHDLModel.Regions.ConcurrentDeclarationRegionMixin>`
+	   * :class:`Sequential declaration region mixin <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
+	   * :class:`Protected type declaration region mixin <pyVHDLModel.Regions.ProtectedTypeDeclarationRegionMixin>`
+	"""
+
+
+@export
 class WithoutStatementsMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A mixin-class for language constructs with a declarative region, but without statements.
@@ -3036,7 +3090,7 @@ class WithoutStatementsMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		return ()
 
-	def _IterateStatementRegions(self) -> Generator[DeclarationRegionMixin, None, None]:
+	def _IterateStatementRegions(self) -> Generator[DeclarativeRegionMixin, None, None]:
 		"""
 		Iterate the declarative regions nested in the statements of this declarative region.
 

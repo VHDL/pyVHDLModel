@@ -55,7 +55,7 @@ from pyVHDLModel.Common      import Statement, ProcedureCallMixin, AssignmentMix
 from pyVHDLModel.Association import ParameterAssociationItem
 
 if TYPE_CHECKING:
-	from pyVHDLModel.Regions   import DeclarationRegionMixin
+	from pyVHDLModel.Regions   import DeclarativeRegionMixin
 	from pyVHDLModel.Visitor   import Visitor
 
 
@@ -128,7 +128,7 @@ class SequentialStatementsMixin(metaclass=ExtendedType, mixin=True, expects=("_L
 		"""
 		return tuple(label for statement in self._statements for label in self._LabelsOf(statement))
 
-	def _IterateStatementRegions(self) -> Generator[DeclarationRegionMixin, None, None]:
+	def _IterateStatementRegions(self) -> Generator[DeclarativeRegionMixin, None, None]:
 		"""
 		Iterate the declarative regions nested in the sequential statements of this construct.
 

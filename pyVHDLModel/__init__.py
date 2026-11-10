@@ -96,8 +96,9 @@ from pyVHDLModel.Object        import Signal, Constant, DeferredConstant, Shared
 from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
                                       PackageMemberReferenceSymbol
 from pyVHDLModel.Common        import AllowBlackboxMixin
-from pyVHDLModel.Regions       import DeclarationRegionMixin, ConcurrentDeclarationRegionMixin, \
-                                      SequentialDeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin
+from pyVHDLModel.Regions       import DeclarativeRegionMixin, DeclarationRegionMixin, \
+                                      ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
+                                      ProtectedTypeDeclarationRegionMixin
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation, \
                                       IfGenerateStatement, ForGenerateStatement, CaseGenerateStatement, \
                                       ConcurrentStatementsMixin, ConcurrentBlockStatement
@@ -2163,9 +2164,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			for packageReference in designUnit._packageReferences:
 				self._LinkUseClause(designUnit, designUnit._namespace, packageReference, True)
 
-			if isinstance(designUnit, DeclarationRegionMixin):
+			if isinstance(designUnit, DeclarativeRegionMixin):
 				for region in designUnit.IterateDeclarationRegions():
-					for item in region._declaredItems:
+					for item in region._Declarations():
 						if isinstance(item, UseClause):
 							self._LinkUseClause(designUnit, region._namespace, item, False)
 
@@ -2982,7 +2983,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		Resolve the type marks of all declarations in the design.
 
 		It's the first step of :meth:`AnalyzeObjects`, after the use clauses are linked. Each type mark is looked up at its
-		place (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.LookupName`), so the visibility rules apply: e.g. a type
+		place (:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.LookupName`), so the visibility rules apply: e.g. a type
 		declared after the place isn't visible, and conflicting use clauses make a type mark ambiguous. A resolved type mark
 		references the type, the subtype or the generic type (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`); a type mark
 		denoting an alias of a type references the type. Resolving again yields the same references, as long as the design
@@ -2994,14 +2995,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   documents in compile order (the compile-order graph, :meth:`ComputeCompileOrder`), so a package is resolved
 		   before its users.
 		2. Iterate the declarative regions of each design unit, the outermost first
-		   (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.IterateDeclarationRegions`):
+		   (:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.IterateDeclarationRegions`):
 
 		   1. Index the declared items of a region not indexed yet, e.g. a process or a subprogram.
 		   2. Iterate the region's declarations in declaration order; each resolves its references
 		      (:meth:`~pyVHDLModel.Base.ModelEntity.ResolveReferences`):
 
 		      * Every declaration resolves its type marks (:meth:`~pyVHDLModel.Base.ModelEntity.IterateTypeMarks`) by the
-		        region looking them up (:meth:`~pyVHDLModel.Regions.DeclarationRegionMixin.ResolveTypeMark`).
+		        region looking them up (:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.ResolveTypeMark`).
 		      * An incomplete type reports, if no full type declaration follows in its region
 		        (:meth:`~pyVHDLModel.Type.AnonymousType.ResolveReferences`).
 		      * An alias without a subtype indication resolves its name

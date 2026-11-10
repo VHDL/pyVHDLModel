@@ -4,6 +4,6 @@
 Coverage ~= 7.17
 
 # Test Runner
-pytest ~= 9.1
+pytest ~= 9.2
 pytest-cov ~= 7.1
 pytest-xdist ~= 3.8

@@ -34,7 +34,7 @@ from pyTooling.Testing       import Testcase
 from pyVHDLModel.Expression  import IntegerLiteral
 from pyVHDLModel.Association import GenericAssociationItem
 from pyVHDLModel.Name        import Name, SimpleName, ParenthesisName, IndexedName, SlicedName, SelectedName, \
-                                    AttributeName, AllName, OpenName
+                                    AttributeName, AllName, OpenName, PredefinedAttribute
 
 from tests.unit              import _Element
 
@@ -77,6 +77,7 @@ class Names(Testcase):
 		self.assertIs(prefix, name.Prefix)
 		self.assertTrue(name.HasPrefix)
 		self.assertIs(prefix, name.Root)
+		self.assertIs(name, prefix.Parent)
 
 	def test_RootIsTransitiveAcrossAChain(self) -> None:
 		root = _Name("a")
@@ -86,6 +87,8 @@ class Names(Testcase):
 		self.assertIs(root, middle.Root)
 		self.assertIs(root, leaf.Root)
 		self.assertIs(middle, leaf.Prefix)
+		self.assertIs(middle, root.Parent)
+		self.assertIs(leaf, middle.Parent)
 
 	def test_WithParent(self) -> None:
 		parent = _Element()
@@ -100,6 +103,13 @@ class SimpleNames(Testcase):
 
 		self.assertEqual("sig", name.Identifier)
 		self.assertFalse(name.HasPrefix)
+
+	def test_IsOperatorSymbol(self) -> None:
+		self.assertTrue(SimpleName('"and"').IsOperatorSymbol)
+		self.assertFalse(SimpleName("sig").IsOperatorSymbol)
+
+	def test_IsExpandedName(self) -> None:
+		self.assertFalse(SimpleName("sig").IsExpandedName)
 
 
 class ParenthesisNames(Testcase):
@@ -147,7 +157,15 @@ class SelectedNames(Testcase):
 
 		self.assertEqual("member", name.Identifier)
 		self.assertIs(prefix, name.Prefix)
+		self.assertIs(name, prefix.Parent)
 		self.assertEqual("pkg.member", str(name))
+
+	def test_IsExpandedName(self) -> None:
+		"""``lib.pkg.item`` is an expanded name; ``x.y`` may select a record element and isn't one."""
+		self.assertTrue(SelectedName("item", SelectedName("pkg", SimpleName("lib"))).IsExpandedName)
+		self.assertFalse(SelectedName("y", SimpleName("x")).IsExpandedName)
+		indexed = IndexedName(SimpleName("x"), [IntegerLiteral(0)])
+		self.assertFalse(SelectedName("z", SelectedName("y", indexed)).IsExpandedName)
 
 
 class AttributeNames(Testcase):
@@ -157,6 +175,18 @@ class AttributeNames(Testcase):
 
 		self.assertEqual("range", name.Identifier)
 		self.assertEqual("sig'range", str(name))
+
+	def test_PredefinedAttribute(self) -> None:
+		"""The identifier is compared case-insensitive."""
+		name = AttributeName("Reverse_Range", SimpleName("sig"))
+
+		self.assertIs(PredefinedAttribute.ReverseRange, name.PredefinedAttribute)
+		self.assertIs(PredefinedAttribute.ReverseRange, name.Copy().PredefinedAttribute)
+
+	def test_PredefinedAttribute_UserDefined(self) -> None:
+		name = AttributeName("pin_number", SimpleName("sig"))
+
+		self.assertIsNone(name.PredefinedAttribute)
 
 
 class AllNames(Testcase):
@@ -170,13 +200,20 @@ class AllNames(Testcase):
 		self.assertEqual("all", name.Identifier)
 		self.assertEqual("numeric_std.all", str(name))
 
+	def test_IsExpandedName(self) -> None:
+		self.assertFalse(AllName(SelectedName("numeric_std", SimpleName("ieee"))).IsExpandedName)
+
 
 class OpenNames(Testcase):
-	"""Regression test: the ``parent`` argument was previously forwarded positionally into ``Name.
+	"""
+	Open names with and without a parent.
+
+	Regression test: the ``parent`` argument was previously forwarded positionally into ``Name.
 	__init__``'s ``prefix`` parameter instead of its ``parent`` parameter (``super().__init__("open",
 	parent)``), so any ``OpenName(parent=...)`` call crashed with an ``AttributeError`` the moment
 	``Name.__init__`` tried to read ``prefix._root`` off whatever non-``Name`` object had been passed
-	as ``parent``."""
+	as ``parent``.
+	"""
 
 	def test_ConstructionWithoutParent(self) -> None:
 		name = OpenName()

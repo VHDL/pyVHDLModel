@@ -32,7 +32,7 @@
 """
 Copy tests for symbols (:mod:`pyVHDLModel.Symbol`).
 
-A symbol has no parent (it is no :class:`~pyVHDLModel.Base.ModelEntity`), so only its owned children are checked.
+A copy of a symbol has no parent; it is the parent of its copied name.
 """
 from pyTooling.Testing           import Testcase
 
@@ -51,7 +51,7 @@ from pyVHDLModel.Symbol          import PossibleReference, Symbol, LibraryRefere
                                         SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
                                         ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
                                         SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, \
-                                        AggregateSymbol
+                                        AggregateSymbol, LoopSymbol
 
 from tests.unit                  import _Element, _signal
 from tests.unit.Copy             import _concreteModelClasses, _copyAboveConstructor
@@ -78,13 +78,15 @@ class CopyMethods(Testcase):
 
 class Symbols(Testcase):
 	def test_Copy(self) -> None:
-		original = Symbol(SimpleName("proc"), PossibleReference.Procedure)
+		original = Symbol(SimpleName("proc"), PossibleReference.Procedure, parent=_Element())
 
 		copy = original.Copy()
 
 		self.assertIs(Symbol, type(copy))
 		self.assertIsNot(original, copy)
+		self.assertIsNone(copy.Parent)
 		self.assertIsNot(original.Name, copy.Name)
+		self.assertIs(copy, copy.Name.Parent)
 		self.assertEqual("proc", copy.Name.Identifier)
 		self.assertIs(PossibleReference.Procedure, copy._possibleReferences)
 		self.assertIsNone(copy.Reference)
@@ -130,6 +132,7 @@ class Symbols(Testcase):
 			EntitySymbol,
 			ArchitectureSymbol,
 			PackageSymbol,
+			LoopSymbol,
 			RecordElementSymbol,
 			SubtypeSymbol,
 			SimpleSubtypeSymbol,
@@ -137,14 +140,16 @@ class Symbols(Testcase):
 			IndexedObjectOrFunctionCallSymbol
 		):
 			with self.subTest(cls.__name__):
-				original = cls(SelectedName("b", SimpleName("a")))
+				original =            cls(SelectedName("b", SimpleName("a")), parent=_Element())
 				original._reference = declaration
 
 				copy = original.Copy()
 
 				self.assertIs(cls, type(copy))
 				self.assertIsNot(original, copy)
+				self.assertIsNone(copy.Parent)
 				self.assertIsNot(original.Name, copy.Name)
+				self.assertIs(copy, copy.Name.Parent)
 				self.assertIsNot(original.Name.Prefix, copy.Name.Prefix)
 				self.assertIs(original._possibleReferences, copy._possibleReferences)
 				self.assertIs(declaration, copy.Reference)
@@ -183,7 +188,8 @@ class ConstrainedScalarSubtypeSymbols(Testcase):
 		self.assertIsNot(original.Name, copy.Name)
 		self.assertEqual("integer", copy.Name.Identifier)
 		self.assertIsNot(constraint, copy.Constraint)
-		self.assertIsNone(copy.Constraint.Parent)
+		self.assertIs(original, constraint.Parent)
+		self.assertIs(copy, copy.Constraint.Parent)
 		self.assertIsNot(constraint.LeftBound, copy.Constraint.LeftBound)
 		self.assertEqual(VHDLWriter().Format(constraint), VHDLWriter().Format(copy.Constraint))
 		self.assertIs(declaration, copy.Subtype)
@@ -267,3 +273,4 @@ class ConstrainedRecordSubtypeSymbols(Testcase):
 		self.assertEqual("(carry?, sum?)", str(copy))
 		for originalElement, copiedElement in zip(original.Targets, copy.Targets):
 			self.assertIsNot(originalElement, copiedElement)
+			self.assertIs(copy, copiedElement.Parent)

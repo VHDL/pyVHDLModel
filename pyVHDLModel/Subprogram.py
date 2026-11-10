@@ -36,7 +36,7 @@ Subprograms are procedures, functions and methods.
 """
 from __future__             import annotations
 
-from typing                 import TYPE_CHECKING, Any, ClassVar, Iterable, Optional as Nullable
+from typing                 import TYPE_CHECKING, Any, ClassVar, Generator, Iterable, Optional as Nullable
 
 from pyTooling.Common       import getFullyQualifiedName
 from pyTooling.Decorators   import export, readonly
@@ -45,8 +45,8 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf, ReservedWord
 from pyVHDLModel.Symbol     import SubtypeSymbol
 from pyVHDLModel.Type       import ProtectedType
-from pyVHDLModel.Regions    import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
-                                   ProtectedTypeDeclarationRegionMixin, WithGenericsMixin, WithParametersMixin
+from pyVHDLModel.Regions    import DeclarativeRegionMixin, SequentialDeclarationRegionMixin, WithGenericsMixin, \
+                                   WithParametersMixin
 from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixin
 
 if TYPE_CHECKING:
@@ -201,6 +201,10 @@ class SubprogramSignature(ModelEntity):
 
 		The names are compared by :meth:`__eq__` and hashed by :meth:`__hash__`.
 
+		.. seealso::
+
+		   * :term:`Normalized`
+
 		:returns: Tuple of the type marks' normalized names, one per parameter identifier, in declaration order.
 		"""
 		return self._normalizedParameterTypeNames
@@ -212,6 +216,10 @@ class SubprogramSignature(ModelEntity):
 		(:attr:`_normalizedReturnTypeName`).
 
 		The name is compared by :meth:`__eq__` and hashed by :meth:`__hash__`.
+
+		.. seealso::
+
+		   * :term:`Normalized`
 
 		:returns: The return type mark's normalized name, or ``None`` for a procedure.
 		"""
@@ -352,14 +360,17 @@ class Subprogram(
 	@ModelEntity.Parent.setter
 	def Parent(self, parent: ModelEntity) -> None:
 		ModelEntity.Parent.fset(self, parent)
+		self._ConnectParentNamespace(parent)
 
-		# Connect the subprogram's namespace to the enclosing declaration region's namespace, so a
-		# declaration inside the subprogram hides a same-named one from the scope around it. Protected
-		# types and their bodies are declaration regions too, so a method chains like any other
-		# subprogram; the check remains because a parent need not be a region at all.
-		regions = (ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, ProtectedTypeDeclarationRegionMixin)
-		if isinstance(parent, regions):
-			self._namespace.ParentNamespace = parent._namespace
+	@readonly
+	def IsOverloadable(self) -> bool:
+		"""
+		Check if this subprogram is overloadable: always, it may share its designator with other subprograms and
+		enumeration literals.
+
+		:returns: ``True``.
+		"""
+		return True
 
 	@readonly
 	def IsPure(self) -> bool:
@@ -645,6 +656,22 @@ class Function(Subprogram):
 		visitor.VisitEnd(self)
 		visitor.VisitTerminator(self)
 		visitor.DepartFunction(self)
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this function: its return type.
+
+		The return type is looked up in the function's own region, before the function's declared items: at its first
+		declared item, or at the function itself. The function's parameters are declarations of its own region.
+
+		:param region:  The declarative region declaring this function.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the return type.
+		"""
+		place = self._declaredItems[0] if len(self._declaredItems) > 0 else self
+		yield self, place, self._returnType
 
 	@readonly
 	def ReturnType(self) -> SubtypeSymbol:

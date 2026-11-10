@@ -38,8 +38,8 @@ from pyVHDLModel.Expression import IntegerLiteral, CharacterEnumerationLiteral, 
 from pyVHDLModel.Object     import Variable
 from pyVHDLModel.Subprogram import Procedure
 from pyVHDLModel.Type       import Subtype, RangedScalarType, EnumeratedType, IntegerType, RealType, PhysicalType, \
-                                   ArrayType, RecordTypeElement, RecordType, ProtectedType, ProtectedTypeBody, \
-                                   AccessType, FileType
+                                   PhysicalUnit, ArrayType, RecordTypeElement, RecordType, ProtectedType, \
+                                   ProtectedTypeBody, AccessType, FileType
 
 from tests.unit             import _Element, _subtypeSymbol
 
@@ -55,7 +55,10 @@ def _range(left: int = 0, right: int = 15, direction: Direction = Direction.To) 
 
 
 class ParentAndDocumentationWiringAcrossAllLeafTypes(Testcase):
-	"""``BaseType`` provides identifier/documentation/parent handling and the (private,
+	"""
+	Parent and documentation of every concrete type class.
+
+	``BaseType`` provides identifier/documentation/parent handling and the (private,
 	regression-tested-here) ``_objectVertex`` slot to every type class - but ``Type``, ``AnonymousType``,
 	``FullType``, ``ScalarType``, ``CompositeType`` and ``RangedScalarType`` are pure taxonomy markers
 	with no VHDL construct of their own (never directly instantiated anywhere in pyGHDL.dom, confirmed
@@ -78,7 +81,8 @@ class ParentAndDocumentationWiringAcrossAllLeafTypes(Testcase):
 	did) - fixed alongside the ``Parent`` bug, since it's the same forwarding call: every constructor
 	below now accepts ``documentation`` in the same position as ``BaseType`` itself, so each
 	``super().__init__(identifier, documentation, parent)`` call is a plain, correctly-ordered
-	positional forward - no ``parent=`` keyword workaround needed anymore."""
+	positional forward - no ``parent=`` keyword workaround needed anymore.
+	"""
 
 	def test_AllLeafTypes(self) -> None:
 		parent = _Element()
@@ -87,7 +91,7 @@ class ParentAndDocumentationWiringAcrossAllLeafTypes(Testcase):
 			("EnumeratedType", lambda: EnumeratedType("t", [], "doc", parent)),
 			("IntegerType", lambda: IntegerType("t", _range(), "doc", parent)),
 			("RealType", lambda: RealType("t", _range(), "doc", parent)),
-			("PhysicalType", lambda: PhysicalType("t", _range(), "ps", [], "doc", parent)),
+			("PhysicalType", lambda: PhysicalType("t", _range(), PhysicalUnit("ps"), [], "doc", parent)),
 			("ArrayType", lambda: ArrayType("t", [], _subtypeSymbol("natural"), "doc", parent)),
 			("RecordType", lambda: RecordType("t", None, "doc", parent)),
 			("ProtectedType", lambda: ProtectedType("t", None, "doc", parent)),
@@ -139,6 +143,12 @@ class EnumeratedTypes(Testcase):
 		self.assertIs(enumType, literal1.Parent)
 		self.assertEqual("my_bit is ('0', '1')", str(enumType))
 
+	def test_BaseType(self) -> None:
+		"""A type is its own base type."""
+		enumType = EnumeratedType("my_bit", [CharacterEnumerationLiteral("0")])
+
+		self.assertIs(enumType, enumType.BaseType)
+
 	def test_NoLiterals(self) -> None:
 		"""``literals`` has no default value in the signature, but the body still guards for ``None``
 		explicitly - accepted here even though nothing currently calls it that way."""
@@ -148,10 +158,14 @@ class EnumeratedTypes(Testcase):
 
 
 class IntegerTypes(Testcase):
-	"""Also covers ``RangedScalarType.Range`` (shared, unmodified, by ``IntegerType``/``RealType``/
+	"""
+	Integer types with a literal or an attribute range.
+
+	Also covers ``RangedScalarType.Range`` (shared, unmodified, by ``IntegerType``/``RealType``/
 	``PhysicalType``): it accepts any ``Range``, so either a ``SimpleRange`` or a ``RangeFromName`` for an
 	attribute-based range like ``type t is range r'range;`` - checked once here since this behaviour
-	genuinely is a single, shared implementation, unlike the constructor-forwarding concern above."""
+	genuinely is a single, shared implementation, unlike the constructor-forwarding concern above.
+	"""
 
 	def test_WithLiteralRange(self) -> None:
 		rng = _range(0, 15)
@@ -176,32 +190,109 @@ class RealTypes(Testcase):
 		self.assertEqual("fraction is range 0 to 1", str(realType))
 
 
+class PhysicalUnits(Testcase):
+	def test_Documentation_Default(self) -> None:
+		self.assertIsNone(PhysicalUnit("ps").Documentation)
+
+	def test_Documentation(self) -> None:
+		self.assertEqual("doc", PhysicalUnit("ps", documentation="doc").Documentation)
+
+
 class PhysicalTypes(Testcase):
 	def test_Construction(self) -> None:
-		rng = _range(0, 1000)
-		femtoSeconds = PhysicalIntegerLiteral(1000, "fs")
-		physicalType = PhysicalType("my_time", rng, "ps", [("fs", femtoSeconds)])
+		rng =          _range(0, 1000)
+		primaryUnit =  PhysicalUnit("fs")
+		picoSeconds =  PhysicalUnit("ps", PhysicalIntegerLiteral(1000, "fs"))
+		physicalType = PhysicalType("my_time", rng, primaryUnit, [picoSeconds])
 
 		self.assertIs(rng, physicalType.Range)
-		self.assertEqual("ps", physicalType.PrimaryUnit)
-		self.assertEqual(1, len(physicalType.SecondaryUnits))
-		self.assertEqual("fs", physicalType.SecondaryUnits[0][0])
-		self.assertIs(femtoSeconds, physicalType.SecondaryUnits[0][1])
-		self.assertIs(physicalType, femtoSeconds.Parent)
-		self.assertEqual("my_time is range 0 to 1000 units ps; fs = 1000 fs;", str(physicalType))
+		self.assertIs(primaryUnit, physicalType.PrimaryUnit)
+		self.assertListEqual([picoSeconds], physicalType.SecondaryUnits)
+		self.assertEqual("my_time is range 0 to 1000 units fs; ps = 1000 fs;", str(physicalType))
 
 	def test_NoSecondaryUnits(self) -> None:
-		physicalType = PhysicalType("my_time", _range(0, 1000), "ps", [])
+		physicalType = PhysicalType("my_time", _range(0, 1000), PhysicalUnit("ps"), [])
 
-		self.assertEqual(0, len(physicalType.SecondaryUnits))
+		self.assertListEqual([], physicalType.SecondaryUnits)
+
+	def test_Parents(self) -> None:
+		"""The physical type is the parent of its units; a secondary unit is the parent of its value."""
+		femtoSeconds = PhysicalIntegerLiteral(1000, "fs")
+		primaryUnit =  PhysicalUnit("fs")
+		picoSeconds =  PhysicalUnit("ps", femtoSeconds)
+		physicalType = PhysicalType("my_time", _range(0, 1000), primaryUnit, [picoSeconds])
+
+		self.assertIs(physicalType, primaryUnit.Parent)
+		self.assertIs(physicalType, picoSeconds.Parent)
+		self.assertIs(picoSeconds, femtoSeconds.Parent)
+
+	def test_Documentation(self) -> None:
+		"""The units keep their documentation comment."""
+		primaryUnit =  PhysicalUnit("fs", documentation="--! Femtoseconds.")
+		picoSeconds =  PhysicalUnit("ps", PhysicalIntegerLiteral(1000, "fs"), documentation="--! Picoseconds.")
+		physicalType = PhysicalType("my_time", _range(0, 1000), primaryUnit, [picoSeconds])
+
+		self.assertEqual("--! Femtoseconds.", physicalType.PrimaryUnit.Documentation)
+		self.assertEqual("--! Picoseconds.", physicalType.SecondaryUnits[0].Documentation)
+
+	def test_PrimaryUnit_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			PhysicalType("my_time", _range(0, 1000), None, [])
+
+		self.assertEqual("Parameter 'primaryUnit' is None.", str(context.exception))
+
+	def test_PrimaryUnit_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			PhysicalType("my_time", _range(0, 1000), "fs", [])
+
+		self.assertEqual("Parameter 'primaryUnit' is not of type 'PhysicalUnit'.", str(context.exception))
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_PrimaryUnit_WithValue(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			PhysicalType("my_time", _range(0, 1000), PhysicalUnit("ps", PhysicalIntegerLiteral(1000, "fs")), [])
+
+		self.assertEqual("Parameter 'primaryUnit' has a value.", str(context.exception))
+		self.assertListEqual(["Got value '1000 fs'."], context.exception.__notes__)
+
+	def test_SecondaryUnits_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			PhysicalType("my_time", _range(0, 1000), PhysicalUnit("fs"), None)
+
+		self.assertEqual("Parameter 'secondaryUnits' is None.", str(context.exception))
+
+	def test_SecondaryUnits_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			PhysicalType("my_time", _range(0, 1000), PhysicalUnit("fs"), 1)
+
+		self.assertEqual("Parameter 'secondaryUnits' is not iterable.", str(context.exception))
+		self.assertListEqual(["Got type 'int'."], context.exception.__notes__)
+
+	def test_SecondaryUnits_ElementType(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			PhysicalType("my_time", _range(0, 1000), PhysicalUnit("fs"), [("ps", PhysicalIntegerLiteral(1000, "fs"))])
+
+		self.assertEqual("Element of parameter 'secondaryUnits' is not of type 'PhysicalUnit'.", str(context.exception))
+		self.assertListEqual(["Got type 'tuple'."], context.exception.__notes__)
+
+	def test_SecondaryUnits_ElementWithoutValue(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			PhysicalType("my_time", _range(0, 1000), PhysicalUnit("fs"), [PhysicalUnit("ps")])
+
+		self.assertEqual("Element 'ps' of parameter 'secondaryUnits' has no value.", str(context.exception))
+		self.assertListEqual(["Only the primary unit has no value."], context.exception.__notes__)
 
 
 class ArrayTypes(Testcase):
-	"""Regression-tracking test, not a regression fix: still-open gap, already confirmed and
+	"""
+	Array types; the parent of indices and element subtype isn't wired yet.
+
+	Regression-tracking test, not a regression fix: still-open gap, already confirmed and
 	documented in the gap analysis - ``ArrayType.__init__`` deliberately (if unfortunately) never
 	wires up ``Parent`` for its indices or element subtype (both ``.Parent = self`` lines are
 	commented out with a FIXME). This locks in the *current* behaviour so a future fix shows up as an
-	intentional test change, not a silent regression."""
+	intentional test change, not a silent regression.
+	"""
 
 	def test_Construction(self) -> None:
 		index = _range(0, 7)
@@ -213,17 +304,14 @@ class ArrayTypes(Testcase):
 		self.assertIs(elementSubtype, arrayType.ElementType)
 		self.assertEqual("my_vector is array(0 to 7) of std_logic?", str(arrayType))
 
-	def test_ParentIsNotWiredYet(self) -> None:
-		"""``index.Parent`` is genuinely ``None`` (``Range`` is a ``ModelEntity`` with a declared
-		``Parent`` property), but ``elementSubtype.Parent`` doesn't even exist as an attribute -
-		``Symbol`` isn't a ``ModelEntity`` (see the design note in tests/unit/Symbol.py) and nothing
-		ever assigns it here, so there's no ad-hoc attribute to find either."""
-		index = _range(0, 7)
+	def test_Parent(self) -> None:
+		"""An array type is the parent of its index ranges and its element subtype."""
+		index =          _range(0, 7)
 		elementSubtype = _subtypeSymbol("std_logic")
-		arrayType = ArrayType("my_vector", [index], elementSubtype)
+		arrayType =      ArrayType("my_vector", [index], elementSubtype)
 
-		self.assertIsNone(index.Parent)
-		self.assertFalse(hasattr(elementSubtype, "Parent"))
+		self.assertIs(arrayType, index.Parent)
+		self.assertIs(arrayType, elementSubtype.Parent)
 
 
 class RecordTypeElements(Testcase):
@@ -258,12 +346,25 @@ class RecordTypes(Testcase):
 		recordType = RecordType("my_record")
 
 		self.assertEqual(0, len(recordType.Elements))
+		self.assertDictEqual({}, recordType.ElementsByIdentifier)
+
+	def test_ElementsByIdentifier(self) -> None:
+		"""An element with an identifier list is indexed by each identifier, normalized."""
+		first =      RecordTypeElement(["Re", "Im"], _subtypeSymbol("real"))
+		second =     RecordTypeElement(["valid"], _subtypeSymbol("bit"))
+		recordType = RecordType("complex", [first, second])
+
+		self.assertDictEqual({"re": first, "im": first, "valid": second}, recordType.ElementsByIdentifier)
 
 
 class ProtectedTypes(Testcase):
-	"""A protected type declaration admits subprogram declarations only, so ``DeclaredItems`` and
+	"""
+	Protected type declarations and their methods.
+
+	A protected type declaration admits subprogram declarations only, so ``DeclaredItems`` and
 	``Methods`` hold the same items. Real ``Procedure`` instances are needed because ``Methods`` is
-	defined by type, not by position."""
+	defined by type, not by position.
+	"""
 
 	def test_WithMethods(self) -> None:
 		method = Procedure("increment")

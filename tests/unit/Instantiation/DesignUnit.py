@@ -40,7 +40,6 @@ one-line smoke test confirming the mixin is wired up.
 from pyTooling.Warning      import CriticalWarning
 from pyTooling.Testing      import Testcase
 
-from pyVHDLModel            import VHDLModelException
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Exception  import BlackboxWarning, VHDLModelWarning
 from pyVHDLModel.Name       import SimpleName, SelectedName
@@ -84,9 +83,13 @@ class References(Testcase):
 
 
 class _ConcreteDesignUnit(DesignUnit):
-	"""``DesignUnit`` is abstract - it requires ``__str__`` - so its own plumbing is exercised through a
+	"""
+	Minimal concrete design unit to test the abstract ``DesignUnit``.
+
+	``DesignUnit`` is abstract - it requires ``__str__`` - so its own plumbing is exercised through a
 	stand-in that adds nothing but the required rendering. Using a real unit like ``Context`` instead
-	would drag in that unit's extra state."""
+	would drag in that unit's extra state.
+	"""
 
 	def __str__(self) -> str:
 		return self._identifier
@@ -129,6 +132,19 @@ class DesignUnits(Testcase):
 		self.assertIs(unit, library.Parent)
 		self.assertIs(unit, use.Parent)
 		self.assertIs(unit, context.Parent)
+
+	def test_ContextItems_WrongElementType(self) -> None:
+		element = _Element()
+
+		with self.assertRaises(TypeError) as context:
+			_ConcreteDesignUnit("u", [UseClause([]), element])
+
+		self.assertEqual(
+			"Element of parameter 'contextItems' is not of type 'LibraryClause', 'UseClause' or 'ContextReference'.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Got type 'tests.unit._Element'."], context.exception.__notes__)
+		self.assertIsNone(element.Parent)
 
 	def test_DocumentSetter(self) -> None:
 		unit = _ConcreteDesignUnit("u")
@@ -180,15 +196,18 @@ class Contexts(Testcase):
 		self.assertEqual([contextReference], context.ContextReferences)
 		self.assertIs(context, library.Parent)
 
-	def test_UnknownReferenceKind_Raises(self) -> None:
-		"""Regression test: ``VHDLModelException()`` previously carried no message at all (``# FIXME:
-		needs exception message`` in the source) - now includes the offending reference. Uses a bare
-		``ModelEntity`` (not ``object()``) since the ``.Parent = self`` assignment a few lines above
-		the kind-check runs first and needs a real settable ``Parent``."""
-		with self.assertRaises(VHDLModelException) as context:
-			Context("ctx", [_Element()])
+	def test_References_WrongElementType(self) -> None:
+		element = _Element()
 
-		self.assertIn("neither a library clause, use clause, nor context reference", str(context.exception))
+		with self.assertRaises(TypeError) as context:
+			Context("ctx", [LibraryClause([LibraryReferenceSymbol(SimpleName("ieee"))]), element])
+
+		self.assertEqual(
+			"Element of parameter 'references' is not of type 'LibraryClause', 'UseClause' or 'ContextReference'.",
+			str(context.exception)
+		)
+		self.assertListEqual(["Got type 'tests.unit._Element'."], context.exception.__notes__)
+		self.assertIsNone(element.Parent)
 
 
 class Packages(Testcase):
@@ -379,9 +398,13 @@ class Components(Testcase):
 
 
 class Configurations(Testcase):
-	"""The *design-unit* ``configuration cfg of ent is ... end configuration;`` - not to be confused
+	"""
+	Configuration declarations (design units).
+
+	The *design-unit* :vhdlcode:`configuration cfg of ent is ... end configuration;` - not to be confused
 	with ``pyVHDLModel.Configuration.ComponentConfiguration``/``BlockConfiguration``, which are tested
-	in tests/unit/Configuration.py."""
+	in tests/unit/Configuration.py.
+	"""
 
 	def test_Minimal(self) -> None:
 		from pyVHDLModel.Configuration import BlockConfiguration

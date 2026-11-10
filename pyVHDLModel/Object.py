@@ -36,17 +36,21 @@ Objects are constants, variables, signals and files.
 """
 from __future__            import annotations
 
-from typing                import TYPE_CHECKING, ClassVar, Iterable, Optional as Nullable, Self
+from typing                import TYPE_CHECKING, ClassVar, Generator, Iterable, Optional as Nullable, Self
 
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import ExtendedType, abstractclass
 from pyTooling.Graph       import Vertex
+from pyTooling.Warning     import WarningCollector
 
 from pyVHDLModel.Base      import ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin, ExpressionUnion, \
                                   ReservedWord
-from pyVHDLModel.Symbol    import Symbol
+from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
+from pyVHDLModel.Name      import Name
+from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
+	from pyVHDLModel.Regions import DeclarativeRegionMixin
 	from pyVHDLModel.Visitor import Visitor
 
 
@@ -63,7 +67,7 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	Each object references a subtype via :data:`_subtype`.
 
 	Objects are elements in the type and object graph, thus a reference to a vertex in that graph is stored in
-	:data:`__objectVertex`.
+	:data:`_objectVertex`.
 
 	.. seealso::
 
@@ -74,7 +78,8 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 	   * :class:`File <pyVHDLModel.Object.File>`
 	"""
 
-	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]]  #: The reserved words introducing this object class.
+	_OBJECT_KEYWORD:               ClassVar[tuple[ReservedWord, ...]]         #: The reserved words introducing this object class.
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] =                     True  #: Usable by a name in its own interface list.
 
 	_subtype:      Symbol            #: Reference to the object's subtype.
 	_objectVertex: Nullable[Vertex]  #: The vertex representing this object in the design's object graph.
@@ -136,6 +141,58 @@ class Obj(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityMixin):
 		"""
 		return self._parent.SplitDeclaredItem(self)
 
+	def IterateTypeMarks(
+		self,
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this object: the type mark of its subtype indication.
+
+		:param region:  The declarative region declaring this object.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the object's subtype indication.
+		"""
+		if isinstance(self._subtype, SubtypeSymbol):
+			yield region, self, self._subtype
+
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarativeRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[ModelEntity]:
+		"""
+		Determine the model entity a name denoting this object denotes, as a part of a type mark: this object.
+
+		A port or a parameter isn't usable in its own interface list (:attr:`_USABLE_IN_OWN_INTERFACE_LIST`): e.g. the
+		subtype of a port can't name another port of the same port list (``i'subtype``).
+
+		:param name:                           The name denoting this declaration, a part of the type mark.
+		:param region:                         The declarative region containing the type mark.
+		:param place:                          The declaration containing the type mark.
+		:param symbol:                         The type mark.
+		:returns:                              This object, or ``None`` if a name can't denote it here (reported as a
+		                                       warning).
+		:raises UnhandledCriticalWarningError: If the object is a port or parameter used in its own interface list, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		from pyVHDLModel.Interface import InterfaceItemMixin
+
+		if (
+			not self._USABLE_IN_OWN_INTERFACE_LIST and isinstance(place, InterfaceItemMixin)
+			and self._parent is place._parent
+		):
+			WarningCollector.Raise(UnresolvedTypeMarkWarning(
+				f"Prefix '{name!s}' of type mark '{symbol._name!s}' isn't usable in its own interface list.",
+				symbol=symbol,
+				place=place,
+				namespaces=(region._namespace, )
+			))
+			return None
+
+		return self
+
 	def __str__(self) -> str:
 		"""
 		Formats the object declaration.
@@ -152,7 +209,7 @@ class WithDefaultExpressionMixin(metaclass=ExtendedType, mixin=True):
 	"""
 	A ``WithDefaultExpression`` is a mixin-class for all objects declarations accepting default expressions.
 
-	The default expression is referenced by :data:`__defaultExpression`. If no default expression is present, this field
+	The default expression is referenced by :data:`_defaultExpression`. If no default expression is present, this field
 	is ``None``.
 
 	.. seealso::
@@ -280,7 +337,7 @@ class DeferredConstant(BaseConstant):
 	Represents a deferred constant.
 
 	Deferred constants are forward declarations for a (complete) constant declaration, thus it contains a
-	field :data:`__constantReference` to the complete constant declaration.
+	field :data:`_constantReference` to the complete constant declaration.
 
 	.. admonition:: Example
 

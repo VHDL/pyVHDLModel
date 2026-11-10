@@ -1,0 +1,608 @@
+# ==================================================================================================================== #
+#             __     ___   _ ____  _     __  __           _      _                                                     #
+#   _ __  _   \ \   / / | | |  _ \| |   |  \/  | ___   __| | ___| |                                                    #
+#  | '_ \| | | \ \ / /| |_| | | | | |   | |\/| |/ _ \ / _` |/ _ \ |                                                    #
+#  | |_) | |_| |\ V / |  _  | |_| | |___| |  | | (_) | (_| |  __/ |                                                    #
+#  | .__/ \__, | \_/  |_| |_|____/|_____|_|  |_|\___/ \__,_|\___|_|                                                    #
+#  |_|    |___/                                                                                                        #
+# ==================================================================================================================== #
+# Authors:                                                                                                             #
+#   Patrick Lehmann                                                                                                    #
+#                                                                                                                      #
+# License:                                                                                                             #
+# ==================================================================================================================== #
+# Copyright 2026-2026 Patrick Lehmann - Boetzingen, Germany                                                            #
+#                                                                                                                      #
+# Licensed under the Apache License, Version 2.0 (the "License");                                                      #
+# you may not use this file except in compliance with the License.                                                     #
+# You may obtain a copy of the License at                                                                              #
+#                                                                                                                      #
+#   http://www.apache.org/licenses/LICENSE-2.0                                                                         #
+#                                                                                                                      #
+# Unless required by applicable law or agreed to in writing, software                                                  #
+# distributed under the License is distributed on an "AS IS" BASIS,                                                    #
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.                                             #
+# See the License for the specific language governing permissions and                                                  #
+# limitations under the License.                                                                                       #
+#                                                                                                                      #
+# SPDX-License-Identifier: Apache-2.0                                                                                  #
+# ==================================================================================================================== #
+#
+"""
+Visibility rules (IEEE Std 1076-2008, 12.3 and 12.4): hiding, conflicting imports and declaration order.
+"""
+from pyTooling.Testing       import Testcase
+from pyTooling.Warning       import WarningCollector
+
+from pyVHDLModel.Base        import Mode, ModelEntity
+from pyVHDLModel.Concurrent  import ProcessStatement
+from pyVHDLModel.Declaration import Alias
+from pyVHDLModel.Exception   import UnresolvedTypeMarkWarning
+from pyVHDLModel.DesignUnit  import Architecture, Entity, Package
+from pyVHDLModel.Interface   import PortSimpleSignalInterfaceItem
+from pyVHDLModel.Name        import Name, SelectedName, SimpleName
+from pyVHDLModel.Namespace   import Namespace
+from pyVHDLModel.Object      import Signal
+from pyVHDLModel.Symbol      import PossibleReference, SignalSymbol, SimpleSubtypeSymbol, Symbol
+from pyVHDLModel.Type        import AccessType, AnonymousType, RecordType, RecordTypeElement
+
+from tests.unit              import _entitySymbol, _signal, _subtypeSymbol, _variable
+from tests.unit.Resolution   import _resolve
+from tests.unit.Visibility   import _constant, _design, _distance, _enumeration, _function, _use
+
+
+if __name__ == "__main__":  # pragma: no cover
+	print("ERROR: you called a testcase declaration file as an executable module.")
+	print("Use: 'python -m unitest <testcase module>'")
+	exit(1)
+
+
+class Hiding(Testcase):
+	"""A declaration hides imported homographs and homographs of enclosing regions."""
+
+	def setUp(self) -> None:
+		self._imported = _constant("K", "integer")
+		self._f =        _function("f", "integer")
+		self._package =  Package("p", declaredItems=[self._imported, self._f])
+
+	def test_LocalDeclaration(self) -> None:
+		"""``use work.p.all; signal K : bit;``: ``K`` is the signal."""
+		signal =       _signal("K", "bit")
+		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p.all")], declaredItems=[signal])
+		_design(self._package, Entity("e"), architecture)
+
+		result = architecture._namespace.Lookup("k")
+
+		self.assertTupleEqual((signal, ), result.Declarations)
+		self.assertTupleEqual((), result.Imports)
+
+	def test_EnclosingDeclaration_HidesInnerUseClause(self) -> None:
+		"""A process' ``use work.p.all;`` doesn't make ``K`` visible over the architecture's signal ``K``."""
+		signal =       _signal("K", "bit")
+		process =      ProcessStatement("proc", declaredItems=[_use("work.p.all")])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[signal], statements=[process])
+		_design(self._package, Entity("e"), architecture)
+
+		self.assertTupleEqual((signal, ), process._namespace.Lookup("k").Declarations)
+
+	def test_LocalAndImportedOverloads(self) -> None:
+		"""Overloaded subprograms of the region and of a use clause coexist."""
+		local =        _function("f", "bit")
+		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p.all")], declaredItems=[local])
+		_design(self._package, Entity("e"), architecture)
+
+		self.assertTupleEqual((local, self._f), architecture._namespace.Lookup("f").Declarations)
+
+	def test_EnclosingOverloads(self) -> None:
+		"""Overloaded subprograms of nested regions coexist."""
+		outer =        _function("f", "bit")
+		inner =        _function("f", "integer")
+		process =      ProcessStatement("proc", declaredItems=[inner])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[outer], statements=[process])
+		_design(Entity("e"), architecture)
+		process.IndexDeclaredItems()
+
+		self.assertTupleEqual((inner, outer), process._namespace.Lookup("f").Declarations)
+
+	def test_InnerObject_HidesOuterOverloads(self) -> None:
+		"""A declaration, which isn't overloadable, hides all overloads further out."""
+		outer =        _function("f", "bit")
+		variable =     _variable("f", "integer")
+		process =      ProcessStatement("proc", declaredItems=[variable])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[outer], statements=[process])
+		_design(Entity("e"), architecture)
+		process.IndexDeclaredItems()
+
+		self.assertTupleEqual((variable, ), process._namespace.Lookup("f").Declarations)
+
+	def test_LocalType_HidesStdStandard(self) -> None:
+		"""A local type ``natural`` hides ``std.standard.natural``, its literals are visible."""
+		natural =      _enumeration("natural", "one", "two")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[natural])
+		_design(Entity("e"), architecture)
+
+		self.assertTupleEqual((natural, ), architecture._namespace.Lookup("natural").Declarations)
+		self.assertTupleEqual((natural.Literals[0], ), architecture._namespace.Lookup("one").Declarations)
+
+	def test_LocalObject_HidesEnumerationLiteral(self) -> None:
+		"""``constant red`` in the architecture hides the imported literal ``red``."""
+		package =      Package("q", declaredItems=[_enumeration("T", "red", "green")])
+		constant =     _constant("red", "integer")
+		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.q.all")], declaredItems=[constant])
+		_design(package, Entity("e"), architecture)
+
+		self.assertTupleEqual((constant, ), architecture._namespace.Lookup("red").Declarations)
+
+
+class Conflicts(Testcase):
+	"""Potentially visible declarations of two use clauses."""
+
+	def setUp(self) -> None:
+		self._k1 = _constant("K", "integer")
+		self._k2 = _constant("K", "integer")
+		self._p1 = Package("p1", declaredItems=[self._k1, _function("f", "integer"), _enumeration("T1", "a", "b")])
+		self._p2 = Package("p2", declaredItems=[self._k2, _function("f", "bit"), _enumeration("T2", "b", "c")])
+
+	def test_Constants(self) -> None:
+		"""``K`` of ``p1`` and of ``p2``: neither is directly visible."""
+		useClause = _use("work.p1.all", "work.p2.all")
+		entity =    Entity("e", [useClause])
+		_design(self._p1, self._p2, entity)
+
+		result = entity._namespace.Lookup("k")
+
+		self.assertFalse(result.IsVisible)
+		self.assertTrue(result.HasConflicts)
+		self.assertTupleEqual((self._k1, self._k2), tuple(imported.Element for imported in result.Conflicts))
+		self.assertIs(useClause, result.Conflicts[0].UseClause)
+		self.assertEqual("LookupResult: 'k' -> 0 declaration(s), 2 conflict(s)", repr(result))
+
+	def test_InnerAndOuterUseClauses(self) -> None:
+		"""A use clause of the process and one of the architecture conflict (GHDL: "due to conflicts")."""
+		process =      ProcessStatement("proc", declaredItems=[_use("work.p2.all")])
+		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p1.all")], statements=[process])
+		_design(self._p1, self._p2, Entity("e"), architecture)
+
+		result = process._namespace.Lookup("k")
+
+		self.assertFalse(result.IsVisible)
+		self.assertTupleEqual((self._k2, self._k1), tuple(imported.Element for imported in result.Conflicts))
+
+	def test_SameDeclarationTwice(self) -> None:
+		"""The same declaration imported by two use clauses is no conflict."""
+		entity = Entity("e", [_use("work.p1.all"), _use("work.p1.k")])
+		_design(self._p1, entity)
+
+		self.assertTupleEqual((self._k1, ), entity._namespace.Lookup("k").Declarations)
+
+	def test_Overloadables(self) -> None:
+		"""Subprograms and enumeration literals of two packages coexist."""
+		entity = Entity("e", [_use("work.p1.all", "work.p2.all")])
+		_design(self._p1, self._p2, entity)
+
+		self.assertEqual(2, len(entity._namespace.Lookup("f").Declarations))
+		self.assertEqual(2, len(entity._namespace.Lookup("b").Declarations))
+
+	def test_LiteralAndObject(self) -> None:
+		"""An imported literal ``red`` and an imported constant ``red`` conflict."""
+		literals = Package("p3", declaredItems=[_enumeration("T", "red", "green")])
+		objects =  Package("p4", declaredItems=[_constant("red", "integer")])
+		entity =   Entity("e", [_use("work.p3.all", "work.p4.all")])
+		_design(literals, objects, entity)
+
+		result = entity._namespace.Lookup("red")
+
+		self.assertFalse(result.IsVisible)
+		self.assertEqual(2, len(result.Conflicts))
+
+	def test_StdStandard(self) -> None:
+		"""A package's type ``bit`` conflicts with ``std.standard.bit``."""
+		bit =    _enumeration("bit", "lo", "hi")
+		entity = Entity("e", [_use("work.p3.all")])
+		_design(Package("p3", declaredItems=[bit]), entity)
+
+		result = entity._namespace.Lookup("bit")
+
+		self.assertFalse(result.IsVisible)
+		self.assertIsNone(result.Conflicts[0].UseClause)
+		self.assertIs(bit, result.Conflicts[1].Element)
+
+
+class DeclarationOrder(Testcase):
+	"""A declaration and a use clause are visible after their place in the region."""
+
+	def setUp(self) -> None:
+		self._imported = _constant("K", "integer")
+		self._package =  Package("p", declaredItems=[self._imported])
+
+	def test_UseClauseAfterDeclaration(self) -> None:
+		"""``constant c1 : integer := K; use work.p.all; constant c2 : integer := K;``."""
+		c1 =           _constant("c1", "integer")
+		c2 =           _constant("c2", "integer")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[c1, _use("work.p.all"), c2])
+		_design(self._package, Entity("e"), architecture)
+
+		self.assertFalse(architecture._namespace.Lookup("k", c1).IsVisible)
+		self.assertTupleEqual((self._imported, ), architecture._namespace.Lookup("k", c2).Declarations)
+		self.assertTupleEqual((self._imported, ), architecture._namespace.Lookup("k").Declarations)
+
+	def test_PortBeforeUseClause(self) -> None:
+		"""A use clause in the entity's declarative part isn't seen by the ports."""
+		port =     PortSimpleSignalInterfaceItem(("x", ), Mode.In, _subtypeSymbol("K"))
+		entity =   Entity("e", portItems=[port], declaredItems=[_use("work.p.all")])
+		warnings = _resolve(_design(self._package, entity, analyze=False))
+
+		self.assertFalse(entity._namespace.Lookup("k", port).IsVisible)
+		self.assertEqual(1, len(warnings))
+		self.assertIsInstance(warnings[0], UnresolvedTypeMarkWarning)
+		self.assertIs(port.Subtype, warnings[0].Symbol)
+
+	def test_Object(self) -> None:
+		"""``constant c1 : integer := c2; constant c2 ...``: ``c2`` isn't visible in ``c1``."""
+		c1 =           _constant("c1", "integer")
+		c2 =           _constant("c2", "integer")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[c1, c2])
+		_design(Entity("e"), architecture)
+
+		self.assertFalse(architecture._namespace.Lookup("c2", c1).IsVisible)
+		self.assertFalse(architecture._namespace.Lookup("c1", c1).IsVisible)
+		self.assertTupleEqual((c1, ), architecture._namespace.Lookup("c1", c2).Declarations)
+
+	def test_UseClauseBeforeLocalHomograph(self) -> None:
+		"""``use work.p.all; constant k1 := K; signal K : bit; constant k2 := K;``."""
+		k1 =           _constant("k1", "integer")
+		signal =       _signal("K", "bit")
+		k2 =           _constant("k2", "integer")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_use("work.p.all"), k1, signal, k2])
+		_design(self._package, Entity("e"), architecture)
+
+		self.assertTupleEqual((self._imported, ), architecture._namespace.Lookup("k", k1).Declarations)
+		self.assertTupleEqual((signal, ), architecture._namespace.Lookup("k", k2).Declarations)
+
+	def test_SubprogramVisibleInItself(self) -> None:
+		"""A subprogram is visible in its own body (recursion), an outer declaration after it isn't."""
+		function =     _function("f", "integer")
+		later =        _constant("later", "integer")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[function, later])
+		_design(Entity("e"), architecture)
+		function.IndexDeclaredItems()
+
+		self.assertTupleEqual((function, ), function._namespace.Lookup("f", function.ParameterItems[0]).Declarations)
+		self.assertFalse(function._namespace.Lookup("later", function.ParameterItems[0]).IsVisible)
+
+	def test_IncompleteType(self) -> None:
+		"""``type node; type ptr is access node; type node is record ... end record;``: ``node`` in ``ptr``."""
+		incomplete =   AnonymousType("node")
+		pointer =      AccessType("ptr", SimpleSubtypeSymbol(SimpleName("node")))
+		node =         RecordType("node", [RecordTypeElement(("next", ), SimpleSubtypeSymbol(SimpleName("ptr")))])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[incomplete, pointer, node])
+		_design(Entity("e"), architecture)
+
+		self.assertTupleEqual((node, ), architecture._namespace.Lookup("node", pointer).Declarations)
+
+	def test_IncompleteType_After(self) -> None:
+		"""Without an incomplete type declaration, a full type isn't visible before its declaration."""
+		pointer =      AccessType("ptr", SimpleSubtypeSymbol(SimpleName("node")))
+		node =         RecordType("node", [RecordTypeElement(("next", ), SimpleSubtypeSymbol(SimpleName("ptr")))])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[pointer, node])
+		warnings =     _resolve(_design(Entity("e"), architecture, analyze=False))
+
+		self.assertFalse(architecture._namespace.Lookup("node", pointer).IsVisible)
+		self.assertEqual(1, len(warnings))
+		self.assertIsInstance(warnings[0], UnresolvedTypeMarkWarning)
+		self.assertIs(pointer.DesignatedSubtype, warnings[0].Symbol)
+
+
+class Designators(Testcase):
+	"""Keys of enumeration literals and units in a namespace (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`)."""
+
+	def test_CharacterLiteral(self) -> None:
+		literal = _enumeration("T", "'a'").Literals[0]
+
+		self.assertEqual("'a'", literal.NormalizedDesignator)
+
+	def test_EnumerationLiteral(self) -> None:
+		literal = _enumeration("T", "Idle").Literals[0]
+
+		self.assertEqual("idle", literal.NormalizedDesignator)
+
+	def test_ImplicitDeclarations(self) -> None:
+		"""An enumerated type in a region declares its literals; removing the type removes them."""
+		enumeration =  _enumeration("T", "Idle", "'a'")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[enumeration])
+		architecture.IndexDeclaredItems()
+
+		self.assertDictEqual(
+			{"idle": [enumeration.Literals[0]], "'a'": [enumeration.Literals[1]]},
+			architecture._namespace.ImplicitDeclarations
+		)
+
+		architecture.RemoveDeclaredItem(enumeration)
+
+		self.assertDictEqual({}, architecture._namespace.ImplicitDeclarations)
+
+
+class DeclarationProperties(Testcase):
+	"""What a namespace asks a declaration: ``IsOverloadable``, ``IterateImplicitDeclarations()``."""
+
+	def test_IsOverloadable(self) -> None:
+		"""Subprograms and enumeration literals are overloadable, other declarations aren't."""
+		self.assertTrue(_function("f", "integer").IsOverloadable)
+		self.assertTrue(_enumeration("T", "a").Literals[0].IsOverloadable)
+		self.assertFalse(_constant("K", "integer").IsOverloadable)
+		self.assertFalse(_enumeration("T", "a").IsOverloadable)
+
+	def test_GetIdentifier(self) -> None:
+		"""The identifier as declared, for a named entity, one of several names, and an enumeration literal."""
+		signal = Signal(("A", "Bc"), _subtypeSymbol("bit"))
+
+		self.assertEqual("K", _constant("K", "integer").GetIdentifier("k"))
+		self.assertEqual("Bc", signal.GetIdentifier("bc"))
+		self.assertEqual("Idle", _enumeration("T", "Idle").Literals[0].GetIdentifier("idle"))
+
+	def test_IterateImplicitDeclarations_EnumeratedType(self) -> None:
+		enumeration = _enumeration("T", "Idle", "'a'")
+
+		self.assertTupleEqual(
+			(("idle", enumeration.Literals[0]), ("'a'", enumeration.Literals[1])),
+			tuple(enumeration.IterateImplicitDeclarations())
+		)
+
+	def test_IterateImplicitDeclarations_PhysicalType(self) -> None:
+		"""The primary unit, then the secondary units."""
+		distance = _distance()
+
+		self.assertTupleEqual(
+			(("mm", distance.PrimaryUnit), ("cm", distance.SecondaryUnits[0])),
+			tuple(distance.IterateImplicitDeclarations())
+		)
+
+	def test_IterateImplicitDeclarations_None(self) -> None:
+		"""A declaration, which isn't an enumerated or physical type, implies nothing."""
+		self.assertTupleEqual((), tuple(_constant("K", "integer").IterateImplicitDeclarations()))
+
+
+def _name(*identifiers: str) -> Name:
+	"""A simple name, or an expanded name like ``work.p1.T``."""
+	name = SimpleName(identifiers[0])
+	for identifier in identifiers[1:]:
+		name = SelectedName(identifier, name)
+
+	return name
+
+
+def _alias(identifier: str, *names: str) -> Alias:
+	"""An alias without a subtype indication, as pyGHDL creates it: its name may denote any package member."""
+	return Alias(identifier, Symbol(_name(*names), PossibleReference.PackageMember | PossibleReference.EnumLiteral))
+
+
+def _typeAlias(identifier: str, *names: str) -> Alias:
+	"""An alias of a type by an expanded name, e.g. ``alias T is work.p1.T;``."""
+	return Alias(identifier, SimpleSubtypeSymbol(_name(*names)))
+
+
+class SubprogramAliases(Testcase):
+	"""An alias of a subprogram is overloadable, like the subprogram (IEEE ``std_logic_1164``: ``To_SLV``, ``bread``)."""
+
+	def test_Overloaded(self) -> None:
+		"""``alias f is f1 [...]; alias f is f2 [...];`` in ``p1``, ``function f`` in ``p2`` (GHDL accepts)."""
+		first =    _alias("f", "f1")
+		second =   _alias("f", "f2")
+		function = _function("f", "boolean")
+		packages = (
+			Package("p1", declaredItems=[_function("f1", "integer"), _function("f2", "bit"), first, second]),
+			Package("p2", declaredItems=[function])
+		)
+		entity = Entity("e", [_use("work.p1.all", "work.p2.all")])
+
+		with WarningCollector() as collector:
+			_design(*packages, entity)
+
+		self.assertListEqual([], collector.Warnings)
+		self.assertTupleEqual((first, second, function), entity._namespace.Lookup("f").Declarations)
+
+	def test_InRegion(self) -> None:
+		"""An alias and a function of the same name in one region are no duplicate."""
+		alias =        _alias("f", "f1")
+		function =     _function("f", "bit")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[_function("f1", "integer"), alias, function])
+
+		with WarningCollector() as collector:
+			_design(Entity("e"), architecture)
+
+		self.assertListEqual([], collector.Warnings)
+		self.assertTupleEqual((alias, function), architecture._namespace.Lookup("f").Declarations)
+
+	def test_ObjectAlias(self) -> None:
+		"""An alias of a signal isn't overloadable."""
+		self.assertFalse(Alias("x", SignalSymbol(SimpleName("s"))).IsOverloadable)
+
+
+class AliasConflicts(Testcase):
+	"""
+	Use-visible aliases and originals of one designator.
+
+	Use-visible declarations of one designator aren't directly visible, unless all are overloadable (IEEE Std 1076-2008,
+	12.4 c)). It doesn't matter, if they denote the same named entity: that's a condition of homographs (12.3), not of
+	this rule.
+	"""
+
+	def _assertConflict(self, namespace: Namespace, identifier: str, *declarations: ModelEntity) -> None:
+		result = namespace.Lookup(identifier)
+
+		self.assertFalse(result.IsVisible)
+		self.assertTrue(result.HasConflicts)
+		self.assertTupleEqual(declarations, tuple(imported.Element for imported in result.Conflicts))
+
+	def test_Object_AliasAndOriginal(self) -> None:
+		"""``constant K`` in ``p1``, ``alias K is work.p1.K;`` in ``p2`` (GHDL: "due to conflicts")."""
+		original = _constant("K", "integer")
+		alias =    _alias("K", "work", "p1", "K")
+		entity =   Entity("e", [_use("work.p1.all", "work.p2.all")])
+		design =   _design(
+			Package("p1", declaredItems=[original]), Package("p2", declaredItems=[alias]), entity, analyze=False
+		)
+
+		self.assertListEqual([], _resolve(design))
+		self.assertIs(original, alias.Name.Reference)
+		self._assertConflict(entity._namespace, "k", original, alias)
+
+	def test_Object_TwoAliases(self) -> None:
+		"""``alias K is work.p1.K;`` in ``p2`` and ``p3`` (GHDL: "due to conflicts")."""
+		first =  _alias("K", "work", "p1", "K")
+		second = _alias("K", "work", "p1", "K")
+		entity = Entity("e", [_use("work.p2.all", "work.p3.all")])
+		design = _design(
+			Package("p1", declaredItems=[_constant("K", "integer")]),
+			Package("p2", declaredItems=[first]),
+			Package("p3", declaredItems=[second]),
+			entity
+		, analyze=False)
+		self.assertListEqual([], _resolve(design))
+
+		self._assertConflict(entity._namespace, "k", first, second)
+
+	def test_Object_TwoAliases_NotResolved(self) -> None:
+		"""
+		Before :meth:`~pyVHDLModel.Design.AnalyzeObjects` resolves the alias names, an alias with a name of any kind may
+		denote a subprogram, so two of them aren't reported yet.
+		"""
+		first =  _alias("K", "work", "p1", "K")
+		second = _alias("K", "work", "p1", "K")
+		entity = Entity("e", [_use("work.p2.all", "work.p3.all")])
+		design = _design(
+			Package("p1", declaredItems=[_constant("K", "integer")]),
+			Package("p2", declaredItems=[first]),
+			Package("p3", declaredItems=[second]),
+			entity,
+			analyze=False
+		)
+		design.AnalyzeDependencies()
+
+		self.assertTupleEqual((first, second), entity._namespace.Lookup("k").Declarations)
+
+	def test_Type_AliasAndOriginal(self) -> None:
+		"""``type T`` in ``p1``, ``alias T is work.p1.T;`` in ``p2`` (12.4 c); GHDL accepts it)."""
+		original = _enumeration("T", "a", "b")
+		alias =    _typeAlias("T", "work", "p1", "T")
+		entity =   Entity("e", [_use("work.p1.all", "work.p2.all")])
+		_design(Package("p1", declaredItems=[original]), Package("p2", declaredItems=[alias]), entity)
+
+		self._assertConflict(entity._namespace, "t", original, alias)
+
+	def test_Type_TwoAliases(self) -> None:
+		"""``alias T is work.p1.T;`` in ``p2`` and ``p3`` (12.4 c); GHDL accepts it)."""
+		first =  _typeAlias("T", "work", "p1", "T")
+		second = _typeAlias("T", "work", "p1", "T")
+		entity = Entity("e", [_use("work.p2.all", "work.p3.all")])
+		_design(
+			Package("p1", declaredItems=[_enumeration("T", "a", "b")]),
+			Package("p2", declaredItems=[first]),
+			Package("p3", declaredItems=[second]),
+			entity
+		)
+
+		self._assertConflict(entity._namespace, "t", first, second)
+
+	def test_Type_TwoAliases_Resolved(self) -> None:
+		"""The same with a name of any kind, as pyGHDL creates it: the resolved name decides."""
+		first =  _alias("T", "work", "p1", "T")
+		second = _alias("T", "work", "p1", "T")
+		entity = Entity("e", [_use("work.p2.all", "work.p3.all")])
+		design = _design(
+			Package("p1", declaredItems=[_enumeration("T", "a", "b")]),
+			Package("p2", declaredItems=[first]),
+			Package("p3", declaredItems=[second]),
+			entity
+		, analyze=False)
+		self.assertListEqual([], _resolve(design))
+
+		self._assertConflict(entity._namespace, "t", first, second)
+
+	def test_Function_AliasAndOriginal(self) -> None:
+		"""``function f`` in ``p1``, ``alias f is work.p1.f [...];`` in ``p2`` and ``p3`` (GHDL accepts)."""
+		original = _function("f", "integer")
+		first =    _alias("f", "work", "p1", "f")
+		second =   _alias("f", "work", "p1", "f")
+		entity =   Entity("e", [_use("work.p1.all", "work.p2.all", "work.p3.all")])
+		design =   _design(
+			Package("p1", declaredItems=[original]),
+			Package("p2", declaredItems=[first]),
+			Package("p3", declaredItems=[second]),
+			entity
+		, analyze=False)
+		self.assertListEqual([], _resolve(design))
+
+		self.assertTupleEqual((original, first, second), entity._namespace.Lookup("f").Declarations)
+
+	def test_EnumerationLiteral_AliasAndOriginal(self) -> None:
+		"""``type T is (a, b);`` in ``p1``, ``alias a is work.p1.a [...];`` in ``p2`` and ``p3`` (GHDL accepts)."""
+		enumeration = _enumeration("T", "a", "b")
+		first =       _alias("a", "work", "p1", "a")
+		second =      _alias("a", "work", "p1", "a")
+		entity =      Entity("e", [_use("work.p1.all", "work.p2.all", "work.p3.all")])
+		design =      _design(
+			Package("p1", declaredItems=[enumeration]),
+			Package("p2", declaredItems=[first]),
+			Package("p3", declaredItems=[second]),
+			entity
+		, analyze=False)
+		self.assertListEqual([], _resolve(design))
+
+		self.assertTupleEqual((enumeration.Literals[0], first, second), entity._namespace.Lookup("a").Declarations)
+
+	def test_LocalAlias_Object(self) -> None:
+		"""
+		``use work.p1.all; alias K is work.p1.K;``: the local alias hides the use-visible original (GHDL accepts).
+
+		Both may be visible by 12.3, as they denote the same named entity: open, IEEE-P1076/VHDL-Issues#386.
+		"""
+		alias =        _alias("K", "work", "p1", "K")
+		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p1.all")], declaredItems=[alias])
+		design =       _design(
+			Package("p1", declaredItems=[_constant("K", "integer")]), Entity("e"), architecture, analyze=False
+		)
+		self.assertListEqual([], _resolve(design))
+
+		self.assertTupleEqual((alias, ), architecture._namespace.Lookup("k").Declarations)
+
+	def test_LocalAlias_Type(self) -> None:
+		"""``use work.p1.all; alias T is work.p1.T;``: open as above (GHDL accepts)."""
+		original =     _enumeration("T", "a", "b")
+		alias =        _typeAlias("T", "work", "p1", "T")
+		signal =       _signal("s", "T")
+		architecture = Architecture("rtl", _entitySymbol("e"), [_use("work.p1.all")], declaredItems=[alias, signal])
+		design =       _design(Package("p1", declaredItems=[original]), Entity("e"), architecture, analyze=False)
+		self.assertListEqual([], _resolve(design))
+
+		self.assertTupleEqual((alias, ), architecture._namespace.Lookup("t").Declarations)
+		self.assertIs(original, signal.Subtype.Reference)
+
+
+class StaleImports(Testcase):
+	"""Imports are computed by the analysis; a removed use clause is ignored until the next analysis."""
+
+	def setUp(self) -> None:
+		self._type =      _enumeration("T", "a", "b")
+		self._package =   Package("p", declaredItems=[self._type])
+		self._useClause = _use("work.p.all")
+		self._signal =    _signal("s", "T")
+
+	def test_RemoveUseClause(self) -> None:
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[self._useClause, self._signal])
+		_design(self._package, Entity("e"), architecture)
+
+		architecture.RemoveDeclaredItem(self._useClause)
+
+		self.assertFalse(architecture._namespace.Lookup("t", self._signal).IsVisible)
+
+	def test_MoveUseClause(self) -> None:
+		"""The use clause moved behind the signal: the import follows its new position."""
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[self._useClause, self._signal])
+		_design(self._package, Entity("e"), architecture)
+
+		architecture.RemoveDeclaredItem(self._useClause)
+		architecture.AddDeclaredItem(self._useClause)
+
+		self.assertFalse(architecture._namespace.Lookup("t", self._signal).IsVisible)
+		self.assertTupleEqual((self._type, ), architecture._namespace.Lookup("t").Declarations)

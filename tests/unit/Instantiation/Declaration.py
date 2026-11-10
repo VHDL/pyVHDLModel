@@ -33,8 +33,10 @@ from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Base        import ReservedWord
 from pyVHDLModel.Name        import SimpleName
-from pyVHDLModel.Symbol      import ConstrainedArraySubtypeSymbol, Symbol, PossibleReference
-from pyVHDLModel.Declaration import Alias, EntityClass
+from pyVHDLModel.Symbol      import ConstrainedArraySubtypeSymbol, Symbol, PossibleReference, \
+                                    SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Expression  import IntegerLiteral
+from pyVHDLModel.Declaration import Alias, AttributeSpecification, EntityClass
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -83,3 +85,28 @@ class Aliases(Testcase):
 		self.assertEqual("a", alias.Identifier)
 		self.assertIs(name, alias.Name)
 		self.assertIs(subtype, alias.Subtype)
+
+
+class AttributeSpecifications(Testcase):
+	def test_Construction(self) -> None:
+		"""``attribute bits of byte : subtype is 8;``"""
+		identifier =    SimpleName("byte")
+		attribute =     SimpleName("bits")
+		expression =    IntegerLiteral(8)
+		specification = AttributeSpecification([identifier], attribute, EntityClass.Subtype, expression)
+
+		self.assertListEqual([identifier], specification.Identifiers)
+		self.assertIs(attribute, specification.Attribute)
+		self.assertIs(EntityClass.Subtype, specification.EntityClass)
+		self.assertIs(expression, specification.Expression)
+		self.assertIs(specification, identifier.Parent)
+		self.assertIs(specification, attribute.Parent)
+		self.assertIs(specification, expression.Parent)
+
+	def test_Construction_SymbolExpression(self) -> None:
+		"""``attribute bits of byte : subtype is WIDTH;``"""
+		expression =    SimpleObjectOrFunctionCallSymbol(SimpleName("WIDTH"))
+		specification = AttributeSpecification([SimpleName("byte")], SimpleName("bits"), EntityClass.Subtype, expression)
+
+		self.assertIs(expression, specification.Expression)
+		self.assertIs(specification, expression.Parent)

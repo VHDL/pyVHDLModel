@@ -32,10 +32,11 @@
 """Instantiation tests for the model's top-level composition: names, symbols, design, library and document."""
 from pathlib                   import Path
 
+from pyTooling.Exceptions      import DuplicateElementError
 from pyTooling.Graph           import Graph
 from pyTooling.Testing         import Testcase
 
-from pyVHDLModel               import Design, Library, Document, IEEEFlavor, LibraryExistsInDesignError, \
+from pyVHDLModel               import Design, Library, Document, IEEEFlavor, ObjectClass, LibraryExistsInDesignError, \
                                       VHDLModelException
 from pyVHDLModel.Base          import Direction, SimpleRange
 from pyVHDLModel.Name          import SelectedName, SimpleName, AllName, AttributeName
@@ -53,6 +54,8 @@ from pyVHDLModel.Type          import Subtype, IntegerType, RealType, ArrayType,
 from pyVHDLModel.DesignUnit    import Package, PackageBody, Context, Entity, Architecture, Configuration, \
                                       LibraryClause
 from pyVHDLModel.Association   import GenericAssociationItem
+from pyVHDLModel.Exception     import IEEEFlavorError, UnknownIEEEFlavorError, IEEEFlavorChangeError, \
+                                      DuplicateDesignUnitError
 from pyVHDLModel.Instantiation import PackageInstantiation, FunctionInstantiation, ProcedureInstantiation
 from pyVHDLModel.PSLModel      import DefaultClock
 from pyVHDLModel.STD           import Std, Standard
@@ -63,6 +66,26 @@ if __name__ == "__main__":  # pragma: no cover
 	print("ERROR: you called a testcase declaration file as an executable module.")
 	print("Use: 'python -m unitest <testcase module>'")
 	exit(1)
+
+
+class ObjectClasses(Testcase):
+	def test_AllValues(self) -> None:
+		"""Every ``ObjectClass`` value has a dedicated formatting slot in ``ObjectClass.__str__``'s lookup tuple."""
+		expected = {
+			ObjectClass.Default:   "",
+			ObjectClass.Constant:  "constant",
+			ObjectClass.Variable:  "variable",
+			ObjectClass.Signal:    "signal",
+			ObjectClass.File:      "file",
+			ObjectClass.Type:      "type",
+			ObjectClass.Package:   "package",
+			ObjectClass.Procedure: "procedure",
+			ObjectClass.Function:  "function"
+		}
+
+		self.assertEqual(len(ObjectClass), len(expected))
+		for objectClass, text in expected.items():
+			self.assertEqual(text, str(objectClass))
 
 
 class Names(Testcase):
@@ -548,7 +571,7 @@ class SimpleInstance(Testcase):
 		self.assertEqual("real", real.Identifier)
 
 	def test_Array(self) -> None:
-		array = ArrayType("bit_vector", [], None, None)
+		array = ArrayType("bit_vector", [], SimpleSubtypeSymbol(SimpleName("bit")), None)
 
 		self.assertIsNotNone(array)
 		self.assertEqual("bit_vector", array.Identifier)
@@ -710,11 +733,13 @@ class VHDLDocumentArchitectures(Testcase):
 
 	def test_Architecture_DuplicateMixedCase(self) -> None:
 		"""A second architecture differing only in case is a duplicate."""
-		document = Document(Path("tests.vhdl"), parent=None)
-		document._AddArchitecture(Architecture("RTL", EntitySymbol(SimpleName("entity_1")), parent=None))
+		document =     Document(Path("tests.vhdl"), parent=None)
+		existing =     Architecture("RTL", EntitySymbol(SimpleName("entity_1")), parent=None)
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("entity_1")), parent=None)
+		document._AddArchitecture(existing)
 
-		with self.assertRaises(VHDLModelException) as context:
-			document._AddArchitecture(Architecture("rtl", EntitySymbol(SimpleName("entity_1")), parent=None))
+		with self.assertRaises(DuplicateDesignUnitError) as context:
+			document._AddArchitecture(architecture)
 
 		self.assertEqual(
 			"An architecture 'rtl' for entity 'entity_1' already exists in this document.",
@@ -722,9 +747,36 @@ class VHDLDocumentArchitectures(Testcase):
 		)
 		self.assertEqual(1, len(document.Architectures["entity_1"]))
 		self.assertEqual(1, len(document.DesignUnits))
+		self.assertEqual("rtl", context.exception.Identifier)
+		self.assertIs(document, context.exception.Parent)
+		self.assertIs(architecture, context.exception.Element)
+		self.assertIs(existing, context.exception.Existing)
+		self.assertIsInstance(context.exception, DuplicateElementError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_Entity_Duplicate(self) -> None:
+		"""A second entity of the same identifier is a duplicate."""
+		document = Document(Path("tests.vhdl"), parent=None)
+		existing = Entity("Entity_1", parent=None)
+		entity =   Entity("entity_1", parent=None)
+		document._AddEntity(existing)
+
+		with self.assertRaises(DuplicateDesignUnitError) as context:
+			document._AddEntity(entity)
+
+		self.assertEqual("An entity 'entity_1' already exists in this document.", str(context.exception))
+		self.assertIs(entity, context.exception.Element)
+		self.assertIs(existing, context.exception.Existing)
+		self.assertIsInstance(context.exception, DuplicateElementError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 
 class VHDLLibrary(Testcase):
+	def test_IsPredefined(self) -> None:
+		"""A library built by the model isn't predefined, a predefined library (e.g. ``std``) is."""
+		self.assertFalse(Library("lib").IsPredefined)
+		self.assertTrue(Std().IsPredefined)
+
 	def test_DocumentationFromInitializer(self) -> None:
 		"""VHDL has no library declaration to hang a comment on, so a caller supplies one."""
 		library = Library("lib_1", "--! From a compile-order file.")
@@ -903,6 +955,45 @@ class VHDLLibrary(Testcase):
 		self.assertEqual(10, len(ieeeLibrary.PackageBodies))
 
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
+
+	def test_IeeeLibrary_UnknownFlavor(self) -> None:
+		design = Design()
+
+		with self.assertRaises(UnknownIEEEFlavorError) as context:
+			design.LoadIEEELibrary(IEEEFlavor.WithVITAL)
+
+		self.assertEqual(f"Unknown IEEE library flavor '{IEEEFlavor.WithVITAL}'.", str(context.exception))
+		self.assertIs(IEEEFlavor.WithVITAL, context.exception.Flavor)
+		self.assertIsInstance(context.exception, IEEEFlavorError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_IeeeSynopsysLibrary_ChangeFlavor(self) -> None:
+		design =      Design()
+		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.Synopsys)
+
+		with self.assertRaises(IEEEFlavorChangeError) as context:
+			ieeeLibrary.LoadMentorGraphicsPackages()
+
+		self.assertEqual(
+			f"IEEE library flavor is '{IEEEFlavor.Synopsys}' and can't be changed to '{IEEEFlavor.MentorGraphics}'.",
+			str(context.exception)
+		)
+		self.assertIs(IEEEFlavor.MentorGraphics, context.exception.Flavor)
+		self.assertIs(IEEEFlavor.Synopsys, context.exception.CurrentFlavor)
+		self.assertIsInstance(context.exception, IEEEFlavorError)
+		self.assertIsInstance(context.exception, VHDLModelException)
+
+	def test_IeeeMentorGraphicsLibrary_ChangeFlavor(self) -> None:
+		design =      Design()
+		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.MentorGraphics)
+
+		with self.assertRaises(IEEEFlavorChangeError) as context:
+			ieeeLibrary.LoadSynopsysPackages()
+
+		self.assertEqual(
+			f"IEEE library flavor is '{IEEEFlavor.MentorGraphics}' and can't be changed to '{IEEEFlavor.Synopsys}'.",
+			str(context.exception)
+		)
 
 
 class PredefinedCharacterLiterals(Testcase):

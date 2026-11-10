@@ -52,7 +52,7 @@ from pyVHDLModel.Sequential      import IndexedChoice, SequentialProcedureCall, 
                                         EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, NextStatement, \
                                         ExitStatement
 from pyVHDLModel.Subprogram      import Function
-from pyVHDLModel.Symbol          import AggregateSymbol
+from pyVHDLModel.Symbol          import AggregateSymbol, LoopSymbol
 
 from tests.unit                  import _signalSymbol, _subtypeSymbol, _variableSymbol
 from tests.unit.Writer           import _object
@@ -286,6 +286,33 @@ class CompoundStatements(Testcase):
 			  exit when done;
 			  exit;
 			end loop forever;
+			"""), VHDLWriter().Format(statement))
+
+	def test_Next_LoopLabel(self) -> None:
+		statement = NextStatement(_object("skip"), LoopSymbol(SimpleName("outer")))
+
+		self.assertEqual("next outer when skip;\n", VHDLWriter().Format(statement))
+
+	def test_Exit_LoopLabel(self) -> None:
+		statement = ExitStatement(loopLabel=LoopSymbol(SimpleName("outer")), label="lbl")
+
+		self.assertEqual("lbl : exit outer;\n", VHDLWriter().Format(statement))
+
+	def test_NestedLoops(self) -> None:
+		statement = ForLoopStatement("i", SimpleRange(IntegerLiteral(0), IntegerLiteral(3), Direction.To), [
+			EndlessLoopStatement([
+				NextStatement(_object("skip"), LoopSymbol(SimpleName("outer"))),
+				ExitStatement(_object("done"), LoopSymbol(SimpleName("outer")), "leave")
+			], "inner")
+		], "outer")
+
+		self.assertEqual(dedent("""\
+			outer : for i in 0 to 3 loop
+			  inner : loop
+			    next outer when skip;
+			    leave : exit outer when done;
+			  end loop inner;
+			end loop outer;
 			"""), VHDLWriter().Format(statement))
 
 	def test_Nested(self) -> None:

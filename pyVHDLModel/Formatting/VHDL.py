@@ -47,7 +47,7 @@ from pyTooling.Decorators      import export, readonly
 from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
 from pyVHDLModel.Association   import AssociationItem, GenericMapAspectMixin, PortMapAspectMixin
-from pyVHDLModel.Base          import ModelElementUnion, ModelEntity, Mode, ReservedWord, SimpleRange, RangeFromName, \
+from pyVHDLModel.Base          import ModelEntity, Mode, ReservedWord, SimpleRange, RangeFromName, \
                                       WaveformElement, ReportStatementMixin, NamedEntityMixin, LabeledEntityMixin
 from pyVHDLModel.Common        import Statement, ProcedureCallMixin, SignalAssignmentMixin, WaveformMixin, \
                                       ConditionalWaveform, SelectedWaveform, OthersSelectedWaveform, \
@@ -103,7 +103,7 @@ from pyVHDLModel.Sequential    import IndexedChoice, SequentialProcedureCall, Se
                                       LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, \
                                       LoopControlStatement, NextStatement, ExitStatement
 from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
-from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
+from pyVHDLModel.Symbol        import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
                                       ConstrainedRecordSubtypeSymbol, AggregateSymbol
 from pyVHDLModel.Type          import AnonymousType, FullType, Subtype, EnumeratedType, IntegerType, RealType, \
                                       PhysicalType, ArrayType, RecordTypeElement, RecordType, AccessType, FileType, \
@@ -865,7 +865,7 @@ class VHDLWriter(Visitor):
 		"""
 		return self._style
 
-	def Format(self, element: ModelElementUnion) -> str:
+	def Format(self, element: ModelEntity) -> str:
 		"""
 		Format a model element as VHDL source text.
 
@@ -876,15 +876,14 @@ class VHDLWriter(Visitor):
 		:param element:              The model element to format.
 		:returns:                    The VHDL source text.
 		:raises ValueError:          If parameter 'element' is None.
-		:raises TypeError:           If parameter 'element' is not of type :class:`~pyVHDLModel.Base.ModelEntity` or
-		                             :class:`~pyVHDLModel.Symbol.Symbol`.
+		:raises TypeError:           If parameter 'element' is not of type :class:`~pyVHDLModel.Base.ModelEntity`.
 		:raises NotImplementedError: If the class of the element or of one of its children has no walk of its own.
 		:raises VHDLWriterError:     If the element or one of its children has no VHDL notation.
 		"""
 		if element is None:
 			raise ValueError("Parameter 'element' is None.")
-		elif not isinstance(element, (ModelEntity, Symbol)):
-			ex = TypeError("Parameter 'element' is not of type 'ModelEntity' or 'Symbol'.")
+		elif not isinstance(element, ModelEntity):
+			ex = TypeError("Parameter 'element' is not of type 'ModelEntity'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
 			raise ex
 
@@ -4035,24 +4034,24 @@ class VHDLWriter(Visitor):
 		"""
 		Write the label, if any, and the reserved word ``next`` of a next statement.
 
-		**Format:** ``next when skip;``
-
-		The model keeps no loop label, so none is written.
+		**Format:** ``next outer when skip;``
 
 		:param statement: The next statement.
 		"""
 		self._WriteStatementStart(statement)
 		self._Write(self._Keyword(ReservedWord.Next))
+		if statement.LoopReference is not None:
+			self._Write(" ")
 
 	def VisitExitStatement(self, statement: ExitStatement) -> None:
 		"""
 		Write the label, if any, and the reserved word ``exit`` of an exit statement.
 
-		**Format:** ``exit when done;``
-
-		The model keeps no loop label, so none is written.
+		**Format:** ``exit outer when done;``
 
 		:param statement: The exit statement.
 		"""
 		self._WriteStatementStart(statement)
 		self._Write(self._Keyword(ReservedWord.Exit))
+		if statement.LoopReference is not None:
+			self._Write(" ")

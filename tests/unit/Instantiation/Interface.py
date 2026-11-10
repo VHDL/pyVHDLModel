@@ -40,7 +40,7 @@ from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ModeViewSymbol
 from pyVHDLModel.Expression import IntegerLiteral
 from pyVHDLModel.Subprogram import Function, Procedure
 from pyVHDLModel.Interface  import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, \
-                                   PortSignalInterfaceItem, PortSimpleSignalInterfaceItem, \
+                                   PortInterfaceItemMixin, PortSignalInterfaceItem, PortSimpleSignalInterfaceItem, \
                                    PortViewSignalInterfaceItem, ParameterSignalInterfaceItem, \
                                    ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem, \
                                    GenericInterfaceItemMixin, GenericSubprogramInterfaceItemMixin, \
@@ -149,6 +149,7 @@ class PortSignalInterfaceItems(Testcase):
 		port = PortSimpleSignalInterfaceItem(["p"], Mode.In, SimpleSubtypeSymbol(SimpleName("bit")))
 
 		self.assertIsInstance(port, PortSignalInterfaceItem)
+		self.assertIsInstance(port, PortInterfaceItemMixin)
 		self.assertEqual(Mode.In, port.Mode)
 		self.assertIsNotNone(port.Subtype)
 
@@ -157,6 +158,8 @@ class PortSignalInterfaceItems(Testcase):
 		port = PortViewSignalInterfaceItem(["p"], modeViewIndication)
 
 		self.assertIsInstance(port, PortSignalInterfaceItem)
+		self.assertIsInstance(port, PortInterfaceItemMixin)
+		self.assertFalse(hasattr(port, "Mode"))
 		self.assertIs(modeViewIndication, port.ModeViewIndication)
 		self.assertIs(modeViewIndication, port.Subtype)
 
@@ -285,10 +288,14 @@ class ParameterInterfaceItems(Testcase):
 
 
 class WithGenericsPortsParametersMixins(Testcase):
-	"""Tested via a minimal local host combining each mixin with itself (mixins can't be
+	"""
+	Item counts of the generic, port and parameter mixins.
+
+	Tested via a minimal local host combining each mixin with itself (mixins can't be
 	instantiated standalone - see the design note in tests/unit/Base.py); real design-unit/
 	subprogram hosts already exercise these mixins incidentally in their own slices, but nothing
-	elsewhere reads the ``*Count`` properties, so that's the focus here."""
+	elsewhere reads the ``*Count`` properties, so that's the focus here.
+	"""
 
 	def test_WithGenericsMixin(self) -> None:
 		class _Host(WithGenericsMixin):
@@ -342,6 +349,38 @@ class WithGenericsPortsParametersMixins(Testcase):
 
 		self.assertEqual(1, host.ParameterCount)
 
+	def test_GenericCount_Identifiers(self) -> None:
+		"""A generic constant item with several identifiers declares several generics."""
+		entity = Entity("e", genericItems=[
+			_generic("A", "B"),
+			GenericTypeInterfaceItem("T"),
+			GenericProcedureInterfaceItem("p")
+		])
+
+		self.assertEqual(3, len(entity.GenericItems))
+		self.assertEqual(4, entity.GenericCount)
+
+	def test_PortCount_Identifiers(self) -> None:
+		"""A port item with several identifiers declares several ports."""
+		entity = Entity("e", portItems=[
+			_port("a", "b"),
+			PortSimpleSignalInterfaceItem(["c"], Mode.Out, _subtypeSymbol("bit"))
+		])
+
+		self.assertEqual(2, len(entity.PortItems))
+		self.assertEqual(3, entity.PortCount)
+
+	def test_ParameterCount_Identifiers(self) -> None:
+		"""A parameter item with several identifiers declares several parameters."""
+		procedure = Procedure("p", parameterItems=[
+			_parameter("a", "b"),
+			ParameterVariableInterfaceItem(["v"], Mode.InOut, _subtypeSymbol("integer")),
+			ParameterFileInterfaceItem(["f1", "f2"], _subtypeSymbol("text"))
+		])
+
+		self.assertEqual(3, len(procedure.ParameterItems))
+		self.assertEqual(5, procedure.ParameterCount)
+
 
 class InterfaceItemRendering(Testcase):
 	"""An interface item renders as an object declaration plus its interface mode - an object's own
@@ -388,7 +427,10 @@ class InterfaceItemRendering(Testcase):
 
 
 class Groups(Testcase):
-	"""Regression test (``__str__``): all three built their string via
+	"""
+	String format of generic, port and parameter groups.
+
+	Regression test (``__str__``): all three built their string via
 	``p._identifier for p in self._xItems``, but interface items come in two incompatible shapes -
 	``NamedEntityMixin``-based (singular ``_identifier`` - the four ``Generic*`` subprogram/package/
 	type items) vs. ``MultipleNamedEntityMixin``-based (plural ``_identifiers`` - every
@@ -397,7 +439,8 @@ class Groups(Testcase):
 	once: ``port (p1, p2 : in bit);``). ``PortGroup``/``ParameterGroup.__str__`` crashed for
 	essentially any realistic content, and ``GenericGroup.__str__`` crashed the moment a
 	``GenericConstantInterfaceItem`` was included or a group mixed both item shapes. Fixed via the
-	shared ``_identifiersOf()`` helper, which flattens either shape into a plain tuple of names."""
+	shared ``_identifiersOf()`` helper, which flattens either shape into a plain tuple of names.
+	"""
 
 	def test_GenericGroup(self) -> None:
 		item = GenericTypeInterfaceItem("T")

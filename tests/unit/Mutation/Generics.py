@@ -31,16 +31,18 @@
 """
 Mutation tests for generic clauses (:class:`~pyVHDLModel.Regions.WithGenericsMixin`).
 
-The mutators are tested on an entity and a subprogram (declarative regions with a namespace) and a component (no
-namespace). The generic groups of the language construct stay a partition of its generic clause.
+The mutators are tested on declarative regions with a namespace: an entity, a subprogram and a component. The generic
+groups of the language construct stay a partition of its generic clause.
 """
+from pyTooling.Exceptions   import NotAChildError as CommonNotAChildError
 from pyTooling.MetaClasses  import UnfulfilledExpectationError
 from pyTooling.Warning      import WarningCollector
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import ModelEntity
 from pyVHDLModel.DesignUnit import Component, Entity
-from pyVHDLModel.Exception  import AlreadyInDesignError, NotAChildError, DuplicateGenericError, NotInNamespaceError
+from pyVHDLModel.Exception  import VHDLModelException, AlreadyInDesignError, NotAChildError, DuplicateGenericError, \
+                                   NotInNamespaceError
 from pyVHDLModel.Interface  import GenericTypeInterfaceItem, GenericFunctionInterfaceItem, GenericGroup
 from pyVHDLModel.Regions    import WithGenericsMixin
 from pyVHDLModel.Subprogram import Procedure
@@ -322,6 +324,8 @@ class Generics(Testcase):
 			entity.RemoveGenericItem(bits)
 
 		self.assertEqual("GenericConstantInterfaceItem 'BITS' is not a generic of this Entity.", str(context.exception))
+		self.assertIsInstance(context.exception, VHDLModelException)
+		self.assertIsInstance(context.exception, CommonNotAChildError)
 		self.assertIs(bits, context.exception.Element)
 		self.assertIs(entity, context.exception.Parent)
 		self.assertEqual(1, entity.GenericCount)
@@ -378,6 +382,22 @@ class Generics(Testcase):
 
 		self.assertNotIn("bits", entity._namespace._elements)
 		self.assertNotIn("depth", entity._namespace._elements)
+
+	def test_Namespace_Component(self) -> None:
+		port =      _port("Clock")
+		component = Component("c", portItems=[port])
+		component.IndexDeclaredItems()
+		item = _generic("BITS", "Depth")
+
+		component.AddGenericItem(item)
+
+		self.assertDictEqual({"clock": port, "bits": item, "depth": item}, component._namespace._elements)
+		self.assertDictEqual(*_reindexed(component))
+
+		component.RemoveGenericItem(item)
+
+		self.assertDictEqual({"clock": port}, component._namespace._elements)
+		self.assertDictEqual(*_reindexed(component))
 
 	def test_Namespace_Indexed(self) -> None:
 		"""Re-indexing after a mutation neither duplicates nor revives entries."""

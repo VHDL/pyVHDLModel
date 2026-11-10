@@ -68,8 +68,7 @@ class AssociationItem(ModelEntity):
 	"""
 	A base-class for all association items.
 
-	The association item is the parent of its formal and its actual, if they are model entities: a
-	:class:`~pyVHDLModel.Symbol.Symbol` has no parent.
+	The association item is the parent of its formal and its actual, if they are model entities.
 
 	.. seealso::
 

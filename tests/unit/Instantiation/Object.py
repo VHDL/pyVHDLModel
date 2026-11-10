@@ -46,9 +46,13 @@ if __name__ == "__main__":  # pragma: no cover
 
 
 class ObjBaseBehaviour(Testcase):
-	"""``Obj`` itself has no public subclass without a more specific meaning, so its shared behaviour
+	"""
+	Behaviour shared by all objects, tested via ``Signal``.
+
+	``Obj`` itself has no public subclass without a more specific meaning, so its shared behaviour
 	(multiple identifiers, subtype parent-wiring, the object-graph vertex) is tested once here via
-	``Signal`` - any ``Obj`` subclass would do equally well, since none of this is overridden."""
+	``Signal`` - any ``Obj`` subclass would do equally well, since none of this is overridden.
+	"""
 
 	def test_SingleIdentifier(self) -> None:
 		subtype = _subtypeSymbol("natural")
@@ -85,9 +89,13 @@ class ObjBaseBehaviour(Testcase):
 
 
 class WithDefaultExpression(Testcase):
-	"""``WithDefaultExpressionMixin`` is shared by ``Constant``, ``Variable`` and ``Signal`` - tested
+	"""
+	Default expressions of constants, variables and signals.
+
+	``WithDefaultExpressionMixin`` is shared by ``Constant``, ``Variable`` and ``Signal`` - tested
 	once via ``Signal`` for the parent-wiring behaviour, plus one smoke test per consumer below to
-	confirm each is actually wired up."""
+	confirm each is actually wired up.
+	"""
 
 	def test_WithDefaultExpression(self) -> None:
 		default = IntegerLiteral(0)

@@ -42,8 +42,8 @@ from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, BaseCase, BaseChoice, WaveformElement, \
-                                    ConditionalMixin, ChoicesMixin
+from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, BaseCase, BaseChoice, \
+                                    WaveformElement, ConditionalMixin, ChoicesMixin
 from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError, \
                                     DuplicateParameterAssociationError
 from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
@@ -108,16 +108,19 @@ class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True, expects=("_parent",
 		1. If allow blackbox property is locally set, return the local value,
 		2. Otherwise, return allow blackbox value from parent object.
 
-		:returns:                   ``True``, if blackboxes are allowed.
-		:raises VHDLModelException: If neither a local value is set nor a parent object is available to inherit the
-		                            value from.
+		:returns:                         ``True``, if blackboxes are allowed.
+		:raises AllowBlackboxNotSetError: If neither a local value is set nor a parent object is available to inherit
+		                                  the value from.
 		"""
 		if self._allowBlackbox is not None:
 			return self._allowBlackbox
 		elif self._parent is None:
-			from pyVHDLModel.Exception import VHDLModelException
+			from pyVHDLModel.Exception import AllowBlackboxNotSetError
 
-			raise VHDLModelException(f"AllowBlackbox is not set on {self!r} and no parent is available to inherit it from.")
+			raise AllowBlackboxNotSetError(
+				f"AllowBlackbox is not set on {self!r} and no parent is available to inherit it from.",
+				element=self
+			)
 		else:
 			return self._parent.AllowBlackbox
 
@@ -128,7 +131,7 @@ class AllowBlackboxMixin(metaclass=ExtendedType, mixin=True, expects=("_parent",
 
 @export
 @abstractclass
-class Statement(ModelEntity, LabeledEntityMixin):
+class Statement(ModelEntity, LabeledEntityMixin, DocumentedEntityMixin):
 	"""
 	A ``Statement`` is a base-class for all statements.
 
@@ -137,15 +140,18 @@ class Statement(ModelEntity, LabeledEntityMixin):
 	   * :class:`Concurrent statement <pyVHDLModel.Concurrent.ConcurrentStatement>`
 	   * :class:`Sequential statement <pyVHDLModel.Sequential.SequentialStatement>`
 	"""
-	def __init__(self, label: Nullable[str] = None, parent=None) -> None:
+	def __init__(self, label: Nullable[str] = None, documentation: Nullable[str] = None, parent=None) -> None:
 		"""
 		Initializes a statement.
 
-		:param label:  Optional, the label of a model entity. Default: ``None``, no label.
-		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param label:         Optional, the label of a model entity. Default: ``None``, no label.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(parent)
 		LabeledEntityMixin.__init__(self, label)
+		DocumentedEntityMixin.__init__(self, documentation)
 
 
 @export
@@ -176,7 +182,7 @@ class ProcedureCallMixin(metaclass=ExtendedType, mixin=True):
 		:param parameterAssociationItems: Optional, list of all parameter associations of the call.
 		                                  Default: ``None``, no parameter associations.
 		"""
-		self._procedure = procedureName
+		self._procedure =      procedureName
 		procedureName.Parent = self
 
 		# TODO: extract to mixin

@@ -36,22 +36,26 @@ Types.
 """
 from __future__             import annotations
 
-from typing                 import TYPE_CHECKING, ClassVar, Union, Iterator, Iterable, Optional as Nullable, Self
+from typing                 import TYPE_CHECKING, ClassVar, Generator, Union, Iterator, Iterable, \
+                                   Optional as Nullable, Self
 
 from pyTooling.Common       import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 from pyTooling.Graph        import Vertex
+from pyTooling.Warning      import WarningCollector
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                    Range, ReservedWord
-from pyVHDLModel.Exception  import NotAChildError
-from pyVHDLModel.Symbol     import Symbol, SimpleSubtypeSymbol
+from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning
+from pyVHDLModel.Name       import Name
+from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
-from pyVHDLModel.Regions    import ProtectedTypeDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
-                                   WithoutStatementsMixin
+from pyVHDLModel.Regions    import DeclarativeRegionMixin, ProtectedTypeDeclarationRegionMixin, \
+                                   SequentialDeclarationRegionMixin, WithoutStatementsMixin
 
 if TYPE_CHECKING:
+	from pyVHDLModel.DesignUnit import DesignUnit
 	from pyVHDLModel.Visitor  import Visitor
 
 
@@ -88,6 +92,35 @@ class BaseType(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		DocumentedEntityMixin.__init__(self, documentation)
 
 		self._objectVertex = None
+
+	@readonly
+	def BaseType(self) -> BaseType:
+		"""
+		Read-only property to return the base type of this type: the type itself (IEEE Std 1076-2008, 5.1).
+
+		A subtype returns the base type of the type it is derived from (:attr:`~pyVHDLModel.Type.Subtype.BaseType`).
+
+		:returns: The base type.
+		"""
+		return self
+
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarativeRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[ModelEntity]:
+		"""
+		Return this type or subtype, the model entity a name in a type mark denotes.
+
+		:param name:   The name denoting this declaration, a part of the type mark.
+		:param region: The declarative region containing the type mark.
+		:param place:  The declaration containing the type mark.
+		:param symbol: The type mark.
+		:returns:      This type or subtype.
+		"""
+		return self
 
 	def __str__(self) -> str:
 		"""
@@ -137,6 +170,28 @@ class AnonymousType(Type):
 	        nextNode : ptr;
 	      end record;
 	"""
+
+	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
+		"""
+		Check that a full type declaration of the same name completes this incomplete type later in its region.
+
+		:param designUnit:                     The design unit containing this declaration.
+		:param region:                         The declarative region declaring this declaration.
+		:raises UnhandledCriticalWarningError: If no full type declaration follows in the region, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		"""
+		super().ResolveReferences(designUnit, region)
+
+		declarations = region._Declarations()
+		for declaration in declarations[declarations.index(self) + 1:]:
+			if isinstance(declaration, FullType) and declaration._normalizedIdentifier == self._normalizedIdentifier:
+				return
+
+		WarningCollector.Raise(IncompleteTypeWarning(
+			f"Incomplete type '{self._identifier}' has no full type declaration in '{region._namespace._name}'.",
+			incompleteType=self
+		))
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -242,7 +297,9 @@ class Subtype(BaseType):
 		"""
 		Read-only property to access the base type (:attr:`_baseType`).
 
-		:returns: The base type.
+		It is set, when the subtype's type mark is resolved (:meth:`ResolveReferences`).
+
+		:returns: The base type, or ``None`` if the type mark isn't resolved.
 		"""
 		return self._baseType
 
@@ -263,6 +320,50 @@ class Subtype(BaseType):
 		:returns: The resolution function.
 		"""
 		return self._resolutionFunction
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this subtype declaration: the type mark it is derived from.
+
+		:param region:  The declarative region declaring this subtype.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the subtype's type mark.
+		"""
+		if isinstance(self._type, SubtypeSymbol):
+			yield region, self, self._type
+
+	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
+		"""
+		Resolve the type mark of this subtype and set its base type (:attr:`BaseType`): the resolved type, or the base type
+		of the resolved subtype; ``None``, if the type mark isn't resolved.
+
+		:param designUnit:                     The design unit containing this declaration.
+		:param region:                         The declarative region declaring this declaration.
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		super().ResolveReferences(designUnit, region)
+
+		if (reference := self._type._reference) is None:
+			self._baseType = None
+		else:
+			self._baseType = reference.BaseType
+
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
+		"""
+		Reset the reference of this subtype's type mark and its base type; a subtype of a predefined library
+		(:attr:`~pyVHDLModel.Library.IsPredefined`) keeps its base type.
+
+		:param designUnit: The design unit containing this declaration.
+		:param region:     The declarative region declaring this declaration.
+		"""
+		super().ResetReferences(designUnit, region)
+
+		if not designUnit._parent.IsPredefined:
+			self._baseType = None
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -423,6 +524,15 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		"""
 		return self._literals
 
+	def IterateImplicitDeclarations(self) -> Generator[tuple[str, EnumerationLiteral], None, None]:
+		"""
+		Iterate the enumeration literals this type declaration implies.
+
+		:returns: A generator to iterate (normalized designator, enumeration literal) pairs, in declaration order.
+		"""
+		for literal in self._literals:
+			yield literal.NormalizedDesignator, literal
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this enumerated type and its literals with a visitor.
@@ -552,14 +662,86 @@ class RealType(RangedScalarType, NumericTypeMixin):
 
 
 @export
+class PhysicalUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
+	"""
+	Represents a unit declaration of a physical type: its primary unit or one of its secondary units.
+
+	A unit name is declared by the physical type's declaration in the declarative region enclosing the type, so it's
+	visible like the type itself, e.g. imported by a use clause. The unit's parent is its physical type; the unit is the
+	parent of its value.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      type distance is range 0 to 1000000 units
+	        um;
+	      --^^                                        <- Identifier (primary unit)
+	        mm = 1000 um;
+	      --^^                                        <- Identifier (secondary unit)
+	      --   ^^^^^^^                                <- Value
+	      end units;
+	"""
+	_value: Nullable[PhysicalIntegerLiteral]  #: The unit's value in a smaller unit, or ``None`` for the primary unit.
+
+	def __init__(
+		self,
+		identifier:    str,
+		value:         Nullable[PhysicalIntegerLiteral] = None,
+		*,
+		documentation: Nullable[str] = None,
+		parent:        Nullable[ModelEntity] = None
+	) -> None:
+		"""
+		Initializes a unit declaration of a physical type.
+
+		:param identifier:    The unit's identifier.
+		:param value:         Optional, the unit's value in a smaller unit, ``None`` for the primary unit.
+		                      Default: ``None``.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the physical type declaring the unit. Default: ``None``.
+		"""
+		super().__init__(parent)
+		NamedEntityMixin.__init__(self, identifier)
+		DocumentedEntityMixin.__init__(self, documentation)
+
+		self._value = value
+		if value is not None:
+			value.Parent = self
+
+	@readonly
+	def Value(self) -> Nullable[PhysicalIntegerLiteral]:
+		"""
+		Read-only property to access the unit's value (:attr:`_value`).
+
+		:returns: The unit's value in a smaller unit, or ``None`` for the primary unit.
+		"""
+		return self._value
+
+	def __str__(self) -> str:
+		"""
+		Formats the unit declaration.
+
+		**Format:** ``mm = 1000 um``, or ``um`` for the primary unit
+
+		:returns: Formatted unit declaration.
+		"""
+		if self._value is None:
+			return self._identifier
+
+		return f"{self._identifier} = {self._value}"
+
+
+@export
 class PhysicalType(RangedScalarType, NumericTypeMixin):
 	"""
 	Represents a physical type definition.
 
 	A physical type is a named entity (:data:`Identifier`) constrained by a range (:data:`Range`), and
 	defines a primary unit (:data:`PrimaryUnit`) plus any number of secondary units
-	(:data:`SecondaryUnits`). The model holds the secondary units in a list and has no distinct field
-	per unit, so the markers below name list elements.
+	(:data:`SecondaryUnits`). Each unit is a :class:`PhysicalUnit`; the primary unit has no value. The model holds the
+	secondary units in a list, so the markers below name list elements.
 
 	.. admonition:: Example
 
@@ -579,55 +761,104 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 
 	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Units,)  #: Reserved words after ``end``.
 	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                  #: The reserved words after ``end`` are optional.
-	_primaryUnit:    str                                       #: The name of the type's primary unit.
-	_secondaryUnits: list[tuple[str, PhysicalIntegerLiteral]]  #: Secondary units as (name, value) pairs.
+	_primaryUnit:    PhysicalUnit        #: The type's primary unit, which has no value.
+	_secondaryUnits: list[PhysicalUnit]  #: List of the type's secondary units, in declaration order.
 
 	def __init__(
 		self,
-		identifier: str,
-		rng: Range,
-		primaryUnit: str,
-		units: Iterable[tuple[str, PhysicalIntegerLiteral]],
-		documentation: Nullable[str] = None,
-		parent: Nullable[ModelEntity] = None
+		identifier:     str,
+		rng:            Range,
+		primaryUnit:    PhysicalUnit,
+		secondaryUnits: Iterable[PhysicalUnit],
+		documentation:  Nullable[str] = None,
+		parent:         Nullable[ModelEntity] = None
 	) -> None:
 		"""
 		Initializes a physical type definition.
 
-		:param identifier:    The identifier of a model entity.
-		:param rng:           The range constraining this scalar type.
-		:param primaryUnit:   The name of the type's primary unit.
-		:param units:         Iterable of the secondary units as (name, value) pairs.
-		:param documentation: Optional, the documentation comment associated with this declaration.
-		                      Default: ``None``, no documentation.
-		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		The physical type becomes the parent of its units.
+
+		:param identifier:     The identifier of a model entity.
+		:param rng:            The range constraining this scalar type.
+		:param primaryUnit:    The type's primary unit, which has no value.
+		:param secondaryUnits: Iterable of the type's secondary units, in declaration order.
+		:param documentation:  Optional, the documentation comment associated with this declaration.
+		                       Default: ``None``, no documentation.
+		:param parent:         Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:raises ValueError:    If parameter 'primaryUnit' is None.
+		:raises TypeError:     If parameter 'primaryUnit' is not of type :class:`PhysicalUnit`.
+		:raises ValueError:    If parameter 'primaryUnit' has a value.
+		:raises ValueError:    If parameter 'secondaryUnits' is None.
+		:raises TypeError:     If parameter 'secondaryUnits' is not iterable.
+		:raises TypeError:     If an element of parameter 'secondaryUnits' is not of type :class:`PhysicalUnit`.
+		:raises ValueError:    If an element of parameter 'secondaryUnits' has no value.
 		"""
 		super().__init__(identifier, rng, documentation, parent)
 
-		self._primaryUnit = primaryUnit
+		if primaryUnit is None:
+			raise ValueError("Parameter 'primaryUnit' is None.")
+		elif not isinstance(primaryUnit, PhysicalUnit):
+			ex = TypeError("Parameter 'primaryUnit' is not of type 'PhysicalUnit'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(primaryUnit)}'.")
+			raise ex
+		elif primaryUnit._value is not None:
+			ex = ValueError("Parameter 'primaryUnit' has a value.")
+			ex.add_note(f"Got value '{primaryUnit._value}'.")
+			raise ex
 
-		self._secondaryUnits = secondaryUnits = []  # TODO: convert to dict
-		for unit in units:
-			secondaryUnits.append(unit)
-			unit[1].Parent = self
+		if secondaryUnits is None:
+			raise ValueError("Parameter 'secondaryUnits' is None.")
+		elif not isinstance(secondaryUnits, Iterable):
+			ex = TypeError("Parameter 'secondaryUnits' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(secondaryUnits)}'.")
+			raise ex
+
+		primaryUnit.Parent = self
+		self._primaryUnit =  primaryUnit
+
+		self._secondaryUnits = secondaryUnitList = []
+		for unit in secondaryUnits:
+			if not isinstance(unit, PhysicalUnit):
+				ex = TypeError("Element of parameter 'secondaryUnits' is not of type 'PhysicalUnit'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(unit)}'.")
+				raise ex
+			elif unit._value is None:
+				ex = ValueError(f"Element '{unit._identifier}' of parameter 'secondaryUnits' has no value.")
+				ex.add_note("Only the primary unit has no value.")
+				raise ex
+
+			unit.Parent = self
+			secondaryUnitList.append(unit)
 
 	@readonly
-	def PrimaryUnit(self) -> str:
+	def PrimaryUnit(self) -> PhysicalUnit:
 		"""
 		Read-only property to access the primary unit (:attr:`_primaryUnit`).
+
+		The primary unit has no value. Formatted, it's the unit's name.
 
 		:returns: The primary unit.
 		"""
 		return self._primaryUnit
 
 	@readonly
-	def SecondaryUnits(self) -> list[tuple[str, PhysicalIntegerLiteral]]:
+	def SecondaryUnits(self) -> list[PhysicalUnit]:
 		"""
 		Read-only property to access the secondary units (:attr:`_secondaryUnits`).
 
-		:returns: List of secondary units.
+		:returns: List of secondary units, in declaration order.
 		"""
 		return self._secondaryUnits
+
+	def IterateImplicitDeclarations(self) -> Generator[tuple[str, PhysicalUnit], None, None]:
+		"""
+		Iterate the units this type declaration implies: the primary unit, then the secondary units.
+
+		:returns: A generator to iterate (normalized identifier, unit) pairs, in declaration order.
+		"""
+		yield self._primaryUnit._normalizedIdentifier, self._primaryUnit
+		for unit in self._secondaryUnits:
+			yield unit._normalizedIdentifier, unit
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -638,10 +869,10 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 		visitor.VisitPhysicalType(self)
 		self._range.Visit(visitor)
 		visitor.VisitUnits(self)
-		for identifier, value in self._secondaryUnits:
-			visitor.VisitSecondaryUnitDeclaration(self, identifier)
-			value.Visit(visitor)
-			visitor.DepartSecondaryUnitDeclaration(self, identifier)
+		for unit in self._secondaryUnits:
+			visitor.VisitSecondaryUnitDeclaration(self, unit._identifier)
+			unit._value.Visit(visitor)
+			visitor.DepartSecondaryUnitDeclaration(self, unit._identifier)
 
 		visitor.VisitEnd(self)
 		visitor.VisitTerminator(self)
@@ -655,7 +886,8 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 
 		:returns: Formatted physical type definition.
 		"""
-		return f"{self._identifier} is range {self._range} units {self._primaryUnit}; {'; '.join(su + ' = ' + str(pu) for su, pu in self._secondaryUnits)};"
+		units = "; ".join(str(unit) for unit in (self._primaryUnit, *self._secondaryUnits))
+		return f"{self._identifier} is range {self._range} units {units};"
 
 
 @export
@@ -727,10 +959,10 @@ class ArrayType(CompositeType):
 		self._dimensions = dimensions = []
 		for index in indices:
 			dimensions.append(index)
-			# index.Parent = self  # FIXME: indices are provided as empty list
+			index.Parent = self
 
-		self._elementType = elementSubtype
-		# elementSubtype.Parent = self   # FIXME: subtype is provided as None
+		self._elementType =     elementSubtype
+		elementSubtype.Parent = self
 
 	@readonly
 	def Dimensions(self) -> list[Range]:
@@ -749,6 +981,23 @@ class ArrayType(CompositeType):
 		:returns: The element type.
 		"""
 		return self._elementType
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this array type: its index subtypes, then its element subtype.
+
+		:param region:  The declarative region declaring this type.
+		:returns:       A generator to iterate (region, place, type mark) tuples, in declaration order.
+		"""
+		for dimension in self._dimensions:
+			if isinstance(dimension, SubtypeSymbol):
+				yield region, self, dimension
+
+		if isinstance(self._elementType, SubtypeSymbol):
+			yield region, self, self._elementType
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -841,6 +1090,24 @@ class RecordTypeElement(ModelEntity, MultipleNamedEntityMixin, DocumentedEntityM
 		"""
 		return self._subtype
 
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarativeRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[ModelEntity]:
+		"""
+		Return this record element, the model entity a name in a type mark denotes.
+
+		:param name:   The name denoting this declaration, a part of the type mark.
+		:param region: The declarative region containing the type mark.
+		:param place:  The declaration containing the type mark.
+		:param symbol: The type mark.
+		:returns:      This record element.
+		"""
+		return self
+
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this record type element.
@@ -910,7 +1177,8 @@ class RecordType(CompositeType):
 
 	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Record,)  #: Reserved words after ``end``.
 	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     False                   #: The reserved words after ``end`` are optional.
-	_elements: list[RecordTypeElement]  #: List of all element declarations, in declaration order.
+	_elements:             list[RecordTypeElement]       #: List of all element declarations, in declaration order.
+	_elementsByIdentifier: dict[str, RecordTypeElement]  #: All element declarations, indexed by normalized identifier.
 
 	def __init__(self, identifier: str, elements: Nullable[Iterable[RecordTypeElement]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -925,10 +1193,14 @@ class RecordType(CompositeType):
 		"""
 		super().__init__(identifier, documentation, parent)
 
-		self._elements = elementList = []  # TODO: convert to dict
+		self._elements =             elementList = []
+		self._elementsByIdentifier = elementsByIdentifier = {}
 		if elements is not None:
 			for element in elements:
 				elementList.append(element)
+				for normalizedIdentifier in element._normalizedIdentifiers:
+					elementsByIdentifier[normalizedIdentifier] = element
+
 				element.Parent = self
 
 	@readonly
@@ -939,6 +1211,17 @@ class RecordType(CompositeType):
 		:returns: List of elements.
 		"""
 		return self._elements
+
+	@readonly
+	def ElementsByIdentifier(self) -> dict[str, RecordTypeElement]:
+		"""
+		Read-only property to access the elements by identifier (:attr:`_elementsByIdentifier`).
+
+		An element declaring several identifiers (``a, b : bit``) is indexed by each of them.
+
+		:returns: Dictionary of elements, indexed by normalized identifier.
+		"""
+		return self._elementsByIdentifier
 
 	def SplitElement(self, element: RecordTypeElement) -> tuple[RecordTypeElement, ...]:
 		"""
@@ -984,9 +1267,26 @@ class RecordType(CompositeType):
 		element._KeepIdentifier(0)
 		self._elements[index + 1:index + 1] = declarations
 		for declaration in declarations:
+			for normalizedIdentifier in declaration._normalizedIdentifiers:
+				self._elementsByIdentifier[normalizedIdentifier] = declaration
+
 			declaration.Parent = self
 
 		return (element, *declarations)
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this record type: the element subtypes.
+
+		:param region:  The declarative region declaring this type.
+		:returns:       A generator to iterate (region, place, type mark) tuples, in declaration order.
+		"""
+		for element in self._elements:
+			if isinstance(element._subtype, SubtypeSymbol):
+				yield region, self, element._subtype
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1060,6 +1360,11 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 		super().__init__(identifier, documentation, parent)
 		ProtectedTypeDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
 
+	@FullType.Parent.setter
+	def Parent(self, parent: ModelEntity) -> None:
+		FullType.Parent.fset(self, parent)
+		self._ConnectParentNamespace(parent)
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this protected type declaration and its methods with a visitor.
@@ -1075,7 +1380,7 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 	@readonly
 	def Methods(self) -> list[Union[Procedure, Function]]:
 		"""
-		Read-only property to access the declared methods, in declaration order.
+		Read-only property to return the declared methods, in declaration order.
 
 		A protected type declares nothing but subprograms, so this is every declared item
 		(:attr:`_declaredItems`). It is kept as a named view because "method" is the VHDL term for a
@@ -1134,6 +1439,11 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 		super().__init__(identifier, documentation, parent)
 		SequentialDeclarationRegionMixin.__init__(self, self._normalizedIdentifier, declaredItems)
 
+	@FullType.Parent.setter
+	def Parent(self, parent: ModelEntity) -> None:
+		FullType.Parent.fset(self, parent)
+		self._ConnectParentNamespace(parent)
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this protected type body and its declared items with a visitor.
@@ -1150,7 +1460,7 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 	@readonly
 	def Methods(self) -> list[Union[Procedure, Function]]:
 		"""
-		Read-only property to access the implemented methods, in declaration order.
+		Read-only property to return the implemented methods, in declaration order.
 
 		A protected type body may also declare variables, types, subtypes, aliases and files, so this is
 		the subprogram subset of :attr:`_declaredItems` rather than all of them.
@@ -1203,6 +1513,19 @@ class AccessType(FullType):
 		:returns: The designated subtype.
 		"""
 		return self._designatedSubtype
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this access type: the subtype its values designate.
+
+		:param region:  The declarative region declaring this type.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the designated subtype.
+		"""
+		if isinstance(self._designatedSubtype, SubtypeSymbol):
+			yield region, self, self._designatedSubtype
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1267,6 +1590,19 @@ class FileType(FullType):
 		:returns: The designated subtype.
 		"""
 		return self._designatedSubtype
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this file type: the subtype of its values.
+
+		:param region:  The declarative region declaring this type.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the designated subtype.
+		"""
+		if isinstance(self._designatedSubtype, SubtypeSymbol):
+			yield region, self, self._designatedSubtype
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

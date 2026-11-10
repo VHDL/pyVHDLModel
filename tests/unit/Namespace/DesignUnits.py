@@ -52,4 +52,4 @@ class Architectures(Testcase):
 		architecture.IndexDeclaredItems()
 
 		# Keyed by the normalized identifier, which is what the Find* methods look up.
-		self.assertIs(constant, architecture._namespace.Elements()["c"])
+		self.assertIs(constant, architecture._namespace.Elements["c"])

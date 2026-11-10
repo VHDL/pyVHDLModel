@@ -36,7 +36,7 @@ Interface items are used in generic, port and parameter declarations.
 """
 from __future__             import annotations
 
-from typing                 import TYPE_CHECKING, ClassVar, Iterable, Optional as Nullable, Iterator, Self
+from typing                 import TYPE_CHECKING, ClassVar, Generator, Iterable, Optional as Nullable, Iterator, Self
 
 from pyTooling.Common       import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators   import export, readonly
@@ -51,6 +51,7 @@ from pyVHDLModel.Subprogram import Procedure, Function
 from pyVHDLModel.Type       import Type
 
 if TYPE_CHECKING:
+	from pyVHDLModel.Regions  import DeclarativeRegionMixin
 	from pyVHDLModel.Visitor  import Visitor
 
 
@@ -381,6 +382,18 @@ class ModeViewDeclaration(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		return (element, *declarations)
 
+	def IterateTypeMarks(
+		self,
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this mode view declaration: the subtype it applies to.
+
+		:param region:  The declarative region declaring this mode view.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the mode view's subtype.
+		"""
+		yield region, self, self._subtype
+
 	def __str__(self) -> str:
 		"""
 		Formats the mode view declaration.
@@ -405,7 +418,6 @@ class InterfaceItemMixin(metaclass=ExtendedType, mixin=True):
 	   * :class:`Generic interface item mixin <pyVHDLModel.Interface.GenericInterfaceItemMixin>`
 	   * :class:`Port interface item mixin <pyVHDLModel.Interface.PortInterfaceItemMixin>`
 	   * :class:`Parameter interface item mixin <pyVHDLModel.Interface.ParameterInterfaceItemMixin>`
-	   * :class:`Port signal interface item <pyVHDLModel.Interface.PortSignalInterfaceItem>`
 	"""
 
 	_group: Nullable[InterfaceGroup]  #: The interface group listing this item, or ``None``.
@@ -458,7 +470,6 @@ class InterfaceItemWithModeMixin(metaclass=ExtendedType, mixin=True):
 
 	.. seealso::
 
-	   * :class:`Port interface item mixin <pyVHDLModel.Interface.PortInterfaceItemMixin>`
 	   * :class:`Generic constant interface item <pyVHDLModel.Interface.GenericConstantInterfaceItem>`
 	   * :class:`Port simple signal interface item <pyVHDLModel.Interface.PortSimpleSignalInterfaceItem>`
 	   * :class:`Parameter constant interface item <pyVHDLModel.Interface.ParameterConstantInterfaceItem>`
@@ -513,19 +524,14 @@ class GenericSubprogramInterfaceItemMixin(GenericInterfaceItemMixin, mixin=True)
 
 
 @export
-class PortInterfaceItemMixin(InterfaceItemMixin, InterfaceItemWithModeMixin, mixin=True):
+class PortInterfaceItemMixin(InterfaceItemMixin, mixin=True):
 	"""
 	A mixin-class for all items in a port clause.
+
+	.. seealso::
+
+	   * :class:`Port signal interface item <pyVHDLModel.Interface.PortSignalInterfaceItem>`
 	"""
-
-	def __init__(self, mode: Mode) -> None:
-		"""
-		Initializes a port interface item.
-
-		:param mode: The interface item's mode.
-		"""
-		super().__init__()
-		InterfaceItemWithModeMixin.__init__(self, mode)
 
 
 @export
@@ -899,7 +905,7 @@ class GenericPackageInterfaceItem(InterfacePackage, GenericInterfaceItemMixin):
 
 @export
 @abstractclass
-class PortSignalInterfaceItem(Signal, InterfaceItemMixin):
+class PortSignalInterfaceItem(Signal, PortInterfaceItemMixin):
 	"""
 	Represents the base-class of all signals in a port clause.
 
@@ -911,6 +917,8 @@ class PortSignalInterfaceItem(Signal, InterfaceItemMixin):
 	   * :class:`Port simple signal interface item <pyVHDLModel.Interface.PortSimpleSignalInterfaceItem>`
 	   * :class:`Port view signal interface item <pyVHDLModel.Interface.PortViewSignalInterfaceItem>`
 	"""
+
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] = False  #: Not usable by a name in its own interface list.
 
 	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""
@@ -963,7 +971,7 @@ class PortSimpleSignalInterfaceItem(PortSignalInterfaceItem, InterfaceItemWithMo
 		:param parent:            Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, subtype, defaultExpression, documentation, parent)
-		InterfaceItemMixin.__init__(self)
+		PortInterfaceItemMixin.__init__(self)
 		InterfaceItemWithModeMixin.__init__(self, mode)
 
 	def Copy(self) -> Self:
@@ -1045,7 +1053,7 @@ class PortViewSignalInterfaceItem(PortSignalInterfaceItem, WithSingleDeclaration
 		:param parent:             Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(identifiers, modeViewIndication, None, documentation, parent)
-		InterfaceItemMixin.__init__(self)
+		PortInterfaceItemMixin.__init__(self)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1107,6 +1115,9 @@ class ParameterConstantInterfaceItem(
 	      --                          ^^                            <- Mode
 	      --                             ^^^^^^^                    <- Subtype
 	"""
+
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] = False  #: Not usable by a name in its own interface list.
+
 	def __init__(
 		self,
 		identifiers: Iterable[str],
@@ -1198,6 +1209,9 @@ class ParameterVariableInterfaceItem(
 	      --                            ^^^         <- Mode
 	      --                                ^^^     <- Subtype
 	"""
+
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] = False  #: Not usable by a name in its own interface list.
+
 	def __init__(
 		self,
 		identifiers: Iterable[str],
@@ -1290,6 +1304,8 @@ class ParameterSignalInterfaceItem(Signal, ParameterInterfaceItemMixin):
 	   * :class:`Parameter simple signal interface item <pyVHDLModel.Interface.ParameterSimpleSignalInterfaceItem>`
 	   * :class:`Parameter view signal interface item <pyVHDLModel.Interface.ParameterViewSignalInterfaceItem>`
 	"""
+
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] = False  #: Not usable by a name in its own interface list.
 
 	def _SplitInParent(self) -> tuple[Self, ...]:
 		"""
@@ -1480,6 +1496,9 @@ class ParameterFileInterfaceItem(File, ParameterInterfaceItemMixin, WithSingleDe
 	      --                  ^^^                 <- Identifiers
 	      --                        ^^^^^^^^^     <- Subtype
 	"""
+
+	_USABLE_IN_OWN_INTERFACE_LIST: ClassVar[bool] = False  #: Not usable by a name in its own interface list.
+
 	def __init__(
 		self,
 		identifiers: Iterable[str],
@@ -1604,6 +1623,10 @@ class SingleDeclarationMixin(metaclass=ExtendedType, mixin=True, expects=("_pare
 		"""
 		Read-only property to access the normalized identifier (:attr:`_normalizedIdentifier`).
 
+		.. seealso::
+
+		   * :term:`Normalized`
+
 		:returns: The normalized (lower case) identifier.
 		"""
 		return self._normalizedIdentifier
@@ -1620,7 +1643,8 @@ class SingleDeclarationMixin(metaclass=ExtendedType, mixin=True, expects=("_pare
 	@readonly
 	def Declaration(self) -> MultipleNamedEntityMixin:
 		"""
-		Read-only property to access the declaration, which is the single declaration's parent (:attr:`_parent`).
+		Read-only property to access the declaration, which is the single declaration's parent
+		(:attr:`~pyVHDLModel.Base.ModelEntity._parent`).
 
 		:returns: The declaration with the identifier list.
 		"""

@@ -36,14 +36,14 @@ Symbols are entity specific wrappers for names that reference VHDL language enti
 """
 from __future__            import annotations
 
-from enum                  import Flag, auto
+from enum                  import Flag
 from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping, Self
 
 from pyTooling.Common      import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators  import export, notimplemented, readonly
 from pyTooling.MetaClasses import ExtendedType, abstractclass
 
-from pyVHDLModel.Base      import Range
+from pyVHDLModel.Base      import ModelEntity, Range
 from pyVHDLModel.Name      import Name, AllName
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor import Visitor
@@ -56,39 +56,39 @@ class PossibleReference(Flag):
 	"""
 
 	Unknown =         0
-	Library =         auto()  #: Library
-	Entity =          auto()  #: Entity
-	Architecture =    auto()  #: Architecture
-	Component =       auto()  #: Component
-	Package =         auto()  #: Package
-	Configuration =   auto()  #: Configuration
-	Context =         auto()  #: Context
-	Type =            auto()  #: Type
-	Subtype =         auto()  #: Subtype
-	ScalarType =      auto()  #: ScalarType
-	ArrayType =       auto()  #: ArrayType
-	RecordType =      auto()  #: RecordType
-	RecordElement =   auto()  #: RecordElement
-	AccessType =      auto()  #: AccessType
-	ProtectedType =   auto()  #: ProtectedType
-	FileType =        auto()  #: FileType
+	Library =         1           #: Library
+	Entity =          2           #: Entity
+	Architecture =    4           #: Architecture
+	Component =       8           #: Component
+	Package =         16          #: Package
+	Configuration =   32          #: Configuration
+	Context =         64          #: Context
+	Type =            128         #: Type
+	Subtype =         256         #: Subtype
+	ScalarType =      512         #: ScalarType
+	ArrayType =       1024        #: ArrayType
+	RecordType =      2048        #: RecordType
+	RecordElement =   4096        #: RecordElement
+	AccessType =      8192        #: AccessType
+	ProtectedType =   16384       #: ProtectedType
+	FileType =        32768       #: FileType
 #	Alias =           auto()   # TODO: Is this needed?
-	Attribute =       auto()  #: Attribute
-	TypeAttribute =   auto()  #: TypeAttribute
-	ValueAttribute =  auto()  #: ValueAttribute
-	SignalAttribute = auto()  #: SignalAttribute
-	RangeAttribute =  auto()  #: RangeAttribute
-	ViewAttribute =   auto()  #: ViewAttribute
-	Constant =        auto()  #: Constant
-	Variable =        auto()  #: Variable
-	Signal =          auto()  #: Signal
-	File =            auto()  #: File
+	Attribute =       65536       #: Attribute
+	TypeAttribute =   131072      #: TypeAttribute
+	ValueAttribute =  262144      #: ValueAttribute
+	SignalAttribute = 524288      #: SignalAttribute
+	RangeAttribute =  1048576     #: RangeAttribute
+	ViewAttribute =   2097152     #: ViewAttribute
+	Constant =        4194304     #: Constant
+	Variable =        8388608     #: Variable
+	Signal =          16777216    #: Signal
+	File =            33554432    #: File
 #	Object =          auto()   # TODO: Is this needed?
-	EnumLiteral =     auto()  #: EnumLiteral
-	Procedure =       auto()  #: Procedure
-	Function =        auto()  #: Function
-	Label =           auto()  #: Label
-	View =            auto()  #: View
+	EnumLiteral =     67108864    #: EnumLiteral
+	Procedure =       134217728   #: Procedure
+	Function =        268435456   #: Function
+	Label =           536870912   #: Label
+	View =            1073741824  #: View
 
 	AnyType = ScalarType | ArrayType | RecordType | ProtectedType | AccessType | FileType | Subtype  #: Any possible type incl. subtypes.
 	Object = Constant | Variable | Signal  # | File                                                     #: Any object
@@ -97,27 +97,41 @@ class PossibleReference(Flag):
 	SimpleNameInExpression = Constant | Variable | Signal | ScalarType | EnumLiteral | Function      #: Any possible item in an expression.
 
 
-# QUESTION: Why is it not a ModelEntity?
 @export
-class Symbol(metaclass=ExtendedType):
+class Symbol(ModelEntity):
 	"""
 	Base-class for all symbol classes.
+
+	A symbol is a model entity: its parent is the model entity using it, e.g. a statement, an expression or a
+	declaration. A symbol is the parent of its name.
 	"""
 
 	_name:               Name               #: The name to reference the language entity.
 	_possibleReferences: PossibleReference  #: An enumeration to filter possible references.
 	_reference:          Nullable[Any]      #: The resolved language entity, otherwise ``None``.
 
-	def __init__(self, name: Name, possibleReferences: PossibleReference) -> None:
+	def __init__(
+		self,
+		name:               Name,
+		possibleReferences: PossibleReference,
+		*,
+		parent:             Nullable[ModelEntity] = None
+	) -> None:
 		"""
 		Initializes a symbol.
 
 		:param name:               The name to reference the language entity.
 		:param possibleReferences: An enumeration to filter possible references.
+		:param parent:             Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		self._name = name
+		super().__init__(parent)
+
+		self._name =               name
 		self._possibleReferences = possibleReferences
-		self._reference = None
+		self._reference =          None
+
+		if name is not None:
+			name.Parent = self
 
 	@readonly
 	def Name(self) -> Name:
@@ -158,7 +172,7 @@ class Symbol(metaclass=ExtendedType):
 		"""
 		Create a copy of this symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new symbol.
 		"""
@@ -218,13 +232,14 @@ class LibraryReferenceSymbol(Symbol):
 	      --      ^^^^
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference (name) to a library.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Library)
+		super().__init__(name, PossibleReference.Library, parent=parent)
 
 	@property
 	def Library(self) -> Nullable[Library]:
@@ -243,7 +258,7 @@ class LibraryReferenceSymbol(Symbol):
 		"""
 		Create a copy of this library reference symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new library reference symbol.
 		"""
@@ -267,13 +282,14 @@ class PackageReferenceSymbol(Symbol):
 	      --  ^^^^^^^^^^^^^^^^
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference (name) to a package.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Package)
+		super().__init__(name, PossibleReference.Package, parent=parent)
 
 	@property
 	def Package(self) -> Nullable[Package]:
@@ -292,7 +308,7 @@ class PackageReferenceSymbol(Symbol):
 		"""
 		Create a copy of this package reference symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new package reference symbol.
 		"""
@@ -326,13 +342,14 @@ class ModeViewSymbol(Symbol):
 	      --             ^^^^^^^^^^^^^^^^^^^     <- Name
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference to a mode view (VHDL-2019).
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.View)
+		super().__init__(name, PossibleReference.View, parent=parent)
 
 	@property
 	def ModeView(self) -> Nullable[ModeViewDeclaration]:
@@ -351,7 +368,7 @@ class ModeViewSymbol(Symbol):
 		"""
 		Create a copy of this mode view symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new mode view symbol.
 		"""
@@ -375,13 +392,14 @@ class SubprogramReferenceSymbol(Symbol):
 	      --                ^^^^^^^                         <- Name
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference to a subprogram.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.SubProgram)
+		super().__init__(name, PossibleReference.SubProgram, parent=parent)
 
 	@property
 	def Subprogram(self) -> Nullable[Subprogram]:
@@ -400,7 +418,7 @@ class SubprogramReferenceSymbol(Symbol):
 		"""
 		Create a copy of this subprogram reference symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new subprogram reference symbol.
 		"""
@@ -424,13 +442,14 @@ class ConfigurationSymbol(Symbol):
 	      --                              ^^^^^^^^    <- Name
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference to a configuration.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Configuration)
+		super().__init__(name, PossibleReference.Configuration, parent=parent)
 
 	@property
 	def Configuration(self) -> Nullable[Configuration]:
@@ -449,7 +468,7 @@ class ConfigurationSymbol(Symbol):
 		"""
 		Create a copy of this configuration symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new configuration symbol.
 		"""
@@ -473,13 +492,14 @@ class VariableSymbol(Symbol):
 	      --^
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a variable symbol.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Variable)
+		super().__init__(name, PossibleReference.Variable, parent=parent)
 
 	@property
 	def Variable(self) -> Nullable[Variable]:
@@ -498,7 +518,7 @@ class VariableSymbol(Symbol):
 		"""
 		Create a copy of this variable symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new variable symbol.
 		"""
@@ -522,13 +542,14 @@ class SignalSymbol(Symbol):
 	      --^
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a signal symbol.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Signal)
+		super().__init__(name, PossibleReference.Signal, parent=parent)
 
 	@property
 	def Signal(self) -> Nullable[Signal]:
@@ -547,7 +568,7 @@ class SignalSymbol(Symbol):
 		"""
 		Create a copy of this signal symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new signal symbol.
 		"""
@@ -563,7 +584,8 @@ class AggregateSymbol(Symbol):
 
 	VHDL's grammar calls it an aggregate (``target ::= name | aggregate``), but it decomposes the assigned value into its
 	targets: each element is a target itself, e.g. a variable or a signal, never a constant. The group has no name of its
-	own (:attr:`~pyVHDLModel.Symbol.Symbol.Name` is ``None``); its targets are available as :data:`Targets`.
+	own (:attr:`~pyVHDLModel.Symbol.Symbol.Name` is ``None``); its targets are available as :data:`Targets`, the group
+	is their parent.
 
 	.. admonition:: Example
 
@@ -575,18 +597,19 @@ class AggregateSymbol(Symbol):
 	"""
 	_targets: list[Symbol]  #: List of the targets, in source order.
 
-	def __init__(self, targets: Iterable[Symbol]) -> None:
+	def __init__(self, targets: Iterable[Symbol], *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a group of targets.
 
 		:param targets:     The targets, in source order.
+		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		:raises ValueError: If parameter 'targets' is None.
 		:raises TypeError:  If parameter 'targets' is not iterable.
 		:raises TypeError:  If a target in parameter 'targets' is not a :class:`Symbol`.
 		:raises ValueError: If parameter 'targets' has fewer than two targets (one would read as parentheses). |br|
 		                    A single target in parentheses is no aggregate; use the target's symbol.
 		"""
-		super().__init__(None, PossibleReference.Unknown)
+		super().__init__(None, PossibleReference.Unknown, parent=parent)
 
 		if targets is None:
 			raise ValueError("Parameter 'targets' is None.")
@@ -613,6 +636,8 @@ class AggregateSymbol(Symbol):
 			raise ex
 
 		self._possibleReferences = possibleReferences
+		for target in targetList:
+			target.Parent = self
 
 	@readonly
 	def Targets(self) -> list[Symbol]:
@@ -642,7 +667,9 @@ class AggregateSymbol(Symbol):
 
 	def Copy(self) -> Self:
 		"""
-		Create a copy of this group of targets, with copies of its targets.
+		Create a copy of this group of targets.
+
+		The copy has no parent. Its targets are copies of this group's targets.
 
 		:returns: The new group of targets.
 		"""
@@ -699,13 +726,14 @@ class ContextReferenceSymbol(Symbol):
 	      --      ^^^^^^^^^^^^^^^^^^^^^
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference (name) to a context.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Context)
+		super().__init__(name, PossibleReference.Context, parent=parent)
 
 	@property
 	def Context(self) -> Context:
@@ -724,7 +752,7 @@ class ContextReferenceSymbol(Symbol):
 		"""
 		Create a copy of this context reference symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new context reference symbol.
 		"""
@@ -748,13 +776,14 @@ class PackageMemberReferenceSymbol(Symbol):
 	      --  ^^^^^^^^^^^^^^^^^^^^^^^^^
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference (name) to a package member.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.PackageMember)
+		super().__init__(name, PossibleReference.PackageMember, parent=parent)
 
 	@property
 	def Member(self) -> Nullable[Package]:  # TODO: typehint
@@ -773,7 +802,7 @@ class PackageMemberReferenceSymbol(Symbol):
 		"""
 		Create a copy of this package member reference symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new package member reference symbol.
 		"""
@@ -797,13 +826,14 @@ class AllPackageMembersReferenceSymbol(Symbol):
 	      --  ^^^^^^^^^^^^^^^^^^^^
 	"""
 
-	def __init__(self, name: AllName) -> None:
+	def __init__(self, name: AllName, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference (name) to all package members.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.PackageMember)
+		super().__init__(name, PossibleReference.PackageMember, parent=parent)
 
 	@property
 	def Members(self) -> Package:  # TODO: typehint
@@ -822,7 +852,7 @@ class AllPackageMembersReferenceSymbol(Symbol):
 		"""
 		Create a copy of this all package members reference symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new all package members reference symbol.
 		"""
@@ -846,13 +876,14 @@ class EntityInstantiationSymbol(Symbol):
 	       --            ^^^^^^^^^^^^
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference (name) to an entity in a direct entity instantiation.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Entity)
+		super().__init__(name, PossibleReference.Entity, parent=parent)
 
 	@property
 	def Entity(self) -> Entity:
@@ -871,7 +902,7 @@ class EntityInstantiationSymbol(Symbol):
 		"""
 		Create a copy of this entity instantiation symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new entity instantiation symbol.
 		"""
@@ -895,13 +926,14 @@ class ComponentInstantiationSymbol(Symbol):
 	       --               ^^^^^^^
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference (name) to an entity in a component instantiation.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Component)
+		super().__init__(name, PossibleReference.Component, parent=parent)
 
 	@property
 	def Component(self) -> Component:
@@ -920,7 +952,7 @@ class ComponentInstantiationSymbol(Symbol):
 		"""
 		Create a copy of this component instantiation symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new component instantiation symbol.
 		"""
@@ -944,13 +976,14 @@ class ConfigurationInstantiationSymbol(Symbol):
 	       --                   ^^^^^^^
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference (name) to an entity in a configuration instantiation.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Configuration)
+		super().__init__(name, PossibleReference.Configuration, parent=parent)
 
 	@property
 	def Configuration(self) -> Configuration:
@@ -969,7 +1002,7 @@ class ConfigurationInstantiationSymbol(Symbol):
 		"""
 		Create a copy of this configuration instantiation symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new configuration instantiation symbol.
 		"""
@@ -995,13 +1028,14 @@ class EntitySymbol(Symbol):
 	      end architecture;
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference (name) to an entity in an architecture declaration.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Entity)
+		super().__init__(name, PossibleReference.Entity, parent=parent)
 
 	@property
 	def Entity(self) -> Entity:
@@ -1020,7 +1054,7 @@ class EntitySymbol(Symbol):
 		"""
 		Create a copy of this entity symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new entity symbol.
 		"""
@@ -1033,13 +1067,14 @@ class EntitySymbol(Symbol):
 class ArchitectureSymbol(Symbol):
 	"""An entity reference in an entity instantiation with architecture name."""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes an architecture symbol.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Architecture)
+		super().__init__(name, PossibleReference.Architecture, parent=parent)
 
 	@property
 	def Architecture(self) -> Architecture:
@@ -1058,7 +1093,7 @@ class ArchitectureSymbol(Symbol):
 		"""
 		Create a copy of this architecture symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new architecture symbol.
 		"""
@@ -1083,13 +1118,14 @@ class PackageSymbol(Symbol):
 	      end package body;
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference (name) to a package in a package body declaration.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Package)
+		super().__init__(name, PossibleReference.Package, parent=parent)
 
 	@property
 	def Package(self) -> Package:
@@ -1108,11 +1144,61 @@ class PackageSymbol(Symbol):
 		"""
 		Create a copy of this package symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new package symbol.
 		"""
 		copy = self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
+
+@export
+class LoopSymbol(Symbol):
+	"""
+	Represents a reference (label) to a loop statement in a next or exit statement.
+
+	The internal name will be a :class:`~pyVHDLModel.Name.SimpleName`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	        next outer when k = 1;
+	      --     ^^^^^
+	"""
+
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
+		"""
+		Initializes a reference (label) to a loop statement in a next or exit statement.
+
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		"""
+		super().__init__(name, PossibleReference.Label, parent=parent)
+
+	@property
+	def Loop(self) -> Nullable[LoopStatement]:
+		"""
+		Property to access the loop statement (:attr:`_reference`).
+
+		:returns: The loop statement, or ``None`` if not set.
+		"""
+		return self._reference
+
+	@Loop.setter
+	def Loop(self, value: LoopStatement) -> None:
+		self._reference = value
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this loop symbol.
+
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new loop symbol.
+		"""
+		copy =            self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
 
@@ -1131,19 +1217,20 @@ class RecordElementSymbol(Symbol):
 	      r := (a => '1', b => '0');
 	      --    ^                      <- Name
 	"""
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference to a record element.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.RecordElement)
+		super().__init__(name, PossibleReference.RecordElement, parent=parent)
 
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this record element symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new record element symbol.
 		"""
@@ -1160,19 +1247,20 @@ class RangeAttributeSymbol(Symbol):
 	``vector'range`` is such a reference.
 	"""
 
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initialize a range attribute symbol.
 
-		:param name: The attribute name referencing the range.
+		:param name:   The attribute name referencing the range.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.RangeAttribute)
+		super().__init__(name, PossibleReference.RangeAttribute, parent=parent)
 
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this range attribute symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new range attribute symbol.
 		"""
@@ -1194,13 +1282,14 @@ class SubtypeSymbol(Symbol):
 	   * :class:`Constrained scalar subtype symbol <pyVHDLModel.Symbol.ConstrainedScalarSubtypeSymbol>`
 	   * :class:`Constrained composite subtype symbol <pyVHDLModel.Symbol.ConstrainedCompositeSubtypeSymbol>`
 	"""
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a subtype symbol.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.Type | PossibleReference.Subtype)
+		super().__init__(name, PossibleReference.Type | PossibleReference.Subtype, parent=parent)
 
 	@readonly
 	def TypeMark(self) -> str:
@@ -1238,7 +1327,7 @@ class SubtypeSymbol(Symbol):
 		"""
 		Create a copy of this subtype symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new subtype symbol.
 		"""
@@ -1297,7 +1386,8 @@ class ScalarConstraint(Constraint, mixin=True):
 
 		:param constraint: The range constraining the scalar subtype.
 		"""
-		self._constraint = constraint
+		self._constraint =  constraint
+		constraint.Parent = self
 
 	@readonly
 	def Constraint(self) -> Range:
@@ -1335,21 +1425,22 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol, ScalarConstraint):
 	      --                             ^^^^^^^^^^^^   <- Constraint
 	"""
 
-	def __init__(self, name: Name, constraint: Range) -> None:
+	def __init__(self, name: Name, constraint: Range, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference to a scalar subtype narrowed by a range.
 
 		:param name:       The name to reference the language entity.
 		:param constraint: The range constraining the scalar subtype.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name)
+		super().__init__(name, parent=parent)
 		ScalarConstraint.__init__(self, constraint)
 
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this constrained scalar subtype symbol.
 
-		The name and the range are copied; the reference, if resolved, is the same.
+		The copy has no parent. The name and the range are copied; the reference, if resolved, is the same.
 
 		:returns: The new constrained scalar subtype symbol.
 		"""
@@ -1390,7 +1481,10 @@ class ArrayConstraint(Constraint, mixin=True):
 
 		:param constraints: List of all index ranges, one per dimension.
 		"""
-		self._constraints = list(constraints)
+		self._constraints = constraintList = []
+		for constraint in constraints:
+			constraintList.append(constraint)
+			constraint.Parent = self
 
 	@readonly
 	def Constraints(self) -> list[Range]:
@@ -1422,6 +1516,10 @@ class RecordConstraint(Constraint, mixin=True):
 		:param constraints: Dictionary of the constraint per constrained record element.
 		"""
 		self._constraints = dict(constraints)
+		for element, constraint in self._constraints.items():
+			element.Parent = self
+			if constraint is not None:
+				constraint.Parent = self
 
 	@readonly
 	def Constraints(self) -> dict[RecordElementSymbol, Range]:
@@ -1473,23 +1571,23 @@ class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol, ArrayCons
 	      --         ^^^^^^^^^^                <- Name
 	      --                    ^^^^^^^^^^     <- Constraints
 	"""
-	_constraints: list  #: List of all index ranges, one per dimension.
 
-	def __init__(self, name: Name, constraints: Iterable) -> None:
+	def __init__(self, name: Name, constraints: Iterable, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference to an array subtype narrowed by index ranges.
 
 		:param name:        The name to reference the language entity.
 		:param constraints: List of all index ranges, one per dimension.
+		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name)
+		super().__init__(name, parent=parent)
 		ArrayConstraint.__init__(self, constraints)
 
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this constrained array subtype symbol.
 
-		The name and the index ranges are copied; the reference, if resolved, is the same.
+		The copy has no parent. The name and the index ranges are copied; the reference, if resolved, is the same.
 
 		:returns: The new constrained array subtype symbol.
 		"""
@@ -1523,23 +1621,24 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 
 	The referenced language entity is available as :data:`Reference` once resolved.
 	"""
-	_constraints: dict[RecordElementSymbol, Any]  #: Dictionary of the constraint per constrained record element.
 
-	def __init__(self, name: Name, constraints: Mapping) -> None:
+	def __init__(self, name: Name, constraints: Mapping, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference to a record subtype with constrained elements.
 
 		:param name:        The name to reference the language entity.
 		:param constraints: Dictionary of the constraint per constrained record element.
+		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name)
+		super().__init__(name, parent=parent)
 		RecordConstraint.__init__(self, constraints)
 
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this constrained record subtype symbol.
 
-		The name, the record elements and their constraints are copied; the reference, if resolved, is the same.
+		The copy has no parent. The name, the record elements and their constraints are copied; the reference, if resolved,
+		is the same.
 
 		:returns: The new constrained record subtype symbol.
 		"""
@@ -1583,19 +1682,20 @@ class SimpleObjectOrFunctionCallSymbol(Symbol):
 	Which of the two it is cannot be decided before the name is resolved. The referenced language
 	entity is available as :data:`Reference` once resolved.
 	"""
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference that is either an object or a parameterless function call.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
-		super().__init__(name, PossibleReference.SimpleNameInExpression)
+		super().__init__(name, PossibleReference.SimpleNameInExpression, parent=parent)
 
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this simple object or function call symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new simple object or function call symbol.
 		"""
@@ -1621,22 +1721,24 @@ class IndexedObjectOrFunctionCallSymbol(Symbol):
 	   * :class:`Type conversion <pyVHDLModel.Expression.TypeConversion>`
 	   * :class:`Simple object or function call <pyVHDLModel.Symbol.SimpleObjectOrFunctionCallSymbol>`
 	"""
-	def __init__(self, name: Name) -> None:
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a reference that is either an indexed object, a function call or a type conversion.
 
-		:param name: The name to reference the language entity.
+		:param name:   The name to reference the language entity.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
 		"""
 		super().__init__(
 			name,
-			PossibleReference.Object | PossibleReference.Function | PossibleReference.Type | PossibleReference.Subtype
+			PossibleReference.Object | PossibleReference.Function | PossibleReference.Type | PossibleReference.Subtype,
+			parent=parent
 		)
 
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this indexed object or function call symbol.
 
-		The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
 
 		:returns: The new indexed object or function call symbol.
 		"""

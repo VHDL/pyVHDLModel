@@ -31,7 +31,7 @@
 """Tests for pyVHDLModel.Instantiation (VHDL-2008 generic subprogram/package instantiation)."""
 from pyTooling.Testing         import Testcase
 
-from pyVHDLModel             import VHDLModelException
+from pyVHDLModel.Exception   import PackageInstantiationNotLinkedError
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import SubprogramReferenceSymbol, PackageReferenceSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression  import IntegerLiteral
@@ -67,9 +67,13 @@ class ProcedureInstantiations(Testcase):
 
 
 class FunctionInstantiations(Testcase):
-	"""``function f is new g generic map (...);`` - ``ReturnType`` is deliberately ``Nullable``, see
+	"""
+	Generic function instantiations.
+
+	:vhdlcode:`function f is new g generic map (...);` - ``ReturnType`` is deliberately ``Nullable``, see
 	the class's own docstring (never resolvable at the parse-only level, a genuinely unresolved
-	forward reference like ``Symbol.Reference``, not a workaround)."""
+	forward reference like ``Symbol.Reference``, not a workaround).
+	"""
 
 	def test_Construction(self) -> None:
 		reference = SubprogramReferenceSymbol(SimpleName("g"))
@@ -102,8 +106,10 @@ class PackageInstantiations(Testcase):
 		reference = PackageReferenceSymbol(SimpleName("q"))
 		instantiation = PackageInstantiation("p", reference)
 
-		with self.assertRaises(VHDLModelException):
+		with self.assertRaises(PackageInstantiationNotLinkedError) as context:
 			instantiation.Instantiate()
+
+		self.assertEqual("Package instantiation 'p' isn't linked to its generic package 'q'.", str(context.exception))
 
 	def test_Instantiate_CopiesComponentsFromGenericPackage(self) -> None:
 		component = Component("comp")

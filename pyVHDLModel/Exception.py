@@ -38,25 +38,31 @@ message in english, each exception object contains one or multiple references to
 from __future__               import annotations
 
 from pathlib                  import Path
-from typing                   import TYPE_CHECKING, Generic, Optional as Nullable, TypeVar, Union
+from typing                   import TYPE_CHECKING, ClassVar, Generic, Optional as Nullable, TypeVar
 
 from pyTooling.Decorators     import export, readonly
-from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError, InUseError
+from pyTooling.Exceptions     import ExceptionBase, AlreadyInHierarchyError, DuplicateElementError, InUseError, \
+                                     NotAChildError as CommonNotAChildError, ElementNotFoundError, AmbiguousError, \
+                                     UnknownKindError as CommonUnknownKindError
 from pyTooling.Warning        import Warning, CriticalWarning
 
 from pyVHDLModel.Symbol       import Symbol
 
 if TYPE_CHECKING:  # pragma: no cover
-	from pyVHDLModel            import Document, Library
-	from pyVHDLModel.Base       import ModelElementUnion, ModelEntity
-	from pyVHDLModel.Concurrent import ComponentInstantiation
-	from pyVHDLModel.DesignUnit import Component as _Component
-	from pyVHDLModel.Expression import Literal as _Literal
-	from pyVHDLModel.Namespace  import Namespace as _Namespace
+	from pyVHDLModel               import Document, IEEEFlavor, Library
+	from pyVHDLModel.Base          import ModelEntity
+	from pyVHDLModel.Concurrent    import ComponentInstantiation, EntityInstantiation
+	from pyVHDLModel.DesignUnit    import Component as _Component, Context as _Context, DesignUnit as _DesignUnit, \
+	                                      Architecture, Package as _Package, SecondaryUnit
+	from pyVHDLModel.Expression    import Literal as _Literal
+	from pyVHDLModel.Instantiation import PackageInstantiation as _PackageInstantiation
+	from pyVHDLModel.Namespace     import Namespace as _Namespace, Import as _Import
 
 
 ElementType = TypeVar("ElementType", bound="ModelEntity")  #: Type of the model entity to remove, which is still in use.
 UsersType =   TypeVar("UsersType", bound="ModelEntity")    #: Type of the model entities still using it.
+
+_Symbol = Symbol  # A field annotation of class Symbol, where the class has a property 'Symbol'.
 
 
 @export
@@ -88,25 +94,25 @@ class NotImplementedWarning(VHDLModelWarning):
 	   dropped silently.
 	"""
 
-	_item: Nullable[Union[ModelEntity, Symbol]]  #: The model element or symbol of the construct.
+	_item: Nullable[ModelEntity]  #: The model element of the construct.
 
-	def __init__(self, message: str, /, *, item: Nullable[Union[ModelEntity, Symbol]] = None) -> None:
+	def __init__(self, message: str, /, *, item: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes the warning with the construct that isn't modelled yet.
 
 		:param message: The warning's message.
-		:param item:    Optional, the model element or symbol of the construct - a declared item, an expression, a symbol or
-		                an instantiation. Default: ``None``.
+		:param item:    Optional, the model element of the construct - a declared item, an expression, a symbol or an
+		                instantiation. Default: ``None``.
 		"""
 		super().__init__(message)
 		self._item = item
 
 	@readonly
-	def Item(self) -> Nullable[Union[ModelEntity, Symbol]]:
+	def Item(self) -> Nullable[ModelEntity]:
 		"""
-		Read-only property to access the model element or symbol of the construct (:attr:`_item`).
+		Read-only property to access the model element of the construct (:attr:`_item`).
 
-		:returns: The model element or symbol, or ``None`` if the construct has none or it wasn't recorded.
+		:returns: The model element, or ``None`` if the construct has none or it wasn't recorded.
 		"""
 		return self._item
 
@@ -124,6 +130,9 @@ class VHDLModelCriticalWarning(CriticalWarning):
 	.. seealso::
 
 	   * :class:`Duplicate declaration warning <pyVHDLModel.Exception.DuplicateDeclarationWarning>`
+	   * :class:`Unresolved name warning <pyVHDLModel.Exception.UnresolvedNameWarning>`
+	   * :class:`Unresolved type mark warning <pyVHDLModel.Exception.UnresolvedTypeMarkWarning>`
+	   * :class:`Incomplete type warning <pyVHDLModel.Exception.IncompleteTypeWarning>`
 	"""
 	pass
 
@@ -135,6 +144,10 @@ class DuplicateDeclarationWarning(VHDLModelCriticalWarning):
 
 	VHDL rejects this as *identifier already used for a declaration*. Overloadable declarations -
 	subprograms differing in signature - are not reported. Afterwards, the namespace refers to the later declaration.
+
+	It's also raised, when a package linked to a package body is linked to another one
+	(:meth:`Library.LinkPackageBodies() <pyVHDLModel.Library.LinkPackageBodies>`). Afterwards, the package refers to the
+	later package body.
 
 	.. important::
 
@@ -217,6 +230,140 @@ class DuplicateDeclarationWarning(VHDLModelCriticalWarning):
 		:returns: The declaration, or ``None`` if it wasn't recorded.
 		"""
 		return self._existing
+
+
+@export
+class UnresolvedNameWarning(VHDLModelCriticalWarning):
+	"""
+	Raised when a name can't be resolved: no declaration of it is visible, or use clauses made conflicting declarations
+	potentially visible.
+
+	Also a use clause naming something it can't use is reported, e.g. an uninstantiated generic package. The model stays
+	usable, but the symbol of the name stays unresolved or imports nothing.
+
+	.. important::
+
+	   As a critical warning, it must be collected by a :class:`~pyTooling.Warning.WarningCollector` up the
+	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
+	"""
+
+	_LABEL:      ClassVar[str] = "Name"  #: The kind of name, which starts the messages of a name lookup.
+
+	_symbol:     _Symbol                  #: The unresolved symbol.
+	_place:      ModelEntity              #: The model entity containing the name, e.g. a use clause.
+	_namespaces: tuple[_Namespace, ...]   #: The namespaces searched for the name, innermost first.
+	_conflicts:  tuple[_Import, ...]      #: The imported declarations conflicting with each other.
+
+	def __init__(
+		self,
+		message:    str,
+		/, *,
+		symbol:     _Symbol,
+		place:      ModelEntity,
+		namespaces: tuple[_Namespace, ...],
+		conflicts:  tuple[_Import, ...] = ()
+	) -> None:
+		"""
+		Initializes the warning with the unresolved symbol, its place, the searched namespaces and the conflicts.
+
+		:param message:    The warning's message.
+		:param symbol:     The unresolved symbol.
+		:param place:      The model entity containing the name, e.g. a use clause or a declaration.
+		:param namespaces: The namespaces searched for the name, innermost first.
+		:param conflicts:  Optional, the imported declarations conflicting with each other. Default: ``()``.
+		"""
+		super().__init__(message)
+		self._symbol =     symbol
+		self._place =      place
+		self._namespaces = namespaces
+		self._conflicts =  conflicts
+
+	@readonly
+	def Symbol(self) -> _Symbol:
+		"""
+		Read-only property to access the unresolved symbol (:attr:`_symbol`).
+
+		:returns: The symbol.
+		"""
+		return self._symbol
+
+	@readonly
+	def Place(self) -> ModelEntity:
+		"""
+		Read-only property to access the model entity containing the name (:attr:`_place`).
+
+		:returns: The model entity, e.g. a use clause or a declaration.
+		"""
+		return self._place
+
+	@readonly
+	def Namespaces(self) -> tuple[_Namespace, ...]:
+		"""
+		Read-only property to access the namespaces searched for the name (:attr:`_namespaces`).
+
+		:returns: Tuple of namespaces, innermost first.
+		"""
+		return self._namespaces
+
+	@readonly
+	def Conflicts(self) -> tuple[_Import, ...]:
+		"""
+		Read-only property to access the imported declarations conflicting with each other (:attr:`_conflicts`).
+
+		:returns: Tuple of imported declarations with their use clauses, empty if there is no conflict.
+		"""
+		return self._conflicts
+
+
+@export
+class UnresolvedTypeMarkWarning(UnresolvedNameWarning):
+	"""
+	Raised when a type mark can't be resolved (:meth:`~pyVHDLModel.Design.ResolveTypeMarks`): no declaration of it is
+	visible, use clauses made conflicting declarations potentially visible, the prefix of an expanded name isn't a visible
+	package, or it denotes something else than a type or subtype.
+
+	Its place (:attr:`~UnresolvedNameWarning.Place`) is the declaration containing the type mark.
+
+	.. important::
+
+	   As a critical warning, it must be collected by a :class:`~pyTooling.Warning.WarningCollector` up the
+	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
+	"""
+
+	_LABEL: ClassVar[str] = "Type mark"  #: The kind of name, which starts the messages of a type mark lookup.
+
+
+@export
+class IncompleteTypeWarning(VHDLModelCriticalWarning):
+	"""
+	Raised when an incomplete type declaration has no full type declaration later in the same declarative region.
+
+	.. important::
+
+	   As a critical warning, it must be collected by a :class:`~pyTooling.Warning.WarningCollector` up the
+	   call-hierarchy, otherwise :exc:`~pyTooling.Warning.UnhandledCriticalWarningError` is raised.
+	"""
+
+	_incompleteType: ModelEntity  #: The incomplete type declaration.
+
+	def __init__(self, message: str, /, *, incompleteType: ModelEntity) -> None:
+		"""
+		Initializes the warning with the incomplete type declaration.
+
+		:param message:        The warning's message.
+		:param incompleteType: The incomplete type declaration.
+		"""
+		super().__init__(message)
+		self._incompleteType = incompleteType
+
+	@readonly
+	def IncompleteType(self) -> ModelEntity:
+		"""
+		Read-only property to access the incomplete type declaration (:attr:`_incompleteType`).
+
+		:returns: The incomplete type declaration.
+		"""
+		return self._incompleteType
 
 
 @export
@@ -315,22 +462,21 @@ class VHDLModelException(ExceptionBase):
 
 
 @export
-class LibraryExistsInDesignError(VHDLModelException):
+class LibraryExistsInDesignError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the library is already existing in the design.
-
-	Message: :pycode:`f"Library '{library._identifier}' already exists in design."`
 	"""
 
 	_library: Library  #: The library involved in this error.
 
-	def __init__(self, library: Library) -> None:
+	def __init__(self, message: str, /, *, library: Library) -> None:
 		"""
-		Initializes the exception message based on given library object.
+		Initializes the exception with a message and the library, which already exists in the design.
 
+		:param message: The exception message.
 		:param library: The library that already exists in the design.
 		"""
-		super().__init__(f"Library '{library._identifier}' already exists in design.")
+		super().__init__(message)
 		self._library = library
 
 	@readonly
@@ -344,22 +490,21 @@ class LibraryExistsInDesignError(VHDLModelException):
 
 
 @export
-class LibraryRegisteredToForeignDesignError(VHDLModelException):
+class LibraryRegisteredToForeignDesignError(VHDLModelException, AlreadyInHierarchyError):
 	"""
 	This exception is raised, when the library is already registered to a foreign design.
-
-	Message: :pycode:`f"Library '{library._identifier}' already registered in design '{library.Parent}'."`
 	"""
 
 	_library: Library  #: The library involved in this error.
 
-	def __init__(self, library: Library) -> None:
+	def __init__(self, message: str, /, *, library: Library) -> None:
 		"""
-		Initializes the exception message based on given library object.
+		Initializes the exception with a message and the library, which is already registered to another design.
 
+		:param message: The exception message.
 		:param library: The library that is already registered to another design.
 		"""
-		super().__init__(f"Library '{library._identifier}' already registered in design '{library.Parent}'.")
+		super().__init__(message)
 		self._library = library
 
 	@readonly
@@ -376,19 +521,18 @@ class LibraryRegisteredToForeignDesignError(VHDLModelException):
 class LibraryNotRegisteredError(VHDLModelException):
 	"""
 	This exception is raised, when the library is not registered in the design.
-
-	Message: :pycode:`f"Library '{library._identifier}' is not registered in the design."`
 	"""
 
 	_library: Library  #: The library involved in this error.
 
-	def __init__(self, library: Library) -> None:
+	def __init__(self, message: str, /, *, library: Library) -> None:
 		"""
-		Initializes the exception message based on given library object.
+		Initializes the exception with a message and the library, which isn't registered in the design.
 
+		:param message: The exception message.
 		:param library: The library that isn't registered in the design.
 		"""
-		super().__init__(f"Library '{library._identifier}' is not registered in the design.")
+		super().__init__(message)
 		self._library = library
 
 	@readonly
@@ -402,26 +546,25 @@ class LibraryNotRegisteredError(VHDLModelException):
 
 
 @export
-class EntityExistsInLibraryError(VHDLModelException):
+class EntityExistsInLibraryError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the entity already existing in the library.
-
-	Message: :pycode:`f"Entity '{entity._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library: Library  #: The library involved in this error.
 	_entity:  Entity   #: The entity involved in this error.
 
-	def __init__(self, entity: Entity, library: Library) -> None:
+	def __init__(self, message: str, /, *, entity: Entity, library: Library) -> None:
 		"""
-		Initializes the exception message based on given entity and library objects.
+		Initializes the exception with a message, the entity and the library, which already contains it.
 
+		:param message: The exception message.
 		:param entity:  The entity that already exists in the library.
 		:param library: The library that already contains the entity.
 		"""
-		super().__init__(f"Entity '{entity._identifier}' already exists in library '{library._identifier}'.")
+		super().__init__(message)
 		self._library = library
-		self._entity = entity
+		self._entity =  entity
 
 	@readonly
 	def Library(self) -> Library:
@@ -443,28 +586,24 @@ class EntityExistsInLibraryError(VHDLModelException):
 
 
 @export
-class ArchitectureExistsInLibraryError(VHDLModelException):
+class ArchitectureExistsInLibraryError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the architecture already existing in the library.
-
-	Message: :pycode:`f"Architecture '{architecture._identifier}' for entity '{entity._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library:      Library       #: The library involved in this error.
-	_entity:       Entity        #: The entity involved in this error.
 	_architecture: Architecture  #: The architecture involved in this error.
 
-	def __init__(self, architecture: Architecture, entity: Entity, library: Library) -> None:
+	def __init__(self, message: str, /, *, architecture: Architecture, library: Library) -> None:
 		"""
-		Initializes the exception message based on given architecture, entity and library objects.
+		Initializes the exception with a message, the architecture and the library, which already contains it.
 
+		:param message:      The exception message.
 		:param architecture: The architecture that already exists in the library.
-		:param entity:       The entity the architecture refers to, which already exists in the library.
 		:param library:      The library that already contains the architecture.
 		"""
-		super().__init__(f"Architecture '{architecture._identifier}' for entity '{entity._identifier}' already exists in library '{library._identifier}'.")
-		self._library = library
-		self._entity = entity
+		super().__init__(message)
+		self._library =      library
 		self._architecture = architecture
 
 	@readonly
@@ -477,15 +616,6 @@ class ArchitectureExistsInLibraryError(VHDLModelException):
 		return self._library
 
 	@readonly
-	def Entity(self) -> Entity:
-		"""
-		Read-only property to access the entity (:attr:`_entity`).
-
-		:returns: The entity.
-		"""
-		return self._entity
-
-	@readonly
 	def Architecture(self) -> Architecture:
 		"""
 		Read-only property to access the architecture (:attr:`_architecture`).
@@ -496,24 +626,23 @@ class ArchitectureExistsInLibraryError(VHDLModelException):
 
 
 @export
-class PackageExistsInLibraryError(VHDLModelException):
+class PackageExistsInLibraryError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the package already existing in the library.
-
-	Message: :pycode:`f"Package '{package._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library: Library  #: The library involved in this error.
 	_package: Package  #: The package involved in this error.
 
-	def __init__(self, package: Package, library: Library) -> None:
+	def __init__(self, message: str, /, *, package: Package, library: Library) -> None:
 		"""
-		Initializes the exception message based on given package and library objects.
+		Initializes the exception with a message, the package and the library, which already contains it.
 
+		:param message: The exception message.
 		:param package: The package that already exists in the library.
 		:param library: The library that already contains the package.
 		"""
-		super().__init__(f"Package '{package._identifier}' already exists in library '{library._identifier}'.")
+		super().__init__(message)
 		self._library = library
 		self._package = package
 
@@ -537,25 +666,24 @@ class PackageExistsInLibraryError(VHDLModelException):
 
 
 @export
-class PackageBodyExistsError(VHDLModelException):
+class PackageBodyExistsError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the package body already existing in the library.
-
-	Message: :pycode:`f"Package body '{packageBody._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library:     Library      #: The library involved in this error.
 	_packageBody: PackageBody  #: The package body involved in this error.
 
-	def __init__(self, packageBody: PackageBody, library: Library) -> None:
+	def __init__(self, message: str, /, *, packageBody: PackageBody, library: Library) -> None:
 		"""
-		Initializes the exception message based on given package body and library objects.
+		Initializes the exception with a message, the package body and the library, which already contains it.
 
+		:param message:     The exception message.
 		:param packageBody: The package body that already exists in the library.
 		:param library:     The library that already contains the package body.
 		"""
-		super().__init__(f"Package body '{packageBody._identifier}' already exists in library '{library._identifier}'.")
-		self._library = library
+		super().__init__(message)
+		self._library =     library
 		self._packageBody = packageBody
 
 	@readonly
@@ -578,25 +706,24 @@ class PackageBodyExistsError(VHDLModelException):
 
 
 @export
-class ConfigurationExistsInLibraryError(VHDLModelException):
+class ConfigurationExistsInLibraryError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the configuration already existing in the library.
-
-	Message: :pycode:`f"Configuration '{configuration._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library:       Library        #: The library involved in this error.
 	_configuration: Configuration  #: The configuration involved in this error.
 
-	def __init__(self, configuration: Configuration, library: Library) -> None:
+	def __init__(self, message: str, /, *, configuration: Configuration, library: Library) -> None:
 		"""
-		Initializes the exception message based on given configuration and library objects.
+		Initializes the exception with a message, the configuration and the library, which already contains it.
 
+		:param message:       The exception message.
 		:param configuration: The configuration that already exists in the library.
 		:param library:       The library that already contains the configuration.
 		"""
-		super().__init__(f"Configuration '{configuration._identifier}' already exists in library '{library._identifier}'.")
-		self._library = library
+		super().__init__(message)
+		self._library =       library
 		self._configuration = configuration
 
 	@readonly
@@ -619,24 +746,23 @@ class ConfigurationExistsInLibraryError(VHDLModelException):
 
 
 @export
-class ContextExistsInLibraryError(VHDLModelException):
+class ContextExistsInLibraryError(VHDLModelException, DuplicateElementError):
 	"""
 	This exception is raised, when the context already existing in the library.
-
-	Message: :pycode:`f"Context '{context._identifier}' already exists in library '{library._identifier}'."`
 	"""
 
 	_library: Library  #: The library involved in this error.
 	_context: Context  #: The context involved in this error.
 
-	def __init__(self, context: Context, library: Library) -> None:
+	def __init__(self, message: str, /, *, context: Context, library: Library) -> None:
 		"""
-		Initializes the exception message based on given context and library objects.
+		Initializes the exception with a message, the context and the library, which already contains it.
 
+		:param message: The exception message.
 		:param context: The context that already exists in the library.
 		:param library: The library that already contains the context.
 		"""
-		super().__init__(f"Context '{context._identifier}' already exists in library '{library._identifier}'.")
+		super().__init__(message)
 		self._library = library
 		self._context = context
 
@@ -660,26 +786,63 @@ class ContextExistsInLibraryError(VHDLModelException):
 
 
 @export
-class ReferencedLibraryNotExistingError(VHDLModelException):
+class LibraryNotInDesignError(VHDLModelException, ElementNotFoundError):
+	"""
+	The exception is raised when a library is referenced or looked up by name, but doesn't exist in the design.
+
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class LibraryNotFoundError(LibraryNotInDesignError)``. It has no initializer of its own; the
+	derived exception sets the fields.
+	It also derives from pyTooling's common base :exc:`pyTooling.Exceptions.ElementNotFoundError`, so it's a
+	:exc:`LookupError`.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.LibraryNotFoundError`
+	      |rarr| Library looked up by name not found.
+	   :exc:`~pyVHDLModel.Exception.ReferencedLibraryNotExistingError`
+	      |rarr| Library of a context declaration's library clause not found.
+	   :exc:`~pyVHDLModel.Exception.LibraryClauseLibraryNotFoundError`
+	      |rarr| Library of a design unit's library clause not found.
+	   :exc:`~pyVHDLModel.Exception.PackageInstantiationLibraryNotFoundError`
+	      |rarr| Library of a package instantiation's generic package not found.
+	   :exc:`~pyVHDLModel.Exception.EntityInstantiationLibraryNotFoundError`
+	      |rarr| Library of a direct entity instantiation not found.
+	"""
+
+	_libraryName: str  #: The name of the library, which was not found.
+
+	@readonly
+	def LibraryName(self) -> str:
+		"""
+		Read-only property to access the library name (:attr:`_libraryName`).
+
+		:returns: The name of the library, which was not found.
+		"""
+		return self._libraryName
+
+
+@export
+class ReferencedLibraryNotExistingError(LibraryNotInDesignError):
 	"""
 	This exception is raised, when a library is referenced by a `library clause`, but doesn't exist in the design.
-
-	Message: :pycode:`f"Library '{librarySymbol.Name._identifier}' referenced by library clause of context '{context._identifier}' doesn't exist in design."`
 	"""
 
 	_librarySymbol: Symbol   #: The library symbol that could not be resolved.
 	_context:       Context  #: The context involved in this error.
 
-	def __init__(self, context: Context, librarySymbol: Symbol) -> None:
+	def __init__(self, message: str, /, *, context: Context, librarySymbol: Symbol) -> None:
 		"""
-		Initializes the exception message based on given context and library objects.
+		Initializes the exception with a message, the context and the unresolved library symbol of its library clause.
 
-		:param context:       The context that already exists in the library.
-		:param librarySymbol: The library that already contains the context.
+		:param message:       The exception message.
+		:param context:       The context containing the library clause.
+		:param librarySymbol: The library symbol that could not be resolved.
 		"""
-		super().__init__(f"Library '{librarySymbol.Name._identifier}' referenced by library clause of context '{context._identifier}' doesn't exist in design.")
+		super().__init__(message)
+		self._libraryName =   librarySymbol.Name._identifier
 		self._librarySymbol = librarySymbol
-		self._context = context
+		self._context =       context
 
 	@readonly
 	def LibrarySymbol(self) -> Symbol:
@@ -752,7 +915,7 @@ class AlreadyInDesignError(VHDLModelException, AlreadyInHierarchyError):
 
 
 @export
-class NotAChildError(VHDLModelException):
+class NotAChildError(VHDLModelException, CommonNotAChildError):
 	"""
 	This exception is raised, when a model entity is removed from a parent, but it isn't a child of that parent.
 	"""
@@ -1681,42 +1844,133 @@ class LibraryInUseError(ElementInUseError["Library", "Document"]):
 
 
 @export
-class LibraryNotFoundError(VHDLModelException):
+class LibraryNotFoundError(LibraryNotInDesignError):
 	"""
 	This exception is raised, when a library is looked up by name, but doesn't exist in the design.
-
-	Message: :pycode:`f"Library '{libraryName}' not found in design."`
 	"""
 
-	_libraryName: str  #: The name of the library, which was not found.
-
-	def __init__(self, libraryName: str) -> None:
+	def __init__(self, message: str, /, *, libraryName: str) -> None:
 		"""
-		Initializes the exception message based on the given library name.
+		Initializes the exception with a message and the name of the library, which was not found.
 
+		:param message:     The exception message.
 		:param libraryName: The name of the library, which was not found.
 		"""
-		super().__init__(f"Library '{libraryName}' not found in design.")
+		super().__init__(message)
 		self._libraryName = libraryName
-
-	@readonly
-	def LibraryName(self) -> str:
-		"""
-		Read-only property to access the library name (:attr:`_libraryName`).
-
-		:returns: The name of the library, which was not found.
-		"""
-		return self._libraryName
 
 
 @export
-class DesignUnitNotFoundError(Exception):
+class LibraryClauseLibraryNotFoundError(LibraryNotInDesignError):
+	"""
+	This exception is raised, when a library clause of a design unit references a library, which doesn't exist in the
+	design.
+	"""
+
+	_librarySymbol: _Symbol      #: The library symbol that could not be resolved.
+	_designUnit:    _DesignUnit  #: The design unit containing the library clause.
+
+	def __init__(self, message: str, /, *, designUnit: _DesignUnit, librarySymbol: _Symbol) -> None:
+		"""
+		Initializes the exception with a message, the design unit and the unresolved library symbol.
+
+		:param message:       The exception message.
+		:param designUnit:    The design unit containing the library clause.
+		:param librarySymbol: The library symbol that could not be resolved.
+		"""
+		super().__init__(message)
+		self._libraryName =   librarySymbol._name._identifier
+		self._librarySymbol = librarySymbol
+		self._designUnit =    designUnit
+
+	@readonly
+	def LibrarySymbol(self) -> _Symbol:
+		"""
+		Read-only property to access the library symbol (:attr:`_librarySymbol`).
+
+		:returns: The library symbol.
+		"""
+		return self._librarySymbol
+
+	@readonly
+	def DesignUnit(self) -> _DesignUnit:
+		"""
+		Read-only property to access the design unit containing the library clause (:attr:`_designUnit`).
+
+		:returns: The design unit.
+		"""
+		return self._designUnit
+
+
+@export
+class PackageInstantiationLibraryNotFoundError(LibraryNotInDesignError):
+	"""
+	This exception is raised, when a package instantiation references a library, which doesn't exist in the design.
+	"""
+
+	_packageInstantiation: _PackageInstantiation  #: The package instantiation referencing the library.
+
+	def __init__(self, message: str, /, *, libraryName: str, packageInstantiation: _PackageInstantiation) -> None:
+		"""
+		Initializes the exception with a message, the name of the missing library and the package instantiation.
+
+		:param message:              The exception message.
+		:param libraryName:          The name of the library, which was not found.
+		:param packageInstantiation: The package instantiation referencing the generic package in that library.
+		"""
+		super().__init__(message)
+		self._libraryName =          libraryName
+		self._packageInstantiation = packageInstantiation
+
+	@readonly
+	def PackageInstantiation(self) -> _PackageInstantiation:
+		"""
+		Read-only property to access the package instantiation (:attr:`_packageInstantiation`).
+
+		:returns: The package instantiation referencing the library.
+		"""
+		return self._packageInstantiation
+
+
+@export
+class EntityInstantiationLibraryNotFoundError(LibraryNotInDesignError):
+	"""
+	This exception is raised, when a direct entity instantiation references a library, which doesn't exist in the design.
+	"""
+
+	_instantiation: EntityInstantiation  #: The direct entity instantiation referencing the library.
+
+	def __init__(self, message: str, /, *, instantiation: EntityInstantiation) -> None:
+		"""
+		Initializes the exception with a message and the direct entity instantiation referencing the missing library.
+
+		:param message:       The exception message.
+		:param instantiation: The direct entity instantiation referencing the library.
+		"""
+		super().__init__(message)
+		self._libraryName =   instantiation._entity._name._prefix._identifier
+		self._instantiation = instantiation
+
+	@readonly
+	def Instantiation(self) -> EntityInstantiation:
+		"""
+		Read-only property to access the direct entity instantiation (:attr:`_instantiation`).
+
+		:returns: The direct entity instantiation referencing the library.
+		"""
+		return self._instantiation
+
+
+@export
+class DesignUnitNotFoundError(VHDLModelException, ElementNotFoundError):
 	"""
 	The exception is raised when a design unit is looked up by name, but doesn't exist in the searched library.
 
-	It's a common base: a kind-specific exception derives from it and from :exc:`VHDLModelException`, e.g.
-	``class EntityNotFoundError(VHDLModelException, DesignUnitNotFoundError)``. It has no initializer of its own; the
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class EntityNotFoundError(DesignUnitNotFoundError)``. It has no initializer of its own; the
 	derived exception sets the fields.
+	It also derives from pyTooling's common base :exc:`pyTooling.Exceptions.ElementNotFoundError`, so it's a
+	:exc:`LookupError`.
 
 	.. seealso::
 
@@ -1728,6 +1982,14 @@ class DesignUnitNotFoundError(Exception):
 	      |rarr| Configuration not found.
 	   :exc:`~pyVHDLModel.Exception.ContextNotFoundError`
 	      |rarr| Context not found.
+	   :exc:`~pyVHDLModel.Exception.ComponentEntityNotFoundError`
+	      |rarr| Entity of a component not found.
+	   :exc:`~pyVHDLModel.Exception.InstantiatedEntityNotFoundError`
+	      |rarr| Entity of a direct entity instantiation not found.
+	   :exc:`~pyVHDLModel.Exception.ArchitectureEntityNotFoundError`
+	      |rarr| Entity of architectures not found.
+	   :exc:`~pyVHDLModel.Exception.PackageBodyPackageNotFoundError`
+	      |rarr| Package of a package body not found.
 	"""
 
 	_designUnitName: str  #: The name of the design unit, which was not found.
@@ -1753,87 +2015,841 @@ class DesignUnitNotFoundError(Exception):
 
 
 @export
-class EntityNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+class EntityNotFoundError(DesignUnitNotFoundError):
 	"""
 	This exception is raised, when an entity is looked up by name, but doesn't exist in the searched library.
-
-	Message: :pycode:`f"Entity '{entityName}' not found in library '{libraryName}'."`
 	"""
 
-	def __init__(self, entityName: str, libraryName: str) -> None:
+	def __init__(self, message: str, /, *, entityName: str, libraryName: str) -> None:
 		"""
-		Initializes the exception message based on the given entity name and library name.
+		Initializes the exception with a message, the name of the entity, which was not found, and the library name.
 
+		:param message:     The exception message.
 		:param entityName:  The name of the entity, which was not found.
 		:param libraryName: The name of the searched library.
 		"""
-		super().__init__(f"Entity '{entityName}' not found in library '{libraryName}'.")
-
+		super().__init__(message)
 		self._designUnitName = entityName
 		self._libraryName =    libraryName
 
 
 @export
-class PackageNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+class PackageNotFoundError(DesignUnitNotFoundError):
 	"""
 	This exception is raised, when a package is looked up by name, but doesn't exist in the searched library.
-
-	Message: :pycode:`f"Package '{packageName}' not found in library '{libraryName}'."`
 	"""
 
-	def __init__(self, packageName: str, libraryName: str) -> None:
+	def __init__(self, message: str, /, *, packageName: str, libraryName: str) -> None:
 		"""
-		Initializes the exception message based on the given package name and library name.
+		Initializes the exception with a message, the name of the package, which was not found, and the library name.
 
+		:param message:     The exception message.
 		:param packageName: The name of the package, which was not found.
 		:param libraryName: The name of the searched library.
 		"""
-		super().__init__(f"Package '{packageName}' not found in library '{libraryName}'.")
-
+		super().__init__(message)
 		self._designUnitName = packageName
 		self._libraryName =    libraryName
 
 
 @export
-class ConfigurationNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+class ConfigurationNotFoundError(DesignUnitNotFoundError):
 	"""
 	This exception is raised, when a configuration is looked up by name, but doesn't exist in the searched library.
-
-	Message: :pycode:`f"Configuration '{configurationName}' not found in library '{libraryName}'."`
 	"""
 
-	def __init__(self, configurationName: str, libraryName: str) -> None:
+	def __init__(self, message: str, /, *, configurationName: str, libraryName: str) -> None:
 		"""
-		Initializes the exception message based on the given configuration name and library name.
+		Initializes the exception with a message, the name of the configuration, which was not found, and the library name.
 
+		:param message:           The exception message.
 		:param configurationName: The name of the configuration, which was not found.
 		:param libraryName:       The name of the searched library.
 		"""
-		super().__init__(f"Configuration '{configurationName}' not found in library '{libraryName}'.")
-
+		super().__init__(message)
 		self._designUnitName = configurationName
 		self._libraryName =    libraryName
 
 
 @export
-class ContextNotFoundError(VHDLModelException, DesignUnitNotFoundError):
+class ContextNotFoundError(DesignUnitNotFoundError):
 	"""
 	This exception is raised, when a context is looked up by name, but doesn't exist in the searched library.
-
-	Message: :pycode:`f"Context '{contextName}' not found in library '{libraryName}'."`
 	"""
 
-	def __init__(self, contextName: str, libraryName: str) -> None:
+	def __init__(self, message: str, /, *, contextName: str, libraryName: str) -> None:
 		"""
-		Initializes the exception message based on the given context name and library name.
+		Initializes the exception with a message, the name of the context, which was not found, and the library name.
 
+		:param message:     The exception message.
 		:param contextName: The name of the context, which was not found.
 		:param libraryName: The name of the searched library.
 		"""
-		super().__init__(f"Context '{contextName}' not found in library '{libraryName}'.")
-
+		super().__init__(message)
 		self._designUnitName = contextName
 		self._libraryName =    libraryName
+
+
+@export
+class ComponentEntityNotFoundError(DesignUnitNotFoundError):
+	"""
+	This exception is raised, when no entity matches a component, which doesn't allow blackboxes.
+	"""
+
+	_component: _Component  #: The component without a matching entity.
+
+	def __init__(self, message: str, /, *, component: _Component, libraryName: str) -> None:
+		"""
+		Initializes the exception with a message, the component without an entity and the name of the searched library.
+
+		:param message:     The exception message.
+		:param component:   The component without a matching entity.
+		:param libraryName: The name of the searched library.
+		"""
+		super().__init__(message)
+		self._designUnitName = component._identifier
+		self._libraryName =    libraryName
+		self._component =      component
+
+	@readonly
+	def Component(self) -> _Component:
+		"""
+		Read-only property to access the component (:attr:`_component`).
+
+		:returns: The component without a matching entity.
+		"""
+		return self._component
+
+
+@export
+class InstantiatedEntityNotFoundError(DesignUnitNotFoundError):
+	"""
+	This exception is raised, when the entity of a direct entity instantiation doesn't exist in the referenced library.
+	"""
+
+	_instantiation: EntityInstantiation  #: The direct entity instantiation referencing the entity.
+
+	def __init__(self, message: str, /, *, instantiation: EntityInstantiation, libraryName: str) -> None:
+		"""
+		Initializes the exception with a message, the direct entity instantiation and the name of the searched library.
+
+		:param message:       The exception message.
+		:param instantiation: The direct entity instantiation referencing the entity.
+		:param libraryName:   The name of the searched library.
+		"""
+		super().__init__(message)
+		self._designUnitName = instantiation._entity._name._identifier
+		self._libraryName =    libraryName
+		self._instantiation =  instantiation
+
+	@readonly
+	def Instantiation(self) -> EntityInstantiation:
+		"""
+		Read-only property to access the direct entity instantiation (:attr:`_instantiation`).
+
+		:returns: The direct entity instantiation referencing the entity.
+		"""
+		return self._instantiation
+
+
+@export
+class ArchitectureEntityNotFoundError(DesignUnitNotFoundError):
+	"""
+	This exception is raised, when the entity of one or more architectures doesn't exist in their library.
+	"""
+
+	_architectureNames: tuple[str, ...]  #: The names of the architectures referencing the entity.
+
+	def __init__(
+		self,
+		message:           str,
+		/, *,
+		entityName:        str,
+		architectureNames: tuple[str, ...],
+		libraryName:       str
+	) -> None:
+		"""
+		Initializes the exception with a message, the missing entity's name, the architectures' names and the library name.
+
+		:param message:           The exception message.
+		:param entityName:        The name of the entity, which was not found.
+		:param architectureNames: The names of the architectures referencing the entity.
+		:param libraryName:       The name of the searched library.
+		"""
+		super().__init__(message)
+		self._designUnitName =    entityName
+		self._libraryName =       libraryName
+		self._architectureNames = architectureNames
+
+	@readonly
+	def ArchitectureNames(self) -> tuple[str, ...]:
+		"""
+		Read-only property to access the architecture names (:attr:`_architectureNames`).
+
+		:returns: Tuple of names of the architectures referencing the entity.
+		"""
+		return self._architectureNames
+
+
+@export
+class PackageBodyPackageNotFoundError(DesignUnitNotFoundError):
+	"""
+	This exception is raised, when the package of a package body doesn't exist in its library.
+	"""
+
+	def __init__(self, message: str, /, *, packageName: str, libraryName: str) -> None:
+		"""
+		Initializes the exception with a message, the name of the missing package and the name of the searched library.
+
+		:param message:     The exception message.
+		:param packageName: The name of the package, which was not found.
+		:param libraryName: The name of the searched library.
+		"""
+		super().__init__(message)
+		self._designUnitName = packageName
+		self._libraryName =    libraryName
+
+
+@export
+class NotLinkedError(VHDLModelException):
+	"""
+	The exception is raised when a linking step of the analysis didn't run before a step, which needs its result.
+
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class UseClauseNotLinkedError(NotLinkedError)``. It has no initializer and no fields of its
+	own.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.InstantiationNotLinkedError`
+	      |rarr| Instantiation of a generic language entity not linked.
+	   :exc:`~pyVHDLModel.Exception.LibraryReferenceNotLinkedError`
+	      |rarr| Implicit library reference of a primary unit not linked.
+	   :exc:`~pyVHDLModel.Exception.UseClauseNotLinkedError`
+	      |rarr| Use clause of a context declaration not linked.
+	"""
+
+
+@export
+class InstantiationNotLinkedError(NotLinkedError):
+	"""
+	The exception is raised when an instantiation of a generic language entity isn't linked to it.
+
+	A package instantiation is linked to its generic package by :meth:`~pyVHDLModel.Design.LinkPackageInstances`; the
+	generic language entity's declarations are available only after linking.
+
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class PackageInstantiationNotLinkedError(InstantiationNotLinkedError)``. It has no initializer
+	of its own; the derived exception sets the fields.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.PackageInstantiationNotLinkedError`
+	      |rarr| Package instantiation not linked to its generic package.
+	"""
+
+	_instantiationName: str  #: The name of the instantiation, which isn't linked.
+	_genericName:       str  #: The name of the generic language entity, as the instantiation references it.
+
+	@readonly
+	def InstantiationName(self) -> str:
+		"""
+		Read-only property to access the instantiation name (:attr:`_instantiationName`).
+
+		:returns: The name of the instantiation, which isn't linked.
+		"""
+		return self._instantiationName
+
+	@readonly
+	def GenericName(self) -> str:
+		"""
+		Read-only property to access the name of the generic language entity (:attr:`_genericName`).
+
+		:returns: The name of the generic language entity, as the instantiation references it.
+		"""
+		return self._genericName
+
+
+@export
+class PackageInstantiationNotLinkedError(InstantiationNotLinkedError):
+	"""
+	This exception is raised, when a package instantiation isn't linked to its generic package.
+	"""
+
+	def __init__(self, message: str, /, *, instantiationName: str, genericPackageName: str) -> None:
+		"""
+		Initializes the exception with a message, the name of the package instantiation and of its generic package.
+
+		:param message:            The exception message.
+		:param instantiationName:  The name of the package instantiation, which isn't linked.
+		:param genericPackageName: The name of the generic package, as the instantiation references it.
+		"""
+		super().__init__(message)
+		self._instantiationName = instantiationName
+		self._genericName =       genericPackageName
+
+
+@export
+class LibraryReferenceNotLinkedError(NotLinkedError):
+	"""
+	This exception is raised, when a primary unit doesn't reference a library, which every primary unit references
+	implicitly.
+	"""
+
+	_designUnit:  _DesignUnit  #: The design unit without the library reference.
+	_libraryName: str          #: The name of the implicitly referenced library.
+
+	def __init__(self, message: str, /, *, designUnit: _DesignUnit, libraryName: str) -> None:
+		"""
+		Initializes the exception with a message, the design unit and the name of the library it doesn't reference.
+
+		:param message:     The exception message.
+		:param designUnit:  The design unit without the library reference.
+		:param libraryName: The name of the implicitly referenced library.
+		"""
+		super().__init__(message)
+		self._designUnit =  designUnit
+		self._libraryName = libraryName
+
+	@readonly
+	def DesignUnit(self) -> _DesignUnit:
+		"""
+		Read-only property to access the design unit (:attr:`_designUnit`).
+
+		:returns: The design unit without the library reference.
+		"""
+		return self._designUnit
+
+	@readonly
+	def LibraryName(self) -> str:
+		"""
+		Read-only property to access the library name (:attr:`_libraryName`).
+
+		:returns: The name of the implicitly referenced library.
+		"""
+		return self._libraryName
+
+
+@export
+class UseClauseNotLinkedError(NotLinkedError):
+	"""
+	This exception is raised, when a use clause of a context declaration isn't linked to its package.
+	"""
+
+	_symbol:  _Symbol   #: The symbol of the use clause, which isn't linked.
+	_context: _Context  #: The context declaration containing the use clause.
+
+	def __init__(self, message: str, /, *, symbol: _Symbol, context: _Context) -> None:
+		"""
+		Initializes the exception with a message, the unlinked symbol and the context declaration.
+
+		:param message: The exception message.
+		:param symbol:  The symbol of the use clause, which isn't linked.
+		:param context: The context declaration containing the use clause.
+		"""
+		super().__init__(message)
+		self._symbol =  symbol
+		self._context = context
+
+	@readonly
+	def Symbol(self) -> _Symbol:
+		"""
+		Read-only property to access the symbol of the use clause (:attr:`_symbol`).
+
+		:returns: The symbol, which isn't linked.
+		"""
+		return self._symbol
+
+	@readonly
+	def Context(self) -> _Context:
+		"""
+		Read-only property to access the context declaration (:attr:`_context`).
+
+		:returns: The context declaration containing the use clause.
+		"""
+		return self._context
+
+
+@export
+class NotComputedError(VHDLModelException):
+	"""
+	The exception is raised when a graph of the analysis isn't computed before it's used.
+
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class HierarchyNotComputedError(NotComputedError)``. It has no initializer and no fields of its
+	own.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.HierarchyNotComputedError`
+	      |rarr| Hierarchy graph not computed.
+	   :exc:`~pyVHDLModel.Exception.CompileOrderNotComputedError`
+	      |rarr| Compile order not computed.
+	"""
+
+
+@export
+class HierarchyNotComputedError(NotComputedError):
+	"""
+	This exception is raised, when the design's top-level is requested before the hierarchy graph is computed.
+	"""
+
+
+@export
+class CompileOrderNotComputedError(NotComputedError):
+	"""
+	This exception is raised, when documents are iterated in compile order before the compile order is computed.
+	"""
+
+
+@export
+class LibraryNotVisibleError(VHDLModelException):
+	"""
+	The exception is raised when a design unit references a library, whose name no library clause made visible.
+
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class UseClauseLibraryNotVisibleError(LibraryNotVisibleError)``. It has no initializer of its
+	own; the derived exception sets the fields.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.UseClauseLibraryNotVisibleError`
+	      |rarr| Library of a use clause not visible.
+	   :exc:`~pyVHDLModel.Exception.ContextReferenceLibraryNotVisibleError`
+	      |rarr| Library of a context reference not visible.
+	   :exc:`~pyVHDLModel.Exception.PackageInstantiationLibraryNotVisibleError`
+	      |rarr| Library of a package instantiation's generic package not visible.
+	   :exc:`~pyVHDLModel.Exception.EntityInstantiationLibraryNotVisibleError`
+	      |rarr| Library of a direct entity instantiation not visible.
+	"""
+
+	_libraryName: str          #: The name of the library, which isn't visible.
+	_designUnit:  _DesignUnit  #: The design unit referencing the library.
+
+	@readonly
+	def LibraryName(self) -> str:
+		"""
+		Read-only property to access the library name (:attr:`_libraryName`).
+
+		:returns: The name of the library, which isn't visible.
+		"""
+		return self._libraryName
+
+	@readonly
+	def DesignUnit(self) -> _DesignUnit:
+		"""
+		Read-only property to access the design unit referencing the library (:attr:`_designUnit`).
+
+		:returns: The design unit referencing the library.
+		"""
+		return self._designUnit
+
+
+@export
+class UseClauseLibraryNotVisibleError(LibraryNotVisibleError):
+	"""
+	This exception is raised, when a use clause references a library, whose name no library clause made visible.
+	"""
+
+	def __init__(self, message: str, /, *, libraryName: str, designUnit: _DesignUnit) -> None:
+		"""
+		Initializes the exception with a message, the name of the invisible library and the design unit of the use clause.
+
+		:param message:     The exception message.
+		:param libraryName: The name of the library, which isn't visible.
+		:param designUnit:  The design unit containing the use clause.
+		"""
+		super().__init__(message)
+		self._libraryName = libraryName
+		self._designUnit =  designUnit
+
+
+@export
+class ContextReferenceLibraryNotVisibleError(LibraryNotVisibleError):
+	"""
+	This exception is raised, when a context reference references a library, whose name no library clause made visible.
+	"""
+
+	def __init__(self, message: str, /, *, libraryName: str, designUnit: _DesignUnit) -> None:
+		"""
+		Initializes the exception with a message, the name of the invisible library and the design unit of the context
+		reference.
+
+		:param message:     The exception message.
+		:param libraryName: The name of the library, which isn't visible.
+		:param designUnit:  The design unit containing the context reference.
+		"""
+		super().__init__(message)
+		self._libraryName = libraryName
+		self._designUnit =  designUnit
+
+
+@export
+class PackageInstantiationLibraryNotVisibleError(LibraryNotVisibleError):
+	"""
+	This exception is raised, when a package instantiation references a library, whose name no library clause made
+	visible.
+	"""
+
+	def __init__(self, message: str, /, *, libraryName: str, packageInstantiation: _PackageInstantiation) -> None:
+		"""
+		Initializes the exception with a message, the name of the invisible library and the package instantiation.
+
+		:param message:              The exception message.
+		:param libraryName:          The name of the library, which isn't visible.
+		:param packageInstantiation: The package instantiation referencing the generic package in that library.
+		"""
+		super().__init__(message)
+		self._libraryName = libraryName
+		self._designUnit =  packageInstantiation
+
+
+@export
+class EntityInstantiationLibraryNotVisibleError(LibraryNotVisibleError):
+	"""
+	This exception is raised, when a direct entity instantiation references a library, whose name no library clause made
+	visible.
+	"""
+
+	_instantiation: EntityInstantiation  #: The direct entity instantiation referencing the library.
+
+	def __init__(self, message: str, /, *, instantiation: EntityInstantiation, architecture: Architecture) -> None:
+		"""
+		Initializes the exception with a message, the direct entity instantiation and the architecture containing it.
+
+		:param message:       The exception message.
+		:param instantiation: The direct entity instantiation referencing the library.
+		:param architecture:  The architecture containing the instantiation.
+		"""
+		super().__init__(message)
+		self._libraryName =   instantiation._entity._name._prefix._identifier
+		self._designUnit =    architecture
+		self._instantiation = instantiation
+
+	@readonly
+	def Instantiation(self) -> EntityInstantiation:
+		"""
+		Read-only property to access the direct entity instantiation (:attr:`_instantiation`).
+
+		:returns: The direct entity instantiation referencing the library.
+		"""
+		return self._instantiation
+
+
+@export
+class UnknownKindError(VHDLModelException, CommonUnknownKindError):
+	"""
+	The exception is raised when a model element is of a kind, which the model doesn't expect at its place.
+
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class UnknownSymbolKindError(UnknownKindError)``. It has no initializer of its own; the derived
+	exception sets the fields. It also derives from pyTooling's common base :exc:`pyTooling.Exceptions.UnknownKindError`.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.UnknownSymbolKindError`
+	      |rarr| Symbol of a use clause of unknown kind.
+	   :exc:`~pyVHDLModel.Exception.UnknownSecondaryUnitKindError`
+	      |rarr| Secondary unit of unknown kind.
+	"""
+
+	_element: ModelEntity  #: The model element of unknown kind.
+
+	@readonly
+	def Element(self) -> ModelEntity:
+		"""
+		Read-only property to access the model element of unknown kind (:attr:`_element`).
+
+		:returns: The model element of unknown kind.
+		"""
+		return self._element
+
+
+@export
+class UnknownSymbolKindError(UnknownKindError):
+	"""
+	This exception is raised, when a symbol of a use clause isn't a package reference symbol, which the model supports.
+	"""
+
+	_designUnit: _DesignUnit  #: The design unit containing the use clause.
+
+	def __init__(self, message: str, /, *, symbol: _Symbol, designUnit: _DesignUnit) -> None:
+		"""
+		Initializes the exception with a message, the symbol of unknown kind and the design unit of the use clause.
+
+		:param message:    The exception message.
+		:param symbol:     The symbol of unknown kind.
+		:param designUnit: The design unit containing the use clause.
+		"""
+		super().__init__(message)
+		self._element =    symbol
+		self._designUnit = designUnit
+
+	@readonly
+	def DesignUnit(self) -> _DesignUnit:
+		"""
+		Read-only property to access the design unit containing the use clause (:attr:`_designUnit`).
+
+		:returns: The design unit.
+		"""
+		return self._designUnit
+
+
+@export
+class UnknownSecondaryUnitKindError(UnknownKindError):
+	"""
+	This exception is raised, when a secondary unit is neither an architecture nor a package body.
+	"""
+
+	def __init__(self, message: str, /, *, secondaryUnit: SecondaryUnit) -> None:
+		"""
+		Initializes the exception with a message and the secondary unit of unknown kind.
+
+		:param message:       The exception message.
+		:param secondaryUnit: The secondary unit of unknown kind.
+		"""
+		super().__init__(message)
+		self._element = secondaryUnit
+
+
+@export
+class IEEEFlavorError(VHDLModelException):
+	"""
+	The exception is raised when the ``ieee`` library can't provide a requested flavor.
+
+	It's a :exc:`VHDLModelException` and a common base: a kind-specific exception derives from it, e.g.
+	``class UnknownIEEEFlavorError(IEEEFlavorError)``. It has no initializer of its own; the derived
+	exception sets the fields.
+
+	.. seealso::
+
+	   :exc:`~pyVHDLModel.Exception.UnknownIEEEFlavorError`
+	      |rarr| Unknown flavor requested.
+	   :exc:`~pyVHDLModel.Exception.IEEEFlavorChangeError`
+	      |rarr| Flavor of a library with a non-IEEE flavor changed.
+	"""
+
+	_flavor: IEEEFlavor  #: The requested flavor.
+
+	@readonly
+	def Flavor(self) -> IEEEFlavor:
+		"""
+		Read-only property to access the requested flavor (:attr:`_flavor`).
+
+		:returns: The requested flavor.
+		"""
+		return self._flavor
+
+
+@export
+class UnknownIEEEFlavorError(IEEEFlavorError):
+	"""
+	This exception is raised, when the ``ieee`` library is requested with an unknown flavor.
+	"""
+
+	def __init__(self, message: str, /, *, flavor: IEEEFlavor) -> None:
+		"""
+		Initializes the exception with a message and the unknown flavor.
+
+		:param message: The exception message.
+		:param flavor:  The requested flavor.
+		"""
+		super().__init__(message)
+		self._flavor = flavor
+
+
+@export
+class IEEEFlavorChangeError(IEEEFlavorError):
+	"""
+	This exception is raised, when the flavor of an ``ieee`` library, which provides a non-IEEE flavor, is changed.
+	"""
+
+	_currentFlavor: IEEEFlavor  #: The flavor the library provides.
+
+	def __init__(self, message: str, /, *, currentFlavor: IEEEFlavor, flavor: IEEEFlavor) -> None:
+		"""
+		Initializes the exception with a message, the current and the requested flavor.
+
+		:param message:       The exception message.
+		:param currentFlavor: The flavor the library provides.
+		:param flavor:        The requested flavor.
+		"""
+		super().__init__(message)
+		self._flavor =        flavor
+		self._currentFlavor = currentFlavor
+
+	@readonly
+	def CurrentFlavor(self) -> IEEEFlavor:
+		"""
+		Read-only property to access the flavor the library provides (:attr:`_currentFlavor`).
+
+		:returns: The flavor the library provides.
+		"""
+		return self._currentFlavor
+
+
+@export
+class AncestorNotFoundError(VHDLModelException, ElementNotFoundError):
+	"""
+	This exception is raised, when the parent chain of a model entity contains no ancestor of the requested type.
+	"""
+
+	_element:      ModelEntity  #: The model entity, whose parent chain was searched.
+	_ancestorType: type         #: The requested type of the ancestor.
+
+	def __init__(self, message: str, /, *, element: ModelEntity, ancestorType: type) -> None:
+		"""
+		Initializes the exception with a message, the searched model entity and the requested ancestor type.
+
+		:param message:      The exception message.
+		:param element:      The model entity, whose parent chain was searched.
+		:param ancestorType: The requested type of the ancestor.
+		"""
+		super().__init__(message)
+		self._element =      element
+		self._ancestorType = ancestorType
+
+	@readonly
+	def Element(self) -> ModelEntity:
+		"""
+		Read-only property to access the model entity, whose parent chain was searched (:attr:`_element`).
+
+		:returns: The model entity.
+		"""
+		return self._element
+
+	@readonly
+	def AncestorType(self) -> type:
+		"""
+		Read-only property to access the requested type of the ancestor (:attr:`_ancestorType`).
+
+		:returns: The requested type.
+		"""
+		return self._ancestorType
+
+
+@export
+class AllowBlackboxNotSetError(VHDLModelException):
+	"""
+	This exception is raised, when a model entity has no local *allow blackbox* value and no parent to inherit it from.
+	"""
+
+	_element: ModelEntity  #: The model entity without an *allow blackbox* value.
+
+	def __init__(self, message: str, /, *, element: ModelEntity) -> None:
+		"""
+		Initializes the exception with a message and the model entity without an *allow blackbox* value.
+
+		:param message: The exception message.
+		:param element: The model entity without an *allow blackbox* value.
+		"""
+		super().__init__(message)
+		self._element = element
+
+	@readonly
+	def Element(self) -> ModelEntity:
+		"""
+		Read-only property to access the model entity without an *allow blackbox* value (:attr:`_element`).
+
+		:returns: The model entity.
+		"""
+		return self._element
+
+
+@export
+class AmbiguousTopLevelError(VHDLModelException, AmbiguousError):
+	"""
+	This exception is raised, when the hierarchy graph of a design has more than one root, i.e. top-level.
+	"""
+
+	_topLevels: tuple[_DesignUnit, ...]  #: The design units at the roots of the hierarchy graph.
+
+	def __init__(self, message: str, /, *, topLevels: tuple[_DesignUnit, ...]) -> None:
+		"""
+		Initializes the exception with a message and the top-level candidates.
+
+		:param message:   The exception message.
+		:param topLevels: The design units at the roots of the hierarchy graph.
+		"""
+		super().__init__(message)
+		self._topLevels = topLevels
+
+	@readonly
+	def TopLevels(self) -> tuple[_DesignUnit, ...]:
+		"""
+		Read-only property to access the top-level candidates (:attr:`_topLevels`).
+
+		:returns: Tuple of design units at the roots of the hierarchy graph.
+		"""
+		return self._topLevels
+
+
+@export
+class UnprefixedEntityInstantiationError(VHDLModelException):
+	"""
+	This exception is raised, when a direct entity instantiation names its entity without a library prefix.
+	"""
+
+	_instantiation: EntityInstantiation  #: The direct entity instantiation without a library prefix.
+
+	def __init__(self, message: str, /, *, instantiation: EntityInstantiation) -> None:
+		"""
+		Initializes the exception with a message and the direct entity instantiation without a library prefix.
+
+		:param message:       The exception message.
+		:param instantiation: The direct entity instantiation without a library prefix.
+		"""
+		super().__init__(message)
+		self._instantiation = instantiation
+
+	@readonly
+	def Instantiation(self) -> EntityInstantiation:
+		"""
+		Read-only property to access the direct entity instantiation (:attr:`_instantiation`).
+
+		:returns: The direct entity instantiation without a library prefix.
+		"""
+		return self._instantiation
+
+
+@export
+class NotAGenericPackageError(VHDLModelException):
+	"""
+	This exception is raised, when a package instantiation references a package, which isn't a generic package.
+	"""
+
+	_packageInstantiation: _PackageInstantiation  #: The package instantiation referencing the package.
+	_package:              _Package               #: The referenced package, which isn't a generic package.
+
+	def __init__(self, message: str, /, *, packageInstantiation: _PackageInstantiation, package: _Package) -> None:
+		"""
+		Initializes the exception with a message, the package instantiation and the referenced non-generic package.
+
+		:param message:              The exception message.
+		:param packageInstantiation: The package instantiation referencing the package.
+		:param package:              The referenced package, which isn't a generic package.
+		"""
+		super().__init__(message)
+		self._packageInstantiation = packageInstantiation
+		self._package =              package
+
+	@readonly
+	def PackageInstantiation(self) -> _PackageInstantiation:
+		"""
+		Read-only property to access the package instantiation (:attr:`_packageInstantiation`).
+
+		:returns: The package instantiation referencing the package.
+		"""
+		return self._packageInstantiation
+
+	@readonly
+	def Package(self) -> _Package:
+		"""
+		Read-only property to access the referenced package (:attr:`_package`).
+
+		:returns: The referenced package, which isn't a generic package.
+		"""
+		return self._package
 
 
 @export
@@ -1844,9 +2860,9 @@ class VHDLWriterError(VHDLModelException):
 	The element's content has no VHDL notation, e.g. a string literal containing a control character.
 	"""
 
-	_element: ModelElementUnion  #: The model element the writer could not write.
+	_element: ModelEntity  #: The model element the writer could not write.
 
-	def __init__(self, message: str, element: ModelElementUnion) -> None:
+	def __init__(self, message: str, element: ModelEntity) -> None:
 		"""
 		Initializes the exception with a message and the model element that could not be written.
 
@@ -1857,7 +2873,7 @@ class VHDLWriterError(VHDLModelException):
 		self._element = element
 
 	@readonly
-	def Element(self) -> ModelElementUnion:
+	def Element(self) -> ModelEntity:
 		"""
 		Read-only property to access the model element that could not be written (:attr:`_element`).
 

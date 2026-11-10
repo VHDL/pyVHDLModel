@@ -86,6 +86,15 @@ class RecordTypeElements(Testcase):
 		for declaration in declarations:
 			self.assertIs(recordType, declaration.Parent)
 
+	def test_Split_RecordType_ElementsByIdentifier(self) -> None:
+		"""Each identifier indexes the element declaring it after the split."""
+		original =   RecordTypeElement(("a", "b"), _subtypeSymbol("bit"))
+		recordType = RecordType("frame", [original])
+
+		declarations = original.Split()
+
+		self.assertDictEqual({"a": declarations[0], "b": declarations[1]}, recordType.ElementsByIdentifier)
+
 	def test_Split_NotAChild(self) -> None:
 		original = RecordTypeElement(("a", "b"), _subtypeSymbol("bit"))
 		recordType = RecordType("frame")

@@ -36,12 +36,12 @@ Instantiations of packages, procedures, functions and protected types.
 """
 from __future__              import annotations
 
-from typing                  import TYPE_CHECKING, Iterable, Optional as Nullable
+from typing                  import TYPE_CHECKING, Generator, Iterable, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 
-from pyVHDLModel.Exception   import VHDLModelException
+from pyVHDLModel.Exception   import PackageInstantiationNotLinkedError
 from pyVHDLModel.Base        import ModelEntity
 from pyVHDLModel.DesignUnit  import Package, ContextUnion
 from pyVHDLModel.Association import GenericAssociationItem, GenericMapAspectMixin
@@ -362,11 +362,42 @@ class PackageInstantiation(Package, GenericInstantiationMixin, GenericMapAspectM
 		"""
 		return self._packageReference
 
+	def IterateDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+		"""
+		Iterate the declarations of the instantiated generic package a use clause can make potentially visible.
+
+		:returns:                                   A generator to iterate (normalized designator, declaration) pairs, in
+		                                            declaration order.
+		:raises PackageInstantiationNotLinkedError: If this package instantiation isn't linked to its generic package. |br|
+		                                            Call :meth:`~pyVHDLModel.Design.LinkPackageInstances` before linking use
+		                                            clauses.
+		"""
+		if (genericPackage := self._packageReference._reference) is None:
+			ex = PackageInstantiationNotLinkedError(
+				f"Package instantiation '{self._identifier}' isn't linked to its generic package "
+				f"'{self._packageReference._name}'.",
+				instantiationName=self._identifier,
+				genericPackageName=str(self._packageReference._name)
+			)
+			ex.add_note("Call 'LinkPackageInstances()' before linking use clauses.")
+			raise ex
+
+		yield from genericPackage.IterateDeclarations()
 
 	def Instantiate(self) -> None:
+		"""
+		Copy the components of the generic package into this package instantiation.
+
+		:raises PackageInstantiationNotLinkedError: If this package instantiation isn't linked to its generic package.
+		"""
 		genericPackage: Package = self._packageReference.Package
 		if genericPackage is None:
-			raise VHDLModelException(f"PackageInstantiation '{self.Identifier}' isn't linked to the generic package '{self._packageReference.Name}'.")
+			raise PackageInstantiationNotLinkedError(
+				f"Package instantiation '{self._identifier}' isn't linked to its generic package "
+				f"'{self._packageReference._name}'.",
+				instantiationName=self._identifier,
+				genericPackageName=str(self._packageReference._name)
+			)
 
 		# TODO: components might need to be copied and derived
 		for componentName, component in genericPackage._components.items():

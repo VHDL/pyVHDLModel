@@ -37,16 +37,20 @@ This module contains parts of an abstract document language model for VHDL.
 from __future__             import annotations
 
 from enum                   import unique, Enum
-from typing                 import TYPE_CHECKING, ClassVar, Iterable, Union, Optional as Nullable
+from typing                 import TYPE_CHECKING, ClassVar, Generator, Iterable, Union, Optional as Nullable
 
 from pyTooling.Decorators   import export, readonly
+from pyTooling.Warning      import WarningCollector
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ReservedWord as _ReservedWord
 from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
-from pyVHDLModel.Name       import Name
-from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol
+from pyVHDLModel.Exception  import UnresolvedNameWarning, UnresolvedTypeMarkWarning
+from pyVHDLModel.Name       import Name, SimpleName
+from pyVHDLModel.Symbol     import PossibleReference, Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
+	from pyVHDLModel.DesignUnit import DesignUnit
+	from pyVHDLModel.Regions  import DeclarativeRegionMixin
 	from pyVHDLModel.Visitor  import Visitor
 
 
@@ -177,6 +181,19 @@ class Attribute(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:returns: The subtype.
 		"""
 		return self._subtype
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this attribute declaration: the type mark of its values.
+
+		:param region:  The declarative region declaring this attribute.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the attribute's type mark.
+		"""
+		if isinstance(self._subtype, SubtypeSymbol):
+			yield region, self, self._subtype
 
 	def __str__(self) -> str:
 		"""
@@ -329,6 +346,11 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	      --          Name
 	"""
 
+	_IMPLICIT_OPERATIONS: ClassVar[frozenset[str]] = frozenset((
+		"to_string", "to_bstring", "to_binary_string", "to_ostring", "to_octal_string", "to_hstring", "to_hex_string",
+		"minimum", "maximum", "deallocate", "file_open", "file_close", "read", "write", "endfile", "flush"
+	))  #: Normalized identifiers of implicitly declared operations (IEEE Std 1076-2008, 5), which aren't represented.
+
 	_name:    Symbol                   #: Reference to the name being aliased.
 	_subtype: Nullable[SubtypeSymbol]  #: Reference to the alias' subtype, or ``None`` if none was given.
 
@@ -393,6 +415,120 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:returns: The subtype, or ``None`` if not set.
 		"""
 		return self._subtype
+
+	@readonly
+	def IsOverloadable(self) -> bool:
+		"""
+		Check if this alias is overloadable: it has no subtype indication, and its name may denote a subprogram or an
+		enumeration literal.
+
+		The resolved name (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`) decides, else the name's possible references,
+		e.g. ``alias To_SLV is To_StdLogicVector [std_ulogic_vector return std_logic_vector];``.
+
+		:returns: ``True``, if this alias is overloadable.
+		"""
+		if self._subtype is not None:
+			return False
+		elif (reference := self._name._reference) is not None:
+			return reference.IsOverloadable
+
+		overloadables = PossibleReference.SubProgram | PossibleReference.EnumLiteral
+		return (self._name._possibleReferences & overloadables) != PossibleReference.Unknown
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this alias: the type mark of its subtype indication, if it has one.
+
+		:param region:  The declarative region declaring this alias.
+		:returns:       A generator to iterate (region, place, type mark) tuples: the alias' subtype indication, if
+		                given.
+		"""
+		if self._subtype is not None:
+			yield region, self, self._subtype
+
+	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
+		"""
+		Resolve the name of this alias, if it has no subtype indication, then its type marks.
+
+		The name is resolved, if it's a simple name or an expanded name ``lib.pkg.item``
+		(:attr:`~pyVHDLModel.Name.Name.IsExpandedName`) and denotes a declaration, which isn't overloadable, e.g. a type or
+		an object (:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.LookupName`); the alias isn't overloadable then
+		(:attr:`IsOverloadable`). The name of an implicitly declared operation (:attr:`_IMPLICIT_OPERATIONS`, an operator
+		symbol) isn't looked up, as the model doesn't represent these.
+
+		:param designUnit:                     The design unit containing this declaration.
+		:param region:                         The declarative region declaring this declaration.
+		:raises UnhandledCriticalWarningError: If the name can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		if self._subtype is None:
+			name =       self._name._name
+			isImplicit = name._normalizedIdentifier in self._IMPLICIT_OPERATIONS or name.IsOperatorSymbol
+			if (isinstance(name, SimpleName) or name.IsExpandedName) and not isImplicit:
+				self._name._reference = None
+				aliased =               region.LookupName(self, self._name, name, UnresolvedNameWarning)
+				if len(aliased) > 0 and not aliased[0].IsOverloadable:
+					self._name._reference = aliased[0]
+
+		super().ResolveReferences(designUnit, region)
+
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
+		"""
+		Reset the reference of this alias' name, if it has no subtype indication, and the references of its type marks.
+
+		:param designUnit: The design unit containing this declaration.
+		:param region:     The declarative region declaring this declaration.
+		"""
+		if self._subtype is None:
+			self._name._reference = None
+
+		super().ResetReferences(designUnit, region)
+
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarativeRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[ModelEntity]:
+		"""
+		Determine the model entity a name denoting this alias denotes, as a part of a type mark.
+
+		The type mark is an attribute name like ``al'subtype``. An alias with a subtype indication denotes itself, an object
+		alias; otherwise, the declaration its name references says what it denotes (e.g. an object or a type).
+
+		:param name:                           The name denoting this declaration, a part of the type mark.
+		:param region:                         The declarative region containing the type mark.
+		:param place:                          The declaration containing the type mark.
+		:param symbol:                         The type mark.
+		:returns:                              The denoted model entity, or ``None`` if it can't be resolved (reported as a
+		                                       warning).
+		:raises UnhandledCriticalWarningError: If the alias' name isn't resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the declaration the alias' name references can't be denoted, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		if self._subtype is not None:
+			return self
+		elif (reference := self._name._reference) is None:
+			WarningCollector.Raise(UnresolvedTypeMarkWarning(
+				f"Name of prefix '{name!s}' of type mark '{symbol._name!s}' isn't resolved.",
+				symbol=symbol,
+				place=place,
+				namespaces=(region._namespace, )
+			))
+			return None
+
+		return reference.DenoteBy(name, region, place, symbol)
 
 	def __str__(self) -> str:
 		"""

@@ -41,19 +41,20 @@ from pyTooling.Graph           import Graph
 from pyTooling.Testing         import Testcase
 
 from pyVHDLModel               import Design, Document
-from pyVHDLModel.Base          import Mode
+from pyVHDLModel.Base          import Mode, normalizedIdentifiersOf
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ProcessStatement
 from pyVHDLModel.DesignUnit    import Architecture, Component, Context, Entity, Package, PackageBody, \
                                       ContextReference, LibraryClause, UseClause
+from pyVHDLModel.Expression    import EnumerationLiteral
 from pyVHDLModel.Instantiation import PackageInstantiation
-from pyVHDLModel.Interface     import GenericConstantInterfaceItem
+from pyVHDLModel.Interface     import GenericConstantInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name          import AllName, SelectedName, SimpleName
+from pyVHDLModel.Object        import Constant
 from pyVHDLModel.Symbol        import AllPackageMembersReferenceSymbol, ComponentInstantiationSymbol, \
                                       ContextReferenceSymbol, EntityInstantiationSymbol, LibraryReferenceSymbol, \
                                       PackageReferenceSymbol, PackageSymbol
 
 from tests.unit                import _entitySymbol, _subtypeSymbol
-from tests.unit.Mutation       import _port
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -80,9 +81,10 @@ def _packages() -> Document:
 
 
 def _leaf() -> Document:
-	"""A document with an entity and its architecture."""
+	"""A document with an entity and its architecture; the port type ``bit`` is visible without a use clause."""
 	document = Document(Path("b.vhdl"))
-	document.AddDesignUnit(Entity("leaf", portItems=[_port("clk")]))
+	port =     PortSimpleSignalInterfaceItem(("clk", ), Mode.In, _subtypeSymbol("bit"))
+	document.AddDesignUnit(Entity("leaf", portItems=[port]))
 	document.AddDesignUnit(Architecture("rtl", _entitySymbol("leaf")))
 
 	return document
@@ -134,7 +136,10 @@ def _name(element: Any) -> Any:
 	elif isinstance(element, (Entity, Package, PackageBody, Context)):
 		return f"{element.__class__.__name__} {element._parent._normalizedIdentifier}.{element._normalizedIdentifier}"
 
-	return f"{element.__class__.__name__} {element._normalizedIdentifier}"
+	elif isinstance(element, EnumerationLiteral):
+		return f"{element.__class__.__name__} {element.NormalizedDesignator}"
+
+	return f"{element.__class__.__name__} {normalizedIdentifiersOf(element)[0]}"
 
 
 def _graph(graph: Graph) -> dict[str, Any]:
@@ -185,8 +190,10 @@ def _state(design: Design) -> dict[str, Any]:
 		}
 		if (namespace := getattr(designUnit, "_namespace", None)) is not None:
 			designUnitState["namespace"] = {
-				"elements":      sorted(namespace.Elements()),
-				"imports":       {key: _name(element) for key, element in namespace.Imports().items()},
+				"elements":      sorted(namespace.Elements),
+				"imports":       {
+					key: [_name(imported.Element) for imported in imports] for key, imports in namespace.Imports.items()
+				},
 				"parent":        None if namespace.ParentNamespace is None else namespace.ParentNamespace.Name,
 				"subNamespaces": sorted(str(subNamespace.Name) for subNamespace in namespace.SubNamespaces)
 			}
@@ -390,8 +397,8 @@ class ResetAnalysis(Testcase):
 
 		design.ResetAnalysis()
 
-		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements())
-		self.assertDictEqual({}, top._namespace.Imports())
+		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements)
+		self.assertDictEqual({}, top._namespace.Imports)
 
 	def test_ResetAnalysis_NotAnalyzed(self) -> None:
 		design = _design(_packages(), _leaf(), _top())
@@ -410,4 +417,19 @@ class EntityNamespace(Testcase):
 		design.Analyze()
 
 		entity = design.GetEntity("lib", "leaf")
-		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements())
+		self.assertDictEqual({"clk": entity.PortItems[0]}, entity._namespace.Elements)
+
+
+class PackageBodyNamespace(Testcase):
+	def test_AnalyzeDependencies_IndexPackageBodies(self) -> None:
+		"""Analyzing the dependencies indexes the package bodies: a body's declarations are declared in its namespace."""
+		constant = Constant(["c"], _subtypeSymbol("bit"))
+		document = Document(Path("a.vhdl"))
+		document.AddDesignUnit(Package("pkg"))
+		document.AddDesignUnit(PackageBody(PackageSymbol(SimpleName("pkg")), declaredItems=[constant]))
+		design = _design(document)
+
+		design.AnalyzeDependencies()
+
+		packageBody = design.GetLibrary("lib").PackageBodies["pkg"]
+		self.assertDictEqual({"c": constant}, packageBody._namespace.Elements)

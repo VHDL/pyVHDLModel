@@ -6,6 +6,201 @@ News
 See :gh:`pyVHDLModel Release Pages <VHDL/pyVHDLModel/releases>` for detail release notes on every release.
 
 
+Version 0.43.0 (2026)
+*********************
+
+.. topic:: :gh:`v0.43.0 - 10.11.2026 <VHDL/pyVHDLModel/releases/v0.43.0>`
+
+   .. rubric:: New Features
+
+   * Statements, branches, case alternatives, enumeration literals, component and block configurations carry a
+     documentation comment: constructor parameter ``documentation``, property
+     :data:`~pyVHDLModel.Base.DocumentedEntityMixin.Documentation`. Breaking change: it sits before ``parent``, so pass
+     ``parent`` by keyword; on enumeration literals it follows ``parent``.
+   * Visibility (IEEE Std 1076-2008, clause 12): :meth:`Namespace.Lookup() <pyVHDLModel.Namespace.Namespace.Lookup>`
+     returns the declarations directly visible at a place (:class:`~pyVHDLModel.Namespace.LookupResult`): hiding by
+     declarations of the region and enclosing regions, overloaded subprograms, subprogram aliases and enumeration
+     literals, conflicting imports, declaration order, incomplete types.
+   * Use clauses import every declaration of a package (``use lib.pkg.all;``), all declarations of one name, incl. the
+     literals or units of a type (``use lib.pkg.item;``), the package (``use lib.pkg;``) or units of a library
+     (``use work.all;``); also in declarative parts (architecture, block, process, subprogram, package, generate) and
+     through context references, also nested ones. A missing package member or primary unit, a prefix, which isn't a
+     visible package, and an uninstantiated generic package are an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+     The declarations a use clause takes from a package: :meth:`Package.IterateDeclarations()
+     <pyVHDLModel.DesignUnit.Package.IterateDeclarations>`, :meth:`Package.IterateMemberDeclarations()
+     <pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations>`; a package instantiation iterates those of its generic
+     package.
+     Whether a library's name is visible in a design unit: :meth:`DesignUnit.IsLibraryVisible()
+     <pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible>`.
+     A declarative region and the regions nested in it: :meth:`IterateDeclarationRegions()
+     <pyVHDLModel.Regions.DeclarativeRegionMixin.IterateDeclarationRegions>`; whether an item precedes another one in
+     it: :meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.Precedes`.
+   * Every model entity tells whether it's an overloadable declaration
+     (:data:`~pyVHDLModel.Base.ModelEntity.IsOverloadable`: subprograms, enumeration literals, aliases which may denote
+     one of them) and which declarations it implies
+     (:meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations`: the literals of an enumerated type, the units
+     of a physical type).
+   * Enumeration literals and physical units of a region's types are declarations of the region
+     (:data:`Namespace.ImplicitDeclarations <pyVHDLModel.Namespace.Namespace.ImplicitDeclarations>`). An enumeration
+     literal is indexed by :data:`EnumerationLiteral.NormalizedDesignator
+     <pyVHDLModel.Expression.EnumerationLiteral.NormalizedDesignator>` (a character literal with its apostrophes).
+   * Aliases, attribute declarations and packages declared in a region are added to its namespace.
+   * :meth:`Design.ResolveTypeMarks() <pyVHDLModel.Design.ResolveTypeMarks>` resolves the type marks of all
+     declarations (objects, interface items, record elements, array, access and file types, subtypes, subprograms,
+     attributes, aliases, components), incl. the predefined packages and expanded names (``work.pkg.T``), and sets a
+     subtype's base type. :meth:`~pyVHDLModel.Design.Analyze` runs it as the first step of
+     :meth:`~pyVHDLModel.Design.AnalyzeObjects`. An unresolved type mark is an
+     :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`, an incomplete type without a full type declaration an
+     :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`. Expanded names may name an enclosing region (``q.T`` in
+     ``q``); a component's generics are visible to its ports; an incomplete type used by anything else than an access
+     type and an unresolvable alias name are reported.
+   * Type attributes as type marks: ``x'subtype`` (an object's subtype), ``A'element`` (an array's element subtype) and
+     ``T'base`` as the prefix of another attribute. The prefix may be an object alias, a record element (``r.f``) or a
+     declaration of a package (``p.c``, ``work.p.c``); a port or parameter used in its own interface list is reported.
+     Each part of the name resolves to the declaration it references (:meth:`Name.Denote()
+     <pyVHDLModel.Name.Name.Denote>`, :meth:`ModelEntity.DenoteBy() <pyVHDLModel.Base.ModelEntity.DenoteBy>`); see
+     :ref:`analyze` for an example.
+   * :class:`~pyVHDLModel.Name.PredefinedAttribute` enumerates the predefined attributes up to VHDL-2019 (IEEE Std
+     1076-2019, 16.2); an attribute name references its member (:data:`AttributeName.PredefinedAttribute
+     <pyVHDLModel.Name.AttributeName.PredefinedAttribute>`, ``None`` for a user-defined attribute).
+   * :data:`RecordType.ElementsByIdentifier <pyVHDLModel.Type.RecordType.ElementsByIdentifier>` indexes a record's
+     elements by each identifier; :data:`BaseType.BaseType <pyVHDLModel.Type.BaseType.BaseType>` returns a type itself
+     (a subtype the base type of its type mark).
+   * :class:`~pyVHDLModel.Symbol.LoopSymbol` references a loop statement by its label
+     (:data:`~pyVHDLModel.Symbol.LoopSymbol.Loop`).
+
+   .. rubric:: Changes
+
+   * pyTooling 10.2 is required.
+   * Breaking change: :data:`Namespace.Imports <pyVHDLModel.Namespace.Namespace.Imports>` is a read-only property
+     (was a method) of a list of :class:`~pyVHDLModel.Namespace.Import` (declaration and use clause) per identifier;
+     :meth:`~pyVHDLModel.Namespace.Namespace.AddImport` takes the use clause.
+   * Breaking change: :data:`Namespace.Elements <pyVHDLModel.Namespace.Namespace.Elements>` is a read-only property
+     (was a method).
+   * Breaking change: a physical type's units are :class:`~pyVHDLModel.Type.PhysicalUnit` declarations:
+     :attr:`PhysicalType.PrimaryUnit <pyVHDLModel.Type.PhysicalType.PrimaryUnit>` returns the primary unit, which has no
+     value (was its name; formatted, it's still the name), :attr:`PhysicalType.SecondaryUnits
+     <pyVHDLModel.Type.PhysicalType.SecondaryUnits>` the list of secondary units (was (name, value) pairs); a secondary
+     unit's value has the unit as parent (was the physical type). The constructor takes the primary unit and the
+     secondary units (parameter ``secondaryUnits``, was ``units``) as :class:`~pyVHDLModel.Type.PhysicalUnit` (was a
+     name and (name, value) pairs), so a unit keeps its documentation comment.
+   * Aliases without a subtype indication, which may denote a subprogram, are overloadable; aliases, attribute
+     declarations and packages declared in a region are checked for duplicate declarations.
+   * A package instantiation, which isn't linked to its generic package, raises
+     :exc:`~pyVHDLModel.Exception.PackageInstantiationNotLinkedError` (was
+     :exc:`~pyVHDLModel.Exception.VHDLModelException`, from which it derives), with the common base
+     :exc:`~pyVHDLModel.Exception.InstantiationNotLinkedError` for all instantiations of generic language entities.
+   * ``FindComponent``, ``FindSubtype`` and ``FindObject`` follow the visibility rules: a declaration of an enclosing
+     region hides an import of an inner region; the message always lists the searched namespaces.
+   * Breaking change: :meth:`Design.Analyze() <pyVHDLModel.Design.Analyze>` analyzes the types and objects too
+     (:meth:`~pyVHDLModel.Design.AnalyzeObjects`, which resolves the type marks). A design with an unresolvable type
+     mark or alias name, or an incomplete type without full type declaration, reports it as a critical warning:
+     collect them with a :class:`~pyTooling.Warning.WarningCollector`, else ``Analyze()`` raises
+     :exc:`~pyTooling.Warning.UnhandledCriticalWarningError`.
+   * Breaking change: the prototype ``Design.ImportObjects()`` and ``CreateTypeAndObjectGraph()`` are removed; use
+     clauses (:meth:`~pyVHDLModel.Design.Analyze`) and :meth:`~pyVHDLModel.Design.AnalyzeObjects` replace them.
+   * A protected type and its body chain their namespace to the enclosing region's namespace.
+   * Breaking change: :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError` doesn't take the entity anymore;
+     its ``Entity`` property is removed, use ``Architecture.Entity``.
+   * :exc:`~pyVHDLModel.Exception.NotAChildError` derives from :exc:`pyTooling.Exceptions.NotAChildError` too.
+   * Breaking change: every port interface item is a :class:`~pyVHDLModel.Interface.PortInterfaceItemMixin`; the mixin
+     carries no mode and has no initializer parameter (like the generic and parameter mixins).
+   * A name is the parent of its prefix.
+   * Symbols are model entities: :class:`~pyVHDLModel.Symbol.Symbol` derives from
+     :class:`~pyVHDLModel.Base.ModelEntity`. A symbol's parent is the model entity using it, e.g. a statement, an
+     expression or a declaration; a symbol is the parent of its name, an aggregate symbol of its targets. The symbol
+     classes take an optional keyword-only ``parent`` and declare their fields as slots. A constrained subtype symbol is
+     the parent of its constraint ranges and record element symbols, an array type of its index ranges and element
+     subtype.
+   * Breaking change: ``ModelElementUnion`` (:mod:`pyVHDLModel.Base`) is removed; use
+     :class:`~pyVHDLModel.Base.ModelEntity`.
+   * :class:`~pyVHDLModel.DesignUnit.Context` inherits ``LibraryReferences``, ``PackageReferences`` and
+     ``ContextReferences`` from :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
+   * Instantiations annotate their generic and port maps with :class:`~pyVHDLModel.Association.GenericAssociationItem`
+     and :class:`~pyVHDLModel.Association.PortAssociationItem`.
+   * A component declaration is a declarative region (IEEE Std 1076-2008, 12.1) with its own namespace, nested in the
+     enclosing region's namespace: its generics and ports are indexed, also by :meth:`~pyVHDLModel.Design.Analyze`, a
+     duplicate identifier is a :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`, the generic and port mutators
+     keep the namespace, and generic subprograms of a component overload each other (was
+     :exc:`~pyVHDLModel.Exception.DuplicateGenericError`). For it, :class:`~pyVHDLModel.Regions.DeclarationRegionMixin`
+     is split into :class:`~pyVHDLModel.Regions.DeclarativeRegionMixin` (namespace and name lookup), which a component
+     derives from, and :class:`~pyVHDLModel.Regions.DeclarativePartMixin` (declared items and their mutators); it
+     combines both.
+   * Enumerations state their member values as number literals (Flags: powers of two) instead of ``auto()``; the values
+     are unchanged.
+   * Breaking change: ``pyVHDLModel`` no longer imports ``Obj``, ``MultipleNamedEntityMixin``, ``GenerateStatement`` and
+     ``GenerateBranch`` (unused there); import them from their modules (:mod:`pyVHDLModel.Object`,
+     :mod:`pyVHDLModel.Base`, :mod:`pyVHDLModel.Concurrent`).
+   * Linking errors are raised as specific exceptions derived from :exc:`~pyVHDLModel.Exception.VHDLModelException`
+     (were plain ``VHDLModelException``), grouped by common bases: :exc:`~pyVHDLModel.Exception.LibraryNotVisibleError`
+     (no library clause makes the library visible), :exc:`~pyVHDLModel.Exception.LibraryNotInDesignError` (the library
+     doesn't exist in the design), :exc:`~pyVHDLModel.Exception.DesignUnitNotFoundError` (a design unit is missing in
+     its library), :exc:`~pyVHDLModel.Exception.NotLinkedError` and :exc:`~pyVHDLModel.Exception.NotComputedError` (an
+     analysis step didn't run). The messages are unchanged, except for a package body without its package:
+     ``Package body 'p' has no package in library 'l'.`` ``LibraryNotInDesignError`` and ``DesignUnitNotFoundError``
+     derive from :exc:`pyTooling.Exceptions.ElementNotFoundError` too, so they are a :exc:`LookupError`.
+   * The errors on a library or design unit, which already exists (e.g. ``LibraryExistsInDesignError``,
+     ``EntityExistsInLibraryError``), derive from :exc:`pyTooling.Exceptions.DuplicateElementError` too,
+     ``LibraryRegisteredToForeignDesignError`` from :exc:`pyTooling.Exceptions.AlreadyInHierarchyError`.
+   * A package or context not found for a use clause, a context reference or a package instantiation raises
+     :exc:`~pyVHDLModel.Exception.PackageNotFoundError` or :exc:`~pyVHDLModel.Exception.ContextNotFoundError`, caused by
+     the failed lookup; the message is unchanged.
+   * No plain ``VHDLModelException`` is raised anymore. More common bases:
+     :exc:`~pyVHDLModel.Exception.UnknownKindError` (a symbol or secondary unit of unknown kind) and
+     :exc:`~pyVHDLModel.Exception.IEEEFlavorError` (an unknown or conflicting ``ieee`` flavor). A duplicate design unit
+     in a document raises :exc:`~pyVHDLModel.Exception.DuplicateDesignUnitError`, a second architecture of an entity
+     :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError`; single conditions have their own error
+     (:exc:`~pyVHDLModel.Exception.AmbiguousTopLevelError`, :exc:`~pyVHDLModel.Exception.NotAGenericPackageError`,
+     :exc:`~pyVHDLModel.Exception.AncestorNotFoundError`, ...). Failed library and entity lookups are the cause of their
+     error. ``UnknownKindError`` derives from :exc:`pyTooling.Exceptions.UnknownKindError`, ``AmbiguousTopLevelError``
+     from :exc:`pyTooling.Exceptions.AmbiguousError`; the message of the latter ends with a period. Every common base
+     derives from :exc:`~pyVHDLModel.Exception.VHDLModelException`.
+   * Breaking change: the exceptions, which built their message from their arguments, take the message as the first,
+     positional-only parameter and the descriptive values as keyword-only parameters, e.g.
+     ``LibraryNotFoundError(message, /, *, libraryName)`` or
+     ``EntityExistsInLibraryError(message, /, *, entity, library)``; the raising code builds the message. Fields,
+     properties and messages are unchanged.
+
+   .. rubric:: Bug Fixes
+
+   * The symbols of use clauses in contexts and of ``.all``/member use clauses reference their package; context
+     reference symbols their context (was an extra attribute).
+   * A context reference to a context with a use clause of a package named like its library (``use foo.foo.all;``)
+     raised ``Referenced package 'foo' already exists``.
+   * A use clause of a context declaration naming a package (``use lib.pkg;``), units of a library (``use lib.all;``,
+     ``use lib.unit;``) or a package by a simple name (``use pkg.all;``) raised ``AttributeError``. A context
+     declaration links its use clauses as a design unit does; :meth:`~pyVHDLModel.Design.LinkContexts` needs
+     :meth:`~pyVHDLModel.Design.LinkPackageInstances` before.
+   * :meth:`Design.AnalyzeDependencies() <pyVHDLModel.Design.AnalyzeDependencies>` indexes the architectures and the
+     package bodies after linking them. Before, an architecture was indexed before it was linked to its entity, so a
+     declaration duplicating a declaration or a port of the entity wasn't reported, and package bodies were indexed
+     once by the type-mark resolution, so a repeated analysis didn't report a body declaration duplicating one of its
+     package.
+   * Adding an architecture, which already exists in the library, raised ``KeyError`` instead of
+     :exc:`~pyVHDLModel.Exception.ArchitectureExistsInLibraryError`, if the library didn't hold its entity.
+   * A design unit kept a context item of an unknown kind in ``ContextItems`` only, a context declaration raised a plain
+     :exc:`~pyVHDLModel.Exception.VHDLModelException` for it; both raise :exc:`TypeError` now.
+   * :data:`~pyVHDLModel.Regions.WithGenericsMixin.GenericCount`, :data:`~pyVHDLModel.Regions.WithPortsMixin.PortCount`
+     and :data:`~pyVHDLModel.Regions.WithParametersMixin.ParameterCount` counted interface items instead of the declared
+     generics, ports and parameters: ``port (a, b : in bit)`` gave 1. They count the identifiers now (2).
+   * Breaking change: next and exit statements dropped their loop label and their own statement label (``lbl : next
+     outer when c;``). :class:`~pyVHDLModel.Sequential.LoopControlStatement` takes ``loopLabel`` as a
+     :class:`~pyVHDLModel.Symbol.LoopSymbol` (was ``str``, ignored) and a ``label``;
+     :data:`~pyVHDLModel.Sequential.LoopControlStatement.LoopReference` returns the symbol. The visitor walks the
+     symbol, the VHDL writer writes it.
+
+   .. rubric:: Documentation
+
+   * The glossary explains the VHDL terms declarative part, declarative region, design unit, normalized, primary unit
+     and secondary unit, with the defining clause of IEEE Std 1076-2008; the normalized identifier, label and designator
+     properties refer to it.
+   * Cross-references to renamed or misnamed targets, the alignment of field lists and the summaries of computed
+     properties are fixed.
+   * Test doc-strings have a one-line summary, so pyTooling's pytest plugin reports them.
+   * New ReST role ``vhdlcode`` in ``doc/prolog.inc`` (like ``pycode``) for VHDL code with syntax highlighting; the
+     rewritten test doc-strings use it, and ``pycode`` for Python fragments.
+
+
 Version 0.42.0 (2026)
 *********************
 

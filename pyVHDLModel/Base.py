@@ -34,21 +34,26 @@ This module contains parts of an abstract document language model for VHDL.
 
 Base-classes for the VHDL language model.
 """
-from __future__            import annotations
+from __future__              import annotations
 
-from enum                  import unique, Enum
-from typing                import TYPE_CHECKING, ClassVar, Type, Iterable, Optional as Nullable, Union, cast, Self
+from enum                    import unique, Enum
+from typing                  import TYPE_CHECKING, ClassVar, Generator, Type, Iterable, Optional as Nullable, Union, \
+                                    cast, Self
 
-from pyTooling.Common      import StringEnum, getFullyQualifiedName
-from pyTooling.Decorators  import export, notimplemented, readonly
-from pyTooling.MetaClasses import ExtendedType, abstractclass
+from pyTooling.Common        import StringEnum, getFullyQualifiedName
+from pyTooling.Decorators    import export, notimplemented, readonly
+from pyTooling.MetaClasses   import ExtendedType, abstractclass
+from pyTooling.Warning       import WarningCollector
 if TYPE_CHECKING:
+	from pyVHDLModel.DesignUnit import DesignUnit
 	from pyVHDLModel.Interface import SingleDeclarationMixin
-	from pyVHDLModel.Symbol    import Symbol
+	from pyVHDLModel.Name      import Name
+	from pyVHDLModel.Regions   import DeclarativeRegionMixin
+	from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 	from pyVHDLModel.Visitor   import Visitor
 
 
-__all__ = ["ExpressionUnion", "ModelElementUnion"]
+__all__ = ["ExpressionUnion"]
 
 
 ExpressionUnion = Union[
@@ -59,12 +64,6 @@ ExpressionUnion = Union[
 	# ConstantOrSymbol,     TODO: ObjectSymbol
 	'Literal',
 ]
-
-ModelElementUnion = Union['ModelEntity', 'Symbol']
-"""
-A model element a visitor walks or the VHDL writer writes: a :class:`ModelEntity` or a
-:class:`~pyVHDLModel.Symbol.Symbol`.
-"""
 
 
 @export
@@ -320,13 +319,13 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		Iterates the parent chain - starting at this model entity - upwards (toward the root of the model) until an
 		ancestor of the requested type is found.
 
-		:param type:                Class (type) of the ancestor to find.
-		:returns:                   The closest ancestor of the requested type.
-		:raises VHDLModelException: If the root of the model is reached without finding an ancestor of the requested
-		                            type.
+		:param type:                   Class (type) of the ancestor to find.
+		:returns:                      The closest ancestor of the requested type.
+		:raises AncestorNotFoundError: If the root of the model is reached without finding an ancestor of the requested
+		                               type.
 		"""
 		# Deferred import to avoid a circular import: Base -> Exception -> Symbol -> Base.
-		from pyVHDLModel.Exception import VHDLModelException
+		from pyVHDLModel.Exception import AncestorNotFoundError
 
 		parent = self._parent
 		while parent is not None:
@@ -335,9 +334,114 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 
 			parent = parent._parent
 		else:
-			raise VHDLModelException(f"No ancestor of type '{type.__name__}' found for {self!r}.")
+			raise AncestorNotFoundError(
+				f"No ancestor of type '{type.__name__}' found for {self!r}.",
+				element=self,
+				ancestorType=type
+			)
 
 		return parent
+
+	@readonly
+	def IsOverloadable(self) -> bool:
+		"""
+		Check if this model entity is an overloadable declaration: it may share its designator with other overloadable
+		declarations.
+
+		Subprograms, enumeration literals and aliases, which may denote one of them, are overloadable; they override this
+		property.
+
+		:returns: ``True``, if this model entity is an overloadable declaration.
+		"""
+		return False
+
+	def IterateImplicitDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+		"""
+		Iterate the declarations this declaration implies.
+
+		An enumerated type implies its enumeration literals, a physical type its units; they override this method.
+
+		:returns: A generator to iterate (normalized designator, declaration) pairs, in declaration order: none.
+		"""
+		yield from ()
+
+	def IterateTypeMarks(
+		self,
+		region: DeclarativeRegionMixin
+	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
+		"""
+		Iterate the type marks of this declaration, each with the region and the place to look it up.
+
+		The place of a type mark is the declaration containing it. Declarations with type marks override this method,
+		e.g. an object yields the type mark of its subtype indication, an array type its index and element subtypes.
+
+		:param region:  The declarative region declaring this declaration.
+		:returns:       A generator to iterate (region, place, type mark) tuples, in declaration order: none.
+		"""
+		yield from ()
+
+	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
+		"""
+		Resolve the references of this declaration: its type marks (:meth:`IterateTypeMarks`).
+
+		Each type mark is resolved at its place by the region it is looked up in
+		(:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.ResolveTypeMark`). An incomplete type, an alias and a subtype
+		extend this method.
+
+		:param designUnit:                     The design unit containing this declaration.
+		:param region:                         The declarative region declaring this declaration.
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		for typeMarkRegion, place, typeMark in self.IterateTypeMarks(region):
+			typeMarkRegion.ResolveTypeMark(place, typeMark)
+
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
+		"""
+		Reset the references :meth:`ResolveReferences` derived: the references of this declaration's type marks.
+
+		A use clause, an alias and a subtype extend this method.
+
+		:param designUnit: The design unit containing this declaration.
+		:param region:     The declarative region declaring this declaration.
+		"""
+		for _, _, typeMark in self.IterateTypeMarks(region):
+			typeMark._reference = None
+
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarativeRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[ModelEntity]:
+		"""
+		Determine the model entity a name denoting this declaration denotes, as a part of a type mark (:meth:`Name.Denote
+		<pyVHDLModel.Name.Name.Denote>`).
+
+		A declaration, which a name in a type mark can denote, overrides this method and returns itself: an object, an
+		alias, a type or subtype, a record element, a package. Any other declaration (e.g. a subprogram) is reported.
+
+		:param name:                           The name denoting this declaration, a part of the type mark.
+		:param region:                         The declarative region containing the type mark.
+		:param place:                          The declaration containing the type mark.
+		:param symbol:                         The type mark.
+		:returns:                              ``None``, as a name in a type mark can't denote this declaration (reported
+		                                       as a warning).
+		:raises UnhandledCriticalWarningError: Always, if no :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		"""
+		from pyVHDLModel.Exception import UnresolvedTypeMarkWarning
+
+		WarningCollector.Raise(UnresolvedTypeMarkWarning(
+			f"Prefix '{name!s}' of type mark '{symbol._name!s}' is neither an object, a type nor a package: "
+			f"{self.__class__.__name__}.",
+			symbol=symbol,
+			place=place,
+			namespaces=(region._namespace, )
+		))
+		return None
 
 	@notimplemented("Model element has no walk for a visitor.")
 	def Visit(self, visitor: Visitor) -> None:
@@ -399,9 +503,22 @@ class NamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Read-only property to access the model entity's normalized identifier (:attr:`_normalizedIdentifier`).
 
+		.. seealso::
+
+		   * :term:`Normalized`
+
 		:returns: Normalized name of a model entity.
 		"""
 		return self._normalizedIdentifier
+
+	def GetIdentifier(self, normalizedIdentifier: str) -> str:
+		"""
+		Return the identifier as declared, for the model entity's normalized identifier.
+
+		:param normalizedIdentifier: The model entity's normalized (lower case) identifier.
+		:returns:                    The identifier in its declared spelling.
+		"""
+		return self._identifier
 
 
 @export
@@ -443,6 +560,10 @@ class OptionallyNamedEntityMixin(metaclass=ExtendedType, mixin=True):
 		"""
 		Read-only property to access the model entity's optional normalized identifier (:attr:`_normalizedIdentifier`).
 
+		.. seealso::
+
+		   * :term:`Normalized`
+
 		:returns: Normalized name of a model entity, or ``None`` if unnamed.
 		"""
 		return self._normalizedIdentifier
@@ -463,7 +584,7 @@ class MultipleNamedEntityMixin(
 
 	The host class provides ``Copy()`` and ``_SplitInParent()``, called by :meth:`Split`: the latter calls the parent's
 	mutator splitting the declaration, e.g.
-	:meth:`DeclarationRegionMixin.SplitDeclaredItem <pyVHDLModel.Regions.DeclarationRegionMixin.SplitDeclaredItem>`.
+	:meth:`DeclarativePartMixin.SplitDeclaredItem <pyVHDLModel.Regions.DeclarativePartMixin.SplitDeclaredItem>`.
 
 	.. seealso::
 
@@ -500,9 +621,22 @@ class MultipleNamedEntityMixin(
 		"""
 		Read-only property to access the model entity's normalized identifiers (:attr:`_normalizedIdentifiers`).
 
+		.. seealso::
+
+		   * :term:`Normalized`
+
 		:returns: Tuple of normalized identifiers.
 		"""
 		return self._normalizedIdentifiers
+
+	def GetIdentifier(self, normalizedIdentifier: str) -> str:
+		"""
+		Return the identifier as declared, for one of the model entity's normalized identifiers.
+
+		:param normalizedIdentifier: One of the model entity's normalized (lower case) identifiers.
+		:returns:                    The identifier in its declared spelling.
+		"""
+		return self._identifiers[self._normalizedIdentifiers.index(normalizedIdentifier)]
 
 	def Split(self) -> tuple[Self, ...]:
 		"""
@@ -570,8 +704,8 @@ def identifiersOf(item) -> tuple[str, ...]:
 	:class:`MultipleNamedEntityMixin`, where one declaration names several items at once
 	(``port (p1, p2 : in bit)``, and every ``Constant``/``Signal``/``Variable``/``File``-derived item).
 
-	:param item:      A singularly or plurally named entity.
-	:returns:         The item's identifiers.
+	:param item:       A singularly or plurally named entity.
+	:returns:          The item's identifiers.
 	:raises TypeError: If the item is neither singularly nor plurally named.
 
 	.. seealso::
@@ -597,8 +731,8 @@ def normalizedIdentifiersOf(item) -> tuple[str, ...]:
 	This is the form used as dictionary keys and for name resolution, because VHDL identifiers are
 	case-insensitive.
 
-	:param item:      A singularly or plurally named entity.
-	:returns:         The item's normalized identifiers.
+	:param item:       A singularly or plurally named entity.
+	:returns:          The item's normalized identifiers.
 	:raises TypeError: If the item is neither singularly nor plurally named.
 
 	.. seealso::
@@ -680,6 +814,10 @@ class LabeledEntityMixin(metaclass=ExtendedType, mixin=True):
 	def NormalizedLabel(self) -> Nullable[str]:
 		"""
 		Read-only property to access the model entity's normalized label (:attr:`_normalizedLabel`).
+
+		.. seealso::
+
+		   * :term:`Normalized`
 
 		:returns: Normalized label of a model entity.
 		"""

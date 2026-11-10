@@ -36,7 +36,7 @@ Design units are contexts, entities, architectures, packages and their bodies as
 """
 from __future__                import annotations
 
-from typing                    import TYPE_CHECKING, ClassVar, Union, Iterable, Optional as Nullable
+from typing                    import TYPE_CHECKING, ClassVar, Generator, Iterable, Union, Optional as Nullable
 
 from pyTooling.Common          import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators      import export, readonly
@@ -44,15 +44,17 @@ from pyTooling.MetaClasses     import ExtendedType, abstractmethod, abstractclas
 from pyTooling.Graph           import Vertex
 
 from pyVHDLModel.Common        import AllowBlackboxMixin
-from pyVHDLModel.Exception     import VHDLModelException, AlreadyInDesignError, NotAChildError
+from pyVHDLModel.Exception     import AlreadyInDesignError, NotAChildError
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
                                       normalizedIdentifiersOf, ReservedWord
+from pyVHDLModel.Name          import Name
 from pyVHDLModel.Namespace     import Namespace
-from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin, \
-                                      WithoutStatementsMixin
+from pyVHDLModel.Regions       import DeclarativeRegionMixin, ConcurrentDeclarationRegionMixin, WithGenericsMixin, \
+                                      WithPortsMixin, WithoutStatementsMixin
 from pyVHDLModel.Symbol        import Symbol, PackageSymbol, EntitySymbol, LibraryReferenceSymbol
 from pyVHDLModel.Interface     import GenericInterfaceItemMixin, PortInterfaceItemMixin, GenericGroup, PortGroup
 from pyVHDLModel.Object        import DeferredConstant
+from pyVHDLModel.Type          import AnonymousType, Subtype
 from pyVHDLModel.Concurrent    import ConcurrentStatement, ConcurrentStatementsMixin
 from pyVHDLModel.Configuration import BlockConfiguration
 
@@ -129,6 +131,15 @@ class LibraryClause(Reference):
 		"""
 		return self._symbols
 
+	def __contains__(self, libraryIdentifier: str) -> bool:
+		"""
+		Check if this library clause names a library.
+
+		:param libraryIdentifier: The normalized identifier of the library.
+		:returns:                 ``True``, if one of the clause's library names is the library.
+		"""
+		return any(symbol._name._normalizedIdentifier == libraryIdentifier for symbol in self._symbols)
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this library clause and its library names with a visitor.
@@ -152,6 +163,18 @@ class UseClause(Reference):
 
 	      use std.text_io.all, ieee.numeric_std.all;
 	"""
+
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
+		"""
+		Reset the references of this use clause's symbols, which :meth:`~pyVHDLModel.Design.Analyze` linked.
+
+		:param designUnit: The design unit containing this declaration.
+		:param region:     The declarative region declaring this declaration.
+		"""
+		super().ResetReferences(designUnit, region)
+
+		for symbol in self._symbols:
+			symbol._reference = None
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -237,7 +260,8 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	     * :class:`Package body <pyVHDLModel.DesignUnit.PackageBody>`
 	"""
 
-	_CONTINUES_PARENT_REGION: ClassVar[bool] = False       #: ``True`` if it continues its parent's declarative region.
+	_CONTINUES_PARENT_REGION: ClassVar[bool] =            False            #: ``True`` if it continues its parent's declarative region.
+	_IMPLICIT_LIBRARIES:      ClassVar[tuple[str, ...]] = ("work", "std")  #: Library names visible without a library clause.
 
 	_document: Document                                    #: The VHDL library, the design unit was analyzed into.
 
@@ -263,6 +287,8 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:param documentation: Optional, associated documentation of the design unit. Default: ``None``, no documentation.
 		:param parent:        Optional, reference to the logical parent in the model hierarchy.
 		                      Default: ``None``, no parent.
+		:raises TypeError:    If an element of parameter 'contextItems' is not of type :class:`LibraryClause`,
+		                      :class:`UseClause` or :class:`ContextReference`.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
@@ -277,14 +303,21 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		if contextItems is not None:
 			for item in contextItems:
-				contextItemList.append(item)
-				item.Parent = self
 				if isinstance(item, UseClause):
 					packageReferences.append(item)
 				elif isinstance(item, LibraryClause):
 					libraryReferences.append(item)
 				elif isinstance(item, ContextReference):
 					contextReferences.append(item)
+				else:
+					ex = TypeError(
+						"Element of parameter 'contextItems' is not of type 'LibraryClause', 'UseClause' or 'ContextReference'."
+					)
+					ex.add_note(f"Got type '{getFullyQualifiedName(item)}'.")
+					raise ex
+
+				contextItemList.append(item)
+				item.Parent = self
 
 		self._referencedLibraries = {}
 		self._referencedPackages = {}
@@ -583,6 +616,47 @@ class DesignUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		"""
 		return self._hierarchyVertex
 
+	def IsLibraryVisible(self, libraryIdentifier: str) -> bool:
+		"""
+		Check if the logical name of a library is visible in this design unit.
+
+		The name ``work`` is implicitly visible, the name ``std`` too, except in a context declaration. Every other name
+		needs a library clause, also the real name of the working library. The library clause is searched in this design
+		unit's context clause, in the context clause of its primary unit, and in the contexts these reference, also in
+		nested ones. The design unit must be in a library of a design.
+
+		:param libraryIdentifier: The normalized identifier of the library.
+		:returns:                 ``True``, if the library's name is visible.
+		"""
+		if libraryIdentifier in self._IMPLICIT_LIBRARIES:
+			return True
+
+		libraries =   self._parent._parent._libraries
+		designUnits = list(self._ContextClauseUnits())
+		for unit in designUnits:
+			for libraryReference in unit._libraryReferences:
+				if libraryIdentifier in libraryReference:
+					return True
+
+			for contextReference in unit._contextReferences:
+				for symbol in contextReference._symbols:
+					prefixIdentifier = symbol._name._prefix._normalizedIdentifier
+					library =          unit._parent if prefixIdentifier == "work" else libraries.get(prefixIdentifier)
+					if library is not None:
+						context = library._contexts.get(symbol._name._normalizedIdentifier)
+						if context is not None and context not in designUnits:
+							designUnits.append(context)
+
+		return False
+
+	def _ContextClauseUnits(self) -> tuple[DesignUnit, ...]:
+		"""
+		Return the design units whose context clause applies to this design unit.
+
+		:returns: Tuple of this design unit.
+		"""
+		return (self, )
+
 	@abstractmethod
 	def __str__(self) -> str:
 		"""
@@ -643,7 +717,7 @@ class Context(PrimaryUnit):
 	* :data:`_referencedPackages` (:pycode:`dict[libName, [pkgName, Package]]`)
 	* :data:`_referencedContexts` (:pycode:`dict[libName, [ctxName, Context]]`)
 
-	are populated.
+	are populated. The declarations the use clauses make potentially visible are imported into :data:`_namespace`.
 
 	.. admonition:: Example
 
@@ -661,25 +735,28 @@ class Context(PrimaryUnit):
 
 	_END_KEYWORDS:          ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.Context,)  #: Reserved words after ``end``.
 	_END_KEYWORDS_OPTIONAL: ClassVar[bool] =                     True                     #: The reserved words after ``end`` are optional.
+	_IMPLICIT_LIBRARIES:    ClassVar[tuple[str, ...]] =          ("work", )               #: No ``std``: a context declaration has no implicit library clause (13.2).
+
+	_namespace: Namespace  #: The namespace of the declarations imported by this context's use clauses.
 
 	def __init__(self, identifier: str, references: Nullable[Iterable[ContextUnion]] = None, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
 		Initializes a context declaration.
 
-		:param identifier:           The identifier of a model entity.
-		:param references:           Optional, all context items, in declaration order. Default: ``None``, no context items.
-		:param documentation:        Optional, the documentation comment associated with this declaration.
-		                             Default: ``None``, no documentation.
-		:param parent:               Optional, the parent model entity of this entity. Default: ``None``, no parent.
-		:raises VHDLModelException: If a context item is neither a library clause, use clause, nor context reference.
+		:param identifier:    The identifier of a model entity.
+		:param references:    Optional, all context items, in declaration order. Default: ``None``, no context items.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:raises TypeError:    If an element of parameter 'references' is not of type :class:`LibraryClause`,
+		                      :class:`UseClause` or :class:`ContextReference`.
 		"""
 		super().__init__(identifier, None, documentation, parent)
 
+		self._namespace = Namespace(self._normalizedIdentifier)
+
 		if references is not None:
 			for reference in references:
-				self._contextItems.append(reference)
-				reference.Parent = self
-
 				if isinstance(reference, LibraryClause):
 					self._libraryReferences.append(reference)
 				elif isinstance(reference, UseClause):
@@ -687,34 +764,14 @@ class Context(PrimaryUnit):
 				elif isinstance(reference, ContextReference):
 					self._contextReferences.append(reference)
 				else:
-					raise VHDLModelException(f"Reference '{reference!r}' is neither a library clause, use clause, nor context reference.")
+					ex = TypeError(
+						"Element of parameter 'references' is not of type 'LibraryClause', 'UseClause' or 'ContextReference'."
+					)
+					ex.add_note(f"Got type '{getFullyQualifiedName(reference)}'.")
+					raise ex
 
-	@readonly
-	def LibraryReferences(self) -> list[LibraryClause]:
-		"""
-		Read-only property to access the library references (:attr:`_libraryReferences`).
-
-		:returns: List of library references.
-		"""
-		return self._libraryReferences
-
-	@readonly
-	def PackageReferences(self) -> list[UseClause]:
-		"""
-		Read-only property to access the package references (:attr:`_packageReferences`).
-
-		:returns: List of package references.
-		"""
-		return self._packageReferences
-
-	@readonly
-	def ContextReferences(self) -> list[ContextReference]:
-		"""
-		Read-only property to access the context references (:attr:`_contextReferences`).
-
-		:returns: List of context references.
-		"""
-		return self._contextReferences
+				self._contextItems.append(reference)
+				reference.Parent = self
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -855,6 +912,71 @@ class Package(
 		:returns: Dictionary of components, indexed by normalized identifier.
 		"""
 		return self._components
+
+	def IterateDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+		"""
+		Iterate the declarations of this package a use clause can make potentially visible.
+
+		A declared item contributes its normalized identifiers; an enumerated type its enumeration literals too, a physical
+		type its units. An incomplete type is completed by its full type declaration, so it's skipped.
+
+		:returns: A generator to iterate (normalized designator, declaration) pairs, in declaration order.
+		"""
+		for item in self._declaredItems:
+			if isinstance(item, AnonymousType):
+				continue
+			elif isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
+				for normalizedIdentifier in normalizedIdentifiersOf(item):
+					yield normalizedIdentifier, item
+
+				yield from item.IterateImplicitDeclarations()
+
+	def IterateMemberDeclarations(self, memberIdentifier: str) -> Generator[tuple[str, ModelEntity], None, None]:
+		"""
+		Iterate the declarations of this package a use clause naming one package member makes potentially visible.
+
+		These are the declarations of the package with the member's identifier, e.g. all overloads of a subprogram. A type
+		brings its enumeration literals or physical units along (IEEE Std 1076-2008, 12.4), a subtype those of its base
+		type: the known base type, else the type its type marks lead to, followed by simple names in the package.
+
+		:param memberIdentifier: The normalized (lower case) identifier of the package member.
+		:returns:                A generator to iterate (normalized designator, declaration) pairs, in declaration order.
+		"""
+		for normalizedIdentifier, declaration in self.IterateDeclarations():
+			if normalizedIdentifier == memberIdentifier:
+				yield normalizedIdentifier, declaration
+
+				# A subtype's base type: known for a predefined subtype, else follow the type marks by simple names.
+				baseType = declaration
+				while isinstance(baseType, Subtype):
+					if baseType._baseType is not None:
+						baseType = baseType._baseType
+					elif (typeMark := baseType._type._name)._prefix is None:
+						result =   baseType._parent._namespace.Lookup(typeMark._normalizedIdentifier, baseType)
+						baseType = result._declarations[0] if len(result._declarations) == 1 else None
+					else:
+						baseType = None
+
+				if baseType is not None:
+					yield from baseType.IterateImplicitDeclarations()
+
+	def DenoteBy(
+		self,
+		name:   Name,
+		region: DeclarativeRegionMixin,
+		place:  ModelEntity,
+		symbol: Symbol
+	) -> Nullable[ModelEntity]:
+		"""
+		Return this package, the model entity a name in a type mark denotes.
+
+		:param name:   The name denoting this declaration, a part of the type mark.
+		:param region: The declarative region containing the type mark.
+		:param place:  The declaration containing the type mark.
+		:param symbol: The type mark.
+		:returns:      This package.
+		"""
+		return self
 
 	def _IndexOtherDeclaredItem(self, item) -> None:
 		if isinstance(item, DeferredConstant):
@@ -1034,6 +1156,15 @@ class PackageBody(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarati
 		"""
 		package = self._package.Package
 		return () if package is None else (package, )
+
+	def _ContextClauseUnits(self) -> tuple[DesignUnit, ...]:
+		"""
+		Return the design units whose context clause applies to this package body.
+
+		:returns: Tuple of this package body and its package, if linked.
+		"""
+		package = self._package.Package
+		return (self, ) if package is None else (self, package)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1262,7 +1393,7 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		self,
 		identifier:    str,
 		entity:        EntitySymbol,
-		contextItems:  Nullable[Iterable[Context]] = None,
+		contextItems:  Nullable[Iterable[ContextUnion]] = None,
 		declaredItems: Nullable[Iterable] = None,
 		statements:    Iterable[ConcurrentStatement] = None,
 		documentation: Nullable[str] = None,
@@ -1358,6 +1489,15 @@ class Architecture(SecondaryUnit, DesignUnitWithContextMixin, ConcurrentDeclarat
 		entity = self._entity.Entity
 		return () if entity is None else (entity, )
 
+	def _ContextClauseUnits(self) -> tuple[DesignUnit, ...]:
+		"""
+		Return the design units whose context clause applies to this architecture.
+
+		:returns: Tuple of this architecture and its entity, if linked.
+		"""
+		entity = self._entity.Entity
+		return (self, ) if entity is None else (self, entity)
+
 
 @export
 class Component(
@@ -1366,10 +1506,16 @@ class Component(
 	DocumentedEntityMixin,
 	WithGenericsMixin,
 	WithPortsMixin,
+	DeclarativeRegionMixin,
+	WithoutStatementsMixin,
 	AllowBlackboxMixin
 ):
 	"""
 	Represents a component declaration.
+
+	A component declaration is a declarative region (IEEE Std 1076-2008, 12.1): its generics and ports share one
+	namespace, nested in the namespace of the declarative region declaring the component. A component has no declarative
+	part, so it has no declared items and no mutators for them.
 
 	.. admonition:: Example
 
@@ -1390,6 +1536,7 @@ class Component(
 
 	_isBlackbox: Nullable[bool]    #: Component is a blackbox.
 	_entity:     Nullable[Entity]  #: Linked entity, or ``None`` if unresolved.
+	_namespace:  Namespace         #: The namespace of this component's declarative region.
 
 	def __init__(
 		self,
@@ -1423,12 +1570,21 @@ class Component(
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
+		DeclarativeRegionMixin.__init__(self)
+
+		self._namespace = Namespace(self._normalizedIdentifier)
+
 		WithGenericsMixin.__init__(self, genericItems, genericGroups)
 		WithPortsMixin.__init__(self, portItems, portGroups)
 		AllowBlackboxMixin.__init__(self, allowBlackbox)
 
 		self._isBlackbox = None
 		self._entity =     None
+
+	@ModelEntity.Parent.setter
+	def Parent(self, parent: ModelEntity) -> None:
+		ModelEntity.Parent.fset(self, parent)
+		self._ConnectParentNamespace(parent)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1443,32 +1599,26 @@ class Component(
 		visitor.VisitTerminator(self)
 		visitor.DepartComponent(self)
 
-	def _AddToNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
+	def IndexDeclaredItems(self) -> None:
 		"""
-		Add nothing, because a component has no namespace.
+		Index the generics and ports of this component in its namespace.
 
-		:param element: The named element, e.g. an interface item.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in the component and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
+		self._IndexGenericItems()
+		self._IndexPortItems()
 
-	def _RemoveFromNamespace(self, element: NamedEntityMixin | MultipleNamedEntityMixin) -> None:
-		"""
-		Remove nothing, because a component has no namespace.
+		self._areDeclaredItemsIndexed = True
 
-		:param element: The named element, e.g. an interface item.
+	def _Declarations(self) -> tuple[ModelEntity, ...]:
 		"""
+		Return all declarations of this component.
 
-	def _ClashingDeclarations(self, item: NamedEntityMixin | MultipleNamedEntityMixin) -> tuple[ModelEntity, ...]:
+		:returns: Tuple of declarations: the generics, then the ports.
 		"""
-		Return the generics and ports of this component sharing an identifier with the given item.
-
-		:param item: The new generic or port.
-		:returns:    Tuple of clashing generics and ports.
-		"""
-		identifiers = set(normalizedIdentifiersOf(item))
-		return tuple(
-			declaration for declaration in (*self._genericItems, *self._portItems)
-			if not identifiers.isdisjoint(normalizedIdentifiersOf(declaration))
-		)
+		return (*self._genericItems, *self._portItems)
 
 	@readonly
 	def IsBlackbox(self) -> Nullable[bool]:
@@ -1550,7 +1700,7 @@ class Configuration(PrimaryUnit, DesignUnitWithContextMixin):
 		identifier: str,
 		entity: EntitySymbol,
 		blockConfiguration: BlockConfiguration,
-		contextItems: Nullable[Iterable[Context]] = None,
+		contextItems: Nullable[Iterable[ContextUnion]] = None,
 		documentation: Nullable[str] = None,
 		parent: Nullable[ModelEntity] = None
 	) -> None:

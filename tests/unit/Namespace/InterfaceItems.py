@@ -41,11 +41,12 @@ from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Concurrent import ConcurrentBlockStatement, ProcessStatement
-from pyVHDLModel.DesignUnit import Architecture, Entity, Package
+from pyVHDLModel.DesignUnit import Architecture, Component, Entity, Package
 from pyVHDLModel.Interface  import GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
                                    ParameterVariableInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Object     import Signal
+from pyVHDLModel.Regions    import DeclarativeRegionMixin, DeclarativePartMixin, DeclarationRegionMixin
 from pyVHDLModel.Subprogram import Procedure
 from pyVHDLModel.Symbol     import EntitySymbol, SignalSymbol, SimpleSubtypeSymbol, VariableSymbol
 
@@ -72,7 +73,7 @@ class EntityInterfaceItems(Testcase):
 		entity = Entity("ent", portItems=[port])
 		entity.IndexDeclaredItems()
 
-		self.assertIs(port, entity._namespace.Elements()["clk"])
+		self.assertIs(port, entity._namespace.Elements["clk"])
 
 	def test_PortIsResolvable(self) -> None:
 		"""A port signal interface item *is* a `Signal`, so `FindObject` resolves it."""
@@ -91,15 +92,15 @@ class EntityInterfaceItems(Testcase):
 		entity = Entity("ent", portItems=[port])
 		entity.IndexDeclaredItems()
 
-		self.assertIs(port, entity._namespace.Elements()["clk"])
-		self.assertIs(port, entity._namespace.Elements()["rst"])
+		self.assertIs(port, entity._namespace.Elements["clk"])
+		self.assertIs(port, entity._namespace.Elements["rst"])
 
 	def test_GenericIsIndexed(self) -> None:
 		generic = _generic("width")
 		entity = Entity("ent", genericItems=[generic])
 		entity.IndexDeclaredItems()
 
-		self.assertIs(generic, entity._namespace.Elements()["width"])
+		self.assertIs(generic, entity._namespace.Elements["width"])
 
 	def test_SingularGenericTypeIsIndexed(self) -> None:
 		"""``generic (type T)`` is singularly named, unlike every other interface item."""
@@ -107,7 +108,7 @@ class EntityInterfaceItems(Testcase):
 		entity = Entity("ent", genericItems=[genericType])
 		entity.IndexDeclaredItems()
 
-		self.assertIs(genericType, entity._namespace.Elements()["t"])
+		self.assertIs(genericType, entity._namespace.Elements["t"])
 
 	def test_GenericsPortsAndDeclarationsShareOneNamespace(self) -> None:
 		generic = _generic("width")
@@ -116,7 +117,7 @@ class EntityInterfaceItems(Testcase):
 		entity = Entity("ent", genericItems=[generic], portItems=[port], declaredItems=[signal])
 		entity.IndexDeclaredItems()
 
-		self.assertEqual({"width", "clk", "internal"}, set(entity._namespace.Elements().keys()))
+		self.assertEqual({"width", "clk", "internal"}, set(entity._namespace.Elements.keys()))
 
 	def test_PortIsVisibleInTheArchitecture(self) -> None:
 		"""The whole point: a port name resolves from inside the architecture."""
@@ -145,6 +146,81 @@ class EntityInterfaceItems(Testcase):
 		self.assertIs(port, process.Namespace.FindObject(SignalSymbol(SimpleName("clk"))))
 
 
+class ComponentInterfaceItems(Testcase):
+	"""A component declaration is a declarative region (IEEE Std 1076-2008, 12.1) with generics and ports only."""
+
+	def test_GenericsAndPortsShareOneNamespace(self) -> None:
+		generic =   _generic("width")
+		port =      _port("clk", "rst")
+		component = Component("comp", genericItems=[generic], portItems=[port])
+		component.IndexDeclaredItems()
+
+		self.assertDictEqual({"width": generic, "clk": port, "rst": port}, component._namespace.Elements)
+
+	def test_NamespaceNestsInTheEnclosingRegion(self) -> None:
+		"""The component's namespace is nested in the namespace of the architecture declaring it, not sharing its region."""
+		component =    Component("comp")
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[component])
+
+		self.assertIs(architecture._namespace, component._namespace.ParentNamespace)
+		self.assertFalse(component._namespace.SharesRegionWithParent)
+
+	def test_GenericIsVisibleToThePorts(self) -> None:
+		generic =   _generic("width")
+		port =      _port("data")
+		component = Component("comp", genericItems=[generic], portItems=[port])
+		component.IndexDeclaredItems()
+
+		result = component._namespace.Lookup("width", port)
+
+		self.assertTupleEqual((generic, ), result.Declarations)
+
+	def test_LaterGenericIsNotVisible(self) -> None:
+		"""A generic is visible after its declaration only."""
+		first =     _generic("first")
+		second =    _generic("second")
+		component = Component("comp", genericItems=[first, second])
+		component.IndexDeclaredItems()
+
+		self.assertTupleEqual((), component._namespace.Lookup("second", first).Declarations)
+		self.assertTupleEqual((first, ), component._namespace.Lookup("first", second).Declarations)
+
+	def test_EnclosingDeclarationIsVisible(self) -> None:
+		"""A lookup inside the component continues in the enclosing region."""
+		signal =       Signal(("s", ), _subtypeSymbol("natural"))
+		port =         _port("data")
+		component =    Component("comp", portItems=[port])
+		architecture = Architecture("rtl", EntitySymbol(SimpleName("ent")), declaredItems=[signal, component])
+		architecture.IndexDeclaredItems()
+		component.IndexDeclaredItems()
+
+		self.assertTupleEqual((signal, ), component._namespace.Lookup("s", port).Declarations)
+
+	def test_NoDeclarativePart(self) -> None:
+		"""A component is a declarative region without a declarative part: no declared items, no mutators for them."""
+		component = Component("comp")
+
+		self.assertIsInstance(component, DeclarativeRegionMixin)
+		self.assertNotIsInstance(component, DeclarativePartMixin)
+		self.assertNotIsInstance(component, DeclarationRegionMixin)
+		for name in (
+			"_DECLARED_ITEM_TYPES",
+			"_declaredItems",
+			"DeclaredItems",
+			"AddDeclaredItem",
+			"InsertDeclaredItem",
+			"InsertDeclaredItemBefore",
+			"InsertDeclaredItemAfter",
+			"RemoveDeclaredItem",
+			"MoveDeclaredItem",
+			"MoveDeclaredItemBefore",
+			"MoveDeclaredItemAfter",
+			"SplitDeclaredItem"
+		):
+			with self.subTest(name=name):
+				self.assertFalse(hasattr(component, name))
+
+
 class PackageGenerics(Testcase):
 	def test_GenericIsIndexed(self) -> None:
 		"""A generic package (VHDL-2008) has generics but no ports."""
@@ -152,7 +228,7 @@ class PackageGenerics(Testcase):
 		package = Package("gp", genericItems=[generic])
 		package.IndexDeclaredItems()
 
-		self.assertIs(generic, package._namespace.Elements()["width"])
+		self.assertIs(generic, package._namespace.Elements["width"])
 
 
 class BlockPorts(Testcase):
@@ -162,11 +238,13 @@ class BlockPorts(Testcase):
 		block = ConcurrentBlockStatement("blk", portItems=[port])
 		block.IndexDeclaredItems()
 
-		self.assertIs(port, block._namespace.Elements()["bp"])
+		self.assertIs(port, block._namespace.Elements["bp"])
 
 
 class SubprogramInterfaceItems(Testcase):
 	"""
+	Generics and parameters of subprograms in the namespace.
+
 	``Subprogram`` can't inherit ``WithGenericsMixin``/``WithParametersMixin``:
 	:mod:`pyVHDLModel.Interface` needs ``Procedure``/``Function`` as real base classes for its generic
 	subprogram interface items, so :mod:`pyVHDLModel.Subprogram` may never import it. Indexing therefore
@@ -178,7 +256,7 @@ class SubprogramInterfaceItems(Testcase):
 		procedure = Procedure("helper", parameterItems=[parameter])
 		procedure.IndexDeclaredItems()
 
-		self.assertIs(parameter, procedure.Namespace.Elements()["p"])
+		self.assertIs(parameter, procedure.Namespace.Elements["p"])
 		self.assertIs(parameter, procedure.Namespace.FindObject(VariableSymbol(SimpleName("p"))))
 
 	def test_EveryIdentifierOfAMultiIdentifierParameterIsIndexed(self) -> None:
@@ -186,8 +264,8 @@ class SubprogramInterfaceItems(Testcase):
 		procedure = Procedure("helper", parameterItems=[parameter])
 		procedure.IndexDeclaredItems()
 
-		self.assertIs(parameter, procedure.Namespace.Elements()["p"])
-		self.assertIs(parameter, procedure.Namespace.Elements()["q"])
+		self.assertIs(parameter, procedure.Namespace.Elements["p"])
+		self.assertIs(parameter, procedure.Namespace.Elements["q"])
 
 	def test_GenericAndParameterShareTheNamespace(self) -> None:
 		generic = _generic("g")
@@ -195,4 +273,4 @@ class SubprogramInterfaceItems(Testcase):
 		procedure = Procedure("helper", genericItems=[generic], parameterItems=[parameter])
 		procedure.IndexDeclaredItems()
 
-		self.assertEqual({"g", "p"}, set(procedure.Namespace.Elements().keys()))
+		self.assertEqual({"g", "p"}, set(procedure.Namespace.Elements.keys()))

@@ -451,6 +451,19 @@ class InterfaceItemVsDeclarations(Testcase):
 		self.assertListEqual([], component.PortItems)
 		self.assertIsNone(port.Parent)
 
+	def test_Component_GenericFunctionOverload(self) -> None:
+		"""Generic functions of a component overload each other (GHDL accepts); the namespace refers to the last one."""
+		overload1 = GenericFunctionInterfaceItem("f", _subtypeSymbol("integer"))
+		component = Component("comp", genericItems=[overload1])
+		component.IndexDeclaredItems()
+		overload2 = GenericFunctionInterfaceItem("f", _subtypeSymbol("bit"))
+
+		component.AddGenericItem(overload2)
+
+		self.assertListEqual([overload1, overload2], component.GenericItems)
+		self.assertIs(overload2, component._namespace._elements["f"])
+		self.assertDictEqual(*_reindexed(component))
+
 	def test_GenericFunction_DeclaredFunction(self) -> None:
 		"""A generic function overloads a declared function; the namespace refers to the declared one, as after indexing."""
 		function = _function("f")
@@ -497,7 +510,7 @@ class ImportedItems(Testcase):
 		Package("other", declaredItems=[imported])
 		architecture = _architecture()
 		architecture.IndexDeclaredItems()
-		architecture._namespace.AddImport("bits", imported)
+		architecture._namespace.AddImport("bits", imported, None)
 		constant = _constant("BITS")
 
 		architecture.AddDeclaredItem(constant)
@@ -511,7 +524,7 @@ class ImportedItems(Testcase):
 		entity = Entity("ent")
 		architecture = _architecture()
 		_link(entity, architecture, Package("pkg"), _packageBody())
-		entity._namespace.AddImport("bits", imported)
+		entity._namespace.AddImport("bits", imported, None)
 		constant = _constant("BITS")
 
 		architecture.AddDeclaredItem(constant)
@@ -523,7 +536,7 @@ class ImportedItems(Testcase):
 		Package("other", declaredItems=[imported])
 		entity = Entity("ent")
 		entity.IndexDeclaredItems()
-		entity._namespace.AddImport("clock", imported)
+		entity._namespace.AddImport("clock", imported, None)
 		port = _port("Clock")
 
 		entity.AddPortItem(port)

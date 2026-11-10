@@ -2980,28 +2980,28 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def VisitNextStatement(self, statement: NextStatement) -> None:
 		"""
-		Visit a next statement, before its condition.
+		Visit a next statement, before its loop label and its condition.
 
 		:param statement: The next statement.
 		"""
 
 	def DepartNextStatement(self, statement: NextStatement) -> None:
 		"""
-		Depart from a next statement, after its condition.
+		Depart from a next statement, after its loop label and its condition.
 
 		:param statement: The next statement.
 		"""
 
 	def VisitExitStatement(self, statement: ExitStatement) -> None:
 		"""
-		Visit an exit statement, before its condition.
+		Visit an exit statement, before its loop label and its condition.
 
 		:param statement: The exit statement.
 		"""
 
 	def DepartExitStatement(self, statement: ExitStatement) -> None:
 		"""
-		Depart from an exit statement, after its condition.
+		Depart from an exit statement, after its loop label and its condition.
 
 		:param statement: The exit statement.
 		"""

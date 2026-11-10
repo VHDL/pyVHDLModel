@@ -102,6 +102,7 @@ class SelectedNames(Testcase):
 		self.assertEqual("ieee", copy.Prefix.Identifier)
 		self.assertIs(copy.Prefix, copy.Root)
 		self.assertIs(original.Prefix, original.Root)
+		self.assertIs(copy, copy.Prefix.Parent)
 		self.assertEqual(VHDLWriter().Format(original), VHDLWriter().Format(copy))
 
 	def test_Copy_Chain(self) -> None:

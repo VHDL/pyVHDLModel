@@ -50,14 +50,14 @@ __author__ =            "Patrick Lehmann"
 __email__ =             "Paebbels@gmail.com"
 __copyright__ =         "2016-2026, Patrick Lehmann"
 __license__ =           "Apache License, Version 2.0"
-__version__ =           "0.42.0"
+__version__ =           "0.43.0"
 # __keywords__ =          []
 __project_url__ =       "https://github.com/VHDL/pyVHDLModel"
 __documentation_url__ = "https://vhdl.github.io/pyVHDLModel"
 __issue_tracker_url__ = "https://GitHub.com/VHDL/pyVHDLModel/issues"
 
 
-from enum                      import unique, Enum, Flag, auto
+from enum                      import unique, Enum, Flag
 from pathlib                   import Path
 
 from typing                    import TYPE_CHECKING, Union, cast, Generator, Optional as Nullable
@@ -68,33 +68,45 @@ from pyTooling.Graph           import Graph, Vertex, Edge
 from pyTooling.Warning         import WarningCollector
 
 from pyVHDLModel.Exception     import VHDLModelException, NotImplementedWarning, BlackboxWarning, \
-                                      LibraryExistsInDesignError, LibraryRegisteredToForeignDesignError, \
-                                      LibraryNotRegisteredError, EntityExistsInLibraryError, \
+                                      DuplicateDeclarationWarning, UnresolvedNameWarning, LibraryExistsInDesignError, \
+                                      LibraryRegisteredToForeignDesignError, LibraryNotRegisteredError, \
+                                      EntityExistsInLibraryError, \
                                       ArchitectureExistsInLibraryError, PackageExistsInLibraryError, \
                                       PackageBodyExistsError, ConfigurationExistsInLibraryError, \
                                       ContextExistsInLibraryError, ReferencedLibraryNotExistingError, \
                                       LibraryNotFoundError, EntityNotFoundError, PackageNotFoundError, \
                                       ConfigurationNotFoundError, ContextNotFoundError, AlreadyInDesignError, \
                                       NotAChildError, DuplicateDocumentError, DuplicateDesignUnitError, \
-                                      LibraryInUseError
-from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin
-from pyVHDLModel.Expression    import UnaryExpression, BinaryExpression, TernaryExpression
+                                      LibraryInUseError, PackageInstantiationNotLinkedError, \
+                                      UseClauseLibraryNotVisibleError, ContextReferenceLibraryNotVisibleError, \
+                                      PackageInstantiationLibraryNotVisibleError, \
+                                      EntityInstantiationLibraryNotVisibleError, LibraryClauseLibraryNotFoundError, \
+                                      PackageInstantiationLibraryNotFoundError, \
+                                      EntityInstantiationLibraryNotFoundError, ComponentEntityNotFoundError, \
+                                      InstantiatedEntityNotFoundError, ArchitectureEntityNotFoundError, \
+                                      PackageBodyPackageNotFoundError, LibraryReferenceNotLinkedError, \
+                                      UseClauseNotLinkedError, HierarchyNotComputedError, \
+                                      CompileOrderNotComputedError, UnknownSymbolKindError, \
+                                      UnknownSecondaryUnitKindError, AmbiguousTopLevelError, \
+                                      UnprefixedEntityInstantiationError, NotAGenericPackageError
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin
+from pyVHDLModel.Name          import AllName
 from pyVHDLModel.Namespace     import Namespace
-from pyVHDLModel.Object        import Obj, Signal, Constant, DeferredConstant, SharedVariable, Variable, File
+from pyVHDLModel.Object        import Signal, Constant, DeferredConstant, SharedVariable, Variable, File
 from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
-                                      PackageMemberReferenceSymbol, SimpleObjectOrFunctionCallSymbol
+                                      PackageMemberReferenceSymbol
 from pyVHDLModel.Common        import AllowBlackboxMixin
-from pyVHDLModel.Regions       import ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
+from pyVHDLModel.Regions       import DeclarativeRegionMixin, DeclarationRegionMixin, \
+                                      ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
                                       ProtectedTypeDeclarationRegionMixin
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation, \
-                                      GenerateStatement, IfGenerateStatement, ForGenerateStatement, \
-                                      CaseGenerateStatement, GenerateBranch, ConcurrentStatementsMixin, \
-                                      ConcurrentBlockStatement
+                                      IfGenerateStatement, ForGenerateStatement, CaseGenerateStatement, \
+                                      ConcurrentStatementsMixin, ConcurrentBlockStatement
 from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, PackageBody, Context, Entity, \
                                       Configuration, Package, Component, UseClause
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode, PSLEntity
 from pyVHDLModel.Instantiation import PackageInstantiation
-from pyVHDLModel.Type          import IntegerType, PhysicalType, ArrayType, RecordType, BaseType
+from pyVHDLModel.Type          import BaseType, Subtype
 from pyVHDLModel.Configuration import ComponentConfiguration
 from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
 from pyVHDLModel.Interface     import ModeViewDeclaration
@@ -378,11 +390,11 @@ class IEEEFlavor(Flag):
 	* ``WithVITAL`` - IEEE Std. 1076.4
 
 	"""
-	Unknown = 0         #: Unknown IEEE flavor
-	IEEE = 1            #: IEEE Std. 1076 compliant list of IEEE packages.
-	Synopsys = 2        #: Additional packages created by Synopsys are visible within the IEEE library.
-	MentorGraphics = 4  #: Additional packages created by Mentor Graphics are visible within the IEEE library.
-	WithVITAL = 32      #: Additionally load IEEE Std 1076.4 VITAL packages. (VITAL = VHDL Initiative Towards ASIC Libraries)
+	Unknown =        0   #: Unknown IEEE flavor
+	IEEE =           1   #: IEEE Std. 1076 compliant list of IEEE packages.
+	Synopsys =       2   #: Additional packages created by Synopsys are visible within the IEEE library.
+	MentorGraphics = 4   #: Additional packages created by Mentor Graphics are visible within the IEEE library.
+	WithVITAL =      32  #: Additionally load IEEE Std 1076.4 VITAL packages. (VITAL = VHDL Initiative Towards ASIC Libraries)
 
 
 @export
@@ -400,9 +412,9 @@ class ObjectClass(Enum):
 	Signal =     3  #: Signal
 	File =       4  #: File
 	Type =       5  #: Type
-	# FIXME: Package?
 	Procedure =  6  #: Procedure
 	Function =   7  #: Function
+	Package =    8  #: Package
 
 	def __str__(self) -> str:
 		"""
@@ -410,7 +422,9 @@ class ObjectClass(Enum):
 
 		:returns: Formatted object class.
 		"""
-		return ("", "constant", "variable", "signal", "file", "type", "procedure", "function")[cast(int, self.value)]       # TODO: check performance
+		return (
+			"", "constant", "variable", "signal", "file", "type", "procedure", "function", "package"
+		)[cast(int, self.value)]       # TODO: check performance
 
 
 @export
@@ -420,19 +434,19 @@ class DesignUnitKind(Flag):
 	A ``DesignUnitKind`` is an enumeration and represents the kind of design unit (``Entity``, ``Architecture``, ...).
 
 	"""
-	Context = auto()                                                             #: Context
-	Package = auto()                                                             #: Package
-	PackageBody = auto()                                                         #: Package Body
-	Entity = auto()                                                              #: Entity
-	Architecture = auto()                                                        #: Architecture
-	Configuration = auto()                                                       #: Configuration
+	Context =           1                                                              #: Context
+	Package =           2                                                              #: Package
+	PackageBody =       4                                                              #: Package Body
+	Entity =            8                                                              #: Entity
+	Architecture =      16                                                             #: Architecture
+	Configuration =     32                                                             #: Configuration
 
-	Primary = Context | Configuration | Entity | Package                         #: List of primary design units.
-	Secondary = PackageBody | Architecture                                       #: List of secondary design units.
-	WithContext = Configuration | Package | Entity | PackageBody | Architecture  #: List of design units with a context.
-	WithDeclaredItems = Package | Entity | PackageBody | Architecture            #: List of design units having a declaration region.
+	Primary =           Context | Configuration | Entity | Package                     #: List of primary design units.
+	Secondary =         PackageBody | Architecture                                     #: List of secondary design units.
+	WithContext =       Configuration | Package | Entity | PackageBody | Architecture  #: List of design units with a context.
+	WithDeclaredItems = Package | Entity | PackageBody | Architecture                  #: List of design units having a declaration region.
 
-	All = Primary | Secondary                                                    #: List of all design units.
+	All =               Primary | Secondary                                            #: List of all design units.
 
 
 @export
@@ -441,16 +455,16 @@ class DependencyGraphVertexKind(Flag):
 	"""
 	A ``DependencyGraphVertexKind`` is an enumeration and represents the kind of vertex in the dependency graph.
 	"""
-	Document = auto()       #: A document (VHDL source file).
-	Library = auto()        #: A VHDL library.
+	Document =      1    #: A document (VHDL source file).
+	Library =       2    #: A VHDL library.
 
-	Context = auto()        #: A context design unit.
-	Package = auto()        #: A package design unit.
-	PackageBody = auto()    #: A package body design unit.
-	Entity = auto()         #: A entity design unit.
-	Architecture = auto()   #: A architecture design unit.
-	Component = auto()      #: A VHDL component.
-	Configuration = auto()  #: A configuration design unit.
+	Context =       4    #: A context design unit.
+	Package =       8    #: A package design unit.
+	PackageBody =   16   #: A package body design unit.
+	Entity =        32   #: A entity design unit.
+	Architecture =  64   #: A architecture design unit.
+	Component =     128  #: A VHDL component.
+	Configuration = 256  #: A configuration design unit.
 
 
 @export
@@ -459,20 +473,20 @@ class DependencyGraphEdgeKind(Flag):
 	"""
 	A ``DependencyGraphEdgeKind`` is an enumeration and represents the kind of edge in the dependency graph.
 	"""
-	Document =       auto()
-	Library =        auto()
-	Context =        auto()
-	Package =        auto()
-	Entity =         auto()
+	Document =                   1
+	Library =                    2
+	Context =                    4
+	Package =                    8
+	Entity =                     16
 	# Architecture = auto()
-	Configuration =  auto()
-	Component =      auto()
+	Configuration =              32
+	Component =                  64
 
-	DeclaredIn =     auto()
-	Order =          auto()
-	Reference =      auto()
-	Implementation = auto()
-	Instantiation =  auto()
+	DeclaredIn =                 128
+	Order =                      256
+	Reference =                  512
+	Implementation =             1024
+	Instantiation =              2048
 
 	SourceFile =                 Document | DeclaredIn
 	CompileOrder =               Document | Order
@@ -497,16 +511,16 @@ class ObjectGraphVertexKind(Flag):
 	"""
 	A ``ObjectGraphVertexKind`` is an enumeration and represents the kind of vertex in the object graph.
 	"""
-	Type =             auto()
-	Subtype =          auto()
+	Type =             1
+	Subtype =          2
 
-	Constant =         auto()
-	DeferredConstant = auto()
-	Variable =         auto()
-	Signal =           auto()
-	File =             auto()
+	Constant =         4
+	DeferredConstant = 8
+	Variable =         16
+	Signal =           32
+	File =             64
 
-	Alias =            auto()
+	Alias =            128
 
 
 @export
@@ -515,10 +529,10 @@ class ObjectGraphEdgeKind(Flag):
 	"""
 	A ``ObjectGraphEdgeKind`` is an enumeration and represents the kind of edge in the object graph.
 	"""
-	BaseType = auto()
-	Subtype =  auto()
+	BaseType =              1
+	Subtype =               2
 
-	ReferenceInExpression = auto()
+	ReferenceInExpression = 4
 
 
 @export
@@ -546,6 +560,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	_hierarchyGraph:    Graph                 #: A graph derived from dependency graph containing the design hierarchy.
 	_objectGraph:       Graph                 #: The graph of all types and objects in the design.
 	_toplevel:          Union[Entity, Configuration]  #: When computed, the toplevel design unit is cached in this field.
+
 
 	def __init__(
 		self,
@@ -639,21 +654,24 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	@readonly
 	def TopLevel(self) -> Union[Entity, Configuration]:
 		"""
-		Read-only property to access the design's *top-level* (:attr:`_toplevel`).
+		Read-only property to return the design's *top-level* (:attr:`_toplevel`).
 
 		When called the first time, the hierarchy graph is checked for its root elements. When there is only one root element in the graph, a new field ``toplevel``
 		is added to :attr:`_hierarchyGraph` referencing that single element. In addition, the result is cached in :attr:`_toplevel`.
 
-		:returns:                   Reference to the design's *top-level*.
-		:raises VHDLModelException: If the hierarchy graph is not yet computed from dependency graph.
-		:raises VHDLModelException: If there is more than one *top-level*.
+		:returns:                          Reference to the design's *top-level*.
+		:raises HierarchyNotComputedError: If the hierarchy graph is not yet computed from dependency graph. |br|
+		                                   Call :meth:`Analyze` or :meth:`AnalyzeDependencies` before.
+		:raises AmbiguousTopLevelError:    If there is more than one *top-level*.
 		"""
 		# Check for cached result
 		if self._toplevel is not None:
 			return self._toplevel
 
 		if self._hierarchyGraph.VertexCount == 0:
-			raise VHDLModelException("Hierarchy is not yet computed from dependency graph.")
+			ex = HierarchyNotComputedError("Hierarchy is not yet computed from dependency graph.")
+			ex.add_note("Call 'Analyze()' or 'AnalyzeDependencies()' before accessing 'TopLevel'.")
+			raise ex
 
 		roots = tuple(self._hierarchyGraph.IterateRoots())
 		if len(roots) == 1:
@@ -663,7 +681,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 			return toplevel.Value
 		else:
-			raise VHDLModelException(f"Found more than one toplevel: {', '.join(str(r) for r in roots)}")
+			raise AmbiguousTopLevelError(
+				f"Found more than one toplevel: {', '.join(str(r) for r in roots)}.",
+				topLevels=tuple(root.Value for root in roots)
+			)
 
 	def LoadStdLibrary(self) -> Library:
 		"""
@@ -720,10 +741,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		libraryIdentifier = library.NormalizedIdentifier
 		if libraryIdentifier in self._libraries:
-			raise LibraryExistsInDesignError(library)
+			raise LibraryExistsInDesignError(f"Library '{library._identifier}' already exists in design.", library=library)
 
 		if library._parent is not None:
-			raise LibraryRegisteredToForeignDesignError(library)
+			raise LibraryRegisteredToForeignDesignError(
+				f"Library '{library._identifier}' already registered in design '{library.Parent}'.",
+				library=library
+			)
 
 		self._libraries[libraryIdentifier] = library
 		library.Parent = self
@@ -830,12 +854,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		libraryIdentifier = libraryName.lower()
 		if libraryIdentifier not in self._libraries:
-			raise LibraryNotFoundError(libraryName)
+			raise LibraryNotFoundError(f"Library '{libraryName}' not found in design.", libraryName=libraryName)
 
 		library =          self._libraries[libraryIdentifier]
 		entityIdentifier = entityName.lower()
 		if entityIdentifier not in library._entities:
-			raise EntityNotFoundError(entityName, libraryName)
+			raise EntityNotFoundError(
+				f"Entity '{entityName}' not found in library '{libraryName}'.",
+				entityName=entityName,
+				libraryName=libraryName
+			)
 
 		return library._entities[entityIdentifier]
 
@@ -903,12 +931,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		libraryIdentifier = libraryName.lower()
 		if libraryIdentifier not in self._libraries:
-			raise LibraryNotFoundError(libraryName)
+			raise LibraryNotFoundError(f"Library '{libraryName}' not found in design.", libraryName=libraryName)
 
 		library =           self._libraries[libraryIdentifier]
 		packageIdentifier = packageName.lower()
 		if packageIdentifier not in library._packages:
-			raise PackageNotFoundError(packageName, libraryName)
+			raise PackageNotFoundError(
+				f"Package '{packageName}' not found in library '{libraryName}'.",
+				packageName=packageName,
+				libraryName=libraryName
+			)
 
 		return library._packages[packageIdentifier]
 
@@ -976,12 +1008,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		libraryIdentifier = libraryName.lower()
 		if libraryIdentifier not in self._libraries:
-			raise LibraryNotFoundError(libraryName)
+			raise LibraryNotFoundError(f"Library '{libraryName}' not found in design.", libraryName=libraryName)
 
 		library =                 self._libraries[libraryIdentifier]
 		configurationIdentifier = configurationName.lower()
 		if configurationIdentifier not in library._configurations:
-			raise ConfigurationNotFoundError(configurationName, libraryName)
+			raise ConfigurationNotFoundError(
+				f"Configuration '{configurationName}' not found in library '{libraryName}'.",
+				configurationName=configurationName,
+				libraryName=libraryName
+			)
 
 		return library._configurations[configurationIdentifier]
 
@@ -1050,12 +1086,16 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		libraryIdentifier = libraryName.lower()
 		if libraryIdentifier not in self._libraries:
-			raise LibraryNotFoundError(libraryName)
+			raise LibraryNotFoundError(f"Library '{libraryName}' not found in design.", libraryName=libraryName)
 
 		library =           self._libraries[libraryIdentifier]
 		contextIdentifier = contextName.lower()
 		if contextIdentifier not in library._contexts:
-			raise ContextNotFoundError(contextName, libraryName)
+			raise ContextNotFoundError(
+				f"Context '{contextName}' not found in library '{libraryName}'.",
+				contextName=contextName,
+				libraryName=libraryName
+			)
 
 		return library._contexts[contextIdentifier]
 
@@ -1155,33 +1195,61 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			ex.add_note(f"Got type '{getFullyQualifiedName(library)}'.")
 			raise ex
 		elif self._libraries.get(library._normalizedIdentifier) is not library:
-			raise LibraryNotRegisteredError(library)
+			raise LibraryNotRegisteredError(
+				f"Library '{library._identifier}' is not registered in the design.",
+				library=library
+			)
 
 		for entityIdentifier, entity in document._entities.items():
 			if entityIdentifier in library._entities:
-				raise EntityExistsInLibraryError(entity, library)
+				raise EntityExistsInLibraryError(
+					f"Entity '{entity._identifier}' already exists in library '{library._identifier}'.",
+					entity=entity,
+					library=library
+				)
 
 		for entityIdentifier, architectures in document._architectures.items():
 			architecturesPerEntity = library._architectures.get(entityIdentifier, {})
 			for architectureIdentifier, architecture in architectures.items():
 				if architectureIdentifier in architecturesPerEntity:
-					raise ArchitectureExistsInLibraryError(architecture, library._entities[entityIdentifier], library)
+					raise ArchitectureExistsInLibraryError(
+						f"Architecture '{architecture._identifier}' for entity '{architecture._entity._name._identifier}' already "
+						f"exists in library '{library._identifier}'.",
+						architecture=architecture,
+						library=library
+					)
 
 		for packageIdentifier, package in document._packages.items():
 			if packageIdentifier in library._packages:
-				raise PackageExistsInLibraryError(package, library)
+				raise PackageExistsInLibraryError(
+					f"Package '{package._identifier}' already exists in library '{library._identifier}'.",
+					package=package,
+					library=library
+				)
 
 		for packageBodyIdentifier, packageBody in document._packageBodies.items():
 			if packageBodyIdentifier in library._packageBodies:
-				raise PackageBodyExistsError(packageBody, library)
+				raise PackageBodyExistsError(
+					f"Package body '{packageBody._identifier}' already exists in library '{library._identifier}'.",
+					packageBody=packageBody,
+					library=library
+				)
 
 		for configurationIdentifier, configuration in document._configurations.items():
 			if configurationIdentifier in library._configurations:
-				raise ConfigurationExistsInLibraryError(configuration, library)
+				raise ConfigurationExistsInLibraryError(
+					f"Configuration '{configuration._identifier}' already exists in library '{library._identifier}'.",
+					configuration=configuration,
+					library=library
+				)
 
 		for contextIdentifier, context in document._contexts.items():
 			if contextIdentifier in library._contexts:
-				raise ContextExistsInLibraryError(context, library)
+				raise ContextExistsInLibraryError(
+					f"Context '{context._identifier}' already exists in library '{library._identifier}'.",
+					context=context,
+					library=library
+				)
 
 		self._documents.append(document)
 		self._documentsByPath[document._path] = document
@@ -1288,7 +1356,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		Iterate all design units in the design.
 
-		A union of :class:`DesignUnitKind` values can be given to filter the returned result for suitable design units.
+		A union of :class:`~pyVHDLModel.DesignUnitKind` values can be given to filter the returned result for suitable
+		design units.
 
 		.. rubric:: Algorithm
 
@@ -1327,7 +1396,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`ResetAnalysis`
 		2. Analyze dependencies of design units. |br|
 		   This will also yield the design hierarchy and the compiler order.
-		3. Analyze dependencies of types and objects.
+		3. Analyze the types and objects of the design. |br|
+		   |rarr| :meth:`AnalyzeObjects`
+
+		A design, which can't be resolved completely, reports what is missing as critical warnings: the analysis isn't
+		aborted, but the model isn't silently incomplete either. Collect them with a
+		:class:`~pyTooling.Warning.WarningCollector`.
 
 		.. seealso::
 
@@ -1338,15 +1412,24 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Analyze the dependencies of design units.
 
 		   :meth:`AnalyzeObjects`
-		     Analyze the dependencies of types and objects.
+		     Analyze the types and objects of the design.
 
 		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
 		"""
 		self.ResetAnalysis()
 		self.AnalyzeDependencies()
-		# self.AnalyzeObjects()
+		self.AnalyzeObjects()
 
 	def ResetAnalysis(self) -> None:
 		"""
@@ -1362,7 +1445,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   their vertices and edges are freed at once, replace them by empty graphs, and forget the top-level.
 		2. Clear the references to vertices of all libraries, documents and design units.
 		3. Clear the references of all design units: referenced libraries, packages and contexts, the symbols of library
-		   clauses, use clauses and context references, and the items imported into namespaces.
+		   clauses, use clauses and context references, and the items imported into namespaces. Use clauses in declarative
+		   regions nested in a design unit are cleared too, as are the references of type marks and alias names
+		   (:meth:`ResolveTypeMarks`) and the base types of subtypes; a subtype of a predefined library
+		   (:attr:`Library.IsPredefined`) keeps its base type.
 		4. Unlink architectures from entities and package bodies from packages: an entity's architectures, a package's
 		   body, the symbols referencing the entity or package, and the link to the parent namespace.
 		5. Unlink package instantiations from their generic package: the symbol and the components copied from it.
@@ -1400,6 +1486,15 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):
 			designUnit._namespace.ClearImports()
+
+		for context in self.IterateDesignUnits(DesignUnitKind.Context):
+			context._namespace.ClearImports()
+
+		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
+			for region in designUnit.IterateDeclarationRegions():
+				region._namespace.ClearImports()
+				for item in region._Declarations():
+					item.ResetReferences(designUnit, region)
 
 		for entity in self.IterateDesignUnits(DesignUnitKind.Entity):  # type: Entity
 			for architecture in entity._architectures.values():
@@ -1447,29 +1542,31 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`IndexPackages`
 		4. Index all entities. |br|
 		   |rarr| :meth:`IndexEntities`
-		5. Index all architectures. |br|
-		   |rarr| :meth:`IndexArchitectures`
-		6. Link all contexts |br|
-		   |rarr| :meth:`LinkContexts`
-		7. Link all architectures. |br|
+		5. Link all architectures. |br|
 		   |rarr| :meth:`LinkArchitectures`
-		8. Link all package bodies. |br|
+		6. Index all architectures. |br|
+		   |rarr| :meth:`IndexArchitectures`
+		7. Link all package bodies. |br|
 		   |rarr| :meth:`LinkPackageBodies`
+		8. Index all package bodies. |br|
+		   |rarr| :meth:`IndexPackageBodies`
 		9. Link all package instances. |br|
 		   |rarr| :meth:`LinkPackageInstances`
-		10. Link all library references. |br|
+		10. Link all contexts. |br|
+		    |rarr| :meth:`LinkContexts`
+		11. Link all library references. |br|
 		    |rarr| :meth:`LinkLibraryReferences`
-		11. Link all package references. |br|
+		12. Link all package references. |br|
 		    |rarr| :meth:`LinkPackageReferences`
-		12. Link all context references. |br|
+		13. Link all context references. |br|
 		    |rarr| :meth:`LinkContextReferences`
-		13. Link all components. |br|
+		14. Link all components. |br|
 		    |rarr| :meth:`LinkComponents`
-		14. Link all instantiations. |br|
+		15. Link all instantiations. |br|
 		    |rarr| :meth:`LinkInstantiations`
-		15. Create the hierarchy graph. |br|
+		16. Create the hierarchy graph. |br|
 		    |rarr| :meth:`CreateHierarchyGraph`
-		16. Compute the compile order. |br|
+		17. Compute the compile order. |br|
 		    |rarr| :meth:`ComputeCompileOrder`
 
 		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
@@ -1481,12 +1578,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		self.IndexPackages()
 		self.IndexEntities()
-		self.IndexArchitectures()
 
-		self.LinkContexts()
 		self.LinkArchitectures()
+		self.IndexArchitectures()
 		self.LinkPackageBodies()
+		self.IndexPackageBodies()
 		self.LinkPackageInstances()
+		self.LinkContexts()
 		self.LinkLibraryReferences()
 		self.LinkPackageReferences()
 		self.LinkContextReferences()
@@ -1495,31 +1593,6 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		self.LinkInstantiations()
 		self.CreateHierarchyGraph()
 		self.ComputeCompileOrder()
-
-	def AnalyzeObjects(self) -> None:
-		"""
-		Analyze the dependencies of types and objects.
-
-		.. rubric:: Algorithm
-
-		1. Index all entities. |br|
-		   |rarr| :meth:`IndexEntities`
-		2. Index all package bodies. |br|
-		   |rarr| :meth:`IndexPackageBodies`
-		3. Import objects. |br|
-		   |rarr| :meth:`ImportObjects`
-		4. Create the type and object graph. |br|
-		   |rarr| :meth:`CreateTypeAndObjectGraph`
-
-		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
-		"""
-		self.IndexEntities()
-		self.IndexPackageBodies()
-
-		self.ImportObjects()
-		self.CreateTypeAndObjectGraph()
 
 	def CreateDependencyGraph(self) -> None:
 		"""
@@ -1669,195 +1742,46 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				edge = dependencyVertex.EdgeFromVertex(designUnit._dependencyVertex)
 				edge["kind"] = DependencyGraphEdgeKind.SourceFile
 
-	def ImportObjects(self) -> None:
-		def _ImportObjects(package: Package) -> None:
-			from pyVHDLModel.Declaration import AttributeSpecification
-
-			for referencedLibrary in package._referencedPackages.values():
-				for referencedPackage in referencedLibrary.values():
-					for declaredItem in referencedPackage._declaredItems:
-						if isinstance(declaredItem, MultipleNamedEntityMixin):
-							for normalizedIdentifier in declaredItem._normalizedIdentifiers:
-								package._namespace.AddImport(normalizedIdentifier, declaredItem)
-						elif isinstance(declaredItem, NamedEntityMixin):
-							package._namespace.AddImport(declaredItem._normalizedIdentifier, declaredItem)
-						elif isinstance(declaredItem, AttributeSpecification):
-							# FIXME: actually, this is not a declared item, but a application of an attribute to named entities
-							WarningCollector.Raise(NotImplementedWarning("Attribute specification.", item=declaredItem))
-
-						else:
-							raise VHDLModelException("Unexpected declared item.")
-
-		for libraryName in ("std", "ieee"):
-			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				_ImportObjects(package)
-
-		for document in self.IterateDocumentsInCompileOrder():
-			for package in document.IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				_ImportObjects(package)
-
-	def CreateTypeAndObjectGraph(self) -> None:
-		def _HandlePackage(package) -> None:
-			packagePrefix = f"{package.Library.NormalizedIdentifier}.{package.NormalizedIdentifier}"
-
-			for deferredConstant in package._deferredConstants.values():
-				print(f"Deferred Constant: {deferredConstant}")
-				deferredConstantVertex = Vertex(
-					vertexID=f"{packagePrefix}.{deferredConstant.NormalizedIdentifiers[0]}",
-					value=deferredConstant,
-					graph=self._objectGraph
-				)
-				deferredConstantVertex["kind"] = ObjectGraphVertexKind.DeferredConstant
-				deferredConstant._objectVertex = deferredConstantVertex
-
-			for constant in package._constants.values():
-				print(f"Constant: {constant}")
-				constantVertex = Vertex(
-					vertexID=f"{packagePrefix}.{constant.NormalizedIdentifiers[0]}",
-					value=constant,
-					graph=self._objectGraph
-				)
-				constantVertex["kind"] = ObjectGraphVertexKind.Constant
-				constant._objectVertex = constantVertex
-
-			for type in package._types.values():
-				print(f"Type: {type}")
-				typeVertex = Vertex(
-					vertexID=f"{packagePrefix}.{type.NormalizedIdentifier}",
-					value=type,
-					graph=self._objectGraph
-				)
-				typeVertex["kind"] = ObjectGraphVertexKind.Type
-				type._objectVertex = typeVertex
-
-			for subtype in package._subtypes.values():
-				print(f"Subtype: {subtype}")
-				subtypeVertex = Vertex(
-					vertexID=f"{packagePrefix}.{subtype.NormalizedIdentifier}",
-					value=subtype,
-					graph=self._objectGraph
-				)
-				subtypeVertex["kind"] = ObjectGraphVertexKind.Subtype
-				subtype._objectVertex = subtypeVertex
-
-			for function in package._functions.values():
-				print(f"Function: {function}")
-				functionVertex = Vertex(
-					vertexID=f"{packagePrefix}.{function.NormalizedIdentifier}",
-					value=function,
-					graph=self._objectGraph
-				)
-				functionVertex["kind"] = ObjectGraphVertexKind.Function
-				function._objectVertex = functionVertex
-
-			for procedure in package._procedures.values():
-				print(f"Procedure: {procedure}")
-				procedureVertex = Vertex(
-					vertexID=f"{packagePrefix}.{procedure.NormalizedIdentifier}",
-					value=procedure,
-					graph=self._objectGraph
-				)
-				procedureVertex["kind"] = ObjectGraphVertexKind.Function
-				procedure._objectVertex = procedureVertex
-
-			for signal in package._signals.values():
-				print(f"Signal: {signal}")
-				signalVertex = Vertex(
-					vertexID=f"{packagePrefix}.{signal.NormalizedIdentifiers[0]}",
-					value=signal,
-					graph=self._objectGraph
-				)
-				signalVertex["kind"] = ObjectGraphVertexKind.Signal
-				signal._objectVertex = signalVertex
-
-		def _LinkSymbolsInExpression(expression, namespace: Namespace, typeVertex: Vertex) -> None:
-			if isinstance(expression, UnaryExpression):
-				_LinkSymbolsInExpression(expression.Operand, namespace, typeVertex)
-			elif isinstance(expression, BinaryExpression):
-				_LinkSymbolsInExpression(expression.LeftOperand, namespace, typeVertex)
-				_LinkSymbolsInExpression(expression.RightOperand, namespace, typeVertex)
-			elif isinstance(expression, TernaryExpression):
-				WarningCollector.Raise(NotImplementedWarning("Handling of ternary expression.", item=expression))
-			elif isinstance(expression, SimpleObjectOrFunctionCallSymbol):
-				obj = namespace.FindObject(expression)
-				expression._reference = obj
-
-				edge = obj._objectVertex.EdgeToVertex(typeVertex)
-				edge["kind"] = ObjectGraphEdgeKind.ReferenceInExpression
-			else:
-				WarningCollector.Raise(NotImplementedWarning("Unhandled else-branch", item=expression))
-
-		def _LinkItems(package: Package) -> None:
-			for item in package._declaredItems:
-				if isinstance(item, Constant):
-					print(f"constant: {item}")
-				elif isinstance(item, DeferredConstant):
-					print(f"deferred constant: {item}")
-				elif isinstance(item, Signal):
-					print(f"signal: {item}")
-				elif isinstance(item, IntegerType):
-					typeNode = item._objectVertex
-
-					_LinkSymbolsInExpression(item.Range.LeftBound, package._namespace, typeNode)
-					_LinkSymbolsInExpression(item.Range.RightBound, package._namespace, typeNode)
-				# elif isinstance(item, FloatingType):
-				# 	print(f"signal: {item}")
-				elif isinstance(item, PhysicalType):
-					typeNode = item._objectVertex
-
-					_LinkSymbolsInExpression(item.Range.LeftBound, package._namespace, typeNode)
-					_LinkSymbolsInExpression(item.Range.RightBound, package._namespace, typeNode)
-				elif isinstance(item, ArrayType):
-					# Resolve dimensions
-					for dimension in item._dimensions:
-						subtype = package._namespace.FindSubtype(dimension)
-						dimension._reference = subtype
-
-						edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
-						edge["kind"] = ObjectGraphEdgeKind.Subtype
-
-					# Resolve element subtype
-					subtype = package._namespace.FindSubtype(item._elementType)
-					item._elementType._reference = subtype
-
-					edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
-					edge["kind"] = ObjectGraphEdgeKind.Subtype
-				elif isinstance(item, RecordType):
-					# Resolve each elements subtype
-					for element in item._elements:
-						subtype = package._namespace.FindSubtype(element._subtype)
-						element._subtype._reference = subtype
-
-						edge = item._objectVertex.EdgeToVertex(subtype._objectVertex)
-						edge["kind"] = ObjectGraphEdgeKind.Subtype
-				else:
-					print(f"not handled: {item}")
-
-		for libraryName in ("std", "ieee"):
-			for package in self.GetLibrary(libraryName).IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				_HandlePackage(package)
-				_LinkItems(package)
-
-		for document in self.IterateDocumentsInCompileOrder():
-			for package in document.IterateDesignUnits(filter=DesignUnitKind.Package):  # type: Package
-				_HandlePackage(package)
-				_LinkItems(package)
-
 	def LinkContexts(self) -> None:
 		"""
 		Resolves and links all items (library clauses, use clauses and nested context references) in contexts.
 
 		It iterates all contexts in the design. Therefore, the library of the context is used as the working library. By
-		default, the working library is implicitly referenced in :data:`_referencedLibraries`. In addition, a new empty
-		dictionary is created in :data:`_referencedPackages` and :data:`_referencedContexts` for that working library.
+		default, the working library is implicitly referenced in
+		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedLibraries`. In addition, a new empty dictionary is created in
+		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedPackages` and
+		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedContexts` for that working library.
 
 		At first, all library clauses are resolved (a library clause my have multiple library reference symbols). For each
-		referenced library an entry in :data:`_referencedLibraries` is generated and new empty dictionaries in
-		:data:`_referencedPackages` and :data:`_referencedContexts` for that working library. In addition, a vertex in the
-		dependency graph is added for that relationship.
+		referenced library an entry in :data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedLibraries` is generated and new
+		empty dictionaries in :data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedPackages` and
+		:data:`~pyVHDLModel.DesignUnit.DesignUnit._referencedContexts` for that working library. In addition, a vertex in
+		the dependency graph is added for that relationship.
 
-		At second, all use clauses are resolved (a use clause my have multiple package member reference symbols). For each
-		referenced package,
+		The library clauses of all contexts are resolved before the use clauses of any context.
+
+		At second, all use clauses are linked as the use clauses of a design unit's context clause (a use clause may have
+		multiple package member reference symbols). |br|
+		|rarr| :meth:`_LinkUseClause`
+
+		The declarations they make potentially visible are imported into the context's namespace. The design units
+		referencing the context import them from there (:meth:`LinkContextReferences`).
+
+		:raises ReferencedLibraryNotExistingError:  If a library clause references a library, which doesn't exist in the
+		                                            design.
+		:raises UseClauseLibraryNotVisibleError:    If a use clause references a library, whose name isn't visible
+		                                            (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
+		:raises PackageNotFoundError:               If a use clause references a package, which doesn't exist in its
+		                                            library.
+		:raises UnknownSymbolKindError:             If the type of a symbol in a use clause is unknown.
+		:raises PackageInstantiationNotLinkedError: If a use clause names a package instantiation, which isn't linked to its
+		                                            generic package. |br|
+		                                            Call :meth:`LinkPackageInstances` before.
+		:raises UnhandledCriticalWarningError:      If a use clause names a package member, which the package doesn't
+		                                            declare, a primary unit, which the library doesn't contain, a prefix,
+		                                            which isn't a visible package, or an uninstantiated generic package, and
+		                                            no :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                            :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
 		for context in self.IterateDesignUnits(DesignUnitKind.Context):  # type: Context
 			# Create entries in _referenced*** for the current working library under its real name.
@@ -1875,8 +1799,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					libraryNormalizedIdentifier = libraryName.Name._normalizedIdentifier
 					try:
 						library = self._libraries[libraryNormalizedIdentifier]
-					except KeyError:
-						raise ReferencedLibraryNotExistingError(context, libraryName)
+					except KeyError as cause:
+						raise ReferencedLibraryNotExistingError(
+							f"Library '{libraryName.Name._identifier}' referenced by library clause of context "
+							f"'{context._identifier}' doesn't exist in design.",
+							context=context,
+							librarySymbol=libraryName
+						) from cause
 						# TODO: add position to these messages
 
 					libraryName.Library = library
@@ -1884,54 +1813,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					context._referencedLibraries[libraryNormalizedIdentifier] = library
 					context._referencedPackages[libraryNormalizedIdentifier] = {}
 					context._referencedContexts[libraryNormalizedIdentifier] = {}
-					# TODO: warn duplicate library reference
 
 					dependency = context._dependencyVertex.EdgeToVertex(library._dependencyVertex, edgeValue=libraryReference)
 					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
-			# Process all use clauses
-			for packageReference in context.PackageReferences:
-				# A use clause can have multiple comma-separated references
-				for symbol in packageReference.Symbols:  # type: PackageReferenceSymbol
-					packageName = symbol.Name.Prefix
-					libraryName = packageName.Prefix
-
-					libraryNormalizedIdentifier = libraryName._normalizedIdentifier
-					packageNormalizedIdentifier = packageName._normalizedIdentifier
-
-					# In case work is used, resolve to the real library name.
-					if libraryNormalizedIdentifier == "work":
-						library: Library = context._parent
-						libraryNormalizedIdentifier = library._normalizedIdentifier
-					elif libraryNormalizedIdentifier not in context._referencedLibraries:
-						# TODO: This check doesn't trigger if it's the working library.
-						raise VHDLModelException(f"Use clause references library '{libraryName._identifier}', which was not referenced by a library clause.")
-					else:
-						library = self._libraries[libraryNormalizedIdentifier]
-
-					try:
-						package = library._packages[packageNormalizedIdentifier]
-					except KeyError:
-						raise VHDLModelException(f"Package '{packageName._identifier}' not found in {'working ' if libraryName._normalizedIdentifier == 'work' else ''}library '{library._identifier}'.")
-
-					# FIXME: check if package isn't a generic package
-					symbol.Package = package
-
-					# TODO: warn duplicate package reference
-					context._referencedPackages[libraryNormalizedIdentifier][packageNormalizedIdentifier] = package
-
-					dependency = context._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=packageReference)
-					dependency["kind"] = DependencyGraphEdgeKind.UseClause
-
-					# TODO: update the namespace with visible members
-					if isinstance(symbol, AllPackageMembersReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.all'.", item=symbol))
-
-					elif isinstance(symbol, PackageMemberReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning("Handling of 'myLib.myPackage.mySymbol'.", item=symbol))
-
-					else:
-						raise VHDLModelException()
+		for context in self.IterateDesignUnits(DesignUnitKind.Context):  # type: Context
+			for packageReference in context._packageReferences:
+				self._LinkUseClause(context, context._namespace, packageReference, True)
 
 	def LinkArchitectures(self) -> None:
 		"""
@@ -2037,7 +1925,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		        * Add an empty dictionary in the design unit's ``_referencedContexts`` dictionary.
 		        * Add an edge in the dependency graph from design unit to the referenced library.
 
-		     2. Get the design unit's library:
+		     2. Get the design unit's library, unless it's a library in ``DEFAULT_LIBRARIES``:
 
 		        * Add an entry in the design unit's ``_referencedLibraries`` dictionary referencing the referenced library.
 		        * Add an empty dictionary in the design unit's ``_referencedPackages`` dictionary.
@@ -2073,6 +1961,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Link *context clause*.
 		   :meth:`AnalyzeDependencies`
 		     Analyze dependencies and link relations.
+
+		:raises LibraryNotFoundError:              If library ``std`` isn't loaded. |br|
+		                                           Call :meth:`LoadStdLibrary` before.
+		:raises UnknownSecondaryUnitKindError:     If a secondary unit is neither an architecture nor a package body.
+		:raises LibraryClauseLibraryNotFoundError: If a library clause references a library, which doesn't exist in the
+		                                           design.
 		"""
 		DEFAULT_LIBRARIES = ("std",)
 
@@ -2080,27 +1974,32 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			# All primary units supporting a context, have at least one library implicitly referenced
 			if isinstance(designUnit, PrimaryUnit):
 				for libraryIdentifier in DEFAULT_LIBRARIES:
-					referencedLibrary = self._libraries[libraryIdentifier]
+					try:
+						referencedLibrary = self._libraries[libraryIdentifier]
+					except KeyError as cause:
+						ex = LibraryNotFoundError(
+							f"Library '{libraryIdentifier}' not found in design.",
+							libraryName=libraryIdentifier
+						)
+						ex.add_note("Call 'LoadStdLibrary()' before analyzing a design.")
+						raise ex from cause
+
 					designUnit._referencedLibraries[libraryIdentifier] = referencedLibrary
 					designUnit._referencedPackages[libraryIdentifier] = {}
 					designUnit._referencedContexts[libraryIdentifier] = {}
-					# TODO: catch KeyError on self._libraries[libName]
-					# TODO: warn duplicate library reference
 
 					dependency = designUnit._dependencyVertex.EdgeToVertex(referencedLibrary._dependencyVertex)
 					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
-				# TODO: this could create a duplicate linking, if primary unit is put into library 'std'
 				workingLibrary: Library = designUnit.Library
 				libraryIdentifier = workingLibrary.NormalizedIdentifier
-				referencedLibrary = self._libraries[libraryIdentifier]   # TODO: isn't this the same as the workingLibrary from 2 lines before?
+				if libraryIdentifier not in DEFAULT_LIBRARIES:
+					designUnit._referencedLibraries[libraryIdentifier] = workingLibrary
+					designUnit._referencedPackages[libraryIdentifier] =  {}
+					designUnit._referencedContexts[libraryIdentifier] =  {}
 
-				designUnit._referencedLibraries[libraryIdentifier] = referencedLibrary
-				designUnit._referencedPackages[libraryIdentifier] = {}
-				designUnit._referencedContexts[libraryIdentifier] = {}
-
-				dependency = designUnit._dependencyVertex.EdgeToVertex(referencedLibrary._dependencyVertex)
-				dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
+					dependency =         designUnit._dependencyVertex.EdgeToVertex(workingLibrary._dependencyVertex)
+					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 			# All secondary units inherit referenced libraries from their primary units.
 			else:
@@ -2109,10 +2008,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				elif isinstance(designUnit, PackageBody):
 					referencedLibraries = designUnit.Package.Package._referencedLibraries
 				else:
-					raise VHDLModelException()  # FIXME: exception message
+					ex = UnknownSecondaryUnitKindError(
+						f"Secondary unit '{designUnit._identifier}' is neither an architecture nor a package body.",
+						secondaryUnit=designUnit
+					)
+					ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
+					raise ex
 
-				for libraryIdentifier, library in referencedLibraries.items():
-					designUnit._referencedLibraries[libraryIdentifier] = library   # TODO: Could we use the .update() method
+				designUnit._referencedLibraries.update(referencedLibraries)
 
 			for libraryReference in designUnit._libraryReferences:
 				# A library clause can have multiple comma-separated references
@@ -2123,23 +2026,28 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					try:
 						library = self._libraries[libraryIdentifier]
-					except KeyError:
-						ex = VHDLModelException(f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit '{designUnit.Identifier}' doesn't exist in design.")
+					except KeyError as cause:
+						ex = LibraryClauseLibraryNotFoundError(
+							f"Library '{librarySymbol.Name.Identifier}' referenced by library clause of design unit "
+							f"'{designUnit.Identifier}' doesn't exist in design.",
+							designUnit=designUnit,
+							librarySymbol=librarySymbol
+						)
 						ex.add_note(f"""Known libraries: '{"', '".join(library for library in self._libraries)}'""")
-						raise ex
+						raise ex from cause
 
 					librarySymbol.Library = library
 					designUnit._referencedLibraries[libraryIdentifier] = library
 					designUnit._referencedPackages[libraryIdentifier] = {}
 					designUnit._referencedContexts[libraryIdentifier] = {}
-					# TODO: warn duplicate library reference
 
 					dependency = designUnit._dependencyVertex.EdgeToVertex(library._dependencyVertex, edgeValue=libraryReference)
 					dependency["kind"] = DependencyGraphEdgeKind.LibraryClause
 
 	def LinkPackageReferences(self) -> None:
 		"""
-		Link all package references (use clause) to the matching packages.
+		Link all package references (use clause) to the matching packages, and import the declarations they make
+		potentially visible.
 
 		.. rubric:: Algorithm
 
@@ -2157,6 +2065,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		            * Get the referenced package by library name and package name from the design.
 		            * Add an entry in the design unit's ``_referencedPackages`` dictionary referencing the referenced package.
 		            * Add an edge in the dependency graph from design unit to the referenced package.
+		            * Import all declarations of the package into the design unit's namespace, as by the implicit
+		              ``use std.standard.all;``.
 
 		   * If the design unit is a secondary unit:
 
@@ -2166,42 +2076,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		     For every referenced package create new dictionary entries in the design unit's ``_referencedPackages``.
 
-		2. Iterate every package reference (use clause) in the design unit:
-
-		   * Iterate every package symbol within the package reference:
-
-		     1. Get the library identifier from the symbol.
-		     2. Get the package identifier from the symbol.
-		     3. Resolve library:
-
-		        * If library name is ``work``, get library from design unit.
-		        * If library name is not in design unit's ``_referencedLibraries``, raise an exception.
-		        * Otherwise, lookup library by name in design.
-
-		     4. Resolve package:
-
-		        * Lookup package by name in library.
-
-		     5. Update design unit:
-
-		        * Update the package symbol's target with the referenced package.
-		        * Add an entry in the design unit's ``_referencedPackages`` dictionary referencing the referenced package.
-		        * Add an edge in the dependency graph from design unit to the referenced package.
-
-		     6. Import public package members.
-
-		        * If package symbol is a ``AllPackageMembersReferenceSymbol``:
-
-		          * Iterate all components within the referenced package and import each component into the design unit's
-		            namespace.
-
-		          .. todo:: Other elements are not implemented.
-
-		        * If package symbol is a ``PackageMemberReferenceSymbol``
-
-		          .. todo:: Not implemented.
-
-		        * Otherwise, raise an exception.
+		2. Link every use clause of the design unit's context clause into the design unit's namespace. |br|
+		   |rarr| :meth:`_LinkUseClause`
+		3. Link every use clause in the declarative part of the design unit and of every declarative region nested in it
+		   (e.g. a process, a subprogram or a block) into the namespace of its declarative region. |br|
+		   |rarr| :meth:`_LinkUseClause`
 
 		.. seealso::
 
@@ -2211,6 +2090,20 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Link *context clause*.
 		   :meth:`AnalyzeDependencies`
 		     Analyze dependencies and link relations.
+
+		:raises LibraryReferenceNotLinkedError:  If a primary unit doesn't reference library ``std``. |br|
+		                                         Call :meth:`LinkLibraryReferences` before.
+		:raises PackageNotFoundError:            If library ``std`` doesn't contain package ``standard``. |br|
+		                                         Call :meth:`LoadStdLibrary` before.
+		:raises UnknownSecondaryUnitKindError:   If a secondary unit is neither an architecture nor a package body.
+		:raises UseClauseLibraryNotVisibleError: If a use clause references a library, whose name isn't visible
+		                                         (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
+		:raises PackageNotFoundError:            If a use clause references a package, which doesn't exist in its library.
+		:raises UnhandledCriticalWarningError:   If a use clause names a package member, which the package doesn't declare,
+		                                         a primary unit, which the library doesn't contain, a prefix, which isn't a
+		                                         visible package, or an uninstantiated generic package, and no
+		                                         :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                         :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
 		DEFAULT_PACKAGES = (
 			("std", ("standard",)),
@@ -2222,15 +2115,34 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				if not (designUnit.Library.NormalizedIdentifier == "std" and designUnit.NormalizedIdentifier == "standard"):
 					for lib, packages in DEFAULT_PACKAGES:
 						if lib not in designUnit._referencedLibraries:
-							raise VHDLModelException()  # TODO: missing exception message
+							ex = LibraryReferenceNotLinkedError(
+								f"Design unit '{designUnit._identifier}' doesn't reference library '{lib}'.",
+								designUnit=designUnit,
+								libraryName=lib
+							)
+							ex.add_note(f"Every primary unit references library '{lib}' implicitly.")
+							ex.add_note("Call 'LinkLibraryReferences()' before 'LinkPackageReferences()'.")
+							raise ex
+
 						for package in packages:
-							referencedPackage = self._libraries[lib]._packages[package]
+							try:
+								referencedPackage = self._libraries[lib]._packages[package]
+							except KeyError as cause:
+								ex = PackageNotFoundError(
+									f"Package '{package}' not found in library '{lib}'.",
+									packageName=package,
+									libraryName=lib
+								)
+								ex.add_note("Call 'LoadStdLibrary()' before analyzing a design.")
+								raise ex from cause
+
 							designUnit._referencedPackages[lib][package] = referencedPackage
-							# TODO: catch KeyError on self._libraries[lib[0]]._packages[package]
-							# TODO: warn duplicate package reference
 
 							dependency = designUnit._dependencyVertex.EdgeToVertex(referencedPackage._dependencyVertex)
 							dependency["kind"] = DependencyGraphEdgeKind.UseClause
+
+							for normalizedIdentifier, declaration in referencedPackage.IterateDeclarations():
+								designUnit._namespace.AddImport(normalizedIdentifier, declaration, None)
 
 			# All secondary units inherit referenced packages from their primary units.
 			else:
@@ -2239,73 +2151,249 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				elif isinstance(designUnit, PackageBody):
 					referencedPackages = designUnit.Package.Package._referencedPackages
 				else:
-					raise VHDLModelException()  # FIXME: exception message
+					ex = UnknownSecondaryUnitKindError(
+						f"Secondary unit '{designUnit._identifier}' is neither an architecture nor a package body.",
+						secondaryUnit=designUnit
+					)
+					ex.add_note(f"Got type '{getFullyQualifiedName(designUnit)}'.")
+					raise ex
 
 				for packageIdentifier, package in referencedPackages.items():
 					designUnit._referencedPackages[packageIdentifier] = package
 
-			for packageReference in designUnit.PackageReferences:
-				# A use clause can have multiple comma-separated references
-				for packageMemberSymbol in packageReference.Symbols:
-					if isinstance(packageMemberSymbol, PackageReferenceSymbol):
-						packageName = packageMemberSymbol.Name
-					elif isinstance(packageMemberSymbol, (AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol)):
-						packageName = packageMemberSymbol.Name.Prefix
+			for packageReference in designUnit._packageReferences:
+				self._LinkUseClause(designUnit, designUnit._namespace, packageReference, True)
 
-					libraryName = packageName.Prefix
+			if isinstance(designUnit, DeclarativeRegionMixin):
+				for region in designUnit.IterateDeclarationRegions():
+					for item in region._Declarations():
+						if isinstance(item, UseClause):
+							self._LinkUseClause(designUnit, region._namespace, item, False)
 
-					libraryIdentifier = libraryName.NormalizedIdentifier
-					packageIdentifier = packageName.NormalizedIdentifier
+	def _LinkUseClause(
+		self,
+		designUnit:    DesignUnit,
+		namespace:     Namespace,
+		useClause:     UseClause,
+		isContextItem: bool
+	) -> None:
+		"""
+		Link the symbols of a use clause and import the declarations they make potentially visible into a namespace.
 
-					# In case work is used, resolve to the real library name.
-					if libraryIdentifier == "work":
-						library: Library = designUnit.Library
-						libraryIdentifier = library.NormalizedIdentifier
-					elif libraryIdentifier not in designUnit._referencedLibraries:
-						# TODO: This check doesn't trigger if it's the working library.
-						raise VHDLModelException(f"Use clause references library '{libraryName.Identifier}', which was not referenced by a library clause.")
+		.. rubric:: Algorithm
+
+		Iterate every package symbol within the use clause (a use clause can have multiple comma-separated symbols):
+
+		1. Get the package name from the symbol: the symbol's name for a ``PackageReferenceSymbol`` (``use lib.pkg;``), else
+		   its prefix (``use lib.pkg.all;``, ``use lib.pkg.item;``). Get the library name, the prefix of the package name.
+		   If the symbol is neither of the three package symbol types, raise an exception.
+		2. If the use clause names a library (``use work.all;``, ``use lib.unit;``, the prefix is ``work`` or the visible
+		   name of a library (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`), and ``unit`` isn't a package
+		   of it):
+
+		   * ``.all``: import all primary units of the library (entities, packages, configurations, contexts).
+		   * ``.unit``: import the primary unit of that name; if there is none, raise an
+		     :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+
+		   Continue with the next symbol.
+		3. Resolve the package:
+
+		   * Without a library name (``use pkg.all;``): lookup the directly visible package at the use clause
+		     (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`), e.g. made visible by ``use lib.pkg;`` or declared in an
+		     enclosing region. If there is none, raise an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning` and continue
+		     with the next symbol.
+		   * With a library name: if library name is ``work``, get the library of the design unit; if library name isn't
+		     visible (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`), raise an exception; otherwise lookup
+		     the library by name in the design.
+		     Lookup the package by name in the library; if it doesn't exist, raise an exception.
+
+		4. Update the design unit:
+
+		   * Update the package symbol's reference with the package.
+		   * If the package was named with its library and the use clause is an item of the design unit's context clause,
+		     add an entry in the design unit's ``_referencedPackages`` dictionary.
+		   * If the package was named with its library, add an edge in the dependency graph from design unit to the package.
+
+		5. If the package is an uninstantiated generic package, raise an
+		   :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning` and continue with the next symbol.
+		6. Import the public package members into the namespace (:meth:`~pyVHDLModel.Namespace.Namespace.AddImport`), each
+		   with the use clause as origin:
+
+		   * ``AllPackageMembersReferenceSymbol`` (``use lib.pkg.all;``): every declaration of the package, incl. the
+		     enumeration literals and physical units of its types
+		     (:meth:`~pyVHDLModel.DesignUnit.Package.IterateDeclarations`).
+		   * ``PackageMemberReferenceSymbol`` (``use lib.pkg.item;``): every declaration of the package with the identifier
+		     ``item``, e.g. all overloads of a subprogram, and the enumeration literals and physical units of a type or of a
+		     subtype's base type (:meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations`). If there is none,
+		     raise an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		   * ``PackageReferenceSymbol`` (``use lib.pkg;``): the package itself.
+
+		:param designUnit:                          The design unit containing the use clause.
+		:param namespace:                           The namespace of the declarative region or of the context declaration
+		                                            containing the use clause.
+		:param useClause:                           The use clause.
+		:param isContextItem:                       ``True``, if the use clause is an item of the design unit's context
+		                                            clause.
+		:raises UseClauseLibraryNotVisibleError:    If a use clause references a library, whose name isn't visible
+		                                            (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
+		:raises PackageNotFoundError:               If a use clause references a package, which doesn't exist in its
+		                                            library.
+		:raises UnknownSymbolKindError:             If the type of a symbol in the use clause is unknown.
+		:raises PackageInstantiationNotLinkedError: If a package instantiation isn't linked to its generic package.
+		:raises UnhandledCriticalWarningError:      If a use clause names a package member, which the package doesn't
+		                                            declare, a primary unit, which the library doesn't contain, a prefix,
+		                                            which isn't a visible package, or an uninstantiated generic package, and
+		                                            no :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                            :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		# A use clause can have multiple comma-separated references
+		for packageMemberSymbol in useClause._symbols:
+			symbolTypes = (PackageReferenceSymbol, AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol)
+			if not isinstance(packageMemberSymbol, symbolTypes):
+				ex = UnknownSymbolKindError(
+					f"Unknown package reference symbol type in design unit '{designUnit._identifier}'.",
+					symbol=packageMemberSymbol,
+					designUnit=designUnit
+				)
+				ex.add_note(f"Got type '{getFullyQualifiedName(packageMemberSymbol)}'.")
+				raise ex
+
+			name =  packageMemberSymbol._name
+			isAll = isinstance(name, AllName)
+			if isinstance(packageMemberSymbol, PackageReferenceSymbol) and not isAll:
+				packageName = name
+			else:
+				packageName = name._prefix
+
+			packageIdentifier = packageName._normalizedIdentifier
+			libraryName =       packageName._prefix
+
+			# 'use lib.all;' or 'use lib.unit;' with a primary unit, which isn't a package: the prefix denotes a library.
+			library =        None
+			unitIdentifier = None
+			if libraryName is None:
+				if packageIdentifier == "work":
+					library = designUnit._parent
+				elif designUnit.IsLibraryVisible(packageIdentifier):
+					library = self._libraries[packageIdentifier]
+
+				if not isAll:
+					unitIdentifier = name._normalizedIdentifier
+			elif isinstance(packageMemberSymbol, PackageReferenceSymbol) and libraryName._prefix is None:
+				libraryIdentifier = libraryName._normalizedIdentifier
+				if libraryIdentifier == "work":
+					library = designUnit._parent
+				elif designUnit.IsLibraryVisible(libraryIdentifier):
+					library = self._libraries[libraryIdentifier]
+
+				if library is not None and packageIdentifier in library._packages:
+					library = None
+				else:
+					unitIdentifier = packageIdentifier
+
+			if library is not None:
+				primaryUnitTables = (library._packages, library._entities, library._configurations, library._contexts)
+				if unitIdentifier is None:
+					for primaryUnits in primaryUnitTables:
+						for normalizedIdentifier, primaryUnit in primaryUnits.items():
+							namespace.AddImport(normalizedIdentifier, primaryUnit, useClause)
+				else:
+					for primaryUnits in primaryUnitTables:
+						if (primaryUnit := primaryUnits.get(unitIdentifier)) is not None:
+							namespace.AddImport(unitIdentifier, primaryUnit, useClause)
+							break
 					else:
-						library = self._libraries[libraryIdentifier]
-
-					try:
-						package = library._packages[packageIdentifier]
-					except KeyError:
-						ex = VHDLModelException(f"Package '{packageName.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
-						ex.add_note(f"Caused in design unit '{designUnit}' in file '{designUnit.Document}'.")
-						raise ex
-
-					# FIXME: check if package isn't a generic package
-					packageMemberSymbol.Package = package
-
-					# TODO: warn duplicate package reference
-					designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
-
-					dependency = designUnit._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=packageReference)
-					dependency["kind"] = DependencyGraphEdgeKind.UseClause
-
-					# TODO: update the namespace with visible members
-					if isinstance(packageMemberSymbol, PackageReferenceSymbol):
-						designUnit._namespace.AddImport(packageIdentifier, package)
-
-					elif isinstance(packageMemberSymbol, AllPackageMembersReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning(
-							"Handling of 'myLib.myPackage.all'. Exception: components are handled.",
-							item=packageMemberSymbol
+						WarningCollector.Raise(UnresolvedNameWarning(
+							f"Library '{library._identifier}' has no primary unit '{name._identifier}'.",
+							symbol=packageMemberSymbol,
+							place=useClause,
+							namespaces=()
 						))
 
-						for componentIdentifier, component in package._components.items():
-							designUnit._namespace.AddImport(componentIdentifier, component)
+				continue
 
-					elif isinstance(packageMemberSymbol, PackageMemberReferenceSymbol):
-						WarningCollector.Raise(NotImplementedWarning(
-							"Handling of 'myLib.myPackage.mySymbol'.",
-							item=packageMemberSymbol
-						))
+			if libraryName is None:
 
-					else:
-						ex = VHDLModelException("Unknown package reference symbol type.")
-						ex.add_note(f"Got type '{getFullyQualifiedName(packageMemberSymbol)}'.")
-						raise ex
+				# 'use pkg.all;': the prefix denotes a visible package, e.g. made visible by 'use lib.pkg;'.
+				result =   namespace.Lookup(packageIdentifier, useClause)
+				packages = [declaration for declaration in result._declarations if isinstance(declaration, Package)]
+				if len(packages) == 0:
+					WarningCollector.Raise(UnresolvedNameWarning(
+						f"Prefix '{packageName._identifier}' of use clause '{name!s}' isn't a visible package.",
+						symbol=packageMemberSymbol,
+						place=useClause,
+						namespaces=result._searchedNamespaces,
+						conflicts=result._conflicts
+					))
+					continue
+
+				package = packages[0]
+			else:
+				libraryIdentifier = libraryName._normalizedIdentifier
+
+				# In case work is used, resolve to the real library name.
+				if libraryIdentifier == "work":
+					library: Library = designUnit.Library
+					libraryIdentifier = library.NormalizedIdentifier
+				elif not designUnit.IsLibraryVisible(libraryIdentifier):
+					ex = UseClauseLibraryNotVisibleError(
+						f"Use clause references library '{libraryName._identifier}', which was not referenced by a library clause.",
+						libraryName=libraryName._identifier,
+						designUnit=designUnit
+					)
+					ex.add_note(f"Add a library clause like: 'library {libraryName._identifier};'.")
+					raise ex
+				else:
+					library = self._libraries[libraryIdentifier]
+
+				try:
+					package = library._packages[packageIdentifier]
+				except KeyError as cause:
+					ex = PackageNotFoundError(
+						f"Package '{packageName._identifier}' not found in "
+						f"{'working ' if libraryName._normalizedIdentifier == 'work' else ''}library '{library._identifier}'.",
+						packageName=packageName._identifier,
+						libraryName=library._identifier
+					)
+					ex.add_note(f"Caused in design unit '{designUnit}' in file '{designUnit.Document}'.")
+					raise ex from cause
+
+				if isContextItem:
+					designUnit._referencedPackages.setdefault(libraryIdentifier, {})[packageIdentifier] = package
+
+				dependency =         designUnit._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=useClause)
+				dependency["kind"] = DependencyGraphEdgeKind.UseClause
+
+			packageMemberSymbol._reference = package
+
+			if len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
+				WarningCollector.Raise(UnresolvedNameWarning(
+					f"Use clause '{name!s}' names the uninstantiated generic package '{package._identifier}'.",
+					symbol=packageMemberSymbol,
+					place=useClause,
+					namespaces=(package._namespace, )
+				))
+				continue
+
+			if isAll:
+				for normalizedIdentifier, declaration in package.IterateDeclarations():
+					namespace.AddImport(normalizedIdentifier, declaration, useClause)
+
+			elif isinstance(packageMemberSymbol, PackageReferenceSymbol):
+				namespace.AddImport(packageIdentifier, package, useClause)
+
+			else:
+				members = tuple(package.IterateMemberDeclarations(packageMemberSymbol._name._normalizedIdentifier))
+				if len(members) == 0:
+					WarningCollector.Raise(UnresolvedNameWarning(
+						f"Package '{package._identifier}' has no declaration '{packageMemberSymbol._name._identifier}'.",
+						symbol=packageMemberSymbol,
+						place=useClause,
+						namespaces=(package._namespace, )
+					))
+
+				for normalizedIdentifier, declaration in members:
+					namespace.AddImport(normalizedIdentifier, declaration, useClause)
 
 	def LinkContextReferences(self) -> None:
 		"""
@@ -2324,7 +2412,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		       3. Resolve library:
 
 		          * If library name is ``work``, get library from design unit.
-		          * If library name is not in design unit's ``_referencedLibraries``, raise an exception.
+		          * If library name isn't visible (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`), raise an
+		            exception.
 		          * Otherwise, lookup library by name in design.
 
 		       4. Resolve context:
@@ -2350,8 +2439,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		     3. Iterate referenced packages of the context:
 
-		        * Raise an exception if package name is already listed in ``_referencedPackages``.
 		        * Add an entry in the design unit's ``_referencedPackages`` dictionary referencing the referenced package.
+
+		3. Iterate all design units with a namespace, the contexts they reference and, transitively, the contexts these
+		   reference: import the declarations, which :meth:`LinkContexts` imported into the namespace of a context, into the
+		   design unit's namespace.
 
 		.. seealso::
 
@@ -2361,6 +2453,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		     Link *use clause*.
 		   :meth:`AnalyzeDependencies`
 		     Analyze dependencies and link relations.
+
+		:raises ContextReferenceLibraryNotVisibleError: If a context reference references a library, whose name isn't
+		                                                visible
+		                                                (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
+		:raises ContextNotFoundError:                   If a context reference references a context, which doesn't exist in
+		                                                its library.
+		:raises UseClauseNotLinkedError:                If a use clause of a referenced context isn't linked. |br|
+		                                                Call :meth:`LinkContexts` before.
 		"""
 		for designUnit in self.IterateDesignUnits():
 			for contextReference in designUnit._contextReferences:
@@ -2375,42 +2475,75 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					if libraryIdentifier == "work":
 						referencedLibrary = designUnit.Library
 						libraryIdentifier = referencedLibrary.NormalizedIdentifier
-					elif libraryIdentifier not in designUnit._referencedLibraries:
-						# TODO: This check doesn't trigger if it's the working library.
-						raise VHDLModelException(f"Context reference references library '{libraryName.Identifier}', which was not referenced by a library clause.")
+					elif not designUnit.IsLibraryVisible(libraryIdentifier):
+						ex = ContextReferenceLibraryNotVisibleError(
+							f"Context reference references library '{libraryName.Identifier}', which was not referenced by a library "
+							"clause.",
+							libraryName=libraryName.Identifier,
+							designUnit=designUnit
+						)
+						ex.add_note(f"Add a library clause like: 'library {libraryName.Identifier};'.")
+						raise ex
 					else:
 						referencedLibrary = self._libraries[libraryIdentifier]
 
 					try:
 						referencedContext = referencedLibrary._contexts[contextIdentifier]
-					except KeyError:
-						raise VHDLModelException(f"Context '{contextSymbol.Name.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{referencedLibrary.Identifier}'.")
+					except KeyError as cause:
+						raise ContextNotFoundError(
+							f"Context '{contextSymbol.Name.Identifier}' not found in "
+							f"{'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library "
+							f"'{referencedLibrary.Identifier}'.",
+							contextName=contextSymbol.Name.Identifier,
+							libraryName=referencedLibrary.Identifier
+						) from cause
 
-					contextSymbol.Package = referencedContext
+					contextSymbol.Context = referencedContext
 
-					# TODO: warn duplicate referencedContext reference
-					designUnit._referencedContexts[libraryIdentifier][contextIdentifier] = referencedContext
+					designUnit._referencedContexts.setdefault(libraryIdentifier, {})[contextIdentifier] = referencedContext
 
 					dependency = designUnit._dependencyVertex.EdgeToVertex(referencedContext._dependencyVertex, edgeValue=contextReference)
 					dependency["kind"] = DependencyGraphEdgeKind.ContextReference
 
 		for vertex in self._dependencyGraph.IterateTopologically(predicate=lambda v: v["kind"] is DependencyGraphVertexKind.Context):
 			context: Context = vertex.Value
-			for designUnitVertex in vertex.IteratePredecessorVertices():  # TODO: should this be filtered to exclude non-contexts?
+			for designUnitVertex in vertex.IteratePredecessorVertices():
 				designUnit: DesignUnit = designUnitVertex.Value
 				for libraryIdentifier, library in context._referencedLibraries.items():
 					# if libraryIdentifier in designUnit._referencedLibraries:
 					# 	raise VHDLModelException(f"Referenced library '{library.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
 
 					designUnit._referencedLibraries[libraryIdentifier] = library
-					designUnit._referencedPackages[libraryIdentifier] = {}
+					designUnit._referencedPackages.setdefault(libraryIdentifier, {})
 
 				for libraryIdentifier, packages in context._referencedPackages.items():
 					for packageIdentifier, package in packages.items():
-						if packageIdentifier in designUnit._referencedPackages:
-							raise VHDLModelException(f"Referenced package '{package.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
-
 						designUnit._referencedPackages[libraryIdentifier][packageIdentifier] = package
+
+		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithContext):
+			# Walk the referenced contexts and the contexts they reference.
+			contexts = [
+				symbol._reference for contextReference in designUnit._contextReferences for symbol in contextReference._symbols
+			]
+			for context in contexts:
+				for contextReference in context._contextReferences:
+					for symbol in contextReference._symbols:
+						if symbol._reference not in contexts:
+							contexts.append(symbol._reference)
+
+				if len(context._packageReferences) > 0 and len(context._referencedLibraries) == 0:
+					symbol = context._packageReferences[0]._symbols[0]
+					ex = UseClauseNotLinkedError(
+						f"Use clause '{symbol._name!s}' of context '{context._identifier}' isn't linked.",
+						symbol=symbol,
+						context=context
+					)
+					ex.add_note("Call 'LinkContexts()' before 'LinkContextReferences()'.")
+					raise ex
+
+				for normalizedIdentifier, imports in context._namespace._imports.items():
+					for imported in imports:
+						designUnit._namespace.AddImport(normalizedIdentifier, imported._element, imported._useClause)
 
 	def LinkComponents(self) -> None:
 		"""
@@ -2429,22 +2562,22 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   2. Iterate concurrent statements with declaration regions (block statements, generate statements) if the design
 		      unit is an architecture:
 
-		      * If the statement is an :class:`IfGenerateStatement`:
+		      * If the statement is an :class:`~pyVHDLModel.Concurrent.IfGenerateStatement`:
 
-		        1. Iterate declared components in the :class:`IfGenerateBranch`.
-		        2. Iterate declared components in each :class:`ElIfGenerateBranch`.
-		        3. Iterate declared components in the :class:`ElseGenerateBranch` if it exists.
+		        1. Iterate declared components in the :class:`~pyVHDLModel.Concurrent.IfGenerateBranch`.
+		        2. Iterate declared components in each :class:`~pyVHDLModel.Concurrent.ElsifGenerateBranch`.
+		        3. Iterate declared components in the :class:`~pyVHDLModel.Concurrent.ElseGenerateBranch` if it exists.
 
-		      * If the statement is an :class:`ForGenerateStatement`:
+		      * If the statement is an :class:`~pyVHDLModel.Concurrent.ForGenerateStatement`:
 
 		        1. Iterate declared components.
 
-		      * If the statement is an :class:`CaseGenerateStatement`:
+		      * If the statement is an :class:`~pyVHDLModel.Concurrent.CaseGenerateStatement`:
 
 		        1. Iterate declared components.
 		        2. Iterate
 
-		:raises VHDLModelException: If no entity is found for a component, which doesn't allow blackboxes.
+		:raises ComponentEntityNotFoundError: If no entity is found for a component, which doesn't allow blackboxes.
 
 		.. seealso::
 
@@ -2463,8 +2596,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					component._isBlackbox = True
 					continue
 				else:
-					raise VHDLModelException(
-						f"Entity '{component.Identifier}' not found for component '{component.Identifier}' in library '{library.Identifier}'.")
+					raise ComponentEntityNotFoundError(
+						f"Entity '{component.Identifier}' not found for component '{component.Identifier}' in library "
+						f"'{library.Identifier}'.",
+						component=component,
+						libraryName=library.Identifier
+					)
 
 			component.Entity = entity
 
@@ -2531,7 +2668,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					entityName =  instance.Entity.Name
 					libraryName = entityName.Prefix
 					if libraryName is None:
-						ex = VHDLModelException(f"Direct entity instantiation '{instance.Label}' has no library prefix.")
+						ex = UnprefixedEntityInstantiationError(
+							f"Direct entity instantiation '{instance.Label}' has no library prefix.",
+							instantiation=instance
+						)
 						ex.add_note(f"Use a selected name like 'work.{entityName.Identifier}'.")
 						ex.add_note("Entities made visible by a use clause aren't supported.")
 						raise ex
@@ -2541,32 +2681,41 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					if normalizedLibraryIdentifier == "work":
 						libraryIdentifier = architecture.Library.Identifier
 						normalizedLibraryIdentifier = architecture.Library.NormalizedIdentifier
-					elif normalizedLibraryIdentifier not in architecture._referencedLibraries:
-						ex = VHDLModelException(
+					elif not architecture.IsLibraryVisible(normalizedLibraryIdentifier):
+						ex = EntityInstantiationLibraryNotVisibleError(
 							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
-							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in architecture '{architecture!r}'."
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in architecture '{architecture!r}'.",
+							instantiation=instance,
+							architecture=architecture
 						)
 						ex.add_note(f"Add a library reference to the architecture or entity using a library clause like: 'library {libraryIdentifier};'.")
 						raise ex
 
 					try:
 						library = self._libraries[normalizedLibraryIdentifier]
-					except KeyError:
-						ex = VHDLModelException(
+					except KeyError as cause:
+						ex = EntityInstantiationLibraryNotFoundError(
 							f"Referenced library '{libraryIdentifier}' in direct entity instantiation '{instance.Label}: "
-							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in design."
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in design.",
+							instantiation=instance
 						)
 						ex.add_note(f"No design units were parsed into library '{libraryIdentifier}'. Thus it doesn't exist in design.")
-						raise ex
+						raise ex from cause
 
 					try:
 						entity = library._entities[instance.Entity.Name.NormalizedIdentifier]
-					except KeyError:
-						ex = VHDLModelException(f"Referenced entity '{instance.Entity.Name.Identifier}' in direct entity instantiation '{instance.Label}: entity {instance.Entity.Name.Prefix.Identifier}.{instance.Entity.Name.Identifier}' not found in {'working ' if instance.Entity.Name.Prefix.NormalizedIdentifier == 'work' else ''}library '{libraryIdentifier}'.")
+					except KeyError as cause:
+						ex = InstantiatedEntityNotFoundError(
+							f"Referenced entity '{entityName.Identifier}' in direct entity instantiation '{instance.Label}: "
+							f"entity {libraryName.Identifier}.{entityName.Identifier}' not found in "
+							f"{'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{libraryIdentifier}'.",
+							instantiation=instance,
+							libraryName=libraryIdentifier
+						)
 						libs = [library.Identifier for library in self._libraries.values() for entityIdentifier in library._entities.keys() if entityIdentifier == instance.Entity.Name.NormalizedIdentifier]
 						if libs:
 							ex.add_note(f"Found entity '{instance.Entity!s}' in other libraries: {', '.join(libs)}")
-						raise ex
+						raise ex from cause
 
 					instance.Entity.Entity = entity
 
@@ -2626,13 +2775,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 	def IndexPackageBodies(self) -> None:
 		"""
-		Index all declared items in all packages in all libraries.
+		Index all declared items in all package bodies in all libraries.
 
 		.. rubric:: Algorithm
 
 		1. Iterate all libraries:
 
-		   1. Iterate all packages |br|
+		   1. Iterate all package bodies |br|
 		      |rarr| :meth:`pyVHDLModel.Library.IndexPackageBodies`
 
 		      * Index all declared items in that package body. |br|
@@ -2656,13 +2805,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 	def IndexEntities(self) -> None:
 		"""
-		Index all declared items in all packages in all libraries.
+		Index all declared items in all entities in all libraries.
 
 		.. rubric:: Algorithm
 
 		1. Iterate all libraries:
 
-		   1. Iterate all packages |br|
+		   1. Iterate all entities |br|
 		      |rarr| :meth:`pyVHDLModel.Library.IndexEntities`
 
 		      * Index all declared items in that entity. |br|
@@ -2686,13 +2835,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 	def IndexArchitectures(self) -> None:
 		"""
-		Index all declared items in all packages in all libraries.
+		Index all declared items in all architectures in all libraries.
 
 		.. rubric:: Algorithm
 
 		1. Iterate all libraries:
 
-		   1. Iterate all packages |br|
+		   1. Iterate all architectures |br|
 		      |rarr| :meth:`pyVHDLModel.Library.IndexArchitectures`
 
 		      * Index all declared items in that architecture. |br|
@@ -2723,7 +2872,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		1. Iterate all vertices corresponding to entities and architectures in the dependency graph:
 
 		   * Copy these vertices to the hierarchy graph and create a bidirectional linking. |br|
-		     In addition, set the referenced design unit's :attr:`~pyVHDLModel.Document._hierarchyVertex` field to reference the copied vertex.
+		     In addition, set the referenced design unit's :attr:`~pyVHDLModel.DesignUnit.DesignUnit._hierarchyVertex`
+		     field to reference the copied vertex.
 
 		     * Add a key-value-pair called ``hierarchyVertex`` to the dependency graph's vertex.
 		     * Add a key-value-pair called ``dependencyVertex`` to the hierarchy graph's vertex.
@@ -2791,6 +2941,105 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			e = sourceVertex["dependencyVertex"].EdgeToVertex(destinationVertex["dependencyVertex"])
 			e["kind"] = DependencyGraphEdgeKind.CompileOrder
 
+	def AnalyzeObjects(self) -> None:
+		"""
+		Analyze the types and objects of the design.
+
+		It runs after the dependency analysis (:meth:`AnalyzeDependencies`), which links the use clauses and computes the
+		compile order.
+
+		.. rubric:: Algorithm
+
+		1. Resolve the type marks of all declarations. |br|
+		   |rarr| :meth:`ResolveTypeMarks`
+
+		.. todo::
+
+		   * Resolve the names in expressions, e.g. constants and generics in ranges and constraints, or signal attributes.
+		   * Build the type and object graph (:attr:`ObjectGraph`) from these references.
+		   * Wire the signals into a netlist.
+
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		"""
+		self.ResolveTypeMarks()
+
+	def ResolveTypeMarks(self) -> None:
+		"""
+		Resolve the type marks of all declarations in the design.
+
+		It's the first step of :meth:`AnalyzeObjects`, after the use clauses are linked. Each type mark is looked up at its
+		place (:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.LookupName`), so the visibility rules apply: e.g. a type
+		declared after the place isn't visible, and conflicting use clauses make a type mark ambiguous. A resolved type mark
+		references the type, the subtype or the generic type (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`); a type mark
+		denoting an alias of a type references the type. Resolving again yields the same references, as long as the design
+		isn't changed; after a change, :meth:`Analyze` links the use clauses again.
+
+		.. rubric:: Algorithm
+
+		1. Iterate the design units of the predefined libraries (:attr:`Library.IsPredefined`), then the design units of all
+		   documents in compile order (the compile-order graph, :meth:`ComputeCompileOrder`), so a package is resolved
+		   before its users.
+		2. Iterate the declarative regions of each design unit, the outermost first
+		   (:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.IterateDeclarationRegions`):
+
+		   1. Index the declared items of a region not indexed yet, e.g. a process or a subprogram.
+		   2. Iterate the region's declarations in declaration order; each resolves its references
+		      (:meth:`~pyVHDLModel.Base.ModelEntity.ResolveReferences`):
+
+		      * Every declaration resolves its type marks (:meth:`~pyVHDLModel.Base.ModelEntity.IterateTypeMarks`) by the
+		        region looking them up (:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.ResolveTypeMark`).
+		      * An incomplete type reports, if no full type declaration follows in its region
+		        (:meth:`~pyVHDLModel.Type.AnonymousType.ResolveReferences`).
+		      * An alias without a subtype indication resolves its name
+		        (:meth:`~pyVHDLModel.Declaration.Alias.ResolveReferences`).
+		      * A subtype sets its base type (:attr:`~pyVHDLModel.Type.Subtype.BaseType`): the resolved type, or the base
+		        type of the resolved subtype.
+
+		.. seealso::
+
+		   :meth:`ResetAnalysis`
+		     Reset everything an analysis derived, including the references of type marks.
+
+		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		:raises UnhandledCriticalWarningError: If an identifier is declared twice in a declarative region and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
+		"""
+		designUnits = []
+		for library in self._libraries.values():
+			if library.IsPredefined:
+				designUnits.extend(library.IterateDesignUnits(DesignUnitKind.WithDeclaredItems))
+
+		if self._compileOrderGraph.VertexCount > 0:
+			for vertex in self._compileOrderGraph.IterateTopologically():
+				for designUnit in vertex.Value.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
+					if designUnit not in designUnits:
+						designUnits.append(designUnit)
+
+		for designUnit in designUnits:
+			for region in designUnit.IterateDeclarationRegions():
+				if not region._areDeclaredItemsIndexed:
+					region.IndexDeclaredItems()
+
+				for item in region._Declarations():
+					item.ResolveReferences(designUnit, region)
+
 	def IterateDocumentsInCompileOrder(self) -> Generator[Document, None, None]:
 		"""
 		Iterate all document in compile-order.
@@ -2804,8 +3053,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		   * yield the compiler-order vertex' referenced document.
 
-		:returns:                   A generator to iterate all documents in compile-order in the design.
-		:raises VHDLModelException: If compile-order was not computed.
+		:returns:                             A generator to iterate all documents in compile-order in the design.
+		:raises CompileOrderNotComputedError: If compile-order was not computed. |br|
+		                                      Call :meth:`Analyze` or :meth:`AnalyzeDependencies` before.
 
 		.. seealso::
 
@@ -2815,7 +3065,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		"""
 		if self._compileOrderGraph.EdgeCount < self._compileOrderGraph.VertexCount - 1:
-			raise VHDLModelException("Compile order is not yet computed from dependency graph.")
+			ex = CompileOrderNotComputedError("Compile order is not yet computed from dependency graph.")
+			ex.add_note("Call 'Analyze()' or 'AnalyzeDependencies()' before 'IterateDocumentsInCompileOrder()'.")
+			raise ex
 
 		for compileOrderNode in self._compileOrderGraph.IterateTopologically():
 			yield compileOrderNode.Value
@@ -2961,6 +3213,20 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		return self._packageBodies
 
 	@readonly
+	def IsPredefined(self) -> bool:
+		"""
+		Check if the library is a predefined library built by pyVHDLModel.
+
+		A predefined library is a :class:`~pyVHDLModel.Predefined.PredefinedLibrary`, e.g. ``std``.
+
+		Its declarations are complete when constructed, e.g. a subtype has its base type, so an analysis neither resolves
+		nor resets them. A library ``std`` or ``ieee`` read from VHDL source files isn't predefined in this sense.
+
+		:returns: ``False``
+		"""
+		return False
+
+	@readonly
 	def DependencyVertex(self) -> Vertex:
 		"""
 		Read-only property to access the corresponding dependency vertex (:attr:`_dependencyVertex`).
@@ -2975,7 +3241,8 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		"""
 		Iterate all design units in the library.
 
-		A union of :class:`DesignUnitKind` values can be given to filter the returned result for suitable design units.
+		A union of :class:`~pyVHDLModel.DesignUnitKind` values can be given to filter the returned result for suitable
+		design units.
 
 		.. rubric:: Algorithm
 
@@ -3046,8 +3313,8 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		      * Set parent namespace of architecture's namespace to the entitie's namespace.
 		      * Add an edge in the dependency graph from the architecture's corresponding dependency vertex to the entity's corresponding dependency vertex.
 
-		:raises VHDLModelException: If entity name doesn't exist.
-		:raises VHDLModelException: If architecture name already exists for entity.
+		:raises ArchitectureEntityNotFoundError:  If entity name doesn't exist.
+		:raises ArchitectureExistsInLibraryError: If architecture name already exists for entity.
 
 		.. seealso::
 
@@ -3058,15 +3325,24 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		"""
 		for entityName, architecturesPerEntity in self._architectures.items():
 			if entityName not in self._entities:
-				architectureNames = "', '".join(architecturesPerEntity.keys())
-				raise VHDLModelException(f"Entity '{entityName}' referenced by architecture(s) '{architectureNames}' doesn't exist in library '{self._identifier}'.")
-			# TODO: search in other libraries to find that entity.
+				architectureNames = tuple(architecturesPerEntity.keys())
+				raise ArchitectureEntityNotFoundError(
+					f"""Entity '{entityName}' referenced by architecture(s) '{"', '".join(architectureNames)}' doesn't """
+					f"exist in library '{self._identifier}'.",
+					entityName=entityName,
+					architectureNames=architectureNames,
+					libraryName=self._identifier
+				)
 			# TODO: add code position
 
 			entity = self._entities[entityName]
 			for architecture in architecturesPerEntity.values():
 				if architecture._normalizedIdentifier in entity._architectures:
-					raise VHDLModelException(f"Architecture '{architecture._identifier}' already exists for entity '{entity._identifier}'.")
+					raise ArchitectureExistsInLibraryError(
+						f"Architecture '{architecture._identifier}' already exists for entity '{entity._identifier}'.",
+						architecture=architecture,
+						library=self
+					)
 				# TODO: add code position of existing and current
 
 				entity._architectures[architecture._normalizedIdentifier] = architecture
@@ -3086,12 +3362,16 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		1. Iterate all package bodies.
 
 		   * Check if package body symbol's name exists as a package in this library.
+		   * Report a :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`, if the package has another package body.
 		   * Add package body to package :attr:`pyVHDLModel.DesignUnit.Package._packageBody`.
 		   * Assign found package to package body's package symbol :attr:`pyVHDLModel.DesignUnit.PackageBody._package`
 		   * Set parent namespace of package body's namespace to the package's namespace.
 		   * Add an edge in the dependency graph from the package body's corresponding dependency vertex to the package's corresponding dependency vertex.
 
-		:raises VHDLModelException: If package name doesn't exist.
+		:raises PackageBodyPackageNotFoundError: If package name doesn't exist.
+		:raises UnhandledCriticalWarningError:   If a package has another package body, which is replaced, and no
+		                                         :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                         :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 
 		.. seealso::
 
@@ -3102,11 +3382,24 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		"""
 		for packageBodyName, packageBody in self._packageBodies.items():
 			if packageBodyName not in self._packages:
-				raise VHDLModelException(f"Package '{packageBodyName}' referenced by package body '{packageBodyName}' doesn't exist in library '{self._identifier}'.")
+				raise PackageBodyPackageNotFoundError(
+					f"Package body '{packageBodyName}' has no package in library '{self._identifier}'.",
+					packageName=packageBodyName,
+					libraryName=self._identifier
+				)
 
 			package = self._packages[packageBodyName]
-			package._packageBody = packageBody    # TODO: add warning if package had already a body, which is now replaced
-			packageBody._package.Package = package
+			if (existing := package._packageBody) is not None and existing is not packageBody:
+				WarningCollector.Raise(DuplicateDeclarationWarning(
+					f"Package '{package._identifier}' in library '{self._identifier}' already has a package body, which is "
+					"replaced.",
+					identifier=package._identifier,
+					element=packageBody,
+					existing=existing
+				))
+
+			package._packageBody =                   packageBody
+			packageBody._package.Package =           package
 			packageBody._namespace.ParentNamespace = package._namespace
 
 			# add "package body -> package" relation in dependency graph
@@ -3129,7 +3422,12 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		      * Set parent namespace of package body's namespace to the package's namespace.
 		      * Add an edge in the dependency graph from the package body's corresponding dependency vertex to the package's corresponding dependency vertex.
 
-		:raises VHDLModelException: If generic package name doesn't exist.
+		:raises PackageInstantiationLibraryNotFoundError:   If the library of the generic package doesn't exist in the
+		                                                    design.
+		:raises PackageInstantiationLibraryNotVisibleError: If the name of that library isn't visible
+		                                                    (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`).
+		:raises PackageNotFoundError:                       If generic package name doesn't exist.
+		:raises NotAGenericPackageError:                    If the package isn't a generic package.
 
 		.. seealso::
 
@@ -3138,7 +3436,7 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 		   :meth:`LinkPackageBodies`
 		     Link all package bodies to corresponding packages.
 		"""
-		for packageInstanceName, packageInstance in self._packages.items():
+		for packageInstance in self._packages.values():
 			if isinstance(packageInstance, PackageInstantiation):
 				packageSymbol = packageInstance._packageReference
 				packageName = packageSymbol.Name
@@ -3152,22 +3450,43 @@ class Library(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, AllowBlackbo
 					library: Library = self
 					libraryIdentifier = library.NormalizedIdentifier
 				elif libraryIdentifier not in self._parent._libraries:
-					# TODO: This check doesn't trigger if it's the working library.
-					raise VHDLModelException(f"Package instantiation of '{packageInstanceName}' references library '{libraryName.Identifier}', which cannot be found in design.")
+					raise PackageInstantiationLibraryNotFoundError(
+						f"Package instantiation of '{packageInstance._identifier}' references library '{libraryName.Identifier}', "
+						"which cannot be found in design.",
+						libraryName=libraryName.Identifier,
+						packageInstantiation=packageInstance
+					)
+				elif not packageInstance.IsLibraryVisible(libraryIdentifier):
+					ex = PackageInstantiationLibraryNotVisibleError(
+						f"Package instantiation of '{packageInstance._identifier}' references library '{libraryName.Identifier}', "
+						"which was not referenced by a library clause.",
+						libraryName=libraryName.Identifier,
+						packageInstantiation=packageInstance
+					)
+					ex.add_note(f"Add a library clause like: 'library {libraryName.Identifier};'.")
+					raise ex
 				else:
 					library = self._parent._libraries[libraryIdentifier]
 
 				try:
 					package = library._packages[packageIdentifier]
-				except KeyError:
-					ex = VHDLModelException(
-						f"Package '{packageName.Identifier}' not found in {'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.")
+				except KeyError as cause:
+					ex = PackageNotFoundError(
+						f"Package '{packageName.Identifier}' not found in "
+						f"{'working ' if libraryName.NormalizedIdentifier == 'work' else ''}library '{library.Identifier}'.",
+						packageName=packageName.Identifier,
+						libraryName=library.Identifier
+					)
 					ex.add_note(f"Caused in library '{self}' in file '{packageInstance.Document}'.")
-					raise ex
+					raise ex from cause
 
-				# FIXME: check if package is a generic package
 				if package.GenericCount == 0:
-					raise VHDLModelException(f"Package '{libraryName.Identifier}.{packageName.Identifier}' referenced by '{self._identifier}.{packageInstanceName}' is not a generic package.")
+					raise NotAGenericPackageError(
+						f"Package '{libraryName.Identifier}.{packageName.Identifier}' referenced by "
+						f"'{self._identifier}.{packageInstance._identifier}' is not a generic package.",
+						packageInstantiation=packageInstance,
+						package=package
+					)
 
 				packageSymbol.Package = package
 
@@ -3385,9 +3704,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add an entity to the document's lists of design units.
 
-		:param item:                Entity object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Entity`.
-		:raises VHDLModelException: If entity name already exists in document.
+		:param item:                      Entity object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Entity`.
+		:raises DuplicateDesignUnitError: If entity name already exists in document.
 		"""
 		if not isinstance(item, Entity):
 			ex = TypeError("Parameter 'item' is not of type 'Entity'.")
@@ -3396,8 +3715,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._entities:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"An entity '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"An entity '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._entities[identifier]
+			)
 
 		self._entities[identifier] = item
 		self._designUnits.append(item)
@@ -3409,9 +3733,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add an architecture to the document's lists of design units.
 
-		:param item:                Architecture object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Architecture`.
-		:raises VHDLModelException: If architecture name already exists for the referenced entity name in document.
+		:param item:                      Architecture object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Architecture`.
+		:raises DuplicateDesignUnitError: If architecture name already exists for the referenced entity name in document.
 		"""
 		if not isinstance(item, Architecture):
 			ex = TypeError("Parameter 'item' is not of type 'Architecture'.")
@@ -3424,9 +3748,14 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		try:
 			architectures = self._architectures[entityIdentifier]
 			if identifier in architectures:
-				# TODO: use a more specific exception
 				# FIXME: this is allowed and should be a warning or a strict mode.
-				raise VHDLModelException(f"An architecture '{item._identifier}' for entity '{entity._identifier}' already exists in this document.")
+				raise DuplicateDesignUnitError(
+					f"An architecture '{item._identifier}' for entity '{entity._identifier}' already exists in this document.",
+					identifier=item._identifier,
+					parent=self,
+					element=item,
+					existing=architectures[identifier]
+				)
 
 			architectures[identifier] = item
 		except KeyError:
@@ -3441,9 +3770,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a package to the document's lists of design units.
 
-		:param item:                Package object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Package`.
-		:raises VHDLModelException: If package name already exists in document.
+		:param item:                      Package object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Package`.
+		:raises DuplicateDesignUnitError: If package name already exists in document.
 		"""
 		if not isinstance(item, (Package, PackageInstantiation)):
 			ex = TypeError("Parameter 'item' is not of type 'Package' or 'PackageInstantiation'.")
@@ -3452,8 +3781,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._packages:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"A package '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"A package '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._packages[identifier]
+			)
 
 		self._packages[identifier] = item
 		self._designUnits.append(item)
@@ -3465,9 +3799,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a package body to the document's lists of design units.
 
-		:param item:                Package body object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.PackageBody`.
-		:raises VHDLModelException: If package body name already exists in document.
+		:param item:                      Package body object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.PackageBody`.
+		:raises DuplicateDesignUnitError: If package body name already exists in document.
 		"""
 		if not isinstance(item, PackageBody):
 			ex = TypeError("Parameter 'item' is not of type 'PackageBody'.")
@@ -3476,8 +3810,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._packageBodies:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"A package body '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"A package body '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._packageBodies[identifier]
+			)
 
 		self._packageBodies[identifier] = item
 		self._designUnits.append(item)
@@ -3489,9 +3828,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a context to the document's lists of design units.
 
-		:param item:                Context object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Context`.
-		:raises VHDLModelException: If context name already exists in document.
+		:param item:                      Context object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Context`.
+		:raises DuplicateDesignUnitError: If context name already exists in document.
 		"""
 		if not isinstance(item, Context):
 			ex = TypeError("Parameter 'item' is not of type 'Context'.")
@@ -3500,8 +3839,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._contexts:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"A context '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"A context '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._contexts[identifier]
+			)
 
 		self._contexts[identifier] = item
 		self._designUnits.append(item)
@@ -3513,9 +3857,9 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a configuration to the document's lists of design units.
 
-		:param item:                Configuration object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Configuration`.
-		:raises VHDLModelException: If configuration name already exists in document.
+		:param item:                      Configuration object to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.Configuration`.
+		:raises DuplicateDesignUnitError: If configuration name already exists in document.
 		"""
 		if not isinstance(item, Configuration):
 			ex = TypeError("Parameter 'item' is not of type 'Configuration'.")
@@ -3524,8 +3868,13 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		identifier = item._normalizedIdentifier
 		if identifier in self._configurations:
-			# TODO: use a more specific exception
-			raise VHDLModelException(f"A configuration '{item._identifier}' already exists in this document.")
+			raise DuplicateDesignUnitError(
+				f"A configuration '{item._identifier}' already exists in this document.",
+				identifier=item._identifier,
+				parent=self,
+				element=item,
+				existing=self._configurations[identifier]
+			)
 
 		self._configurations[identifier] = item
 		self._designUnits.append(item)
@@ -3585,10 +3934,10 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Add a design unit to the document's lists of design units.
 
-		:param item:                Configuration object to be added to the document.
-		:raises TypeError:          If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
-		:raises ValueError:         If parameter 'item' is an unknown :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
-		:raises VHDLModelException: If configuration name already exists in document.
+		:param item:                      Design unit to be added to the document.
+		:raises TypeError:                If parameter 'item' is not of type :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
+		:raises ValueError:               If parameter 'item' is an unknown :class:`~pyVHDLModel.DesignUnit.DesignUnit`.
+		:raises DuplicateDesignUnitError: If the document contains a design unit of the same kind and identifier.
 		"""
 		if not isinstance(item, DesignUnit):
 			ex = TypeError("Parameter 'item' is not of type 'DesignUnit'.")
@@ -3761,17 +4110,42 @@ class Document(ModelEntity, DocumentedEntityMixin):
 
 		if libraryUnits is not None and identifier in libraryUnits:
 			if isinstance(designUnit, Entity):
-				raise EntityExistsInLibraryError(designUnit, library)
+				raise EntityExistsInLibraryError(
+					f"Entity '{designUnit._identifier}' already exists in library '{library._identifier}'.",
+					entity=designUnit,
+					library=library
+				)
 			elif isinstance(designUnit, Architecture):
-				raise ArchitectureExistsInLibraryError(designUnit, library._entities[entityIdentifier], library)
+				raise ArchitectureExistsInLibraryError(
+					f"Architecture '{designUnit._identifier}' for entity '{designUnit._entity._name._identifier}' already "
+					f"exists in library '{library._identifier}'.",
+					architecture=designUnit,
+					library=library
+				)
 			elif isinstance(designUnit, Package):
-				raise PackageExistsInLibraryError(designUnit, library)
+				raise PackageExistsInLibraryError(
+					f"Package '{designUnit._identifier}' already exists in library '{library._identifier}'.",
+					package=designUnit,
+					library=library
+				)
 			elif isinstance(designUnit, PackageBody):
-				raise PackageBodyExistsError(designUnit, library)
+				raise PackageBodyExistsError(
+					f"Package body '{designUnit._identifier}' already exists in library '{library._identifier}'.",
+					packageBody=designUnit,
+					library=library
+				)
 			elif isinstance(designUnit, Context):
-				raise ContextExistsInLibraryError(designUnit, library)
+				raise ContextExistsInLibraryError(
+					f"Context '{designUnit._identifier}' already exists in library '{library._identifier}'.",
+					context=designUnit,
+					library=library
+				)
 			else:
-				raise ConfigurationExistsInLibraryError(designUnit, library)
+				raise ConfigurationExistsInLibraryError(
+					f"Configuration '{designUnit._identifier}' already exists in library '{library._identifier}'.",
+					configuration=designUnit,
+					library=library
+				)
 
 		self._designUnits.insert(index, designUnit)
 		designUnit._document = self
@@ -3892,7 +4266,6 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		return self._vhdlVersion
 
-	# @property
 	@readonly
 	def Library(self) -> Library:
 		"""
@@ -3901,12 +4274,6 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		:returns: VHDL library used to analyze the VHDL file's design units into.
 		"""
 		return self._library
-
-	# @Library.setter
-	# def Library(self, library: Library) -> None:
-	# 	self._library = library
-	#
-	# 	# TODO: check and set library to design unit?
 
 	@readonly
 	def DesignUnits(self) -> list[DesignUnit]:
@@ -4014,7 +4381,8 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		"""
 		Iterate all design units in the document.
 
-		A union of :class:`DesignUnitKind` values can be given to filter the returned result for suitable design units.
+		A union of :class:`~pyVHDLModel.DesignUnitKind` values can be given to filter the returned result for suitable
+		design units.
 
 		.. rubric:: Algorithm
 

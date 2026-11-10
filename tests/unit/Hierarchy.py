@@ -29,9 +29,11 @@
 # ==================================================================================================================== #
 #
 """Tests for traversing the model's parent-chain hierarchy, spanning multiple classes/levels of the model."""
+from pyTooling.Exceptions    import ElementNotFoundError
 from pyTooling.Testing       import Testcase
 
 from pyVHDLModel             import Design, Library, VHDLModelException
+from pyVHDLModel.Exception   import AncestorNotFoundError, AllowBlackboxNotSetError
 from pyVHDLModel.DesignUnit  import Entity, Architecture, Package
 from pyVHDLModel.Symbol      import EntitySymbol
 from pyVHDLModel.Name        import SimpleName
@@ -59,12 +61,18 @@ class GetAncestor(Testcase):
 		self.assertIs(library, entity.GetAncestor(Library))
 		self.assertIs(design, entity.GetAncestor(Design))
 
-	def test_AncestorDoesNotExist_RaisesVHDLModelException(self) -> None:
-		"""Previously raised an unguarded ``AttributeError`` once the root of the model was reached without a match."""
+	def test_AncestorDoesNotExist(self) -> None:
+		"""The root of the model is reached without a match."""
 		entity = Entity("entity_1")
 
-		with self.assertRaises(VHDLModelException):
+		with self.assertRaises(AncestorNotFoundError) as context:
 			entity.GetAncestor(Package)
+
+		self.assertEqual(f"No ancestor of type 'Package' found for {entity!r}.", str(context.exception))
+		self.assertIs(entity, context.exception.Element)
+		self.assertIs(Package, context.exception.AncestorType)
+		self.assertIsInstance(context.exception, ElementNotFoundError)
+		self.assertIsInstance(context.exception, VHDLModelException)
 
 
 class AllowBlackBox(Testcase):
@@ -86,9 +94,16 @@ class AllowBlackBox(Testcase):
 		self.assertTrue(entity.AllowBlackbox)
 		self.assertFalse(library.AllowBlackbox)
 
-	def test_NoLocalValueAndNoParent_RaisesVHDLModelException(self) -> None:
-		"""Previously raised an unguarded ``AttributeError`` when no parent was available to inherit from."""
+	def test_NoLocalValueAndNoParent(self) -> None:
+		"""No parent is available to inherit from."""
 		entity = Entity("entity_1")
 
-		with self.assertRaises(VHDLModelException):
+		with self.assertRaises(AllowBlackboxNotSetError) as context:
 			entity.AllowBlackbox
+
+		self.assertEqual(
+			f"AllowBlackbox is not set on {entity!r} and no parent is available to inherit it from.",
+			str(context.exception)
+		)
+		self.assertIs(entity, context.exception.Element)
+		self.assertIsInstance(context.exception, VHDLModelException)

@@ -192,11 +192,15 @@ class Generics(Testcase):
 	def test_Split_Component(self) -> None:
 		original = _generic("A", "B")
 		component = Component("c", genericItems=[original])
+		component.IndexDeclaredItems()
 
 		declarations = original.Split()
 
 		self.assertListEqual(list(declarations), component.GenericItems)
 		self.assertIs(component, declarations[1].Parent)
+		self.assertIs(declarations[0], component._namespace._elements["a"])
+		self.assertIs(declarations[1], component._namespace._elements["b"])
+		self.assertDictEqual(*_reindexed(component))
 
 	def test_Split_Group(self) -> None:
 		"""The new generics follow the split generic in its generic group."""

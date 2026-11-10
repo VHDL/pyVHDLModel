@@ -571,7 +571,7 @@ class SimpleInstance(Testcase):
 		self.assertEqual("real", real.Identifier)
 
 	def test_Array(self) -> None:
-		array = ArrayType("bit_vector", [], None, None)
+		array = ArrayType("bit_vector", [], SimpleSubtypeSymbol(SimpleName("bit")), None)
 
 		self.assertIsNotNone(array)
 		self.assertEqual("bit_vector", array.Identifier)

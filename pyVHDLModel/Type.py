@@ -959,10 +959,10 @@ class ArrayType(CompositeType):
 		self._dimensions = dimensions = []
 		for index in indices:
 			dimensions.append(index)
-			# index.Parent = self  # FIXME: indices are provided as empty list
+			index.Parent = self
 
-		self._elementType = elementSubtype
-		# elementSubtype.Parent = self   # FIXME: subtype is provided as None
+		self._elementType =     elementSubtype
+		elementSubtype.Parent = self
 
 	@readonly
 	def Dimensions(self) -> list[Range]:

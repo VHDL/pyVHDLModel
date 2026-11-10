@@ -1386,7 +1386,8 @@ class ScalarConstraint(Constraint, mixin=True):
 
 		:param constraint: The range constraining the scalar subtype.
 		"""
-		self._constraint = constraint
+		self._constraint =  constraint
+		constraint.Parent = self
 
 	@readonly
 	def Constraint(self) -> Range:
@@ -1480,7 +1481,10 @@ class ArrayConstraint(Constraint, mixin=True):
 
 		:param constraints: List of all index ranges, one per dimension.
 		"""
-		self._constraints = list(constraints)
+		self._constraints = constraintList = []
+		for constraint in constraints:
+			constraintList.append(constraint)
+			constraint.Parent = self
 
 	@readonly
 	def Constraints(self) -> list[Range]:
@@ -1512,6 +1516,10 @@ class RecordConstraint(Constraint, mixin=True):
 		:param constraints: Dictionary of the constraint per constrained record element.
 		"""
 		self._constraints = dict(constraints)
+		for element, constraint in self._constraints.items():
+			element.Parent = self
+			if constraint is not None:
+				constraint.Parent = self
 
 	@readonly
 	def Constraints(self) -> dict[RecordElementSymbol, Range]:

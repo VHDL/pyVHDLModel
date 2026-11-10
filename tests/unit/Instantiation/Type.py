@@ -304,14 +304,14 @@ class ArrayTypes(Testcase):
 		self.assertIs(elementSubtype, arrayType.ElementType)
 		self.assertEqual("my_vector is array(0 to 7) of std_logic?", str(arrayType))
 
-	def test_ParentIsNotWiredYet(self) -> None:
-		"""An array type doesn't set the parent of its index ranges and its element subtype yet."""
-		index = _range(0, 7)
+	def test_Parent(self) -> None:
+		"""An array type is the parent of its index ranges and its element subtype."""
+		index =          _range(0, 7)
 		elementSubtype = _subtypeSymbol("std_logic")
-		ArrayType("my_vector", [index], elementSubtype)
+		arrayType =      ArrayType("my_vector", [index], elementSubtype)
 
-		self.assertIsNone(index.Parent)
-		self.assertIsNone(elementSubtype.Parent)
+		self.assertIs(arrayType, index.Parent)
+		self.assertIs(arrayType, elementSubtype.Parent)
 
 
 class RecordTypeElements(Testcase):

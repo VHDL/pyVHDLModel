@@ -340,7 +340,7 @@ class VHDLVersion(Enum):
 
 		:returns: ``True``, if the version is a VHDL-AMS version.
 		"""
-		return self in (self.AMS93, self.AMS99, self.AMS2017)
+		return self is self.AMS93 or self is self.AMS99 or self is self.AMS2017
 
 	def __str__(self) -> str:
 		"""

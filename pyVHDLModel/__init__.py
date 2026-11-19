@@ -50,7 +50,7 @@ __author__ =            "Patrick Lehmann"
 __email__ =             "Paebbels@gmail.com"
 __copyright__ =         "2016-2026, Patrick Lehmann"
 __license__ =           "Apache License, Version 2.0"
-__version__ =           "0.44.0"
+__version__ =           "0.44.1"
 # __keywords__ =          []
 __project_url__ =       "https://github.com/VHDL/pyVHDLModel"
 __documentation_url__ = "https://vhdl.github.io/pyVHDLModel"
@@ -340,7 +340,7 @@ class VHDLVersion(Enum):
 
 		:returns: ``True``, if the version is a VHDL-AMS version.
 		"""
-		return self in (self.AMS93, self.AMS99, self.AMS2017)
+		return self is self.AMS93 or self is self.AMS99 or self is self.AMS2017
 
 	def __str__(self) -> str:
 		"""

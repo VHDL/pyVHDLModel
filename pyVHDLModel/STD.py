@@ -47,7 +47,11 @@ from pyVHDLModel.Predefined  import PredefinedLibrary, PredefinedPackage, Predef
 
 
 @export
-class LogicalOperationsMixin(metaclass=ExtendedType, mixin=True, expects=("_Operation",)):
+class LogicalOperationsMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=("_TypeMark", "_BinaryOperation", "_UnaryOperation")
+):
 	"""
 	A mixin-class for the types ``boolean`` and ``bit``, which declare the logical operators (IEEE Std 1076-2008, 9.2.2).
 
@@ -66,9 +70,9 @@ class LogicalOperationsMixin(metaclass=ExtendedType, mixin=True, expects=("_Oper
 		"""
 		operations = []
 		for designator in ("and", "or", "nand", "nor", "xor", "xnor"):
-			operations.append(self._Operation(designator, self, ("L", self), ("R", self)))
+			operations.append(self._BinaryOperation(designator, self._TypeMark()))
 
-		operations.append(self._Operation("not", self, ("R", self)))
+		operations.append(self._UnaryOperation("not", self._TypeMark()))
 
 		return operations
 
@@ -124,9 +128,9 @@ class Bit(EnumeratedType, LogicalOperationsMixin):
 		"""
 		operations = super()._CreateImplicitOperations()
 		operations.extend(self._CreateLogicalOperations())
-		operations.append(self._Operation("??", "boolean", ("R", self)))
+		operations.append(self._UnaryOperation("??", SimpleSubtypeSymbol(SimpleName("boolean"))))
 		for designator in ("?=", "?/=", "?<", "?<=", "?>", "?>="):
-			operations.append(self._Operation(designator, self, ("L", self), ("R", self)))
+			operations.append(self._BinaryOperation(designator, self._TypeMark()))
 
 		return operations
 

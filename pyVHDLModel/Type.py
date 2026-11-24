@@ -56,6 +56,7 @@ from pyVHDLModel.Regions    import DeclarativeRegionMixin, ProtectedTypeDeclarat
 
 if TYPE_CHECKING:
 	from pyVHDLModel.DesignUnit import DesignUnit
+	from pyVHDLModel.Interface  import ParameterConstantInterfaceItem
 	from pyVHDLModel.Subprogram import PredefinedFunction
 	from pyVHDLModel.Visitor    import Visitor
 
@@ -277,49 +278,74 @@ class FullType(BaseType):
 		:returns: List of predefined functions.
 		"""
 		return [
-			self._Operation("=",  "boolean", ("L", self), ("R", self)),
-			self._Operation("/=", "boolean", ("L", self), ("R", self))
+			self._BinaryOperation("=",  SimpleSubtypeSymbol(SimpleName("boolean"))),
+			self._BinaryOperation("/=", SimpleSubtypeSymbol(SimpleName("boolean")))
 		]
+
+	def _TypeMark(self) -> SimpleSubtypeSymbol:
+		"""
+		Create a type mark referencing this type, for a parameter or the return value of an implicit operation.
+
+		:returns: The type mark.
+		"""
+		symbol =            SimpleSubtypeSymbol(SimpleName(self._identifier))
+		symbol._reference = self
+
+		return symbol
+
+	def _Parameter(self, identifier: str, subtype: SubtypeSymbol) -> ParameterConstantInterfaceItem:
+		"""
+		Create a parameter of an implicit operation: a constant of mode ``in``.
+
+		:param identifier: The parameter's identifier.
+		:param subtype:    The parameter's type mark.
+		:returns:          The parameter.
+		"""
+		from pyVHDLModel.Interface import ParameterConstantInterfaceItem
+
+		return ParameterConstantInterfaceItem((identifier,), Mode.In, subtype)
 
 	def _Operation(
 		self,
-		designator: str,
-		returnType: FullType | str,
-		*parameters: tuple[str, FullType | str]
+		designator:     str,
+		returnType:     SubtypeSymbol,
+		parameterItems: Iterable[ParameterConstantInterfaceItem]
 	) -> PredefinedFunction:
 		"""
-		Create a predefined function of this type.
+		Create an implicit operation of this type.
 
-		A type mark naming this type references it; a type mark naming a predefined type, e.g. ``boolean``, is a name.
-
-		:param designator: The function's designator: an operator symbol without quotation marks, or an identifier.
-		:param returnType: The type of the return value: this type, or the identifier of a predefined type.
-		:param parameters: The parameters, each a pair of its identifier and its type: this type, or the identifier of a
-		                   predefined type.
-		:returns:          The predefined function.
+		:param designator:     The function's designator: an operator symbol without quotation marks, or an identifier.
+		:param returnType:     The type mark of the return value.
+		:param parameterItems: The parameters, in declaration order.
+		:returns:              The predefined function.
 		"""
-		from pyVHDLModel.Interface  import ParameterConstantInterfaceItem
 		from pyVHDLModel.Subprogram import PredefinedFunction
 
-		def typeMark(fullType: FullType | str) -> SimpleSubtypeSymbol:
-			"""
-			Nested function creating the type mark of a parameter or of the return value.
+		return PredefinedFunction(designator, returnType, parameterItems, parent=self)
 
-			:param fullType: This type, or the identifier of a predefined type.
-			:returns:        The type mark.
-			"""
-			if isinstance(fullType, str):
-				return SimpleSubtypeSymbol(SimpleName(fullType))
+	def _BinaryOperation(self, designator: str, returnType: SubtypeSymbol) -> PredefinedFunction:
+		"""
+		Create an implicit binary operation of this type: both operands, ``L`` and ``R``, are of this type.
 
-			symbol =            SimpleSubtypeSymbol(SimpleName(fullType._identifier))
-			symbol._reference = fullType
-			return symbol
+		:param designator: The function's designator: an operator symbol without quotation marks, or an identifier.
+		:param returnType: The type mark of the return value.
+		:returns:          The predefined function.
+		"""
+		return self._Operation(
+			designator,
+			returnType,
+			(self._Parameter("L", self._TypeMark()), self._Parameter("R", self._TypeMark()))
+		)
 
-		parameterItems = [
-			ParameterConstantInterfaceItem((identifier,), Mode.In, typeMark(fullType)) for identifier, fullType in parameters
-		]
+	def _UnaryOperation(self, designator: str, returnType: SubtypeSymbol) -> PredefinedFunction:
+		"""
+		Create an implicit unary operation of this type: the operand ``R`` is of this type.
 
-		return PredefinedFunction(designator, typeMark(returnType), parameterItems, parent=self)
+		:param designator: The function's designator: an operator symbol without quotation marks.
+		:param returnType: The type mark of the return value.
+		:returns:          The predefined function.
+		"""
+		return self._Operation(designator, returnType, (self._Parameter("R", self._TypeMark()),))
 
 
 @export
@@ -509,11 +535,15 @@ class ScalarType(FullType):
 		"""
 		operations = super()._CreateImplicitOperations()
 		for designator in ("<", "<=", ">", ">="):
-			operations.append(self._Operation(designator, "boolean", ("L", self), ("R", self)))
+			operations.append(self._BinaryOperation(designator, SimpleSubtypeSymbol(SimpleName("boolean"))))
 
-		operations.append(self._Operation("minimum",   self,     ("L", self), ("R", self)))
-		operations.append(self._Operation("maximum",   self,     ("L", self), ("R", self)))
-		operations.append(self._Operation("to_string", "string", ("VALUE", self)))
+		operations.append(self._BinaryOperation("minimum", self._TypeMark()))
+		operations.append(self._BinaryOperation("maximum", self._TypeMark()))
+		operations.append(self._Operation(
+			"to_string",
+			SimpleSubtypeSymbol(SimpleName("string")),
+			(self._Parameter("VALUE", self._TypeMark()),)
+		))
 
 		return operations
 
@@ -719,12 +749,16 @@ class IntegerType(RangedScalarType, NumericTypeMixin, DiscreteTypeMixin):
 		"""
 		operations = super()._CreateImplicitOperations()
 		for designator in ("+", "-", "*", "/", "mod", "rem"):
-			operations.append(self._Operation(designator, self, ("L", self), ("R", self)))
+			operations.append(self._BinaryOperation(designator, self._TypeMark()))
 
 		for designator in ("+", "-", "abs"):
-			operations.append(self._Operation(designator, self, ("R", self)))
+			operations.append(self._UnaryOperation(designator, self._TypeMark()))
 
-		operations.append(self._Operation("**", self, ("L", self), ("R", "integer")))
+		operations.append(self._Operation(
+			"**",
+			self._TypeMark(),
+			(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName("integer"))))
+		))
 
 		return operations
 
@@ -787,12 +821,16 @@ class RealType(RangedScalarType, NumericTypeMixin):
 		"""
 		operations = super()._CreateImplicitOperations()
 		for designator in ("+", "-", "*", "/"):
-			operations.append(self._Operation(designator, self, ("L", self), ("R", self)))
+			operations.append(self._BinaryOperation(designator, self._TypeMark()))
 
 		for designator in ("+", "-", "abs"):
-			operations.append(self._Operation(designator, self, ("R", self)))
+			operations.append(self._UnaryOperation(designator, self._TypeMark()))
 
-		operations.append(self._Operation("**", self, ("L", self), ("R", "integer")))
+		operations.append(self._Operation(
+			"**",
+			self._TypeMark(),
+			(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName("integer"))))
+		))
 
 		return operations
 
@@ -1019,15 +1057,27 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 		"""
 		operations = super()._CreateImplicitOperations()
 		for designator in ("+", "-", "mod", "rem"):
-			operations.append(self._Operation(designator, self, ("L", self), ("R", self)))
+			operations.append(self._BinaryOperation(designator, self._TypeMark()))
 
 		for designator in ("+", "-", "abs"):
-			operations.append(self._Operation(designator, self, ("R", self)))
+			operations.append(self._UnaryOperation(designator, self._TypeMark()))
 
 		for scalar in ("integer", "real"):
-			operations.append(self._Operation("*", self, ("L", self),   ("R", scalar)))
-			operations.append(self._Operation("*", self, ("L", scalar), ("R", self)))
-			operations.append(self._Operation("/", self, ("L", self),   ("R", scalar)))
+			operations.append(self._Operation(
+				"*",
+				self._TypeMark(),
+				(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName(scalar))))
+			))
+			operations.append(self._Operation(
+				"*",
+				self._TypeMark(),
+				(self._Parameter("L", SimpleSubtypeSymbol(SimpleName(scalar))), self._Parameter("R", self._TypeMark()))
+			))
+			operations.append(self._Operation(
+				"/",
+				self._TypeMark(),
+				(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName(scalar))))
+			))
 
 		return operations
 

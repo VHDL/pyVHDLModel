@@ -20,6 +20,19 @@ Version 0.45.0 (2026)
      types; ordering, ``MINIMUM``, ``MAXIMUM`` and ``TO_STRING`` for scalar types; the arithmetic operators of integer,
      floating-point and physical types. A namespace indexes them with the enumeration literals and physical units, so a
      use clause naming a type makes them visible.
+   * Package ``std.standard`` declares what IEEE Std 1076-2008, 16.3 lists, in its order: new are the subtype
+     ``delay_length``, the function ``now``, the type ``real_vector`` and the attribute ``foreign``. The types
+     ``boolean`` and ``bit`` (:class:`~pyVHDLModel.STD.Boolean`, :class:`~pyVHDLModel.STD.Bit`) declare the logical
+     operators, ``bit`` also the condition operator ``??`` and the matching relational operators.
+
+   .. rubric:: Bug Fixes
+
+   * ``std.standard`` named three types wrongly: ``severityLevel`` is ``severity_level``, ``open_file_kind`` is
+     ``file_open_kind`` and ``open_file_status`` is ``file_open_status``.
+   * The range of ``real`` in ``std.standard`` was -5.0 to 5.0; it's the range of an IEEE 754 double now.
+   * The type ``line`` was declared in ``std.standard`` as an access to ``character``; it's declared in ``std.textio``
+     as an access to ``string``.
+   * The declarations of ``std.standard`` had no parent; their parent is the package.
 
 
 Version 0.44.0 (2026)

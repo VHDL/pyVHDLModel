@@ -44,7 +44,7 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf, ReservedWord
 from pyVHDLModel.Symbol     import SubtypeSymbol
-from pyVHDLModel.Type       import ProtectedType
+from pyVHDLModel.Type       import FullType, ProtectedType
 from pyVHDLModel.Regions    import DeclarativeRegionMixin, SequentialDeclarationRegionMixin, WithGenericsMixin, \
                                    WithParametersMixin
 from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixin
@@ -700,6 +700,50 @@ class Function(Subprogram):
 			)
 
 		return self._signature
+
+
+@export
+class PredefinedFunction(Function):
+	"""
+	Represents a function a type declaration declares implicitly (IEEE Std 1076-2008, 5).
+
+	It's a predefined operator, e.g. ``"="`` or ``"+"``, or a predefined function, e.g. ``MINIMUM`` or ``TO_STRING``. The
+	declaring type is the function's parent; the function has neither declared items nor statements. Its identifier is
+	the operator's designator without quotation marks, as for an operator function declared in VHDL code (``+``,
+	``and``).
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      type counter is range 0 to 9;
+	      -- implicitly declares, among others:
+	      --   function "<" (L, R : counter) return BOOLEAN;
+	      --   function MINIMUM (L, R : counter) return counter;
+
+	.. seealso::
+
+	   * :attr:`Implicit operations of a full type <pyVHDLModel.Type.FullType.ImplicitOperations>`
+	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
+	"""
+
+	def __init__(
+		self,
+		designator:     str,
+		returnType:     SubtypeSymbol,
+		parameterItems: Iterable[ParameterInterfaceItemMixin],
+		*,
+		parent:         FullType
+	) -> None:
+		"""
+		Initializes a predefined function of a type.
+
+		:param designator:     The function's designator: an operator symbol without quotation marks, or an identifier.
+		:param returnType:     Reference to the subtype of the function's return value.
+		:param parameterItems: List of all parameters, in declaration order.
+		:param parent:         The type declaring this function.
+		"""
+		super().__init__(designator, returnType, parameterItems=parameterItems, parent=parent)
 
 
 @export

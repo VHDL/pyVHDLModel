@@ -36,8 +36,9 @@ from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, GenericTypeI
 from pyVHDLModel.Name        import SelectedName, SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
 from pyVHDLModel.Sequential  import NullStatement
-from pyVHDLModel.Type        import ProtectedType, Subtype
-from pyVHDLModel.Subprogram  import Procedure, Function, ProcedureMethod, FunctionMethod, SubprogramSignature
+from pyVHDLModel.Type        import ProtectedType, RecordType, Subtype
+from pyVHDLModel.Subprogram  import Procedure, Function, PredefinedFunction, ProcedureMethod, FunctionMethod, \
+                                    SubprogramSignature
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -105,6 +106,25 @@ class Functions(Testcase):
 		function = Function("func", _returnType(), isPure=False)
 
 		self.assertFalse(function.IsPure)
+
+
+class PredefinedFunctions(Testcase):
+	def test_Construction(self) -> None:
+		"""A predefined function of a type: an operator designator without quotation marks, parameters, no body."""
+		recordType = RecordType("rec", None)
+		returnType = _returnType()
+		left =       _parameter(("L",), SimpleSubtypeSymbol(SimpleName("rec")))
+		right =      _parameter(("R",), SimpleSubtypeSymbol(SimpleName("rec")))
+		function =   PredefinedFunction("=", returnType, [left, right], parent=recordType)
+
+		self.assertEqual("=", function.Identifier)
+		self.assertIs(returnType, function.ReturnType)
+		self.assertListEqual([left, right], function.ParameterItems)
+		self.assertIs(recordType, function.Parent)
+		self.assertIs(function, left.Parent)
+		self.assertTrue(function.IsPure)
+		self.assertListEqual([], function.DeclaredItems)
+		self.assertListEqual([], function.Statements)
 
 
 class MethodMixinHosts(Testcase):

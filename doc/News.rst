@@ -6,6 +6,21 @@ News
 See :gh:`pyVHDLModel Release Pages <VHDL/pyVHDLModel/releases>` for detail release notes on every release.
 
 
+Version 0.45.0 (2026)
+*********************
+
+.. topic:: :gh:`v0.45.0 - unreleased <VHDL/pyVHDLModel/releases/v0.45.0>`
+
+   .. rubric:: New Features
+
+   * A full type declares its predefined operations (IEEE Std 1076-2008, 5) as
+     :class:`~pyVHDLModel.Subprogram.PredefinedFunction` objects
+     (:data:`~pyVHDLModel.Type.FullType.ImplicitOperations`): equality for every type except file and protected types;
+     ordering, ``MINIMUM``, ``MAXIMUM`` and ``TO_STRING`` for scalar types; the arithmetic operators of integer,
+     floating-point and physical types. A namespace indexes them with the enumeration literals and physical units, so a
+     use clause naming a type makes them visible.
+
+
 Version 0.44.0 (2026)
 *********************
 

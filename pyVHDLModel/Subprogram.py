@@ -366,6 +366,20 @@ class Subprogram(
 		self._ConnectParentNamespace(parent)
 
 	@readonly
+	def NormalizedDesignator(self) -> str:
+		"""
+		Read-only property to access the normalized designator (:attr:`_normalizedIdentifier`), the key the subprogram is
+		indexed by in a namespace.
+
+		.. seealso::
+
+		   * :term:`Normalized`
+
+		:returns: The normalized identifier or operator symbol of the subprogram.
+		"""
+		return self._normalizedIdentifier
+
+	@readonly
 	def IsOverloadable(self) -> bool:
 		"""
 		Check if this subprogram is overloadable: always, it may share its designator with other subprograms and

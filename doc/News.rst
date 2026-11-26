@@ -36,6 +36,17 @@ Version 0.45.0 (2026)
    * :mod:`pyVHDLModel.IEEE` is a package with one module per VHDL package, e.g.
      :mod:`~pyVHDLModel.IEEE.StdLogic1164` for ``ieee.std_logic_1164``. The classes are importable from
      :mod:`pyVHDLModel.IEEE` as before.
+   * Breaking change: :meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations` yields the implied
+     declarations (enumeration literals, physical units, implicit operations), no longer (key, declaration) pairs. A
+     namespace takes the key from the new property ``NormalizedDesignator`` of
+     :class:`~pyVHDLModel.Type.PhysicalUnit` and :class:`~pyVHDLModel.Subprogram.Subprogram` (as
+     :class:`~pyVHDLModel.Expression.EnumerationLiteral` already had).
+   * Breaking change: :meth:`Package.IterateDeclarations() <pyVHDLModel.DesignUnit.Package.IterateDeclarations>` and
+     :meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations` yield the declared items, no longer (key,
+     declaration) pairs, and no implied declarations: :meth:`~pyVHDLModel.Namespace.Namespace.AddImports` (new) imports
+     a declaration by its identifiers with the declarations it implies;
+     :meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberImplicitDeclarations` (new) iterates those a member brings
+     along.
 
    .. rubric:: Bug Fixes
 

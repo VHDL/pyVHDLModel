@@ -2141,8 +2141,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							dependency = designUnit._dependencyVertex.EdgeToVertex(referencedPackage._dependencyVertex)
 							dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
-							for normalizedIdentifier, declaration in referencedPackage.IterateDeclarations():
-								designUnit._namespace.AddImport(normalizedIdentifier, declaration, None)
+							designUnit._namespace.AddImports(referencedPackage.IterateDeclarations(), None)
 
 			# All secondary units inherit referenced packages from their primary units.
 			else:
@@ -2221,11 +2220,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		   * ``AllPackageMembersReferenceSymbol`` (``use lib.pkg.all;``): every declaration of the package, incl. the
 		     enumeration literals and physical units of its types
-		     (:meth:`~pyVHDLModel.DesignUnit.Package.IterateDeclarations`).
+		     (:meth:`~pyVHDLModel.DesignUnit.Package.IterateDeclarations`,
+		     :meth:`~pyVHDLModel.Namespace.Namespace.AddImports`).
 		   * ``PackageMemberReferenceSymbol`` (``use lib.pkg.item;``): every declaration of the package with the identifier
-		     ``item``, e.g. all overloads of a subprogram, and the enumeration literals and physical units of a type or of a
-		     subtype's base type (:meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations`). If there is none,
-		     raise an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		     ``item``, e.g. all overloads of a subprogram
+		     (:meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations`), and the enumeration literals and physical
+		     units of a type or of a subtype's base type
+		     (:meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberImplicitDeclarations`). If there is none, raise an
+		     :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		   * ``PackageReferenceSymbol`` (``use lib.pkg;``): the package itself.
 
 		:param designUnit:                          The design unit containing the use clause.
@@ -2376,14 +2378,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				continue
 
 			if isAll:
-				for normalizedIdentifier, declaration in package.IterateDeclarations():
-					namespace.AddImport(normalizedIdentifier, declaration, useClause)
+				namespace.AddImports(package.IterateDeclarations(), useClause)
 
 			elif isinstance(packageMemberSymbol, PackageReferenceSymbol):
 				namespace.AddImport(packageIdentifier, package, useClause)
 
 			else:
-				members = tuple(package.IterateMemberDeclarations(packageMemberSymbol._name._normalizedIdentifier))
+				memberIdentifier = packageMemberSymbol._name._normalizedIdentifier
+				members =          tuple(package.IterateMemberDeclarations(memberIdentifier))
 				if len(members) == 0:
 					WarningCollector.Raise(UnresolvedNameWarning(
 						f"Package '{package._identifier}' has no declaration '{packageMemberSymbol._name._identifier}'.",
@@ -2392,8 +2394,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						namespaces=(package._namespace, )
 					))
 
-				for normalizedIdentifier, declaration in members:
-					namespace.AddImport(normalizedIdentifier, declaration, useClause)
+				for member in members:
+					namespace.AddImport(memberIdentifier, member, useClause)
+					for implicitDeclaration in package.IterateMemberImplicitDeclarations(member):
+						namespace.AddImport(implicitDeclaration.NormalizedDesignator, implicitDeclaration, useClause)
 
 	def LinkContextReferences(self) -> None:
 		"""

@@ -355,13 +355,15 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		"""
 		return False
 
-	def IterateImplicitDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+	def IterateImplicitDeclarations(self) -> Generator[ModelEntity, None, None]:
 		"""
 		Iterate the declarations this declaration implies.
 
-		An enumerated type implies its enumeration literals, a physical type its units; they override this method.
+		A full type implies its implicit operations, an enumerated type also its enumeration literals, a physical type
+		its units; they override this method. Each implied declaration provides the key it's indexed by in a namespace
+		as ``NormalizedDesignator``.
 
-		:returns: A generator to iterate (normalized designator, declaration) pairs, in declaration order: none.
+		:returns: A generator to iterate the implied declarations, in declaration order: none.
 		"""
 		yield from ()
 

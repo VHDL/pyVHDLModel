@@ -57,6 +57,10 @@ Version 0.45.0 (2026)
      ``x01z``, ``ux01``, ``ux01z``, the logical and shift operators, the conversion functions, ``"??"``,
      ``rising_edge``, ``falling_edge``, ``is_x``, ``to_ostring``, ``to_hstring`` and the ``read``/``write`` procedures.
      The aliases (``to_slv``, ``to_bstring``, ``bread``, ...) aren't declared yet.
+   * Package ``ieee.numeric_std_unsigned`` (:class:`~pyVHDLModel.IEEE.NumericStdUnsigned.Numeric_Std_Unsigned`)
+     declares what the VHDL-2008 package lists, in its order: the constant ``CopyRightNotice`` and 79 functions
+     (arithmetic, relational, matching, shift and conversion operators and functions on ``std_ulogic_vector``). The
+     aliases (``to_slv``, ``to_sulv``, ...) aren't declared yet. Its declarations have the package as parent.
 
    .. rubric:: Changes
 

@@ -117,7 +117,7 @@ class Math_Complex(PredefinedPackage):
 		declareConstant(Constant(
 			("copyrightnotice",),
 			self._TypeMark("string"),
-			StringLiteral("Copyright IEEE P1076 WG. Licensed Apache 2.0")
+			StringLiteral("Copyright \u00a9 2008 IEEE. All rights reserved.")
 		))
 
 		self._DeclareItem(

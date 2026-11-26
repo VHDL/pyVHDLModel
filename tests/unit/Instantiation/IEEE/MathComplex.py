@@ -127,7 +127,7 @@ class MathComplexs(Testcase):
 
 		self.assertEqual("string", constant.Subtype.Name.Identifier)
 		self.assertIsInstance(constant.DefaultExpression, StringLiteral)
-		self.assertEqual("Copyright IEEE P1076 WG. Licensed Apache 2.0", constant.DefaultExpression.Value)
+		self.assertEqual("Copyright \u00a9 2008 IEEE. All rights reserved.", constant.DefaultExpression.Value)
 
 	def test_Constants(self) -> None:
 		"""``constant MATH_CBASE_1 : COMPLEX := COMPLEX'(1.0, 0.0);``, ``MATH_CBASE_J`` and ``MATH_CZERO``."""

@@ -33,7 +33,7 @@ from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, RangeFromName, SimpleRange
 from pyVHDLModel.Name       import SimpleName, AttributeName
-from pyVHDLModel.Symbol     import RangeAttributeSymbol, SimpleSubtypeSymbol
+from pyVHDLModel.Symbol     import RangeAttributeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol
 from pyVHDLModel.Expression import IntegerLiteral, EnumerationLiteral, CharacterEnumerationLiteral, \
                                    PhysicalIntegerLiteral
 from pyVHDLModel.Object     import Variable
@@ -158,6 +158,15 @@ class Subtypes(Testcase):
 		self.assertIsNone(subtype.Range)
 		self.assertIsNone(subtype.ResolutionFunction)
 		self.assertEqual("subtype my_std_logic is None", str(subtype))
+
+	def test_RangeConstraint(self) -> None:
+		"""``subtype nibble is integer range 0 to 15;``: the range is the constraint of the subtype indication."""
+		rng =     SimpleRange(IntegerLiteral(0), IntegerLiteral(15), Direction.To)
+		symbol =  ConstrainedScalarSubtypeSymbol(SimpleName("integer"), rng)
+		subtype = Subtype("nibble", symbol)
+
+		self.assertIs(symbol, subtype.Type)
+		self.assertIs(rng, subtype.Range)
 
 
 class EnumeratedTypes(Testcase):

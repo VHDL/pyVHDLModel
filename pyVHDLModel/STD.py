@@ -32,15 +32,107 @@
 """This module contains library and package declarations for VHDL library ``STD``."""
 
 from pyTooling.Decorators    import export
+from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Base        import SimpleRange, Direction
 from pyVHDLModel.Name        import SimpleName
-from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
+from pyVHDLModel.Symbol      import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol
 from pyVHDLModel.Expression  import EnumerationLiteral, CharacterEnumerationLiteral, IntegerLiteral, \
                                     FloatingPointLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Type        import EnumeratedType, IntegerType, RealType, PhysicalType, PhysicalUnit, ArrayType, \
                                     AccessType, Subtype
+from pyVHDLModel.Declaration import Attribute
+from pyVHDLModel.Subprogram  import Function, PredefinedOperator, PredefinedOperation
 from pyVHDLModel.Predefined  import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
+
+
+@export
+class LogicalOperatorsMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=("_TypeMark", "_BinaryOperator", "_UnaryOperator")
+):
+	"""
+	A mixin-class for the types ``boolean`` and ``bit``, which declare the logical operators (IEEE Std 1076-2008, 9.2.2).
+
+	.. seealso::
+
+	   * :class:`Boolean <pyVHDLModel.STD.Boolean>`
+	   * :class:`Bit <pyVHDLModel.STD.Bit>`
+	"""
+
+	def _CreateLogicalOperators(self) -> list[PredefinedOperator]:
+		"""
+		Create the logical operators of this type: ``"and"``, ``"or"``, ``"nand"``, ``"nor"``, ``"xor"`` and ``"xnor"``,
+		then ``"not"``.
+
+		:returns: List of predefined operators.
+		"""
+		operations = []
+		for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
+
+		operations.append(self._UnaryOperator("not", self._TypeMark()))
+
+		return operations
+
+
+@export
+class Boolean(EnumeratedType, LogicalOperatorsMixin):
+	"""
+	Represents the predefined type ``boolean`` of package ``std.standard``: ``(false, true)``.
+
+	Besides the operations of an enumerated type, it declares the logical operators (IEEE Std 1076-2008, 9.2.2).
+	"""
+
+	def __init__(self) -> None:
+		"""
+		Initializes the type ``boolean``.
+		"""
+		super().__init__("boolean", (EnumerationLiteral("false"), EnumerationLiteral("true")))
+
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this type declares implicitly: those of an enumerated type, then the logical operators.
+
+		:returns: List of predefined operators and predefined functions.
+		"""
+		operations = super()._CreateImplicitOperations()
+		operations.extend(self._CreateLogicalOperators())
+
+		return operations
+
+
+@export
+class Bit(EnumeratedType, LogicalOperatorsMixin):
+	"""
+	Represents the predefined type ``bit`` of package ``std.standard``: ``('0', '1')``.
+
+	Besides the operations of an enumerated type, it declares the logical operators (IEEE Std 1076-2008, 9.2.2), the
+	condition operator ``"??"`` (9.2.9) and the matching relational operators (9.2.3).
+	"""
+
+	def __init__(self) -> None:
+		"""
+		Initializes the type ``bit``.
+		"""
+		super().__init__("bit", (CharacterEnumerationLiteral("0"), CharacterEnumerationLiteral("1")))
+
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this type declares implicitly: those of an enumerated type, the logical operators, the
+		condition operator ``"??"`` and the matching relational operators ``"?="``, ``"?/="``, ``"?<"``, ``"?<="``,
+		``"?>"`` and ``"?>="``.
+
+		:returns: List of predefined operators and predefined functions.
+		"""
+		operations = super()._CreateImplicitOperations()
+		operations.extend(self._CreateLogicalOperators())
+		operations.append(self._UnaryOperator("??", SimpleSubtypeSymbol(SimpleName("boolean"))))
+		for operatorSymbol in ("?=", "?/=", "?<", "?<=", "?>", "?>="):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
+
+		return operations
 
 
 @export
@@ -70,18 +162,20 @@ class Std(PredefinedLibrary):
 @export
 class Standard(PredefinedPackage):
 	"""
-	Predefined package ``std.standard``.
+	Predefined package ``std.standard`` (IEEE Std 1076-2008, 16.3).
 
-	Predefined types:
+	Its declarations, in the order of the standard:
 
-	* ``boolean``, ``boolean_vector``
-	* ``bit``, ``bit_vector``
-	* ``character``, ``string``
-	* ``integer``, ``integer_vector``
-	* ``natural``, ``positive``
-	* ``real``, ``real_vector``
-	* ``time``, ``time_vector``
-	* ``open_file_kind``, ``open_file_status``
+	* types ``boolean``, ``bit``, ``character``, ``severity_level``, ``integer``, ``real`` and ``time``
+	* subtype ``delay_length`` and function ``now``
+	* subtypes ``natural`` and ``positive``
+	* types ``string``, ``boolean_vector``, ``bit_vector``, ``integer_vector``, ``real_vector`` and ``time_vector``
+	* types ``file_open_kind`` and ``file_open_status``
+	* attribute ``foreign``
+
+	The types declare their predefined operations (:attr:`~pyVHDLModel.Type.FullType.ImplicitOperations`). The
+	implementation-defined ranges are GHDL's: ``integer`` has 32 bits, ``real`` is an IEEE 754 double, ``time`` counts
+	femtoseconds in 64 bits.
 
 	.. seealso::
 
@@ -94,13 +188,8 @@ class Standard(PredefinedPackage):
 		"""
 		super().__init__()
 
-		boolean = EnumeratedType("boolean", (EnumerationLiteral("false"), EnumerationLiteral("true")), None)
-		self._types[boolean._normalizedIdentifier] = boolean
-		self._declaredItems.append(boolean)
-
-		bit = EnumeratedType("bit", (CharacterEnumerationLiteral("0"), CharacterEnumerationLiteral("1")), None)
-		self._types[bit._normalizedIdentifier] = bit
-		self._declaredItems.append(bit)
+		self._DeclareItem(Boolean(), self._types)
+		self._DeclareItem(Bit(), self._types)
 
 		controlCharacters = \
 			"nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel", "bs",  "ht",  "lf",  "vt",  "ff",  "cr",  "so",  "si", \
@@ -116,23 +205,20 @@ class Standard(PredefinedPackage):
 			else:
 				characters.append(CharacterEnumerationLiteral(chr(position)))
 
-		character = EnumeratedType("character", characters, None)
-		self._types[character._normalizedIdentifier] = character
-		self._declaredItems.append(character)
+		self._DeclareItem(EnumeratedType("character", characters), self._types)
 
 		levels = "note", "warning", "error", "failure"
-		severityLevel = EnumeratedType("severityLevel", [EnumerationLiteral(level) for level in levels], None)
-		self._types[severityLevel._normalizedIdentifier] = severityLevel
-		self._declaredItems.append(severityLevel)
+		self._DeclareItem(EnumeratedType("severity_level", [EnumerationLiteral(level) for level in levels]), self._types)
 
-		integer = IntegerType("integer", SimpleRange(IntegerLiteral(-2**31), IntegerLiteral(2**31 - 1), Direction.To), None)
-		self._types[integer._normalizedIdentifier] = integer
-		self._declaredItems.append(integer)
+		integer = IntegerType("integer", SimpleRange(IntegerLiteral(-2**31), IntegerLiteral(2**31 - 1), Direction.To))
+		self._DeclareItem(integer, self._types)
 
-		# real
-		real = RealType("real", SimpleRange(FloatingPointLiteral(-5.0), FloatingPointLiteral(5.0), Direction.To), None)
-		self._types[real._normalizedIdentifier] = real
-		self._declaredItems.append(real)
+		realRange = SimpleRange(
+			FloatingPointLiteral(-1.7976931348623157e308),
+			FloatingPointLiteral(1.7976931348623157e308),
+			Direction.To
+		)
+		self._DeclareItem(RealType("real", realRange), self._types)
 
 		time = PhysicalType(
 			"time",
@@ -146,65 +232,50 @@ class Standard(PredefinedPackage):
 				PhysicalUnit("sec", PhysicalIntegerLiteral(1000, "ms")),
 				PhysicalUnit("min", PhysicalIntegerLiteral(60, "sec")),
 				PhysicalUnit("hr",  PhysicalIntegerLiteral(60, "min")),
-			),
-			parent=None
+			)
 		)
-		self._types[time._normalizedIdentifier] = time
-		self._declaredItems.append(time)
+		self._DeclareItem(time, self._types)
 
-		# delay_length
+		delayLengthRange =      SimpleRange(
+			PhysicalIntegerLiteral(0, "fs"),
+			PhysicalIntegerLiteral(2**63 - 1, "fs"),
+			Direction.To
+		)
+		delayLengthSymbol =     ConstrainedScalarSubtypeSymbol(SimpleName("time"), delayLengthRange)
+		delayLength =           Subtype("delay_length", delayLengthSymbol)
+		delayLength._baseType = time
+		self._DeclareItem(delayLength, self._subtypes)
 
-		# now
+		now =                    Function("now", self._TypeMark("delay_length"), isPure=False)
+		self._DeclareSubprogram(now, self._functions)
 
-		natural = Subtype("natural", SimpleSubtypeSymbol(SimpleName("integer")), None)
-		natural._baseType = integer
-		natural._range = SimpleRange(IntegerLiteral(0), IntegerLiteral(2**31 - 1), Direction.To)
-		self._subtypes[natural._normalizedIdentifier] = natural
-		self._declaredItems.append(natural)
+		for identifier, low in (
+			("natural",  0),
+			("positive", 1)
+		):
+			subtypeRange =      SimpleRange(IntegerLiteral(low), IntegerLiteral(2**31 - 1), Direction.To)
+			subtype =           Subtype(identifier, ConstrainedScalarSubtypeSymbol(SimpleName("integer"), subtypeRange))
+			subtype._baseType = integer
+			self._DeclareItem(subtype, self._subtypes)
 
-		positive = Subtype("positive", SimpleSubtypeSymbol(SimpleName("integer")), None)
-		positive._baseType = integer
-		positive._range = SimpleRange(IntegerLiteral(1), IntegerLiteral(2**31 - 1), Direction.To)
-		self._subtypes[positive._normalizedIdentifier] = positive
-		self._declaredItems.append(positive)
+		self._DeclareItem(ArrayType("string", (self._TypeMark("positive"),), self._TypeMark("character")), self._types)
+		for identifier, element in (
+			("boolean_vector", "boolean"),
+			("bit_vector",     "bit"),
+			("integer_vector", "integer"),
+			("real_vector",    "real"),
+			("time_vector",    "time")
+		):
+			self._DeclareItem(ArrayType(identifier, (self._TypeMark("natural"),), self._TypeMark(element)), self._types)
 
-		string = ArrayType("string", (SimpleSubtypeSymbol(SimpleName("positive")),), SimpleSubtypeSymbol(SimpleName("character")), None)
-		self._types[string._normalizedIdentifier] = string
-		self._declaredItems.append(string)
+		kinds = "read_mode", "write_mode", "append_mode"
+		self._DeclareItem(EnumeratedType("file_open_kind", [EnumerationLiteral(kind) for kind in kinds]), self._types)
 
-		line = AccessType("line", SimpleSubtypeSymbol(SimpleName("character")), None)
-		self._types[line._normalizedIdentifier] = line
-		self._declaredItems.append(line)
+		statuses =       "open_ok", "status_error", "name_error", "mode_error"
+		fileOpenStatus = EnumeratedType("file_open_status", [EnumerationLiteral(status) for status in statuses])
+		self._DeclareItem(fileOpenStatus, self._types)
 
-		booleanVector = ArrayType("boolean_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("boolean")), None)
-		self._types[booleanVector._normalizedIdentifier] = booleanVector
-		self._declaredItems.append(booleanVector)
-
-		bitVector = ArrayType("bit_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("bit")), None)
-		self._types[bitVector._normalizedIdentifier] = bitVector
-		self._declaredItems.append(bitVector)
-
-		integerVector = ArrayType("integer_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("integer")), None)
-		self._types[integerVector._normalizedIdentifier] = integerVector
-		self._declaredItems.append(integerVector)
-
-		# real_vector
-
-		timeVector = ArrayType("time_vector", (SimpleSubtypeSymbol(SimpleName("natural")),), SimpleSubtypeSymbol(SimpleName("time")), None)
-		self._types[timeVector._normalizedIdentifier] = timeVector
-		self._declaredItems.append(timeVector)
-
-		fileOpenKinds = "read_mode", "write_mode", "append_mode"
-		openFileKind = EnumeratedType("open_file_kind", [EnumerationLiteral(kind) for kind in fileOpenKinds], None)
-		self._types[openFileKind._normalizedIdentifier] = openFileKind
-		self._declaredItems.append(openFileKind)
-
-		fileOpenStati = "open_ok", "status_error", "name_error", "mode_error"
-		fileOpenStatus = EnumeratedType("open_file_status", [EnumerationLiteral(status) for status in fileOpenStati], None)
-		self._types[fileOpenStatus._normalizedIdentifier] = fileOpenStatus
-		self._declaredItems.append(fileOpenStatus)
-
-		# attribute foreign
+		self.AddDeclaredItem(Attribute("foreign", self._TypeMark("string")))
 
 
 @export
@@ -221,12 +292,22 @@ class Standard_Body(PredefinedPackageBody):
 @export
 class TextIO(PredefinedPackage):
 	"""
-	Predefined package ``std.textio``.
+	Predefined package ``std.textio`` (IEEE Std 1076-2008, 16.4).
+
+	Its declarations: type ``line``.
 
 	.. seealso::
 
 	   Matching :class:`Package Body <pyVHDLModel.STD.TextIO_Body>` declaration.
 	"""
+
+	def __init__(self) -> None:
+		"""
+		Initializes the ``textio`` package.
+		"""
+		super().__init__()
+
+		self._DeclareItem(AccessType("line", self._TypeMark("string")), self._types)
 
 
 @export

@@ -31,11 +31,15 @@
 """Tests for pyVHDLModel.STD."""
 from pyTooling.Testing       import Testcase
 
-from pyVHDLModel.Base        import Direction
-from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol
+from pyVHDLModel.Base        import Direction, Mode
+from pyVHDLModel.Expression  import IntegerLiteral
+from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Object      import File
+from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
+                                    ParameterFileInterfaceItem
 from pyVHDLModel.Declaration import Attribute
-from pyVHDLModel.Subprogram  import Function
-from pyVHDLModel.Type        import EnumeratedType, ArrayType, AccessType
+from pyVHDLModel.Subprogram  import Procedure, Function
+from pyVHDLModel.Type        import EnumeratedType, ArrayType, AccessType, FileType, Subtype
 from pyVHDLModel.STD         import Standard, TextIO, Boolean, Bit
 
 
@@ -200,6 +204,38 @@ class Bits(Testcase):
 
 
 class TextIOs(Testcase):
+	"""Package ``std.textio`` (IEEE Std 1076-2008, 16.4)."""
+
+	def test_Declarations(self) -> None:
+		"""The declarations in the order of the standard, each with the package as parent."""
+		textio = TextIO()
+
+		self.assertListEqual(
+			[
+				"line", "text", "side", "width", "justify", "input", "output", "readline", *(["read"] * 16), "sread", "oread",
+				"oread", "hread", "hread", "writeline", "tee", *(["write"] * 9), "owrite", "hwrite"
+			],
+			[
+				declaration.Identifiers[0] if isinstance(declaration, File) else declaration.Identifier
+				for declaration in textio.DeclaredItems
+			]
+		)
+		for declaration in textio.DeclaredItems:
+			self.assertIs(textio, declaration.Parent)
+
+	def test_Overloads(self) -> None:
+		"""The number of overloads per designator; ``justify`` is the only function."""
+		textio = TextIO()
+
+		self.assertDictEqual(
+			{
+				"readline": 1, "read": 16, "sread": 1, "oread": 2, "hread": 2, "writeline": 1, "tee": 1, "write": 9,
+				"owrite": 1, "hwrite": 1
+			},
+			{identifier: len(overloads) for identifier, overloads in textio.Procedures.items()}
+		)
+		self.assertListEqual(["justify"], list(textio.Functions))
+
 	def test_Line(self) -> None:
 		"""``type LINE is access STRING;``"""
 		textio = TextIO()
@@ -208,3 +244,153 @@ class TextIOs(Testcase):
 		self.assertIsInstance(line, AccessType)
 		self.assertEqual("string", line.DesignatedSubtype.Name.Identifier)
 		self.assertIs(textio, line.Parent)
+
+	def test_Text(self) -> None:
+		"""``type TEXT is file of STRING;``"""
+		text = TextIO().Types["text"]
+
+		self.assertIsInstance(text, FileType)
+		self.assertEqual("string", text.DesignatedSubtype.Name.Identifier)
+
+	def test_Side(self) -> None:
+		"""``type SIDE is (RIGHT, LEFT);``"""
+		side = TextIO().Types["side"]
+
+		self.assertIsInstance(side, EnumeratedType)
+		self.assertListEqual(["right", "left"], [literal.NormalizedDesignator for literal in side.Literals])
+
+	def test_Width(self) -> None:
+		"""``subtype WIDTH is NATURAL;``"""
+		width = TextIO().Subtypes["width"]
+
+		self.assertIsInstance(width, Subtype)
+		self.assertEqual("natural", width.Type.Name.Identifier)
+
+	def test_Files(self) -> None:
+		"""``file INPUT : TEXT ...;``, ``file OUTPUT : TEXT ...;``"""
+		textio = TextIO()
+		for identifier in ("input", "output"):
+			file = textio.Files[identifier]
+			self.assertIsInstance(file, File)
+			self.assertEqual("text", file.Subtype.Name.Identifier)
+
+	def test_Justify(self) -> None:
+		"""``function JUSTIFY (VALUE: STRING; JUSTIFIED: SIDE := RIGHT; FIELD: WIDTH := 0) return STRING;``"""
+		justify = TextIO().Functions["justify"][0]
+
+		self.assertEqual("string", justify.ReturnType.Name.Identifier)
+		self.assertListEqual(["VALUE", "JUSTIFIED", "FIELD"], [item.Identifiers[0] for item in justify.ParameterItems])
+		for item in justify.ParameterItems:
+			self.assertIsInstance(item, ParameterConstantInterfaceItem)
+			self.assertIs(Mode.In, item.Mode)
+
+		self.assertIsNone(justify.ParameterItems[0].DefaultExpression)
+		self.assertIsInstance(justify.ParameterItems[1].DefaultExpression, SimpleObjectOrFunctionCallSymbol)
+		self.assertEqual("right", justify.ParameterItems[1].DefaultExpression.Name.Identifier)
+		self.assertIsInstance(justify.ParameterItems[2].DefaultExpression, IntegerLiteral)
+		self.assertEqual(0, justify.ParameterItems[2].DefaultExpression.Value)
+
+	def test_ReadLine(self) -> None:
+		"""``procedure READLINE (file F: TEXT; L: inout LINE);`` - also ``WRITELINE`` and ``TEE``."""
+		textio = TextIO()
+		for identifier in ("readline", "writeline", "tee"):
+			file, line = textio.Procedures[identifier][0].ParameterItems
+			self.assertIsInstance(file, ParameterFileInterfaceItem)
+			self.assertEqual("text", file.Subtype.Name.Identifier)
+			self.assertIsInstance(line, ParameterVariableInterfaceItem)
+			self.assertIs(Mode.InOut, line.Mode)
+			self.assertEqual("line", line.Subtype.Name.Identifier)
+
+	def test_Read(self) -> None:
+		"""``READ`` with and without ``GOOD``, for each of the eight types; ``L`` is ``inout``, the others ``out``."""
+		reads = TextIO().Procedures["read"]
+
+		self.assertListEqual(
+			[
+				subtype
+				for subtype in ("bit", "bit_vector", "boolean", "character", "integer", "real", "string", "time")
+				for _ in range(2)
+			],
+			[read.ParameterItems[1].Subtype.Name.Identifier for read in reads]
+		)
+		self.assertListEqual([3, 2] * 8, [len(read.ParameterItems) for read in reads])
+		for read in reads:
+			self.assertIsInstance(read, Procedure)
+			self.assertIs(Mode.InOut, read.ParameterItems[0].Mode)
+			for item in read.ParameterItems:
+				self.assertIsInstance(item, ParameterVariableInterfaceItem)
+
+			for item in read.ParameterItems[1:]:
+				self.assertIs(Mode.Out, item.Mode)
+
+	def test_SRead(self) -> None:
+		"""``procedure SREAD (L: inout LINE; VALUE: out STRING; STRLEN: out NATURAL);``"""
+		sread = TextIO().Procedures["sread"][0]
+
+		self.assertListEqual(["L", "VALUE", "STRLEN"], [item.Identifiers[0] for item in sread.ParameterItems])
+		self.assertListEqual(["line", "string", "natural"], [item.Subtype.Name.Identifier for item in sread.ParameterItems])
+
+	def test_OctalHexRead(self) -> None:
+		"""``OREAD`` and ``HREAD`` read a ``BIT_VECTOR``, with and without ``GOOD``."""
+		textio = TextIO()
+		for identifier in ("oread", "hread"):
+			withGood, withoutGood = textio.Procedures[identifier]
+			self.assertListEqual(
+				["line", "bit_vector", "boolean"],
+				[item.Subtype.Name.Identifier for item in withGood.ParameterItems]
+			)
+			self.assertListEqual(
+				["line", "bit_vector"],
+				[item.Subtype.Name.Identifier for item in withoutGood.ParameterItems]
+			)
+
+	def test_Write(self) -> None:
+		"""``WRITE``: ``L`` is a variable of mode ``inout``, the others are constants of mode ``in``."""
+		writes = TextIO().Procedures["write"]
+
+		self.assertListEqual(
+			[
+				["L", "VALUE", "JUSTIFIED", "FIELD"],
+				["L", "VALUE", "JUSTIFIED", "FIELD"],
+				["L", "VALUE", "JUSTIFIED", "FIELD"],
+				["L", "VALUE", "JUSTIFIED", "FIELD"],
+				["L", "VALUE", "JUSTIFIED", "FIELD"],
+				["L", "VALUE", "JUSTIFIED", "FIELD", "DIGITS"],
+				["L", "VALUE", "FORMAT"],
+				["L", "VALUE", "JUSTIFIED", "FIELD"],
+				["L", "VALUE", "JUSTIFIED", "FIELD", "UNIT"]
+			],
+			[[item.Identifiers[0] for item in write.ParameterItems] for write in writes]
+		)
+		self.assertListEqual(
+			["bit", "bit_vector", "boolean", "character", "integer", "real", "real", "string", "time"],
+			[write.ParameterItems[1].Subtype.Name.Identifier for write in writes]
+		)
+		for write in writes:
+			self.assertIsInstance(write.ParameterItems[0], ParameterVariableInterfaceItem)
+			self.assertIs(Mode.InOut, write.ParameterItems[0].Mode)
+			for item in write.ParameterItems[1:]:
+				self.assertIsInstance(item, ParameterConstantInterfaceItem)
+				self.assertIs(Mode.In, item.Mode)
+
+	def test_WriteDefaults(self) -> None:
+		"""``DIGITS: NATURAL := 0`` of ``REAL``, ``UNIT: TIME := NS`` of ``TIME``."""
+		writes = TextIO().Procedures["write"]
+		digits = writes[5].ParameterItems[4]
+		unit =   writes[8].ParameterItems[4]
+
+		self.assertEqual("natural", digits.Subtype.Name.Identifier)
+		self.assertEqual(0, digits.DefaultExpression.Value)
+		self.assertEqual("time", unit.Subtype.Name.Identifier)
+		self.assertEqual("ns", unit.DefaultExpression.Name.Identifier)
+		self.assertIsNone(writes[6].ParameterItems[2].DefaultExpression)
+
+	def test_OctalHexWrite(self) -> None:
+		"""``OWRITE`` and ``HWRITE`` write a ``BIT_VECTOR``."""
+		textio = TextIO()
+		for identifier in ("owrite", "hwrite"):
+			write = textio.Procedures[identifier][0]
+			self.assertListEqual(
+				["line", "bit_vector", "side", "width"],
+				[item.Subtype.Name.Identifier for item in write.ParameterItems]
+			)

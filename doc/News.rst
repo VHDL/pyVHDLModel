@@ -24,6 +24,10 @@ Version 0.45.0 (2026)
      ``delay_length``, the function ``now``, the type ``real_vector`` and the attribute ``foreign``. The types
      ``boolean`` and ``bit`` (:class:`~pyVHDLModel.STD.Boolean`, :class:`~pyVHDLModel.STD.Bit`) declare the logical
      operators, ``bit`` also the condition operator ``??`` and the matching relational operators.
+   * Package ``std.textio`` declares what IEEE Std 1076-2008, 16.4 lists, in its order: the types ``text`` and
+     ``side``, the subtype ``width``, the function ``justify``, the files ``input`` and ``output``, and the procedures
+     ``readline``, ``read``, ``sread``, ``oread``, ``hread``, ``writeline``, ``tee``, ``write``, ``owrite`` and
+     ``hwrite`` with all their overloads. The aliases (``bread``, ``swrite``, ...) aren't declared yet.
 
    .. rubric:: Bug Fixes
 
